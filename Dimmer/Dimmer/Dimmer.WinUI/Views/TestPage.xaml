@@ -9,38 +9,12 @@
     mc:Ignorable="d"
     xmlns:vm="using:Dimmer.ViewModel"
     Title="TestPage"
-    
-    xmlns:tableView="using:WinUI.TableView">
+    >
 
     <Grid DataContext="{x:Bind MyViewModel}" >
        
         <!--<Slider Value="{x:Bind MyViewModel.CurrentPositionPercentageUI}" ValueChanged="Slider_ValueChanged"/>-->
         
-        <tableView:TableView x:Name="MyTableView"
-                             IsRightTapEnabled="True" IsReadOnly="True"
-                             IsDoubleTapEnabled="True"
-                             ShowOptionsButton="True"
-                             DoubleTapped="MyTableView_DoubleTapped"
-                             ItemsSource="{x:Bind MyViewModel.DisplayedSongs}"
-                             AutoGenerateColumns="False">
-            <tableView:TableView.Columns>
-                <tableView:TableViewCheckBoxColumn Header="IsPlaying" 
-                                                   Binding="{Binding HasLyrics}"/>
-                <tableView:TableViewTextColumn Header="Title" 
-                                                   Binding="{Binding Title}"/>
-                <tableView:TableViewTextColumn Header="Artist Name" 
-                                                   Binding="{Binding ArtistName}"/>
-                <tableView:TableViewTextColumn Header="Album Name" 
-                                                   Binding="{Binding AlbumName}"/>
-                <tableView:TableViewTextColumn Header="Genre" 
-                                                   Binding="{Binding Genre}"/>
-                <tableView:TableViewTextColumn Header="File Format" 
-                                                   Binding="{Binding FileFormat}"/>
-                <tableView:TableViewTextColumn Header="Release Year" 
-                                                   Binding="{Binding ReleaseYear}"/>
-            </tableView:TableView.Columns>
-            
-        </tableView:TableView>
-
+      
     </Grid>
 </Window>

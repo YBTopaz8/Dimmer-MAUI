@@ -12,7 +12,12 @@ global using Microsoft.UI.Windowing;
 global using Microsoft.VisualBasic.FileIO;
 global using System.Collections.ObjectModel;
 global using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
-
+global using Dimmer.WinUI.DimmerAudio;
+global using Dimmer.WinUI.ViewModel;
+global using Microsoft.Maui.LifecycleEvents;
+global using Microsoft.UI;
+global using UraniumUI;
+global using WinRT.Interop;
 global using CommunityToolkit.Maui.Core.Extensions;
 
 global using Dimmer.Orchestration;
@@ -47,4 +52,18 @@ global using Windows.Media.Playback;
 global using Windows.Storage;
 global using Windows.Storage.Streams;
 global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
+global using Dimmer.Utilities;
+global using Dimmer.WinUI.Utils.Helpers;
+global using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
 
+global using System.Drawing;
+global using System.Reflection;
+global using Vanara.PInvoke;
+global using Dimmer.DimmerLive.Interfaces;
+global using Parse;
+
+global using CommunityToolkit.Mvvm.Input;
+global using Dimmer.Interfaces.Services;
+
+global using Dimmer.Utilities.FileProcessorUtils;
+global using System.Reactive.Concurrency;

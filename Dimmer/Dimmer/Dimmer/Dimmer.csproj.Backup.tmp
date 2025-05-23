@@ -1,0 +1,107 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Dimmer</RootNamespace>
+		<UseMaui>true</UseMaui>
+		<Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="DimmerLive\**" />
+	  <EmbeddedResource Remove="DimmerLive\**" />
+	  <MauiCss Remove="DimmerLive\**" />
+	  <MauiXaml Remove="DimmerLive\**" />
+	  <None Remove="DimmerLive\**" />
+	</ItemGroup>
+  
+  <ItemGroup>
+    <MauiFont Include="Resources\Fonts\FontAwesomeRegular400.otf" Alias="FontAwesomeRegular" />
+    <MauiFont Include="Resources\Fonts\FontAwesome6FreeSolid900.otf" Alias="FontAwesomeSolid" />
+    <MauiFont Include="Resources\Fonts\FABrandsRegular400.otf" Alias="FontAwesomeBrands" />
+  </ItemGroup>
+  
+  <ItemGroup>
+
+
+
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+
+
+
+
+
+
+
+
+    <PackageReference Include="Realm" Version="20.1.0" />
+
+    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.4" />
+
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.60" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+		<PackageReference Include="WebRTCme" Version="2.0.0" />
+    
+		 
+		<PackageReference Include="z440.atl.core" Version="6.23.0" />
+
+    <PackageReference Include="UraniumUI.Material" Version="2.12.1" />
+
+    <PackageReference Include="ZXing.Net.Bindings.SkiaSharp" Version="0.16.21" />
+
+    <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.4.0" />
+
+	</ItemGroup>
+
+
+  <ItemGroup>
+	  <Compile Update="Properties\Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	  <Compile Update="Resources\Localization\DimmerLanguage.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>DimmerLanguage.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Properties\Resources.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Resources\Localization\DimmerLanguage.resx">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
+	    <LastGenOutput>DimmerLanguage.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="UIUtils\CustomPopups\YesNoCancelPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+</Project>
+
+

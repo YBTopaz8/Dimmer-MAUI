@@ -27,11 +27,14 @@
 	  <None Remove="DimmerWindow.xaml" />
 	  <None Remove="Views\ArtistWindow.xaml" />
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+	  <None Remove="Views\DimmerSongWindow.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
+	  <None Remove="Views\OnlinePageManagement.xaml" />
 	  <None Remove="Views\PlaylistWindow.xaml" />
 	  <None Remove="Views\SettingsWindow.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
 	  <None Remove="Views\SongNotifierWindow.xaml" />
+	  <None Remove="Views\StatisticsPage.xaml" />
 	  <None Remove="Views\TestPage.xaml" />
 	</ItemGroup>
 
@@ -42,11 +45,14 @@
 	  <Page Remove="Views\AlbumWindow.xaml" />
 	  <Page Remove="Views\ArtistWindow.xaml" />
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+	  <Page Remove="Views\DimmerSongWindow.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
+	  <Page Remove="Views\OnlinePageManagement.xaml" />
 	  <Page Remove="Views\PlaylistWindow.xaml" />
 	  <Page Remove="Views\SettingsWindow.xaml" />
 	  <Page Remove="Views\SingleSongPage.xaml" />
 	  <Page Remove="Views\SongNotifierWindow.xaml" />
+	  <Page Remove="Views\StatisticsPage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -59,17 +65,25 @@
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
-		<PackageReference Include="Vanara.Core" Version="4.1.1" />
-		<PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.1" />
-		<PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.1" />
-		<PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.1" />
-		<PackageReference Include="Vanara.PInvoke.User32" Version="4.1.1" />
-		<PackageReference Include="Vanara.Windows.Shell" Version="4.1.1" />
+		<PackageReference Include="Vanara.Core" Version="4.1.3" />
+		<PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.3" />
+		<PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.3" />
+		<PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.3" />
+		<PackageReference Include="Vanara.PInvoke.User32" Version="4.1.3" />
+		<PackageReference Include="Vanara.Windows.Shell" Version="4.1.3" />
 		<PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
-		<PackageReference Include="WinUI.TableView" Version="1.2.2" />
-		
+
+    <PackageReference Include="UraniumUI.Material" Version="2.12.1" />
+    <PackageReference Include="UraniumUI.Blurs" Version="2.12.1" />
+
+    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.12.1" />
+    <PackageReference Include="AlohaKit" Version="1.0.100" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
+
+    
 	</ItemGroup>
 
 	<ItemGroup>
@@ -85,7 +99,12 @@
 		<Manifest Include="$(ApplicationManifest)" />
 	</ItemGroup>
 
-	<!--
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
+  </ItemGroup>
+
+
+  <!--
 		Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
 		Tools extension to be activated for this project even if the Windows App SDK Nuget
 		package has not yet been restored.
@@ -109,6 +128,9 @@
 	  <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Include="Views\DimmerSongWindow.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Include="Views\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -117,6 +139,9 @@
 	  <Folder Include="Database\" />
 	</ItemGroup>
 	<ItemGroup>
+	  <MauiXaml Include="Views\OnlinePageManagement.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Include="Views\PlaylistWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -127,6 +152,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Include="Views\SongNotifierWindow.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Include="Views\StatisticsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

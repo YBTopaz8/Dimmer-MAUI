@@ -1,9 +1,12 @@
-﻿namespace Dimmer.Data.Models;
+﻿using MongoDB.Bson;
+using static ATL.LyricsInfo;
+
+namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
-public partial class SongModel : RealmObject
+public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 
     /// <summary>
@@ -13,35 +16,28 @@ public partial class SongModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public ObjectId Id { get; set; }
     /// <summary>
     /// Gets or sets the title.
     /// </summary>
     /// <value>
     /// The title.
     /// </value>
-    public string Title { get; set; } = "Unknown Title";
+    public string Title { get; set; }
     /// <summary>
     /// Gets or sets the name of the artist.
     /// </summary>
     /// <value>
     /// The name of the artist.
     /// </value>
-    public string ArtistName { get; set; } = "Unknown Artist Name";
+    public string ArtistName { get; set; }
     /// <summary>
     /// Gets or sets the name of the album.
     /// </summary>
     /// <value>
     /// The name of the album.
     /// </value>
-    public string AlbumName { get; set; } = "Unknown Album Name";
-    /// <summary>
-    /// Gets or sets the genre.
-    /// </summary>
-    /// <value>
-    /// The genre.
-    /// </value>
-    public string Genre { get; set; } = "Unknown Genre";
+    public string AlbumName { get; set; } 
     /// <summary>
     /// Gets or sets the file path.
     /// </summary>
@@ -62,6 +58,8 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The release year.
     /// </value>
+    [Backlink(nameof(PlaylistModel.Songs))]
+    public IQueryable<PlaylistModel> Playlists { get; }
     public int? ReleaseYear { get; set; }
     /// <summary>
     /// Gets or sets the track number.
@@ -77,6 +75,7 @@ public partial class SongModel : RealmObject
     /// The file format.
     /// </value>
     public string FileFormat { get; set; } = string.Empty;
+    public string Composer { get; set; } = string.Empty;
     /// <summary>
     /// Gets or sets the size of the file.
     /// </summary>
@@ -126,21 +125,15 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The cover image path.
     /// </value>
-    public string CoverImagePath { get; set; } = "musicnoteslider.png";
+    public string? CoverImagePath { get; set; }
     /// <summary>
     /// Gets or sets the un synchronize lyrics.
     /// </summary>
     /// <value>
     /// The un synchronize lyrics.
     /// </value>
-    public string UnSyncLyrics { get; set; } = string.Empty;
-    /// <summary>
-    /// Gets or sets a value indicating whether this instance is playing.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if this instance is playing; otherwise, <c>false</c>.
-    /// </value>
-    public bool IsPlaying { get; set; }
+    public string? UnSyncLyrics { get; set; }
+    
     /// <summary>
     /// Gets or sets a value indicating whether this instance is favorite.
     /// </summary>
@@ -176,42 +169,42 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The date created.
     /// </value>
-    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     /// <summary>
     /// Gets or sets the name of the device.
     /// </summary>
     /// <value>
     /// The name of the device.
     /// </value>
-    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceName { get; set; } 
     /// <summary>
     /// Gets or sets the device form factor.
     /// </summary>
     /// <value>
     /// The device form factor.
     /// </value>
-    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceFormFactor { get; set; } 
     /// <summary>
     /// Gets or sets the device model.
     /// </summary>
     /// <value>
     /// The device model.
     /// </value>
-    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceModel { get; set; } 
     /// <summary>
     /// Gets or sets the device manufacturer.
     /// </summary>
     /// <value>
     /// The device manufacturer.
     /// </value>
-    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceManufacturer { get; set; } 
     /// <summary>
     /// Gets or sets the device version.
     /// </summary>
     /// <value>
     /// The device version.
     /// </value>
-    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public string? DeviceVersion { get; set; } 
     /// <summary>
     /// Gets or sets the user identifier online.
     /// </summary>
@@ -220,13 +213,30 @@ public partial class SongModel : RealmObject
     /// </value>
     public string? UserIDOnline { get; set; }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SongModel"/> class.
-    /// </summary>
+    public IList<UserNoteModel> UserNotes { get; }
+    public AlbumModel? Album { get;  set; }
+    public GenreModel? Genre { get;  set; }
+    public IList<ArtistModel> ArtistIds { get; }
+    [Backlink(nameof(TagModel.Songs))]
+    public IQueryable<TagModel> Tags { get; }
+    [Backlink(nameof(DimmerPlayEvent.Song))]
+    public IQueryable<DimmerPlayEvent> PlayHistory { get; }
     public SongModel()
     {
         
     }
 }
 
-
+public partial class UserNoteModel : EmbeddedObject
+{
+    
+    public string Id { get; set; } = AudioFileUtils.GenerateId("UNote");
+    public string? UserMessageText { get; set; }
+    public string? UserMessageImagePath { get; set; }
+    public string? UserMessageAudioPath { get; set; }
+    public bool IsPinned { get; set; }
+    public int UserRating { get; set; }
+    public string? MessageColor { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }  
+    public DateTimeOffset ModifiedAt { get; set; }
+}

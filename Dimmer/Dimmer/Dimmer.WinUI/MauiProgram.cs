@@ -1,8 +1,5 @@
-﻿using Dimmer.WinUI.DimmerAudio;
-using Dimmer.WinUI.ViewModel;
-using Microsoft.Maui.LifecycleEvents;
-using Microsoft.UI;
-using WinRT.Interop;
+﻿
+
 
 namespace Dimmer.WinUI;
 
@@ -13,19 +10,23 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         builder
+            .UseUraniumUI()
+            .UseUraniumUIBlurs()
+            .UseUraniumUIMaterial()
             .UseSharedMauiApp();
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddTransient<BaseViewModelWin>();
-        builder.Services.AddTransient<BaseAlbumViewModel>();
+        builder.Services.AddScoped<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
+        builder.Services.AddTransient<OnlinePageManagement>();
 
         builder.Services.AddSingleton<DimmerWin>();
+        builder.Services.AddScoped<DimmerOnlineViewModel>();
         
         builder.Services.AddSingleton<HomePage>();
-        builder.Services.AddSingleton<HomeViewModel>();
+        builder.Services.AddScoped<HomeViewModel>();
 
-        builder.Services.AddTransient<SingleSongPageViewModel>();
+        builder.Services.AddScoped<SingleSongPageViewModel>();
         builder.Services.AddTransient<SingleSongPage>();
 
 
@@ -75,6 +76,16 @@ public static class MauiProgram
                 });
             });
         });
+
+
+        //if (ParseSetup.InitializeParseClient())
+        //{
+        //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+        //    ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+        //    ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
+        //    ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
+        //    ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        //}
         return builder.Build();
     }
 }

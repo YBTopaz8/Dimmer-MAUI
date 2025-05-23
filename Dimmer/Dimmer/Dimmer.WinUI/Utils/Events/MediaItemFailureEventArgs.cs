@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.Events;
+﻿namespace Dimmer.WinUI.Utils.Events;
 // Represents an error that occurred during media playback
 public class MediaItemFailureEventArgs : EventArgs
 {

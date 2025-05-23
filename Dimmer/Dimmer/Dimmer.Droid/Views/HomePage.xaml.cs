@@ -1,12 +1,10 @@
 using CommunityToolkit.Maui.Core.Extensions;
-using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Editors;
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView;
 using Dimmer.Utilities.CustomAnimations;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Dimmer.Views;
 
@@ -19,19 +17,21 @@ public partial class HomePage : ContentPage
 		InitializeComponent();
         MyViewModel=vm;
 
-        MyViewModel!.LoadPageViewModel();
+        //MyViewModel!.LoadPageViewModel();
         BindingContext = vm;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
+        //MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
 
-        MyViewModel.SetCollectionView(SongsColView);
+        //MyViewModel.SetCollectionView(SongsColView);
         //MyViewModel.SetSongLyricsView(LyricsColView);
 
+        //await MyViewModel.LoginFromSecureData();
 
+        btmBarHeight = BtmBar.Height;
     }
 
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
@@ -59,11 +59,11 @@ public partial class HomePage : ContentPage
     private void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
         //await MyViewModel.NavigateToArtistsPage(1);
-       SongsMenuPopup.Close();
+       //SongsMenuPopup.Close();
     }
     private void ClosePopup(object sender, EventArgs e)
     {
-        SongsMenuPopup.Close();
+        //SongsMenuPopup.Close();
     }
 
     private void ShowMoreBtn_Clicked(object sender, EventArgs e)
@@ -75,9 +75,9 @@ public partial class HomePage : ContentPage
     }
     private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        MyViewModel.PlaySong((e.Item as SongModelView)!,Utilities.Enums.CurrentPage.HomePage);
         var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
         qs!.UpdateTileVisualState(true, e.Item as SongModelView);
+        MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
     }
 
     private async void MediaChipBtn_Tap(object sender, ChipEventArgs e)
@@ -96,7 +96,7 @@ public partial class HomePage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                MyViewModel.PlayPrevious();
+               await  MyViewModel.PlayPrevious();
                 break;
             case 2:
             case 3:
@@ -104,7 +104,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 4:
-                MyViewModel.PlayNext(true);
+                await MyViewModel.PlayNext(true);
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
@@ -120,7 +120,7 @@ public partial class HomePage : ContentPage
     
     }
 
-    private async void SearchSong_Tap(object sender, HandledEventArgs e)
+    private void SearchSong_Tap(object sender, HandledEventArgs e)
     {
         //await ToggleSearchPanel();
     }
@@ -128,11 +128,11 @@ public partial class HomePage : ContentPage
     private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
     {
         //MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
 
-        //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        ////MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.HalfExpandedRatio = 0.8;
 
     }
 
@@ -141,6 +141,7 @@ public partial class HomePage : ContentPage
     private double _startY;
     private bool _isPanning;
 
+    double btmBarHeight = 0;
     private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
         DXBorder send = (DXBorder)sender;
@@ -181,22 +182,20 @@ public partial class HomePage : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.PlayNext(true);
+                                await MyViewModel.PlayNext(true);
 
-                                Task colorTask = AnimateColor(send, Colors.SlateBlue);
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
-                                await Task.WhenAll(colorTask, bounceTask);
+                                await Task.WhenAll(bounceTask);
                             }
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                MyViewModel.PlayPrevious();
+                                await MyViewModel.PlayPrevious();
 
-                                Task colorTask = AnimateColor(send, Colors.MediumPurple);
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
-                                await Task.WhenAll(colorTask, bounceTask);
+                                await Task.WhenAll( bounceTask);
                             }
                         }
                         catch (Exception ex) // Handle exceptions
@@ -217,12 +216,12 @@ public partial class HomePage : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            MyViewModel.PlayPrevious();
+                             await MyViewModel.PlayPrevious();
                             Debug.WriteLine("Swiped left");
-                            Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
-                            Task t2 = Task.Delay(500);
-                            Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
-                            await Task.WhenAll(t1, t2, t3);
+                            //Task t1 = send.MyBackgroundCoorTo(Colors.MediumPurple, length: 300);
+                            //Task t2 = Task.Delay(500);
+                            //Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+                            //await Task.WhenAll(t1, t2, t3);
                         }
                         catch { }
                     }
@@ -231,48 +230,55 @@ public partial class HomePage : ContentPage
                 {
                     if (deltaY > 0) // Down
                     {
-                        try
-                        {
-                            if (HomeTabView.SelectedItemIndex != 0)
-                            {
-                                HomeTabView.SelectedItemIndex = 0;
-                            }
-                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
-                            SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+                        //try
+                        //{
+                        //    if (HomeTabView.SelectedItemIndex != 0)
+                        //    {
+                        //        HomeTabView.SelectedItemIndex = 0;
+                        //    }
+                        //    int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+                        //    SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
-                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
-                        }
-                        catch { }
+                        //    HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                        //}
+                        //catch { }
                     }
-                    else  //Up
+                    else  // Up
                     {
                         try
                         {
-                            if (HomeTabView.SelectedItemIndex != 1)
-                            {
-                                HomeTabView.SelectedItemIndex = 1;
-                                //await MyViewModel.SetSongLyricsView(LyricsColView);
+                            btmBarHeight=BtmBar.Height;
+                            await BtmBar.AnimateSlideDown(BtmBar.Height);
+                            NowPlayingBtmSheet.IsVisible=true;
+                            NowPlayingBtmSheet.Show();
+                            NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.FullExpanded;
+                            
 
-                                //SongsColView.FilterString = string.Empty;
+                            //if (HomeTabView.SelectedItemIndex != 1)
+                            //{
+                            //    HomeTabView.SelectedItemIndex = 1;
+                            //    //await MyViewModel.SetSongLyricsView(LyricsColView);
 
-                                //await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
-                                //    );
-                                ////CurrentView!.AnimateFadeOutBack());
-                                //isOnFocusMode = false;
-                                ////CurrentView = SearchModeUI;
+                            //    //SongsColView.FilterString = string.Empty;
 
-                                //SearchBy.Unfocus();
-                                //SearchParam = string.Empty;
+                            //    //await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
+                            //    //    );
+                            //    ////CurrentView!.AnimateFadeOutBack());
+                            //    //isOnFocusMode = false;
+                            //    ////CurrentView = SearchModeUI;
 
-                            }
-                            else
-                            {
-                                //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
-                                ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-                                ContextBtmSheet.HalfExpandedRatio = 0.8;
+                            //    //SearchBy.Unfocus();
+                            //    //SearchParam = string.Empty;
 
-                                //HomeTabView.SelectedItemIndex = prevViewIndex;
-                            }
+                            //}
+                            //else
+                            //{
+                            //    //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
+                            //    //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+                            //    //ContextBtmSheet.HalfExpandedRatio = 0.8;
+
+                            //    //HomeTabView.SelectedItemIndex = prevViewIndex;
+                            //}
                         }
                         catch { }
                     }
@@ -309,17 +315,12 @@ public partial class HomePage : ContentPage
         {
 
             await MyViewModel.PlayPauseAsync();
-            //send.RunFocusModeAnimation(Color.FromArgb("#8B0000")); // DarkRed for pause
-
-            await send.MyBackgroundColorTo(Color.FromArgb("#252526"), length: 300);
         }
         else
         {
-            await send.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
-            //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
-                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, Utilities.Enums.CurrentPage.HomePage);
+              await  MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
             }
             else
             {
@@ -359,33 +360,33 @@ public partial class HomePage : ContentPage
         //MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
     }
 
-    private async void StartSyncing_Clicked(object sender, EventArgs e)
+    private void StartSyncing_Clicked(object sender, EventArgs e)
     {
-        await PlainLyricSection.DimmOut();
-        PlainLyricSection.IsEnabled = false;
-        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
-        IsSyncing = true;
+        //await PlainLyricSection.DimmOut();
+        //PlainLyricSection.IsEnabled = false;
+        ////MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        //IsSyncing = true;
 
-        await SyncLyrView.DimmIn();
-        SyncLyrView.IsVisible=true;
+        //await SyncLyrView.DimmIn();
+        //SyncLyrView.IsVisible=true;
     }
 
     bool IsSyncing = false;
-    private async void CancelAction_Clicked(object sender, EventArgs e)
+    private void CancelAction_Clicked(object sender, EventArgs e)
     {
-        await PlainLyricSection.DimmIn();
-        PlainLyricSection.IsEnabled = true;
+        //await PlainLyricSection.DimmIn();
+        //PlainLyricSection.IsEnabled = true;
 
-        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
-        IsSyncing = false;
+        ////MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        //IsSyncing = false;
 
-        await SyncLyrView.DimmOut();
-        SyncLyrView.IsVisible=false;
+        //await SyncLyrView.DimmOut();
+        //SyncLyrView.IsVisible=false;
     }
-    private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
+    private void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
     {
 
-        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
+        //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
 
         //await MyViewModel.FetchLyrics(true);
 
@@ -393,7 +394,7 @@ public partial class HomePage : ContentPage
     private void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         return ;
-        LyricsEditor.Text = string.Empty;
+        //LyricsEditor.Text = string.Empty;
         Button send = (Button)sender;
         string title = send.Text;
         //Content thisContent = (Content)send.BindingContext;
@@ -408,23 +409,23 @@ public partial class HomePage : ContentPage
             PasteLyricsFromClipBoardBtn_Clicked(send, e);
         }
     }
-    private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    private  void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
     {
-        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
+        //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
-        if (Clipboard.Default.HasText)
-        {
-            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
-        }
+        //if (Clipboard.Default.HasText)
+        //{
+        //    LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        //}
 
 
     }
 
-    private async void ContextIcon_Tap(object sender, HandledEventArgs e)
+    private  void ContextIcon_Tap(object sender, HandledEventArgs e)
     {
         //MyViewModel.LoadArtistSongs();
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.HalfExpandedRatio = 0.8;
 
     }
     private void SearchOnline_Clicked(object sender, EventArgs e)
@@ -492,7 +493,7 @@ public partial class HomePage : ContentPage
         View send = (View)sender;
 
         AlbumModelView? curSel = send.BindingContext as AlbumModelView;
-        //MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+        //MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.Id);
     }
 
     private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
@@ -500,4 +501,173 @@ public partial class HomePage : ContentPage
         //MyViewModel.ToggleShuffleState();
     }
 
+    private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
+    {
+        var song = (SongModelView)e.Item;
+        MyViewModel.SetCurrentlyPickedSong(song);
+        //ContextBtmSheet.Show();
+    }
+
+    private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
+    {
+        //if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
+        //{
+        //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
+        //}
+        //else
+        //{
+        //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
+        //}
+            
+    }
+
+    //private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    //{
+    //    UserNoteModelView note = new()
+    //    {
+    //        UserMessageText=NoteText.Text,
+            
+    //    };
+    //   await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
+    //}
+
+
+    string SearchParam = string.Empty;
+
+    private void SearchBy_TextChanged(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(SearchBy.Text))
+        {
+            ByAll();
+            return;
+        }
+        switch (SearchParam)
+        {
+            case "Title":
+                ByTitle();
+                break;
+            case "Artist":
+                ByArtist();
+                break;
+            case "":
+                ByAll();
+                break;
+            default:
+                ByAll();
+                break;
+        }
+
+    }
+
+    private void ByTitle()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                MyViewModel.IsOnSearchMode = true;
+                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
+            }
+            else
+            {
+                MyViewModel.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+    private void ByAll()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                MyViewModel.IsOnSearchMode = true;
+                SongsColView.FilterString =
+                    $"Contains([Title], '{SearchBy.Text}') OR " +
+                    $"Contains([ArtistName], '{SearchBy.Text}') OR " +
+                    $"Contains([AlbumName], '{SearchBy.Text}')";
+            }
+            else
+            {
+                MyViewModel.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+    private void ByArtist()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                MyViewModel.IsOnSearchMode = true;
+                SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
+
+            }
+            else
+            {
+                MyViewModel.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+
+    private void ChipGroup_ChipTap(object sender, ChipEventArgs e)
+    {
+
+    }
+
+    private async void PlayPauseBtn_Clicked(object sender, EventArgs e)
+    {
+        DXButton send = (DXButton)sender;
+
+        if (MyViewModel.IsPlaying)
+        {
+
+            await MyViewModel.PlayPauseAsync();
+
+        }
+        else
+        {
+            if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
+            {
+               await MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
+            }
+            else
+            {
+                await MyViewModel.PlayPauseAsync();
+            }
+        }
+    }
+
+    private void BtmSheetHeader_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private async void NowPlayingBtmSheet_StateChanged(object sender, Syncfusion.Maui.Toolkit.BottomSheet.StateChangedEventArgs e)
+    {
+        Debug.WriteLine(e.NewState);
+        Debug.WriteLine(e.OldState);
+        if (e.NewState == Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Collapsed)
+        {
+            await BtmBar.AnimateSlideUp(122);
+            NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
+            NowPlayingBtmSheet.IsVisible=false;
+
+        }
+
+    }
+
+    private async void CloseNowPlayingBtmSheet_Clicked(object sender, EventArgs e)
+    {
+        await BtmBar.AnimateSlideUp(122);
+        NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
+
+    }
+
+    private void BtmBar_Loaded(object sender, EventArgs e)
+    {
+
+    }
 }

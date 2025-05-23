@@ -9,6 +9,7 @@ namespace Dimmer.Utilities;
 
 public class SingleFolderMonitor : IDisposable
 {
+
     // Shared settings can remain static if they apply to ALL monitors
     private static readonly ImmutableHashSet<string> TargetExtensions = ImmutableHashSet.Create(
         StringComparer.OrdinalIgnoreCase, ".lrc", ".m4a", ".flac", ".mp3");
@@ -16,7 +17,7 @@ public class SingleFolderMonitor : IDisposable
     // Instance fields - each instance monitors one path
     private FileSystemWatcher? _internalWatcher;
     private FileSystemWatcher? _parentWatcher;
-    private string? _monitoredFolderName; // Store the name for parent watcher events
+    private string? _monitoredFolderName; // Store the name for parent watcher Events
 
     public string? MonitoredPath { get; private set; }
     public bool IsMonitoring { get; private set; }
@@ -231,7 +232,7 @@ public class SingleFolderMonitor : IDisposable
     {
         IsMonitoring = false; // Mark as not monitoring first
 
-        _internalWatcher?.Dispose(); // Dispose handles disabling events and unsubscribing
+        _internalWatcher?.Dispose(); // Dispose handles disabling Events and unsubscribing
         _internalWatcher = null;
 
         _parentWatcher?.Dispose();
@@ -239,7 +240,7 @@ public class SingleFolderMonitor : IDisposable
 
         if (isStoppingPermanently)
         {
-            // Clear events only on permanent stop/dispose to avoid issues during rename restart
+            // Clear Events only on permanent stop/dispose to avoid issues during rename restart
             FileSystemChanged = null;
             FileSystemRenamed = null;
             MonitoredFolderRenamed = null;

@@ -1,6 +1,4 @@
 ﻿using AndroidX.Media3.Common;
-using Dimmer.Data.Models; // Assuming this namespace is correct
-using Dimmer.Data.ModelView;
 using Dimmer.Utilities.Events; // Assuming this namespace is correct for PlaybackEventArgs
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -20,7 +18,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private bool _isInitialized = false; // Track if binder is set
     private SongModelView? _currentSongModel; // Store context if needed
-
+    public SongModelView? CurrentTrackMetadata => _currentSongModel; // Expose current track metadata
     // --- IDimmerAudioService Implementation ---
 
     public bool IsPlaying => Player?.IsPlaying ?? false;
@@ -74,7 +72,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         if (_isInitialized && Service != null)
         {
-            // Subscribe to events from the *new* service instance
+            // SubscribeAsync to events from the *new* service instance
             ConnectEvents();
             Console.WriteLine("[AudioService] Binder set and events connected.");
 
@@ -151,7 +149,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // --- IAudioActivity Implementation (Handles events FROM ExoPlayerService) ---
 
-    // Binder property required by IAudioActivity interface
+    // Binder property by IAudioActivity interface
     ExoPlayerServiceBinder? IAudioActivity.Binder { get => _binder; set => SetBinder(value); }
 
     public void OnStatusChanged(object sender, EventArgs e)
@@ -191,6 +189,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public void OnPlayingChanged(object sender, bool isPlaying)
     {
         Console.WriteLine($"[AudioService] OnPlayingChanged received: IsPlaying={isPlaying}");
+
+        IsPlayingChanged.Invoke(this, new(_currentSongModel)
+        {
+            MediaSong=_currentSongModel,
+            IsPlaying=isPlaying
+        });
         NotifyPropertyChanged(nameof(IsPlaying));
         
     }
@@ -216,7 +220,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         if (Service == null)
             return;
-        // Subscribe to events coming *from* the ExoPlayerService
+        // SubscribeAsync to events coming *from* the ExoPlayerService
         Service.StatusChanged += OnStatusChanged;
         Service.Buffering += OnBuffering;
         Service.CoverReloaded += OnCoverReloaded;

@@ -1,9 +1,4 @@
-﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Storage;
-using Dimmer.Data;
-using Dimmer.Services;
-using Microsoft.Extensions.Logging;
-using Syncfusion.Maui.Toolkit.Hosting;
+﻿
 
 namespace Dimmer;
 
@@ -13,6 +8,7 @@ public static class MauiProgramExtensions
     {
         builder
             .UseMauiApp<App>()
+            .UseBarcodeReader()
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
@@ -42,14 +38,16 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
      
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
-        builder.Services.AddSingleton<IPlayerStateService, PlayerStateService>();
+        builder.Services.AddSingleton<IDimmerStateService, DimmerStateService>();
+        builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();
+        builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
-        builder.Services.AddTransient<SubscriptionManager>();
+        builder.Services.AddSingleton<SubscriptionManager>();
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
 
-        builder.Services.AddTransient(typeof(IRepository<>), typeof(RealmCoreRepo<>));
-        builder.Services.AddTransient(typeof(IQueueManager<>), typeof(QueueManager<>));
+        builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
+        builder.Services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
         IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();
@@ -64,7 +62,6 @@ public static class MauiProgramExtensions
 
 
         builder.Services.AddSingleton<BaseViewModel>();
-        builder.Services.AddTransient<BaseAlbumViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
         return builder;

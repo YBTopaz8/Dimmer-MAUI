@@ -1,4 +1,5 @@
-﻿using static ATL.LyricsInfo;
+﻿using ATL;
+using static ATL.LyricsInfo;
 
 namespace Dimmer.Data.Models;
 public class Content
@@ -134,6 +135,5 @@ public partial class LyricPhraseModel : ObservableObject
     }
 
 }
-
 
 

@@ -1,412 +1,276 @@
-﻿using Dimmer.Services;
-using System.Text;
-using System.Text.Json;
+﻿
+
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reactive.Linq;
 
 namespace Dimmer.Orchestration;
 public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 {
+    private readonly IDimmerStateService state;
+    private readonly IRepository<SongModel> _songRepo;
+    private readonly IRepository<UserModel> userRepo;
+    private readonly IRepository<GenreModel> genreRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
-    private readonly IRepository<AlbumArtistGenreSongLink> _linkRepo;
-    private readonly IRepository<PlayDateAndCompletionStateSongLink> _pdlRepo;
-    private readonly IMapper _mapper;
+    private readonly IRepository<AppStateModel> appstateRepo;
+    private readonly ISettingsService settings;
+    private readonly IFolderMgtService folderMonitor;
+    private readonly IRepository<DimmerPlayEvent> _pdlRepo;
+    private readonly IRepository<PlaylistModel> playlistRepo;
+    private readonly IRepository<ArtistModel> _artistRepo;
     private readonly SubscriptionManager _subs;
 
-    private readonly BehaviorSubject<List<AlbumModel>> _specificAlbums = new(new());
-    public IObservable<List<AlbumModel>> SpecificAlbums => _specificAlbums.AsObservable();
+
+    //public IObservable<List<AlbumModel>> SpecificAlbums => _queriedAlbums.AsObservable();
+    public IObservable<IReadOnlyList<SongModel>> SpecificSongs => _queriedSongs.AsObservable();
+    //public IObservable<List<GenreModel>> SpecificGenre => _specificGenres.AsObservable();
+    public IObservable<IReadOnlyList<AlbumModel>> SpecificAlbums => _queriedAlbums.AsObservable();
 
     private readonly BehaviorSubject<double> _syncProgress = new(0);
     public IObservable<double> SyncProgress => _syncProgress.AsObservable();
+    private readonly BehaviorSubject<IReadOnlyList<AlbumModel>> _queriedAlbums = new(Array.Empty<AlbumModel>());
+    private readonly BehaviorSubject<IReadOnlyList<SongModel>> _queriedSongs = new(Array.Empty<SongModel>());
 
     public AlbumsMgtFlow(
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<UserModel> userRepo,
         IRepository<GenreModel> genreRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
-        IRepository<AlbumArtistGenreSongLink> linkRepo,
+        IRepository<AppStateModel> appstateRepo,
         ISettingsService settings,
-        IFolderMonitorService folderMonitor,
+        IFolderMgtService folderMonitor,        
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state,  songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+        
+    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMonitor, subs, mapper)
     {
+        this.state=state;
+        _songRepo=songRepo;
+        this.userRepo=userRepo;
+        this.genreRepo=genreRepo;
         _albumRepo     = albumRepo;
-        _linkRepo      = linkRepo;
+        this.appstateRepo=appstateRepo;
+        this.settings=settings;
+        this.folderMonitor=folderMonitor;
         _pdlRepo       = pdlRepo;
-        _mapper        = mapper;
+        this.playlistRepo=playlistRepo;
+        this._artistRepo=artistRepo;
         _subs          = subs;
+    }
+    public void GetAlbumsByArtistName(string artistName)
+    {
+        if (string.IsNullOrWhiteSpace(artistName))
+        {
+            _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
+            return;
+        }
+
+        // Step 1: Find the artist(s) by name. Realm supports string equality.
+        // Case-sensitive by default. If you need case-insensitive, Realm's RQL `CONTAINS[c]` or `==[c]`
+        // is not directly exposed via simple LINQ equality.
+        // For case-insensitive, you might need to fetch and filter or store normalized names.
+        // Assuming case-sensitive for now:
+        var artists = _artistRepo.Query(ar => ar.Name == artistName);
+        if (!artists.Any())
+        {
+            _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
+            return;
+        }
+        var artistIds = artists.Select(ar => ar.Id).ToList();
+
+        // Step 2: Find songs by these artist IDs.
+        // If SongModel.ArtistIds is IList<ObjectId>:
+        // This requires iterating through artistIds or fetching all songs and filtering in memory.
+        // Realm LINQ does not directly support `artistIds.Contains(s.PrimaryArtistId)` or similar for sub-queries.
+        // Let's fetch songs that have *any* of these artists.
+
+        // Strategy: Fetch all songs, then filter in memory if SongModel.Artists is IList<ArtistModel>
+        // If SongModel.ArtistIds is IList<ObjectId>, we can do better with multiple OR queries if needed,
+        // or fetch all and filter.
+        // For simplicity here, assuming SongModel.ArtistIds is a list of ObjectId that represent artist PKs.
+
+        var allSongs = _songRepo.GetAll(); // Potentially large, use with caution.
+                                           // A better model or more complex querying strategy might be needed for performance.
+
+        // In-memory filtering
+        var songsByArtists = allSongs
+            .Where(s => s.ArtistIds != null && s.ArtistIds.Any(songArtistId => artistIds.Contains(songArtistId.Id)))
+            .ToList();
+
+        if (!songsByArtists.Any())
+        {
+            _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
+            return;
+        }
+
+        // Step 3: Get distinct albums from these songs
+        var albums = songsByArtists
+            .Where(s => s.Album != null) // Ensure Album object is linked
+            .Select(s => s.Album)
+            .DistinctBy(al => al!.Id) // Requires .NET 6+ for DistinctBy. Album is not null here.
+            .ToList();
+
+        _queriedAlbums.OnNext(albums!); // albums will not be null here
     }
 
     // 1. Filtering & Searching
     public void GetAlbumsByReleaseYearRange(int startYear, int endYear)
     {
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.ReleaseYear >= startYear && a.ReleaseYear <= endYear)
-            .ToList();
-        _specificAlbums.OnNext(list);
+        // Use the Query method from your repository
+        var list = _albumRepo.Query(a => a.ReleaseYear >= startYear && a.ReleaseYear <= endYear);
+        _queriedAlbums.OnNext(list); 
     }
+    public void GetAlbumsByArtistId(ObjectId artistId) // Changed parameter to ObjectId for directness
+    {
+        // This LINQ query should be translatable by Realm if ArtistIds is a list of primitives (ObjectId)
+        // and Realm supports .Any() on primitive lists with an equality check.
+        // This is a common pattern that Realm *often* supports.
+        List<SongModel> songsOfArtist;
+       
+            songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(id => id.Id == artistId));
 
-    public void GetAlbumsByArtistId(string artistId)
-    {
-        var albumIds = _linkRepo.GetAll().AsEnumerable()
-            .Where(l => l.ArtistId == artistId)
-            .Select(l => l.AlbumId)
-            .Distinct();
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => albumIds.Contains(a.LocalDeviceId))
-            .ToList();
-        _specificAlbums.OnNext(list);
+
+            if (songsOfArtist.Count==0)
+            {
+                _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
+                return;
+            }
+
+            var albums = songsOfArtist
+                .Where(s => s.Album != null)
+                .Select(s => s.Album)
+                .DistinctBy(al => al!.Id)
+                .ToList();
+            _queriedAlbums.OnNext(albums!);
+        
     }
-    private string? currentLocalSongId;
-    public void GetAlbumsBySongId(string songId)
+    public void GetSongsByGenreId(ObjectId genreId) // Changed to ID for directness
     {
-        if(currentLocalSongId is not null && currentLocalSongId ==songId)
+        var songs = _songRepo.Query(s => s.Genre != null && s.Genre.Id == genreId);
+        _queriedSongs.OnNext(songs);
+    }
+    public void GetAlbumsByArtistName_Alternative(string artistName)
+    {
+        var artist = _artistRepo.Query(ar => ar.Name == artistName).FirstOrDefault();
+        if (artist == null)
         {
+            _queriedAlbums.OnNext(Array.Empty<AlbumModel>());
             return;
         }
-        var albumIds = _linkRepo.GetAll().AsEnumerable()
-            .Where(l => l.SongId == songId)
-            .Select(l => l.AlbumId)
-            .Distinct();
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => albumIds.Contains(a.LocalDeviceId))
-            .ToList();
-        currentLocalSongId = songId;
-        _specificAlbums.OnNext(list);
+
+       
+        // Assuming you can get songs for an artist efficiently:
+        var songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(a => a.Id == artist.Id));
+        var albums = songsOfArtist.Select(s => s.Album)
+                                  .Where(al => al != null)
+                                  .DistinctBy(al => al!.Id)
+                                  .ToList();
+        _queriedAlbums.OnNext(albums!);
     }
 
-    public void GetAlbumsByGenreId(string genreId)
+
+    public void GetSongsByGenreName(string genreName)
     {
-        var albumIds = _linkRepo.GetAll().AsEnumerable()
-            .Where(l => l.GenreId == genreId)
-            .Select(l => l.AlbumId)
-            .Distinct();
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => albumIds.Contains(a.LocalDeviceId))
-            .ToList();
-        _specificAlbums.OnNext(list);
+        var genre = genreRepo.Query(g => g.Name == genreName).FirstOrDefault();
+        if (genre == null)
+        {
+            _queriedSongs.OnNext(Array.Empty<SongModel>());
+            return;
+        }
+        // Assumes SongModel.Genre links to GenreModel
+        var songs = _songRepo.Query(s => s.Genre != null && s.Genre.Id == genre.Id);
+        _queriedSongs.OnNext(songs);
     }
+
 
     public void SearchAlbumsByName(string query)
     {
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        _specificAlbums.OnNext(list);
-    }
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            _queriedAlbums.OnNext(_albumRepo.GetAll().ToList()); // Or Array.Empty if that's preferred for empty query
+            return;
+        }
 
-    public void SearchAlbumsByKeyword(string keyword)
-    {
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.Name!.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                     || (a.Description?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false))
-            .ToList();
-        _specificAlbums.OnNext(list);
+        try
+        {
+            var list = _albumRepo.Query(a => a.Name != null && a.Name.Contains(query));
+            _queriedAlbums.OnNext(list);
+        }
+        catch (NotSupportedException ex)
+        {
+            Debug.WriteLine($"Realm Query for Name.Contains was not supported: {ex.Message}. Falling back to in-memory filter.");
+            var allAlbums = _albumRepo.GetAll();
+            var filteredList = allAlbums
+                .Where(a => a.Name != null && a.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            _queriedAlbums.OnNext(filteredList);
+        }
     }
 
     public void GetAlbumsWithNoCoverArt()
     {
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => string.IsNullOrEmpty(a.ImagePath))
-            .ToList();
-        _specificAlbums.OnNext(list);
+        var list = _albumRepo.Query(a => string.IsNullOrEmpty(a.ImagePath));
+        _queriedAlbums.OnNext(list);
     }
 
-    public void GetAlbumsWithoutTracks()
+    public void GetAlbumsWithoutAnySongs() 
     {
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.NumberOfTracks != 0)
-            .ToList();
-        _specificAlbums.OnNext(list);
+        var list = _albumRepo.Query(a => !a.Songs.Any());
+        _queriedAlbums.OnNext(list);
     }
 
     public void GetAlbumsAddedInLastDays(int days)
     {
-        var cutoff = DateTime.Now.AddDays(-days);
-        var list = _albumRepo.GetAll().AsEnumerable()
-        .Where(a =>
-        {
-            // assuming DateCreated is stored as a string
-            if (DateTime.TryParse(a.DateCreated, out var dt))
-                return dt >= cutoff;
-            return false;
-        })
-        .ToList();
-        _specificAlbums.OnNext(list);
+        var cutoff = DateTimeOffset.UtcNow.AddDays(-days);
+        var list = _albumRepo.Query(a => a.DateCreated >= cutoff);
+        _queriedAlbums.OnNext(list);
     }
 
-    // 2. Sorting & Grouping
-    public List<AlbumModel> SortAlbumsByName(bool ascending = true)
+    // --- 2. Sorting & Grouping ---
+    // Sorting should ideally be done by Realm if possible.
+    // Your IRepository<T> would need methods like:
+    // QueryOrdered<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> keySelector, bool ascending)
+
+    public void GetAlbumsSortedByName(bool ascending = true)
     {
-        return ascending
-                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.Name)]
-                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.Name)];
+        // If repo can't do it, sort the frozen list.
+        var allAlbums = _albumRepo.GetAll(); // Potentially inefficient
+        var sortedList = ascending
+            ? allAlbums.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList()
+            : allAlbums.OrderByDescending(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        _queriedAlbums.OnNext(sortedList);
     }
 
-    public List<AlbumModel> SortAlbumsByDateAdded(bool ascending = false)
+
+
+    public void GetAlbumsBySongId(ObjectId songId)
     {
-        return ascending
-                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.DateCreated)]
-                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.DateCreated)];
+        throw new NotImplementedException("This method is not implemented yet.");
     }
 
-    public Dictionary<string, List<AlbumModel>> GroupAlbumsByArtist()
-    {
-        return _linkRepo.GetAll().AsEnumerable()
-                .GroupBy(l => l.ArtistId!)
-                .ToDictionary(
-                    g => g.Key,
-                    g => _albumRepo.GetAll().AsEnumerable()
-                         .Where(a => g.Select(l => l.AlbumId).Contains(a.LocalDeviceId))
-                         .ToList()
-                );
-    }
-
-    public Dictionary<string, List<AlbumModel>> GroupAlbumsByGenre()
-    {
-        return _linkRepo.GetAll().AsEnumerable()
-                .GroupBy(l => l.GenreId!)
-                .ToDictionary(
-                    g => g.Key,
-                    g => _albumRepo.GetAll().AsEnumerable()
-                         .Where(a => g.Select(l => l.AlbumId).Contains(a.LocalDeviceId))
-                         .ToList()
-                );
-    }
-
-    public List<AlbumModel> GetAlbumsOrderedByTrackCount(bool ascending = false)
-    {
-        return ascending
-                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.NumberOfTracks)]
-                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.NumberOfTracks)];
-    }
-
-    public List<AlbumModel> GetAlbumsOrderedByTotalDuration(bool ascending = false)
-    {
-        return ascending
-                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.TotalDuration)]
-                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.TotalDuration)];
-    }
-
-    // 3. Statistics & Insights
     public int GetTotalAlbumCount()
     {
-        return _albumRepo.GetAll().Count;
+        // This is efficient if your repo's GetAll() is smart or you have a Count() method.
+        // If GetAll() loads everything, this is bad.
+        // IDEAL: _albumRepo.Count(a => true); or _albumRepo.Count();
+        return _albumRepo.Count(a => true); // Assumes GetAll() is returning a list of frozen objects.
+                                          // A dedicated Count method in the repo is better.
     }
 
-    public Dictionary<string, int> GetAlbumPlayCounts()
-    {
-        return _pdlRepo.GetAll().AsEnumerable()
-                .Where(p => p.PlayType == (int)PlayType.Play)
-                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                    .FirstOrDefault(l => l.SongId == p.SongId)
-                    ?.AlbumId)
-                .Where(g => g.Key != null)
-                .ToDictionary(g => g.Key!, g => g.Count());
-    }
-
-    public Dictionary<string, TimeSpan> GetAlbumTotalListenTime()
-    {
-        return _pdlRepo.GetAll().AsEnumerable()
-                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                    .FirstOrDefault(l => l.SongId == p.SongId)
-                    ?.AlbumId)
-                .Where(g => g.Key != null)
-                .ToDictionary(
-                    g => g.Key!,
-                    g => TimeSpan.FromSeconds(g.Sum(p => p.PositionInSeconds))
-                );
-    }
-
-    public TimeSpan GetTotalLibraryDuration()
-    {
-        return _albumRepo
-            .GetAll().AsEnumerable()
-            .Select(a =>
-            {
-                if (double.TryParse(a.TotalDuration, out var secs))
-                    return TimeSpan.FromSeconds(secs);
-                return TimeSpan.Zero;
-            })
-            .Aggregate(TimeSpan.Zero, (sum, span) => sum + span);
-    }
-
-    public Dictionary<string, int> GetAlbumSkipCounts()
-    {
-        return _pdlRepo.GetAll().AsEnumerable()
-                .Where(p => p.PlayType == (int)PlayType.Skipped)
-                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                    .FirstOrDefault(l => l.SongId == p.SongId)
-                    ?.AlbumId)
-                .Where(g => g.Key != null)
-                .ToDictionary(g => g.Key!, g => g.Count());
-    }
-
-    public Dictionary<string, DateTimeOffset> GetLastPlayedTimestamps()
-    {
-        return _pdlRepo.GetAll().AsEnumerable()
-                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                    .FirstOrDefault(l => l.SongId == p.SongId)
-                    ?.AlbumId)
-                .Where(g => g.Key != null)
-                .ToDictionary(g => g.Key!, g => g.Max(p => p.DatePlayed));
-    }
-
-    public List<string> GetMostSkewedAlbums(int topN)
-    {
-        return [.. GetAlbumSkipCounts()
-            .OrderByDescending(kv =>
-                (double)kv.Value /
-                (GetAlbumPlayCounts().GetValueOrDefault(kv.Key, 1)))
-            .Take(topN)
-            .Select(kv => kv.Key)];
-    }
-
-    // 4. Recommendations & Smart Picks
-    public List<AlbumModel> RecommendSimilarAlbums(string albumId, int count = 5)
-    {
-        var targetGenres = _linkRepo.GetAll().AsEnumerable()
-            .Where(l => l.AlbumId == albumId)
-            .Select(l => l.GenreId)
-            .Distinct();
-        var targetArtists = _linkRepo.GetAll().AsEnumerable()
-            .Where(l => l.AlbumId == albumId)
-            .Select(l => l.ArtistId)
-            .Distinct();
-
-        return [.. _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.LocalDeviceId != albumId)
-            .Select(a => new
-            {
-                Album = a,
-                Score = _linkRepo.GetAll().AsEnumerable().Count(l =>
-                    l.AlbumId == a.LocalDeviceId
-                    && (targetGenres.Contains(l.GenreId)
-                     || targetArtists.Contains(l.ArtistId)))
-            })
-            .Where(x => x.Score > 0)
-            .OrderByDescending(x => x.Score)
-            .Take(count)
-            .Select(x => x.Album)];
-    }
-
-    public List<AlbumModel> GetRecentlyPlayedAlbums(int count)
-    {
-        return GetLastPlayedTimestamps()
-                .OrderByDescending(kv => kv.Value)
-                .Take(count)
-                .Select(kv => _albumRepo.GetById(kv.Key))
-                .Where(a => a != null)
-                .ToList()!;
-    }
-
-    public List<AlbumModel> GetAlbumsNotPlayedSince(DateTime cutoff)
-    {
-        return GetLastPlayedTimestamps()
-                .Where(kv => kv.Value < cutoff)
-                .Select(kv => _albumRepo.GetById(kv.Key))
-                .Where(a => a != null)
-                .ToList()!;
-    }
-
-    public List<AlbumModel> GetTopAlbumsByPlayCount(int count)
-    {
-        return GetAlbumPlayCounts()
-                .OrderByDescending(kv => kv.Value)
-                .Take(count)
-                .Select(kv => _albumRepo.GetById(kv.Key))
-                .Where(a => a != null)
-                .ToList()!;
-    }
-
-    public List<AlbumModel> GetUnderratedAlbums(int minPlays, int maxPlays)
-    {
-        return GetAlbumPlayCounts()
-                .Where(kv => kv.Value >= minPlays && kv.Value <= maxPlays)
-                .Select(kv => _albumRepo.GetById(kv.Key))
-                .Where(a => a != null)
-                .ToList()!;
-    }
-
-    //public List<AlbumModel> GetUserFavoriteAlbums()
-    //    => GetAlbumAverageListenPercentage()
-    //        .OrderByDescending(kv => kv.Value)
-    //        .Take(10)
-    //        .Select(kv => _albumRepo.GetById(kv.Key))
-    //        .Where(a => a != null)
-    //        .ToList()!;
-
-    // 5. Metadata & Enrichment
-    //public async Task FetchAndCacheCoverArtAsync(string albumId)
-    //{
-    //    //var url = await _remoteService.GetCoverArtUrlAsync(albumId);
-    //    var album = _albumRepo.GetById(albumId);
-    //    if (album != null)
-    //    {
-    //        album.ImagePath = url;
-    //        _albumRepo.AddOrUpdate(album);
-    //    }
-    //}
-
-    //public async Task<List<string>> GetAllAlbumTagsAsync(string albumId)
-    //    => await  _remoteService.GetTagsAsync(albumId);
-
-    //public async Task TagAlbumAsync(string albumId, string tag)
-    //{
-    //    var album = _albumRepo.GetById(albumId);
-    //    if (album != null)
-    //    {
-    //        await _remoteService.AddTagAsync(albumId, tag);
-    //    }
-    //}
-
-    //public void GetAlbumsByTag(string tag)
-    //{
-    //    var list = _albumRepo.GetAll().AsEnumerable()
-    //        .Where(a => a.Tags.Contains(tag))
-    //        .ToList();
-    //    _specificAlbums.OnNext(list);
-    //}
-
-    public bool ValidateAlbumMetadata(string albumId)
-    {
-        var album = _albumRepo.GetById(albumId);
-        return album != null
-            && !string.IsNullOrEmpty(album.Name)
-            && _linkRepo.GetAll().AsEnumerable().Any(l => l.AlbumId == albumId);
-    }
-
-    //public async Task EnrichAlbumWithWebInfoAsync(string albumId)
-    //{
-    //    var info = await _remoteService.GetAlbumInfoAsync(albumId);
-    //    var album = _albumRepo.GetById(albumId);
-    //    if (album != null)
-    //    {
-    //        album.Description = info.Description;
-    //        album.TotalDuration = info.TotalDuration;
-    //        _albumRepo.AddOrUpdate(album);
-    //    }
-    //}
-
-    // 6. Import/Export & Sync
-    public async Task ExportAlbumsToCsvAsync(string filePath)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("Id,Name,ArtistCount,TrackCount,Duration");
-        foreach (var a in _albumRepo.GetAll().AsEnumerable())
-            sb.AppendLine($"{a.LocalDeviceId},{a.Name},"
-                + $"{_linkRepo.GetAll().AsEnumerable().Count(l => l.AlbumId==a.LocalDeviceId)},"
-                + $"{a.NumberOfTracks},{a.TotalDuration}");
-        await File.WriteAllTextAsync(filePath, sb.ToString());
-    }
 
     public async Task ExportAlbumsToJsonAsync(string filePath)
     {
-        var json = JsonSerializer.Serialize(_albumRepo.GetAll().AsEnumerable());
+        // GetAll() returns frozen objects, safe for serialization.
+        var albums = _albumRepo.GetAll();
+        // Ensure your AlbumModel (and any nested RealmObjects it references) are serializable by System.Text.Json.
+        // You might need [JsonIgnore] for backlinks or Realm-specific properties if they cause issues.
+        var json = JsonSerializer.Serialize(albums, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(filePath, json);
+        _syncProgress.OnNext(1.0); // Indicate completion
     }
 
     public async Task ImportAlbumsFromCsvAsync(string filePath)
@@ -417,12 +281,19 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             var parts = ln.Split(',');
             var album = new AlbumModel
             {
-                LocalDeviceId = parts[0],
                 Name = parts[1],
                 NumberOfTracks = int.Parse(parts[3]),
                 TotalDuration = TimeSpan.FromSeconds(double.Parse(parts[4])).ToString()
             };
             _albumRepo.AddOrUpdate(album);
         }
+    }
+    public new void Dispose()
+    {
+        _subs.Dispose(); // Assuming SubscriptionManager is IDisposable and disposes all its subs
+        _queriedAlbums.Dispose();
+        _queriedAlbums.Dispose();
+        _queriedSongs.Dispose();
+        _syncProgress.Dispose();
     }
 }

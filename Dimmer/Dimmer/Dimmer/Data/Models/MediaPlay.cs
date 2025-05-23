@@ -1,10 +1,10 @@
 ﻿namespace Dimmer.Data.Models;
 public class MediaPlay
 {
-    public string? SongId { get; set; }
-    public required string Name { get; set; }
+    public ObjectId SongId { get; set; }
+    public string Name { get; set; }
     public string? Author { get; set; }
-    public required string URL { get; set; }
+    public string URL { get; set; }
     public Stream? Stream { get; set; }
     public string? ImagePath { get; set; }
     

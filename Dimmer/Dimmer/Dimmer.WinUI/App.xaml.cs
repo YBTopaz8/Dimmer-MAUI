@@ -1,8 +1,8 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-
-using Dimmer.Utilities;
+using Microsoft.Windows.AppLifecycle;
+using Windows.ApplicationModel.Activation;
 
 namespace Dimmer.WinUI;
 
@@ -18,12 +18,108 @@ public partial class App : MauiWinUIApplication
     public App()
     {
         Debug.WriteLine("Dimmer WinUI :D");
+
+        var mainInstance = AppInstance.FindOrRegisterForKey("MainDimmer");
+        if (!mainInstance.IsCurrent)
+        {
+            // This is a secondary instance. Redirect and exit.
+            var currentInstance = AppInstance.GetCurrent();
+            var args = currentInstance.GetActivatedEventArgs();
+            // Asynchronously redirect and then exit.
+            // No need to GetAwaiter().GetResult() here, fire and forget is okay for redirection.
+            _ = mainInstance.RedirectActivationToAsync(args); // Use discard _ for fire-and-forget
+
+            Process.GetCurrentProcess().Kill();
+            return; // Essential to prevent further initialization of this instance
+        }
+        else
+        {
+            // This is the main instance. Subscribe to activated events.
+            mainInstance.Activated += MainInstance_Activated;
+        }
+
+
         this.InitializeComponent();
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-        
-        
+
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
     }
+    // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
+    private void MainInstance_Activated(object? sender, AppActivationArguments e)
+    {
+        // Ensure execution on the UI thread if HandleActivated interacts with UI directly
+        // or if HomePageVM expects to be called from UI thread.
+        // For MAUI, MauiDispatcher is a good way if needed.
+        // For now, assuming HandleActivated or subsequent calls handle threading.
+        HandleActivated(e);
+        // TODO : Optimize this. HandleActivated is called an unknown number of time and is slow with many songs
+        // With correct logic, it should be called once per redirection.
+    }
+    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+    {
+        base.OnLaunched(args);
+
+        // If you intend to use _thumbnailHandler:
+        // _thumbnailHandler.InitializeThumbnailHandling();
+
+        // For the initial launch, get the activation arguments
+        // This could be a normal launch or a launch via file association
+        var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+        HandleActivated(activatedArgs); // Just call it once.
+    }
+
+    // No need for the 'paths' field at the class level if it's only used transiently
+    // string[]? paths = Array.Empty<string>();
+
+    private void HandleActivated(AppActivationArguments args)
+    {
+        if (args.Kind == ExtendedActivationKind.File)
+        {
+            if (args.Data is IFileActivatedEventArgs fileArgs)
+            {
+                // Extract paths. These could be null if a file object isn't a StorageFile or Path is null
+                string?[] rawPaths = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
+                HandleFiles(rawPaths);
+            }
+        }
+        // else if (args.Kind == ExtendedActivationKind.Launch)
+        // {
+        //    // Handle normal launch if needed, e.g., open main window without any files
+        // }
+        // Handle other activation kinds if necessary
+    }
+
+    private void HandleFiles(string?[] paths) // paths now comes as string?[]
+    {
+        if (paths == null || paths.Length == 0)
+            return;
+
+        // Filter out null or empty paths and get a List<string>
+        var validPaths = paths.Where(p => !string.IsNullOrEmpty(p)).ToList<string>();
+
+        if (!validPaths.Any())
+            return;
+
+        // It's generally safer to resolve services when needed,
+        // especially if they might have a scoped lifetime or depend on UI thread.
+        // Also, ensure HomePageVM is registered as a singleton or transient as appropriate.
+        var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your ViewModel class
+        if (homePageVM != null)
+        {
+            // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe
+            // or dispatched to the UI thread if it updates UI-bound properties directly.
+            // e.g., MainThread.BeginInvokeOnMainThread(() => homePageVM.LoadLocalSongFromOutSideApp(validPaths));
+            //homePageVM.LoadLocalSongFromOutSideApp(validPaths);
+        }
+        else
+        {
+            // Log error: HomePageVM not found
+            Debug.WriteLine("Error: HomePageVM could not be resolved.");
+        }
+    }
+
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {

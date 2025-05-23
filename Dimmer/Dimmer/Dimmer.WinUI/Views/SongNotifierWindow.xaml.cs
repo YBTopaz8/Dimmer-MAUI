@@ -1,5 +1,3 @@
-using Dimmer.WinUI.ViewModel;
-
 namespace Dimmer.WinUI.Views;
 
 public partial class SongNotifierWindow : Window

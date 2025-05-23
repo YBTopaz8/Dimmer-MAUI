@@ -2,7 +2,7 @@
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; }
+    public partial ObjectId Id { get; set; }
     [ObservableProperty]
     public partial string? Title { get; set; }
     [ObservableProperty]
@@ -10,7 +10,11 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string? AlbumName { get; set; }
     [ObservableProperty]
-    public partial string? Genre { get; set; }
+    public partial AlbumModelView? Album { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView?> ArtistIds { get; set; }
+    [ObservableProperty]
+    public partial GenreModelView? Genre { get; set; }
     [ObservableProperty]
     public partial string FilePath { get; set; } = string.Empty;
     [ObservableProperty]
@@ -52,31 +56,50 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
-    public partial string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public partial DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
-    public partial string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public partial string? DeviceName { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public partial string? DeviceFormFactor { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public partial string? DeviceModel { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public partial string? DeviceManufacturer { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public partial string? DeviceVersion { get; set; } 
 
 
+    
+    [ObservableProperty]
+    public partial ObservableCollection<UserNoteModelView> ? UserNote { get; set; }
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
         if (obj is SongModelView other)
         {
-            return this.LocalDeviceId == other.LocalDeviceId;
+            return this.Id == other.Id;
         }
         return false;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(LocalDeviceId);
+        return HashCode.Combine(Id);
     }
+}
+
+public partial class UserNoteModelView : ObservableObject
+{
+    [ObservableProperty]
+    public partial string? UserMessageText { get; set; }
+    [ObservableProperty]
+    public partial string? UserMessageImagePath { get; set; }
+    [ObservableProperty]
+    public partial string? UserMessageAudioPath { get; set; }
+    [ObservableProperty]
+    public partial bool IsPinned { get; set; }
+    [ObservableProperty]
+    public partial int UserRating { get; set; }
+    [ObservableProperty]
+    public partial string? MessageColor { get; set; }
 }

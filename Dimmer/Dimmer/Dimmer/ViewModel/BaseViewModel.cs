@@ -1,43 +1,97 @@
-﻿using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.Mvvm.Input;
-using Dimmer.Services;
+﻿using CommunityToolkit.Mvvm.Input;
+using Dimmer.Interfaces.Services;
+
+//using Dimmer.DimmerLive.Models;
 using Dimmer.Utilities.FileProcessorUtils;
+using Dimmer.Utilities.StatsUtils;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using ZXing;
+
+//using Parse;
+//using Parse.Infrastructure;
 
 namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject
 {
+    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow,
+       IDimmerLiveStateService dimmerLiveStateService,
+       AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow,
+       SongsMgtFlow songsMgtFlow, IDimmerStateService stateService,
+       ISettingsService settingsService,
+       SubscriptionManager subs,
+       LyricsMgtFlow lyricsMgtFlow,
+       IFolderMgtService folderMgtService
 
+       )
+    {
+        _mapper = mapper;
+        BaseAppFlow=baseAppFlow;
+        this.dimmerLiveStateService=dimmerLiveStateService;
+        AlbumsMgtFlow = albumsMgtFlow;
+        PlaylistsMgtFlow = playlistsMgtFlow;
+        SongsMgtFlow = songsMgtFlow;
+        _stateService = stateService;
+        _settingsService = settingsService;
+        _subs = subs;
+        _folderMgtService=folderMgtService;
+        LyricsMgtFlow=lyricsMgtFlow;
+        Initialize();
+        LatestAppLog = new() { Log = "Dimmer App Started" };
+        UserLocal = new UserModelView();
+    }
     #region Settings Section
+
     
 
+    [ObservableProperty]
+    public partial SongModelView SelectedSong { get; set; }
     [ObservableProperty]
     public partial bool IsLoadingSongs { get; set; }
     [ObservableProperty]
     public partial int SettingsPageIndex { get; set; } = 0;
     [ObservableProperty]
-    public partial ObservableCollection<string> FolderPaths { get; set; } = new();
+    public partial ObservableCollection<string>? FolderPaths { get; set; } = new();
 
 
     #endregion
 
-    public const string CurrentAppVersion = "Dimmer v1.8b";
+    public const string CurrentAppVersion = "Dimmer v1.9";
 
+    [ObservableProperty]
+    public partial bool IsMainViewVisible { get; set; } = true;
+    public static bool IsSearching { get; set; } = false;
 
+    
+    public ParseUser? UserOnline { get; set; }
+    [ObservableProperty]
+    public partial UserModelView UserLocal { get; set; }
 
     private readonly IMapper _mapper;
-    private readonly IPlayerStateService _stateService;
+    public readonly IDimmerLiveStateService dimmerLiveStateService;
+    private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
+    private readonly IFolderMgtService _folderMgtService;
 
-    public BaseAppFlow BaseAppFlow { get; }
+    [ObservableProperty]
+    public partial string? LatestScanningLog { get; set; }
 
+    [ObservableProperty]
+    public partial AppLogModel LatestAppLog { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<AppLogModel> ScanningLogs { get; set; } = new();
+    public BaseAppFlow BaseAppFlow { get; }    
+    public List<SongModelView>? FilteredSongs { get; set; }
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
     public SongsMgtFlow SongsMgtFlow { get; }
     public LyricsMgtFlow LyricsMgtFlow { get; }
     [ObservableProperty]
     public partial bool IsShuffle { get; set; }
+
+
 
     [ObservableProperty]
     public partial bool IsStickToTop {get;set;}
@@ -54,7 +108,9 @@ public partial class BaseViewModel : ObservableObject
     public partial RepeatMode RepeatMode {get;set;}
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? PlaylistSongs {get;set;}
+    public partial ObservableCollection<SongModelView> PlaylistSongs { get; set; } = new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> NowPlayingQueue { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics {get;set;}
@@ -73,38 +129,222 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial double VolumeLevel {get;set;}
 
-    
 
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
-    public BaseViewModel(
-        IMapper mapper,
-       BaseAppFlow baseAppFlow,
-        AlbumsMgtFlow albumsMgtFlow,
-        PlayListMgtFlow playlistsMgtFlow,
-        SongsMgtFlow songsMgtFlow,
-        IPlayerStateService stateService,
-        ISettingsService settingsService,
-        SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow)
+   
+
+    [RelayCommand]
+    public async Task SignUpUser()
     {
-        _mapper = mapper;
-        BaseAppFlow=baseAppFlow;
-        AlbumsMgtFlow = albumsMgtFlow;
-        PlaylistsMgtFlow = playlistsMgtFlow;
-        SongsMgtFlow = songsMgtFlow;
-        _stateService = stateService;
-        _settingsService = settingsService;
-        _subs = subs;
-        LyricsMgtFlow=lyricsMgtFlow;
-        Initialize();
-        //SubscribeToLyricIndexChanges();
-        //SubscribeToSyncLyricsChanges();
+        await dimmerLiveStateService.SignUpUserAsync(UserLocal);
+        SettingsPageIndex=1;
     }
 
-    private void Initialize()
+    [ObservableProperty]
+    public partial bool IsConnected { get; set; }
+    [RelayCommand]
+    public async Task LoginUser()
     {
+        var usr = _mapper.Map<UserModel>(UserLocal);
+        if (await dimmerLiveStateService.LoginUserAsync(usr))
+        {
+            IsConnected=true;
+            SettingsPageIndex=0;
+        }
+    }
+    [ObservableProperty]
+    public partial AlbumModelView? SelectedAlbum { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView>? SelectedAlbumArtists { get; set; }
+    [ObservableProperty]
+    public partial ArtistModelView? SelectedArtist { get; set; }
+    [ObservableProperty]
+    public partial PlaylistModelView? SelectedPlaylist { get; set; }
+    [RelayCommand]
+    public void FullyBackUpData()
+    {
+        //dimmerLiveStateService.
+    }
+
+    [RelayCommand]
+    public void GetMyDevices()
+    {
+
+    }
+
+
+    // i need a method or set of method for user to user communication like instant messaging
+    // and file sharing where user a and b can chat, and can share even song data etc..
+    // and more methods etc 
+
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedArtistSongs { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedPlaylistSongs { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? SelectedArtistAlbums { get; set; }
+    [ObservableProperty]
+    public partial CollectionStatsSummary ArtistCurrentColStats { get; private set; }
+    [ObservableProperty]
+    public partial CollectionStatsSummary AlbumCurrentColStats { get; private set; }
+
+    public void SetSelectedAlbumsSongs(IEnumerable<SongModelView>? songs)
+    {
+
+        var s = _mapper.Map<ObservableCollection<SongModelView>>(songs);
+        SelectedAlbumsSongs = s;
+        
+    }
+
+    public void SetSelectedArtistSongs(IEnumerable<SongModel>? songs)
+    {
+        var s = _mapper.Map<ObservableCollection<SongModelView>>(songs);
+        
+        SelectedArtistSongs = s;
+    }
+    public void OpenAlbumPage(SongModelView song, AlbumModelView? albumParam=null)
+    {
+        AlbumModel? album = null;
+        ObservableCollection<SongModelView>? songgs =null;
+
+        List<SongModel>? songDb = null;
+        if (albumParam is null)
+        {
+            var songg = BaseAppFlow.MasterList.First(x => x.Id == song.Id);
+            songDb = songg.Album?.Songs?.ToList();  
+            songgs ??= BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(songDb);
+
+            var albumArtist = songDb?
+                .SelectMany(s => s.ArtistIds)
+                .Distinct()
+            .ToList();
+
+            SelectedAlbumArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(albumArtist);
+
+        }
+        else
+        {
+            
+            album= BaseAppFlow.MasterAlbumList.First(x => x.Id==albumParam.Id);
+            songDb = album.Songs?.ToList();
+            var e = songDb[0].ArtistIds.ToList();
+            songgs = _mapper.Map<ObservableCollection<SongModelView>>(songDb);
+            SelectedAlbumArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(e);
+        }
+
+        SetSelectedAlbumsSongs(songgs);
+        ArtistCurrentColStats = CollectionStats.GetSummary(songDb);
+    }
+    public async Task OpenArtistPage(SongModelView? song, ArtistModelView? artistParam=null)
+    {
+        ArtistModel? artist = null;
+        if (artistParam is null)
+        {
+
+                var songdb = BaseAppFlow.MasterList.First(x => x.Id==song.Id);
+            int NumberOfArtists = songdb.ArtistIds.Count;
+            string selectedArtist = string.Empty;
+            if (NumberOfArtists > 1)
+            {
+                var result = await Shell.Current.DisplayActionSheet("Choose Artist",
+                    "Cancel", "OK", songdb.ArtistIds.Select(x => x.Name).ToArray());
+                if (result == "Ok" || result == "Cancel" || result is null)
+                {
+                    return;
+                }
+
+                selectedArtist= result;
+            }
+            else
+            {
+                selectedArtist=songdb.ArtistName;
+            }
+
+             artist =  songdb.ArtistIds.Where(x => x.Name==selectedArtist).First();
+        }
+        else
+        {
+            artist= BaseAppFlow.MasterArtistList.First(x=>x.Id==artistParam.Id);
+            
+        }
+            var songs = artist.Songs.ToList();
+        //var SongArtists = songdb.ArtistIds.ToObservableCollection();
+        //SelectedSongArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(SongArtists);
+        
+        var albumsByArtist  = songs.Where(songs => songs.Album != null)
+            .Select(x => x.Album)
+            .Distinct()
+            .ToList();
+
+        SelectedArtistAlbums = _mapper.Map<ObservableCollection<AlbumModelView>>(albumsByArtist);
+
+        SetSelectedArtistSongs(songs);
+        AlbumCurrentColStats = CollectionStats.GetSummary(songs);
+
+    }
+    [RelayCommand]
+    public async Task LogoutUser()
+    {
+        //await dimmerLiveStateService.LogoutUser();
+        //UserOnline = null;
+    }
+    [RelayCommand]
+    public async Task ForgottenPassword()
+    {
+        //await dimmerLiveStateService.ForgottenPassword();
+    }
+
+    public async Task SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
+    {
+
+        // 1) Ensure the song has a note list
+        song.UserNote ??= [];
+        song.UserNote.Add(userNote);
+
+        //DimmerSharedSong pSong = new DimmerSharedSong();
+        //pSong.AudioFile= 
+
+        //await pSong.SaveAsync();
+        return;
+
+        var songDb = _mapper.Map<SongModel>(song);
+        var userNotee = _mapper.Map<UserNoteModel>(userNote);
+            
+        BaseAppFlow.UpSertSongNote(songDb, userNotee);
+
+        // 2) Find any existing entry in PlaylistSongs by Id
+        var existing = PlaylistSongs
+            .FirstOrDefault(x => x.Id == song.Id);
+
+        if (existing != null)
+        {
+            // Replace the old object with the updated one
+            var idx = PlaylistSongs.IndexOf(existing);
+            PlaylistSongs[idx] = song;
+        }
+        else
+        {
+            // It wasn’t in the list yet, so add it
+            PlaylistSongs.Add(song);
+        }
+
+        // 3) Persist to database
+    }
+
+
+    public void Initialize()
+    {
+
+        
+
         ResetMasterListOfSongs();
         SubscribeToCurrentSong();
         SubscribeToDeviceVolume();
@@ -113,36 +353,106 @@ public partial class BaseViewModel : ObservableObject
         SubscribeToIsPlaying();
         SubscribeToPosition();
         SubscribeToStateChanges();
-        
+
+
+        SubscribeToAlbumListChanges();
         CurrentPositionPercentage = 0;
-        IsStickToTop = _settingsService.IsStickToTop;
-        RepeatMode = _settingsService.RepeatMode;
-        //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+        //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
+       FolderPaths=  _folderMgtService.StartWatchingFolders()?.Select(x=>x.FolderPath).ToObservableCollection();
+    }
+
+
+
+    public async Task LoginFromSecureData()
+    {
+
+        if (UserLocal is null || string.IsNullOrEmpty(UserLocal.Username))
+        {
+            await dimmerLiveStateService.AttemptAutoLoginAsync();
+            UserLocal= dimmerLiveStateService.UserLocalView;
+            BaseAppFlow.CurrentUserView = UserLocal;
+            IsConnected=true;
+        }
+
     }
 
     private void SubscribeToStateChanges()
     {
         _subs.Add(_stateService.CurrentPlayBackState.
             DistinctUntilChanged()
-            .Subscribe(list =>
+            
+            .Subscribe(state =>
             {
-                IsPlaying = list == DimmerPlaybackState.Playing;
+                IsPlaying = state.State == DimmerPlaybackState.Playing;
+                switch (state.State)
+                {
+                    case DimmerPlaybackState.Opening:
+                        break;
+                    case DimmerPlaybackState.Stopped:
+                        break;
+                    case DimmerPlaybackState.Playing:
+                        break;
+                    case DimmerPlaybackState.Resumed:
+                        TemporarilyPickedSong = _stateService.CurrentSongValue;
+                        break;
+                    case DimmerPlaybackState.FolderScanCompleted:
+                        LatestAppLog.Log ="Folder Scan Completed";
+                        var newlyAddedSongs = (IReadOnlyList<SongModel>)state.ExtraParameter as IReadOnlyList<SongModel>;
+                        var songss = _mapper.Map<ObservableCollection<SongModelView>>(newlyAddedSongs);
+                        foreach (var song in songss)
+                        {
+                            PlaylistSongs.Add(song);
+                        }
+                        LatestAppLog.Log = $"{count++}Playlist Updated with {songss.Count} new additions";
+                        Debug.WriteLine($"{count++}Playlist Updated with {songss.Count} new additions");
+                        break;
                
-               
+                        break;
+                    default:
+                        break;
+                }
             }));
     }
 
+    int count = 0;
+
+    
     private void SubscribeToMasterList()
     {
         _subs.Add(_stateService.AllCurrentSongs.
             DistinctUntilChanged()
             .Subscribe(list =>
             {
-                if (list.Count == PlaylistSongs.Count)
-                    return;
-                PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
+
+                NowPlayingQueue ??= _mapper.Map<ObservableCollection<SongModelView>>(list);
             }));
     }
+    //[ObservableProperty]
+    //public partial ObservableCollection<ChatConversation> Conversations { get; set; } = new();
+    //[ObservableProperty] 
+    //public partial ObservableCollection<ChatMessage> ActiveMessageCollection { get; set; } = new();
+    //[ObservableProperty] 
+    //public partial ChatMessage ActiveMessages { get; set; } 
+    //[ObservableProperty] 
+    //public partial ChatConversation ActiveConversation { get; set; } 
+    //[ObservableProperty] 
+    //public partial string Message { get; set; } = string.Empty;
+    
+    [RelayCommand]
+    public async Task SwitchRecipient(string id)
+    {
+        //ActiveConversation =  await dimmerLiveStateService.GetOrCreateConversationWithUserAsync(id);
+       
+    }
+    [RelayCommand]
+    public async Task SendMessage(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return;
+       //ChatMessage? msg=  await dimmerLiveStateService.SendTextMessageAsync(ActiveConversation, message);
+       //ActiveMessageCollection.Add(msg);
+    }
+
 
     private void SubscribeToLyricIndexChanges()
     {
@@ -167,7 +477,7 @@ public partial class BaseViewModel : ObservableObject
                 SynchronizedLyrics = _mapper.Map<ObservableCollection<LyricPhraseModelView>>(l);
             }));
     }
-
+  
     private void ResetMasterListOfSongs()
     {
      
@@ -215,20 +525,18 @@ public partial class BaseViewModel : ObservableObject
                     return;
                 }
 
-                if (SecondSelectedSong != null)
-                    SecondSelectedSong.IsCurrentPlayingHighlight = false;
+                SecondSelectedSong?.IsCurrentPlayingHighlight = false;
 
                 SecondSelectedSong = _mapper.Map<SongModelView>(song);
-                if (SecondSelectedSong != null)
-                {
-                    SecondSelectedSong.IsCurrentPlayingHighlight = true;
-                }
+                SecondSelectedSong.IsCurrentPlayingHighlight = true;
+
+                TemporarilyPickedSong ??= SecondSelectedSong;
             }));
     }
     private void SubscribeToCurrentSong()
     {
         _subs.Add(_stateService.CurrentSong
-            .DistinctUntilChanged()
+            
             .Subscribe(song =>
             {
                 if (string.IsNullOrEmpty(song.FilePath))
@@ -295,33 +603,61 @@ public partial class BaseViewModel : ObservableObject
             }));
     }
 
+    
+    public async Task ShareSong()
+    {
 
+        //await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong, CurrentPositionInSeconds);
+    }
 
-    public void PlaySong(
+    public static List<SongModelView>? CurrentQueue { get; set; }
+
+    public async Task PlaySong(
      SongModelView song,
      CurrentPage source,
      IEnumerable<SongModelView>? listOfSongs = null)
     {
+
+        if (listOfSongs is not null)
+        {            
+            CurrentQueue = [.. listOfSongs.ToList()];
+        }
         // 1) Un‑highlight the old song
-        if (TemporarilyPickedSong != null)
-            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        TemporarilyPickedSong?.IsCurrentPlayingHighlight = false;
 
         // 2) Highlight and pick the new song
         TemporarilyPickedSong = song;
-        song.IsCurrentPlayingHighlight = true;
 
-        PlayerStateService.IsShuffleOn = IsShuffle;
+        DimmerStateService.IsShuffleOn = IsShuffle;
 
         _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
         if (source == CurrentPage.HomePage)
         {
-            _stateService.SetCurrentPlaylist([]);
+            if (IsSearching)
+            {
+                PlaylistModel CustomPlaylist = new()
+                {
+                    Id=ObjectId.GenerateNewId(),
+                    PlaylistName = "Search Playlist "+DateTime.Now.ToLocalTime(),
+                    Description = "Custom Playlist by Dimmer",
+                };
+                var  domainList = FilteredSongs
+           .Select(vm => _mapper.Map<SongModel>(vm))
+           .ToList()
+           .AsReadOnly();
+                _stateService.SetCurrentPlaylist(domainList, CustomPlaylist);
+            }
+            else
+            {
+                _stateService.SetCurrentPlaylist(BaseAppFlow.MasterList);
+            }
         }
         else
         {
 
             PlaylistModel CustomPlaylist = new()
             {
+                Id=ObjectId.GenerateNewId(),
                 PlaylistName = "Custom Playlist",
                 Description = "Custom Playlist by Dimmer",
             };
@@ -332,25 +668,23 @@ public partial class BaseViewModel : ObservableObject
 
             _stateService.SetCurrentPlaylist( domainList,  CustomPlaylist);
         }
-        
-        //this triggers the pl flow and song mgt flow
-        _stateService.SetCurrentState(DimmerPlaybackState.Playing);
 
+       await  SongsMgtFlow.SetPlayState();
     }
 
-    public void PlayNext(bool IsByUser)
+    public async Task PlayNext(bool IsByUser)
     {
         if (IsByUser)
         {
-            _stateService.SetCurrentState(DimmerPlaybackState.PlayNextUI);
-            _stateService.SetCurrentState(DimmerPlaybackState.Playing);
+            _stateService.SetCurrentState(new(DimmerPlaybackState.PlayNextUI , null));
+            await SongsMgtFlow.SetPlayState();
         }
     }
 
-    public void PlayPrevious()
+    public async Task PlayPrevious()
     {
-        _stateService.SetCurrentState(DimmerPlaybackState.PlayNextUI);
-        _stateService.SetCurrentState(DimmerPlaybackState.Playing);
+        _stateService.SetCurrentState(new(DimmerPlaybackState.PlayNextUI, null));
+        await SongsMgtFlow.SetPlayState();
     }
 
     public async Task PlayPauseAsync()
@@ -364,7 +698,7 @@ public partial class BaseViewModel : ObservableObject
     public void ToggleShuffle()
     {
         IsShuffle = !IsShuffle;
-        _stateService.SetCurrentState(DimmerPlaybackState.ShuffleRequested);
+        _stateService.SetCurrentState(new(DimmerPlaybackState.ShuffleRequested,null));
 
         SongsMgtFlow.ToggleShuffle(IsShuffle);
         
@@ -419,21 +753,61 @@ public partial class BaseViewModel : ObservableObject
         }
     }
     partial void OnVolumeLevelChanging(double oldValue, double newValue)
-    {
+    { 
         
+    }
+
+    [RelayCommand]
+    public void ToggleSettingsPage()
+    {
+
+
+        IsMainViewVisible = !IsMainViewVisible;
+
+    }
+
+    [RelayCommand]
+    public async Task PickNewProfileImage()
+    {
+        CancellationTokenSource cts = new();
+        CancellationToken token = cts.Token;
+        var res = await FilePicker.Default.PickAsync(new PickOptions()
+        {
+            PickerTitle = "Pick a new profile image",
+            FileTypes = FilePickerFileType.Images,
+        });
+        if (res is null)
+            return;
+        var file = res.FullPath;
+        UserLocal.UserProfileImage = file;
+
+        //dimmerLiveStateService.SaveUserLocally(UserLocal);
     }
 
     #region Settings Methods
 
     List<string> FullFolderPaths = [];
+
+    bool hasAlreadyActivated=false;
     [RelayCommand]
-    public async Task SelectSongFromFolder()
+    public void DeleteFolderPath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+
+
+        FolderPaths.Remove(path);
+
+        _folderMgtService.RemoveFolderFromPreference(path);
+    }
+    
+    public async Task SelectSongFromFolder(string? pathToOverride=null)
     {
 
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
 
-        FolderPickerResult res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
+        FolderPickerResult res = await FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
         {
@@ -445,49 +819,111 @@ public partial class BaseViewModel : ObservableObject
             return;
         }
 
-        FolderPaths.Add(folder);
+        AppUtils.IsUserFirstTimeOpening=false;
+        
+        FolderPaths?.Add(folder);
 
         FullFolderPaths.Add(folder);
 
-        AppSettingsService.MusicFoldersPreference.AddMusicFolder(FullFolderPaths);
+        if (FolderPaths?.Count == 1 && !hasAlreadyActivated)
+        {
+            BaseAppFlow.Initialize();
+            
+            Initialize();
+            hasAlreadyActivated=true;
+        }
+
+        if (pathToOverride is not null)
+        {
+            FolderPaths?.Remove(pathToOverride);
+            _folderMgtService.RemoveFolderFromPreference(pathToOverride);
+        }
+
+
+        _folderMgtService.AddFolderToPreference(folder);
+        
         
     }
 
+    //[ObservableProperty]
+    //public partial ObservableCollection<UserDeviceSession>? UserDevices { get; set; } = new();
+
+    public void SubscribeToScanningLogs()
+    {
+        _subs.Add(_stateService.LatestDeviceLog.DistinctUntilChanged()
+            .Subscribe(log =>
+            {
+
+
+                if (log == null)
+                    return;
+
+                
+                if (string.IsNullOrEmpty(log.Log))
+                    return;
+                LatestScanningLog = log.Log;
+                LatestAppLog = log;
+                if (log is not null)
+                { 
+                    //log.SharedSong.AudioFile.Url
+                  // log. log.SharedSong.AudioFile.Url is the link to song, i need to download song and save in local device
+                    return;
+                }
+                ScanningLogs ??= new ObservableCollection<AppLogModel>();
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (ScanningLogs.Count > 10)
+                        ScanningLogs.RemoveAt(0);
+                    ScanningLogs.Add(log);
+                });
+            }));
+    }
+
+
+    //[ObservableProperty]
+    //public partial DimmerSharedSong? SharedSong { get; set; }
+    public void FetchSharedSongById(string songId)
+    {
+        //SharedSong = await dimmerLiveStateService.FetchSharedSongByCodeAsync(songId);
+
+    }
 
     [RelayCommand]
-    public async Task LoadSongsFromFolders()
+    public async Task UpdateUserProfileImage()
     {
-        try
+        var imagePath = await FilePicker.PickAsync(new PickOptions()
         {
-            DeviceDisplay.Current.KeepScreenOn = true;
-            IsLoadingSongs = true;
-            if (FolderPaths is null || FolderPaths.Count < 0)
-            {
-                await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
-                IsLoadingSongs = false;
-                return;
-            }
-            
-            var loadSongsResult = await Task.Run(()=> BaseAppFlow.LoadSongs([.. FolderPaths]));
-            if (loadSongsResult is not null)
-            {   
-                Debug.WriteLine("Songs Loaded Successfully");
-            }
-            else
-            {
-                Debug.WriteLine("No Songs Found");
-            }
-            IsLoadingSongs = false;
-        }
-        catch (Exception ex)
+            FileTypes = FilePickerFileType.Images,
+            PickerTitle = "Choose a New Image for your Profile"
+        });
+        if (imagePath is not null)
         {
-            await Shell.Current.DisplayAlert("Error During Scanning", ex.Message, "Ok");
+            UserLocal.UserProfileImage = imagePath.FullPath;
         }
-        finally
-        {
-            DeviceDisplay.Current.KeepScreenOn = false;
-        }
+        BaseAppFlow.UpSertUser(_mapper.Map<UserModel>(UserLocal));
     }
+
+    [RelayCommand]
+    public static void ToggleShowCloseConfPopUp(bool IsShow)
+    {
+        BaseAppFlow.DimmerAppState.IsShowCloseConfirmation=IsShow;
+    }
+
+    [RelayCommand]
+    public void DoneFirstSetup()
+    {
+        AppUtils.IsUserFirstTimeOpening = false;
+        
+        Application.Current.CloseWindow(Application.Current.Windows[1]);
+        
+    }
+    [RelayCommand]
+    public static void ToggleIsStickToTop(bool IsStick)
+    {
+        BaseAppFlow.DimmerAppState.IsShowCloseConfirmation=IsStick;
+    }
+
+  
 
     public bool ToggleStickToTop()
     {
@@ -498,8 +934,54 @@ public partial class BaseViewModel : ObservableObject
 
 
     #endregion
+
+    public void SetSelectedSong(SongModelView song)
+    {
+        if (song == null)
+            return;
+        SelectedSong =song;
+        //ScrollToCurrentlyPlayingSong();
+    }
+    private void SubscribeToAlbumListChanges()
+    {
+
+
+        _subs.Add(
+            AlbumsMgtFlow.SpecificAlbums
+                .Subscribe(albums =>
+                {
+                    if (albums == null)
+                        return;
+                    if (albums.Count > 0)
+                    {
+                        SelectedAlbumsSongs = _mapper.Map<ObservableCollection<SongModelView>>(albums[0].Songs);
+                        SelectedAlbumsCol = _mapper.Map<ObservableCollection<AlbumModelView>>(albums);
+
+                        SelectedAlbum = SelectedAlbumsCol[0];
+
+                    }
+                })
+        );
+    }
+
+    public void GetAlbumForSpecificSong(SongModelView song)
+    {
+        AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
+    }
+
+    //public async Task PlaySong(SongModelView song, IEnumerable<SongModelView>? songss=null)
+    //{
+    //    if (song != null)
+    //        SelectedAlbumsSongs=songss.ToObservableCollection();
+    //    SelectedSong.IsCurrentPlayingHighlight = false;
+    //    SelectedSong = song;
+    //    await PlaySong(song, CurrentPage.SpecificAlbumPage,  SelectedAlbumsSongs);
+        
+    //}
+
+
     public void Dispose()
     {
-        _subs.Dispose();
+       _subs.Dispose();
     }
 }

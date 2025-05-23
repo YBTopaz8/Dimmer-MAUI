@@ -1,7 +1,7 @@
-﻿using Dimmer.Data.ModelView;
-using Dimmer.ViewModel;
-using System.Collections.ObjectModel;
-using System.Reactive.Linq;
+﻿
+//using System.Reactive.Linq;
+
+using Dimmer.Interfaces.Services;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -9,34 +9,36 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int CurrentQueue { get; set; }
     [ObservableProperty]
+    public partial bool IsOnSearchMode { get; set; }
+    [ObservableProperty]
     public partial int SelectedItemIndexMobile { get; set; }
     private readonly SubscriptionManager _subs;
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
-    [ObservableProperty]
-    public partial ObservableCollection<string>? ScanningLogs { get; set; }
-    [ObservableProperty]
-    public partial string? LatestScanningLog { get; set; }
+    
 
     [ObservableProperty]
     public partial DXCollectionView SongLyricsCV { get; set; }
 
-    [ObservableProperty]
-    public partial List<SongModelView>? FilteredSongs { get; set; }
-    private readonly IPlayerStateService _stateService;
+    //[ObservableProperty]
+    //public partial List<SongModelView>? FilteredSongs { get; set; }
+    private readonly IDimmerStateService _stateService;
 
     private readonly IMapper _mapper;
     public BaseViewModelAnd(IMapper mapper,
         BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
-        IPlayerStateService stateService,
+        IDimmerStateService stateService,
         ISettingsService settingsService,
         SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow
-    ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService
+        
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService,  albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow,folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;
@@ -49,23 +51,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         SubscribeToScanningLogs();
     }
 
-    private void SubscribeToScanningLogs()
-    {
-        _subs.Add(_stateService.LatestDeviceLog.DistinctUntilChanged()            
-            .Subscribe(log =>
-            {
-                if (log == null || string.IsNullOrEmpty(log))
-                    return;
-                LatestScanningLog = log;
-                ScanningLogs ??= new ObservableCollection<string>();
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    if (ScanningLogs.Count > 10)
-                        ScanningLogs.RemoveAt(0);
-                    ScanningLogs.Add(log);
-                });
-            }));
-    }
 
     private void SubscribeToLyricIndexChanges()
     {
@@ -89,11 +74,25 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
             }));
     }
+
+    [RelayCommand]
     public async Task SelectSongFromFolderAndroid()
     {
-        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 
-        await SelectSongFromFolder();
+        var status = await Permissions.CheckStatusAsync<CheckPermissions>(); // Your custom permission class
+        if (status != PermissionStatus.Granted)
+        {
+            status = await Permissions.RequestAsync<CheckPermissions>();
+        }
+    
+
+
+
+        if (status == PermissionStatus.Granted)
+        {
+
+            await SelectSongFromFolder();
+        }
     }
 
     public void ResetDisplayedMasterList()
@@ -108,6 +107,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
+    public async void LoadAndPlaySongTapped(SongModelView song)
+    {
+      await  PlaySong(song, CurrentPage.HomePage);
+
+    }
 
 
 }

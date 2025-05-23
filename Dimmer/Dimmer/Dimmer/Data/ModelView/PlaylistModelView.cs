@@ -38,11 +38,14 @@ public partial class PlaylistModelView : ObservableObject
     public partial ObservableCollection<PlaylistEventView>? PlaylistEvents { get; set; }
     
     [ObservableProperty]
-    public partial string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public partial string? DeviceName { get; set; } 
 
     
     [ObservableProperty]
     public partial UserModel? User { get; set; }
+    
+    [ObservableProperty]
+    public partial ObjectId Id { get; set; }
 }
 
 public partial class PlaylistEventView : ObservableObject
@@ -50,7 +53,7 @@ public partial class PlaylistEventView : ObservableObject
     [ObservableProperty]
     public partial PlayType PlayType { get; set; }
     [ObservableProperty]
-    public partial string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public partial DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
     public partial SongModel? EventSong { get; set; }
 }

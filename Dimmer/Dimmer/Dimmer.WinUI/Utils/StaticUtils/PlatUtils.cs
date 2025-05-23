@@ -1,9 +1,4 @@
-﻿using Dimmer.Utilities;
-using Dimmer.WinUI.ViewModel;
-using System.Drawing;
-using System.Drawing.Imaging;
-using Vanara.Windows.Shell;
-using WinRT.Interop;
+﻿using System.Drawing.Imaging;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -94,6 +89,60 @@ public static class PlatUtils
         }
     }
 
+    public static void OpenAlbumWindow(SongModelView song)
+    {
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
+       
+        AlbumWindow newWindow = new AlbumWindow( MyVM, mapper);
+
+        Application.Current!.OpenWindow(newWindow);
+
+        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
+
+    }
+
+
+    public static void OpenArtistWindow(SongModelView song)
+    {
+        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
+
+        ArtistWindow newWindow = new ArtistWindow( MyVM, mapper);
+        newWindow.SetTitle(song);
+        //newWindow.
+        Application.Current!.OpenWindow(newWindow);
+
+        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
+
+    }
+
+
+    public static void OpenSettingsWindow()
+    {
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
+        
+
+        SettingsWindow newWindow = new(MyVM);
+        
+        //newWindow.SetTitle(song);
+        Application.Current!.OpenWindow(newWindow);
+
+        //MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
+
+    }
+
+
+    public static void MiniMimizeWindow(Window win)
+    {
+        
+        var nativeWindow = win.Handler.PlatformView;
+        IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+        ShowWindow(windowHandle, SW_HIDE);
+        //System.Windows.SystemCommands.MinimizeWindow(win);
+    }
     public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter appPresenter)
     {
         try
@@ -104,6 +153,7 @@ public static class PlatUtils
                 OverLappedPres!.IsAlwaysOnTop = true;
                 OverLappedPres.SetBorderAndTitleBar(false, false);
                 OverLappedPres!.Maximize();
+                
             }
             else
             {
@@ -232,13 +282,13 @@ public static class PlatUtils
             newNotif.Height = 300;
             newNotif.Width = AppUtils.UserScreenWidth;
 
-            Microsoft.Maui.Controls.Application.Current?.OpenWindow(newNotif);
+            Application.Current?.OpenWindow(newNotif);
 
             
             await Task.Delay(6000);
 
 
-            Microsoft.Maui.Controls.Application.Current?.CloseWindow(newNotif);
+            Application.Current?.CloseWindow(newNotif);
 
             
         }

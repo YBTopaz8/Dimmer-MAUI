@@ -1,5 +1,9 @@
-﻿using Dimmer.WinUI.Utils.Models;
+﻿//using Dimmer.DimmerLive.Models;
+using Dimmer.Data.Models;
+using Dimmer.WinUI.Utils.Models;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Application = Microsoft.Maui.Controls.Application;
 
 namespace Dimmer.WinUI.Views;
 
@@ -10,18 +14,170 @@ public partial class HomePage : ContentPage
 	{
 		InitializeComponent();
         BindingContext = vm;
-        MyViewModel=vm;        
+        MyViewModel=vm;      
+        
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
-        
-        MyViewModel.SetCollectionView(SongsColView);
-        MyViewModel.SetSongLyricsView(LyricsColView);
+        //await MyViewModel.LoginFromSecureData();
 
-        
+    }
+
+    private void PasteLyrPlainLyr_Clicked(object sender, EventArgs e)
+    {
+        //if (MyViewModel.AllSyncLyrics.Count < 1)
+        //{
+        //    return;
+
+        //}
+        //LyricsEditor.Text = MyViewModel.AllSyncLyrics[0].PlainLyrics;
+    }
+
+
+
+    private void SearchOnline_Clicked(object sender, EventArgs e)
+    {
+        ImageButton send = (ImageButton)sender;
+        //MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
+
+    }
+    Border LyrBorder { get; set; }
+    private void LyrBorder_Loaded(object sender, EventArgs e)
+    {
+        Border LoadedLyric = (Border)sender;
+        LoadedLyric = LyrBorder;
+    }
+
+    private void Stamp_Clicked(object sender, EventArgs e)
+    {
+        ImageButton send = (ImageButton)sender;
+        //MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void DeleteLine_Clicked(object sender, EventArgs e)
+    {
+        ImageButton send = (ImageButton)sender;
+
+        //MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void SaveCapturedLyrics_Clicked(object sender, EventArgs e)
+    {
+        //MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
+    }
+
+    private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    {
+        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
+
+        if (Clipboard.Default.HasText)
+        {
+            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        }
+
+
+    }
+
+    bool IsSyncing = false;
+
+    private void PasteLyrClipboard_Clicked(object sender, EventArgs e)
+    {
+        PasteLyricsFromClipBoardBtn_Clicked(sender, e);
+    }
+    private async void CancelAction_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmIn();
+        PlainLyricSection.IsEnabled = true;
+
+        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+
+        await SyncLyrView.DimmOut();
+        SyncLyrView.IsVisible=false;
+    }
+    private void SyncLyrLine_PointerEntered(object sender, PointerEventArgs e)
+    {
+        Border send = (Border)sender;
+        send.Stroke = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        send.StrokeThickness = 2;
+
+    }
+    bool CanScroll = true;
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        CanScroll = false;
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        CanScroll = true;
+    }
+
+    private async void CloseButton_Clicked(object sender, EventArgs e)
+    {
+        await LyricPrewiewUI.AnimateFadeOutBack();
+
+    }
+
+    private async void OkButton_Clicked(object sender, EventArgs e)
+    {
+        if (lyrType == "Synced Lyrics")
+        {
+            //await MyViewModel.SaveLyricToFile(SelectedContent, false);
+
+        }
+        else
+        if (lyrType == "Plain Lyrics")
+        {
+            //await MyViewModel.SaveLyricToFile(SelectedContent, true);
+        }
+        await LyricPrewiewUI.AnimateFadeOutBack();
+    }
+    string lyrType = string.Empty;
+    Content SelectedContent { get; set; }
+    private void SyncLyrLine_PointerExited(object sender, PointerEventArgs e)
+    {
+        Border send = (Border)sender;
+        send.Stroke = Microsoft.Maui.Graphics.Colors.Transparent;
+        send.StrokeThickness = 0;
+    }
+    private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
+    {
+        LyricsEditor.Text = string.Empty;
+        Button send = (Button)sender;
+        lyrType = send.Text;
+        SelectedContent = (Content)send.BindingContext;
+        LyricsView.Text = SelectedContent.PlainLyrics is null ? SelectedContent.SyncedLyrics : SelectedContent.PlainLyrics;
+        if (lyrType.Equals("Synced Lyrics"))
+        {
+            SynceOrPlainTitle.Text ="Synced Lyrics";
+        }
+        else
+        {
+            SynceOrPlainTitle.Text ="Plain Lyrics";
+        }
+        await LyricPrewiewUI.AnimateFadeInFront();
+    }
+    private async void StartSyncing_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmOut();
+        PlainLyricSection.IsEnabled = false;
+        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        //IsSyncing = true;
+
+        await SyncLyrView.DimmIn();
+        SyncLyrView.IsVisible=true;
+    }
+
+    private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
+    {
+
+        throw new NotImplementedException();
+        //await MyViewModel.FetchLyrics(true);
+
     }
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
@@ -29,12 +185,9 @@ public partial class HomePage : ContentPage
         View send = (View)sender;
         
         SongModelView? song = (SongModelView)send.BindingContext;
-        if (song is not null)
-        {
-            song.IsCurrentPlayingHighlight = false;
-        }
-
-       MyViewModel.PlaySongOnDoubleTap(song!);
+        song?.IsCurrentPlayingHighlight = false;
+        var songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        MyViewModel.PlaySongOnDoubleTap(song!, songs);
     }
     private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
@@ -180,16 +333,13 @@ public partial class HomePage : ContentPage
                 break;
 
             default:
+
                 break;
         }
     }
-    ObservableCollection<WindowInfo> WindowsOpened= new ObservableCollection<WindowInfo>();
     private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
-        if (MyViewModel.SecondSelectedSong is null)
-        {
-            return;
-        }
+ 
         SfChip ee = (SfChip)sender;
         string? param = ee.CommandParameter.ToString();
         if (param is null)
@@ -201,29 +351,35 @@ public partial class HomePage : ContentPage
         switch (CurrentIndex)
         {
             case 0:
-                await SwitchUIs(0);
-                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong);
+
+                if(currentViewIndex!=0)
+                {
+                    await SwitchUIs(0);
+                }
+                
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
                 //show the now playing Queue
                 break;
             case 1:
-                //show the artists songs
+                await SwitchUIs(1);
+                //show the synced lyrics
 
                 break;
             case 2:
-                //show the albums songs
-                OpenAlbumWindow(MyViewModel.SecondSelectedSong);
-
-                break;
+                MyViewModel.OpenAlbumPage(MyViewModel.SecondSelectedSong);
+                PlatUtils.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
+                return;
             case 3:
 
-                await SwitchUIs(2);
+                PlatUtils.OpenSettingsWindow();
 
-                break;
+                return;
             case 4:
 
                 break;
             case 5:
-                WindowsOpened?.Clear();
+                await SwitchUIs(2);
+               MyViewModel.WindowsOpened?.Clear();
 
                 foreach (var win in Application.Current!.Windows)
                 {
@@ -232,33 +388,58 @@ public partial class HomePage : ContentPage
                         continue;
                     }
                     // 1) get a pure Win32 snapshot
-                    var thumbnail = win.CaptureWindow();
+                    //var thumbnail = win.CaptureWindow();
 
                     // 2) build your info object
-                    var info = new WindowInfo(win, thumbnail);
-                    WindowsOpened!.Add(info);
+                    var info = new WindowInfo(win, null);
+                    MyViewModel.WindowsOpened!.Add(info);
 
                     Debug.WriteLine($"Captured: {info.Title} ({info.TypeName}) " +
                                     $"at [{info.X},{info.Y}] {info.Width}×{info.Height}");
                 }
 
-                ControlPanelColView.ItemsSource = WindowsOpened;
+                ControlPanelColView.ItemsSource = MyViewModel.WindowsOpened;
 
                 break;
+            case 6:
 
+                await MyViewModel.OpenArtistPage(MyViewModel.SecondSelectedSong);
+                PlatUtils.OpenArtistWindow(MyViewModel.SecondSelectedSong);
+                break;
+            case 7:
+                SongsColView.ScrollTo(MyViewModel.SelectedSong, null, ScrollToPosition.Start, true);
+
+                //MyViewModel.ShareSongOnline();
+                break;
+            case 8:
+
+                
+                DimmerSongWindow newWin = new DimmerSongWindow(MyViewModel);
+
+                var dq = DispatcherQueue.GetForCurrentThread();
+                dq.TryEnqueue(() =>
+                {
+                    Application.Current!.OpenWindow(newWin);
+                });
+                break;
             default:
                 break;
         }
         await SwitchUIs(CurrentIndex);
     }
-
+    int currentViewIndex = 0;
     private async Task SwitchUIs(int CurrentIndex)
     {
+        if (currentViewIndex == CurrentIndex)
+            return;
+        currentViewIndex=CurrentIndex;
         Dictionary<int, View> viewss = new Dictionary<int, View>
         {
             {0, SongsColView},
             {1, LyricsColView},
             {2, ControlPanel},
+            //{3, SettingsPanel},
+            {4, UserNoteView},
 
 
         };
@@ -273,17 +454,6 @@ public partial class HomePage : ContentPage
         
     }
 
-    private void OpenAlbumWindow(SongModelView song)
-    {
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
-        var vm = new BaseAlbumViewModel();
-        vm.SetSelectedSong(song);
-        
-        AlbumWindow newWindow = new(vm, MyViewModel);
-
-        newWindow.SetTitle(song);
-        Application.Current!.OpenWindow(newWindow);
-    }
 
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -323,30 +493,29 @@ public partial class HomePage : ContentPage
 
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
-        if ((MyViewModel.PlaylistSongs is null || MyViewModel.PlaylistSongs.Count < 1)&&(BaseAppFlow.MasterList is null || BaseAppFlow.MasterList.Count<1))
+        if ((MyViewModel.PlaylistSongs is null || MyViewModel.PlaylistSongs.Count < 1)&&(BaseAppFlow.MasterList is null ||  MyViewModel.PlaylistSongs?.Count<1))
         {
             return;
         }
         
         List<SongModelView> songsToDisplay=new();
-        bool wasSearch = false; 
 
         if (string.IsNullOrEmpty(searchText))
         {
-           
-            songsToDisplay = MyViewModel.BaseAppFlow._mapper.Map<List<SongModelView>>( BaseAppFlow.MasterList!); 
-            wasSearch = false;
+
+            songsToDisplay = MyViewModel.PlaylistSongs.ToList();
+            BaseViewModel.IsSearching = false;
         }
         else
         {
-            wasSearch = true;
+            BaseViewModel.IsSearching = true;
 
-            var songsToDisplays= await Task.Run(() => 
+            songsToDisplay= await Task.Run(() => 
             {
                 token.ThrowIfCancellationRequested(); 
 
                 
-                var e= BaseAppFlow.MasterList!    .
+                var e = MyViewModel.PlaylistSongs!    .
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
@@ -354,7 +523,8 @@ public partial class HomePage : ContentPage
                 
                 return e;
             }, token);
-            songsToDisplay = MyViewModel.SongsMgtFlow._mapper.Map<List<SongModelView>>(songsToDisplays);
+
+             
         }
 
         
@@ -363,22 +533,12 @@ public partial class HomePage : ContentPage
             if (token.IsCancellationRequested)
                 return;
 
-            MyViewModel.CurrentQueue = wasSearch ? 1 : 0;
             
+                MyViewModel.FilteredSongs = songsToDisplay;
+            SongsColView.ItemsSource = MyViewModel.FilteredSongs;
 
-            MyViewModel.DisplayedSongs?.Clear();
-            MyViewModel.SongsCV!.ItemsSource = songsToDisplay.ToObservableCollection();
-           
-            
-            
-            if (wasSearch)
-            {
-                MyViewModel.FilteredSongs = songsToDisplay; 
-            }
-            else
-            {
-                MyViewModel.FilteredSongs = null; 
-            }
+            MyViewModel.NowPlayingQueue = songsToDisplay.ToObservableCollection();
+
         });
     }
 
@@ -585,7 +745,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 2:
-                OpenAlbumWindow(MyViewModel.TemporarilyPickedSong!);
+                PlatUtils.OpenAlbumWindow(MyViewModel.TemporarilyPickedSong!);
                 
                 break;
 
@@ -597,6 +757,8 @@ public partial class HomePage : ContentPage
     private async void SongImage_Clicked(object sender, EventArgs e)
     {
         await SwitchUIs(0);
+
+        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
     }
 
     private void CloseSubWindowChip_Clicked(object sender, EventArgs e)
@@ -604,23 +766,205 @@ public partial class HomePage : ContentPage
         var send = (SfChip)sender;
         var item = (WindowInfo)send.BindingContext;
         Application.Current!.CloseWindow(item.WindowInstance);
-        WindowsOpened.Remove(item);
+        MyViewModel.WindowsOpened.Remove(item);
     }
 
-    private void FocusChip_Clicked(object sender, EventArgs e)
+    private static void FocusChip_Clicked(object sender, EventArgs e)
     {
 
         var send = (SfChip)sender;
         var item = (WindowInfo)send.BindingContext;
         Application.Current!.ActivateWindow(item.WindowInstance);
+            return;
+        Application.Current!.Dispatcher.Dispatch(() =>
+        {
+            try
+            {
+                Application.Current.ActivateWindow(item.WindowInstance);
+            }
+            catch (System.Runtime.InteropServices.COMException comEx)
+            {
+                // Log the COMException details for further investigation
+                System.Diagnostics.Debug.WriteLine($"COMException during ActivateWindow: {comEx.Message}\n{comEx.StackTrace}");
+                // Potentially show a user-friendly error message
+            }
+            catch (Exception ex)
+            {
+                // Log any other exceptions
+                System.Diagnostics.Debug.WriteLine($"Exception during ActivateWindow: {ex.Message}\n{ex.StackTrace}");
+            }
+        });
+        //Task.Run(()=>  Application.Current!.ActivateWindow(item.WindowInstance));
     }
 
     private void CloseAllWin_Clicked(object sender, EventArgs e)
     {
-        foreach (var win in WindowsOpened)
+        foreach (var win in MyViewModel.WindowsOpened)
         {
             Application.Current!.CloseWindow(win.WindowInstance);
         }
-        WindowsOpened.Clear();
+        MyViewModel.WindowsOpened.Clear();
+    }
+
+  
+
+    private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
+    {
+        if (ThoughtBtmSheetBottomSheet.IsVisible )
+        {
+            ThoughtBtmSheetBottomSheet.IsEnabled = false;
+            ThoughtBtmSheetBottomSheet.IsVisible = false;
+            return;
+        }
+
+        ThoughtBtmSheetBottomSheet.IsVisible = true;
+        ThoughtBtmSheetBottomSheet.IsEnabled = true;
+
+    }
+    private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    {
+        UserNoteModelView note = new()
+        {
+            UserMessageText=NoteText.Text,
+
+        };
+        await MyViewModel.SaveUserNoteToDB(note, MyViewModel.SecondSelectedSong);
+    }
+
+    private void DltFolder_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var item = (string)send.BindingContext;
+
+        MyViewModel.DeleteFolderPath(item);
+    }
+
+    private void DeleteBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void MainAppGrid_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void FreshAppStartRecogn_PointerEntered(object sender, PointerEventArgs e)
+    {
+     
+    }
+
+    private void GetStartedChip_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.InitializeWindows();
+        //{
+        //    MyViewModel.CurrentlySelectedPage = CurrentPage.HomePage;
+
+        //    MyViewModel.SetCollectionView(SongsColView);
+        //    MyViewModel.SetSongLyricsView(LyricsColView);
+        //    await MyViewModel.LoginFromSecureData();
+        //}
+
+    }
+
+    private void SongsColView_SizeChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void LogMsgChip_Clicked(object sender, EventArgs e)
+    {
+        Debug.WriteLine(LogMsgChip.CommandParameter.GetType());
+    }
+    string currParam=string.Empty;
+    private void ShortingTitle_TouchUp(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+        var param = send.TouchUpCommandParameter.ToString();
+        var currSongs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        Debug.WriteLine(SongsColView.ItemsSource.GetType());
+        bool isSameParam = param == currParam;
+        if (currSongs is null)
+        {
+            return;
+        }
+         switch (param)
+        {
+            case "title":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Title).ToObservableCollection();
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title).ToObservableCollection();
+                }
+                    break;
+            case "artist":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.ArtistName).ToObservableCollection();
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.ArtistName).ToObservableCollection();
+                }
+                break;
+            case "album":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Album?.Name).ToObservableCollection();
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Album?.Name).ToObservableCollection();
+                }
+                break;
+            case "genre":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Genre?.Name).ToObservableCollection();
+                }
+                else
+                {
+                    
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name).ToObservableCollection();
+                }
+                break;
+
+            case "duration":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.DurationInSeconds).ToList();
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.DurationInSeconds).ToList();
+                }
+                break;
+            default:
+
+                break;
+        }
+    }
+
+
+    private void ShortingTitle_LongPressed(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+        var param = send.TouchUpCommandParameter.ToString();
+        ObservableCollection<SongModelView> currSongs = (SongsColView.ItemsSource as ObservableCollection<SongModelView>)!;
+        var listOfArtists = MyViewModel.TemporarilyPickedSong.ArtistIds.Select(x => x.Name).ToList(); ;
+        //var res = await DisplayActionSheet("Choose", "Choooose", "OK", "ss");
     }
 }

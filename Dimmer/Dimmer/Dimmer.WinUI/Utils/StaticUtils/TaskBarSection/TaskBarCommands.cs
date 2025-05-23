@@ -1,6 +1,4 @@
-﻿using Vanara.PInvoke; // Core Vanara PInvoke namespace
-using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using static Vanara.PInvoke.Shell32;
 
 namespace Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
@@ -251,9 +249,9 @@ public static class WindowsIntegration
         THUMBBUTTON[] buttons = new THUMBBUTTON[3];
 
         // Get valid icon handles; replace with your own icons if available.
-        IntPtr prevIcon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location)?.Handle ?? IntPtr.Zero;
-        IntPtr playIcon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location)?.Handle ?? IntPtr.Zero;
-        IntPtr nextIcon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location)?.Handle ?? IntPtr.Zero;
+        IntPtr prevIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location)?.Handle ?? IntPtr.Zero;
+        IntPtr playIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location)?.Handle ?? IntPtr.Zero;
+        IntPtr nextIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location)?.Handle ?? IntPtr.Zero;
 
         buttons[0] = new THUMBBUTTON
         {
@@ -442,7 +440,7 @@ public static class NativeMethods
 #pragma warning restore S4200 // Native methods should be wrapped
 }
     // Replace the ComImportAttribute with GeneratedComInterfaceAttribute for the ITaskbarList3 interface.
-    // This change is required to generate COM marshalling code at compile time as per the diagnostic SYSLIB1096.
+    // This change is to generate COM marshalling code at compile time as per the diagnostic SYSLIB1096.
     [ComImport]
 [Guid("ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

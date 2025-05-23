@@ -1,9 +1,11 @@
-﻿namespace Dimmer.Data.Models;
-public class AppStateModel : RealmObject
+﻿
+
+namespace Dimmer.Data.Models;
+public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public ObjectId Id { get; set; } 
     public string CurrentSongId { get; set; }
     public string? CurrentAlbumId { get; set; }
     public string? CurrentArtistId { get; set; }
@@ -25,12 +27,69 @@ public class AppStateModel : RealmObject
 
     public string? EqualizerPreset { get; set; }
     public double LastKnownPosition { get; set; }
-    public IList<string> UserMusicFoldersPreference { get; } = new List<string>();
-    public IList<string> LastOpenedWindows { get; } = new List<string>();
+    public IList<string> UserMusicFoldersPreference { get; } 
+    public IList<string> LastOpenedWindows { get; } 
 
 
     public AppStateModel()
     {
         
+    }
+    public AppStateModel(AppStateModel source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        // Copy all properties
+        // Note: We are explicitly setting Id from the source.
+        // If you wanted a new ID for the copy, you'd omit this line or re-initialize.
+        this.Id = source.Id;
+        this.CurrentSongId = source.CurrentSongId;
+        this.CurrentAlbumId = source.CurrentAlbumId;
+        this.CurrentArtistId = source.CurrentArtistId;
+        this.CurrentGenreId = source.CurrentGenreId;
+        this.CurrentPlaylistId = source.CurrentPlaylistId;
+        this.CurrentUserId = source.CurrentUserId;
+        this.CurrentTheme = source.CurrentTheme;
+        this.CurrentLanguage = source.CurrentLanguage;
+        this.CurrentCountry = source.CurrentCountry;
+        this.RepeatModePreference = source.RepeatModePreference;
+        this.ShuffleStatePreference = source.ShuffleStatePreference;
+        this.VolumeLevelPreference = source.VolumeLevelPreference;
+        this.IsDarkModePreference = source.IsDarkModePreference;
+        this.IsFirstTimeUser = source.IsFirstTimeUser;
+        this.PlaybackSpeed = source.PlaybackSpeed;
+        this.MinimizeToTrayPreference = source.MinimizeToTrayPreference;
+        this.IsStickToTop = source.IsStickToTop;
+        this.EqualizerPreset = source.EqualizerPreset;
+        this.LastKnownPosition = source.LastKnownPosition;
+
+        // For collections, we need to create new collections and copy the items
+        // to ensure the new instance has its own independent lists.
+        // Since UserMusicFoldersPreference and LastOpenedWindows are initialized
+        // with `new List<string>()` by their property initializers,
+        // `this.UserMusicFoldersPreference` and `this.LastOpenedWindows`
+        // are already new, empty List<string> instances here. We just add to them.
+
+        if (source.UserMusicFoldersPreference != null)
+        {
+            foreach (var item in source.UserMusicFoldersPreference)
+            {
+                this.UserMusicFoldersPreference.Add(item);
+            }
+            // Alternative using LINQ (if you prefer, but foreach is clear):
+            // this.UserMusicFoldersPreference.Clear(); // Should be empty already
+            // ((List<string>)this.UserMusicFoldersPreference).AddRange(source.UserMusicFoldersPreference);
+        }
+
+        if (source.LastOpenedWindows != null)
+        {
+            foreach (var item in source.LastOpenedWindows)
+            {
+                this.LastOpenedWindows.Add(item);
+            }
+            // Alternative using LINQ:
+            // this.LastOpenedWindows.Clear(); // Should be empty already
+            // ((List<string>)this.LastOpenedWindows).AddRange(source.LastOpenedWindows);
+        }
     }
 }

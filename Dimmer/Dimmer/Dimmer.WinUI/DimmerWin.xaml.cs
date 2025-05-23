@@ -1,11 +1,4 @@
-using Dimmer.Services;
-using Dimmer.Utilities;
-using Dimmer.WinUI.Utils.Helpers;
-using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
-using Dimmer.WinUI.ViewModel;
-using System.Drawing;
-using System.Reflection;
-using Vanara.PInvoke;
+
 
 namespace Dimmer.WinUI;
 
@@ -36,7 +29,7 @@ public partial class DimmerWin : Window
             
             return;
         }
-        bool result = await Microsoft.Maui.Controls.Shell.Current.DisplayAlert(
+        bool result = await Shell.Current.DisplayAlert(
             "Confirm Action",
             "You sure want to close app?",
             "Yes",

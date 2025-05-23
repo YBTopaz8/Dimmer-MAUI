@@ -1,9 +1,11 @@
-﻿namespace Dimmer.Data.Models;
+﻿using MongoDB.Bson;
+
+namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
-public partial class AlbumModel : RealmObject
+public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
 {
 
 
@@ -56,42 +58,42 @@ public partial class AlbumModel : RealmObject
     /// <value>
     /// The date created.
     /// </value>
-    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     /// <summary>
     /// Gets or sets the name of the device.
     /// </summary>
     /// <value>
     /// The name of the device.
     /// </value>
-    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceName { get; set; }
     /// <summary>
     /// Gets or sets the device form factor.
     /// </summary>
     /// <value>
     /// The device form factor.
     /// </value>
-    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceFormFactor { get; set; }
     /// <summary>
     /// Gets or sets the device model.
     /// </summary>
     /// <value>
     /// The device model.
     /// </value>
-    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceModel { get; set; }
     /// <summary>
     /// Gets or sets the device manufacturer.
     /// </summary>
     /// <value>
     /// The device manufacturer.
     /// </value>
-    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceManufacturer { get; set; }
     /// <summary>
     /// Gets or sets the device version.
     /// </summary>
     /// <value>
     /// The device version.
     /// </value>
-    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public string? DeviceVersion { get; set; }
     /// <summary>
     /// Gets or sets the local device identifier.
     /// </summary>
@@ -99,14 +101,18 @@ public partial class AlbumModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    public ObjectId Id { get; set; } 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AlbumModel"/> class.
     /// </summary>
-    
-    
+
+    [Backlink(nameof(SongModel.Album))]
+    public IQueryable<SongModel>? Songs { get; }
+
+    public IList<UserNoteModel>? UserNotes { get; }
     public AlbumModel()
     {
     }
+    
 }

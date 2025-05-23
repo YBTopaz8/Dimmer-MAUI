@@ -21,10 +21,14 @@ public class RealmFactory : IRealmFactory
 
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
 
+        if (!File.Exists(filePath))
+        {
+            AppUtils.IsUserFirstTimeOpening = true;
+        }
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 10,
+            SchemaVersion = 21,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
                 
@@ -56,6 +60,41 @@ public class RealmFactory : IRealmFactory
                 {
                     
                    
+                }
+                if (oldSchemaVersion < 10)
+                {
+                    
+                   
+                }
+                if (oldSchemaVersion < 11)
+                {
+                    
+                   
+                }
+                if (oldSchemaVersion < 12)
+                {
+                    
+                   
+                }
+                if (oldSchemaVersion < 21) // or your relevant version
+                {
+                    var songs = migration.NewRealm.All<SongModel>();
+                    var idGroups = songs.ToList().GroupBy(s => s.Id).Where(g => g.Count() > 1);
+
+                    foreach (var group in idGroups)
+                    {
+                        // Keep only the first, remove the rest
+                        bool first = true;
+                        foreach (var song in group)
+                        {
+                            if (first)
+                            {
+                                first = false;
+                                continue;
+                            }
+                            migration.NewRealm.Remove(song);
+                        }
+                    }
                 }
             }
         };

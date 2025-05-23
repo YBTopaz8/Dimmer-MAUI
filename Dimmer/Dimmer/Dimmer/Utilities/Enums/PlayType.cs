@@ -58,5 +58,6 @@ public enum PlayType
     ChatPinnedMessage = 36,
     AddToPlaylist = 37,
     RemoveFromPlaylist = 37,
-
+    ShareSong = 38,
+    ReceiveShare=39
 }

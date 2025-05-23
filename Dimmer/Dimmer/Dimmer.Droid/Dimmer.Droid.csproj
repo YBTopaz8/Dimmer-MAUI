@@ -2,16 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0-android</TargetFramework>
-    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">29.0</SupportedOSPlatformVersion>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dimmer</RootNamespace>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
-    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <PackageIcon>dimmerIcon.png</PackageIcon>
     <!-- Optional: Consider Central Package Management for easier version control -->
     <!-- <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> -->
+
+
+    <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
+    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,8 +27,23 @@
     <Compile Remove="Utils\CustomAnimsAndroid.cs" />
   </ItemGroup>
 
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+    <TargetFrameworks>net9.0-android</TargetFrameworks>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
-    <Content Include="dimmicoo.ico" />
+    <None Remove="AndroidManifest.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="Resources\mipmap-xhdpi\appicon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="AndroidManifest.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,70 +57,70 @@
     <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.3" />
 
     <!-- MAUI Dependencies -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.60" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.70" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
 
     <!-- Explicit AndroidX/Google Dependencies to Resolve Conflicts -->
     <!-- Core & Material -->
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.15.0.2" />
-    <PackageReference Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.15.0.2" />
-    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.2" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.16.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.16.0.1" />
+    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.3" />
 
     <!-- Media3 Dependencies (Consolidated & Updated) -->
-    <PackageReference Include="Xamarin.AndroidX.Media3.Common" Version="1.5.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer" Version="1.5.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.Common" Version="1.6.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer" Version="1.6.1.1" />
     <!-- Use only ONE reference -->
-    <PackageReference Include="Xamarin.AndroidX.Media3.Extractor" Version="1.5.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.Media3.Session" Version="1.5.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.Media3.Ui" Version="1.5.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Dash" Version="1.5.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Hls" Version="1.5.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.SmoothStreaming" Version="1.5.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.Extractor" Version="1.6.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.Session" Version="1.6.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.Ui" Version="1.6.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Dash" Version="1.6.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Hls" Version="1.6.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.SmoothStreaming" Version="1.6.1.1" />
     <!-- Often needed by Media3 -->
 
     <!-- Activity -->
-    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.10.1" />
-    <!-- Use highest required or newer stable -->
-    <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.10.1" />
+    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.10.1.1" />
+    <!-- Use highest or newer stable -->
+    <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.10.1.1" />
 
     <!-- Collection -->
-    <PackageReference Include="Xamarin.AndroidX.Collection" Version="1.5.0" />
+    <PackageReference Include="Xamarin.AndroidX.Collection" Version="1.5.0.1" />
     <!-- <PackageReference Include="Xamarin.AndroidX.Collection.Jvm" Version="1.4.5.2" /> -->
     <!-- Usually transitive -->
-    <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0" />
+    <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" />
 
     <!-- Concurrent -->
-    <PackageReference Include="Xamarin.AndroidX.Concurrent.Futures" Version="1.2.0.5" />
+    <PackageReference Include="Xamarin.AndroidX.Concurrent.Futures" Version="1.2.0.6" />
 
     <!-- Fragment -->
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.6" />
-    <!-- Use highest required or newer stable -->
-    <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.6" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.6.1" />
+    <!-- Use highest or newer stable -->
+    <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.6.1" />
 
     <!-- Lifecycle -->
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.8.7.2" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.7.2" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.8.7.2" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.8.7.3" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.7.3" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.8.7.3" />
     <!-- <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.8.7.2" /> -->
     <!-- Usually transitive -->
     <!-- <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Ktx" Version="2.8.7.2" /> -->
     <!-- Usually transitive -->
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.8.7.2" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.8.7.2" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.8.7.3" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.8.7.3" />
     <!-- <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Android" Version="2.8.7.2" /> -->
     <!-- Usually transitive -->
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.8.7.2" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.8.7.3" />
     <!-- <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx.Android" Version="2.8.7.2" /> -->
     <!-- Usually transitive -->
     <!-- Note: You often don't need *all* Ktx/Android variants explicitly if the main one is referenced -->
 
     <!-- Media (Older androidx.media, might be needed by compat things or other libs) -->
-    <PackageReference Include="Xamarin.AndroidX.Media" Version="1.7.0.9" />
+    <PackageReference Include="Xamarin.AndroidX.Media" Version="1.7.0.10" />
 
     <!-- Transition -->
-    <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.5.1.4" />
-    <PackageReference Include="Xamarin.Google.Guava" Version="33.4.5" />
+    <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.5.1.5" />
+    <PackageReference Include="Xamarin.Google.Guava" Version="33.4.8.1" />
 
     <!-- REMOVED OLD SUPPORT LIBRARY -->
     <!-- <PackageReference Include="Xamarin.Android.Support.Media.Compat" Version="28.0.0.3" /> -->
@@ -115,10 +135,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="AppShell.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Resources\Styles\DevExpressStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
+    </MauiXaml>
     <MauiXaml Update="Views\HomePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\DimmerVault.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\DimmerSettings.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\SettingsPage.xaml">
@@ -132,6 +165,15 @@
 
   <ItemGroup>
     <None Include="Utils\CustomAnimsAndroid.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\DimmerVault.xaml.cs">
+      <DependentUpon>DimmerVault.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\DimmerSettings.xaml.cs">
+      <DependentUpon>DimmerSettings.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

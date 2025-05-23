@@ -9,9 +9,9 @@ using Uri = Android.Net.Uri;
 
 // AndroidX Core & Media
 
-using AndroidX.Media3.Common; 
-using AndroidX.Media3.ExoPlayer; 
-using AndroidX.Media3.Session; 
+using AndroidX.Media3.Common;
+using AndroidX.Media3.ExoPlayer;
+using AndroidX.Media3.Session;
 
 // Java Interop
 using Java.Lang;
@@ -23,7 +23,6 @@ using Object = Java.Lang.Object;
 #endregion
 
 // Your App specific using
-using Dimmer.Droid; // Make sure this namespace is correct for MainActivity and HeartRating
 using AndroidX.Media3.Common.Text;
 // using Exception = Java.Lang.Exception; // Can use System.Exception generally
 using DeviceInfo = AndroidX.Media3.Common.DeviceInfo;
@@ -33,7 +32,6 @@ using Android.Util;
 using Java.Util.Concurrent;
 using Android.Media;
 using Dimmer.Activities;
-using AndroidX.ConstraintLayout.Helper.Widget;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -113,7 +111,7 @@ public class ExoPlayerService : MediaSessionService
 
     internal void RaiseIsPlayingChanged(bool isPlaying)
     {
-        PlayingChanged?.Invoke(this, isPlaying);
+        PlayingChanged?.Invoke(player, isPlaying);
         if (isPlaying)
             StartPositionUpdates();
         else
@@ -168,7 +166,13 @@ public class ExoPlayerService : MediaSessionService
 
 
             Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
-            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
+
+            PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
+            {
+                flags |= PendingIntentFlags.Immutable;
+            }
+            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, flags);
             
 
             mediaSession = new MediaSession.Builder(this, player)!
@@ -188,28 +192,57 @@ public class ExoPlayerService : MediaSessionService
             _positionHandler = new Handler(Looper.MainLooper!);
             _positionRunnable = new Runnable(() =>
             {
-                // fire your PositionChanged event (you already have one in IAudioActivity)
-                PositionChanged?.Invoke(this, player!.CurrentPosition);
-                if (player.IsPlaying)
-                    _positionHandler.PostDelayed(_positionRunnable, 1000);
+                if (player != null && player.IsPlaying) // Add null check for player
+                {
+                    PositionChanged?.Invoke(this, player.CurrentPosition);
+                    _positionHandler?.PostDelayed(_positionRunnable, 1000); // Check _positionHandler for null too
+                }
             });
             _positionHandler.Post(_positionRunnable);
 
-            Console.WriteLine("[ExoPlayerService] Initialization successful.");
-            var controllerFuture = new MediaController.Builder(this, mediaSession.Token!).BuildAsync();
+            await InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
+
+            System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.OnCreate END (Initialization logic dispatched)");
             
-            var controllerObject = await controllerFuture?.GetAsync()!;
-            mediaController = (MediaController)controllerObject!;
 
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
-        
+       
     }
+    private async Task InitializeMediaControllerAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+        try
+        {
+            if (mediaSession?.Token == null)
+            {
+                System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+                return;
+            }
 
+            var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
+            var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
+            mediaController = (MediaController)controllerObject;
+            System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+        }
+        catch (Java.Lang.Throwable ex)
+        {
+            HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
+            // Decide if you need to StopSelf() here or if the service can function without a controller initially
+        }
+    }
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         base.OnStartCommand(intent, flags, startId);
+
+
+        var notification = NotificationHelper.BuildMinimalNotification(this);
+
+        StartForeground(NotificationHelper.NotificationId, notification);
+        
+       
+
         return StartCommandResult.Sticky;
     }
 
@@ -304,7 +337,7 @@ public class ExoPlayerService : MediaSessionService
     private static void HandleInitError(string type, Java.Lang.Throwable ex)
     {
         Console.WriteLine($"[ExoPlayerService] !!! CRITICAL JAVA {type} ERROR: {ex.Class.Name} - {ex.LocalizedMessage} !!!");
-        Console.WriteLine($"[ExoPlayerService] Java Stack Trace: {Android.Util.Log.GetStackTraceString(ex)}");
+        Console.WriteLine($"[ExoPlayerService] Java Stack Trace: {Log.GetStackTraceString(ex)}");
         if (ex.Cause != null)
         {
             Console.WriteLine($"[ExoPlayerService] Java Cause: {ex.Cause}");
@@ -397,12 +430,12 @@ public class ExoPlayerService : MediaSessionService
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
-            .GetSystemService(Context.AudioService) as AudioManager;
+            .GetSystemService(AudioService) as AudioManager;
 
         // 2) query all output devices (API 23+)
         var devices = audioManager?
             .GetDevices(GetDevicesTargets.Outputs)
-            ?? Array.Empty<AudioDeviceInfo>();  
+            ?? [];  
 
         // 3) map to your cross-platform model
         return devices.Select(d => new AudioOutputDevice
@@ -437,6 +470,7 @@ public class ExoPlayerService : MediaSessionService
             };
             Console.WriteLine($"[PlayerEventListener] PlayerStateChanged: PlayWhenReady={playWhenReady}, State={stateString} ({playbackState})");
             // Forward to your service or session as needed...
+            service.RaiseStatusChanged(playbackState); // Use your service method to raise events
         }
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
@@ -451,7 +485,7 @@ public class ExoPlayerService : MediaSessionService
         }
         public void OnPlaybackStateChanged(int playbackState)
         {
-
+            service.RaiseStatusChanged(playbackState); // Use your service method to raise events
             Console.WriteLine("new "+playbackState);
         }
         public void OnLoadingChanged(bool isLoading)
@@ -462,6 +496,10 @@ public class ExoPlayerService : MediaSessionService
 
         public void OnIsPlayingChanged(bool isPlaying)
         {
+            if (isPlaying)
+            {
+                NotificationHelper.ShowPlaybackBubble(Platform.AppContext.ApplicationContext,service.player.MediaMetadata.Title.ToString());
+            }
             Console.WriteLine($"[PlayerEventListener] IsPlayingChanged: {isPlaying}");
             service.RaiseIsPlayingChanged(isPlaying); 
         }
@@ -548,7 +586,11 @@ public class ExoPlayerService : MediaSessionService
             // ... other checks
 
         }
-        public void OnIsLoadingChanged(bool isLoading) { Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}"); }
+        public void OnIsLoadingChanged(bool isLoading)
+        {
+            Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}");
+        }
+
         public void OnMaxSeekToPreviousPositionChanged(long p0) { /* Log if needed */ }
         // public void OnMetadata(MediaMetadata? volume) {} // Superseded by OnMediaMetadataChanged? Check docs.
         public void OnPlayWhenReadyChanged(bool playWhenReady, int reason) { Console.WriteLine($"[PlayerEventListener] PlayWhenReadyChanged: {playWhenReady}, Reason={reason}"); }

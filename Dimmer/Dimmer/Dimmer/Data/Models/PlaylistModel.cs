@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Data.Models;
-public partial class PlaylistModel : RealmObject
+public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
 {
     /// <summary>
     /// Gets or sets the local device identifier.
@@ -8,7 +8,7 @@ public partial class PlaylistModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public ObjectId Id { get; set; }
     /// <summary>
     /// Gets or sets the name of the playlist.
     /// </summary>
@@ -22,7 +22,7 @@ public partial class PlaylistModel : RealmObject
     /// <value>
     /// The date created.
     /// </value>
-    public string DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
     public IList<string>? SongInPlaylist { get; }
     public string? CurrentSongId { get; set; }
@@ -32,7 +32,8 @@ public partial class PlaylistModel : RealmObject
     public string? PlaylistType { get; set; } = "General";
 
     public IList<PlaylistEvent>? PlaylistEvents { get; }
-    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public IList<SongModel> Songs { get; }
+    public string? DeviceName { get; set; } 
     
     public UserModel? User { get; set; }
     //3 PL ; general,

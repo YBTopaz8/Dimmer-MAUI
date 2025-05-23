@@ -1,5 +1,4 @@
-﻿using Dimmer.Services;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Dimmer.Orchestration; 
 public class LyricsMgtFlow : BaseAppFlow, IDisposable
@@ -8,7 +7,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
     private LyricSynchronizer? _synchronizer;
 
     // injected services
-    private readonly IPlayerStateService _state;
+    private readonly IDimmerStateService _state;
     private readonly SubscriptionManager _subs;
 
     // the “source of truth” list, sorted by Time
@@ -24,23 +23,26 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
 
     public LyricsMgtFlow(
         SongsMgtFlow songsMgt,
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
         IRepository<GenreModel> genreRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<UserModel> userRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
-        IFolderMonitorService folderMonitor,
+        IFolderMgtService folderMonitor,
+        IRepository<AppStateModel> appstateRepo,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
     {
         this.songsMgt=songsMgt;
         _state = state;
         _subs  = subs;
+
+
 
         // 1) whenever the song changes, reload its lyrics
         _subs.Add(_state.CurrentSong

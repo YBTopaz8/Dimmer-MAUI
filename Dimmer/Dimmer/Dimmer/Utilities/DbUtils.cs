@@ -3,7 +3,7 @@ public static class DbUtils
 {
 
     // Generates a local device ID using the first three characters of CallerClass and a new GUID.
-    public static string GenerateLocalDeviceID(string callerClass)
+    public static string GenerateId(string callerClass)
     {
         if (string.IsNullOrWhiteSpace(callerClass) || callerClass.Length < 3)
             throw new ArgumentException("CallerClass must be at least 3 characters long", nameof(callerClass));

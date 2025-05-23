@@ -1,6 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using Dimmer.Services;
-using Dimmer.WinUI.ViewModel;
+﻿
+//using Dimmer.DimmerLive.Interfaces;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 
 namespace Dimmer.WinUI.Views;
@@ -9,8 +8,10 @@ public partial class HomeViewModel : BaseViewModelWin
 
     #region private fields   
     private readonly SubscriptionManager _subs;
+    private readonly IFolderMgtService folderMgtService;
+    private readonly IFilePicker filePicker;
     private readonly IMapper _mapper;
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
 
     #endregion
 
@@ -21,20 +22,25 @@ public partial class HomeViewModel : BaseViewModelWin
     [ObservableProperty]
     public partial string? SearchText { get; set; }
     #endregion
-    public HomeViewModel(
-            IMapper mapper, BaseAppFlow baseAppFlow,
-            AlbumsMgtFlow albumsMgtFlow,
-            PlayListMgtFlow playlistsMgtFlow,
-            SongsMgtFlow songsMgtFlow,
-            IPlayerStateService stateService,
-            ISettingsService settingsService,
-            SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow
-        ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+    public HomeViewModel(IMapper mapper,
+        BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
+        AlbumsMgtFlow albumsMgtFlow,
+        PlayListMgtFlow playlistsMgtFlow,
+        SongsMgtFlow songsMgtFlow,
+        IDimmerStateService stateService,
+        ISettingsService settingsService,
+        SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService,
+        IFilePicker filePicker
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService, filePicker)
     {
 
         _mapper = mapper;
         _subs = subs;
+        this.folderMgtService=folderMgtService;
+        this.filePicker=filePicker;
         _stateService = stateService;
         LoadPageViewModel();
         SongsCV=new();
@@ -42,11 +48,14 @@ public partial class HomeViewModel : BaseViewModelWin
 
         SubscribeToLyricIndexChanges();
         SubscribeToSyncLyricsChanges();
+        SubscribeToScanningLogs();
     }
 
-    private static void LoadPageViewModel()
+    private void LoadPageViewModel()
     {
-        Debug.WriteLine("loaded page vm");
+        var e = folderMgtService.AllFolders.ToList();
+        ;
+        Debug.WriteLine("loaded page ViewModel");
     }
 
     private void SubscribeToLyricIndexChanges()
@@ -96,9 +105,9 @@ public partial class HomeViewModel : BaseViewModelWin
         //ScrollToCurrentlyPlayingSong();
     }
 
-    public void PlaySongOnDoubleTap(SongModelView song)
+    public async void PlaySongOnDoubleTap(SongModelView song, IEnumerable<SongModelView>? listOfSongs)
     {
-        PlaySong(song, CurrentPage.HomePage);
+        await  PlaySong(song, CurrentPage.HomePage, listOfSongs);
         var win = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
         win.SetTitle(song);
     }
@@ -122,4 +131,6 @@ public partial class HomeViewModel : BaseViewModelWin
     {
         GeneralViewUtil.PointerOffView(mySelectedView);
     }
+
+   
 }
