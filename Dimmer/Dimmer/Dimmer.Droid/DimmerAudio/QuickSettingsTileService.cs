@@ -132,7 +132,7 @@ public class QuickSettingsTileService : TileService
             {
                 case 0: // Toggle Play/Pause
                     Log.Debug(TAG, "Dialog: Toggle Play/Pause selected");
-                    OnClick();
+                    SendToggleCommandToService(); // Implement this method to handle the toggle action
                     break;
                 case 1: // Next Track
                     Log.Debug(TAG, "Dialog: Next Track selected");
