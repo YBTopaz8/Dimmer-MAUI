@@ -19,6 +19,8 @@
 		<EnableDefaultMauiItems>false</EnableDefaultMauiItems>
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
+		<PublishAot>True</PublishAot>
+		<PublishTrimmed>True</PublishTrimmed>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -76,10 +78,6 @@
 		<PackageReference Include="Vanara.Windows.Shell" Version="4.1.3" />
 		<PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
 
-    <PackageReference Include="UraniumUI.Material" Version="2.12.1" />
-    <PackageReference Include="UraniumUI.Blurs" Version="2.12.1" />
-
-    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.12.1" />
     <PackageReference Include="AlohaKit" Version="1.0.100" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
 

@@ -48,7 +48,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         SubscribeToLyricIndexChanges();
         SongLyricsCV = new DXCollectionView();
 
-        SubscribeToScanningLogs();
     }
 
 
@@ -75,8 +74,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             }));
     }
 
-    [RelayCommand]
-    public async Task SelectSongFromFolderAndroid()
+    
+    public async Task SelectSongFromFolderAndroid(string? selectedFolder=null)
     {
 
         var status = await Permissions.CheckStatusAsync<CheckPermissions>(); // Your custom permission class
@@ -91,7 +90,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (status == PermissionStatus.Granted)
         {
 
-            await SelectSongFromFolder();
+            await SelectSongFromFolder(selectedFolder);
         }
     }
 

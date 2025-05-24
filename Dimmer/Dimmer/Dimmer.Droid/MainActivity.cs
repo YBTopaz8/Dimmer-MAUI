@@ -172,12 +172,16 @@ public class MainActivity : MauiAppCompatActivity
             StartService(_serviceIntent);
         _serviceConnection = new MediaPlayerServiceConnection(audioSvc);
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
-        
-        
-        
-        
-        
-        
+
+
+
+#if RELEASE
+        Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
+#elif DEBUG
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+#endif
+
+
         return;
 
 

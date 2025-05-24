@@ -54,6 +54,7 @@ public class FolderMgtService : IFolderMgtService
         
         
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path));
+        return;
         RestartWatching();
     }
 

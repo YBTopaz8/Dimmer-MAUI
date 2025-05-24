@@ -1,5 +1,4 @@
-﻿using DevExpress.Maui.Core;
-
+﻿
 namespace Dimmer;
 
 public static class MauiProgram
@@ -24,6 +23,9 @@ public static class MauiProgram
             .UseDevExpressDataGrid()
             .UseDevExpressEditors()
             .UseDevExpressGauges()
+            .UseUraniumUI()
+            .UseUraniumUIBlurs()
+            .UseUraniumUIMaterial()
             .UseSharedMauiApp();
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();

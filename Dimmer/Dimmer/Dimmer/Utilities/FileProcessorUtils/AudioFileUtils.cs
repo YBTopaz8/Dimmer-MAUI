@@ -93,7 +93,7 @@ public static class AudioFileUtils
     public static List<string> GetAllAudioFilesFromPaths(IEnumerable<string> pathsToScan, HashSet<string> supportedExtensions)
     {
         var allFiles = new List<string>();
-        var uniquePaths = pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase);
+        var uniquePaths = pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
         foreach (string path in uniquePaths)
         {
@@ -101,8 +101,21 @@ public static class AudioFileUtils
             {
                 if (Directory.Exists(path))
                 {
-                    allFiles.AddRange(Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
-                        .Where(f => supportedExtensions.Contains(Path.GetExtension(f))));
+                    var s = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories).ToList();
+                    var ss = new List<string>();
+                    foreach (var file in s)
+                    {
+                        string fileExtension = Path.GetExtension(file); // Returns string?
+                                                                        // Ensure extension is not null and that supportedExtensions can handle it.
+                                                                        // Also, consider case-insensitivity if your supportedExtensions list is, for example, all lowercase.
+                        if (fileExtension != null && supportedExtensions.Contains(fileExtension, StringComparer.OrdinalIgnoreCase))
+                        // Or if supportedExtensions are already normalized (e.g. all lowercase):
+                        // if (fileExtension != null && supportedExtensions.Contains(fileExtension.ToLowerInvariant()))
+                        {
+                            ss.Add(file);
+                        }
+                    }
+                    allFiles.AddRange(ss);
                 }
                 else if (File.Exists(path) && supportedExtensions.Contains(Path.GetExtension(path)))
                 {

@@ -84,7 +84,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                   })
         );
         SubscribeToCurrentSongChanges();
-        System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
+        //System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
 
     }
     bool isSwitching=false;
@@ -92,7 +92,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     {
         //isSwitching=true;   
         await PlaySongInAudioService();
-        System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
+        //System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
 
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 

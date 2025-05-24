@@ -13,12 +13,14 @@ public partial class HomePage : ContentPage
 
     public HomePageViewModel MyViewModel { get; internal set; }
     public HomePage(HomePageViewModel vm)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
         MyViewModel=vm;
 
         //MyViewModel!.LoadPageViewModel();
         BindingContext = vm;
+        //NavChips.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings"};
+        NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
     }
 
     protected override void OnAppearing()
@@ -59,7 +61,7 @@ public partial class HomePage : ContentPage
     private void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
         //await MyViewModel.NavigateToArtistsPage(1);
-       //SongsMenuPopup.Close();
+        //SongsMenuPopup.Close();
     }
     private void ClosePopup(object sender, EventArgs e)
     {
@@ -96,7 +98,7 @@ public partial class HomePage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-               await  MyViewModel.PlayPrevious();
+                await MyViewModel.PlayPrevious();
                 break;
             case 2:
             case 3:
@@ -117,7 +119,7 @@ public partial class HomePage : ContentPage
             default:
                 break;
         }
-    
+
     }
 
     private void SearchSong_Tap(object sender, HandledEventArgs e)
@@ -144,7 +146,8 @@ public partial class HomePage : ContentPage
     double btmBarHeight = 0;
     private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
-        DXBorder send = (DXBorder)sender;
+        //View send = (View)sender;
+        View send = BtmPartForGestures;
 
         switch (e.StatusType)
         {
@@ -195,7 +198,7 @@ public partial class HomePage : ContentPage
 
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
-                                await Task.WhenAll( bounceTask);
+                                await Task.WhenAll(bounceTask);
                             }
                         }
                         catch (Exception ex) // Handle exceptions
@@ -207,7 +210,7 @@ public partial class HomePage : ContentPage
                         {
                             BtmBar.TranslationX = 0; // Reset translation
                             BtmBar.TranslationY = 0; // Reset translation
-                            
+
                         }
                     }
 
@@ -216,7 +219,7 @@ public partial class HomePage : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                             await MyViewModel.PlayPrevious();
+                            await MyViewModel.PlayPrevious();
                             Debug.WriteLine("Swiped left");
                             //Task t1 = send.MyBackgroundCoorTo(Colors.MediumPurple, length: 300);
                             //Task t2 = Task.Delay(500);
@@ -230,6 +233,9 @@ public partial class HomePage : ContentPage
                 {
                     if (deltaY > 0) // Down
                     {
+
+                        HomeTabView.SelectedItemIndex=0;
+
                         //try
                         //{
                         //    if (HomeTabView.SelectedItemIndex != 0)
@@ -252,7 +258,7 @@ public partial class HomePage : ContentPage
                             NowPlayingBtmSheet.IsVisible=true;
                             NowPlayingBtmSheet.Show();
                             NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.FullExpanded;
-                            
+
 
                             //if (HomeTabView.SelectedItemIndex != 1)
                             //{
@@ -309,7 +315,7 @@ public partial class HomePage : ContentPage
 
     private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
-        DXBorder send = (DXBorder)sender;
+        Grid send = (Grid)sender;
 
         if (MyViewModel.IsPlaying)
         {
@@ -320,7 +326,7 @@ public partial class HomePage : ContentPage
         {
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
-              await  MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
+                await MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
             }
             else
             {
@@ -393,7 +399,7 @@ public partial class HomePage : ContentPage
     }
     private void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
-        return ;
+        return;
         //LyricsEditor.Text = string.Empty;
         Button send = (Button)sender;
         string title = send.Text;
@@ -409,7 +415,7 @@ public partial class HomePage : ContentPage
             PasteLyricsFromClipBoardBtn_Clicked(send, e);
         }
     }
-    private  void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    private void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
     {
         //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
@@ -421,7 +427,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private  void ContextIcon_Tap(object sender, HandledEventArgs e)
+    private void ContextIcon_Tap(object sender, HandledEventArgs e)
     {
         //MyViewModel.LoadArtistSongs();
         //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
@@ -518,7 +524,7 @@ public partial class HomePage : ContentPage
         //{
         //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
         //}
-            
+
     }
 
     //private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
@@ -526,7 +532,7 @@ public partial class HomePage : ContentPage
     //    UserNoteModelView note = new()
     //    {
     //        UserMessageText=NoteText.Text,
-            
+
     //    };
     //   await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
     //}
@@ -614,12 +620,22 @@ public partial class HomePage : ContentPage
 
     private void ChipGroup_ChipTap(object sender, ChipEventArgs e)
     {
+        switch (e.Chip.Text)
+        {
+            case "Home":
+                HomeTabView.SelectedItemIndex=1;
+                break;
+            case "Settings":
+                HomeTabView.SelectedItemIndex=2;
+                break;
 
+            default:
+                break;
+        }
     }
 
     private async void PlayPauseBtn_Clicked(object sender, EventArgs e)
     {
-        DXButton send = (DXButton)sender;
 
         if (MyViewModel.IsPlaying)
         {
@@ -631,7 +647,7 @@ public partial class HomePage : ContentPage
         {
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
-               await MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
+                await MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
             }
             else
             {
@@ -642,7 +658,7 @@ public partial class HomePage : ContentPage
 
     private void BtmSheetHeader_Clicked(object sender, EventArgs e)
     {
-        
+
     }
 
     private async void NowPlayingBtmSheet_StateChanged(object sender, Syncfusion.Maui.Toolkit.BottomSheet.StateChangedEventArgs e)
@@ -651,7 +667,7 @@ public partial class HomePage : ContentPage
         Debug.WriteLine(e.OldState);
         if (e.NewState == Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Collapsed)
         {
-            await BtmBar.AnimateSlideUp(122);
+            await BtmBar.AnimateSlideUp(450);
             NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
             NowPlayingBtmSheet.IsVisible=false;
 
@@ -661,13 +677,103 @@ public partial class HomePage : ContentPage
 
     private async void CloseNowPlayingBtmSheet_Clicked(object sender, EventArgs e)
     {
-        await BtmBar.AnimateSlideUp(122);
+        await BtmBar.AnimateSlideUp(450);
         NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
 
     }
 
     private void BtmBar_Loaded(object sender, EventArgs e)
     {
+        Debug.WriteLine(BtmBar.Height);
+        Debug.WriteLine(BtmBar.HeightRequest);
+    }
+
+    private void SlideView_CurrentItemChanged(object sender, ValueChangedEventArgs<object> e)
+    {
 
     }
+
+    private void HomeTabView_Loaded(object sender, EventArgs e)
+    {
+        Debug.WriteLine(HomeTabView.GetType());
+    }
+
+    private void ChoiceChipGroup_Loaded(object sender, EventArgs e)
+    {
+        var send = (ChipGroup)sender;
+        var src = send.ItemsSource;
+        if (src is not null)
+        {
+            Debug.WriteLine(send.ItemsSource.GetType());
+        }
+        Debug.WriteLine(sender.GetType());
+    }
+
+    private void ChoiceChipGroup_SelectionChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void NavChips_ChipClicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+
+
+        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
+        await MyViewModel.SelectSongFromFolderAndroid(selectedFolder);
+    }
+
+
+    private void DeleteBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        var param = send.CommandParameter.ToString();
+        MyViewModel.DeleteFolderPath(param);
+    }
+    private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.SelectSongFromFolderAndroid();
+    }
+
+    private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+
+    }
+
+
+
+    private void ShowBtmSheet_Clicked(object sender, EventArgs e)
+    {
+    }
+
+    private void SettingsNavChips_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void SettingsNavChips_ChipClicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SearchBy_Focused(object sender, FocusEventArgs e)
+    {
+        //SearchBy.HorizontalOptions
+    }
+
+    private void SearchBy_Unfocused(object sender, FocusEventArgs e)
+    {
+
+    }
+
+    private void SongsColView_PullToRefresh(object sender, EventArgs e)
+    {
+        //var mapper = IPlatformApplication.Current.Services.GetService<IMapper>();
+        //SongsColView.ItemsSource = mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
+    }
 }
+

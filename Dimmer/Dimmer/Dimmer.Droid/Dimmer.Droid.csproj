@@ -16,11 +16,7 @@
 
 
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
-    <OptimizationPreference>Speed</OptimizationPreference>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <OptimizationPreference>Size</OptimizationPreference>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,13 +24,23 @@
   </ItemGroup>
 
 
-  <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
-    <TargetFrameworks>net9.0-android</TargetFrameworks>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+    <PublishTrimmed>False</PublishTrimmed>
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <EnableLLVM>False</EnableLLVM>
   </PropertyGroup>
-  <ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <!-- Keep your <OptimizationPreference> if it was in the original Release group, or add it if you want it -->
+    <!-- <OptimizationPreference>Speed</OptimizationPreference> -->
+    <PublishTrimmed>False</PublishTrimmed>
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <EnableLLVM Condition="'$(RunAOTCompilation)'=='true'">False</EnableLLVM>
+  </PropertyGroup>
+
+  <!--<ItemGroup>
     <None Remove="AndroidManifest.xml" />
   </ItemGroup>
 
@@ -44,17 +50,17 @@
 
   <ItemGroup>
     <EmbeddedResource Include="AndroidManifest.xml" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <!-- Dimmer Dependencies -->
     <PackageReference Include="AutoMapper" Version="14.0.0" />
-    <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Core" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.3" />
+    <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.7" />
+    <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.7" />
+    <PackageReference Include="DevExpress.Maui.Core" Version="24.2.7" />
+    <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.7" />
+    <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.7" />
+    <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.7" />
 
     <!-- MAUI Dependencies -->
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />

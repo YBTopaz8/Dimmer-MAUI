@@ -291,33 +291,33 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                     Text="No Folders In Preferences.."/>
                                                 </VerticalStackLayout>
                                             </CollectionView.EmptyView>
-                                            <CollectionView.ItemTemplate>
-                                                <DataTemplate x:DataType="x:String">
-                                                    <Grid 
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="x:String">
+                                                        <Grid 
                                                          ColumnDefinitions="*,*"       >
 
                                                             <Label Text="{Binding .}" Grid.Column="0"/>
 
                                                             <HorizontalStackLayout Spacing="25" Grid.Column="1">
-                                                            <ImageButton Source="foldera.png" CommandParameter="{Binding .}"
+                                                                <ImageButton Source="foldera.png" CommandParameter="{Binding .}"
                                                                          Clicked="ChangeFolder_Clicked"
                                                                          x:Name="ChangeFolder"/>
 
-                                                            <ImageButton Source="delete.png" CommandParameter="{Binding .}"
+                                                                <ImageButton Source="delete.png" CommandParameter="{Binding .}"
                                                                          x:Name="DeleteBtn"
                                                                          Clicked="DeleteBtn_Clicked"/>
 
-                                                        </HorizontalStackLayout>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
-                                        <Button Text="Add New Folder" HorizontalOptions="Start" Clicked="AddNewMusicFolder_Clicked"
+                                                            </HorizontalStackLayout>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                            <Button Text="Add New Folder" HorizontalOptions="Start" Clicked="AddNewMusicFolder_Clicked"
                                                 Grid.Row="1"/>
-                                    </Grid>
+                                        </Grid>
 
 
-                                    <VerticalStackLayout Grid.Row="2">
+                                        <VerticalStackLayout Grid.Row="2">
                                     </VerticalStackLayout>
                                 </Grid>
                             </syncf:SfTabItem.Content>

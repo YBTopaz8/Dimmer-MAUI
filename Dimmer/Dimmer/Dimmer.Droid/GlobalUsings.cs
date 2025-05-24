@@ -20,6 +20,8 @@ global using Dimmer.ViewModel;
 global using System.Collections.ObjectModel;
 global using System.Reactive.Linq;
 global using System.Threading.Tasks;
+global using DevExpress.Maui.Core;
+global using UraniumUI;
 
 global using Dimmer.Interfaces.Services;
 global using CommunityToolkit.Mvvm.Input;

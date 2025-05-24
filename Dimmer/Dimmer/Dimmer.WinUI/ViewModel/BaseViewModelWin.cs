@@ -18,8 +18,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial string? barCodeInvitationValue { get; set; } = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId;
 
-    [ObservableProperty]
-    public partial int CurrentQueue { get; set; }
+
     private readonly SubscriptionManager _subs;
     private readonly IFilePicker filePicker;
 
