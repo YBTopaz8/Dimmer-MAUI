@@ -2,7 +2,9 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-
+using Android.Views;
+using Android.Transitions;
+using Android.Util;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
@@ -14,13 +16,13 @@ namespace Dimmer;
          Categories = new[] { Intent.CategoryDefault },
          DataMimeType = "audio/*" // Or more specific MIME types/schemes/paths
         )]
-[Activity(Theme = "@style/Maui.SplashTheme", 
+[Activity(Theme = "@style/Maui.SplashTheme",
     MainLauncher = true,
         Name = "com.yvanbrunel.dimmer.MainActivity",
-    LaunchMode = LaunchMode.SingleTask, 
-    ConfigurationChanges = ConfigChanges.ScreenSize | 
-    ConfigChanges.Orientation | ConfigChanges.UiMode | 
-    ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | 
+    LaunchMode = LaunchMode.SingleTask,
+    ConfigurationChanges = ConfigChanges.ScreenSize |
+    ConfigChanges.Orientation | ConfigChanges.UiMode |
+    ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize |
     ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
@@ -36,14 +38,14 @@ public class MainActivity : MauiAppCompatActivity
                ?? throw new InvalidOperationException("Service not bound yet");
         set => _binder = value;
 
-        
+
     }
     protected override void OnNewIntent(Intent? intent)
     {
         base.OnNewIntent(intent);
         Task.Run(async () => await HandleIntent(intent));
 
-        
+
     }
 
     private static async Task HandleIntent(Intent? intent)
@@ -52,7 +54,7 @@ public class MainActivity : MauiAppCompatActivity
         //Platform.OnNewIntent(intent);
         //// Log that the intent was received
         //Console.WriteLine("MainActivity: OnNewIntent received.");
-  
+
         //if (intent == null)
         //    return;
 
@@ -61,7 +63,7 @@ public class MainActivity : MauiAppCompatActivity
 
         //if (action == Intent.ActionView && dataUri != null)
         //{
-            
+
         //    // If it wasn't our specific app link, it might be a general ACTION_VIEW for a file
         //    if (dataUri != null && intent.Type != null && intent.Type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
         //    {
@@ -145,7 +147,60 @@ public class MainActivity : MauiAppCompatActivity
         //    }
         //}
     }
+    private static bool _firstTimeSetupDone = false;
+    const string FirstTimeSetupKey = "FirstTimeBubbleSetupDone";
+    private void FirstTimeBubbleSetup(Context context)
+    {
+        // Using SharedPreferences to ensure this runs only once per install,
+        // or when you want to force a reset by changing the logic.
+        ISharedPreferences prefs = Android.Preferences.PreferenceManager.GetDefaultSharedPreferences(context);
+        bool alreadyDone = prefs.GetBoolean(FirstTimeSetupKey, false);
 
+        if (!_firstTimeSetupDone && !alreadyDone) // Only run once per app session AND once per install
+        {
+            Log.Warn("BubbleDebug", "PERFORMING AGGRESSIVE ONE-TIME BUBBLE CHANNEL RESET!");
+
+            // 1. Delete the old channel if it exists
+            var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
+            if (notificationManager != null)
+            {
+                notificationManager.DeleteNotificationChannel(NotificationHelper.ChannelId);
+                Log.Info("BubbleDebug", $"Attempted to delete channel: {NotificationHelper.ChannelId}");
+            }
+
+            // 2. Recreate the channel with bubble support explicitly enabled
+            // Call your existing CreateChannel, ensuring it explicitly sets SetAllowBubbles(true)
+            NotificationHelper.CreateChannel(context); // Use the version that can force
+
+            // 3. Mark as done
+            prefs.Edit().PutBoolean(FirstTimeSetupKey, true).Apply();
+            _firstTimeSetupDone = true;
+            Log.Info("BubbleDebug", "One-time bubble channel reset complete.");
+
+            // 4. Immediately check and log the status
+            var channel = notificationManager.GetNotificationChannel(NotificationHelper.ChannelId);
+            if (channel != null && Build.VERSION.SdkInt >= BuildVersionCodes.Q)
+            {
+                Log.Info("BubbleDebug", $"IMMEDIATE POST-RESET: Channel '{NotificationHelper.ChannelId}' CanBubble: {channel.CanBubble()}");
+                if (!channel.CanBubble())
+                {
+                    Log.Error("BubbleDebug", "STILL CANNOT BUBBLE IMMEDIATELY AFTER RESET. Check global/app/developer settings!");
+                    // This is the point where you might Toast to guide the user directly to settings.
+                    Toast.MakeText(context, "Bubble setup issue. Please check App Notification Settings & Developer Options for Bubbles.", ToastLength.Long).Show();
+                    NotificationHelper.OpenBubbleSettings(context); // Or OpenBubbleSettings
+                }
+            }
+            else if (channel == null)
+            {
+                Log.Error("BubbleDebug", "Channel is NULL immediately after recreate attempt!");
+            }
+        }
+        else
+        {
+            // On subsequent starts, just ensure channel exists without aggressive reset
+            NotificationHelper.CreateChannel(context);
+        }
+    }
 
     protected override void OnResume()
     {
@@ -303,7 +358,7 @@ public class MainActivity : MauiAppCompatActivity
         }
     }
 
-protected override void OnDestroy()
+    protected override void OnDestroy()
     {
         if (_serviceConnection != null)
         {
@@ -325,214 +380,45 @@ protected override void OnDestroy()
         }
     }
 
+    private Transition CreateTransition(ActivityTransitionType type)
+    {
+        if (Build.VERSION.SdkInt < BuildVersionCodes.Lollipop)
+            return null;
 
+        Transition transition = null;
+
+        switch (type)
+        {
+            case ActivityTransitionType.Fade:
+                transition = new Fade();
+                break;
+            case ActivityTransitionType.SlideFromEnd:
+                transition = new Slide(GravityFlags.End);
+                break;
+            case ActivityTransitionType.SlideFromStart:
+                transition = new Slide(GravityFlags.Start);
+                break;
+            case ActivityTransitionType.SlideFromBottom:
+                transition = new Slide(GravityFlags.Bottom);
+                break;
+            case ActivityTransitionType.Explode:
+                transition = new Explode();
+                break;
+            case ActivityTransitionType.None:
+            default:
+                return null;
+        }
+
+        if (transition != null)
+        {
+            // Use setter methods instead of property initializers
+            transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
+            transition.SetInterpolator(PublicStats.ActivityTransitionInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
+
+            transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, true);
+            transition.ExcludeTarget(Android.Resource.Id.NavigationBarBackground, true);
+        }
+
+        return transition;
+    }
 }
-//public static class IntentHandlerUtils
-//{
-//    // Handles a list of URIs received from Share or View intents
-//    public static async Task HandleSharedAudioUrisAsync(List<string> uriStrings)
-//    {
-//        if (uriStrings == null || uriStrings.Count == 0)
-//            return;
-
-//        Console.WriteLine($"IntentHandlerUtils: Received {uriStrings.Count} URI(s) to handle.");
-//        var resolvedFilePaths = new List<string>();
-
-//        foreach (var uriString in uriStrings)
-//        {
-//            if (string.IsNullOrWhiteSpace(uriString))
-//                continue;
-
-//            string fn = "Attachment.txt";
-//            string file = Path.Combine(FileSystem.CacheDirectory, fn);
-
-//            File.WriteAllText(file, "Hello World");
-
-//            await Share.Default.RequestAsync(new ShareFileRequest
-//            {
-//                Title = "Share text file",
-//                File = new ShareFile(file)
-//            });
-//            Console.WriteLine($"IntentHandlerUtils: Attempting to resolve URI: {uriString}");
-//            string? filePath = await ResolveUriToFilePathAsync(uriString);
-//            if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
-//            {
-//                Console.WriteLine($"IntentHandlerUtils: Resolved to path: {filePath}");
-//                resolvedFilePaths.Add(filePath);
-//            }
-//            else
-//            {
-//                Console.WriteLine($"IntentHandlerUtils: Failed to resolve or access file for URI: {uriString}");
-//                // Optionally notify the user of the failure for this specific URI
-//            }
-//        }
-
-//        if (resolvedFilePaths.Count > 0)
-//        {
-//            // --- YOUR MAUI LOGIC HERE ---
-//            // Process the resolved file paths (e.g., add to playlist, navigate to player)
-//            // IMPORTANT: Perform UI operations on the main thread!
-//            MainThread.BeginInvokeOnMainThread(() =>
-//            {
-//                try
-//                {
-//                    Console.WriteLine($"IntentHandlerUtils: Dispatching to handle {resolvedFilePaths.Count} resolved audio files.");
-                    
-//                        Console.WriteLine($"TODO: Navigate or add to playlist: {string.Join(", ", resolvedFilePaths)}");
-
-//                }
-//                catch (Exception ex)
-//                {
-//                    Console.WriteLine($"IntentHandlerUtils: Error during UI dispatch: {ex}");
-//                }
-//            });
-//            // --- END YOUR MAUI LOGIC ---
-//        }
-//        else
-//        {
-//            Console.WriteLine("IntentHandlerUtils: No valid file paths resolved from input URIs.");
-//            // Optionally inform the user that no compatible files were shared/opened.
-//        }
-//    }
-
-
-//    // --- URI Resolution Helper (Primarily for Android Content URIs) ---
-//    // Tries to get a usable file path, potentially by copying to cache.
-//    private static async Task<string?> ResolveUriToFilePathAsync(string uriString)
-//    {
-//        if (string.IsNullOrWhiteSpace(uriString))
-//            return null;
-
-//        Uri uri;
-//        bool isUri = Uri.TryCreate(uriString, UriKind.Absolute, out uri!);
-
-//        // 1. Handle direct file paths or file:// URIs
-//        if (isUri && uri.IsFile || !isUri && File.Exists(uriString))
-//        {
-//            return isUri ? uri.LocalPath : uriString;
-//        }
-
-//        // 2. Handle Android content:// URIs
-//        if (isUri && uri.Scheme == ContentResolver.SchemeContent)
-//        {
-//            var context = Platform.AppContext;
-//            if (context == null)
-//            {
-//                Console.WriteLine("ResolveUriToFilePathAsync: Android context is null.");
-//                return null;
-//            }
-//            string? displayName = null;
-//            ICursor? cursor = null;
-
-//            // Convert System.Uri to Android.Net.Uri
-//            var androidUri = Android.Net.Uri.Parse(uriString);
-
-//            // Try getting display name for the target cache file
-//            try
-//            {
-//                cursor = context.ContentResolver.Query(androidUri, new[] { OpenableColumns.DisplayName }, null, null, null);
-//                if (cursor != null && cursor.MoveToFirst())
-//                {
-//                    int nameIndex = cursor.GetColumnIndex(OpenableColumns.DisplayName);
-//                    if (nameIndex != -1)
-//                        displayName = cursor.GetString(nameIndex);
-//                }
-//            }
-//            catch (Exception ex) { Console.WriteLine($"ResolveUriToFilePathAsync: Error getting display name: {ex.Message}"); }
-//            finally { cursor?.Close(); }
-
-//            string targetFileName = Path.GetFileNameWithoutExtension(displayName ?? Path.GetRandomFileName())
-//                                    + "_" + Guid.NewGuid().ToString("N").Substring(0, 8) // Add randomness
-//                                    + Path.GetExtension(displayName ?? ".audio"); // Preserve extension if known
-//            string targetFilePath = Path.Combine(FileSystem.CacheDirectory, targetFileName);
-
-//            // Copy the content stream to the cache directory (most reliable way)
-//            try
-//            {
-//                // Replace the obsolete 'OpenableColumns' and 'OpenableColumns.DisplayName' with 'Android.Provider.IOpenableColumns' and 'Android.Provider.IOpenableColumns.DisplayName' respectively.
-
-//                cursor = context.ContentResolver.Query(androidUri, [IOpenableColumns.DisplayName], null, null, null);
-//                using var inputStream = context.ContentResolver.OpenInputStream(androidUri); // Fixed type mismatch
-//                if (inputStream == null)
-//                    throw new FileNotFoundException("Could not open input stream for content URI.", uriString);
-
-//                using var outputStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
-//                await inputStream.CopyToAsync(outputStream);
-//                Console.WriteLine($"ResolveUriToFilePathAsync: Copied content URI to cache: {targetFilePath}");
-//                return targetFilePath; // Return path to cached file
-//            }
-//            catch (Exception ex)
-//            {
-//                Console.WriteLine($"ResolveUriToFilePathAsync: Error copying content URI to cache: {ex.Message}");
-//                if (File.Exists(targetFilePath))
-//                { try { File.Delete(targetFilePath); } catch { /* Ignore delete error */ } }
-//                return null; // Return null if copy failed
-//            }
-//        }
-//        Console.WriteLine($"ResolveUriToFilePathAsync: URI scheme '{uri?.Scheme}' not handled or invalid path: {uriString}");
-//        return null;
-//    }
-
-//    // Optional: Handler for shared text
-//    // public static Task HandleSharedTextAsync(string text) { ... }
-//    public static async Task ProcessAppLink(string eventType, string eventId /*, string senderId = null */)
-//    {
-//        MainThread.BeginInvokeOnMainThread(async () =>
-//        {
-//            Console.WriteLine($"[App.xaml.cs] Processing App Link: Type='{eventType}', ID='{eventId}'");
-
-            
-//                Console.WriteLine("[App.xaml.cs] MainPage not ready for App Link.");
-            
-//            // Ensure LiveStateService is initialized and user is logged in
-//            // This logic needs to be robust.
-//            // For simplicity, assuming LiveStateService is accessible and will handle user state.
-
-//            if (eventType.Equals("userInvite", StringComparison.OrdinalIgnoreCase))
-//            {
-//                await HandleUserInviteAppLink(eventId);
-//            }
-//            // ... other event types
-//        });
-//    }
-
-//    private static async Task HandleUserInviteAppLink(string inviterUserId)
-//    {
-        
-
-//        //if (LiveStateService.UserOnline.ObjectId == inviterUserId)
-//        //{
-//        //    await Shell.Current.DisplayAlert("Invitation", "You cannot invite yourself.", "OK");
-//        //    return;
-//        //}
-
-//        //UserModelOnline? inviterUser = null;
-//        //try
-//        //{
-//        //    inviterUser = await ParseObject.CreateWithoutData<UserModelOnline>(inviterUserId).FetchIfNeededAsync() as UserModelOnline;
-//        //}
-//        //catch (Exception ex) { Console.WriteLine($"Error fetching inviter {inviterUserId}: {ex.Message}"); }
-
-//        //string inviterName = inviterUser?.Username ?? "A user";
-//        //bool accept = await Shell.Current.DisplayAlert("User Invitation",
-//        //    $"{inviterName} wants to connect. Accept?", "Accept", "Decline");
-
-//        //if (accept)
-//        //{
-//        //    if (inviterUser == null)
-//        //        inviterUser = ParseObject.CreateWithoutData<UserModelOnline>(inviterUserId); // Re-create pointer if fetch failed
-
-//        //    ChatConversation? conversation = await LiveStateService.GetOrCreateConversationWithUserAsync(inviterUser);
-//        //    if (conversation != null)
-//        //    {
-//        //        await Shell.Current.DisplayAlert("Connected!", $"You are now connected with {inviterName}.", "OK");
-//        //        // TODO: Navigate to conversation: await Shell.Current.GoToAsync($"//chatPage?conversationId={conversation.ObjectId}");
-//        //    }
-//        //    else
-//        //    {
-//        //        await Shell.Current.DisplayAlert("Error", "Could not establish connection.", "OK");
-//        //    }
-//        //}
-    
-//    }   
-//}

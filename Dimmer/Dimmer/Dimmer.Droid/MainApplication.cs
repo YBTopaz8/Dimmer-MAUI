@@ -1,5 +1,6 @@
 using Android.App;
 using Android.Runtime;
+using Debug = System.Diagnostics.Debug;
 
 namespace Dimmer;
 
@@ -13,15 +14,15 @@ public class MainApplication : MauiApplication
 
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
-        
+
     }
 
 
     public static void HandleAppAction(AppAction appAction)
     {
         Debug.WriteLine($"HandleAppAction invoked with ID: {appAction.Id}"); // Add logging!
-                                                                                                // Ensure you dispatch to the main thread for UI work
-        
+                                                                             // Ensure you dispatch to the main thread for UI work
+
     }
 
 
@@ -44,7 +45,7 @@ public class MainApplication : MauiApplication
         Debug.WriteLine(errorDetails);
 
         // Log to file
-       LogException(e.Exception);
+        LogException(e.Exception);
 
     }
     private static readonly object _logLock = new();

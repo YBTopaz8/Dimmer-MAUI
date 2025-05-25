@@ -1,13 +1,14 @@
 ﻿using Android.Content;
 using System.Security.Cryptography;
 using System.Text;
+using Window = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.Utils;
 public class AppUtil : IAppUtil
 {
     public Shell GetShell()
     {
-        return new AppShell();  
+        return new AppShell();
     }
 
     public Window LoadWindow()

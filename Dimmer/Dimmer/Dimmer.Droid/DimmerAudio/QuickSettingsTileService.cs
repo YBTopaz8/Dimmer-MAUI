@@ -60,6 +60,132 @@ public class QuickSettingsTileService : TileService
         // Optional: Pause expensive updates if any
     }
 
+    private void SendCommandToMediaService(string action)
+    {
+        try
+        {
+            Intent serviceIntent = new Intent(this, typeof(ExoPlayerService)); // <<< YOUR MEDIA SERVICE
+            serviceIntent.SetAction(action);
+            StartService(serviceIntent); // Or StartForegroundService if appropriate for your media service's needs
+            Log.Debug(TAG, $"Sent command to MediaService: {action}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(TAG, $"Error sending command '{action}': {ex.Message}");
+            Toast.MakeText(this, $"Error: {action.Split('.').LastOrDefault()}", ToastLength.Short)?.Show();
+        }
+    }
+
+    private void LaunchMainActivity()
+    {
+        Intent mainActivityIntent = new Intent(this, typeof(MainActivity)); // <<< YOUR MAIN ACTIVITY
+        mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
+        try
+        {
+            // For API 34+, TileService has StartActivityAndCollapse(PendingIntent)
+            // For older, ShowDialog collapses. If not using dialog, StartActivity might leave panel open.
+            // A common way is to send a PendingIntent that the system can use.
+            var pendingIntent = PendingIntent.GetActivity(this, 0, mainActivityIntent, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.UpsideDownCake) // API 34
+            {
+                StartActivityAndCollapse(pendingIntent);
+            }
+            else
+            {
+                // For older versions, a direct StartActivity after a dialog usually works fine as ShowDialog collapses the panel.
+                // If OnClick directly launches activity without dialog, panel might stay open on some OEM skins/versions.
+                StartActivity(mainActivityIntent);
+                // To be more robust in collapsing the panel on older versions if not using ShowDialog:
+                // SendBroadcast(new Intent(Intent.ActionCloseSystemDialogs)); // This is a bit of a hack
+            }
+            Log.Debug(TAG, "Launched MainActivity");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(TAG, $"Error launching MainActivity: {ex.Message}");
+        }
+    }
+
+    // --- State Update Logic ---
+
+
+    // Fetches the most current state (e.g., from your MediaService's static property) and updates tile.
+    private void RequestFullUpdate()
+    {
+        // Get the current state from your MediaSessionService.
+        // This assumes ExoPlayerService.CurrentTrackState is updated by the service.
+        SongModelView currentPlaybackState = ExoPlayerService.CurrentSongItem ?? SongsMgtFlow.CurrentlyPlayingSong;
+        Log.Debug(TAG, $"RequestFullUpdate: IsPlaying={currentPlaybackState.IsPlaying}, Title='{currentPlaybackState.Title}'");
+        UpdateTileVisuals(currentPlaybackState);
+    }
+
+    private void UpdateTileVisuals(SongModelView songState)
+    {
+        Tile tile = QsTile; // Tile property from base class
+        if (tile == null)
+        {
+            Log.Warn(TAG, "Tile object is null in UpdateTileVisuals. Cannot update.");
+            return;
+        }
+
+        try
+        {
+            Icon newIcon;
+            string newLabel = GetString(Resource.String.qs_tile_label); // Default label from strings.xml
+
+            if (songState.IsPlaying)
+            {
+                tile.State = TileState.Active;
+                newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_pause); // <<< CREATE THIS: Filled Pause Icon
+                newLabel = songState.Title; // Show song title when playing
+            }
+            else
+            {
+                tile.State = TileState.Inactive;
+                newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_play); // <<< CREATE THIS: Filled Play Icon
+                if (!string.IsNullOrEmpty(songState.Title) && songState.Title != "Nothing Playing")
+                {
+                    newLabel = songState.Title; // Show last played song title if paused
+                }
+            }
+
+            tile.Icon = newIcon;
+            tile.Label = TruncateString(newLabel, 20); // QS Tiles have limited label space
+            tile.ContentDescription = $"{GetString(Resource.String.qs_tile_label)}: {songState.Title} - {songState.ArtistName}";
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q) // API 29+ for Subtitle
+            {
+                tile.Subtitle = TruncateString(songState.ArtistName, 25);
+            }
+
+            // For API 30+ (Android R), you can make the tile itself launch an activity for more complex UI
+            // This is an alternative to OnClick() showing a dialog.
+            // if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+            // {
+            //     Intent activityIntent = new Intent(this, typeof(YourTileActivity)); // An activity designed for tile interaction
+            //     activityIntent.AddFlags(ActivityFlags.NewTask);
+            //     PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, activityIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+            //     tile.TileActivity = pendingIntent; // Not a direct property, set via Tile.Builder or platform specific methods
+            // }
+
+
+            tile.UpdateTile();
+            Log.Debug(TAG, $"Tile updated: State={tile.State}, Label='{tile.Label}', Subtitle='{tile.Subtitle}'");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(TAG, $"Error updating tile visuals: {ex.Message}");
+        }
+    }
+
+    private string TruncateString(string value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+        return value.Length <= maxLength ? value : value.Substring(0, maxLength - 3) + "...";
+    }
+
     public override void OnClick()
     {
         base.OnClick();
@@ -126,7 +252,8 @@ public class QuickSettingsTileService : TileService
 
         // Add Dialog Items (Example: Play/Pause, Next, Open App)
         string[] items = { "Toggle Play/Pause", "Next Track", "Open Dimmer App" };
-        builder.SetItems(items, (sender, args) => {
+        builder.SetItems(items, (sender, args) =>
+        {
             // Handle item clicks within the dialog
             switch (args.Which)
             {
@@ -136,6 +263,7 @@ public class QuickSettingsTileService : TileService
                     break;
                 case 1: // Next Track
                     Log.Debug(TAG, "Dialog: Next Track selected");
+                    NotificationHelper.ShowPlaybackBubble(this, "YBbbb");
                     SendNextCommandToService(); // <<< Implement this action in your service
                     break;
                 case 2: // Open App
@@ -147,7 +275,8 @@ public class QuickSettingsTileService : TileService
         });
 
         // Optional: Add Negative Button (Cancel/Dismiss)
-        builder.SetNegativeButton("Cancel", (sender, args) => {
+        builder.SetNegativeButton("Cancel", (sender, args) =>
+        {
             Log.Debug(TAG, "Dialog: Cancel clicked");
             // Dialog dismisses automatically
         });
@@ -206,30 +335,6 @@ public class QuickSettingsTileService : TileService
         }
     }
 
-    // Helper method to launch MainActivity
-    private void LaunchMainActivity()
-    {
-        Intent mainActivityIntent = new Intent(this, typeof(MainActivity)); // <<< YOUR MAIN ACTIVITY
-        mainActivityIntent.AddFlags(ActivityFlags.NewTask);
-        try
-        {
-            // Use StartActivityAndCollapse if available (API 24+)
-            // This method isn't directly available on TileService context itself in older bindings sometimes.
-            // A common workaround is to use a PendingIntent or just StartActivity.
-            // Showing a dialog *already* collapses the panel, so StartActivity is likely fine here.
-            StartActivity(mainActivityIntent);
-            Log.Debug(TAG, "Launched MainActivity");
-
-            // If StartActivity doesn't collapse, try this (needs careful testing):
-            // var pendingIntent = PendingIntent.GetActivity(this, 0, mainActivityIntent, PendingIntentFlags.Immutable);
-            // StartActivityAndCollapse(pendingIntent); // Requires API 34+ TileService method
-
-        }
-        catch (Exception ex)
-        {
-            Log.Error(TAG, $"Error launching MainActivity: {ex.Message}");
-        }
-    }
 
 
 
@@ -273,7 +378,7 @@ public class QuickSettingsTileService : TileService
     }
 
     // Updates the visual appearance of the tile
-    public void UpdateTileVisualState(bool isPlaying, SongModelView? song=null)
+    public void UpdateTileVisualState(bool isPlaying, SongModelView? song = null)
     {
         Tile? tile = MyTile; // Tile property from base class
         if (tile == null || song is null)
@@ -294,13 +399,13 @@ public class QuickSettingsTileService : TileService
             else
             {
                 newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_pause); // <<< CREATE THIS ICON
-             
+
             }
             tile.Subtitle = song?.ArtistName ?? "Unknown Artist"; // Set subtitle to song title
             tile.Icon = newIcon;
             tile.Label = song?.ArtistName ?? "Unknown Title";
             tile.ContentDescription = "Dimmer";
-            
+
             tile.UpdateTile(); // Apply the changes
         }
         catch (Exception ex)
@@ -315,17 +420,11 @@ public class QuickSettingsTileService : TileService
     // or ideally, just reflecting the state passed when the service requested an update.
     private bool IsCurrentlyPlaying()
     {
-        // ** VERY IMPORTANT: This is a placeholder! **
-        // You NEED a reliable way to know the service's state here.
-        // The BEST way is for the MediaSessionService to store its state
-        // (e.g., in a static boolean or SharedPreferences) AND call
-        // QuickSettingsTileService.RequestTileUpdate(context) when it changes.
-        // Reading that stored state here is then more reliable.
-
-        // Example using SharedPreferences (Service needs to write to this pref)
-        // ISharedPreferences prefs = GetSharedPreferences("playback_state", FileCreationMode.Private);
-        // return prefs.GetBoolean("isPlaying", false);
-
+        var vm = IPlatformApplication.Current.Services.GetService<AudioService>();
+        if (vm != null)
+        {
+            return vm.IsPlaying; // Use the ExoPlayer's IsPlaying property
+        }
         Log.Warn(TAG, "IsCurrentlyPlaying() using placeholder value (false). Implement actual state check!");
         return false; // Default/placeholder
     }

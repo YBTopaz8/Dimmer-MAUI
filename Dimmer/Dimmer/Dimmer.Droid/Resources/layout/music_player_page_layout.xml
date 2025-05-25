@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+  <!-- Main content of the page (what's BEHIND the bottom sheet when it's expanded) -->
+  <!-- This could be an empty FrameLayout, or you could host MAUI content here too -->
+  <FrameLayout
+      android:id="@+id/main_content_container"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?android:attr/colorBackground">
+    <!-- Example: Placeholder for content that's revealed when sheet is fully open -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Main Page Content Area"
+        android:layout_gravity="center"/>
+  </FrameLayout>
+
+  <!-- The Bottom Sheet View -->
+  <!-- This LinearLayout is the direct child that BottomSheetBehavior will control -->
+  <LinearLayout
+      android:id="@+id/bottom_sheet_player"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+    
+    android:orientation="vertical"
+    android:background="@android:color/darker_gray"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    app:behavior_peekHeight="80dp" 
+    app:behavior_hideable="false"  
+    app:behavior_skipCollapsed="false"
+    android:elevation="4dp">
+
+    <!-- Content of the "btmbarheader view" (Peek View) -->
+    <RelativeLayout
+        android:id="@+id/mini_player_header"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:padding="8dp"
+        android:background="#FF424242">
+      <!-- Example color -->
+
+      <ImageView
+          android:id="@+id/album_art_mini"
+          android:layout_width="64dp"
+          android:layout_height="64dp"
+          android:layout_alignParentStart="true"
+          android:layout_centerVertical="true"
+          android:src="@mipmap/appicon"/>
+      <!-- Placeholder -->
+
+      <TextView
+          android:id="@+id/track_title_mini"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/album_art_mini"
+          android:layout_marginStart="8dp"
+          android:layout_centerVertical="true"
+          android:text="@string/track_title"
+          android:textColor="@android:color/white"
+          android:textSize="16sp"/>
+
+      <ImageButton
+android:contentDescription="@string/play_pause"
+          android:id="@+id/play_pause_button_mini"
+          android:layout_width="48dp"
+          android:layout_height="48dp"
+          android:layout_alignParentEnd="true"
+          android:layout_centerVertical="true"
+          android:background="?attr/selectableItemBackgroundBorderless"
+          android:src="@android:drawable/ic_media_play"/>
+      <!-- Placeholder -->
+    </RelativeLayout>
+
+    <!-- Content of the Expanded View (when pulled up) -->
+    <LinearLayout
+        android:id="@+id/expanded_player_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+      
+      android:orientation="vertical"
+      android:padding="16dp"
+      android:visibility="gone"> <!-- Initially hidden, shown by behavior/code -->
+
+      <ImageView
+          android:id="@+id/album_art_expanded"
+          android:layout_width="200dp"
+          android:layout_height="200dp"
+          android:layout_gravity="center_horizontal"
+          android:src="@mipmap/appicon"/> <!-- Placeholder -->
+
+      <TextView
+          android:id="@+id/track_title_expanded"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_horizontal"
+          android:text="Track Title (Expanded)"
+          android:textColor="@android:color/white"
+          android:textSize="20sp"
+          android:layout_marginTop="16dp"/>
+      <FrameLayout
+        android:id="@+id/maui_content_host"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+      <!-- Add more controls: progress bar, shuffle, repeat, lyrics, etc. -->
+      <SeekBar
+          android:id="@+id/song_progress_bar"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="20dp"/>
+
+    </LinearLayout>
+  </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -112,10 +112,11 @@ public static class NotificationHelper
         };
 
         // Common settings
+        chan.SetAllowBubbles(true);
         chan.EnableLights(false); // Media notifications usually don't need lights
         chan.LockscreenVisibility = NotificationVisibility.Public;
         chan.SetShowBadge(true);
-        chan.SetBypassDnd(false); // Usually media shouldn't bypass DND unless critical
+        chan.SetBypassDnd(true); // Usually media shouldn't bypass DND unless critical
         chan.EnableVibration(false); // Vibration handled by media player usually
 
         // Bubble specific setting
@@ -167,11 +168,13 @@ public static class NotificationHelper
             )
             .SetMediaDescriptionAdapter(descrAdapter)!
             .SetNotificationListener(new NotificationListener(service))!
-            .SetSmallIconResourceId(Resource.Drawable.atom)!            
-           
+            .SetSmallIconResourceId(Resource.Drawable.atom)!
+
             .Build()!;
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
+        mgr.SetUseFastForwardActionInCompactView(false);
+        mgr.SetUseRewindActionInCompactView(false);
 
         Log.Debug("NotifHelper", "Manager built");
         return mgr;
@@ -198,7 +201,7 @@ public static class NotificationHelper
                 }
 
             }
-                Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
+            Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
         }
 
         public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
@@ -215,7 +218,7 @@ public static class NotificationHelper
                                        // Consider if you want to stop the service here or just remove notification
                                        // if (_svc.IsPlaybackStoppedCompletely()) { _svc.StopSelf(); }
         }
-    
+
 
 
         //public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
@@ -299,103 +302,6 @@ public static class NotificationHelper
     }
 
 
-    // Method to Show the Bubble
-    public static void ShowPlaybackBubble(Context context, string trackTitle)
-    {
-        Log.Info("NotifHelper", "Attempting to show playback bubble...");
-        if (!AreBubblesSupported(context)) // This calls the modified AreBubblesSupported
-        {
-            Log.Warn("NotifHelper", "Cannot show bubble: Bubbles not supported or not enabled (AreBubblesSupported returned false).");
-            // Consider prompting user to enable via RequestBubblePermission() or OpenBubbleSettings()
-            // OpenBubbleSettings(context); // Example: guide user
-            return;
-        }
-
-        // Important: Ensure your PlaybackBubbleActivity is correctly defined in your manifest
-        // and can handle the intent.
-        var targetIntent = new Intent(context, typeof(PlaybackBubbleActivity));
-        // Make action unique to avoid issues if bubble is dismissed and re-shown quickly
-        targetIntent.SetAction("SHOW_PLAYBACK_BUBBLE_ACTION_" + DateTime.Now.Ticks);
-        targetIntent.PutExtra("trackTitle", trackTitle); // Pass data to your bubble activity
-                                                         // Potentially add flags like ActivityFlags.SingleTop or ActivityFlags.ClearTop
-                                                         // depending on how you want the bubble activity to behave if already open.
-                                                         // targetIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.SingleTop);
-
-
-        // PendingIntent for the bubble's content
-        var bubbleContentPendingIntent = PendingIntent.GetActivity(
-            context,
-            BubbleNotificationId, // Use a unique request code for this PendingIntent
-            targetIntent,
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
-        );
-
-        // Icon for the bubble itself (monochrome recommended by Android docs)
-        var bubbleIcon = IconCompat.CreateWithResource(context, Resource.Drawable.exo_icon_circular_play); // Ensure this icon exists
-
-        NotificationCompat.BubbleMetadata bubbleMetadata;
-        var builder = new NotificationCompat.BubbleMetadata.Builder(); // Use the non-deprecated builder first
-
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // API 30+
-        {
-            // For API 30+, use the constructor with PendingIntent and IconCompat
-            builder = new NotificationCompat.BubbleMetadata.Builder(bubbleContentPendingIntent, bubbleIcon);
-        }
-        else if (Build.VERSION.SdkInt == BuildVersionCodes.Q) // API 29
-        {
-            // For API 29, use the deprecated constructor that takes a PendingIntent
-            // and then set the icon separately.
-#pragma warning disable CS0618 // Type or member is obsolete
-            builder = new NotificationCompat.BubbleMetadata.Builder()
-                .SetIntent(bubbleContentPendingIntent)
-                .SetIcon(bubbleIcon);
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-        else
-        {
-            Log.Error("NotifHelper", "Trying to create bubble metadata on unsupported OS version. Should have been caught by AreBubblesSupported.");
-            return;
-        }
-
-        bubbleMetadata = builder
-           .SetDesiredHeight(600) // Desired height in DPs
-           .SetAutoExpandBubble(true) // Auto-expand when bubble is tapped
-           .SetSuppressNotification(true) // IMPORTANT: Hides the notification from the shade that carries this bubble
-           .Build();
-
-
-        // Notification that CARRIES the bubble metadata
-        // This notification itself is usually suppressed from the shade by SetSuppressNotification(true)
-        var notificationBuilder = new NotificationCompat.Builder(context, ChannelId) // Use the SAME channel
-           .SetContentTitle("Dimmer Playback") // Generic title for the carrier, won't be very visible
-           .SetContentText($"Tap to control: {trackTitle}") // Generic text
-           .SetSmallIcon(Resource.Drawable.exo_icon_circular_play) // Standard small icon
-           .SetPriority(NotificationCompat.PriorityDefault) // Default or Low is fine
-           .SetBubbleMetadata(bubbleMetadata)
-           .SetContentIntent(bubbleContentPendingIntent) // Also set on notification for fallback
-           .SetCategory(NotificationCompat.CategoryService)
-           .SetOngoing(false) // The bubble itself is ongoing; the carrier notification can be non-ongoing if suppressed
-           .SetOnlyAlertOnce(true);
-
-        // On API 30+, if you want to allow the bubble to be posted from background (e.g. by a service for an incoming call)
-        // you might need additional flags or a person associated if it's a messaging bubble.
-        // For media control bubbles launched by user action or foreground service, this is usually sufficient.
-
-        var notificationManager = NotificationManagerCompat.From(context);
-        try
-        {
-            // Make sure the app is in a state where it *can* show bubbles.
-            // Apps generally can't launch bubbles from a pure background state without a foreground service
-            // or specific exemptions (like calls). Your MediaSessionService helps here.
-            notificationManager.Notify(BubbleNotificationId, notificationBuilder.Build());
-            Log.Info("NotifHelper", $"Bubble notification (ID {BubbleNotificationId}) posted for '{trackTitle}'. Check if bubble appears.");
-        }
-        catch (Exception ex)
-        {
-            Log.Error("NotifHelper", $"EXCEPTION posting bubble notification: {ex.Message} | {ex.StackTrace}");
-        }
-    }
-
     // Optional: Method to open Bubble settings for the user
     public static void OpenBubbleSettings(Context context)
     {
@@ -433,5 +339,102 @@ public static class NotificationHelper
             .SetVisibility(NotificationVisibility.Private)!;
 
         return builder.Build();
+    }
+    // In NotificationHelper.cs
+    public static void ShowPlaybackBubble(Context context, string trackTitle)
+    {
+        Log.Info("NotifHelper", "Attempting to show playback bubble...");
+
+        // Call CreateChannel to ensure it's up-to-date.
+        // Pass false for forceRecreate unless you have a specific strategy for it.
+        CreateChannel(context);
+
+        if (!AreBubblesSupported(context)) // Use the more robust check
+        {
+            Log.Warn("NotifHelper", "Cannot show bubble: Bubbles not supported or not enabled (AreBubblesActuallyEnabled returned false).");
+            Toast.MakeText(context, "Bubbles are disabled. Check app notification settings.", ToastLength.Long).Show();
+            // Consider guiding user:
+            // 1. If !NotificationManager.AreBubblesAllowed(): OpenBubbleSettings(context);
+            // 2. If channel != null && !channel.CanBubble(): OpenChannelSettings(context, ChannelId);
+            return;
+        }
+
+        // ... rest of your ShowPlaybackBubble logic ...
+        // Ensure PlaybackBubbleActivity.class is correct
+        var targetIntent = new Intent(context, typeof(Activities.PlaybackBubbleActivity)); // Ensure correct path
+        targetIntent.SetAction("SHOW_PLAYBACK_BUBBLE_ACTION_" + DateTime.Now.Ticks);
+        targetIntent.PutExtra("trackTitle", trackTitle);
+        // You might want this if your PlaybackBubbleActivity launchMode is not singleInstance/singleTask
+        // targetIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTask);
+
+
+        var bubbleContentPendingIntent = PendingIntent.GetActivity(
+            context,
+            BubbleNotificationId,
+            targetIntent,
+            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
+        );
+
+        var bubbleIcon = IconCompat.CreateWithResource(context, Resource.Drawable.atom); // Use a suitable monochrome icon
+
+        NotificationCompat.BubbleMetadata.Builder bubbleMetadataBuilder;
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // API 30+
+        {
+            bubbleMetadataBuilder = new NotificationCompat.BubbleMetadata.Builder(bubbleContentPendingIntent, bubbleIcon);
+        }
+        else if (Build.VERSION.SdkInt == BuildVersionCodes.Q) // API 29
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            bubbleMetadataBuilder = new NotificationCompat.BubbleMetadata.Builder()
+                .SetIntent(bubbleContentPendingIntent)
+                .SetIcon(bubbleIcon);
+#pragma warning restore CS0618
+        }
+        else
+        {
+            Log.Error("NotifHelper", "BubbleMetadata creation attempted on unsupported OS. Should have been caught by AreBubblesActuallyEnabled.");
+            return;
+        }
+
+        NotificationCompat.BubbleMetadata bubbleMetadata = bubbleMetadataBuilder
+           .SetDesiredHeight(600)
+           .SetAutoExpandBubble(true)
+           .SetSuppressNotification(true) // Important: Hides the carrier notification
+           .Build();
+
+        var notificationBuilder = new NotificationCompat.Builder(context, ChannelId)
+           .SetContentTitle("Dimmer Active") // Minimal, as it's often suppressed
+           .SetContentText("Tap to open controls")
+           .SetSmallIcon(Resource.Drawable.atom) // Must be a valid small icon
+           .SetPriority(NotificationCompat.PriorityDefault)
+           .SetBubbleMetadata(bubbleMetadata)
+           .SetContentIntent(bubbleContentPendingIntent) // Fallback if bubble cannot be shown
+           .SetCategory(NotificationCompat.CategoryTransport) // Media control
+           .SetOngoing(false) // The carrier can be non-ongoing if bubble is shown & carrier suppressed
+           .SetOnlyAlertOnce(true);
+
+        var notificationManager = NotificationManagerCompat.From(context);
+        try
+        {
+            // Check if the app is in foreground or has a foreground service.
+            // While user tap on QS helps, this is still a good check.
+            // ActivityManager am = (ActivityManager)context.GetSystemService(Context.ActivityService);
+            // bool isAppForeground = am.GetRunningTasks(1)?[0].TopActivity.PackageName.Equals(context.PackageName) ?? false;
+            // bool hasForegroundService = your_check_for_foreground_service_running;
+
+            // if (isAppForeground || hasForegroundService) {
+            notificationManager.Notify(BubbleNotificationId, notificationBuilder.Build());
+            Log.Info("NotifHelper", $"Bubble notification (ID {BubbleNotificationId}) posted. If all settings are correct, bubble should appear.");
+            // } else {
+            //    Log.Warn("NotifHelper", "App not in foreground and no foreground service detected. Bubble might not show.");
+            //    Toast.MakeText(context, "Open app or start playback to use bubble.", ToastLength.Short).Show();
+            // }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("NotifHelper", $"EXCEPTION posting bubble notification: {ex.Message} | {ex.StackTrace}");
+            Toast.MakeText(context, "Error showing bubble.", ToastLength.Short).Show();
+        }
     }
 }

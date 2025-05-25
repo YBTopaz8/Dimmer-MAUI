@@ -1,13 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.App" 
-             >
+<Application
+    x:Class="Dimmer.App"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary x:Name="appStyles" Source="/Resources/Styles/DevExpressStyles.xaml;assembly=Dimmer.Droid"/>
+                <ResourceDictionary x:Name="appStyles" Source="/Resources/Styles/DevExpressStyles.xaml;assembly=Dimmer.Droid" />
+                <ResourceDictionary x:Name="appColors" Source="/Resources/Styles/Colors.xaml;assembly=Dimmer" />
+                <ResourceDictionary x:Name="MyDevExp" Source="/Resources/Styles/Styles.xaml;assembly=Dimmer" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Color x:Key="MyDirectColor">Darkslateblue</Color>
+
+            <Style x:Key="MyDirectButtonStyle" TargetType="dx:DXButton">
+                <Setter Property="BackgroundColor" Value="{StaticResource MyDirectColor}" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="FontSize" Value="20" />
+            </Style>
+
+
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

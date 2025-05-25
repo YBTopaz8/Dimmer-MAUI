@@ -320,7 +320,7 @@ public partial class BaseViewModel : ObservableObject
 
         BaseAppFlow.UpSertSongNote(songDb, userNotee);
 
-        // 2) Find any existing entry in PlaylistSongs by Id
+        // 2) fd any existing entry in PlaylistSongs by Id
         var existing = PlaylistSongs
             .FirstOrDefault(x => x.Id == song.Id);
 
@@ -382,7 +382,7 @@ public partial class BaseViewModel : ObservableObject
         _subs.Add(_stateService.CurrentPlayBackState.
             DistinctUntilChanged()
 
-            .Subscribe(state =>
+            .Subscribe(async state =>
             {
                 IsPlaying = state.State == DimmerPlaybackState.Playing;
                 switch (state.State)
@@ -408,7 +408,9 @@ public partial class BaseViewModel : ObservableObject
                         LatestAppLog.Log = $"{count++}Playlist Updated with {songss.Count} new additions";
                         Debug.WriteLine($"{count++}Playlist Updated with {songss.Count} new additions");
                         PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
-                        break;
+
+                        await Shell.Current.DisplayAlert("Scan Completed", $"{songss.Count} Songs Added", "OK");
+
 
                         break;
                     default:

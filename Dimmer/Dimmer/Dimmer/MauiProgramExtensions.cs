@@ -9,6 +9,7 @@ public static class MauiProgramExtensions
         builder
             .UseMauiApp<App>()
             .UseBarcodeReader()
+
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
@@ -36,7 +37,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
-     
+
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IDimmerStateService, DimmerStateService>();
         builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();

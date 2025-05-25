@@ -25,6 +25,23 @@ global using UraniumUI;
 
 global using Dimmer.Interfaces.Services;
 global using CommunityToolkit.Mvvm.Input;
+
+global using Android.Content;
+global using Android.Content.Res;
+global using Android.Graphics.Drawables;
+global using Android.Views;
+global using Android.Widget;
+global using Google.Android.Material.BottomSheet;
+global using Microsoft.Maui.Controls;
+global using Microsoft.Maui.Controls.Handlers.Compatibility;
+global using Microsoft.Maui.Controls.Platform.Compatibility;
+global using Microsoft.Maui.Platform;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Text;
+global using Microsoft.Maui.Controls.Platform;
+
 namespace Dimmer;
 internal class GlobalUsings
 {

@@ -96,7 +96,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _currentSongModel = songModel;
 
         Service?.Prepare(_currentSongModel.FilePath,
-            _currentSongModel.Title, _currentSongModel.ArtistName, _currentSongModel.AlbumName);
+            _currentSongModel.Title, _currentSongModel.ArtistName, _currentSongModel.AlbumName, songModel);
 
         // The actual preparation and playback is triggered by sending a command
         // to the ExoPlayerService, usually from the UI layer after connecting.
@@ -108,25 +108,25 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task PlayAsync()
     {
-            Player?.Play();
-            Console.WriteLine("[AudioService] Play command sent.");
-        
+        Player?.Play();
+        Console.WriteLine("[AudioService] Play command sent.");
+
         return Task.CompletedTask; // Android service calls are mostly async fire-and-forget
     }
 
 
     public Task PauseAsync()
     {
-            Player?.Pause();
-       
+        Player?.Pause();
+
         return Task.CompletedTask;
     }
 
     public Task StopAsync()
     {
-            Player?.Stop();
-            Console.WriteLine("[AudioService] Stop command sent.");
-         
+        Player?.Stop();
+        Console.WriteLine("[AudioService] Stop command sent.");
+
         return Task.CompletedTask;
     }
 
@@ -134,17 +134,19 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         long positionMs = (long)(positionSeconds * 1000.0);
         Player?.SeekTo(positionMs);
-        Console.WriteLine($"[AudioService] Seek command sent to {positionMs}ms.");        
+        Console.WriteLine($"[AudioService] Seek command sent to {positionMs}ms.");
         SeekCompleted?.Invoke(this, positionSeconds);
 
         return Task.CompletedTask;
     }
 
-    public Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
+    public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
     {
-        
-        return Service?.GetAvailableAudioOutputs()!;
-        
+
+        return null;
+        //var s = await Service.GetAvailableAudioOutputs();
+        //return Service?.GetAvailableAudioOutputs()!;
+
     }
 
     // --- IAudioActivity Implementation (Handles events FROM ExoPlayerService) ---
@@ -154,35 +156,35 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public void OnStatusChanged(object sender, EventArgs e)
     {
-        
+
         var playerState = Player?.PlaybackState ?? Player?.PlaybackState;
         var isPlaying = Player?.IsPlaying ?? false;
         Console.WriteLine($"[AudioService] OnStatusChanged received. PlayerState: {playerState}, IsPlaying: {isPlaying}");
 
-        
+
         NotifyPropertyChanged(nameof(IsPlaying));
         NotifyPropertyChanged(nameof(Duration)); // Duration might become available when Ready
-        
-        
+
+
     }
 
     public void OnBuffering(object sender, EventArgs e) // Assuming EventArgs for now
     {
-        
+
         Console.WriteLine($"[AudioService] OnBuffering received. Player Buffering: {Player?.IsLoading}");
-       
+
     }
 
-    
+
     public void OnCoverReloaded(object sender, EventArgs e)
     {
         Console.WriteLine("[AudioService] OnCoverReloaded received.");
-        
+
     }
 
     public void OnPlaying(object sender, EventArgs e)
     {
-        
+
         Console.WriteLine("[AudioService] OnPlaying event received (check if needed).");
     }
 
@@ -196,7 +198,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             IsPlaying=isPlaying
         });
         NotifyPropertyChanged(nameof(IsPlaying));
-        
+
     }
 
     public void OnPositionChanged(object sender, long position)
@@ -224,11 +226,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.StatusChanged += OnStatusChanged;
         Service.Buffering += OnBuffering;
         Service.CoverReloaded += OnCoverReloaded;
-        
+
         Service.PlayingChanged += OnPlayingChanged;
         Service.PositionChanged += OnPositionChanged;
-        
-        
+
+
     }
 
     private void DisconnectEvents()
@@ -239,10 +241,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.StatusChanged -= OnStatusChanged;
         Service.Buffering -= OnBuffering;
         Service.CoverReloaded -= OnCoverReloaded;
-        
+
         Service.PlayingChanged -= OnPlayingChanged;
         Service.PositionChanged -= OnPositionChanged;
-        
+
     }
 
     private void NotifyAllPropertiesChanged()
