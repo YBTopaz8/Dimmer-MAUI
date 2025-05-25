@@ -11,11 +11,11 @@ public partial class HomePage : ContentPage
 {
     public HomeViewModel MyViewModel { get; internal set; }
     public HomePage(HomeViewModel vm)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
         BindingContext = vm;
-        MyViewModel=vm;      
-        
+        MyViewModel=vm;
+
     }
 
     protected override void OnAppearing()
@@ -183,7 +183,7 @@ public partial class HomePage : ContentPage
     {
 
         View send = (View)sender;
-        
+
         SongModelView? song = (SongModelView)send.BindingContext;
         song?.IsCurrentPlayingHighlight = false;
         var songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
@@ -195,16 +195,16 @@ public partial class HomePage : ContentPage
 
         MyViewModel.PointerEntered((SongModelView)send.BindingContext, send);
     }
-    
+
     private static void UserHoverOutSongInColView(object sender, PointerEventArgs e)
     {
         View send = (View)sender;
 
-       HomeViewModel.PointerExited(send);
+        HomeViewModel.PointerExited(send);
     }
 
     private bool _isThrottling;
-    private readonly int throttleDelay = 300; 
+    private readonly int throttleDelay = 300;
 
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
@@ -214,8 +214,8 @@ public partial class HomePage : ContentPage
         _isThrottling = true;
         Slider send = (Slider)sender;
         var s = send;
-        MyViewModel.SeekTo( s.Value, true);
-        MyViewModel.SeekTo( s.Value, true);
+        MyViewModel.SeekTo(s.Value, true);
+        MyViewModel.SeekTo(s.Value, true);
 
 
         await Task.Delay(throttleDelay);
@@ -229,7 +229,7 @@ public partial class HomePage : ContentPage
     {
         MyViewModel.ToggleRepeatMode();
     }
-  
+
 
     private void SfEffectsView_Loaded(object sender, EventArgs e)
     {
@@ -255,12 +255,12 @@ public partial class HomePage : ContentPage
                     return;
                 }
                 MyViewModel.IncreaseVolume();
-                
+
             }
             else
             {
                 MyViewModel.DecreaseVolume();
-                
+
             }
         }
 
@@ -319,7 +319,7 @@ public partial class HomePage : ContentPage
             case 2:
             case 3:
                 await MyViewModel.PlayPauseAsync();
-                
+
                 break;
             case 4:
                 MyViewModel.PlayNext(true);
@@ -339,7 +339,7 @@ public partial class HomePage : ContentPage
     }
     private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
- 
+
         SfChip ee = (SfChip)sender;
         string? param = ee.CommandParameter.ToString();
         if (param is null)
@@ -347,17 +347,17 @@ public partial class HomePage : ContentPage
             return;
         }
         var CurrentIndex = int.Parse(param);
-        
+
         switch (CurrentIndex)
         {
             case 0:
 
-                if(currentViewIndex!=0)
+                if (currentViewIndex!=0)
                 {
                     await SwitchUIs(0);
                 }
-                
-                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
+
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start, true);
                 //show the now playing Queue
                 break;
             case 1:
@@ -379,7 +379,7 @@ public partial class HomePage : ContentPage
                 break;
             case 5:
                 await SwitchUIs(2);
-               MyViewModel.WindowsOpened?.Clear();
+                MyViewModel.WindowsOpened?.Clear();
 
                 foreach (var win in Application.Current!.Windows)
                 {
@@ -413,7 +413,7 @@ public partial class HomePage : ContentPage
                 break;
             case 8:
 
-                
+
                 DimmerSongWindow newWin = new DimmerSongWindow(MyViewModel);
 
                 var dq = DispatcherQueue.GetForCurrentThread();
@@ -451,7 +451,7 @@ public partial class HomePage : ContentPage
             kvp.Key == CurrentIndex
             ? kvp.Value.AnimateFadeInFront()
             : kvp.Value.AnimateFadeOutBack()));
-        
+
     }
 
 
@@ -464,30 +464,30 @@ public partial class HomePage : ContentPage
         SearchBar searchBar = (SearchBar)sender;
         string txt = searchBar.Text;
 
-        
+
         _debounceTimer?.CancelAsync();
         _debounceTimer?.Dispose();
         _debounceTimer = new CancellationTokenSource();
         CancellationToken token = _debounceTimer.Token;
         int delayMilliseconds = 600;
-        
+
 
         try
         {
             await Task.Delay(delayMilliseconds, token);
 
             if (token.IsCancellationRequested)
-                return; 
+                return;
             await SearchSongsAsync(txt, token);
-             
+
         }
-        catch (OperationCanceledException ex) 
+        catch (OperationCanceledException ex)
         {
             Debug.WriteLine("Search operation cancelled." +ex.Message);
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
-            Debug.WriteLine($"Search Error: {ex}"); 
+            Debug.WriteLine($"Search Error: {ex}");
         }
     }
 
@@ -497,8 +497,8 @@ public partial class HomePage : ContentPage
         {
             return;
         }
-        
-        List<SongModelView> songsToDisplay=new();
+
+        List<SongModelView> songsToDisplay = new();
 
         if (string.IsNullOrEmpty(searchText))
         {
@@ -510,31 +510,31 @@ public partial class HomePage : ContentPage
         {
             BaseViewModel.IsSearching = true;
 
-            songsToDisplay= await Task.Run(() => 
+            songsToDisplay= await Task.Run(() =>
             {
-                token.ThrowIfCancellationRequested(); 
+                token.ThrowIfCancellationRequested();
 
-                
-                var e = MyViewModel.PlaylistSongs!    .
+
+                var e = MyViewModel.PlaylistSongs!.
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
                    .ToList();
-                
+
                 return e;
             }, token);
 
-             
+
         }
 
-        
+
         Dispatcher.Dispatch(() =>
         {
             if (token.IsCancellationRequested)
                 return;
 
-            
-                MyViewModel.FilteredSongs = songsToDisplay;
+
+            MyViewModel.FilteredSongs = songsToDisplay;
             SongsColView.ItemsSource = MyViewModel.FilteredSongs;
 
             MyViewModel.NowPlayingQueue = songsToDisplay.ToObservableCollection();
@@ -544,19 +544,19 @@ public partial class HomePage : ContentPage
 
     private static void Button_Clicked(object sender, EventArgs e)
     {
-        PlatUtils.ApplicationProps.LaunchSecondWindow();  
+        PlatUtils.ApplicationProps.LaunchSecondWindow();
     }
     private static void Button2_Clicked(object sender, EventArgs e)
     {
-        PlatUtils.ApplicationProps.LaunchSecondWindow();  
+        PlatUtils.ApplicationProps.LaunchSecondWindow();
     }
 
     private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
-    {  
+    {
         var send = (Slider)sender;
         if (MyViewModel.IsPlaying)
         {
-            MyViewModel.SeekTo(send.Value,true);
+            MyViewModel.SeekTo(send.Value, true);
         }
 
     }
@@ -580,7 +580,7 @@ public partial class HomePage : ContentPage
 
     private static async void PrimarySectionGest_Tapped(object sender, TappedEventArgs e)
     {
-       await Shell.Current.GoToAsync(nameof(SingleSongPage));
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
@@ -602,7 +602,7 @@ public partial class HomePage : ContentPage
 
             if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
             {
-                
+
                 listView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None;
 
                 listView.Background = null;
@@ -610,19 +610,19 @@ public partial class HomePage : ContentPage
                 listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
 
                 listView.ContainerContentChanging += ListView_ContainerContentChanging;
-                
+
             }
 
             if (nativeView is Microsoft.UI.Xaml.Controls.Primitives.Selector selector)
             {
                 selector.Background = null;
-                
+
             }
 
             if (nativeView is Microsoft.UI.Xaml.Controls.ItemsControl itemsControl)
             {
                 itemsControl.Background = null;
-                
+
             }
 
             if (nativeView is Microsoft.UI.Xaml.Controls.Control control)
@@ -679,7 +679,7 @@ public partial class HomePage : ContentPage
     private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
         //if (LyricsColView.SelectedItem is not LyricPhraseModelView CurrLyric || MyViewModel is null)
-            
+
 
 
         //if (MyViewModel.IsPlaying)
@@ -746,7 +746,7 @@ public partial class HomePage : ContentPage
                 break;
             case 2:
                 PlatUtils.OpenAlbumWindow(MyViewModel.TemporarilyPickedSong!);
-                
+
                 break;
 
             default:
@@ -758,7 +758,7 @@ public partial class HomePage : ContentPage
     {
         await SwitchUIs(0);
 
-        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
+        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start, true);
     }
 
     private void CloseSubWindowChip_Clicked(object sender, EventArgs e)
@@ -775,7 +775,7 @@ public partial class HomePage : ContentPage
         var send = (SfChip)sender;
         var item = (WindowInfo)send.BindingContext;
         Application.Current!.ActivateWindow(item.WindowInstance);
-            return;
+        return;
         Application.Current!.Dispatcher.Dispatch(() =>
         {
             try
@@ -806,11 +806,11 @@ public partial class HomePage : ContentPage
         MyViewModel.WindowsOpened.Clear();
     }
 
-  
+
 
     private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
     {
-        if (ThoughtBtmSheetBottomSheet.IsVisible )
+        if (ThoughtBtmSheetBottomSheet.IsVisible)
         {
             ThoughtBtmSheetBottomSheet.IsEnabled = false;
             ThoughtBtmSheetBottomSheet.IsVisible = false;
@@ -821,14 +821,14 @@ public partial class HomePage : ContentPage
         ThoughtBtmSheetBottomSheet.IsEnabled = true;
 
     }
-    private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    private void SaveNoteBtn_Clicked(object sender, EventArgs e)
     {
         UserNoteModelView note = new()
         {
             UserMessageText=NoteText.Text,
 
         };
-        await MyViewModel.SaveUserNoteToDB(note, MyViewModel.SecondSelectedSong);
+        MyViewModel.SaveUserNoteToDB(note, MyViewModel.SecondSelectedSong);
     }
 
     private void DltFolder_Clicked(object sender, EventArgs e)
@@ -856,12 +856,12 @@ public partial class HomePage : ContentPage
 
     private void MainAppGrid_Loaded(object sender, EventArgs e)
     {
-        
+
     }
 
     private void FreshAppStartRecogn_PointerEntered(object sender, PointerEventArgs e)
     {
-     
+
     }
 
     private void GetStartedChip_Clicked(object sender, EventArgs e)
@@ -886,7 +886,7 @@ public partial class HomePage : ContentPage
     {
         Debug.WriteLine(LogMsgChip.CommandParameter.GetType());
     }
-    string currParam=string.Empty;
+    string currParam = string.Empty;
     private void ShortingTitle_TouchUp(object sender, EventArgs e)
     {
         var send = (SfEffectsView)sender;
@@ -898,7 +898,7 @@ public partial class HomePage : ContentPage
         {
             return;
         }
-         switch (param)
+        switch (param)
         {
             case "title":
                 if (isSameParam)
@@ -909,7 +909,7 @@ public partial class HomePage : ContentPage
                 {
                     SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title).ToObservableCollection();
                 }
-                    break;
+                break;
             case "artist":
                 if (isSameParam)
                 {
@@ -937,7 +937,7 @@ public partial class HomePage : ContentPage
                 }
                 else
                 {
-                    
+
                     SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name).ToObservableCollection();
                 }
                 break;
@@ -964,7 +964,8 @@ public partial class HomePage : ContentPage
         var send = (SfEffectsView)sender;
         var param = send.TouchUpCommandParameter.ToString();
         ObservableCollection<SongModelView> currSongs = (SongsColView.ItemsSource as ObservableCollection<SongModelView>)!;
-        var listOfArtists = MyViewModel.TemporarilyPickedSong.ArtistIds.Select(x => x.Name).ToList(); ;
+        var listOfArtists = MyViewModel.TemporarilyPickedSong.ArtistIds.Select(x => x.Name).ToList();
+        ;
         //var res = await DisplayActionSheet("Choose", "Choooose", "OK", "ss");
     }
 }

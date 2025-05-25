@@ -5,6 +5,8 @@ using Android.OS;
 using Android.Views;
 using Android.Transitions;
 using Android.Util;
+using Android.Window;
+using AndroidX.Activity;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
@@ -28,7 +30,8 @@ public class MainActivity : MauiAppCompatActivity
 {
     private static string AppLinkHost;
 
-
+    private IOnBackInvokedCallback _onBackInvokedCallback; // For API 33+
+    private bool _isBackCallbackRegistered = false;
     MediaPlayerServiceConnection? _serviceConnection;
     Intent? _serviceIntent;
     private ExoPlayerServiceBinder? _binder;
@@ -214,7 +217,52 @@ public class MainActivity : MauiAppCompatActivity
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
+        {
+            Window.RequestFeature(WindowFeatures.ContentTransitions); // Crucial for enabling transitions
+
+            // Define Enter Transition (how this activity appears when started)
+            Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
+            if (enterTransition != null)
+            {
+                Window.EnterTransition = enterTransition;
+            }
+
+            // Define Exit Transition (how this activity disappears when finishing)
+            Transition? exitTransition = CreateTransition(PublicStats.ExitTransition);
+            if (exitTransition != null)
+            {
+                Window.ExitTransition = exitTransition;
+            }
+
+            // Define Reenter Transition (how this activity appears when returning from a subsequent activity)
+            Transition? reenterTransition = CreateTransition(PublicStats.ReenterTransition);
+            if (reenterTransition != null)
+            {
+                Window.ReenterTransition = reenterTransition;
+            }
+
+            // Define Return Transition (how this activity disappears when it's the one returning to a previous activity)
+            // This is often the reverse of the Enter transition of the activity it's returning to.
+            Transition? returnTransition = CreateTransition(PublicStats.ReturnTransition);
+            if (returnTransition != null)
+            {
+                Window.ReturnTransition = returnTransition;
+            }
+
+            // Optional: Allow overlap for smoother transitions between activities
+            Window.AllowEnterTransitionOverlap = true;
+            Window.AllowReturnTransitionOverlap = true;
+        }
+
+
+
         base.OnCreate(savedInstanceState);
+
+        SetupBackNavigation();
+
         IAudioActivity? audioSvc = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>()
          as IAudioActivity
          ?? throw new InvalidOperationException("AudioService missing");
@@ -228,14 +276,7 @@ public class MainActivity : MauiAppCompatActivity
         _serviceConnection = new MediaPlayerServiceConnection(audioSvc);
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
 
-
-
-#if RELEASE
-        Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
-#elif DEBUG
-        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-#endif
-
+        SetStatusBarColor();
 
         return;
 
@@ -328,6 +369,17 @@ public class MainActivity : MauiAppCompatActivity
         //         Platform.OnNewIntent(Intent); // Call this here *too* if needed for cold start actions
     }
 
+    private void SetStatusBarColor()
+    {
+        if (Window == null)
+            return; // Should not happen in OnCreate after base call
+
+#if RELEASE
+     Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
+#elif DEBUG
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+#endif
+    }
     private static void LogUnhandledException(string source, Exception ex)
     {
         if (ex == null)
@@ -365,6 +417,12 @@ public class MainActivity : MauiAppCompatActivity
             UnbindService(_serviceConnection);
             _serviceConnection.Disconnect();
         }
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu && _onBackInvokedCallback != null && _isBackCallbackRegistered)
+        {
+            OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
+            _isBackCallbackRegistered = false;
+        }
+
         base.OnDestroy();
     }
 
@@ -380,12 +438,12 @@ public class MainActivity : MauiAppCompatActivity
         }
     }
 
-    private Transition CreateTransition(ActivityTransitionType type)
+    private static Transition? CreateTransition(ActivityTransitionType type)
     {
         if (Build.VERSION.SdkInt < BuildVersionCodes.Lollipop)
             return null;
 
-        Transition transition = null;
+        Transition? transition = null;
 
         switch (type)
         {
@@ -421,4 +479,167 @@ public class MainActivity : MauiAppCompatActivity
 
         return transition;
     }
+
+    private void SetupBackNavigation()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
+        {
+            _onBackInvokedCallback = new BackInvokedCallback(() =>
+            {
+                HandleBackPressInternal();
+            });
+            // Registering with Priority_DEFAULT. Higher priority callbacks are invoked first.
+            OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(IOnBackInvokedDispatcher.PriorityDefault, _onBackInvokedCallback);
+            _isBackCallbackRegistered = true;
+        }
+        else
+        {
+            // For older versions, OnBackPressed() will be called by the system.
+            // We can also use the AndroidX OnBackPressedDispatcher for a more consistent approach
+            // across versions if preferred, but overriding OnBackPressed is simpler for API < 33
+            // if you are not using other Jetpack Activity features that rely on OnBackPressedDispatcher.
+            // Example using AndroidX (MauiAppCompatActivity provides this dispatcher):
+            // OnBackPressedDispatcher.AddCallback(this, new MyOnBackPressedCallback(true, this));
+        }
+    }
+
+    // This method contains the logic for what to do when back is pressed.
+    private void HandleBackPressInternal()
+    {
+        System.Diagnostics.Debug.WriteLine("HandleBackPressInternal invoked.");
+        bool mauiHandled = Shell.Current.SendBackButtonPressed(); // Ask MAUI to handle it
+
+        if (mauiHandled)
+        {
+            System.Diagnostics.Debug.WriteLine("MAUI handled OnBackPressed.");
+            return;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("MAUI did not handle OnBackPressed. Calling base.OnBackPressed().");
+            // If MAUI didn't handle it, and we're on API < 33 using the OnBackPressed override,
+            // calling base.OnBackPressed() would perform the default finish.
+            // For API 33+, if this callback is invoked and MAUI didn't handle it,
+            // the system will typically finish the activity if this callback doesn't do something else
+            // or if there isn't a lower priority callback.
+            // If this is the root activity, it might go to background instead of finishing.
+            // To explicitly finish:
+            // Finish();
+            // Or move to back:
+            // MoveTaskToBack(true);
+
+            // For API 33+, if you want the *default system behavior* after your checks,
+            // you might need to unregister the callback TEMPORARILY and then trigger a back press,
+            // or rely on the fact that if your callback doesn't "consume" the event fully,
+            // the system might proceed. This area is a bit nuanced.
+            // Often, if MAUI doesn't handle it, and it's the root page, you let the system minimize the app.
+            // If it's NOT the root, you'd typically call Finish();
+
+            // For now, let's assume if MAUI doesn't handle it, and this is our callback,
+            // we might want to finish if it's not the root task.
+            // This logic mirrors roughly what the default OnBackPressed does.
+            if (!IsTaskRoot)
+            {
+                Finish();
+            }
+            else
+            {
+                // If it's the root task, the system will usually move it to the back.
+                // You could explicitly do MoveTaskToBack(true); but often not needed here.
+            }
+        }
+    }
+
+    // This is a helper class for the OnBackInvokedCallback
+    sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
+    {
+        private readonly Action _action;
+        public BackInvokedCallback(Action action)
+        {
+            _action = action;
+        }
+        public void OnBackInvoked()
+        {
+            _action?.Invoke();
+        }
+    }
+
+
+    // --- Fallback for API < 33 ---
+#pragma warning disable CS0672 // Member overrides obsolete member
+#pragma warning disable CS0618 // Type or member is obsolete
+    public override void OnBackPressed()
+    {
+        if (Build.VERSION.SdkInt < BuildVersionCodes.Tiramisu) // Only use this logic for older APIs
+        {
+            System.Diagnostics.Debug.WriteLine("OnBackPressed (API < 33) invoked.");
+            bool mauiHandled = Shell.Current.SendBackButtonPressed(); // Ask MAUI to handle it
+
+            if (mauiHandled)
+            {
+                System.Diagnostics.Debug.WriteLine("MAUI handled OnBackPressed.");
+                return;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("MAUI did not handle OnBackPressed. Calling base.OnBackPressed().");
+                base.OnBackPressed(); // Perform default activity finish or move to back
+            }
+        }
+        else
+        {
+            // For API 33+, the OnBackInvokedCallback should be handling it.
+            // Calling base.OnBackPressed() here is generally not recommended by Android
+            // as it might have unintended side effects with the new system.
+            // However, MAUI's base MauiAppCompatActivity might have its own logic.
+            // It's safer to let the new callback system handle it.
+            // If MAUI's base needs this, it should also be using the new callback system.
+            System.Diagnostics.Debug.WriteLine("OnBackPressed (API >= 33) called, but OnBackInvokedCallback should be active.");
+            base.OnBackPressed(); // Call base just in case MAUI's base activity has specific logic
+        }
+    }
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0672 // Member overrides obsolete member
+
+
+    // --- Optional: Using AndroidX OnBackPressedDispatcher for more unified handling ---
+    // This can be an alternative to overriding OnBackPressed() for older APIs.
+    // MauiAppCompatActivity provides `OnBackPressedDispatcher`.
+    /*
+    private class MyOnBackPressedCallback : AndroidX.Activity.OnBackPressedCallback
+    {
+        private readonly MainActivity _activity;
+        public MyOnBackPressedCallback(bool enabled, MainActivity activity) : base(enabled)
+        {
+            _activity = activity;
+        }
+
+        public override void HandleOnBackPressed()
+        {
+            // This is where your back press logic goes, similar to HandleBackPressInternal
+            System.Diagnostics.Debug.WriteLine("AndroidX OnBackPressedCallback: HandleOnBackPressed invoked.");
+            bool mauiHandled = _activity.Dispatcher.Dispatch(() => Shell.Current.SendBackButtonPressed());
+
+            if (!mauiHandled)
+            {
+                // If MAUI didn't handle it, and we want to finish the activity:
+                // You might need to disable this callback temporarily to allow the default
+                // back press to go through, or call activity.Finish().
+                if (!_activity.IsTaskRoot)
+                {
+                    IsEnabled = false; // Disable this callback
+                    _activity.OnBackPressedDispatcher.OnBackPressed(); // Trigger again, will go to system
+                    IsEnabled = true; // Re-enable if needed, or manage lifetime
+                }
+                else
+                {
+                    // Let system handle moving task to back for root activity
+                    IsEnabled = false;
+                    _activity.OnBackPressedDispatcher.OnBackPressed();
+                    IsEnabled = true;
+                }
+            }
+        }
+    }
+    */
 }

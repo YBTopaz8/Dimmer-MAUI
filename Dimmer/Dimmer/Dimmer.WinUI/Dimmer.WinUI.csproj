@@ -1,101 +1,117 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
-		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-		<RootNamespace>Dimmer.WinUI</RootNamespace>
-		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<Platforms>x86;x64;ARM64</Platforms>
-		<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
-		<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
-		<UseWinUI>true</UseWinUI>
-		<EnableMsixTooling>true</EnableMsixTooling>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<UseMaui>true</UseMaui>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>Dimmer.WinUI</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
-		<!-- We do not want XAML files to be processed as .NET MAUI XAML, but rather WinUI XAML. -->
-		<EnableDefaultMauiItems>false</EnableDefaultMauiItems>
-		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
-		<WindowsPackageType>None</WindowsPackageType>
-		<PublishAot>True</PublishAot>
-		<PublishTrimmed>True</PublishTrimmed>
-	</PropertyGroup>
+    <!-- We do not want XAML files to be processed as .NET MAUI XAML, but rather WinUI XAML. -->
+    <EnableDefaultMauiItems>false</EnableDefaultMauiItems>
+    <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <PublishAot>false</PublishAot>
+    <PublishTrimmed>false</PublishTrimmed>
+    <TrimMode>None</TrimMode>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <None Remove="AppShell.xaml" />
-	  <None Remove="DimmerWin.xaml" />
-	  <None Remove="DimmerWindow.xaml" />
-	  <None Remove="Views\ArtistWindow.xaml" />
-	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
-	  <None Remove="Views\DimmerSongWindow.xaml" />
-	  <None Remove="Views\HomePage.xaml" />
-	  <None Remove="Views\OnlinePageManagement.xaml" />
-	  <None Remove="Views\PlaylistWindow.xaml" />
-	  <None Remove="Views\SettingsWindow.xaml" />
-	  <None Remove="Views\SingleSongPage.xaml" />
-	  <None Remove="Views\SongNotifierWindow.xaml" />
-	  <None Remove="Views\StatisticsPage.xaml" />
-	  <None Remove="Views\TestPage.xaml" />
-	</ItemGroup>
 
-	<ItemGroup>
-	  <Page Remove="AppShell.xaml" />
-	  <Page Remove="DimmerWin.xaml" />
-	  <Page Remove="DimmerWindow.xaml" />
-	  <Page Remove="Views\AlbumWindow.xaml" />
-	  <Page Remove="Views\ArtistWindow.xaml" />
-	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
-	  <Page Remove="Views\DimmerSongWindow.xaml" />
-	  <Page Remove="Views\HomePage.xaml" />
-	  <Page Remove="Views\OnlinePageManagement.xaml" />
-	  <Page Remove="Views\PlaylistWindow.xaml" />
-	  <Page Remove="Views\SettingsWindow.xaml" />
-	  <Page Remove="Views\SingleSongPage.xaml" />
-	  <Page Remove="Views\SongNotifierWindow.xaml" />
-	  <Page Remove="Views\StatisticsPage.xaml" />
-	</ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-arm64' AND '$(SelfContained)'=='true'">
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
 
-	<ItemGroup>
-	  <Content Include="Childish-Music_24985.ico" />
-	</ItemGroup>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-x64' AND '$(SelfContained)'=='false'">
+    <PublishAot>false</PublishAot>
+    <PublishTrimmed>false</PublishTrimmed>
+    <TrimMode>None</TrimMode>
+  </PropertyGroup>
 
-	<ItemGroup>
+
+
+  <ItemGroup>
+    <None Remove="AppShell.xaml" />
+    <None Remove="DimmerWin.xaml" />
+    <None Remove="DimmerWindow.xaml" />
+    <None Remove="Views\ArtistWindow.xaml" />
+    <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <None Remove="Views\DimmerSongWindow.xaml" />
+    <None Remove="Views\HomePage.xaml" />
+    <None Remove="Views\OnlinePageManagement.xaml" />
+    <None Remove="Views\PlaylistWindow.xaml" />
+    <None Remove="Views\SettingsWindow.xaml" />
+    <None Remove="Views\SingleSongPage.xaml" />
+    <None Remove="Views\SongNotifierWindow.xaml" />
+    <None Remove="Views\StatisticsPage.xaml" />
+    <None Remove="Views\TestPage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="AppShell.xaml" />
+    <Page Remove="DimmerWin.xaml" />
+    <Page Remove="DimmerWindow.xaml" />
+    <Page Remove="Views\AlbumWindow.xaml" />
+    <Page Remove="Views\ArtistWindow.xaml" />
+    <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <Page Remove="Views\DimmerSongWindow.xaml" />
+    <Page Remove="Views\HomePage.xaml" />
+    <Page Remove="Views\OnlinePageManagement.xaml" />
+    <Page Remove="Views\PlaylistWindow.xaml" />
+    <Page Remove="Views\SettingsWindow.xaml" />
+    <Page Remove="Views\SingleSongPage.xaml" />
+    <Page Remove="Views\SongNotifierWindow.xaml" />
+    <Page Remove="Views\StatisticsPage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Childish-Music_24985.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
-		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
-		<PackageReference Include="Vanara.Core" Version="4.1.3" />
-		<PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.3" />
-		<PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.3" />
-		<PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.3" />
-		<PackageReference Include="Vanara.PInvoke.User32" Version="4.1.3" />
-		<PackageReference Include="Vanara.Windows.Shell" Version="4.1.3" />
-		<PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+    <PackageReference Include="Vanara.Core" Version="4.1.3" />
+    <PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.3" />
+    <PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.3" />
+    <PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.3" />
+    <PackageReference Include="Vanara.PInvoke.User32" Version="4.1.3" />
+    <PackageReference Include="Vanara.Windows.Shell" Version="4.1.3" />
+    <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
 
     <PackageReference Include="AlohaKit" Version="1.0.100" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
 
-    
-	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
-	</ItemGroup>
+  </ItemGroup>
 
-	<ItemGroup>
-		<!-- Make sure all image assets to be in the root of the package to match the other platforms -->
-		<Content Update="Assets\Images\*" TargetPath="%(Filename)%(Extension)" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<Manifest Include="$(ApplicationManifest)" />
-	</ItemGroup>
+  <ItemGroup>
+    <!-- Make sure all image assets to be in the root of the package to match the other platforms -->
+    <Content Update="Assets\Images\*" TargetPath="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
@@ -107,134 +123,137 @@
 		Tools extension to be activated for this project even if the Windows App SDK Nuget
 		package has not yet been restored.
 	-->
-	<ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-		<ProjectCapability Include="Msix" />
-	</ItemGroup>
-	<ItemGroup>
-	  <MauiXaml Include="AppShell.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="DimmerWin.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\AlbumWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\ArtistWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\DimmerSongWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\HomePage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Database\" />
-	</ItemGroup>
-	<ItemGroup>
-	  <MauiXaml Include="Views\OnlinePageManagement.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\PlaylistWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\SettingsWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\SingleSongPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\SongNotifierWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Include="Views\StatisticsPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
-	<ItemGroup>
-	  <None Include="..\..\..\..\..\..\Pictures\hellllpppp\dimmerback\Resources\Images\musical_notes.png">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
-	</ItemGroup>
-	<ItemGroup>
-	  <Compile Update="Properties\Resources.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Resources.resx</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-	<ItemGroup>
-	  <EmbeddedResource Update="Properties\Resources.resx">
-	    <Generator>ResXFileCodeGenerator</Generator>
-	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
-	</ItemGroup>
-	<ItemGroup>
-	  <Page Update="Views\TestPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </Page>
-	</ItemGroup>
-	<PropertyGroup Label="Globals">
-	  <WebView2UseWinRT>False</WebView2UseWinRT>
-	  <WebView2LoaderPreference>Dynamic</WebView2LoaderPreference>
-	  <Description>A Cross Platform Music Player App</Description>
-	  <PackageProjectUrl>https://github.com/YBTopaz8/Dimmer-MAUI</PackageProjectUrl>
-	  <RepositoryUrl>https://github.com/YBTopaz8/Dimmer-MAUI</RepositoryUrl>
-	  <PackageCertificateThumbprint>7CB3027CCE9BE36718A3A7562CB3174364579CA8</PackageCertificateThumbprint>
-	  <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-	  <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <Title>Dimmer</Title>
-	  <PackageIcon>dimmerIcon.png</PackageIcon>
-	  <ApplicationIcon>Childish-Music_24985.ico</ApplicationIcon>
-	</PropertyGroup>
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+  <ItemGroup>
+    <MauiXaml Include="AppShell.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="DimmerWin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\AlbumWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\ArtistWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\DimmerSongWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\HomePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Database\" />
+  </ItemGroup>
+  <ItemGroup>
+    <MauiXaml Include="Views\OnlinePageManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\PlaylistWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\SettingsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\SingleSongPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\SongNotifierWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\StatisticsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\Pictures\hellllpppp\dimmerback\Resources\Images\musical_notes.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\TestPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <WebView2UseWinRT>False</WebView2UseWinRT>
+    <WebView2LoaderPreference>Dynamic</WebView2LoaderPreference>
+    <Description>A Cross Platform Music Player App</Description>
+    <PackageProjectUrl>https://github.com/YBTopaz8/Dimmer-MAUI</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/YBTopaz8/Dimmer-MAUI</RepositoryUrl>
+    <PackageCertificateThumbprint>7CB3027CCE9BE36718A3A7562CB3174364579CA8</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+    <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Title>Dimmer</Title>
+    <PackageIcon>dimmerIcon.png</PackageIcon>
+    <ApplicationIcon>Childish-Music_24985.ico</ApplicationIcon>
+  </PropertyGroup>
 
-	<!--
+  <!--
 		Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
 		Explorer "Package and Publish" context menu entry to be enabled for this project even if
 		the Windows App SDK Nuget package has not yet been restored.
 	-->
-	<PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-		<HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <ApplicationDisplayVersion>1.9.5</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <ApplicationDisplayVersion>1.9.5</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <ApplicationDisplayVersion>1.9.5</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <ApplicationDisplayVersion>1.9.5</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <ApplicationDisplayVersion>1.9.5</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <ApplicationDisplayVersion>1.9.5</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
 
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
   </PropertyGroup>
 
 </Project>

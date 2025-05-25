@@ -48,11 +48,11 @@ public partial class SettingsPage : ContentPage
 
     }
 
-    private async void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
+    private void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
     {
         MainTabView.SelectedItemIndex = 4;
 
-        await MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
+        MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
         MyDevicesPopUp.Close();
     }
 

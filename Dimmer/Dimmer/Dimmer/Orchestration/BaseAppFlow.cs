@@ -11,8 +11,8 @@ public class BaseAppFlow : IDisposable
 {
 
     //public static ParseUser? CurrentUserOnline { get; set; }
-    
-    public static UserModel CurrentUser{ get; set; }
+
+    public static UserModel CurrentUser { get; set; }
     public static UserModelView CurrentUserView { get; set; }
 
     public readonly IDimmerStateService _state;
@@ -31,9 +31,9 @@ public class BaseAppFlow : IDisposable
     private bool _disposed;
 
     public static SongModelView CurrentlyPlayingSong { get; set; } = new();
-    
 
-    public bool  IsShuffleOn
+
+    public bool IsShuffleOn
         => _settings.ShuffleOn;
 
     public RepeatMode CurrentRepeatMode
@@ -77,7 +77,7 @@ public class BaseAppFlow : IDisposable
     public static IReadOnlyCollection<DimmerPlayEvent> MasterListEvents { get; internal set; }
 
     public static bool IsAppInitialized;
-    public void Initialize(bool isAppInit=false)
+    public void Initialize(bool isAppInit = false)
     {
 
 
@@ -159,14 +159,14 @@ public class BaseAppFlow : IDisposable
     {
         var user = _userRepo.GetAll().FirstOrDefault();
         CurrentUser = user;
-        
+
         CurrentUserView = _mapper.Map<UserModelView>(CurrentUserView);
         if (user != null
             && !string.IsNullOrWhiteSpace(user.UserPassword)
             && user.UserPassword != "Unknown Password")
         {
             // fire-and-forget, but handle everything inside
-            _ = Task.Run(async () =>
+            _ = Task.Run(() =>
             {
                 try
                 {
@@ -184,11 +184,11 @@ public class BaseAppFlow : IDisposable
                     //    CurrentUserOnline = online
                     //);
                 }
-                catch (Exception pe) 
+                catch (Exception pe)
                 {
                     // bad credentials → ignore
                 }
-                
+
             });
         }
     }
@@ -202,7 +202,7 @@ public class BaseAppFlow : IDisposable
                 //IsPlaying = state.State == DimmerPlaybackState.Playing;
                 switch (state.State)
                 {
-                   
+
                     case DimmerPlaybackState.FolderAdded:
                         if (state.ExtraParameter is not string folder)
                         {
@@ -214,11 +214,11 @@ public class BaseAppFlow : IDisposable
                         }
                         listofPathsAddedInSession.Add(folder);
                         AddFolderToPath(folder);
-                        Task.Run(()=> LoadSongs([.. listofPathsAddedInSession.Distinct()]));
+                        Task.Run(() => LoadSongs([.. listofPathsAddedInSession.Distinct()]));
 
                         break;
                     case DimmerPlaybackState.FolderRemoved:
-                        if (state.ExtraParameter is null )
+                        if (state.ExtraParameter is null)
                         {
                             _settings.ClearAllFolders();
                             return;
@@ -267,7 +267,7 @@ public class BaseAppFlow : IDisposable
         UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Completed);
     }
 
-    public void AddFolderToPath(string? path=null)
+    public void AddFolderToPath(string? path = null)
     {
         if (string.IsNullOrEmpty(path))
         {
@@ -279,7 +279,7 @@ public class BaseAppFlow : IDisposable
         if (exist != null)
         {
             var appStates = exist.ToList();
-            var rappState= appStates.First();
+            var rappState = appStates.First();
             var appState = new AppStateModel(rappState);
 
 
@@ -291,9 +291,9 @@ public class BaseAppFlow : IDisposable
                     appState.UserMusicFoldersPreference.Add(item);
                 }
             }
-            
+
             appState.UserMusicFoldersPreference.Add(path);
-            DimmerAppState .UserMusicFoldersPreference.Add(path);
+            DimmerAppState.UserMusicFoldersPreference.Add(path);
             _appstateRepo.AddOrUpdate(appState);
         }
 
@@ -328,7 +328,7 @@ public class BaseAppFlow : IDisposable
         {
             Log = userMessage,
             ViewSongModel = CurrentlyPlayingSong,
-            
+
         };
         _state.SetCurrentLogMsg(log);
     }
@@ -336,8 +336,8 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertUser(UserModel model)
     {
-        
-        
+
+
         _userRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
@@ -352,7 +352,7 @@ public class BaseAppFlow : IDisposable
         _playlistRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
-            Log = $"UpSert Playlist {model} at {DateTime.Now.ToLocalTime()}",            
+            Log = $"UpSert Playlist {model} at {DateTime.Now.ToLocalTime()}",
         };
         _state.SetCurrentLogMsg(log);
     }
@@ -377,9 +377,9 @@ public class BaseAppFlow : IDisposable
         };
         _state.SetCurrentLogMsg(log);
     }
-    
+
     public void UpSertSong(SongModel model)
-    { 
+    {
         _songRepo.AddOrUpdate(model);
 
         AppLogModel log = new()
@@ -388,12 +388,12 @@ public class BaseAppFlow : IDisposable
             AppSongModel = model,
         };
         _state.SetCurrentLogMsg(log);
-        
+
     }
     public void UpSertSongNote(SongModel model, UserNoteModel note)
     {
         // 1) Ensure the song has a primary key
-     
+
         // 2) Do everything in one Realm transaction
         _songRepo.BatchUpdate(realm =>
         {
@@ -401,11 +401,11 @@ public class BaseAppFlow : IDisposable
             var song = realm.Find<SongModel>(model.Id)
                        ?? realm.Add(model, update: true);
 
-          
-                   
 
-                    song.UserNotes.Add(note);
-               
+
+
+            song.UserNotes.Add(note);
+
         });
 
         // 6) Log after the write completes
@@ -441,10 +441,10 @@ public class BaseAppFlow : IDisposable
         MasterList = [.. _songRepo
             .GetAll()
             .OrderBy(x => x.DateCreated)];
-        
+
         realmSongs = [.. MasterList];
         realmAlbums = [.. _albumRepo.GetAll()];
-        realGenres = [..  _genreRepo.GetAll()];
+        realGenres = [.. _genreRepo.GetAll()];
         realmArtists = [.. _artistRepo.GetAll()];
 
     }
@@ -464,7 +464,7 @@ public class BaseAppFlow : IDisposable
         _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
 
         List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
-        
+
 
 
         if (allFiles.Count == 0)
@@ -476,7 +476,7 @@ public class BaseAppFlow : IDisposable
         GetInitialValues();
 
         currentScanMetadataService.LoadExistingData(realmArtists, realmAlbums, realGenres, realmSongs);
-       
+
 
         IReadOnlyList<SongModel> newCoreSongsFromService = currentScanMetadataService.GetAllSongs();
 
@@ -493,7 +493,7 @@ public class BaseAppFlow : IDisposable
                 _state.SetCurrentLogMsg(new AppLogModel
                 {
                     Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
-                    AppSongModel = fileProcessingResult.ProcessedSong ,
+                    AppSongModel = fileProcessingResult.ProcessedSong,
                     AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount },
                     ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
                 });
@@ -512,7 +512,7 @@ public class BaseAppFlow : IDisposable
 
 
 
-        
+
 
         IReadOnlyList<SongModel>? newCoreSongs = currentScanMetadataService.GetAllSongs();
         var newCoreArtists = currentScanMetadataService.GetAllArtists();
@@ -530,7 +530,7 @@ public class BaseAppFlow : IDisposable
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
         using (var realm = realmFactory.GetRealmInstance()) // Get ONE Realm instance
         {
-            
+
             realm.Write(() =>
             {
                 // Add related entities first. They become managed by THIS 'realm' instance.
@@ -543,7 +543,7 @@ public class BaseAppFlow : IDisposable
                             realm.Add(album, update: true);
                         }
                     }
-                     
+
                 }
                 if (newCoreArtists.Any())
                 {
@@ -560,7 +560,7 @@ public class BaseAppFlow : IDisposable
                     foreach (var genre in newCoreGenres)
                     {
                         if (!genre.IsManaged)
-                        { 
+                        {
                             realm.Add(genre, update: true);
                         }
                     }
@@ -570,7 +570,7 @@ public class BaseAppFlow : IDisposable
                 {
                     foreach (var song in newCoreSongs)
                     {
-                        
+
                         if (!song.IsManaged) // Song itself is new
                         {
                             // Fixup related objects to be from the current realm or unmanaged with PK
@@ -586,11 +586,11 @@ public class BaseAppFlow : IDisposable
                                     }
                                     else
                                     {
-                                   
-                                        song.Album = managedAlbum; 
+
+                                        song.Album = managedAlbum;
                                     }
                                 }
-                               
+
                             }
 
                             if (song.Genre != null)
@@ -616,11 +616,11 @@ public class BaseAppFlow : IDisposable
                                         {
                                             newArtistListForSong.Add(managedArtist);
                                         }
-                                       
+
                                     }
                                     else
                                     {
-                                       
+
                                         newArtistListForSong.Add(artistRef);
                                     }
                                 }
@@ -640,26 +640,26 @@ public class BaseAppFlow : IDisposable
                             // One try-catch for the add operation is sufficient.
                             try
                             {
-                                
+
                                 realm.Add(song, update: true);
                             }
                             catch (Realms.Exceptions.RealmObjectManagedByAnotherRealmException rre)
                             {
-                                
-                            
+
+
                             }
                             catch (Exception ex)
                             {
-                                
+
                             }
                         }
-                     
+
                     }
                 }
             }); // End realm.Write
             MasterList = _songRepo.GetAll(false);
             _state.SetCurrentState(new(DimmerPlaybackState.FolderScanCompleted, newCoreSongs));
-            
+
             return new LoadSongsResult
             {
                 Artists = [.. newCoreArtists],

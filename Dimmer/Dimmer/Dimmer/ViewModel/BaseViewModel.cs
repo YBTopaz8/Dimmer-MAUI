@@ -291,18 +291,18 @@ public partial class BaseViewModel : ObservableObject
 
     }
     [RelayCommand]
-    public async Task LogoutUser()
+    public void LogoutUser()
     {
         //await dimmerLiveStateService.LogoutUser();
         //UserOnline = null;
     }
     [RelayCommand]
-    public async Task ForgottenPassword()
+    public void ForgottenPassword()
     {
         //await dimmerLiveStateService.ForgottenPassword();
     }
 
-    public async Task SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
+    public void SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
     {
 
         // 1) Ensure the song has a note list
@@ -444,13 +444,13 @@ public partial class BaseViewModel : ObservableObject
     //public partial string Message { get; set; } = string.Empty;
 
     [RelayCommand]
-    public async Task SwitchRecipient(string id)
+    public void SwitchRecipient(string id)
     {
         //ActiveConversation =  await dimmerLiveStateService.GetOrCreateConversationWithUserAsync(id);
 
     }
     [RelayCommand]
-    public async Task SendMessage(string message)
+    public void SendMessage(string message)
     {
         if (string.IsNullOrEmpty(message))
             return;

@@ -15,7 +15,7 @@
     x:Name="myPage"
     Title="HomePage"
     x:DataType="vm:BaseViewModelAnd"
-    BackgroundColor="Transparent"
+    BackgroundColor="#1e1e1e"
     Shell.NavBarIsVisible="False"
     Shell.TabBarIsVisible="True">
 
@@ -45,72 +45,88 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse" />
         </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid>
 
-        <dx:DXImage
-            Grid.RowSpan="2"
-            Aspect="AspectFill"
-            Opacity="0.1"
-            Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-        <dx:DXCollectionView
-            x:Name="SongsColView"
-            BackgroundColor="Transparent"
-            Header="Hi"
-            ItemSpacing="5"
-            ItemsSource="{Binding PlaylistSongs}"
-            Loaded="SongsColView_Loaded"
-            Tap="SongsColView_Tap">
-            <dx:DXCollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongModelView">
-                    <Grid
-                        BackgroundColor="Transparent"
-                        ColumnDefinitions="0.3*,*,0.1*"
-                        HeightRequest="80"
-                        VerticalOptions="Center">
-                        <dx:DXImage
-                            x:Name="CoverImg"
-                            Grid.Column="0"
+    <dx:DXStackLayout>
+        <dx:DXButton x:Name="TestNav" Clicked="TestNav_Clicked"/>
+        <Grid BackgroundColor="Transparent">
+            <Grid.Effects>
+                <uranium:BlurEffect AccentOpacity="0.3" Mode="Dark" />
+            </Grid.Effects>
+            <dx:DXImage
+                Grid.RowSpan="2"
+                Aspect="AspectFill"
+                Opacity="0.15"
+                Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
+            <dx:DXCollectionView
+                x:Name="SongsColView"
+                BackgroundColor="Transparent"
+                Header="Hi"
+                ItemSpacing="5"
+                ItemsSource="{Binding PlaylistSongs}"
+                Loaded="SongsColView_Loaded"
+                Tap="SongsColView_Tap">
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongModelView">
+                        <Grid
                             BackgroundColor="Transparent"
+                            ColumnDefinitions="0.3*,*,0.2*"
                             HeightRequest="80"
-                            Source="{Binding CoverImagePath}"
-                            VerticalOptions="Center"
-                            WidthRequest="80" />
-
-                        <dx:DXStackLayout
-                            x:Name="TitleAndArtists"
-                            Grid.Column="1"
-                            BackgroundColor="Transparent"
                             VerticalOptions="Center">
-                            <Label
+                            <dx:DXImage
+                                x:Name="CoverImg"
+                                Grid.Column="0"
                                 BackgroundColor="Transparent"
-                                FontSize="20"
-                                Text="{Binding Title}"
-                                TextColor="White"
-                                VerticalOptions="Center" />
-                            <Label
+                                HeightRequest="80"
+                                Source="{Binding CoverImagePath}"
+                                VerticalOptions="Center"
+                                WidthRequest="80" />
+
+                            <dx:DXStackLayout
+                                x:Name="TitleAndArtists"
+                                Grid.Column="1"
                                 BackgroundColor="Transparent"
-                                FontSize="18"
-                                Text="{Binding ArtistName}"
-                                TextColor="Grey"
-                                VerticalOptions="Center" />
+                                VerticalOptions="Center">
+                                <Label
+                                    BackgroundColor="Transparent"
+                                    FontAttributes="Bold"
+                                    FontSize="23"
+                                    Text="{Binding Title}"
+                                    TextColor="{AppThemeBinding Dark=White,
+                                                                Light=White}"
+                                    VerticalOptions="Center" />
+                                <Label
+                                    BackgroundColor="Transparent"
+                                    FontSize="18"
+                                    Opacity="0.4"
+                                    Text="{Binding ArtistName}"
+                                    TextColor="white"
+                                    VerticalOptions="Center" />
 
 
-                        </dx:DXStackLayout>
+                            </dx:DXStackLayout>
 
-                        <dx:DXStackLayout
-                            x:Name="MoreActionSection"
-                            Grid.Column="2"
-                            BackgroundColor="Transparent"
-                            Orientation="Horizontal">
-                            <dx:DXButton
+                            <dx:DXStackLayout
+                                x:Name="MoreActionSection"
+                                Grid.Column="2"
                                 BackgroundColor="Transparent"
-                                Icon="more1.png"
-                                IconColor="DarkSlateBlue" />
-                        </dx:DXStackLayout>
-                    </Grid>
-                </DataTemplate>
-            </dx:DXCollectionView.ItemTemplate>
-        </dx:DXCollectionView>
+                                Orientation="Horizontal">
+                                <dx:DXButton
+                                    AnimationDuration="500"
+                                    BackgroundColor="Transparent"
+                                    Icon="more1.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    PressedBackgroundColor="DarkSlateBlue"
+                                    PressedIconColor="White"
+                                    Rotation="90" />
+                            </dx:DXStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
 
-    </Grid>
+        </Grid>
+
+    </dx:DXStackLayout>
 </ContentPage>

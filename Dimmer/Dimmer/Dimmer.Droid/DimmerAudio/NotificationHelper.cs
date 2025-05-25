@@ -193,7 +193,7 @@ public static class NotificationHelper
             {
                 if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // Android 33
                 {
-                    _svc.StopForeground(StopForegroundFlags.Remove);
+                    _svc.StopForeground(StopForegroundFlags.Detach);
                 }
                 else
                 {
@@ -236,6 +236,7 @@ public static class NotificationHelper
     }
     public static bool AreBubblesSupported(Context context)
     {
+        Log.Info("NotifHelper_SupportCheck", $"--- Checking Bubble Support --- API: {Build.VERSION.SdkInt}");
         if (Build.VERSION.SdkInt < BuildVersionCodes.Q) // API 29
         {
             Log.Info("NotifHelper", "AreBubblesSupported: False (SDK < Q)");
@@ -292,6 +293,15 @@ public static class NotificationHelper
                 Log.Warn("NotifHelper", $"AreBubblesSupported: False (Channel '{ChannelId}' exists but CanBubble() is false). User might have disabled bubbles for this specific channel. Or CreateChannel failed to set it.");
             }
 
+
+            Log.Info("NotifHelper_SupportCheck", $"Channel '{ChannelId}' Allows Bubbles (CanBubble()): {channelAllowsBubbles}");
+            if (channelExists && !channelAllowsBubbles)
+            {
+                Log.Warn("NotifHelper_SupportCheck", "Channel exists but does NOT allow bubbles. User may have disabled for channel.");
+
+            }
+            bool finalResult = areBubblesGloballyEnabled && channelExists && channelAllowsBubbles;
+            Log.Info("NotifHelper_SupportCheck", $"--- Final Bubble Support Result: {finalResult} ---");
             return areBubblesGloballyEnabled && channelExists && channelAllowsBubbles;
         }
         catch (Exception ex)
@@ -375,7 +385,7 @@ public static class NotificationHelper
             PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
         );
 
-        var bubbleIcon = IconCompat.CreateWithResource(context, Resource.Drawable.atom); // Use a suitable monochrome icon
+        var bubbleIcon = IconCompat.CreateWithResource(context, Resource.Drawable.exo_icon_play); // Use a suitable monochrome icon
 
         NotificationCompat.BubbleMetadata.Builder bubbleMetadataBuilder;
 
@@ -406,7 +416,7 @@ public static class NotificationHelper
         var notificationBuilder = new NotificationCompat.Builder(context, ChannelId)
            .SetContentTitle("Dimmer Active") // Minimal, as it's often suppressed
            .SetContentText("Tap to open controls")
-           .SetSmallIcon(Resource.Drawable.atom) // Must be a valid small icon
+           .SetSmallIcon(Resource.Drawable.exo_icon_play) // Must be a valid small icon
            .SetPriority(NotificationCompat.PriorityDefault)
            .SetBubbleMetadata(bubbleMetadata)
            .SetContentIntent(bubbleContentPendingIntent) // Fallback if bubble cannot be shown

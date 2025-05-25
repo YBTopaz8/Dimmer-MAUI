@@ -37,10 +37,10 @@ internal static class PublicStats
     public static float RippleAlpha { get; set; } = 0.2f;
 
     // --- Bottom Tab Bar (BottomNavigationView) ---
-    public static Color BottomNavBackgroundColor { get; set; } = AColor.ParseColor("#F7F7F7"); // Light grey
+    public static Color BottomNavBackgroundColor { get; set; } = AColor.ParseColor("#483d8b"); // Light grey
     public static AColor BottomNavItemCheckedColor { get; set; } = AColor.ParseColor("#007AFF"); // Blue
     public static AColor BottomNavItemUncheckedColor { get; set; } = AColor.ParseColor("#8A8A8E"); // Grey
-    public static float BottomNavElevationDp { get; set; } = 8f; // Elevation for shadow
+    public static float BottomNavElevationDp { get; set; } = 18f; // Elevation for shadow
     public static Microsoft.Maui.Font BottomNavItemFont { get; set; } = Microsoft.Maui.Font.SystemFontOfSize(12);
     public static Microsoft.Maui.Font BottomNavItemFontActive { get; set; } = Microsoft.Maui.Font.SystemFontOfSize(13, FontWeight.Bold);
 
@@ -95,8 +95,8 @@ internal static class PublicStats
     public static Color SheetDragHandleColor { get; set; } = Color.Gray;
     public static bool ShowSheetDragHandle { get; set; } = true;
     public static bool CloseSheetOnOutsideTap { get; set; } = true;
-    public static Microsoft.Maui.Graphics.Color ShellPageBackgroundColor { get; set; } = Microsoft.Maui.Graphics.Colors.AliceBlue;
-    public static Microsoft.Maui.Graphics.Color ContentAreaBackgroundColor { get; set; } = Microsoft.Maui.Graphics.Colors.Beige;
+    public static Microsoft.Maui.Graphics.Color ShellPageBackgroundColor { get; set; } = Microsoft.Maui.Graphics.Colors.Transparent;
+    public static Microsoft.Maui.Graphics.Color ContentAreaBackgroundColor { get; set; } = Microsoft.Maui.Graphics.Colors.Transparent;
     public static Microsoft.Maui.Graphics.Color ToolbarBackgroundColor { get; set; } = Microsoft.Maui.Graphics.Colors.Chocolate;
     public static Microsoft.Maui.Graphics.Color ToolbarTitleColor { get; set; } = Microsoft.Maui.Graphics.Colors.White;
     public static Microsoft.Maui.Graphics.Color ToolbarSubtitleColor { get; set; } = Microsoft.Maui.Graphics.Colors.White;
@@ -104,9 +104,9 @@ internal static class PublicStats
     public static Microsoft.Maui.Graphics.Color ToolbarNavigationIconColor { get; set; } = Microsoft.Maui.Graphics.Colors.Red;
 
     public static ITimeInterpolator ActivityTransitionInterpolator { get; set; } = new DecelerateInterpolator();
-    public static float ActivityTransitionDuration { get; set; } = 300;
-    public static long ActivityTransitionDurationMs { get; set; } = 350;
-    public static long TabSwitchAnimationDurationMs { get; set; } = 1250;
+    public static float ActivityTransitionDuration { get; set; } = 500;
+    public static long ActivityTransitionDurationMs { get; set; } = 550;
+    public static long TabSwitchAnimationDurationMs { get; set; } = 650;
 
 
     public static ActivityTransitionType EnterTransition { get; set; } = ActivityTransitionType.SlideFromEnd;

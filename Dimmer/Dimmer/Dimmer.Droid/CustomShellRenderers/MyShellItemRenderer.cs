@@ -110,7 +110,7 @@ public class MyShellItemRenderer : ShellItemRenderer
         }
     }
 
-    private void OnBridgeAnimationSettingsChanged(object sender, AnimationSettingsChangedEventArgs e)
+    private static void OnBridgeAnimationSettingsChanged(object sender, AnimationSettingsChangedEventArgs e)
     {
         if (e.TargetAnimation == ShellAnimationTarget.TabSwitchAnimation)
         {

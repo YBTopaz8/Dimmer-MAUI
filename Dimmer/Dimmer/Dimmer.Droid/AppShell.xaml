@@ -30,10 +30,10 @@
             Route="MusicPlayerPage" />
 
         <ShellContent
-            Title="Settings"
-            ContentTemplate="{DataTemplate views:SettingsPage}"
-            Icon="settings.png"
-            Route="SettingsPage" />
+            Title="Search"
+            ContentTemplate="{DataTemplate views:SearchSongPage}"
+            Icon="songfind.png"
+            Route="SearchSongPage" />
 
         <ShellContent
             Title="re"

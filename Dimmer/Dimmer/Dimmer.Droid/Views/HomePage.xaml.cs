@@ -5,6 +5,7 @@ using DevExpress.Maui.Editors;
 using Dimmer.Utilities.CustomAnimations;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Dimmer.Views;
 
@@ -47,6 +48,11 @@ public partial class HomePage : ContentPage
         var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
         qs!.UpdateTileVisualState(true, e.Item as SongModelView);
         MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
+    }
+
+    private async void TestNav_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SearchSongPage));
     }
 }
 /*

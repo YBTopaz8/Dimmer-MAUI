@@ -32,7 +32,7 @@
     
     
     
-		<activity android:name=".PlaybackBubbleActivity" android:label="Dimmer Bubble" 
+		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" 
               android:allowEmbedded="true" android:resizeableActivity="true" 
               android:documentLaunchMode="always" android:exported="false"
               android:taskAffinity="" android:launchMode="singleInstance"

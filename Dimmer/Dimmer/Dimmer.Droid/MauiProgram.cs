@@ -34,6 +34,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomePage>();
         builder.Services.AddSingleton<DimmerSettings>();
         builder.Services.AddSingleton<DimmerVault>();
+        builder.Services.AddSingleton<SearchSongPage>();
 
         builder.Services.AddSingleton<HomePageViewModel>();
 
