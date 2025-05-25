@@ -8,6 +8,10 @@
   <string name="close">Close</string>
   <string name="qs_tile_label">Open Dimmer</string>
   <string name="track_title">Track Title</string>
+  <string name="dimmer_ctrl">Dimmer Control</string>
+  <string name="status_unknown">Status: Unknown</string>
+  <string name="toggle">Toggle</string>
+  <string name="dimmer_widget_description">Dimmer Widget !</string>
   
   <string name="playback_channel_desc">Media Playback Controls For Dimmer</string>
 

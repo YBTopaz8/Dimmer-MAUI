@@ -53,102 +53,7 @@ public class MainActivity : MauiAppCompatActivity
 
     private static async Task HandleIntent(Intent? intent)
     {
-        //Console.WriteLine(intent?.Action?.ToString());
-        //Platform.OnNewIntent(intent);
-        //// Log that the intent was received
-        //Console.WriteLine("MainActivity: OnNewIntent received.");
 
-        //if (intent == null)
-        //    return;
-
-        //var action = intent.Action;
-        //Android.Net.Uri? dataUri = intent.Data; // Data URI for ACTION_VIEW
-
-        //if (action == Intent.ActionView && dataUri != null)
-        //{
-
-        //    // If it wasn't our specific app link, it might be a general ACTION_VIEW for a file
-        //    if (dataUri != null && intent.Type != null && intent.Type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        Console.WriteLine($"[MainActivity_ProcessIntent] General ACTION_VIEW for audio: {dataUri}");
-        //        _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(new List<string> { dataUri.ToString() });
-        //        return; // Handled as a general audio view
-        //    }
-        //}
-
-
-        //if (intent.Type != null)
-        //{
-
-        //    var type = intent.Type; // MIME Type
-        //    var dataUris = intent.Data; // Usually for ACTION_VIEW
-        //    var clipData = intent.ClipData; // Often used for ACTION_SEND* with URIs
-        //    var streamUri = intent.GetParcelableExtra(Intent.ExtraStream) as Android.Net.Uri; // For ACTION_SEND single item
-
-        //    Console.WriteLine($"MainActivity: Processing Intent - Action={action}, Type={type}, Data={dataUri}, HasClipData={clipData != null}, HasStreamExtra={streamUri != null}");
-
-        //    // Determine if it's a share or view intent we should handle
-        //    bool isShareIntent = action == Intent.ActionSend || action == Intent.ActionSendMultiple;
-        //    bool isViewIntent = action == Intent.ActionView;
-        //    bool isAudio = type != null && type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase);
-
-        //    // Prioritize Share Intents containing audio URIs
-        //    if (isShareIntent && isAudio)
-        //    {
-        //        var fileUris = new List<Android.Net.Uri>();
-
-        //        // Handle single item shared via EXTRA_STREAM
-        //        if (streamUri != null && action == Intent.ActionSend)
-        //        {
-        //            fileUris.Add(streamUri);
-        //        }
-        //        // Handle single or multiple items shared via ClipData
-        //        else if (clipData != null)
-        //        {
-        //            for (int i = 0; i < clipData.ItemCount; i++)
-        //            {
-        //                var itemUri = clipData.GetItemAt(i)?.Uri;
-        //                if (itemUri != null)
-        //                {
-        //                    fileUris.Add(itemUri);
-        //                }
-        //            }
-        //        }
-
-        //        if (fileUris.Count > 0)
-        //        {
-        //            Console.WriteLine($"MainActivity: Found {fileUris.Count} audio URI(s) in Share Intent.");
-        //            // Pass URIs to shared handler (using helper class below)
-        //            _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(fileUris.Select(u => u.ToString()).ToList());
-        //        }
-        //        else
-        //        {
-        //            // Handle shared text if needed
-        //            string sharedText = intent.GetStringExtra(Intent.ExtraText);
-        //            if (!string.IsNullOrEmpty(sharedText))
-        //            {
-        //                Console.WriteLine($"MainActivity: Received shared text: {sharedText}");
-        //                // _ = IntentHandlerUtils.HandleSharedTextAsync(sharedText); // Implement if needed
-        //            }
-        //        }
-        //    }
-        //    // Handle File Opening (ACTION_VIEW)
-        //    else if (isViewIntent && dataUri != null && isAudio)
-        //    {
-        //        Console.WriteLine($"MainActivity: Found audio URI in View Intent: {dataUri}");
-        //        _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(new List<string> { dataUri.ToString() });
-        //    }
-        //    // Handle App Actions via MAUI Essentials (already done in OnNewIntent)
-        //    else if (action == Platform.Intent.ActionAppAction)
-        //    {
-        //        Console.WriteLine("MainActivity: Detected App Action, handled by Platform.OnNewIntent.");
-        //        // MAUI's Platform.OnNewIntent will trigger your OnAppAction delegate
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine($"MainActivity: Intent action '{action}' not explicitly handled here.");
-        //    }
-        //}
     }
     private static bool _firstTimeSetupDone = false;
     const string FirstTimeSetupKey = "FirstTimeBubbleSetupDone";
@@ -255,6 +160,7 @@ public class MainActivity : MauiAppCompatActivity
             // Optional: Allow overlap for smoother transitions between activities
             Window.AllowEnterTransitionOverlap = true;
             Window.AllowReturnTransitionOverlap = true;
+
         }
 
 
@@ -277,7 +183,7 @@ public class MainActivity : MauiAppCompatActivity
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
 
         SetStatusBarColor();
-
+        FirstTimeBubbleSetup(Platform.AppContext);
         return;
 
 
@@ -354,13 +260,6 @@ public class MainActivity : MauiAppCompatActivity
         //        if (Window != null)
         //        {
 
-        //#if ANDROID_35
-        //            Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-        //#else
-        //            // Alternative implementation for Android versions >= 35
-        //            // Add your custom logic here if needed
-        //#endif
-        //        }
 
 
 
@@ -473,8 +372,8 @@ public class MainActivity : MauiAppCompatActivity
             transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
             transition.SetInterpolator(PublicStats.ActivityTransitionInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
 
-            transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, true);
-            transition.ExcludeTarget(Android.Resource.Id.NavigationBarBackground, true);
+            transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, false);
+            transition.ExcludeTarget(Android.Resource.Id.NavigationBarBackground, false);
         }
 
         return transition;
@@ -602,44 +501,4 @@ public class MainActivity : MauiAppCompatActivity
 #pragma warning restore CS0672 // Member overrides obsolete member
 
 
-    // --- Optional: Using AndroidX OnBackPressedDispatcher for more unified handling ---
-    // This can be an alternative to overriding OnBackPressed() for older APIs.
-    // MauiAppCompatActivity provides `OnBackPressedDispatcher`.
-    /*
-    private class MyOnBackPressedCallback : AndroidX.Activity.OnBackPressedCallback
-    {
-        private readonly MainActivity _activity;
-        public MyOnBackPressedCallback(bool enabled, MainActivity activity) : base(enabled)
-        {
-            _activity = activity;
-        }
-
-        public override void HandleOnBackPressed()
-        {
-            // This is where your back press logic goes, similar to HandleBackPressInternal
-            System.Diagnostics.Debug.WriteLine("AndroidX OnBackPressedCallback: HandleOnBackPressed invoked.");
-            bool mauiHandled = _activity.Dispatcher.Dispatch(() => Shell.Current.SendBackButtonPressed());
-
-            if (!mauiHandled)
-            {
-                // If MAUI didn't handle it, and we want to finish the activity:
-                // You might need to disable this callback temporarily to allow the default
-                // back press to go through, or call activity.Finish().
-                if (!_activity.IsTaskRoot)
-                {
-                    IsEnabled = false; // Disable this callback
-                    _activity.OnBackPressedDispatcher.OnBackPressed(); // Trigger again, will go to system
-                    IsEnabled = true; // Re-enable if needed, or manage lifetime
-                }
-                else
-                {
-                    // Let system handle moving task to back for root activity
-                    IsEnabled = false;
-                    _activity.OnBackPressedDispatcher.OnBackPressed();
-                    IsEnabled = true;
-                }
-            }
-        }
-    }
-    */
 }

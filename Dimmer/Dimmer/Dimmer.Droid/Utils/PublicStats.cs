@@ -104,13 +104,13 @@ internal static class PublicStats
     public static Microsoft.Maui.Graphics.Color ToolbarNavigationIconColor { get; set; } = Microsoft.Maui.Graphics.Colors.Red;
 
     public static ITimeInterpolator ActivityTransitionInterpolator { get; set; } = new DecelerateInterpolator();
-    public static float ActivityTransitionDuration { get; set; } = 500;
-    public static long ActivityTransitionDurationMs { get; set; } = 550;
-    public static long TabSwitchAnimationDurationMs { get; set; } = 650;
+    public static float ActivityTransitionDuration { get; set; } = 900;
+    public static long ActivityTransitionDurationMs { get; set; } = 950;
+    public static long TabSwitchAnimationDurationMs { get; set; } = 950;
 
 
-    public static ActivityTransitionType EnterTransition { get; set; } = ActivityTransitionType.SlideFromEnd;
-    public static ActivityTransitionType ExitTransition { get; set; } = ActivityTransitionType.Fade;
+    public static ActivityTransitionType EnterTransition { get; set; } = ActivityTransitionType.SlideFromBottom;
+    public static ActivityTransitionType ExitTransition { get; set; } = ActivityTransitionType.Explode;
     public static ActivityTransitionType ReenterTransition { get; set; } = ActivityTransitionType.Fade;
     public static ActivityTransitionType ReturnTransition { get; set; } = ActivityTransitionType.SlideFromStart;
 }
