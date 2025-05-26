@@ -54,6 +54,7 @@ public partial class MyShellRenderer : ShellRenderer
         return new MyShellFlyoutRenderer(this, this.AndroidContext);
     }
 
+    public static Fragment currentPageFragment;
 
     protected override void SwitchFragment(FragmentManager manager, global::Android.Views.View targetView, ShellItem newItem, bool animate = true)
     {
@@ -69,7 +70,7 @@ public partial class MyShellRenderer : ShellRenderer
         var previousView = _currentView;
         _currentView = CreateShellItemRenderer(newItem);
         _currentView.ShellItem = newItem;
-        var fragment = _currentView.Fragment;
+        Fragment? fragment = _currentView.Fragment;
 
         FragmentTransaction transaction = manager.BeginTransaction();
 
@@ -103,6 +104,7 @@ public partial class MyShellRenderer : ShellRenderer
 
         void OnDestroyed(object? sender, EventArgs args)
         {
+
             previousView.Destroyed -= OnDestroyed;
             previousView.Dispose();
             previousView = null;

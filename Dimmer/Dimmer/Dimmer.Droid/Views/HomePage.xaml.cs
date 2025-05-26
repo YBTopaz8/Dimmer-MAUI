@@ -2,6 +2,7 @@ using Android.Graphics;
 using CommunityToolkit.Maui.Core.Extensions;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
+using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
 using Dimmer.Utilities.CustomAnimations;
 using System.ComponentModel;
@@ -40,6 +41,33 @@ public partial class HomePage : ContentPage
 
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
+        //var ss = this.GetPlatformView();
+        //Debug.WriteLine(ss.Id);
+        //var ee = ss.GetChildren();
+        //foreach (var item in ee)
+        //{
+        //    Debug.WriteLine(item.Id);
+        //    Debug.WriteLine(item.GetType());
+        //}
+
+        //var q = ss.GetChildrenInTree();
+        //foreach (var item in q)
+        //{
+        //    Debug.WriteLine(item.Id);
+        //    Debug.WriteLine(item.GetType());
+        //}
+
+        //var o = ss.GetPlatformParents();
+        //foreach (var item in o)
+        //{
+        //    Debug.WriteLine(item.Id);
+        //    Debug.WriteLine(item.GetType());
+        //}
+
+
+        //var nn = SongsColView.GetPlatformView();
+        //Debug.WriteLine(nn.Id);
+        //Debug.WriteLine(nn.GetType());
 
     }
 

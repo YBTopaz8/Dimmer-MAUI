@@ -27,7 +27,7 @@ using LP = Android.Views.ViewGroup.LayoutParams;
 using Orientation = Android.Widget.Orientation;
 using View = Android.Views.View;
 namespace Dimmer.CustomShellRenderers;
-public class MyShellFlyoutRenderer : ShellFlyoutRenderer
+public partial class MyShellFlyoutRenderer : ShellFlyoutRenderer
 {
     private bool _isInitialized = false;
 

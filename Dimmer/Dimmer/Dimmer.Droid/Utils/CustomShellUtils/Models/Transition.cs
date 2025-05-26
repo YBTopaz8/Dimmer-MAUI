@@ -9,8 +9,8 @@ using static System.TimeZoneInfo;
 namespace Dimmer.Utils.CustomShellUtils.Models;
 public class Transition
 {
-    public TransitionType CurrentPage { get; set; } = TransitionType.None;
-    public TransitionType NextPage { get; set; } = TransitionType.None;
+    public TransitionType CurrentPage { get; set; } = TransitionType.FadeOut;
+    public TransitionType NextPage { get; set; } = TransitionType.FadeIn;
 
     public int DurationAndroid { get; set; } = 500;
     public Android.Views.Animations.Animation? CurrentPageAndroid { get; set; }

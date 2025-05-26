@@ -26,7 +26,7 @@ using Android.Util;
 using AndroidX.Fragment.App;
 
 namespace Dimmer.CustomShellRenderers;
-public class MyShellItemRenderer : ShellItemRenderer
+public partial class MyShellItemRenderer : ShellItemRenderer
 {
     private BottomSheetDialog? _moreBottomSheetDialogInstance; // Keep a reference
     private BottomNavigationView _theBottomViewInstance;
