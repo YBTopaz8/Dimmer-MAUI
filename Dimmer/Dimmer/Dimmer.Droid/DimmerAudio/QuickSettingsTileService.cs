@@ -110,76 +110,7 @@ public class QuickSettingsTileService : TileService
     // --- State Update Logic ---
 
 
-    // Fetches the most current state (e.g., from your MediaService's static property) and updates tile.
-    private void RequestFullUpdate()
-    {
-        // Get the current state from your MediaSessionService.
-        // This assumes ExoPlayerService.CurrentTrackState is updated by the service.
-        SongModelView currentPlaybackState = ExoPlayerService.CurrentSongItem ?? SongsMgtFlow.CurrentlyPlayingSong;
-        Log.Debug(TAG, $"RequestFullUpdate: IsPlaying={currentPlaybackState.IsPlaying}, Title='{currentPlaybackState.Title}'");
-        UpdateTileVisuals(currentPlaybackState);
-    }
-
-    private void UpdateTileVisuals(SongModelView songState)
-    {
-        Tile tile = QsTile; // Tile property from base class
-        if (tile == null)
-        {
-            Log.Warn(TAG, "Tile object is null in UpdateTileVisuals. Cannot update.");
-            return;
-        }
-
-        try
-        {
-            Icon newIcon;
-            string newLabel = GetString(Resource.String.qs_tile_label); // Default label from strings.xml
-
-            if (songState.IsPlaying)
-            {
-                tile.State = TileState.Active;
-                newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_pause); // <<< CREATE THIS: Filled Pause Icon
-                newLabel = songState.Title; // Show song title when playing
-            }
-            else
-            {
-                tile.State = TileState.Inactive;
-                newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_play); // <<< CREATE THIS: Filled Play Icon
-                if (!string.IsNullOrEmpty(songState.Title) && songState.Title != "Nothing Playing")
-                {
-                    newLabel = songState.Title; // Show last played song title if paused
-                }
-            }
-
-            tile.Icon = newIcon;
-            tile.Label = TruncateString(newLabel, 20); // QS Tiles have limited label space
-            tile.ContentDescription = $"{GetString(Resource.String.qs_tile_label)}: {songState.Title} - {songState.ArtistName}";
-
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q) // API 29+ for Subtitle
-            {
-                tile.Subtitle = TruncateString(songState.ArtistName, 25);
-            }
-
-            // For API 30+ (Android R), you can make the tile itself launch an activity for more complex UI
-            // This is an alternative to OnClick() showing a dialog.
-            // if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
-            // {
-            //     Intent activityIntent = new Intent(this, typeof(YourTileActivity)); // An activity designed for tile interaction
-            //     activityIntent.AddFlags(ActivityFlags.NewTask);
-            //     PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, activityIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
-            //     tile.TileActivity = pendingIntent; // Not a direct property, set via Tile.Builder or platform specific methods
-            // }
-
-
-            tile.UpdateTile();
-            Log.Debug(TAG, $"Tile updated: State={tile.State}, Label='{tile.Label}', Subtitle='{tile.Subtitle}'");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(TAG, $"Error updating tile visuals: {ex.Message}");
-        }
-    }
-
-    private string TruncateString(string value, int maxLength)
+    private static string TruncateString(string value, int maxLength)
     {
         if (string.IsNullOrEmpty(value))
             return string.Empty;
@@ -192,33 +123,7 @@ public class QuickSettingsTileService : TileService
         Log.Debug(TAG, "OnClick");
         ShowPlaybackOptionsDialog();
         // --- Send Command to your MediaSessionService ---
-        try
-        {// Option 1: Directly try to show bubble if supported
-            if (NotificationHelper.AreBubblesSupported(this))
-            {
-                Log.Debug(TAG, "Bubbles are supported, attempting to show bubble.");
-                // For now, let's use a placeholder
-                //string currentTrack = GetCurrentTrackTitleFromServiceOrState(); // Implement this!
-                NotificationHelper.ShowPlaybackBubble(this, "currentTrack");
-                Intent serviceIntent = new Intent(this, typeof(ExoPlayerService));
-                serviceIntent.SetAction(ActionTogglePlayback); // Use the defined action string
-                                                               // Use StartService for commands that don't require a result back immediately
 
-                StartService(serviceIntent);
-                Log.Debug(TAG, $"Sent intent with action: {ActionTogglePlayback}");
-
-                // Optional: Provide immediate visual feedback by guessing the next state
-                UpdateTileVisualState(!IsCurrentlyPlaying()); // Update based on assumed toggle
-
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(TAG, $"Error sending toggle command: {ex.Message}");
-            Toast.MakeText(this, "Error sending command", ToastLength.Short)?.Show();
-        }
-        // Request an update soon after to get the *actual* state back from the service
-        // RequestUpdate(); // Might cause flicker, better handled by service pushing update
     }
 
 
@@ -230,22 +135,24 @@ public class QuickSettingsTileService : TileService
         {
             Log.Warn(TAG, "Device is locked, dialog may not display correctly. Consider unlockAndRun.");
             // Example using unlockAndRun (if the dialog action needs security)
-            // UnlockAndRun(new Java.Lang.Runnable(() => {
-            //    // Code to show dialog *after* unlocking
-            //    BuildAndShowDialog();
-            // }));
-            // return; // Don't show dialog directly if locked and needs unlock
+            UnlockAndRun(new Java.Lang.Runnable(() =>
+            {
+                // Code to show dialog *after* unlocking
+                BuildAndShowDialog();
+            }));
+            return; // Don't show dialog directly if locked and needs unlock
 
             // Or just inform the user if the action is safe but dialog won't show well
             Toast.MakeText(this, "Unlock device to interact", ToastLength.Short)?.Show();
             return; // Don't proceed if locked and dialog is the primary action
         }
 
+        BuildAndShowDialog();
 
-        // --- Build the Dialog ---
-        // Use AlertDialog.Builder for standard dialogs
-        // Make sure your service context uses an appropriate theme if needed (e.g., AppCompat)
-        // Sometimes necessary to use application context or wrap context for themes
+    }
+
+    private void BuildAndShowDialog()
+    {
         AlertDialog.Builder builder = new AlertDialog.Builder(this); // Use 'this' (Service context)
 
         builder.SetTitle("Playback Options"); // Set a title
@@ -259,7 +166,7 @@ public class QuickSettingsTileService : TileService
             {
                 case 0: // Toggle Play/Pause
                     Log.Debug(TAG, "Dialog: Toggle Play/Pause selected");
-                    OnClick();
+                    SendToggleCommandToService(); // Implement this method to handle the toggle action
                     break;
                 case 1: // Next Track
                     Log.Debug(TAG, "Dialog: Next Track selected");
@@ -394,6 +301,7 @@ public class QuickSettingsTileService : TileService
 
             if (isPlaying)
             {
+
                 newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.atom); // <<< CREATE THIS ICON
             }
             else
@@ -403,7 +311,7 @@ public class QuickSettingsTileService : TileService
             }
             tile.Subtitle = song?.ArtistName ?? "Unknown Artist"; // Set subtitle to song title
             tile.Icon = newIcon;
-            tile.Label = song?.ArtistName ?? "Unknown Title";
+            tile.Label = song?.Title ?? "Unknown Title";
             tile.ContentDescription = "Dimmer";
 
             tile.UpdateTile(); // Apply the changes

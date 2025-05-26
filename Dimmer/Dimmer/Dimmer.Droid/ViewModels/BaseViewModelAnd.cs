@@ -2,6 +2,7 @@
 //using System.Reactive.Linq;
 
 using Dimmer.Interfaces.Services;
+using Dimmer.ViewModel;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable

@@ -45,7 +45,7 @@ public class CheckPermissions : Permissions.BasePlatformPermission // Renamed fo
     }
     private bool IsLegacyStorageOptedIn()
     {
-        
+        // TODO: Implement logic to determine if legacy storage is opted in.
         return false; // Placeholder
     }
 

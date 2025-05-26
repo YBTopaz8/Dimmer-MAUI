@@ -15,7 +15,7 @@
     x:Name="myPage"
     Title="HomePage"
     x:DataType="vm:BaseViewModelAnd"
-    BackgroundColor="Grey"
+    BackgroundColor="#1E1E1E"
     Shell.NavBarIsVisible="False"
     Shell.TabBarIsVisible="True">
 
@@ -47,13 +47,7 @@
     </ContentPage.Resources>
 
     <dx:DXStackLayout>
-        <dx:DXButton
-            Margin="0,100,0,0"
-            AutomationId="heroImage"
-            Clicked="TestNav_Clicked2"
-            Content="YB"
-            VerticalOptions="Center" />
-        <Grid BackgroundColor="Transparent" IsVisible="False">
+        <Grid BackgroundColor="Transparent" IsVisible="True">
 
 
 
@@ -119,6 +113,7 @@
                                 <dx:DXButton
                                     AnimationDuration="500"
                                     BackgroundColor="Transparent"
+                                    Clicked="TestNav_Clicked2"
                                     Icon="more1.png"
                                     IconColor="DarkSlateBlue"
                                     IconHeight="40"

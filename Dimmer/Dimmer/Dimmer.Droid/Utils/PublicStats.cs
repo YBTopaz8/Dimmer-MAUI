@@ -120,7 +120,7 @@ internal static class PublicStats
 
     public static ActivityTransitionType EnterTransition { get; set; } = ActivityTransitionType.SlideFromBottom;
     public static ActivityTransitionType ExitTransition { get; set; } = ActivityTransitionType.Explode;
-    public static ActivityTransitionType ReenterTransition { get; set; } = ActivityTransitionType.Fade;
+    public static ActivityTransitionType ReenterTransition { get; set; } = ActivityTransitionType.Explode;
     public static ActivityTransitionType ReturnTransition { get; set; } = ActivityTransitionType.SlideFromStart;
 }
 public enum ActivityTransitionType

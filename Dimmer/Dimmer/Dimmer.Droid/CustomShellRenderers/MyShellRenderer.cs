@@ -59,11 +59,11 @@ public partial class MyShellRenderer : ShellRenderer
     protected override void SwitchFragment(FragmentManager manager, global::Android.Views.View targetView, ShellItem newItem, bool animate = true)
     {
 
-        if (!animate)
-        {
-            base.SwitchFragment(manager, targetView, newItem, false);
-            return;
-        }
+        //if (!animate)
+        //{
+        //    base.SwitchFragment(manager, targetView, newItem, false);
+        //    return;
+        //}
 
         var animation = HelperConverter.GetRoot();
 

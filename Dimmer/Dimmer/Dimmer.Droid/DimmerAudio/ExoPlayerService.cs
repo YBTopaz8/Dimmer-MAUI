@@ -202,7 +202,7 @@ public class ExoPlayerService : MediaSessionService
                     _positionHandler?.PostDelayed(_positionRunnable, 1000); // Check _positionHandler for null too
                 }
             });
-            //_positionHandler.Post(_positionRunnable);
+            _positionHandler.Post(_positionRunnable);
 
             await InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
 
@@ -505,7 +505,7 @@ public class ExoPlayerService : MediaSessionService
             if (isPlaying)
             {
                 QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);
-                NotificationHelper.ShowPlaybackBubble(Platform.AppContext.ApplicationContext, service.player.MediaMetadata.Title.ToString());
+                //NotificationHelper.ShowPlaybackBubble(Platform.AppContext.ApplicationContext, service.player.MediaMetadata.Title.ToString());
             }
             Console.WriteLine($"[PlayerEventListener] IsPlayingChanged: {isPlaying}");
             service.RaiseIsPlayingChanged(isPlaying);
