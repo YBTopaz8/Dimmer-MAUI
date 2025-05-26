@@ -1,5 +1,7 @@
 ﻿using Android.Content;
+using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
+using AndroidX.Fragment.App;
 using Microsoft.Maui;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,9 @@ public partial class MyShellRenderer : ShellRenderer
 {
     private readonly IMauiContext mauiContext;
     private DrawerLayout _shellDrawerLayout;
+    private Android.Views.View _contentView;
+    IShellItemRenderer _currentView;
+    bool _disposed;
     protected override IShellItemRenderer CreateShellItemRenderer(ShellItem shellItem)
     {
         return new MyShellItemRenderer(this);
@@ -25,6 +30,10 @@ public partial class MyShellRenderer : ShellRenderer
     {
         //this.mauiContext=context;
         //this.myContext=context;
+    }
+    public MyShellRenderer()
+    {
+
     }
     protected override IShellFlyoutRenderer CreateShellFlyoutRenderer()
     {
@@ -45,14 +54,88 @@ public partial class MyShellRenderer : ShellRenderer
         return new MyShellFlyoutRenderer(this, this.AndroidContext);
     }
 
+
+    protected override void SwitchFragment(FragmentManager manager, global::Android.Views.View targetView, ShellItem newItem, bool animate = true)
+    {
+
+        if (!animate)
+        {
+            base.SwitchFragment(manager, targetView, newItem, false);
+            return;
+        }
+
+        var animation = HelperConverter.GetRoot();
+
+        var previousView = _currentView;
+        _currentView = CreateShellItemRenderer(newItem);
+        _currentView.ShellItem = newItem;
+        var fragment = _currentView.Fragment;
+
+        FragmentTransaction transaction = manager.BeginTransaction();
+
+
+        if (animate)
+            transaction.SetCustomAnimations(Resource.Animation.dimmer_fade_in, Resource.Animation.dimmer_fade_out);
+
+        if (animation.AbovePage == Utils.CustomShellUtils.Enums.PageType.NextPage && animate)
+        {
+            transaction.Add(targetView.Id, fragment);
+            Task.Run(async () =>
+            {
+                await Task.Delay(animation.Duration);
+                FragmentTransaction transactionTemp = manager.BeginTransaction();
+                transactionTemp.Replace(fragment.Id, fragment);
+                transactionTemp.CommitAllowingStateLoss();
+            });
+        }
+        else
+        {
+            transaction.Replace(targetView.Id, fragment);
+        }
+
+        if (previousView == null)
+        {
+            transaction.SetReorderingAllowed(true);
+        }
+
+        transaction.CommitAllowingStateLoss();
+
+
+        void OnDestroyed(object? sender, EventArgs args)
+        {
+            previousView.Destroyed -= OnDestroyed;
+            previousView.Dispose();
+            previousView = null;
+        }
+
+        if (previousView != null)
+            previousView.Destroyed += OnDestroyed;
+    }
+
+
+
+    private Android.Views.View FindFlyoutMenuView(DrawerLayout drawerLayout)
+    {
+        for (int i = 0; i < drawerLayout.ChildCount; i++)
+        {
+            var child = drawerLayout.GetChildAt(i);
+            var lp = child.LayoutParameters as DrawerLayout.LayoutParams;
+            if (lp != null && (lp.Gravity == (int)GravityFlags.Start || lp.Gravity == (int)GravityCompat.Start ||
+                               lp.Gravity == (int)GravityFlags.End || lp.Gravity == (int)GravityCompat.End))
+            {
+                return child;
+            }
+        }
+        return null; // Or the first child if only one has gravity
+    }
     protected override void OnElementSet(Shell shell)
     {
-        base.OnElementSet(shell); // Let the base class do its setup, including creating _flyoutView
+        base.OnElementSet(shell); // Let the base class do its , including creating _flyoutView
+
 
         if (FlyoutView?.AndroidView is DrawerLayout drawerLayout)
         {
             _shellDrawerLayout = drawerLayout;
-
             // Example 1: Change the background of the entire DrawerLayout
             // This color will be visible if your page content area doesn't fill everything
             // or if the flyout is open and has transparent parts.
@@ -61,39 +144,32 @@ public partial class MyShellRenderer : ShellRenderer
                 _shellDrawerLayout.SetBackgroundColor(PublicStats.ShellPageBackgroundColor.ToPlatform());
             }
 
-
+            ViewCompat.SetElevation(_shellDrawerLayout, 16f);
             // Example 2: Programmatically set Window Insets handling (if needed beyond default)
             //_shellDrawerLayout.SetFitsSystemWindows(true); // Base class already does this for _frameLayout
 
             // Example 3: Add a scrim color to the drawer (when it opens)
             drawerLayout.SetScrimColor(PublicStats.FlyoutScrimColor.ToPlatform());
-
-            // You can also find the FrameLayout that hosts the content:
-            // The base ShellRenderer creates a _frameLayout.
-            // Accessing private/internal fields directly is not possible,
-            // but the _flyoutView.AndroidView (DrawerLayout) will contain it.
-            // The FrameLayout for content is typically added to the DrawerLayout.
-            // You might need to iterate children if there's no direct public accessor.
-            // For instance, the first child of DrawerLayout that isn't the flyout menu itself.
-            // View mainContentContainer = null;
-            // for(int i=0; i < drawerLayout.ChildCount; i++)
-            // {
-            //     var child = drawerLayout.GetChildAt(i);
-            //     // Heuristic: find the FrameLayout that is NOT the flyout panel.
-            //     // The flyout panel is usually added with specific LayoutParams (e.g., GravityCompat.Start)
-            //     // This is fragile and depends on MAUI's internal ShellFlyoutRenderer structure.
-            //     var lp = child.LayoutParameters as DrawerLayout.LayoutParams;
-            //     if (lp != null && lp.Gravity == (int)GravityFlags.NoGravity) // Content panel often has NoGravity
-            //     {
-            //         mainContentContainer = child; // This should be the _frameLayout
-            //         break;
-            //     }
-            // }
-            //
-            // if (mainContentContainer is Android.Widget.FrameLayout frameLayout && PublicStats.ContentAreaBackgroundColor != null)
-            // {
-            //    frameLayout.SetBackgroundColor(PublicStats.ContentAreaBackgroundColor.ToPlatform());
-            // }
+            for (int i = 0; i < _shellDrawerLayout.ChildCount; i++)
+            {
+                var child = _shellDrawerLayout.GetChildAt(i);
+                var lp = child.LayoutParameters as DrawerLayout.LayoutParams;
+                // The content view usually has Gravity NO_GRAVITY or is not the one with START/END
+                if (lp != null && lp.Gravity == (int)GravityFlags.NoGravity)
+                {
+                    _contentView = child; // This is likely the FrameLayout holding page content
+                    break;
+                }
+                // Fallback if the above isn't reliable enough (depends on MAUI internal structure)
+                // Check if it's NOT the flyout view provided by the DrawerListener later
+            }
+            if (_contentView == null && _shellDrawerLayout.ChildCount > 0)
+            {
+                // Often the content view is the 0-indexed child IF the flyout is added later
+                // or if MAUI's ShellRenderer adds content first.
+                // This is less reliable than checking gravity.
+                _contentView = _shellDrawerLayout.GetChildAt(0);
+            }
         }
 
         // To modify the Toolbar, you'd typically do it via IShellToolbarTracker

@@ -62,16 +62,16 @@ public static class NotificationHelper
     //}
 
 
-    public static void CreateChannel(Context ctx)
+    public static NotificationChannel? CreateChannel(Context ctx)
     {
         if (Build.VERSION.SdkInt < BuildVersionCodes.O)
-            return;
+            return null;
 
         var notificationManager = (NotificationManager)ctx.GetSystemService(Context.NotificationService);
         if (notificationManager == null)
         {
             Log.Error("NotifHelper", "Failed to get NotificationManager service for channel creation.");
-            return;
+            return null;
         }
 
         // Check if channel already exists with correct settings
@@ -135,13 +135,18 @@ public static class NotificationHelper
             var updatedChannel = notificationManager.GetNotificationChannel(ChannelId);
             if (updatedChannel != null)
             {
+                updatedChannel.SetAllowBubbles(true);
                 Log.Info("NotifHelper", $"After Create/Update - Channel '{ChannelId}' CanBubble: {updatedChannel.CanBubble()}");
             }
             else
             {
                 Log.Error("NotifHelper", $"After Create/Update - Channel '{ChannelId}' is somehow null!");
             }
+
+            return updatedChannel;
         }
+
+        return null;
     }
 
     public static PlayerNotificationManager BuildManager(
@@ -240,7 +245,7 @@ public static class NotificationHelper
         if (Build.VERSION.SdkInt < BuildVersionCodes.Q) // API 29
         {
             Log.Info("NotifHelper", "AreBubblesSupported: False (SDK < Q)");
-            return false;
+            //return false;
         }
 
         // On API 33+, check POST_NOTIFICATIONS first
@@ -249,7 +254,7 @@ public static class NotificationHelper
             if (context.CheckSelfPermission(Manifest.Permission.PostNotifications) != Android.Content.PM.Permission.Granted)
             {
                 Log.Warn("NotifHelper", "AreBubblesSupported: False (POST_NOTIFICATIONS permission not granted on API 33+)");
-                return false;
+                //return false;
             }
         }
 

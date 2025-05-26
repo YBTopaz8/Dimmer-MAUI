@@ -16,7 +16,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
-    
+
 
     [ObservableProperty]
     public partial DXCollectionView SongLyricsCV { get; set; }
@@ -37,8 +37,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService
-        
-    ) : base(mapper, baseAppFlow, dimmerLiveStateService,  albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow,folderMgtService)
+
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;
@@ -57,7 +57,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             .DistinctUntilChanged()
             .Subscribe(l =>
             {
-                
+
                 if (l == null || SongLyricsCV is null)
                     return;
                 CurrentLyricPhrase = _mapper.Map<LyricPhraseModelView>(l);
@@ -74,8 +74,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             }));
     }
 
-    
-    public async Task SelectSongFromFolderAndroid(string? selectedFolder=null)
+
+    public async Task SelectSongFromFolderAndroid(string? selectedFolder = null)
     {
 
         var status = await Permissions.CheckStatusAsync<CheckPermissions>(); // Your custom permission class
@@ -83,7 +83,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
             status = await Permissions.RequestAsync<CheckPermissions>();
         }
-    
+
 
 
 
@@ -106,9 +106,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
-    public async void LoadAndPlaySongTapped(SongModelView song)
+    public async Task LoadAndPlaySongTapped(SongModelView song)
     {
-      await  PlaySong(song, CurrentPage.HomePage);
+        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>();
+        var songsToPlay = mapper.Map<IEnumerable<SongModelView>>(BaseAppFlow.MasterList);
+        await PlaySong(song, CurrentPage.HomePage, songsToPlay);
 
     }
 

@@ -79,7 +79,10 @@ public class MusicPlayerPageHandler : PageHandler
         }
 
         _bottomSheetView = nativeView.FindViewById<LinearLayout>(Resource.Id.bottom_sheet_player);
-        _bottomSheetBehavior = BottomSheetBehavior.From(_bottomSheetView);
+        if (_bottomSheetView == null)
+        {
+            throw new InvalidOperationException("CRITICAL: bottom_sheet_player LinearLayout is NULL!");
+        }
 
 
         // Get references to your mini player and expanded player UI elements
@@ -88,41 +91,75 @@ public class MusicPlayerPageHandler : PageHandler
         _playPauseButtonMini = nativeView.FindViewById<ImageButton>(Resource.Id.play_pause_button_mini);
         var expandedContent = nativeView.FindViewById<LinearLayout>(Resource.Id.expanded_player_content)??throw new NullReferenceException("expanded_player_content not found");
 
-        _mauiContentHost = _rootCoordinatorLayout.FindViewById<FrameLayout>(Resource.Id.maui_content_host);
 
+
+        _bottomSheetView.Post(() =>
+        {
+            try
+            {
+                // Now try to get the behavior.
+                // The app:layout_behavior in XML should have already created and attached it.
+                var lp = _bottomSheetView.LayoutParameters as CoordinatorLayout.LayoutParams;
+                if (lp != null && lp.Behavior is BottomSheetBehavior bsb)
+                {
+                    _bottomSheetBehavior = bsb;
+                    System.Diagnostics.Debug.WriteLine("BottomSheetBehavior retrieved from LayoutParams.");
+                }
+                else
+                {
+                    // Fallback if not found on params (shouldn't happen with app:layout_behavior)
+                    _bottomSheetBehavior = BottomSheetBehavior.From(_bottomSheetView);
+                    System.Diagnostics.Debug.WriteLine("BottomSheetBehavior retrieved using From().");
+                }
+
+                if (_bottomSheetBehavior == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("CRITICAL: _bottomSheetBehavior is STILL NULL after Post().");
+                    return;
+                }
+
+                // Configure BottomSheetBehavior
+                _bottomSheetBehavior.PeekHeight = (int)MauiContext.Context.ToPixels(80);
+                _bottomSheetBehavior.Hideable = false;
+                _bottomSheetBehavior.SkipCollapsed = false; // Explicitly set if needed
+                _bottomSheetBehavior.State = BottomSheetBehavior.StateCollapsed; // Set initial state
+
+                var expandedContent = _rootCoordinatorLayout.FindViewById<LinearLayout>(Resource.Id.expanded_player_content);
+                if (expandedContent != null)
+                {
+                    _bottomSheetCallbackInstance = new BottomSheetCallback(expandedContent);
+                    _bottomSheetBehavior.AddBottomSheetCallback(_bottomSheetCallbackInstance);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("CRITICAL: expanded_player_content is NULL in Post().");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in _bottomSheetView.Post(): {ex}");
+            }
+        });
+
+        // Setup MAUI content host (can still be done synchronously)
+        _mauiContentHost = _rootCoordinatorLayout.FindViewById<FrameLayout>(Resource.Id.maui_content_host);
         if (VirtualView is ContentPage contentPage && contentPage.Content != null && _mauiContentHost != null && MauiContext != null)
         {
-            // Convert the MAUI Content (defined in XAML) to a native Android view
             var nativeMauiView = contentPage.Content.ToPlatform(MauiContext);
-
-            // Set layout parameters for the native view if needed (e.g., match_parent)
             nativeMauiView.LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.WrapContent); // Or MatchParent
-
+                ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
             _mauiContentHost.AddView(nativeMauiView);
         }
 
-        // Configure BottomSheetBehavior
-        _bottomSheetBehavior.PeekHeight = (int)MauiContext.Context.ToPixels(80); // ensure this matches XML or is dynamic
-        _bottomSheetBehavior.Hideable = false; // Or true if you want it to be fully dismissible
-        _bottomSheetBehavior.State = BottomSheetBehavior.StateCollapsed;
-
-
-        _bottomSheetCallbackInstance = new BottomSheetCallback(expandedContent); // Store instance
-        _bottomSheetBehavior.AddBottomSheetCallback(_bottomSheetCallbackInstance);
-
-
+        // Event listeners for mini player can be set up synchronously
+        _playPauseButtonMini = _rootCoordinatorLayout.FindViewById<ImageButton>(Resource.Id.play_pause_button_mini);
         if (_playPauseButtonMini != null)
-        {
             _playPauseButtonMini.Click += OnPlayPauseMiniClick;
-        }
-
-        _miniPlayerHeader = nativeView.FindViewById<RelativeLayout>(Resource.Id.mini_player_header);
+        _miniPlayerHeader = _rootCoordinatorLayout.FindViewById<RelativeLayout>(Resource.Id.mini_player_header);
         if (_miniPlayerHeader != null)
-        {
             _miniPlayerHeader.Click += OnMiniPlayerHeaderClick;
-        }
+
+
         var mauiContentViewGroup = new ContentViewGroup(Context);
         mauiContentViewGroup.AddView(_rootCoordinatorLayout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent));
         return mauiContentViewGroup;

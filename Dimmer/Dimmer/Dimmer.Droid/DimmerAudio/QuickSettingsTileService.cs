@@ -394,11 +394,11 @@ public class QuickSettingsTileService : TileService
 
             if (isPlaying)
             {
-                newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_circular_play); // <<< CREATE THIS ICON
+                newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.atom); // <<< CREATE THIS ICON
             }
             else
             {
-                newIcon = Icon.CreateWithResource(this, Resource.Drawable.exo_icon_pause); // <<< CREATE THIS ICON
+                newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.atom); // <<< CREATE THIS ICON
 
             }
             tile.Subtitle = song?.ArtistName ?? "Unknown Artist"; // Set subtitle to song title

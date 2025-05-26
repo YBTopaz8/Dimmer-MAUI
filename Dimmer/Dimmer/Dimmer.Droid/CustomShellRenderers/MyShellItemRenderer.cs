@@ -21,6 +21,9 @@ using LP = Android.Views.ViewGroup.LayoutParams;
 using Orientation = Android.Widget.Orientation;
 using View = Android.Views.View;
 using Microsoft.Maui.Controls.Platform.Compatibility;
+using System.Diagnostics;
+using Android.Util;
+using AndroidX.Fragment.App;
 
 namespace Dimmer.CustomShellRenderers;
 public class MyShellItemRenderer : ShellItemRenderer
@@ -40,7 +43,7 @@ public class MyShellItemRenderer : ShellItemRenderer
     }
 
     // --- Event Handlers from ShellStylingBridge ---
-    private void OnBridgeBackgroundColorChanged(object sender, ColorChangedEventArgs e)
+    private void OnBridgeBackgroundColorChanged(object? sender, ColorChangedEventArgs e)
     {
         if (e.TargetElement == ShellElement.BottomNavBar && _theBottomViewInstance != null)
         {
@@ -53,7 +56,7 @@ public class MyShellItemRenderer : ShellItemRenderer
         // Handle MoreSheetBackground if e.TargetElement matches
     }
 
-    private void OnBridgeTextColorChanged(object sender, ColorChangedEventArgs e)
+    private void OnBridgeTextColorChanged(object? sender, ColorChangedEventArgs e)
     {
         if (e.TargetElement == ShellElement.BottomNavItem && _theBottomViewInstance != null && e.SecondaryColor != null)
         {
@@ -65,7 +68,7 @@ public class MyShellItemRenderer : ShellItemRenderer
         // Handle MoreSheetItem text color
     }
 
-    private void OnBridgeElevationChanged(object sender, ElevationChangedEventArgs e)
+    private void OnBridgeElevationChanged(object? sender, ElevationChangedEventArgs e)
     {
         if (e.TargetElement == ShellElement.BottomNavBar && _theBottomViewInstance != null)
         {
@@ -77,7 +80,7 @@ public class MyShellItemRenderer : ShellItemRenderer
         }
     }
 
-    private void OnBridgeTabBehaviorChanged(object sender, TabBehaviorChangedEventArgs e)
+    private void OnBridgeTabBehaviorChanged(object? sender, TabBehaviorChangedEventArgs e)
     {
         if (e.NumberOfVisibleTabs.HasValue)
         {
@@ -110,8 +113,11 @@ public class MyShellItemRenderer : ShellItemRenderer
         }
     }
 
-    private static void OnBridgeAnimationSettingsChanged(object sender, AnimationSettingsChangedEventArgs e)
+    private static void OnBridgeAnimationSettingsChanged(object? sender, AnimationSettingsChangedEventArgs e)
     {
+        Console.WriteLine(sender.GetType());
+        Console.WriteLine(e.DurationMs);
+        Console.WriteLine(e.TargetAnimation);
         if (e.TargetAnimation == ShellAnimationTarget.TabSwitchAnimation)
         {
             if (e.DurationMs.HasValue)
@@ -119,10 +125,16 @@ public class MyShellItemRenderer : ShellItemRenderer
                                                                                // Interpolator changes would also be set in PublicStats here
             System.Diagnostics.Debug.WriteLine($"Tab switch animation duration updated to: {PublicStats.TabSwitchAnimationDurationMs}");
         }
+        else
+        {
+            Console.WriteLine(sender.GetType());
+            Console.WriteLine(e.DurationMs);
+            Console.WriteLine(e.TargetAnimation);
+        }
     }
 
 
-    private void OnBridgeRefreshRequested(object sender, ShellElement e)
+    private void OnBridgeRefreshRequested(object? sender, ShellElement e)
     {
         if (e == ShellElement.BottomNavBar && _theBottomViewInstance != null)
         {
@@ -143,16 +155,16 @@ public class MyShellItemRenderer : ShellItemRenderer
             // Simple Fade out
             _theNavigationAreaInstance.Animate()
                 .Alpha(0f)
-                .SetDuration(PublicStats.TabSwitchAnimationDurationMs / 2) // Use from PublicStats
-                .SetInterpolator(PublicStats.DefaultInterpolator) // Use from PublicStats
+                .SetDuration(PublicStats.TabSwitchAnimationDurationMs) // Use from PublicStats
+                .SetInterpolator(PublicStats.AccelerateInterpolator) // Use from PublicStats
                 .WithEndAction(new Java.Lang.Runnable(() =>
                 {
                     base.OnShellSectionChanged(); // Swaps content
                     _theNavigationAreaInstance.Alpha = 0f;
                     _theNavigationAreaInstance.Animate()
                         .Alpha(1f)
-                        .SetDuration(PublicStats.TabSwitchAnimationDurationMs / 2)
-                        .SetInterpolator(PublicStats.DefaultInterpolator)
+                        .SetDuration(PublicStats.EndTabSwitchAnimationDurationMs)
+                        .SetInterpolator(PublicStats.DecelerateInterpolator)
                         .SetStartDelay(50)
                         .Start();
                 }))
@@ -360,12 +372,36 @@ public class MyShellItemRenderer : ShellItemRenderer
                 bottomSheetLayout.AddView(innerLayout);
             }
         }
+        _moreBottomSheetDialogInstance.DismissWithAnimation=true;
+
 
         _moreBottomSheetDialogInstance.SetContentView(bottomSheetLayout);
 
         return _moreBottomSheetDialogInstance;
     }
 
+    protected override void SetupAnimation(ShellNavigationSource navSource, FragmentTransaction t, Page page)
+    {
+        var anim = Resource.Animation.dimmer_fade_in;
+        var anout = Resource.Animation.dimmer_fade_out;
+        var pop = HelperConverter.GetPop();
+        switch (navSource)
+        {
+            case ShellNavigationSource.Push:
+                t.SetCustomAnimations(anim, anout);
+                break;
+
+            case ShellNavigationSource.Pop:
+            case ShellNavigationSource.PopToRoot:
+
+                t.SetCustomAnimations(anim, anout);
+                break;
+
+            case ShellNavigationSource.ShellSectionChanged:
+                break;
+        }
+
+    }
     protected override Drawable CreateItemBackgroundDrawable()
     {
         var stateList = ColorStateList.ValueOf(PublicStats.RippleColor);

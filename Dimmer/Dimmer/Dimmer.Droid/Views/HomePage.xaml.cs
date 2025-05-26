@@ -1,3 +1,4 @@
+using Android.Graphics;
 using CommunityToolkit.Maui.Core.Extensions;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
@@ -42,19 +43,134 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
 
         var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
         qs!.UpdateTileVisualState(true, e.Item as SongModelView);
-        MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
+        await MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
     }
 
-    private async void TestNav_Clicked(object sender, EventArgs e)
+    private async void TestNav_Clicked2(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(SearchSongPage));
     }
+    private async void TestNav_Clicked(object sender, EventArgs e)
+    {
+        //await Shell.Current.GoToAsync(nameof(SearchSongPage));
+        var context = Android.App.Application.Context;
+        if (context == null)
+        {
+            Console.WriteLine("Android Context is null, cannot create bubble.");
+            return;
+        }
+
+        // --- 1. Define Bubble Entity Parameters ---
+        string entityShortcutId = "dimmer_now_playing"; // Unique ID for your "now playing" bubble
+        string entityShortLabel = "Now Playing";    // Short title for shortcut/bubble
+        string entityLongLabel = "Dimmer Music Control"; // Longer description
+
+        // --- 2. Create the Intent for the Expanded Bubble View ---
+        // This intent points to your BubblePlayerActivity
+        var expandedBubbleIntent = new Intent(context, typeof(MainActivity));
+        // Optional: Add data to the intent that BubblePlayerActivity can use
+        expandedBubbleIntent.PutExtra("track_id", "current_song_123"); // Example: pass current track ID
+        expandedBubbleIntent.SetAction("SHOW_DIMMER_PLAYER_BUBBLE"); // Custom action
+        // Flags are important for how the activity is launched
+        expandedBubbleIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+
+
+        // --- 3. Icon for the Bubble/Shortcut ---
+        int entityIconResId = Resource.Mipmap.appicon; // Replace with your desired bubble icon (e.g., a play symbol)
+                                                       // This would be like Platforms/Android/Resources/mipmap-xxxhdpi/appicon.png
+                                                       // Or use Resource.Drawable.your_bubble_icon if it's in drawable folders
+        Bitmap? entityIconBitmap = null;
+        // Example: If you have album art as a Bitmap:
+        // entityIconBitmap = await GetCurrentAlbumArtAsBitmapAsync(); // Your method to get album art
+        // if (entityIconBitmap != null) entityIconResId = 0; // Prefer bitmap if available
+
+
+        // --- 4. Carrier Notification Details (can be minimal if suppressed) ---
+        string notificationTitle = "Dimmer";
+        string notificationText = "Player bubble is active.";
+        // You MUST have a small icon for the notification.
+        // Place an icon (e.g., `ic_stat_music_note.png`) in Platforms/Android/Resources/drawable
+        int notificationSmallIconResId = Resource.Drawable.atom; // Replace with your actual small icon resource ID
+        if (notificationSmallIconResId == 0)
+        {
+            // Fallback if the above isn't found, though you should ensure it exists.
+            // This tries to use a system icon, but it's better to provide your own.
+            notificationSmallIconResId = Android.Resource.Drawable.IcDialogInfo;
+            Console.WriteLine("Warning: Custom small notification icon not found. Using fallback.");
+        }
+
+
+        // --- 5. Call your Helper ---
+        try
+        {
+            // Ensure NotificationHelper.CreateChannel has been called at least once
+            // (e.g., in MainActivity or your App.xaml.cs OnStart)
+            // NotificationHelper.CreateChannel(context); // If not already done
+
+            BubbleEntityHelper.PrepareAndNotifyBubbleableEntity(
+                context,
+                entityShortcutId,
+                entityShortLabel,
+                entityLongLabel,
+                expandedBubbleIntent,
+                entityIconResId,
+                entityIconBitmap,
+                notificationTitle,
+                notificationText,
+                notificationSmallIconResId
+            );
+
+            await DisplayAlert("Bubble", "Bubble notification sent. Check if it appears!", "OK");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error triggering bubble: {ex.Message}");
+            await DisplayAlert("Error", $"Could not trigger bubble: {ex.Message}", "OK");
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
 {

@@ -61,6 +61,13 @@ internal static class PublicStats
     // --- Animations ---
     public static long DefaultAnimationDurationMs { get; set; } = 600;
     public static Android.Views.Animations.IInterpolator DefaultInterpolator { get; set; } = new Android.Views.Animations.DecelerateInterpolator();
+    public static Android.Views.Animations.IInterpolator InterpolatorTwo { get; set; } = new Android.Views.Animations.AccelerateDecelerateInterpolator();
+    public static Android.Views.Animations.IInterpolator AccelerateInterpolator { get; set; } = new Android.Views.Animations.AccelerateInterpolator();
+    public static Android.Views.Animations.IInterpolator DecelerateInterpolator { get; set; } = new Android.Views.Animations.DecelerateInterpolator();
+    public static Android.Views.Animations.IInterpolator AnticipateInterpolator { get; set; } = new Android.Views.Animations.AnticipateInterpolator();
+    public static Android.Views.Animations.IInterpolator AnticipateOvershootInterpolator { get; set; } = new Android.Views.Animations.AnticipateOvershootInterpolator();
+    public static Android.Views.Animations.IInterpolator BounceInterpolator { get; set; } = new Android.Views.Animations.BounceInterpolator();
+    public static Android.Views.Animations.IInterpolator OvershootInterpolator { get; set; } = new Android.Views.Animations.OvershootInterpolator();
     public static bool AutoHideTabBarOnScroll { get; set; } = false;
 
     public static int ActivityEnterAnimationResId { get; set; } = 0; // 0 means use system default or none
@@ -69,8 +76,8 @@ internal static class PublicStats
     public static bool LargeTextMode { get; set; } = false;
     public static bool HapticOnTap { get; set; } = true;
     public static bool HapticOnLongPress { get; set; } = true;
-    public static int BottomSheetAnimationDurationMs { get; set; } = 300;
-    public static int TabBarAnimationDurationMs { get; set; } = 250;
+    public static int BottomSheetAnimationDurationMs { get; set; } = 370;
+    public static int TabBarAnimationDurationMs { get; set; } = 370;
 
     public static Action<int, string>? OnTabClicked { get; set; }
     public static Action<int, string>? OnSheetItemClicked { get; set; }
@@ -104,9 +111,11 @@ internal static class PublicStats
     public static Microsoft.Maui.Graphics.Color ToolbarNavigationIconColor { get; set; } = Microsoft.Maui.Graphics.Colors.Red;
 
     public static ITimeInterpolator ActivityTransitionInterpolator { get; set; } = new DecelerateInterpolator();
-    public static float ActivityTransitionDuration { get; set; } = 900;
-    public static long ActivityTransitionDurationMs { get; set; } = 950;
-    public static long TabSwitchAnimationDurationMs { get; set; } = 950;
+
+    public static float ActivityTransitionDuration { get; set; } = 400;
+    public static long ActivityTransitionDurationMs { get; set; } = 450;
+    public static long TabSwitchAnimationDurationMs { get; set; } = 320;
+    public static long EndTabSwitchAnimationDurationMs { get; set; } = 260;
 
 
     public static ActivityTransitionType EnterTransition { get; set; } = ActivityTransitionType.SlideFromBottom;

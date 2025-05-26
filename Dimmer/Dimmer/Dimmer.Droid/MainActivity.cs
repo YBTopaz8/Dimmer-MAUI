@@ -276,7 +276,11 @@ public class MainActivity : MauiAppCompatActivity
 #if RELEASE
      Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
 #elif DEBUG
-        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+        //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+        Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
+                                                                      // Tells the Window to draw under the status bar
+
+
 #endif
     }
     private static void LogUnhandledException(string source, Exception ex)
@@ -370,7 +374,7 @@ public class MainActivity : MauiAppCompatActivity
         {
             // Use setter methods instead of property initializers
             transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
-            transition.SetInterpolator(PublicStats.ActivityTransitionInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
+            transition.SetInterpolator(PublicStats.BounceInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
 
             transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, false);
             transition.ExcludeTarget(Android.Resource.Id.NavigationBarBackground, false);

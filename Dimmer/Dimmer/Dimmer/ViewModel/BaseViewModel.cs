@@ -68,7 +68,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial UserModelView UserLocal { get; set; }
 
-    private readonly IMapper _mapper;
+    internal readonly IMapper _mapper;
     public readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
@@ -392,6 +392,21 @@ public partial class BaseViewModel : ObservableObject
                     case DimmerPlaybackState.Stopped:
                         break;
                     case DimmerPlaybackState.Playing:
+
+                        SongModel dbSong = state.ExtraParameter as SongModel;
+                        if (dbSong is null)
+                        {
+                            dbSong = _mapper.Map<SongModel>(state.ExtraParameter as SongModelView);
+                        }
+                        TemporarilyPickedSong = _mapper.Map<SongModelView>(state.ExtraParameter);
+                        var artistSongsDB = dbSong.ArtistIds[0].Songs.ToList();
+                        SelectedArtistSongs = _mapper.Map<ObservableCollection<SongModelView>>(artistSongsDB);
+                        var albumSongsDB = dbSong.Album?.Songs.ToList();
+                        SelectedAlbumsSongs = _mapper.Map<ObservableCollection<SongModelView>>(albumSongsDB);
+                        var songArtists = dbSong?.ArtistIds.ToList();
+                        SelectedSongArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(songArtists);
+                        //SelectedSong= _mapper.Map<SongModelView>(state.ExtraParameter);
+                        //SecondSelectedSong= _mapper.Map<SongModelView>(state.ExtraParameter);
                         break;
                     case DimmerPlaybackState.Resumed:
                         TemporarilyPickedSong = _stateService.CurrentSongValue;
@@ -620,7 +635,7 @@ public partial class BaseViewModel : ObservableObject
     public async Task PlaySong(
      SongModelView song,
      CurrentPage source,
-     IEnumerable<SongModelView>? listOfSongs = null)
+     IEnumerable<SongModelView> listOfSongs)
     {
 
         if (listOfSongs is not null)
@@ -630,48 +645,46 @@ public partial class BaseViewModel : ObservableObject
 
 
         DimmerStateService.IsShuffleOn = IsShuffle;
-
+        PlaylistModel CustomPlaylist;
+        ReadOnlyCollection<SongModel>? domainList;
         _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
         if (source == CurrentPage.HomePage)
         {
-            if (IsSearching)
+            CustomPlaylist = new()
             {
-                PlaylistModel CustomPlaylist = new()
-                {
-                    Id=ObjectId.GenerateNewId(),
-                    PlaylistName = "Search Playlist "+DateTime.Now.ToLocalTime(),
-                    Description = "Custom Playlist by Dimmer",
-                };
-                var domainList = FilteredSongs
-           .Select(vm => _mapper.Map<SongModel>(vm))
-           .ToList()
-           .AsReadOnly();
-                _stateService.SetCurrentPlaylist(domainList, CustomPlaylist);
-            }
-            else
-            {
-                _stateService.SetCurrentPlaylist(BaseAppFlow.MasterList);
-            }
+                Id=ObjectId.GenerateNewId(),
+                PlaylistName = "Search Playlist "+DateTime.Now.ToLocalTime(),
+                Description = "Custom Playlist by Dimmer",
+            };
+            domainList = listOfSongs
+        .Select(vm => _mapper.Map<SongModel>(vm))
+        .ToList()
+        .AsReadOnly();
+            _stateService.SetCurrentPlaylist(domainList, CustomPlaylist);
         }
         else
         {
-
-            PlaylistModel CustomPlaylist = new()
-            {
-                Id=ObjectId.GenerateNewId(),
-                PlaylistName = "Custom Playlist",
-                Description = "Custom Playlist by Dimmer",
-            };
-            var domainList = listOfSongs
-           .Select(vm => _mapper.Map<SongModel>(vm))
-           .ToList()
-           .AsReadOnly();
-
-            _stateService.SetCurrentPlaylist(domainList, CustomPlaylist);
+            _stateService.SetCurrentPlaylist(BaseAppFlow.MasterList);
         }
+
+
+        CustomPlaylist = new()
+        {
+            Id=ObjectId.GenerateNewId(),
+            PlaylistName = "Custom Playlist",
+            Description = "Custom Playlist by Dimmer",
+        };
+        domainList = listOfSongs
+       .Select(vm => _mapper.Map<SongModel>(vm))
+       .ToList()
+       .AsReadOnly();
+
+        _stateService.SetCurrentPlaylist(domainList, CustomPlaylist);
 
         await SongsMgtFlow.SetPlayState();
     }
+
+
 
     public async Task PlayNext(bool IsByUser)
     {

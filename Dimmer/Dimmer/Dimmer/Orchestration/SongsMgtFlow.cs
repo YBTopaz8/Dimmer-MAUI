@@ -31,7 +31,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         SubscriptionManager subs,
         IRepository<AppStateModel> appstateRepo,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMonitor, subs, mapper)
     {
         this.songRepo=songRepo;
         _audio  = audioService;
@@ -87,14 +87,14 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         //System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
 
     }
-    bool isSwitching=false;
+    bool isSwitching = false;
     public async Task SetPlayState()
     {
         //isSwitching=true;   
         await PlaySongInAudioService();
         //System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
 
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, CurrentlyPlayingSong));
 
     }
     private void Audio_SeekCompleted(object? sender, double e)
@@ -134,8 +134,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     private void OnPlayEnded(object? s, PlaybackEventArgs e)
     {
         PlayEnded();   // BaseAppFlow: records Completed link
-        _state.SetCurrentState(new(DimmerPlaybackState.Ended,null));
-        
+        _state.SetCurrentState(new(DimmerPlaybackState.Ended, null));
+
     }
 
     public void NextInQueue(DimmerPlaybackState requester)
@@ -148,28 +148,28 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
     public void PrevInQueue(DimmerPlaybackState requester)
     {
-        _state.SetCurrentState(new(requester,null));
+        _state.SetCurrentState(new(requester, null));
         UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Previous);
     }
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
     {
-        if (isPause )
+        if (isPause)
         {
             await _audio.PauseAsync();
-            _state.SetCurrentState(new(DimmerPlaybackState.PausedUI,null));
+            _state.SetCurrentState(new(DimmerPlaybackState.PausedUI, null));
             AddPauseSongEventToDB();    // records Pause link
         }
         else
         {
-            if(position < 1)
+            if (position < 1)
             {
                 await PlaySongInAudioService();
                 return;
             }
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
-            _state.SetCurrentState(new(DimmerPlaybackState.Resumed,null));
+            _state.SetCurrentState(new(DimmerPlaybackState.Resumed, null));
             AddResumeSongToDB();   // records Resume link
         }
     }
@@ -211,7 +211,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     {
         throw new NotImplementedException("This method is not implemented yet.");
         // 1. Find all Song IDs linked to the given Album ID
-        
+
     }
 
     public new void Dispose()

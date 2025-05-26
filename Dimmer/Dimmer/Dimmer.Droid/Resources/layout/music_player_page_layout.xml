@@ -45,12 +45,13 @@
       <!-- Example color -->
 
       <ImageView
-          android:id="@+id/album_art_mini"
-          android:layout_width="64dp"
-          android:layout_height="64dp"
-          android:layout_alignParentStart="true"
-          android:layout_centerVertical="true"
-          android:src="@mipmap/appicon"/>
+        android:id="@+id/album_art_mini"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:src="@mipmap/appicon"
+        android:contentDescription="description" />
       <!-- Placeholder -->
 
       <TextView
@@ -87,11 +88,12 @@ android:contentDescription="@string/play_pause"
       android:visibility="gone"> <!-- Initially hidden, shown by behavior/code -->
 
       <ImageView
-          android:id="@+id/album_art_expanded"
-          android:layout_width="200dp"
-          android:layout_height="200dp"
-          android:layout_gravity="center_horizontal"
-          android:src="@mipmap/appicon"/> <!-- Placeholder -->
+        android:id="@+id/album_art_expanded"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@mipmap/appicon"
+        android:contentDescription="description" /> <!-- Placeholder -->
 
       <TextView
           android:id="@+id/track_title_expanded"

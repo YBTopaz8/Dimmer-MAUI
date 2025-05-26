@@ -91,7 +91,7 @@ public static class BubbleEntityHelper
             Log.Warn("BubbleEntityHelper", $"Bubbles are not currently supported/enabled for app/channel. Shortcut ID {entityShortcutId} created, but notification won't bubble now.");
             // Optionally, post a non-bubbling notification here or inform the user.
             // Forcing a bubble when user has disabled them is not possible.
-            return;
+            //return;
         }
 
         // --- 3. Create BubbleMetadata ---
@@ -100,7 +100,7 @@ public static class BubbleEntityHelper
             context,
             entityShortcutId.GetHashCode(), // Unique request code based on entity ID
             expandedBubbleIntent,
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
+            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable
         );
 
         // Icon for the collapsed bubble (can be different from shortcut icon if needed)
