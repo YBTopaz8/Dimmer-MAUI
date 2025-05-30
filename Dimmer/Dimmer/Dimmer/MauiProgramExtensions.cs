@@ -1,5 +1,6 @@
 ﻿
 
+using Dimmer.Interfaces.IServices;
 using Dimmer.Services;
 
 namespace Dimmer;
@@ -21,8 +22,8 @@ public static class MauiProgramExtensions
             })
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("OpenSansRegular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSansSemibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FontAwesomeRegular400.otf", "FontAwesomeRegular");
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");
@@ -48,6 +49,8 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<SubscriptionManager>();
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
+        builder.Services.AddSingleton<ILibraryScannerService, LibraryScannerService>();
+
 
         builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
         builder.Services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));

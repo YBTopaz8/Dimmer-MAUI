@@ -1,10 +1,14 @@
 using Android.Graphics;
+
 using CommunityToolkit.Maui.Core.Extensions;
+
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
+
 using Dimmer.Utilities.CustomAnimations;
+
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -14,8 +18,8 @@ namespace Dimmer.Views;
 public partial class HomePage : ContentPage
 {
 
-    public HomePageViewModel MyViewModel { get; internal set; }
-    public HomePage(HomePageViewModel vm)
+    public BaseViewModelAnd MyViewModel { get; internal set; }
+    public HomePage(BaseViewModelAnd vm)
     {
         InitializeComponent();
         MyViewModel=vm;
@@ -74,9 +78,9 @@ public partial class HomePage : ContentPage
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
 
-        var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
-        qs!.UpdateTileVisualState(true, e.Item as SongModelView);
-        await MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
+        //var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
+        //qs!.UpdateTileVisualState(true, e.Item as SongModelView);
+        //await MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
     }
 
     private async void TestNav_Clicked2(object sender, EventArgs e)
@@ -133,33 +137,6 @@ public partial class HomePage : ContentPage
         }
 
 
-        // --- 5. Call your Helper ---
-        try
-        {
-            // Ensure NotificationHelper.CreateChannel has been called at least once
-            // (e.g., in MainActivity or your App.xaml.cs OnStart)
-            // NotificationHelper.CreateChannel(context); // If not already done
-
-            BubbleEntityHelper.PrepareAndNotifyBubbleableEntity(
-                context,
-                entityShortcutId,
-                entityShortLabel,
-                entityLongLabel,
-                expandedBubbleIntent,
-                entityIconResId,
-                entityIconBitmap,
-                notificationTitle,
-                notificationText,
-                notificationSmallIconResId
-            );
-
-            await DisplayAlert("Bubble", "Bubble notification sent. Check if it appears!", "OK");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error triggering bubble: {ex.Message}");
-            await DisplayAlert("Error", $"Could not trigger bubble: {ex.Message}", "OK");
-        }
     }
 }
 

@@ -53,6 +53,8 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         IRepository<ArtistModel> artistRepo // Added ArtistModel repository
     )
     {
+        _state=state;
+
         _playlistRepo = playlistRepo ?? throw new ArgumentNullException(nameof(playlistRepo));
         _subs = subs ?? throw new ArgumentNullException(nameof(subs)); // Store from base or inject new
         _logger = logger ?? NullLogger<PlayListMgtFlow>.Instance;
@@ -98,6 +100,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
     private void InitializeInternalSubscriptions()
     {
         // React to playback commands from the global state
+
         _subs.Add(
             _state.CurrentPlayBackState
                   .DistinctUntilChanged(psi => psi.State) // Only on actual state enum change

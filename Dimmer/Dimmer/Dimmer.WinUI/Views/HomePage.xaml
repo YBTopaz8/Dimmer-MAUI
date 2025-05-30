@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="Dimmer.WinUI.Views.HomePage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-    xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
-    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
-    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
-    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    x:Name="myPage"
-    Title="HomePage"
-    x:DataType="vm:BaseViewModelWin"
-    Shell.NavBarIsVisible="False">
+<ContentPage x:Name="myPage"
+             x:Class="Dimmer.WinUI.Views.HomePage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+             xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" Title="HomePage"
+             x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
+             >
 
     <ContentPage.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
@@ -29,1340 +21,134 @@
         <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
         <converters:VolumeConverter x:Key="VolConverter" />
 
+        <DataTemplate x:Key="MultiColumnsView">
+            <Grid ColumnDefinitions="0.4,*,*,*,*,*,*">
+                <HorizontalStackLayout Grid.Column="0" />
+                <HorizontalStackLayout Grid.Column="1" />
+                <HorizontalStackLayout Grid.Column="2" />
+                <HorizontalStackLayout Grid.Column="3" />
+                <HorizontalStackLayout Grid.Column="4" />
+                <HorizontalStackLayout Grid.Column="5" />
+
+            </Grid>
+        </DataTemplate>
     </ContentPage.Resources>
 
-    <!--<Grid x:Name="MainAppGrid" Loaded="MainAppGrid_Loaded">
+    <Grid x:Name="MainAppGrid" ColumnDefinitions="0.17*,*">
+        <Grid x:Name="SideBar"
+              Grid.Column="0" Margin="10,0"
+              RowDefinitions="*,auto"
+              >
+            <ScrollView Grid.Row="0">
 
-        <Grid>
-            <ActivityIndicator
-                x:Name="LoadingIndicator"
-                HorizontalOptions="Center"
-                IsEnabled="{Binding IsSettingWindoOpened}"
-                IsRunning="{Binding IsSettingWindoOpened}"
-                IsVisible="{Binding IsSettingWindoOpened}"
-                VerticalOptions="Center" />
+                <VerticalStackLayout x:Name="TopLeftPart" Spacing="15">
+                    <Label Text="{Static lang:DimmerLanguage.txt_artist}" />
+                    <syncf:SfChip x:Name="HomeChip"
+                                  CommandParameter="0" ImageSource="house.png"
+                                  Text="Home"
+                                  />
+                    <syncf:SfChip x:Name="ArtistsChip"
+                                  CommandParameter="Artists" ImageSource="artist.png"
+                                  Text="Artist"
+                                  />
+                    <syncf:SfChip x:Name="AlbumsChip"
+                                  CommandParameter="Albums" ImageSource="musicalbum.png"
+                                  Text="Albums"
+                                  />
+                    <syncf:SfChip x:Name="GenresChip"
+                                  CommandParameter="Genres" Text="Genres"
+                                  />
 
-            <Grid
-                IsEnabled="{Binding IsSettingWindoOpened, Converter={converters:BoolToInverseConverter}}"
-                IsVisible="{Binding IsMainViewVisible}"
-                RowDefinitions="Auto,auto,*">
-
-                <syncf:SfChipGroup
-                    x:Name="ActualSongView"
-                    Grid.Row="0"
-                    ChipClicked="ActualSongView_ChipClicked"
-                    ChipType="Action">
-                    <syncf:SfChipGroup.Resources>
-                        <ResourceDictionary>
-                            <Style TargetType="syncf:SfChip">
-                                <Setter Property="ShowIcon" Value="False" />
-                                <Setter Property="StrokeThickness" Value="0" />
-                                <Setter Property="ImageSize" Value="20" />
-                            </Style>
-                        </ResourceDictionary>
-                    </syncf:SfChipGroup.Resources>
-                    <syncf:SfChipGroup.ChipLayout>
-                        <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" />
-                    </syncf:SfChipGroup.ChipLayout>
-                    <syncf:SfChip
-                        CommandParameter="0"
-                        FontSize="20"
-                        Text="{Binding TemporarilyPickedSong.Title}" />
-                    <syncf:SfChip
-                        CommandParameter="1"
-                        FontSize="20"
-                        Text="{Binding TemporarilyPickedSong.ArtistName}" />
-                    <syncf:SfChip
-                        CommandParameter="2"
-                        FontSize="18"
-                        Text="{Binding TemporarilyPickedSong.AlbumName}" />
-                </syncf:SfChipGroup>
-
-                <Grid
-                    x:Name="BmtBarView"
-                    Grid.Row="1"
-                    Margin="15,0"
-                    ColumnDefinitions="auto,auto,*"
-                    ColumnSpacing="5">
+                    <BoxView Margin="0,10" HeightRequest="1"
+                             Color="DarkSlateBlue"
+                             />
+                    <syncf:SfChip x:Name="LastPlayedChip"
+                                  CommandParameter="LastPlayed" ImageSource="repeat.png"
+                                  Text="Last Played"
+                                  />
 
 
 
-                    <HorizontalStackLayout
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Spacing="10">
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <VerticalStackLayout x:Name="BottomLeft" Grid.Row="1">
+                <syncf:SfChip x:Name="SettingsChip"
+                              Command="{Binding SwapMediaBarPositionCommand}"
+                              CommandParameter="Settings" Text="Settings"
+                              >
+                    <syncf:SfChip.ImageSource>
+                        <FontImageSource FontFamily="FontAwesomeSolid" Glyph="cog"
+                                         Color="DarkSlateBlue"
+                                         />
+                    </syncf:SfChip.ImageSource>
+                </syncf:SfChip>
+            </VerticalStackLayout>
+        </Grid>
+
+        <Grid x:Name="MainUI"
+              Grid.Column="1" RowDefinitions="0.1*,*"
+              >
+            <Grid x:Name="SecondA"
+                  Grid.Row="0" ColumnDefinitions="auto,*,auto"
+                  ColumnSpacing="5" VerticalOptions="Center"
+                  >
+
+                <HorizontalStackLayout x:Name="MediaBtns"
+                                       Grid.Column="0" HeightRequest="50"
+                                       Spacing="10" VerticalOptions="Center"
+                                       >
+                    <syncf:SfChip ImageSource="skipprevious.png" StyleClass="MediaBtnChip" />
+                    <syncf:SfChip ImageSource="play.png" StyleClass="MediaBtnChip" />
+                    <syncf:SfChip ImageSource="skipnext.png" StyleClass="MediaBtnChip" />
 
 
+                </HorizontalStackLayout>
+                <Grid Grid.Column="1" VerticalOptions="Center">
+                    <Slider Maximum="2" Minimum="0"
+                            MinimumTrackColor="DarkSlateBlue" ThumbColor="White"
+                            Value="1"
+                            />
 
-                        <syncf:SfChipGroup
-                            x:Name="MediaChipBtn"
-                            ChipClicked="MediaChipBtn_ChipClicked"
-                            ChipType="Action"
-                            HorizontalOptions="Center"
-                            SelectionIndicatorColor="DarkSlateBlue">
-                            <syncf:SfChipGroup.Resources>
-                                <ResourceDictionary>
-                                    <Style TargetType="syncf:SfChip">
-                                        <Setter Property="ShowIcon" Value="True" />
-                                        <Setter Property="StrokeThickness" Value="0" />
-                                        <Setter Property="ImageSize" Value="30" />
+                </Grid>
+                <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
+                    <syncf:SfChip ImageSource="shuffle.png" StyleClass="MediaBtnChip" />
+                    <syncf:SfChip ImageSource="repeat.png" StyleClass="MediaBtnChip" />
 
-                                    </Style>
-                                </ResourceDictionary>
-                            </syncf:SfChipGroup.Resources>
-                            <syncf:SfChipGroup.ChipLayout>
-                                <HorizontalStackLayout HorizontalOptions="Start" Spacing="5" />
-                            </syncf:SfChipGroup.ChipLayout>
-                            <syncf:SfChipGroup.Items>
+                </HorizontalStackLayout>
+            </Grid>
+            <Grid Grid.Row="1" BackgroundColor="Transparent"
+                  RowDefinitions="0.1*,0.1*,*"
+                  >
 
-
-
-                                <syncf:SfChip
-                                    CommandParameter="0"
-                                    HorizontalOptions="Center"
-                                    WidthRequest="50">
-
-                                    <syncf:SfChip.Triggers>
-
-                                        <DataTrigger
-                                            Binding="{Binding RepeatMode}"
-                                            TargetType="syncf:SfChip"
-                                            Value="0">
-
-                                            <Setter Property="ImageSource" Value="repoff.png" />
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding RepeatMode}"
-                                            TargetType="syncf:SfChip"
-                                            Value="1">
-
-                                            <Setter Property="ImageSource" Value="repeat.png" />
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding RepeatMode}"
-                                            TargetType="syncf:SfChip"
-                                            Value="2">
-
-                                            <Setter Property="ImageSource" Value="repone.png" />
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding RepeatMode}"
-                                            TargetType="syncf:SfChip"
-                                            Value="4">
-                                            <Setter Property="ImageSource" Value="repone.png" />
-                                        </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
-
-
-                                <syncf:SfChip
-                                    CommandParameter="1"
-                                    ImageSource="skipprevious.png"
-                                    TextColor="White"
-                                    WidthRequest="50" />
-                                <syncf:SfChip
-                                    CommandParameter="2"
-                                    ImageSource="pause.png"
-                                    IsVisible="{Binding IsPlaying}"
-                                    TextColor="White"
-                                    WidthRequest="50" />
-
-                                <syncf:SfChip
-                                    CommandParameter="3"
-                                    ImageSource="playcircle.png"
-                                    IsVisible="{Binding IsPlaying, Converter={x:StaticResource BoolToInverse}}"
-                                    TextColor="White"
-                                    WidthRequest="50" />
-
-                                <syncf:SfChip
-                                    CommandParameter="4"
-                                    ImageSource="skipnext.png"
-                                    TextColor="White"
-                                    WidthRequest="50" />
-                                <syncf:SfChip
-                                    CommandParameter="5"
-                                    ImageSource="shuffle.png"
-                                    TextColor="White"
-                                    WidthRequest="50">
-
-                                    <syncf:SfChip.Triggers>
-
-                                        <DataTrigger
-                                            Binding="{Binding IsShuffle}"
-                                            TargetType="syncf:SfChip"
-                                            Value="True">
-
-                                            <Setter Property="BackgroundColor" Value="#B197FC" />
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding IsShuffle}"
-                                            TargetType="syncf:SfChip"
-                                            Value="False">
-
-                                            <Setter Property="BackgroundColor" Value="Transparent" />
-                                        </DataTrigger>
-
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
-
-                            </syncf:SfChipGroup.Items>
-                        </syncf:SfChipGroup>
-
-
-
-                        <Slider
-                            x:Name="VolumeSlider"
-                            Grid.Column="2"
-                            DragCompleted="VolumeSlider_DragCompleted"
-                            Maximum="1"
-                            Minimum="0"
-                            MinimumTrackColor="DarkSlateBlue"
-                            ToolTipProperties.Text="{Binding VolumeLevel, StringFormat='Volume: {0:n1}'}"
-                            VerticalOptions="Center"
-                            WidthRequest="170"
-                            Value="{Binding VolumeLevel}" />
-
-
+                <Grid Grid.Row="0" ColumnDefinitions="*,*">
+                    <HorizontalStackLayout Grid.Column="0">
+                        <Label IsVisible="False" Text="F"/>
                     </HorizontalStackLayout>
-
-                    <Grid
-                        Grid.Column="2"
-                        ColumnDefinitions="auto,*,auto"
-                        ColumnSpacing="5">
-
-                        <Label
-                            Grid.Column="0"
-                            FontSize="14"
-                            HorizontalOptions="Center"
-                            Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" />
-                        <Slider
-                            x:Name="CurrentPositionSlider"
-                            Grid.Column="1"
-                            DragCompleted="CurrentPositionSlider_DragCompleted"
-                            Maximum="{Binding TemporarilyPickedSong.DurationInSeconds}"
-                            Minimum="0"
-                            MinimumTrackColor="DarkSlateBlue"
-                            ThumbColor="AliceBlue"
-                            VerticalOptions="Center"
-                            Value="{Binding CurrentPositionInSeconds}" />
-
-                        <Label
-                            Grid.Column="2"
-                            FontSize="14"
-                            HorizontalOptions="Center"
-                            Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                    
+                </Grid>
+                
+                <Grid ColumnDefinitions="*" Grid.Row="1">
+                    <Grid ColumnDefinitions="2*,*,*,*,*,*,30">
+                        <Label Grid.Column="0" Text="Title" />
+                        <Label Grid.Column="1" Text="Artist" />
+                        <Label Grid.Column="2" Text="Album" />
+                        <Label Grid.Column="3" Text="Genre" />
+                        <Label Grid.Column="4" Text="Year" />
+                        <Label Grid.Column="5" Text="Duration" />
                     </Grid>
                 </Grid>
 
-                <Grid
-                    x:Name="MainPage"
-                    Grid.Row="2"
-                    Margin="10,5">
-
-                    <Image
-                        x:Name="PageBGImg"
-                        Aspect="AspectFit"
-                        Opacity="0.06"
-                        Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-
-                    <Grid x:Name="MainGrid" ColumnDefinitions="300,*">
-                        <Grid Grid.Column="0" RowDefinitions="auto,*">
-                            <VerticalStackLayout Grid.Row="0">
-                                <Border BackgroundColor="Transparent" StrokeShape="RoundRectangle 20">
-                                    <ImageButton
-                                        x:Name="SongImage"
-                                        Aspect="AspectFit"
-                                        Clicked="SongImage_Clicked"
-                                        CornerRadius="20"
-                                        HeightRequest="180"
-                                        Source="{Binding TemporarilyPickedSong.CoverImagePath}"
-                                        WidthRequest="180" />
-                                </Border>
-                                <syncf:SfChipGroup
-                                    x:Name="TempSongChipGroup"
-                                    Grid.Column="0"
-                                    ChipClicked="TempSongChipGroup_ChipClicked"
-                                    ChipType="Action"
-                                    HorizontalOptions="Center"
-                                    SelectionIndicatorColor="DarkSlateBlue">
-                                    <syncf:SfChipGroup.Resources>
-                                        <ResourceDictionary>
-                                            <Style TargetType="syncf:SfChip">
-                                                <Setter Property="ShowIcon" Value="True" />
-                                                <Setter Property="StrokeThickness" Value="0" />
-                                                <Setter Property="ImageSize" Value="20" />
-                                                <Setter Property="HorizontalTextAlignment" Value="Start" />
-                                            </Style>
-                                        </ResourceDictionary>
-                                    </syncf:SfChipGroup.Resources>
-                                    <syncf:SfChipGroup.ChipLayout>
-                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="10" />
-                                    </syncf:SfChipGroup.ChipLayout>
-                                    <syncf:SfChipGroup.Items>
-
-
-                                        <syncf:SfChip
-                                            CommandParameter="1"
-                                            FontAttributes="Bold"
-                                            FontSize="14"
-                                            ImageSource="songc.png"
-                                            Text="{Binding TemporarilyPickedSong.Title}"
-                                            TextColor="White" />
-
-                                        <syncf:SfChip
-                                            CommandParameter="6"
-                                            FontAttributes="Italic"
-                                            FontSize="14"
-                                            Text="{Binding TemporarilyPickedSong.ArtistName}"
-                                            TextColor="White">
-
-                                            <syncf:SfChip.ImageSource>
-                                                <FontImageSource
-                                                    FontFamily="FontAwesomeRegular"
-                                                    Glyph="User"
-                                                    Color="DarkSlateBlue" />
-                                            </syncf:SfChip.ImageSource>
-                                        </syncf:SfChip>
-
-                                        <syncf:SfChip
-                                            CommandParameter="2"
-                                            FontAttributes="Italic"
-                                            FontSize="14"
-                                            ImageSource="vinyl.png"
-                                            Text="{Binding TemporarilyPickedSong.AlbumName}"
-                                            TextColor="White" />
-
-                                        <syncf:SfChip
-                                            CommandParameter="1"
-                                            ImageSource="lyrics.png"
-                                            IsVisible="{Binding TemporarilyPickedSong.HasLyrics}"
-                                            Text="{Static lang:DimmerLanguage.txt_view}"
-                                            TextColor="White" />
-                                        <syncf:SfChip
-                                            CommandParameter="5"
-                                            ImageSource="threesquares.png"
-                                            Text="Control Panel"
-                                            TextColor="White" />
-                                        <syncf:SfChip
-                                            CommandParameter="6"
-                                            ImageSource="lyricist.png"
-                                            IsVisible="False"
-                                            Text="{Static lang:DimmerLanguage.txt_Note}"
-                                            TextColor="White" />
-                                        <syncf:SfChip
-                                            CommandParameter="7"
-                                            Text="Scroll To"
-                                            TextColor="White">
-                                            <syncf:SfChip.ImageSource>
-                                                <FontImageSource
-                                                    FontFamily="FontAwesomeSolid"
-                                                    Glyph="eye"
-                                                    Color="DarkSlateBlue" />
-                                            </syncf:SfChip.ImageSource>
-                                        </syncf:SfChip>
-
-                                        <syncf:SfChip
-                                            CommandParameter="8"
-                                            Text="Chat"
-                                            TextColor="White">
-                                            <syncf:SfChip.ImageSource>
-                                                <FontImageSource
-                                                    FontFamily="FontAwesomeSolid"
-                                                    Glyph="user"
-                                                    Color="DarkSlateBlue" />
-                                            </syncf:SfChip.ImageSource>
-                                        </syncf:SfChip>
-
-
-
-
-                                    </syncf:SfChipGroup.Items>
-                                </syncf:SfChipGroup>
-
-                            </VerticalStackLayout>
-                            <VerticalStackLayout
-                                Grid.Row="1"
-                                Spacing="15"
-                                VerticalOptions="End">
-
-
-
-
-                                <syncf:SfChip
-                                    Clicked="TempSongChipGroup_ChipClicked"
-                                    CommandParameter="3"
-                                    HorizontalOptions="Start"
-                                    ShowIcon="True"
-                                    Text="Settings"
-                                    TextColor="White">
-
-                                    <syncf:SfChip.ImageSource>
-                                        <FontImageSource
-                                            FontFamily="FontAwesomeSolid"
-                                            Glyph="cog"
-                                            Color="DarkSlateBlue" />
-
-                                    </syncf:SfChip.ImageSource>
-
-                                </syncf:SfChip>
-
-                            </VerticalStackLayout>
-                        </Grid>
-
-                        <Grid Grid.Column="1" RowDefinitions="*,100">
-                            <Grid
-                                Grid.Row="1"
-                                ColumnDefinitions="*,*"
-                                HorizontalOptions="End">
-
-                                <syncf:SfChip
-                                    x:Name="LogMsgChip"
-                                    Grid.Column="0"
-                                    BackgroundColor="Red"
-                                    Clicked="LogMsgChip_Clicked"
-                                    CommandParameter="{Binding LatestAppLog}"
-                                    HorizontalOptions="Start"
-                                    HorizontalTextAlignment="Start"
-                                    IsVisible="True"
-                                    ShowIcon="True"
-                                    StrokeThickness="0"
-                                    Text="{Binding LatestAppLog.Log}"
-                                    TextColor="White"
-                                    VerticalTextAlignment="End" />
-
-                                <SearchBar
-                                    x:Name="SearchSongSB"
-                                    Grid.Column="1"
-                                    BackgroundColor="Transparent"
-                                    HeightRequest="30"
-                                    Placeholder="Search Title, Artist, Album..."
-                                    TextChanged="SearchSongSB_TextChanged"
-                                    WidthRequest="300" />
-                            </Grid>
-
-                            <Grid x:Name="MainDock" RowDefinitions="0.1*,*">
-                                <Grid
-                                    Grid.Row="0"
-                                    Margin="10,0"
-                                    ColumnDefinitions="*,*,*,*,*">
-                                    <Grid.Resources>
-                                        <ResourceDictionary>
-                                            <Style TargetType="syncf:SfEffectsView">
-                                                <Setter Property="BackgroundColor" Value="Transparent" />
-                                            </Style>
-                                            <Style TargetType="Label">
-                                                <Setter Property="FontSize" Value="22" />
-                                                <Setter Property="VerticalOptions" Value="Center" />
-                                                <Setter Property="FontAttributes" Value="Bold" />
-                                            </Style>
-                                        </ResourceDictionary>
-                                    </Grid.Resources>
-                                    <syncf:SfEffectsView
-                                        Grid.Column="0"
-                                        LongPressEffects="Ripple"
-                                        LongPressed="ShortingTitle_LongPressed"
-                                        LongPressedCommandParameter="title"
-                                        TouchUp="ShortingTitle_TouchUp"
-                                        TouchUpCommandParameter="title"
-                                        TouchUpEffects="Highlight">
-                                        <HorizontalStackLayout HorizontalOptions="Center">
-
-                                            <Label Text="Title" />
-
-                                        </HorizontalStackLayout>
-                                    </syncf:SfEffectsView>
-
-
-                                    <syncf:SfEffectsView
-                                        Grid.Column="1"
-                                        LongPressed="ShortingTitle_LongPressed"
-                                        LongPressedCommandParameter="artist"
-                                        TouchUp="ShortingTitle_TouchUp"
-                                        TouchUpCommandParameter="artist"
-                                        TouchUpEffects="Highlight">
-                                        <HorizontalStackLayout HorizontalOptions="Center">
-
-                                            <Label Text="Artist" />
-
-                                        </HorizontalStackLayout>
-                                    </syncf:SfEffectsView>
-
-
-                                    <syncf:SfEffectsView
-                                        Grid.Column="2"
-                                        LongPressed="ShortingTitle_LongPressed"
-                                        LongPressedCommandParameter="album"
-                                        TouchUp="ShortingTitle_TouchUp"
-                                        TouchUpCommandParameter="album"
-                                        TouchUpEffects="Highlight">
-                                        <HorizontalStackLayout HorizontalOptions="Center">
-
-                                            <Label Text="Album" />
-
-                                        </HorizontalStackLayout>
-                                    </syncf:SfEffectsView>
-
-
-                                    <syncf:SfEffectsView
-                                        Grid.Column="3"
-                                        LongPressed="ShortingTitle_LongPressed"
-                                        LongPressedCommandParameter="genre"
-                                        TouchUp="ShortingTitle_TouchUp"
-                                        TouchUpCommandParameter="genre"
-                                        TouchUpEffects="Highlight">
-                                        <HorizontalStackLayout HorizontalOptions="Center">
-
-                                            <Label Text="Genre" />
-
-                                        </HorizontalStackLayout>
-                                    </syncf:SfEffectsView>
-
-
-                                    <syncf:SfEffectsView
-                                        x:Name="ShortingTitle"
-                                        Grid.Column="4"
-                                        LongPressed="ShortingTitle_LongPressed"
-                                        LongPressedCommandParameter="duration"
-                                        TouchUp="ShortingTitle_TouchUp"
-                                        TouchUpCommandParameter="duration"
-                                        TouchUpEffects="Highlight">
-                                        <HorizontalStackLayout HorizontalOptions="Center">
-
-                                            <Label Text="Duration" />
-
-                                        </HorizontalStackLayout>
-                                    </syncf:SfEffectsView>
-
-
-                                </Grid>
-
-
-                                <CollectionView
-                                    x:Name="SongsColView"
-                                    Grid.Row="1"
-                                    Margin="5,0"
-                                    BackgroundColor="Transparent"
-                                    Header="{Binding NowPlayingQueue.Count, StringFormat='Songs Displayed : {0}'}"
-                                    ItemsSource="{Binding PlaylistSongs}"
-                                    SizeChanged="SongsColView_SizeChanged"
-                                    VerticalScrollBarVisibility="Default">
-                                    <FlyoutBase.ContextFlyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem
-                                                x:Name="SongsUIContextMenu"
-                                                Clicked="SongsUIContextMenu_Clicked"
-                                                CommandParameter="0"
-                                                IconImageSource="user.png"
-                                                Text="{Static lang:DimmerLanguage.txt_artist}" />
-
-                                            <MenuFlyoutItem
-                                                Clicked="SongsUIContextMenu_Clicked"
-                                                CommandParameter="1"
-                                                IconImageSource="albumm.png"
-                                                Text="{Static lang:DimmerLanguage.txt_album}" />
-                                            <MenuFlyoutItem
-                                                Clicked="SongsUIContextMenu_Clicked"
-                                                CommandParameter="2"
-                                                IconImageSource="clapperboardedit.png"
-                                                Text="Edit Song" />
-
-                                            <MenuFlyoutItem
-                                                Clicked="SongsUIContextMenu_Clicked"
-                                                CommandParameter="1"
-                                                IconImageSource="albumm.png"
-                                                Text="{Static lang:DimmerLanguage.txt_folder}" />
-
-                                            <MenuFlyoutItem
-                                                Clicked="SongsUIContextMenu_Clicked"
-                                                CommandParameter="1"
-                                                IconImageSource="copy.png"
-                                                Text="Copy all song details to Clipbloard" />
-                                            <MenuFlyoutItem
-                                                Clicked="SongsUIContextMenu_Clicked"
-                                                CommandParameter="1"
-                                                IconImageSource="albumm.png"
-                                                IsDestructive="True"
-                                                Text="{Static lang:DimmerLanguage.txt_delete}" />
-                                        </MenuFlyout>
-                                    </FlyoutBase.ContextFlyout>
-                                    <CollectionView.EmptyView>
-                                        <VerticalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-
-                                            <syncf:SfChip
-                                                x:Name="GetStartedChip"
-                                                Clicked="GetStartedChip_Clicked"
-                                                Text="Get Started" />
-                                        </VerticalStackLayout>
-                                    </CollectionView.EmptyView>
-
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout ItemSpacing="3" Orientation="Vertical" />
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:SongModelView">
-                                            <Border
-                                                Padding="2"
-                                                BackgroundColor="Transparent"
-                                                HeightRequest="50"
-                                                StrokeShape="RoundRectangle 12">
-
-                                                <syncf:SfEffectsView
-                                                    x:Name="SongRow"
-                                                    BackgroundColor="Transparent"
-                                                    ToolTipProperties.Text="{Binding Title}"
-                                                    TouchDown="SongRow_TouchDown"
-                                                    TouchDownCommandParameter="{Binding .}"
-                                                    TouchDownEffects="Ripple,Selection">
-                                                    <Grid
-                                                        BackgroundColor="Transparent"
-                                                        ColumnDefinitions="*,*,*,*,*"
-                                                        ColumnSpacing="15">
-                                                        <Grid.GestureRecognizers>
-                                                            <TapGestureRecognizer
-                                                                x:Name="PlaySong"
-                                                                NumberOfTapsRequired="2"
-                                                                Tapped="PlaySong_Tapped" />
-
-                                                            <PointerGestureRecognizer PointerEntered="UserHoverOnSongInColView" PointerExited="UserHoverOutSongInColView" />
-
-                                                        </Grid.GestureRecognizers>
-                                                        <HorizontalStackLayout
-                                                            Grid.Column="0"
-                                                            HorizontalOptions="Start"
-                                                            VerticalOptions="Center">
-                                                            <VerticalStackLayout>
-
-                                                                <Image
-                                                                    BackgroundColor="Transparent"
-                                                                    HeightRequest="15"
-                                                                    HorizontalOptions="Start"
-                                                                    IsVisible="{Binding HasLyrics}"
-                                                                    Opacity="1"
-                                                                    Source="lyrics.png"
-                                                                    WidthRequest="15" />
-
-                                                                <Image
-                                                                    HorizontalOptions="Start"
-                                                                    IsVisible="{Binding IsCurrentPlayingHighlight}"
-                                                                    Opacity="1"
-                                                                    Source="songc.png"
-                                                                    WidthRequest="25" />
-                                                            </VerticalStackLayout>
-                                                            <Label
-                                                                Grid.Column="1"
-                                                                FontSize="14"
-                                                                HorizontalOptions="Start"
-                                                                LineBreakMode="TailTruncation"
-                                                                Text="{Binding Title}" />
-
-
-                                                        </HorizontalStackLayout>
-
-                                                        <syncf:SfChip
-                                                            Grid.Column="1"
-                                                            FontSize="14"
-                                                            HorizontalOptions="Start"
-                                                            StrokeThickness="0"
-                                                            Text="{Binding ArtistName}"
-                                                            TextColor="White" />
-
-                                                        <Label
-                                                            Grid.Column="2"
-                                                            FontSize="14"
-                                                            LineBreakMode="TailTruncation"
-                                                            Text="{Binding AlbumName}" />
-
-                                                        <Label
-                                                            Grid.Column="3"
-                                                            FontSize="14"
-                                                            HorizontalOptions="Center"
-                                                            LineBreakMode="TailTruncation"
-                                                            Text="{Binding Genre.Name}" />
-
-                                                        <Label
-                                                            Grid.Column="4"
-                                                            FontSize="14"
-                                                            HorizontalOptions="Center"
-                                                            Opacity="0.8"
-                                                            Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
-
-
-                                                    </Grid>
-
-                                                </syncf:SfEffectsView>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-
-                                <CollectionView
-                                    x:Name="LyricsColView"
-                                    Grid.Row="1"
-                                    IsVisible="False"
-                                    ItemsSource="{Binding SynchronizedLyrics}"
-                                    Loaded="LyricsColView_Loaded"
-                                    SelectedItem="{Binding CurrentLyricPhrase}"
-                                    SelectionChanged="LyricsColView_SelectionChanged"
-                                    SelectionMode="Single"
-                                    Unloaded="LyricsColView_Unloaded">
-                                    <CollectionView.EmptyView>
-                                        <VerticalStackLayout>
-                                            <Button Text="Search Lyrics" />
-                                        </VerticalStackLayout>
-                                    </CollectionView.EmptyView>
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:LyricPhraseModelView">
-
-                                            <Border
-                                                x:Name="LyrBorder"
-                                                HorizontalOptions="Center"
-                                                StrokeShape="RoundRectangle 20"
-                                                VerticalOptions="Center">
-                                                <Label
-                                                    FontAttributes="{Binding LyricsFontAttributes}"
-                                                    FontSize="{Binding NowPlayingLyricsFontSize}"
-                                                    HorizontalTextAlignment="Center"
-                                                    Text="{Binding Text}">
-
-                                                    <Label.GestureRecognizers>
-                                                        <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped" />
-                                                    </Label.GestureRecognizers>
-
-                                                </Label>
-                                                <VisualStateManager.VisualStateGroups>
-                                                    <VisualStateGroup x:Name="CommonStates">
-                                                        <VisualState x:Name="Normal">
-                                                            <VisualState.Setters>
-                                                                <Setter Property="BackgroundColor" Value="Transparent" />
-                                                            </VisualState.Setters>
-                                                        </VisualState>
-
-                                                        <VisualState x:Name="PointerOver">
-                                                            <VisualState.Setters>
-                                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                                            </VisualState.Setters>
-                                                        </VisualState>
-                                                    </VisualStateGroup>
-                                                </VisualStateManager.VisualStateGroups>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-
-                                </CollectionView>
-
-                                <Grid
-                                    x:Name="SearchLyricsGrid"
-                                    Grid.Row="1"
-                                    IsVisible="False">
-                                    <Border>
-                                        <Grid
-                                            Margin="5,5"
-                                            ColumnDefinitions="*,*"
-                                            RowDefinitions="*,Auto,*">
-                                            <Grid.Resources>
-                                                <converters:BoolToInverseConverter x:Key="BoolToInverse" />
-                                                <converters:CountToVisibilityConverter x:Key="CountToVisibility" />
-
-                                            </Grid.Resources>
-
-                                            <VerticalStackLayout
-                                                Grid.Row="0"
-                                                Grid.ColumnSpan="2"
-                                                Margin="5"
-                                                Spacing="10">
-
-                                                <Label Text="{Binding MySelectedSong.FilePath, StringFormat='Full Path: {0}'}" />
-                                                <Entry
-                                                    ClearButtonVisibility="WhileEditing"
-                                                    Placeholder="Song Title"
-                                                    Text="{Binding LyricsSearchSongTitle}" />
-                                                <Entry
-                                                    ClearButtonVisibility="WhileEditing"
-                                                    Placeholder="Song Album"
-                                                    Text="{Binding LyricsSearchAlbumName}" />
-                                                <Entry
-                                                    ClearButtonVisibility="WhileEditing"
-                                                    Placeholder="Song Artist"
-                                                    Text="{Binding LyricsSearchArtistName}" />
-
-                                                <HorizontalStackLayout Spacing="10">
-
-                                                    <Button
-                                                        x:Name="SearchLyricsOnLyrLib"
-                                                        Clicked="SearchLyricsOnLyrLib_Clicked"
-                                                        Text="Search Lyrics">
-
-                                                        <Button.CommandParameter>
-                                                            <x:Boolean>True</x:Boolean>
-                                                        </Button.CommandParameter>
-                                                    </Button>
-                                                    <Button
-                                                        x:Name="PasteLyricsFromClipBoardBtn"
-                                                        Clicked="PasteLyricsFromClipBoardBtn_Clicked"
-                                                        Text="Paste Lyrics" />
-                                                </HorizontalStackLayout>
-
-                                            </VerticalStackLayout>
-                                            <Grid
-                                                Grid.Row="1"
-                                                Grid.ColumnSpan="2"
-                                                ColumnDefinitions="*,*">
-                                                <HorizontalStackLayout Grid.Column="0" Spacing="10">
-                                                    <Button
-                                                        x:Name="PasteLyrPlainLyr"
-                                                        Clicked="PasteLyrPlainLyr_Clicked"
-                                                        Text="Paste From Plain Lyrics" />
-                                                    <Button
-                                                        x:Name="PasteLyrClipboard"
-                                                        Clicked="PasteLyrClipboard_Clicked"
-                                                        Text="Paste From Plain Lyrics" />
-                                                </HorizontalStackLayout>
-
-                                                <ImageButton
-                                                    x:Name="CancelAction"
-                                                    Grid.Column="1"
-                                                    Clicked="CancelAction_Clicked"
-                                                    HorizontalOptions="End"
-                                                    Source="backb.png" />
-                                            </Grid>
-
-
-                                            <Grid
-                                                x:Name="ManualSyncLyricsView"
-                                                Grid.Row="2"
-                                                Grid.Column="0"
-                                                Grid.ColumnSpan="2"
-                                                ColumnDefinitions="*,*"
-                                                RowDefinitions="Auto,*">
-                                                <ScrollView
-                                                    Grid.Row="1"
-                                                    Grid.Column="0"
-                                                    HorizontalOptions="Start">
-                                                    <VerticalStackLayout x:Name="PlainLyricSection" Spacing="5">
-
-                                                        <Button
-                                                            x:Name="StartSyncingBtn"
-                                                            Clicked="StartSyncing_Clicked"
-                                                            HorizontalOptions="Center"
-                                                            Text="Start Syncing" />
-                                                        <Editor
-                                                            x:Name="LyricsEditor"
-                                                            MinimumHeightRequest="350"
-                                                            MinimumWidthRequest="350"
-                                                            Placeholder="Paste Plain Lyrics Here !"
-                                                            Text="{Binding MySelectedSong.UnSyncLyrics}" />
-                                                    </VerticalStackLayout>
-
-                                                </ScrollView>
-
-                                                <Grid
-                                                    x:Name="SyncLyrView"
-                                                    Grid.Row="1"
-                                                    Grid.Column="1"
-                                                    IsVisible="False"
-                                                    RowDefinitions="*,Auto">
-                                                    <CollectionView Grid.Row="0" ItemsSource="{Binding LyricsLines}">
-                                                        <CollectionView.ItemTemplate>
-                                                            <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                                                <Border x:Name="SyncLyrLine">
-                                                                    <Border.GestureRecognizers>
-                                                                        <PointerGestureRecognizer PointerEntered="SyncLyrLine_PointerEntered" PointerExited="SyncLyrLine_PointerExited" />
-                                                                    </Border.GestureRecognizers>
-                                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
-                                                                        <Editor Grid.Column="0" Text="{Binding Text}" />
-                                                                        <HorizontalStackLayout Grid.Column="1">
-                                                                            <Editor Text="{Binding TimeStampText}" WidthRequest="70" />
-                                                                            <ImageButton
-                                                                                x:Name="DeleteLine"
-                                                                                Clicked="DeleteLine_Clicked"
-                                                                                CommandParameter="{Binding .}"
-                                                                                Source="backk.png" />
-                                                                            <ImageButton
-                                                                                x:Name="Stamp"
-                                                                                Clicked="Stamp_Clicked"
-                                                                                CommandParameter="{Binding .}"
-                                                                                Source="time.png"
-                                                                                WidthRequest="60" />
-                                                                        </HorizontalStackLayout>
-                                                                    </Grid>
-                                                                </Border>
-
-                                                            </DataTemplate>
-                                                        </CollectionView.ItemTemplate>
-                                                    </CollectionView>
-                                                    <Button
-                                                        x:Name="SaveCapturedLyrics"
-                                                        Grid.Row="1"
-                                                        Clicked="SaveCapturedLyrics_Clicked"
-                                                        Text="Save" />
-
-                                                </Grid>
-                                            </Grid>
-
-                                            <Grid Grid.Row="2" ColumnDefinitions="*,*">
-                                                <CollectionView
-                                                    x:Name="OnlineLyricsResView"
-                                                    Grid.ColumnSpan="1"
-                                                    x:DataType="vm:BaseViewModelWin"
-                                                    ItemsSource="{Binding AllSyncLyrics}">
-                                                    <CollectionView.EmptyView>
-                                                        <ContentView>
-                                                            <VerticalStackLayout
-                                                                x:Name="emptyV"
-                                                                BackgroundColor="Transparent"
-                                                                HorizontalOptions="Center"
-                                                                Spacing="5">
-                                                                <Label IsVisible="{Binding IsFetching}" Text="Searching..." />
-
-                                                                <Image
-                                                                    x:Name="Lookgif"
-                                                                    HeightRequest="0"
-                                                                    IsAnimationPlaying="False"
-                                                                    IsVisible="False"
-                                                                    Source="eyes.gif"
-                                                                    WidthRequest="0" />
-                                                                <Image
-                                                                    x:Name="fetchFailed"
-                                                                    HeightRequest="100"
-                                                                    IsAnimationPlaying="False"
-                                                                    IsVisible="False"
-                                                                    Source="stop.png"
-                                                                    WidthRequest="100" />
-
-                                                                <Label
-                                                                    x:Name="NoLyricsFoundMsg"
-                                                                    IsVisible="False"
-                                                                    Text="Service is Unavailable, try again !" />
-                                                            </VerticalStackLayout>
-
-                                                        </ContentView>
-                                                    </CollectionView.EmptyView>
-                                                    <CollectionView.ItemTemplate>
-                                                        <DataTemplate x:DataType="models:LyricsDownloadContent">
-
-                                                            <Border
-                                                                Margin="0,5"
-                                                                Padding="10"
-                                                                Stroke="DarkSlateBlue"
-                                                                StrokeShape="RoundRectangle, 10">
-                                                                <VerticalStackLayout HorizontalOptions="Start">
-
-                                                                    <Label HorizontalTextAlignment="Center" Text="{Binding TrackName, StringFormat='Song Title: {0}'}" />
-
-                                                                    <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}" />
-
-                                                                    <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}" />
-
-                                                                    <HorizontalStackLayout IsVisible="{Binding Instrumental}">
-                                                                        <Label Text="Song is an Intrumental" />
-                                                                    </HorizontalStackLayout>
-
-                                                                    <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
-
-                                                                        <Button
-                                                                            BackgroundColor="#5A4CA3"
-                                                                            Clicked="ViewLyricsBtn_Clicked"
-                                                                            HorizontalOptions="Center"
-                                                                            IsVisible="{Binding IsSynced, Converter={x:StaticResource BoolToInverse}}"
-                                                                            Text="Plain Lyrics" />
-
-                                                                        <Button
-                                                                            Clicked="ViewLyricsBtn_Clicked"
-                                                                            HorizontalOptions="Center"
-                                                                            IsVisible="{Binding IsSynced}"
-                                                                            Text="Synced Lyrics" />
-                                                                    </HorizontalStackLayout>
-                                                                </VerticalStackLayout>
-                                                            </Border>
-
-                                                        </DataTemplate>
-                                                    </CollectionView.ItemTemplate>
-                                                </CollectionView>
-
-                                                <ScrollView
-                                                    x:Name="LyricPrewiewUI"
-                                                    Grid.Column="1"
-                                                    IsVisible="False">
-                                                    <Grid
-                                                        x:Name="LyricsResultView"
-                                                        Padding="10"
-                                                        BackgroundColor="Transparent"
-                                                        IsVisible="True"
-                                                        RowDefinitions="30,Auto,50">
-                                                        <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center">
-                                                            <HorizontalStackLayout HorizontalOptions="Center">
-                                                                <Label x:Name="SynceOrPlainTitle" />
-                                                            </HorizontalStackLayout>
-
-                                                        </VerticalStackLayout>
-
-                                                        <Label
-                                                            x:Name="LyricsView"
-                                                            Grid.Row="1"
-                                                            Padding="10"
-                                                            HorizontalTextAlignment="Start"
-                                                            LineBreakMode="WordWrap"
-                                                            Text="Lyrics"
-                                                            VerticalOptions="Start" />
-
-                                                        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="End">
-                                                            <Button
-                                                                BackgroundColor="Black"
-                                                                BorderColor="Black"
-                                                                Clicked="CloseButton_Clicked"
-                                                                Text="Cancel"
-                                                                TextColor="Red" />
-                                                            <Button Clicked="OkButton_Clicked" Text="Save" />
-                                                        </HorizontalStackLayout>
-                                                    </Grid>
-                                                </ScrollView>
-                                            </Grid>
-
-                                        </Grid>
-                                    </Border>
-                                </Grid>
-
-
-                                <Grid
-                                    x:Name="ControlPanel"
-                                    Grid.Row="1"
-                                    IsVisible="False"
-                                    RowDefinitions="auto,*">
-                                    <Grid Grid.Row="0">
-                                        <syncf:SfChip
-                                            x:Name="CloseAllWin"
-                                            Clicked="CloseAllWin_Clicked"
-                                            Text="Close All Windows" />
-
-                                    </Grid>
-
-                                    <CollectionView x:Name="ControlPanelColView" Grid.Row="1">
-                                        <CollectionView.ItemsLayout>
-                                            <GridItemsLayout Orientation="Vertical" Span="2" />
-                                        </CollectionView.ItemsLayout>
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="modeltwo:WindowInfo">
-                                                <VerticalStackLayout>
-                                                    <HorizontalStackLayout HorizontalOptions="End">
-                                                        <syncf:SfChip
-                                                            x:Name="FocusChip"
-                                                            Clicked="FocusChip_Clicked"
-                                                            FontSize="20"
-                                                            Text="Focus"
-                                                            TextColor="White" />
-                                                        <syncf:SfChip
-                                                            x:Name="CloseSubWindowChip"
-                                                            Clicked="CloseSubWindowChip_Clicked"
-                                                            FontSize="20"
-                                                            Text="Close"
-                                                            TextColor="White" />
-                                                    </HorizontalStackLayout>
-
-                                                    <VerticalStackLayout BackgroundColor="Transparent">
-                                                        <Border StrokeShape="RoundRectangle 20">
-
-                                                            <syncf:SfEffectsView BackgroundColor="Transparent">
-                                                                <syncf:SfEffectsView.Content>
-                                                                    <VerticalStackLayout>
-                                                                        <Label
-                                                                            FontSize="19"
-                                                                            HorizontalOptions="Center"
-                                                                            LineBreakMode="TailTruncation"
-                                                                            Text="{Binding Title}" />
-                                                                        <Label
-                                                                            FontSize="19"
-                                                                            HorizontalOptions="Center"
-                                                                            LineBreakMode="TailTruncation"
-                                                                            Text="{Binding TypeName}" />
-
-                                                                    </VerticalStackLayout>
-
-                                                                </syncf:SfEffectsView.Content>
-
-                                                            </syncf:SfEffectsView>
-
-                                                        </Border>
-                                                    </VerticalStackLayout>
-                                                </VerticalStackLayout>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>
-                                </Grid>
-
-                                <Grid
-                                    x:Name="SettingsPanel"
-                                    Grid.Row="1"
-                                    IsVisible="False"
-                                    RowDefinitions="*">
-                                    <syncf:SfTabView>
-                                        <syncf:SfTabItem
-                                            BackgroundColor="Red"
-                                            Header=""
-                                            HeightRequest="0">
-                                            <syncf:SfTabItem.Content>
-                                                <Grid RowDefinitions="Auto,Auto">
-
-                                                    <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center">
-                                                        <Label Text="Folders Preference" />
-                                                    </HorizontalStackLayout>
-
-                                                    <Grid Grid.Row="1" RowDefinitions="Auto,auto,auto">
-                                                        <HorizontalStackLayout
-                                                            Grid.Row="0"
-                                                            HorizontalOptions="Center"
-                                                            Spacing="15">
-                                                            <Label
-                                                                FontSize="14"
-                                                                HorizontalOptions="Start"
-                                                                Text="Music Folder" />
-                                                            <Button
-                                                                x:Name="AddNewMusicFolder"
-                                                                Clicked="AddNewMusicFolder_Clicked"
-                                                                Text="Add" />
-                                                        </HorizontalStackLayout>
-
-                                                        <CollectionView
-                                                            Grid.Row="1"
-                                                            Header="Logs"
-                                                            ItemsSource="{Binding FolderPaths}" />
-                                                        <CollectionView Grid.Row="2" ItemsSource="{Binding ScanningLogs}">
-                                                            <CollectionView.ItemTemplate>
-                                                                <DataTemplate x:DataType="models:AppLogModel">
-                                                                    <VerticalStackLayout>
-
-                                                                        <Label
-                                                                            FontSize="19"
-                                                                            Text="{Binding Log}"
-                                                                            TextColor="Orange" />
-                                                                        <Label
-                                                                            FontSize="17"
-                                                                            Text="{Binding ViewSongModel.Title}"
-                                                                            TextColor="Orange" />
-                                                                        <Label
-                                                                            FontSize="15"
-                                                                            Text="{Binding ViewSongModel.ArtistName}"
-                                                                            TextColor="Orange" />
-                                                                    </VerticalStackLayout>
-                                                                </DataTemplate>
-                                                            </CollectionView.ItemTemplate>
-                                                        </CollectionView>
-                                                    </Grid>
-
-
-
-                                                </Grid>
-                                            </syncf:SfTabItem.Content>
-                                        </syncf:SfTabItem>
-
-                                        <syncf:SfTabItem>
-                                            <syncf:SfTabItem.Content>
-                                                <Grid ColumnDefinitions="*" ColumnSpacing="5">
-                                                    <Border
-                                                        Grid.Column="0"
-                                                        Padding="5"
-                                                        BackgroundColor="Transparent"
-                                                        HeightRequest="500"
-                                                        StrokeShape="RoundRectangle 10"
-                                                        StrokeThickness="0"
-                                                        StyleClass="Elevation2"
-                                                        WidthRequest="550">
-                                                        <syncf:SfTabView>
-                                                            <syncf:SfTabItem Header="Login">
-                                                                <syncf:SfTabItem.Content>
-                                                                    <VerticalStackLayout
-                                                                        Grid.Row="0"
-                                                                        Padding="15"
-                                                                        Spacing="15">
-
-                                                                        <material:TextField Title="Email" Keyboard="Email" />
-                                                                        <material:TextField Title="Password" IsPassword="True" />
-                                                                        <syncf:SfChip
-                                                                            FontSize="24"
-                                                                            HorizontalOptions="Center"
-                                                                            Text="Login" />
-                                                                    </VerticalStackLayout>
-                                                                </syncf:SfTabItem.Content>
-                                                            </syncf:SfTabItem>
-
-                                                            <syncf:SfTabItem Header="Sign Up">
-                                                                <syncf:SfTabItem.Content>
-                                                                    <VerticalStackLayout
-                                                                        Grid.Row="0"
-                                                                        Padding="15"
-                                                                        Spacing="15">
-
-                                                                        <material:TextField Title="Email" Keyboard="Email" />
-                                                                        <material:TextField Title="User Name" />
-                                                                        <material:TextField Title="Password" IsPassword="True" />
-
-                                                                        <syncf:SfChip
-                                                                            FontSize="24"
-                                                                            HorizontalOptions="Center"
-                                                                            Text="Create An Account" />
-                                                                    </VerticalStackLayout>
-                                                                </syncf:SfTabItem.Content>
-                                                            </syncf:SfTabItem>
-                                                        </syncf:SfTabView>
-
-                                                    </Border>
-
-                                                </Grid>
-                                            </syncf:SfTabItem.Content>
-                                        </syncf:SfTabItem>
-                                    </syncf:SfTabView>
-                                </Grid>
-
-                                <Grid
-                                    x:Name="UserNoteView"
-                                    Grid.Row="1"
-                                    BackgroundColor="Transparent"
-                                    IsVisible="False"
-                                    RowDefinitions="auto,*,auto">
-                                    <Border
-                                        Grid.Row="0"
-                                        Margin="10"
-                                        BackgroundColor="Transparent"
-                                        StrokeShape="RoundRectangle 10"
-                                        StrokeThickness="1"
-                                        StyleClass="Elevation2">
-                                        <VerticalStackLayout>
-                                            <Label
-                                                FontAttributes="Bold"
-                                                FontSize="23"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding TemporarilyPickedSong.Title}" />
-                                            <Label
-                                                FontAttributes="Bold"
-                                                FontSize="23"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding TemporarilyPickedSong.ArtistName}" />
-
-                                        </VerticalStackLayout>
-                                    </Border>
-                                    <CollectionView Grid.Row="1" ItemsSource="{Binding TemporarilyPickedSong.UserNote}">
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:UserNoteModelView">
-                                                <VerticalStackLayout>
-                                                    <HorizontalStackLayout Spacing="10">
-                                                        <Label
-                                                            FontSize="18"
-                                                            Text="May 5th 2025"
-                                                            TextColor="White" />
-                                                        <Label
-                                                            FontSize="17"
-                                                            Text="14:44"
-                                                            TextColor="Grey" />
-                                                    </HorizontalStackLayout>
-                                                    <Label
-                                                        FontSize="23"
-                                                        Text="{Binding UserMessageText}"
-                                                        TextColor="Grey" />
-                                                </VerticalStackLayout>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>
-                                    <Grid Grid.Row="2">
-                                        <Border
-                                            Padding="5"
-                                            BackgroundColor="#192120"
-                                            StrokeShape="RoundRectangle 10,10,0,0">
-                                            <Grid ColumnDefinitions="50,*,80">
-                                                <Button
-                                                    x:Name="AddAttachmentBtn"
-                                                    Grid.Column="0"
-                                                    BackgroundColor="Transparent"
-                                                    Clicked="AddAttachmentBtn_Clicked"
-                                                    ImageSource="addcircle.png"
-                                                    TextColor="{AppThemeBinding Dark=White,
-                                                                                Light=Black}" />
-                                                <material:EditorField
-                                                    x:Name="NoteText"
-                                                    Grid.Column="1"
-                                                    BackgroundColor="{AppThemeBinding Dark=#040606,
-                                                                                      Light=#DAE2FF}"
-                                                    BorderThickness="0"
-                                                    CornerRadius="20"
-                                                    HeightRequest="50"
-                                                    IsTextPredictionEnabled="True"
-                                                    TextColor="{AppThemeBinding Dark=White,
-                                                                                Light=Black}" />
-
-
-                                                <Button
-                                                    Grid.Column="2"
-                                                    BackgroundColor="Transparent"
-                                                    Clicked="SaveNoteBtn_Clicked"
-                                                    ImageSource="multipleforwardright.png"
-                                                    Text="Save"
-                                                    TextColor="{AppThemeBinding Dark=White,
-                                                                                Light=Black}" />
-                                            </Grid>
-                                        </Border>
-
-                                        <syncf:SfExpander
-                                            x:Name="ThoughtBtmSheetBottomSheet"
-                                            FlowDirection="RightToLeft"
-                                            IsVisible="False">
-                                            <syncf:SfExpander.Content>
-                                                <VerticalStackLayout Margin="10,0">
-                                                    <VerticalStackLayout.Resources>
-                                                        <ResourceDictionary>
-                                                            <Style TargetType="Button">
-                                                                <Setter Property="BackgroundColor" Value="Transparent" />
-                                                                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
-
-                                                                <Setter Property="HeightRequest" Value="100" />
-                                                                <Setter Property="FontSize" Value="20" />
-                                                            </Style>
-                                                        </ResourceDictionary>
-                                                    </VerticalStackLayout.Resources>
-                                                    <Button x:Name="AddPhotoNote" Text="Save A Frame">
-                                                        <Button.ImageSource>
-                                                            <FontImageSource FontFamily="FontAwesomeRegular" Glyph="image" />
-                                                        </Button.ImageSource>
-                                                    </Button>
-                                                    <BoxView HeightRequest="1" Color="DarkSlateBlue" />
-                                                    <Button
-                                                        x:Name="AddVoiceNote"
-                                                        ImageSource="microphone.png"
-                                                        Text="Save a Word" />
-                                                    <Button x:Name="AddGifNote" Text="Save a Gif">
-                                                        <Button.ImageSource>
-                                                            <FontImageSource FontFamily="FontAwesomeRegular" Glyph="image" />
-                                                        </Button.ImageSource>
-                                                    </Button>
-                                                </VerticalStackLayout>
-                                            </syncf:SfExpander.Content>
-
-                                        </syncf:SfExpander>
-
-                                    </Grid>
-                                </Grid>
-
-                            </Grid>
-
-                        </Grid>
-
-                    </Grid>
-
-
-                </Grid>
-
-                <Grid
-                    x:Name="SendPage"
-                    Grid.Row="2"
-                    Margin="10,5"
-                    IsVisible="False" />
+                <CollectionView x:Name="MainSongsColView"
+                                Grid.Row="2" EmptyView="No Songs.."
+                                IsVisible="True"
+                                ItemsSource="{Binding NowPlayingDisplayQueue}"
+                                />
             </Grid>
         </Grid>
 
-    </Grid>-->
+
+
+    </Grid>
 
 </ContentPage>

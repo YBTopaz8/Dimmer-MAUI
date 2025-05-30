@@ -183,7 +183,7 @@ public class MainActivity : MauiAppCompatActivity
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
 
         SetStatusBarColor();
-        FirstTimeBubbleSetup(Platform.AppContext);
+        //FirstTimeBubbleSetup(Platform.AppContext);
         return;
 
 

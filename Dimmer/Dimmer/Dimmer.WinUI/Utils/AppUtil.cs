@@ -22,6 +22,8 @@ public class AppUtil : IAppUtil
         dimmerWin.Height = 850;
         dimmerWin.Width = 1100;
 
+
+        
         return dimmerWin;
     }
     public DimmerWin? dimmerWin { get; set; }

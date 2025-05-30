@@ -38,14 +38,13 @@ public class FolderMgtService : IFolderMgtService
         ISettingsService settingsService,
         IFolderMonitorService folderMonitor,
         ILibraryScannerService libraryScanner, // Injected
-        ProcessingConfig config, // Injected or from settings
         ILogger<FolderMgtService> logger)     // Injected
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _folderMonitor = folderMonitor ?? throw new ArgumentNullException(nameof(folderMonitor));
         _libraryScanner = libraryScanner ?? throw new ArgumentNullException(nameof(libraryScanner));
-        _config = config ?? new ProcessingConfig();
+        _config =  new ProcessingConfig();
         _logger = logger ?? NullLogger<FolderMgtService>.Instance;
 
         // No automatic subscriptions to _folderMonitor here.

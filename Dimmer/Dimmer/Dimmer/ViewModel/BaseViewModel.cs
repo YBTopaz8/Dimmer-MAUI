@@ -175,6 +175,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public void Initialize()
     {
         InitializeViewModelSubscriptions();
+        NowPlayingDisplayQueue.Add(new() { Title="Test Yvan" });
+        NowPlayingDisplayQueue.Add(new() { Title="Test Yvan2" });
     }
 
     protected virtual void InitializeViewModelSubscriptions() // Changed from Initialize to avoid name clash if derived
