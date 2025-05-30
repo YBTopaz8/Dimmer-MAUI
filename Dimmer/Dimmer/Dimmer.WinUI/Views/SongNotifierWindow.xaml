@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.Views.SongNotifierWindow"
              xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
-             x:DataType="vm:HomeViewModel"
+             
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
-             xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
+             
              x:Name="myPage" 
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              Title="SongNotifierWindow">
@@ -25,7 +25,7 @@
                 <converters:VolumeConverter x:Key="VolConverter" />
 
             </ContentPage.Resources>
-            <Grid ColumnDefinitions="200,*,60" HeightRequest="250">
+            <!--<Grid ColumnDefinitions="200,*,60" HeightRequest="250">
                 <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
                        Grid.Column="0"/>
                 <VerticalStackLayout Grid.Column="1">
@@ -47,7 +47,7 @@
                Margin="0,5,0,0"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
-            </Grid>
+            </Grid>-->
         </ContentPage>
     </Window.Page>
 </Window>

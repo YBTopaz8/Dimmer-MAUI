@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Interfaces.Services;
-public class DimmerSettingsService : ISettingsService
+public partial class DimmerSettingsService : ISettingsService
 {
     private readonly Realm _realm;
     private AppStateModel _model;
@@ -113,22 +113,28 @@ public class DimmerSettingsService : ISettingsService
     public IList<string> UserMusicFoldersPreference
         => _model.UserMusicFoldersPreference;
 
+    public double LastVolume { get; set; }
+    public bool MinimizeToTrayPreference { get; set; }
+
+
+
     // Add a folder
     public void AddMusicFolder(string path)
     {
 
-        _realm.Write(() => {
+        _realm.Write(() =>
+        {
             _model.UserMusicFoldersPreference.Add(path);
-            
-        
-            });
+
+
+        });
     }
 
     // Remove a folder
     public bool RemoveMusicFolder(string path)
     {
         if (!_model.UserMusicFoldersPreference.Contains(path))
-        
+
             return false;
         _realm.Write(() => _model.UserMusicFoldersPreference.Remove(path));
         return true;
@@ -149,4 +155,6 @@ public class DimmerSettingsService : ISettingsService
                 _model.UserMusicFoldersPreference.Add(p);
         });
     }
+
+
 }

@@ -1,29 +1,30 @@
 ﻿
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using Android.Content;
 using Android.Graphics.Drawables;
 using Android.OS;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.Fragment.App;
+using Dimmer.Utils.PageAnimations;
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.BottomSheet;
 using Google.Android.Material.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls.Platform.Compatibility;
 using Microsoft.Maui.Graphics;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
 using AColor = Android.Graphics.Color;
 using AView = Android.Views.View;
 using IMenu = Android.Views.IMenu;
 using LP = Android.Views.ViewGroup.LayoutParams;
 using Orientation = Android.Widget.Orientation;
 using View = Android.Views.View;
-using Microsoft.Maui.Controls.Platform.Compatibility;
-using System.Diagnostics;
-using Android.Util;
-using AndroidX.Fragment.App;
 
 namespace Dimmer.CustomShellRenderers;
 public partial class MyShellItemRenderer : ShellItemRenderer
@@ -379,29 +380,106 @@ public partial class MyShellItemRenderer : ShellItemRenderer
 
         return _moreBottomSheetDialogInstance;
     }
-
+    protected string GetPageIdentifier(Page page)
+    {
+        // Use a consistent identifier for the page type.
+        // Routing.GetRoute(page) might work if pages are always navigated via route.
+        // Otherwise, page.GetType().Name is usually safe.
+        return page.GetType().Name;
+    }
     protected override void SetupAnimation(ShellNavigationSource navSource, FragmentTransaction t, Page page)
     {
-        var anim = Resource.Animation.dimmer_fade_in;
-        var anout = Resource.Animation.dimmer_fade_out;
-        var pop = HelperConverter.GetPop();
+        var _animationService = IPlatformApplication.Current.Services.GetService<IAnimationService>();
+        // The 'page' parameter is the one being navigated TO or revealed.
+
+        string pageIdentifier = GetPageIdentifier(page);
+
+        int enterAnim;
+        int exitAnim;
+        int popEnterAnim;
+        int popExitAnim;
+
+        if (page is HomePage)
+        {
+            enterAnim = _animationService.GetHomePagePushEnterAnimation().ResourceId;
+            exitAnim = _animationService.GetHomePagePushExitAnimation().ResourceId;
+            popEnterAnim = _animationService.GetHomePagePopEnterAnimation().ResourceId;
+            popExitAnim = _animationService.GetHomePagePopExitAnimation().ResourceId;
+        }
+        else
+        {
+            // Load user's preferences for this page, or fall back to global defaults
+            var defaultPushEnter = _animationService.GetDefaultPushEnterAnimation().ResourceId;
+            var defaultPushExit = _animationService.GetDefaultPushExitAnimation().ResourceId;
+            var defaultPopEnter = _animationService.GetDefaultPopEnterAnimation().ResourceId;
+            var defaultPopExit = _animationService.GetDefaultPopExitAnimation().ResourceId;
+
+            enterAnim = Preferences.Get($"{pageIdentifier}_PushEnterAnim", defaultPushEnter);
+            exitAnim = Preferences.Get($"{pageIdentifier}_PushExitAnim", defaultPushExit);
+            popEnterAnim = Preferences.Get($"{pageIdentifier}_PopEnterAnim", defaultPopEnter);
+            popExitAnim = Preferences.Get($"{pageIdentifier}_PopExitAnim", defaultPopExit);
+        }
+
+        // The SetCustomAnimations parameters are:
+        // 1. Enter animation for the fragment being added/shown.
+        // 2. Exit animation for the fragment being removed/hidden.
+        // 3. Enter animation for a fragment if this transaction is popped from the back stack.
+        // 4. Exit animation for a fragment if this transaction is popped from the back stack.
+
+        // For ShellNavigationSource.Push:
+        // - `enterAnim` is for `page` (the new page).
+        // - `exitAnim` is for the *previous* page.
+        // - `popEnterAnim` is for the *previous* page when `page` is popped.
+        // - `popExitAnim` is for `page` when it's popped.
+
+        // For ShellNavigationSource.Pop:
+        // - `page` is the one being revealed.
+        // - The `enterAnim` here should be what `page` uses for its "pop enter".
+        // - The `exitAnim` here should be what the *page being removed* uses for its "pop exit".
+        // This means the logic can be complex if you want true per-page exit/popExit behavior
+        // for the *other* page in the transaction.
+
+        // A common simplification: the incoming/target page's settings dictate the whole transition.
+        // Your original structure was `t.SetCustomAnimations(anim, anout, anim, anout);`
+        // This means `popEnter` is the same as `enter`, and `popExit` is the same as `exit`.
+        // We'll use the 4 distinct values we've loaded.
+
         switch (navSource)
         {
             case ShellNavigationSource.Push:
-                t.SetCustomAnimations(anim, anout);
+                // When pushing `page`:
+                // `enterAnim` for `page`
+                // `exitAnim` for previous page (defined by `page`'s settings)
+                // `popEnterAnim` for previous page if `page` is popped (defined by `page`'s settings)
+                // `popExitAnim` for `page` if it's popped
+                t.SetCustomAnimations(enterAnim, exitAnim, popEnterAnim, popExitAnim);
                 break;
 
             case ShellNavigationSource.Pop:
             case ShellNavigationSource.PopToRoot:
-
-                t.SetCustomAnimations(anim, anout);
+                // When popping TO `page`:
+                // `page` is entering with its `popEnterAnim`.
+                // The page being removed is exiting with its `popExitAnim` (defined by `page`'s settings).
+                // The other two parameters are for the "reverse" of this pop, which is less common.
+                // We'll use `popEnterAnim` for the revealed page and `popExitAnim` for the removed page.
+                // The remaining two are for the reverse (pushing back what was just popped).
+                t.SetCustomAnimations(popEnterAnim, popExitAnim, enterAnim, exitAnim);
                 break;
 
             case ShellNavigationSource.ShellSectionChanged:
+                // Tab changes often use simpler fades or specific horizontal slides.
+                // You might want a separate set of preferences for section changes or use a fixed animation.
+                // For now, let's use the push animations.
+                t.SetCustomAnimations(enterAnim, exitAnim); // Often only needs 2 for non-backstack operations
+                                                            // Or a specific animation for tab changes:
+                t.SetCustomAnimations(Resource.Animation.m3_motion_fade_enter, Resource.Animation.m3_motion_fade_exit);
+                break;
+            default:
+                base.SetupAnimation(navSource, t, page); // Fallback to default MvvmCross behavior
                 break;
         }
-
     }
+
     protected override Drawable CreateItemBackgroundDrawable()
     {
         var stateList = ColorStateList.ValueOf(PublicStats.RippleColor);

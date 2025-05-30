@@ -2,8 +2,8 @@
 <Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.DimmerWin"
-             xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
-             x:DataType="vm:HomeViewModel"
+        xmlns:vm ="clr-namespace:Dimmer.WinUI.ViewModel"
+x:DataType="vm:BaseViewModelWin"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
@@ -54,5 +54,5 @@
         </TitleBar>
 
     </Window.TitleBar>
-    
+
 </Window>

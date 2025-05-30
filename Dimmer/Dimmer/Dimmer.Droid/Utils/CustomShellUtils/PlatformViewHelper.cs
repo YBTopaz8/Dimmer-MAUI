@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AView = Android.Views.View;
 
-namespace Dimmer.Utils;
+namespace Dimmer.Utils.CustomShellUtils;
 
 public static class PlatformViewHelper
 {
@@ -13,7 +13,7 @@ public static class PlatformViewHelper
     {
         if (mauiView == null)
         {
-            System.Diagnostics.Debug.WriteLine("GetNativeView: MAUI View is null.");
+            Debug.WriteLine("GetNativeView: MAUI View is null.");
             return null;
         }
 
@@ -33,18 +33,18 @@ public static class PlatformViewHelper
 
         if (mauiContext == null)
         {
-            System.Diagnostics.Debug.WriteLine($"GetNativeView: Could not determine IMauiContext for MAUI View: {mauiView.GetType().Name}. Ensure the view is part of the visual tree or has a Handler.");
+            Debug.WriteLine($"GetNativeView: Could not determine IMauiContext for MAUI View: {mauiView.GetType().Name}. Ensure the view is part of the visual tree or has a Handler.");
             // As a last resort, if you are sure there's a global context (e.g., for views added very late or programmatically without a parent yet)
             // This is less safe as it assumes a single window scenario or that the view will eventually belong to it.
             // mauiContext = MauiApplication.Current?.Application?.Handler?.MauiContext; // Might not always work
-            if (Microsoft.Maui.MauiApplication.Current?.Services != null)
+            if (MauiApplication.Current?.Services != null)
             {
-                mauiContext = Microsoft.Maui.MauiApplication.Current.Services.GetService<IMauiContext>();
+                mauiContext = MauiApplication.Current.Services.GetService<IMauiContext>();
             }
 
             if (mauiContext == null)
             {
-                System.Diagnostics.Debug.WriteLine("GetNativeView: Fallback to global IMauiContext also failed.");
+                Debug.WriteLine("GetNativeView: Fallback to global IMauiContext also failed.");
                 return null;
             }
         }
@@ -56,9 +56,9 @@ public static class PlatformViewHelper
             var platformView = mauiView.ToPlatform(mauiContext);
             return platformView as AView;
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"GetNativeView: Exception during ToPlatform for {mauiView.GetType().Name}: {ex.Message}");
+            Debug.WriteLine($"GetNativeView: Exception during ToPlatform for {mauiView.GetType().Name}: {ex.Message}");
             return null;
         }
     }

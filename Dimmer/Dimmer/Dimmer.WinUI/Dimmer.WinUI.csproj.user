@@ -43,9 +43,6 @@
     <MauiXaml Update="Views\SingleSongPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <Page Update="Views\TestPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <MauiXaml Update="Views\CustomViews\MediaControlBtmBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

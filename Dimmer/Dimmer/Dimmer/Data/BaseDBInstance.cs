@@ -28,58 +28,15 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 21,
+            SchemaVersion = 22,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
-                
-                if (oldSchemaVersion < 4)
-                {
-                    
-                }
-                
-                if (oldSchemaVersion < 5)
-                {
-                   
-                }
-                if (oldSchemaVersion < 6)
-                {
-                    
-                   
-                }
-                if (oldSchemaVersion < 7)
-                {
-                    
-                   
-                }
-                if (oldSchemaVersion < 8)
-                {
-                    
-                   
-                }
-                if (oldSchemaVersion < 9)
-                {
-                    
-                   
-                }
-                if (oldSchemaVersion < 10)
-                {
-                    
-                   
-                }
-                if (oldSchemaVersion < 11)
-                {
-                    
-                   
-                }
-                if (oldSchemaVersion < 12)
-                {
-                    
-                   
-                }
+
+
                 if (oldSchemaVersion < 21) // or your relevant version
                 {
                     var songs = migration.NewRealm.All<SongModel>();
-                    var idGroups = songs.ToList().GroupBy(s => s.Id).Where(g => g.Count() > 1);
+                    var idGroups = songs.AsEnumerable().GroupBy(s => s.Id).Where(g => g.Count() > 1);
 
                     foreach (var group in idGroups)
                     {

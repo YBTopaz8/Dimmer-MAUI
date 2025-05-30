@@ -24,7 +24,8 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// </value>
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
-    public IList<string>? SongInPlaylist { get; }
+    public bool IsNewOrModified { get; set; }
+    public IList<SongModel>? SongsInPlaylist { get; }
     public string? CurrentSongId { get; set; }
     public string? Description { get; set; }
     public string? CoverImagePath { get; set; }
@@ -33,8 +34,8 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
 
     public IList<PlaylistEvent>? PlaylistEvents { get; }
     public IList<SongModel> Songs { get; }
-    public string? DeviceName { get; set; } 
-    
+    public string? DeviceName { get; set; }
+
     public UserModel? User { get; set; }
     //3 PL ; general,
     // invisible when in an artist/album
@@ -47,7 +48,7 @@ public partial class PlaylistEvent : EmbeddedObject
     public int PlayTypeValue { get; set; }
 
     // This property is for your code; Realm will ignore it.
-    
+
     public PlayType PlayType
     {
         get => (PlayType)PlayTypeValue;

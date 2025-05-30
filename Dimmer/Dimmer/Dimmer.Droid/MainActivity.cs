@@ -276,8 +276,10 @@ public class MainActivity : MauiAppCompatActivity
 #if RELEASE
      Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
 #elif DEBUG
-        //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-        Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+        
+        //Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
                                                                       // Tells the Window to draw under the status bar
 
 

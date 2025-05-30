@@ -8,6 +8,7 @@ namespace Dimmer.Data.Models;
 public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
 {
 
+    public bool IsNewOrModified { get; set; }
 
     /// <summary>
     /// Gets or sets the name.
@@ -101,18 +102,21 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public ObjectId Id { get; set; } 
+    public ObjectId Id { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AlbumModel"/> class.
     /// </summary>
+    public IList<ArtistModel> ArtistIds { get; }
 
     [Backlink(nameof(SongModel.Album))]
-    public IQueryable<SongModel>? Songs { get; }
+    public IQueryable<SongModel>? SongsInAlbum { get; }
+
+    public IList<TagModel> Tags { get; }
 
     public IList<UserNoteModel>? UserNotes { get; }
     public AlbumModel()
     {
     }
-    
+
 }

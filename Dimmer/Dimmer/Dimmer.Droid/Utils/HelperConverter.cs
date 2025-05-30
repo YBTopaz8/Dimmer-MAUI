@@ -72,7 +72,7 @@ public static class HelperConverter
 
     private static Android.Views.Animations.Animation? GetAnimation(TransitionType anim)
     {
-        int animRes;
+        int animRes = 0;
         switch (anim)
         {
             case TransitionType.FadeIn:
@@ -119,10 +119,10 @@ public static class HelperConverter
                 break;
         }
 
-        var animObj = AnimationUtils.LoadAnimation(Platform.AppContext, Resource.Animation.abc_fade_in);
+        var animObj = AnimationUtils.LoadAnimation(Platform.AppContext, animRes);
 
         // Example: always use fast_out_slow_in for modern feel
-        var interpolator = AnimationUtils.LoadInterpolator(Platform.AppContext, Android.Resource.Interpolator.DecelerateCubic);
+        var interpolator = AnimationUtils.LoadInterpolator(Platform.AppContext, Android.Resource.Interpolator.Bounce);
         animObj.Interpolator = interpolator;
 
         return animObj;

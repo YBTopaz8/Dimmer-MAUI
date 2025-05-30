@@ -1,297 +1,280 @@
 ﻿using System.Reactive.Disposables;
-using Dimmer.Utilities.Extensions;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
+using Dimmer.Data.Models;
+using Dimmer.Interfaces; // For IMapper
+using Dimmer.Utilities.Enums;
+// using Dimmer.Platform; // For Window
 
 namespace Dimmer.Interfaces.Services;
 
-public class DimmerStateService : IDimmerStateService
+public partial class DimmerStateService : IDimmerStateService
 {
-    public SongModelView CurrentSongValue => _currentSong.Value;
-    readonly BehaviorSubject<SongModelView> _currentSong = new(new SongModelView());
-    readonly BehaviorSubject<bool> _isPlaying = new(false);
-    
-    readonly BehaviorSubject<AppLogModel> _latestDeviceLog = new(new());
-    readonly BehaviorSubject<IList<AppLogModel>> _dailyLatestDeviceLogs = new(Array.Empty<AppLogModel>());
-    readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
-    readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
-    readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
-    readonly BehaviorSubject<PlaybackStateInfo > _playbackState = new(new(DimmerPlaybackState.Opening,null));
-    readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
-    readonly BehaviorSubject<PlaylistModel?> _currentPlaylist = new(null);
-    readonly BehaviorSubject<double> _deviceVolume = new(1);
-    readonly BehaviorSubject<IReadOnlyList<Window>> _windows = new(Array.Empty<Window>());
-    readonly BehaviorSubject<CurrentPage> _page = new(Utilities.Enums.CurrentPage.HomePage);
+    // --- BehaviorSubjects (Source of Truth) ---
+    private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
+    private readonly BehaviorSubject<PlaybackStateInfo> _playbackState; // Initialized in constructor
+    private readonly BehaviorSubject<bool> _isPlaying = new(false);
+    private readonly BehaviorSubject<PlaylistModel?> _currentPlaylistModel = new(null);
+    private readonly BehaviorSubject<bool> _isShuffleActive = new(false);
+    private readonly BehaviorSubject<RepeatMode> _currentRepeatMode = new(RepeatMode.Off); // Default
+    private readonly BehaviorSubject<TimeSpan> _currentSongPosition = new(TimeSpan.Zero);
+    private readonly BehaviorSubject<TimeSpan> _currentSongDuration = new(TimeSpan.Zero);
 
-    private readonly IRepository<SongModel> songRepo;
-    private readonly IMapper mapper;
-    readonly CompositeDisposable _subs = new();
-    
-    public DimmerStateService(IMapper mapper, IRepository<SongModel> songRepo)
+    private readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongsInLibrary = new(Array.Empty<SongModel>());
+    private readonly BehaviorSubject<UserModelView?> _currentUser = new(null);
+    private readonly BehaviorSubject<AppStateModelView?> _applicationSettingsState = new(null);
+    private readonly BehaviorSubject<CurrentPage> _currentPage = new(Utilities.Enums.CurrentPage.HomePage);
+    private readonly BehaviorSubject<IReadOnlyList<Window>> _currentlyOpenWindows = new(Array.Empty<Window>());
+
+    private readonly BehaviorSubject<AppLogModel> _latestDeviceLog; // Initialized in constructor
+    private readonly BehaviorSubject<IReadOnlyList<AppLogModel>> _dailyLatestDeviceLogs = new(Array.Empty<AppLogModel>());
+    private readonly BehaviorSubject<LyricPhraseModel?> _currentLyric = new(null);
+    private readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
+    private readonly BehaviorSubject<double> _deviceVolume = new(1.0);
+
+    private readonly IMapper _mapper;
+    private readonly CompositeDisposable _disposables = new();
+
+    public DimmerStateService(IMapper mapper)
     {
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
-        this.songRepo=songRepo;
-        this.mapper=mapper;
-        // whenever state changes (skip the seed), advance
-        _subs.Add(_playbackState.Skip(1).Subscribe(OnPlaybackStateChanged));
-        
+        // Initialize with default/empty values where appropriate
+        _latestDeviceLog = new BehaviorSubject<AppLogModel>(new AppLogModel { Log = $"StateService Initialized. + {DateTimeOffset.UtcNow}" });
+        _playbackState = new BehaviorSubject<PlaybackStateInfo>(new PlaybackStateInfo(DimmerPlaybackState.Opening, null, null, null));
+
+        // Derived state: IsPlaying from PlaybackState
+        _disposables.Add(
+          _playbackState
+              .Select(psi => psi.State == DimmerPlaybackState.Playing || psi.State == DimmerPlaybackState.Resumed)
+              .DistinctUntilChanged()
+              .Subscribe(_isPlaying.OnNext, // Pass the OnNext action directly
+                         ex => { /* Log error for _isPlaying subscription if needed */ })
+      );
+        // Derived state: Reset position and duration when song changes to null (or a new song)
+        _disposables.Add(
+             _currentSong
+                 .Where(songView => songView == null)
+                 .Subscribe(_ =>
+                 {
+                     _currentSongPosition.OnNext(TimeSpan.Zero);
+                     _currentSongDuration.OnNext(TimeSpan.Zero);
+                 },
+                 ex => { /* Log error for _currentSong reset subscription if needed */ })
+         );
     }
 
-    // Observables
-    #region Settings Observables
+    // --- Observables (Implementing IDimmerStateService) ---
+    public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
+    public IObservable<PlaybackStateInfo> CurrentPlayBackState => _playbackState.AsObservable();
+    public IObservable<bool> IsPlaying => _isPlaying.AsObservable();
+    public IObservable<PlaylistModel?> CurrentPlaylist => _currentPlaylistModel.AsObservable();
+    public IObservable<bool> IsShuffleActive => _isShuffleActive.AsObservable();
+    public IObservable<RepeatMode> CurrentRepeatMode => _currentRepeatMode.AsObservable();
+    public IObservable<TimeSpan> CurrentSongPosition => _currentSongPosition.AsObservable();
+    public IObservable<TimeSpan> CurrentSongDuration => _currentSongDuration.AsObservable();
+
+    public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongsInLibrary.AsObservable();
+    public IObservable<UserModelView?> CurrentUser => _currentUser.AsObservable();
+    public IObservable<AppStateModelView?> ApplicationSettingsState => _applicationSettingsState.AsObservable();
+    public IObservable<CurrentPage> CurrentPage => _currentPage.AsObservable();
+    public IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows => _currentlyOpenWindows.AsObservable();
 
     public IObservable<AppLogModel> LatestDeviceLog => _latestDeviceLog.AsObservable();
-    public IObservable<double> DeviceVolume => _deviceVolume.AsObservable();
-    public IObservable<IList<AppLogModel>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
-    #endregion
-
-
-
-    public IObservable<SongModelView> CurrentSong => _currentSong.AsObservable();
-    public IObservable<bool> IsPlaying => _isPlaying.AsObservable();
-    public IObservable<LyricPhraseModel> CurrentLyric => _currentLyric.AsObservable();
+    public IObservable<IReadOnlyList<AppLogModel>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
+    public IObservable<LyricPhraseModel?> CurrentLyric => _currentLyric.AsObservable();
     public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
-    public IObservable<SongModel> SecondSelectedSong => _secondSelectedSong.AsObservable();
-    public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongs.AsObservable();
-    public IObservable<PlaybackStateInfo> CurrentPlayBackState => _playbackState.AsObservable();
-    public IObservable<PlaylistModel> CurrentPlaylist => _currentPlaylist.AsObservable();
-    public IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows => _windows.AsObservable();
-    public IObservable<CurrentPage> CurrentPage => _page.AsObservable();
+    public IObservable<double> DeviceVolume => _deviceVolume.AsObservable();
 
-    public static bool IsShuffleOn { get; set; } = false;
-    // Core setters
-    public void LoadAllSongs(IEnumerable<SongModel> songs, bool isShuffle=true)
+    // --- Setters (Implementing IDimmerStateService) ---
+    public void LoadAllSongs(IEnumerable<SongModel> songs)
     {
-        if (_allSongs.Value.Count == songs.Count())
+        var songList = songs?.ToList() ?? new List<SongModel>();
+        // Consider if a deep equality check is needed or if reference change is enough
+        _allSongsInLibrary.OnNext(songList.AsReadOnly());
+    }
+
+    public void SetCurrentSong(SongModel? songModel)
+    {
+        SongModelView? newSongView = null;
+        if (songModel != null)
         {
-            return;
+            newSongView = _mapper.Map<SongModelView>(songModel);
         }
-        var list = songs.ToList();
-        if (!isShuffle)
+
+        // Check if the ID has changed to avoid redundant notifications for the same song
+        if (_currentSong.Value?.Id == newSongView?.Id)
         {
-            _allSongs.OnNext(list.AsReadOnly());
-            return;
+            // If it's the same song ID, but perhaps other details in SongModelView changed,
+            // still push if the objects are not reference-equal (or value-equal if SongModelView is a struct).
+            if (ReferenceEquals(_currentSong.Value, newSongView) || Equals(_currentSong.Value, newSongView))
+                return;
         }
-        if (IsShuffleOn)
-            list.ShuffleInPlace();
 
-        _allSongs.OnNext(list.AsReadOnly());
+        _currentSong.OnNext(newSongView);
 
-    }
-    public void SetCurrentLogMsg(AppLogModel logMessage)
-    {
-        ArgumentNullException.ThrowIfNull(logMessage);
-
-        // push the single value
-        _latestDeviceLog.OnNext(logMessage);
-
-        // clone-and-append
-        var updated = new List<AppLogModel>(_dailyLatestDeviceLogs.Value) { logMessage };
-        _dailyLatestDeviceLogs.OnNext(updated);
-    }
-
-    public void SetCurrentSong(SongModel song)
-    {
-        ArgumentNullException.ThrowIfNull(song);
-        
-        var NewSong = mapper.Map<SongModelView>(song);
-        _currentSong.OnNext(NewSong);
-    }
-    
-    public void SetSecondSelectdSong(SongModel song)
-    {
-        ArgumentNullException.ThrowIfNull(song);
-        _secondSelectedSong.OnNext(song);
-    }
-    
-    public void SetSyncLyrics(IEnumerable<LyricPhraseModel> lyric)
-    {
-        ArgumentNullException.ThrowIfNull(lyric);
-        _syncLyrics.OnNext(lyric.ToList().AsReadOnly());
+        // When a new song is set (or cleared), reset position and duration
+        if (newSongView != null)
+        {
+            // Duration might be set later by SongsMgtFlow once audio is loaded
+            SetCurrentSongDuration(TimeSpan.FromSeconds(newSongView.DurationInSeconds > 0 ? newSongView.DurationInSeconds : 0));
+            SetCurrentSongPosition(TimeSpan.Zero);
+        }
+        else // Song cleared
+        {
+            SetCurrentSongDuration(TimeSpan.Zero);
+            SetCurrentSongPosition(TimeSpan.Zero);
+        }
     }
 
     public void SetCurrentState(PlaybackStateInfo state)
     {
+        // Consider adding a proper Equals to PlaybackStateInfo for DistinctUntilChanged to work effectively
+        // or compare key properties here if PlaybackStateInfo doesn't have a good Equals override.
+        if (_playbackState.Value.Equals(state)) // Assumes PlaybackStateInfo has a proper Equals
+            return;
         _playbackState.OnNext(state);
-
-       
     }
-    
+
+    public void SetCurrentPlaylist(PlaylistModel? playlist)
+    {
+        if (_currentPlaylistModel.Value?.Id == playlist?.Id) // Basic check by ID
+            return;
+        _currentPlaylistModel.OnNext(playlist);
+    }
+
+    public void SetShuffleActive(bool isShuffleOn)
+    {
+        if (_isShuffleActive.Value == isShuffleOn)
+            return;
+        _isShuffleActive.OnNext(isShuffleOn);
+    }
+
+    public void SetRepeatMode(RepeatMode repeatMode)
+    {
+        if (_currentRepeatMode.Value == repeatMode)
+            return;
+        _currentRepeatMode.OnNext(repeatMode);
+    }
+
+    public void SetCurrentSongPosition(TimeSpan position)
+    {
+        // Add tolerance for frequent updates if needed
+        if (_currentSongPosition.Value == position)
+            return;
+        _currentSongPosition.OnNext(position);
+    }
+
+    public void SetCurrentSongDuration(TimeSpan duration)
+    {
+        if (_currentSongDuration.Value == duration)
+            return;
+        _currentSongDuration.OnNext(duration);
+    }
+
+    public void SetCurrentUser(UserModelView? user)
+    {
+        if (_currentUser.Value?.Id == user?.Id)
+            return; // Basic check
+        _currentUser.OnNext(user);
+    }
+
+    public void SetApplicationSettingsState(AppStateModelView? appState)
+    {
+        // Add comparison logic if AppStateModelView is complex
+        if (Equals(_applicationSettingsState.Value, appState))
+            return;
+        _applicationSettingsState.OnNext(appState);
+    }
+
+    public void SetCurrentLogMsg(AppLogModel logMessage)
+    {
+        if (logMessage == null)
+            return;
+        _latestDeviceLog.OnNext(logMessage);
+
+        var updatedLogs = new List<AppLogModel>(_dailyLatestDeviceLogs.Value ?? Enumerable.Empty<AppLogModel>());
+        updatedLogs.Add(logMessage);
+        _dailyLatestDeviceLogs.OnNext(updatedLogs.AsReadOnly());
+    }
+
     public void SetDeviceVolume(double volume)
     {
-        _deviceVolume.OnNext(volume);              
+        double clampedVolume = Math.Clamp(volume, 0.0, 1.0);
+        if (Math.Abs(_deviceVolume.Value - clampedVolume) < 0.001)
+            return;
+        _deviceVolume.OnNext(clampedVolume);
     }
 
     public void AddWindow(Window window)
     {
-        _windows.OnNext(_windows.Value.Append(window).ToList().AsReadOnly());
+        if (window == null)
+            return;
+        var currentWindows = _currentlyOpenWindows.Value?.ToList() ?? new List<Window>();
+        if (!currentWindows.Contains(window))
+        {
+            currentWindows.Add(window);
+            _currentlyOpenWindows.OnNext(currentWindows.AsReadOnly());
+        }
     }
 
     public void RemoveWindow(Window window)
     {
-        _windows.OnNext(_windows.Value.Where(x => x != window).ToList().AsReadOnly());
-    }
-
-    public void SetCurrentPlaylist(IEnumerable<SongModel> songs,PlaylistModel? Playlist=null)
-    {
-        if (BaseAppFlow.MasterList.Count<1)
-        {
+        if (window == null)
             return;
-        }
-        if (Playlist is null && _currentPlaylist.Value is null)
+        var currentWindows = _currentlyOpenWindows.Value?.ToList() ?? new List<Window>();
+        if (currentWindows.Remove(window))
         {
-            songs=BaseAppFlow.MasterList; // we are reinitializing since user is playing from masterlist, ensure this so we follow right order
-            LoadAllSongs(songs);
+            _currentlyOpenWindows.OnNext(currentWindows.AsReadOnly());
         }
-        else if (Playlist is null)
-        {
-            LoadAllSongs(songs);
-        }
-        else if (Playlist is not null)
-        {
-            LoadAllSongs(songs, false);
-            _currentPlaylist.OnNext(Playlist); // from here get a method in baseappflow to create a playlist in db and save
-        }
-          
-        // clear old subs (queue + state watcher)
-        _subs.Clear();
-        _subs.Add(_playbackState.Skip(1).Subscribe(OnPlaybackStateChanged));
-
-       
-    }
-    static void HandleBatch(int batchId, IReadOnlyList<SongModel> batch)
-    {
-        
-        // e.g. raise a UI hook
-        Console.WriteLine($"Enqueued batch {batchId}, {batch.Count} items");
-    }
-    void HandleDequeue(int batchId, SongModel item)
-    {
-        var song = mapper.Map<SongModelView>(item); 
-        
     }
 
-
-    // add/remove single or multiple songs
-    public void AddSingleSongToCurrentPlaylist(PlaylistModel p, SongModel song)
-    {
-        AddSongsToCurrentPlaylist(p, new[] { song });
-    }
-
-    public void AddSongsToCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs)
-    {
-        var merged = _allSongs.Value.Concat(songs)
-                           .DistinctBy(s => s.Id)
-                           .ToList();
-        SetCurrentPlaylist(merged,p);
-    }
-
-    public void RemoveSongFromCurrentPlaylist(PlaylistModel p, SongModel song)
-    {
-        RemoveSongFromCurrentPlaylist(p, new[] { song });
-    }
-
-    public void RemoveSongFromCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs)
-    {
-        var filtered = _allSongs.Value
-                          .Where(s => !songs.Select(x => x.Id).Contains(s.Id))
-                          .ToList();
-        SetCurrentPlaylist(filtered,p  );
-    }
-
-    public void SetCurrentLyric(LyricPhraseModel lyric)
-    {
-        if (lyric == _currentLyric.Value)
-            return; // no change
-
-        _currentLyric.OnNext(lyric);
-    }
-    
     public void SetCurrentPage(CurrentPage page)
     {
-        if (page == _page.Value)
-            return; // no change
-
-        _page.OnNext(page);
+        if (_currentPage.Value == page)
+            return;
+        _currentPage.OnNext(page);
     }
 
-    // queue advancement logic
-    void OnPlaybackStateChanged(PlaybackStateInfo  st)
+    public void SetSyncLyrics(IEnumerable<LyricPhraseModel>? lyrics)
     {
-        switch (st.State)
-        {
-            case DimmerPlaybackState.PlayPreviousUI:                
-            case DimmerPlaybackState.PlayPreviousUser:
-                PreviousInQueue();
-                break;
-            case DimmerPlaybackState.Ended:                
-            case DimmerPlaybackState.PlayNextUser:                
-            case DimmerPlaybackState.PlayNextUI:
-                AdvanceQueue();
-                break;
-        }
-    }
-    void AdvanceQueue()
-    {
-        SongModel? next = null;
-
-        if (BaseViewModel.IsSearching)
-        {
-            // Get current song index
-            var currentSongId = _currentSong.Value.Id;
-            var currentIndex = _allSongs.Value
-                .ToList()
-                .FindIndex(x => x.Id == currentSongId);
-
-            // Advance to next in the search list (wrap around)
-            if (currentIndex != -1)
-            {
-                var nextIndex = (currentIndex + 1) % _allSongs.Value.Count;
-                next = _allSongs.Value[nextIndex];
-            }
-        }
-
-        if (next != null)
-        {
-            var song = mapper.Map<SongModelView>(next);
-            //_currentSong.OnNext(song);
-        }
+        var e = Array.Empty<LyricPhraseModel>();
+        _syncLyrics.OnNext(lyrics?.ToList().AsReadOnly() ?? e.AsReadOnly());
     }
 
-    void PreviousInQueue()
+    public void SetCurrentLyric(LyricPhraseModel? lyric)
     {
-        SongModel? prev = null;
-
-        if (BaseViewModel.IsSearching)
-        {
-            // Get current song index
-            var currentSongId = _currentSong.Value.Id;
-            var currentIndex = _allSongs.Value
-                .ToList()
-                .FindIndex(x => x.Id == currentSongId);
-
-            // Move to previous (wrap around)
-            if (currentIndex != -1)
-            {
-                var prevIndex = (currentIndex - 1 + _allSongs.Value.Count) % _allSongs.Value.Count;
-                prev = _allSongs.Value[prevIndex];
-            }
-        }
-
-        if (prev != null)
-        {
-            var song = mapper.Map<SongModelView>(prev);
-            //_currentSong.OnNext(song);
-        }
+        if (EqualityComparer<LyricPhraseModel?>.Default.Equals(_currentLyric.Value, lyric))
+            return;
+        _currentLyric.OnNext(lyric);
     }
 
     public void Dispose()
     {
-        _subs.Dispose();
+        _disposables.Dispose();
+        // Dispose all BehaviorSubjects
         _currentSong.Dispose();
         _playbackState.Dispose();
-        _allSongs.Dispose();
-        _currentPlaylist.Dispose();
-        _windows.Dispose();
-        _page.Dispose();
+        _isPlaying.Dispose();
+        _currentPlaylistModel.Dispose();
+        _isShuffleActive.Dispose();
+        _currentRepeatMode.Dispose();
+        _currentSongPosition.Dispose();
+        _currentSongDuration.Dispose();
+        _allSongsInLibrary.Dispose();
+        _currentUser.Dispose();
+        _applicationSettingsState.Dispose();
+        _currentPage.Dispose();
+        _currentlyOpenWindows.Dispose();
+        _latestDeviceLog.Dispose();
+        _dailyLatestDeviceLogs.Dispose();
+        _currentLyric.Dispose();
+        _syncLyrics.Dispose();
+        _deviceVolume.Dispose();
+        GC.SuppressFinalize(this);
     }
-
 }

@@ -58,7 +58,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         this._state=_state;
         this.mapper=mapper;
         _encryptionService = new PasswordEncryptionService();
-        UserLocalView ??= BaseAppFlow.CurrentUserView;
+        //UserLocalView ??= BaseAppFlow.?CurrentUserView;
     }
     public async Task InitializeAfterLogin(UserModelOnline authenticatedUser)
     {
@@ -82,11 +82,11 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         }
         _messageSubscriptions.Clear();
 
-//        if (liveClient.Dispose())
-//            ;
-//        liveClient = null;
-//    }
-//}
+        //        if (liveClient.Dispose())
+        //            ;
+        //        liveClient = null;
+        //    }
+        //}
     }
 
 
@@ -395,7 +395,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 // sessionStartTime will be set by the server in your cloud code
             };
 
-   
+
     }
 
 
@@ -995,10 +995,10 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 extension = ".mp3"; // Default extension if none found (adjust as needed)
             }
             string fullFileName = $"{fileName}{extension}";
-            
-                Debug.WriteLine(sharedSong.GetType());
-                string savePath;
-                savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDD");
+
+            Debug.WriteLine(sharedSong.GetType());
+            string savePath;
+            savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDD");
             if (!Directory.Exists(savePath))
             {
                 Directory.CreateDirectory(savePath);
@@ -1007,22 +1007,22 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             string localFilePath = Path.Combine(savePath, fullFileName);
 
             using (HttpClient client = new HttpClient())
-                {
-                    // Get the file as a byte array
-                    byte[] fileBytes = await client.GetByteArrayAsync(audioFile.Url);
+            {
+                // Get the file as a byte array
+                byte[] fileBytes = await client.GetByteArrayAsync(audioFile.Url);
 
-                    // Save the byte array to a file
-                    await File.WriteAllBytesAsync(localFilePath, fileBytes);
+                // Save the byte array to a file
+                await File.WriteAllBytesAsync(localFilePath, fileBytes);
 
-                    Console.WriteLine($"Song '{fullFileName}' downloaded and saved successfully to: {localFilePath}");
+                Console.WriteLine($"Song '{fullFileName}' downloaded and saved successfully to: {localFilePath}");
                 // You can now use localFilePath to play the song or reference it.
 
 
-              
-                }
+
+            }
 
             Track newFile = new Track(localFilePath);
-           
+
 
 
             SongModelView newSong = new SongModelView()
@@ -1031,31 +1031,31 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 FilePath = localFilePath,
                 DurationInSeconds = newFile.Duration,
                 CoverImagePath = FileCoverImageProcessor.SaveOrGetCoverImageToFilePath(localFilePath),
-               
+
                 ArtistName = sharedSong.Artist,
                 AlbumName = sharedSong.Album
             };
             _state.SetCurrentSong(mapper.Map<SongModel>(newSong));
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, null, null));
             _state.SetCurrentLogMsg(new AppLogModel()
-                {
-                    UserModel = UserLocalView,
-                    Log = $"User {UserLocalView.Username} fetched song {sharedSong.Title} with code {sharedSongCode}.",
-                    SharedSong = sharedSong
-                });
-        
+            {
+                UserModel = UserLocalView,
+                Log = $"User {UserLocalView.Username} fetched song {sharedSong.Title} with code {sharedSongCode}.",
+                SharedSong = sharedSong
+            });
+
             return null;
         }
         catch (ParseFailureException pex)
         {
             Debug.WriteLine($"[FETCH_SONG_ERROR] Parse Error: {pex.Code} - {pex.Message}");
-            
+
             return null;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[FETCH_SONG_ERROR] Generic Error: {ex.Message}");
-            
+
             return null;
         }
     }

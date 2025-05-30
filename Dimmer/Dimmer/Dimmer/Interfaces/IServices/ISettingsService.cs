@@ -2,17 +2,22 @@
 namespace Dimmer.Interfaces;
 public interface ISettingsService
 {
-    RepeatMode RepeatMode { get; set; }
+    // Playback Settings
     bool ShuffleOn { get; set; }
-    double VolumeLevel { get; set; }
-    string LastPlayedSong { get; set; }
-    bool IsStickToTop { get; set; }
-    AppStateModel CurrentAppStateModel { get; }
+    RepeatMode RepeatMode { get; set; }
+    double LastVolume { get; set; } // Example: to remember volume across sessions
 
-    AppStateModel LoadSettings();
-    
-    void AddMusicFolder(string path);
+    // UI/Other Settings
+    bool MinimizeToTrayPreference { get; set; }
+    // string LastSelectedOutputDeviceId { get; set; } // Example
+    IList<string> UserMusicFoldersPreference { get; } // Read-only view
+    string LastPlayedSong { get; set; }
+
+    void AddMusicFolder(string folderPath);
     bool RemoveMusicFolder(string path);
-    void SetMusicFolders(IEnumerable<string> paths);
     bool ClearAllFolders();
+    void SetMusicFolders(IEnumerable<string> paths);
+
+    // Potentially methods to Save/Load settings if not done automatically on set
+    // Task SaveAsync();
 }

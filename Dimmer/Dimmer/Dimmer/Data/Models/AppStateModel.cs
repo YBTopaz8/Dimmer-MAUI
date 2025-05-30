@@ -4,8 +4,9 @@ namespace Dimmer.Data.Models;
 public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 
+    public bool IsNewOrModified { get; set; }
     [PrimaryKey]
-    public ObjectId Id { get; set; } 
+    public ObjectId Id { get; set; }
     public string CurrentSongId { get; set; }
     public string? CurrentAlbumId { get; set; }
     public string? CurrentArtistId { get; set; }
@@ -27,13 +28,13 @@ public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 
     public string? EqualizerPreset { get; set; }
     public double LastKnownPosition { get; set; }
-    public IList<string> UserMusicFoldersPreference { get; } 
-    public IList<string> LastOpenedWindows { get; } 
+    public IList<string> UserMusicFoldersPreference { get; }
+    public IList<string> LastOpenedWindows { get; }
 
 
     public AppStateModel()
     {
-        
+
     }
     public AppStateModel(AppStateModel source)
     {

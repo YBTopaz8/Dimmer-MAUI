@@ -5,19 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.Data.Models;
-public class PlaybackStateInfo : IEquatable<PlaybackStateInfo>
+public partial class PlaybackStateInfo : IEquatable<PlaybackStateInfo>
 {
+    public SongModel? Songdb;
+
     public DimmerPlaybackState State { get; set; }
     public object? ExtraParameter { get; set; }
+    public SongModelView? SongView { get; set; }
+
+    public double? ContextSongPositionSeconds { get; set; } = 0.0;
     // ... other properties ...
 
-    public PlaybackStateInfo(DimmerPlaybackState state, object? extParam )
+    public PlaybackStateInfo(DimmerPlaybackState state, object? extParam, SongModelView? song, SongModel? songdb)
     {
-            
+        SongView    =song;
         State = state;
         ExtraParameter = extParam;
+        this.Songdb=songdb;
     }
-    public bool Equals(PlaybackStateInfo other)
+    public bool Equals(PlaybackStateInfo? other)
     {
         if (other is null)
             return false;
@@ -42,7 +48,7 @@ public class PlaybackStateInfo : IEquatable<PlaybackStateInfo>
         return statesEqual && extrasEqual;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as PlaybackStateInfo);
     }

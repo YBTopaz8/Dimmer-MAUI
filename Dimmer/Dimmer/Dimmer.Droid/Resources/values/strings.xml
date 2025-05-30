@@ -14,5 +14,7 @@
   <string name="dimmer_widget_description">Dimmer Widget !</string>
   
   <string name="playback_channel_desc">Media Playback Controls For Dimmer</string>
-
+  <string name="mini_player_default_title">Mini Player (Tap to Expand)</string>
+  <string name="full_player_default_text">Full Player Content Area</string>
+  <string name="shell_item_renderer_tag">MyShellItemRenderer</string>
 </resources>

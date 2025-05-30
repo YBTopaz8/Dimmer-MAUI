@@ -34,7 +34,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
 
         </ContentPage.Resources>
 
-        <Grid Margin="10" >
+        <!--<Grid Margin="10" >
             <Image Opacity="1" Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
 
             <Grid ColumnDefinitions="0.3*,*"
@@ -77,7 +77,8 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                        />
                             </HorizontalStackLayout>
                         </CollectionView.Header>
-                        <!--<CollectionView.ItemTemplate>
+                        -->
+        <!--<CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="modelsLive:UserDeviceSession">
                                 <syncf:SfEffectsView
                                     TouchDownEffects="Ripple"
@@ -94,6 +95,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                 </syncf:SfEffectsView>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>-->
+        <!--
                     </CollectionView>
                 </Grid>
 
@@ -264,6 +266,6 @@ ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
 
 
             </Grid>
-        </Grid>
+        </Grid>-->
     </ContentPage>
 </Window>

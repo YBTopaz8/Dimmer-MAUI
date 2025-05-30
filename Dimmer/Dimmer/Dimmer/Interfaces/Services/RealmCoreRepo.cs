@@ -11,13 +11,14 @@ namespace Dimmer.Interfaces.Services;
 public interface IRealmObjectWithObjectId
 {
     [PrimaryKey]
-    ObjectId Id { get; set; } // Assuming your PK is always ObjectId and named "Id"
+    ObjectId Id { get; set; }
+    bool IsNewOrModified { get; set; } // Property to check if the object is new or modified
 }
 /// <summary>
 /// Thread‑safe Realm repo. Each call opens its own Realm;
 /// holds its Realm open until you unsubscribe.
 /// </summary>
-public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, IRealmObjectWithObjectId, new() 
+public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, IRealmObjectWithObjectId, new()
 {
     private readonly IRealmFactory _factory = factory;
     private IMapper? _mapper;
@@ -162,7 +163,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
             throw; // Rethrow to allow higher-level error handling
         }
     }
-  
+
     public List<T> GetPage(int skip, int take)
     {
         if (skip < 0)
@@ -179,7 +180,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         using var realm = GetNewRealm();
         if (predicate == null)
             return realm.All<T>().Count();
-        return realm.All<T>().Count(predicate); 
+        return realm.All<T>().Count(predicate);
     }
     public List<T> QueryOrdered<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> keySelector, bool ascending)
     {
@@ -197,8 +198,8 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 // 1) A simple comparer for two song‐lists
 class SongListComparer : IEqualityComparer<IList<SongModel>>
 {
-   
-       public bool Equals(IList<SongModel>? a, IList<SongModel>? b)
+
+    public bool Equals(IList<SongModel>? a, IList<SongModel>? b)
     {
         if (ReferenceEquals(a, b))
             return true;
@@ -208,7 +209,7 @@ class SongListComparer : IEqualityComparer<IList<SongModel>>
             return false;
         for (int i = 0; i < a.Count; i++)
         {
-            if (a[i].Id != b[i].Id || a[i].Title != b[i].Title) 
+            if (a[i].Id != b[i].Id || a[i].Title != b[i].Title)
                 return false;
         }
         return true;

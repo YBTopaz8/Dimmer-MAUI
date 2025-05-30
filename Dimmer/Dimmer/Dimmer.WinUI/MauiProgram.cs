@@ -22,11 +22,9 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<DimmerWin>();
         builder.Services.AddScoped<DimmerOnlineViewModel>();
-        
-        builder.Services.AddSingleton<HomePage>();
-        builder.Services.AddScoped<HomeViewModel>();
 
-        builder.Services.AddScoped<SingleSongPageViewModel>();
+        builder.Services.AddSingleton<HomePage>();
+
         builder.Services.AddTransient<SingleSongPage>();
 
 
@@ -39,7 +37,7 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnWindowCreated(window =>
                 {
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
-                    
+
                     if (nativeWindowHandle != IntPtr.Zero)
                     {
                         PlatUtils.DimmerHandle = nativeWindowHandle;
@@ -51,13 +49,13 @@ public static class MauiProgram
                             {
                                 PlatUtils.IsAppInForeground =s.IsVisible;
                             }
-                            
+
                         };
-                        
+
                         PlatUtils.AppWinPresenter = winuiAppWindow.Presenter;
                         PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
-                      
-                        
+
+
                     }
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")

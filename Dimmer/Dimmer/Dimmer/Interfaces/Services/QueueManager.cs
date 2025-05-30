@@ -1,187 +1,187 @@
-﻿using Dimmer.Utilities.Extensions;
+﻿using Dimmer.Utilities.Extensions; // For ShuffleInPlace
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Dimmer.Interfaces.Services;
-/// <summary>
-/// 
-/// </summary>
-/// <typeparam name="T"></typeparam>
-/// <seealso cref="IQueueManager&lt;T&gt;" />
+namespace Dimmer.Interfaces.Services; // Or your actual namespace for implementations
+
 public class QueueManager<T> : IQueueManager<T>
 {
-    /// <summary>
-    /// The source
-    /// </summary>
     private readonly List<T> _source = new();
-    /// <summary>
-    /// The batch size
-    /// </summary>
-    private readonly int _batchSize=175;
-    /// <summary>
-    /// The position
-    /// </summary>
+    private readonly int _batchSize;
     private int _position;
-    /// <summary>
-    /// The current batch identifier
-    /// </summary>
-    private int _currentBatchId;
+    private int _currentBatchIdValue; // Renamed to avoid conflict with property
 
-    /// <summary>
-    /// Occurs when [batch enqueued].
-    /// </summary>
-    public event Action<int, IReadOnlyList<T>>? BatchEnqueued;
-    /// <summary>
-    /// Occurs when [item dequeued].
-    /// </summary>
-    public event Action<int, T>? ItemDequeued;
+    // Implement the corrected event signatures
+    public event Action<IQueueManager<T>, int, IReadOnlyList<T>>? BatchEnqueued;
+    public event Action<IQueueManager<T>, int, T>? ItemDequeued;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="QueueManager{T}"/> class.
-    /// </summary>
-    /// <param name="batchSize">Size of the batch.</param>
-    /// <exception cref="ArgumentException">Queue Manager threw an Arg Exception - batchSize</exception>
     public QueueManager(int batchSize = 175)
     {
         if (batchSize <= 0)
-            throw new ArgumentException("Queue Manager threw an Arg Exception", nameof(batchSize));
+            throw new ArgumentException("Batch size must be positive.", nameof(batchSize));
         _batchSize = batchSize;
+        _position = -1; // Initialize to -1 to indicate no valid position yet
+        _currentBatchIdValue = 0;
     }
 
-    /// <summary>
-    /// Initializes the specified items.
-    /// </summary>
-    /// <param name="items">The items.</param>
-    /// <param name="startIndex">The start index.</param>
     public void Initialize(IEnumerable<T> items, int startIndex = 0)
     {
-        _source.Clear();
-        _source.AddRange(items);
-        if (_source.Count > 0)
+        ClearSourceAndPosition();
+        _source.AddRange(items ?? Enumerable.Empty<T>()); // Handle null items
+
+        if (_source.Any())
+        {
             _position = Math.Clamp(startIndex, 0, _source.Count - 1);
+            // Initial batch enqueue based on the starting position
+            int batchStart = (_position / _batchSize) * _batchSize;
+            _currentBatchIdValue = (batchStart / _batchSize) + 1; // Set initial batch ID
+            var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
+            if (batch.Any())
+            {
+                // Directly invoke, as this is the first batch for this initialization
+                BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
+            }
+        }
         else
-            _position = 0;
-        _currentBatchId = 0;
-        EnqueueBatchIfNeeded(_position);
+        {
+            _position = -1; // No items, no valid position
+            _currentBatchIdValue = 0;
+        }
     }
-    
+
     public List<T> ShuffleQueueInPlace()
     {
-        _source.ShuffleInPlace();
-        var startIndex = _source.FindIndex(s =>
-            s.Equals(Current));
+        if (!_source.Any())
+            return _source;
 
-        EnqueueBatchIfNeeded(startIndex);
+        T? currentItem = Current; // Preserve current item if possible
+        _source.ShuffleInPlace();
+
+        if (currentItem != null)
+        {
+            // Find the new index of the (previously) current item
+            int newIndexOfCurrent = -1;
+            for (int i = 0; i < _source.Count; ++i)
+            {
+                if (EqualityComparer<T>.Default.Equals(_source[i], currentItem))
+                {
+                    newIndexOfCurrent = i;
+                    break;
+                }
+            }
+
+            if (newIndexOfCurrent != -1)
+            {
+                _position = newIndexOfCurrent;
+            }
+            else // Current item was somehow lost (e.g., if list contained duplicates and only one instance of currentItem was found before shuffle)
+            {
+                _position = 0; // Default to the start of the shuffled list
+            }
+        }
+        else
+        {
+            _position = 0; // If no current item before, point to start
+        }
+
+        // After shuffle, the batching context changes, re-evaluate current batch
+        if (_source.Any())
+        {
+            int batchStart = (_position / _batchSize) * _batchSize;
+            _currentBatchIdValue = (batchStart / _batchSize) + 1;
+            var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
+            if (batch.Any())
+            {
+                BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
+            }
+        }
+        else
+        {
+            _currentBatchIdValue = 0;
+        }
         return _source;
     }
 
-    /// <summary>
-    /// Enqueues the batch if needed.
-    /// </summary>
-    /// <param name="position">The position.</param>
-    private void EnqueueBatchIfNeeded(int position)
+    private void EnqueueBatchIfNeeded(int oldPosition, int newPosition)
     {
-        if (_source.Count == 0)
+        if (!_source.Any())
             return;
-        if (position % _batchSize == 0)
+
+        int oldBatchNumber = oldPosition == -1 ? -1 : (oldPosition / _batchSize);
+        int newBatchNumber = newPosition / _batchSize;
+
+        if (newBatchNumber != oldBatchNumber || _currentBatchIdValue == 0) // If moved to a new batch or first time
         {
-            var batch = _source.Skip(position).Take(_batchSize).ToList();
-            if (batch.Count > 0)
+            int batchStart = newBatchNumber * _batchSize;
+            var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
+            if (batch.Any())
             {
-                _currentBatchId++;
-                BatchEnqueued?.Invoke(_currentBatchId, batch);
+                _currentBatchIdValue = newBatchNumber + 1; // Batch IDs are 1-based
+                BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
             }
         }
     }
 
-    // move forward, wrap to 0, then fire Events
-    /// <summary>
-    /// Nexts this instance.
-    /// </summary>
-    /// <returns></returns>
     public T? Next()
     {
-        if (_source.Count == 0)
+        if (!_source.Any())
             return default;
+
+        int oldPosition = _position;
         _position = (_position + 1) % _source.Count;
-        EnqueueBatchIfNeeded(_position);
+        EnqueueBatchIfNeeded(oldPosition, _position);
         var item = _source[_position];
-        ItemDequeued?.Invoke(_currentBatchId, item);
+        ItemDequeued?.Invoke(this, _currentBatchIdValue, item);
         return item;
     }
 
-    // move backward, wrap to last, then fire Events
-    /// <summary>
-    /// Previouses this instance.
-    /// </summary>
-    /// <returns></returns>
     public T? Previous()
     {
-        if (_source.Count == 0)
-            return Current;
+        if (!_source.Any())
+            return default;
+
+        int oldPosition = _position;
         _position = (_position - 1 + _source.Count) % _source.Count;
-        EnqueueBatchIfNeeded(_position);
+        EnqueueBatchIfNeeded(oldPosition, _position);
         var item = _source[_position];
-        ItemDequeued?.Invoke(_currentBatchId, item);
+        ItemDequeued?.Invoke(this, _currentBatchIdValue, item);
         return item;
     }
 
-    // the currently “pointed‐at” item
-    /// <summary>
-    /// Gets the current.
-    /// </summary>
-    /// <value>
-    /// The current.
-    /// </value>
-    public T? Current =>
-        _source.Count > 0 && _position < _source.Count
-        ? _source[_position]
-        : default;
+    public T? Current => (_position >= 0 && _position < _source.Count) ? _source[_position] : default;
 
-    // look ahead/behind without changing state
-    /// <summary>
-    /// Peeks the next.
-    /// </summary>
-    /// <returns></returns>
-    public T? PeekNext()
-    {
-        return _source.Count == 0
-        ? default
-        : _source[(_position + 1) % _source.Count];
-    }
+    public T? PeekNext() => _source.Any() ? _source[(_position + 1) % _source.Count] : default;
 
-    /// <summary>
-    /// Peeks the previous.
-    /// </summary>
-    /// <returns></returns>
-    public T? PeekPrevious()
-    {
-        return _source.Count == 0
-        ? default
-        : _source[(_position - 1 + _source.Count) % _source.Count];
-    }
+    public T? PeekPrevious() => _source.Any() ? _source[(_position - 1 + _source.Count) % _source.Count] : default;
 
-    /// <summary>
-    /// Gets a value indicating whether this instance has next.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if this instance has next; otherwise, <c>false</c>.
-    /// </value>
-    public bool HasNext => _source.Count > 0;
-    /// <summary>
-    /// Gets the count.
-    /// </summary>
-    /// <value>
-    /// The count.
-    /// </value>
+    public bool HasNext => _source.Any();
+
     public int Count => _source.Count;
 
-    // reset completely
-    /// <summary>
-    /// Clears this instance.
-    /// </summary>
-    public void Clear()
+    public IReadOnlyList<T> Items => _source.AsReadOnly();
+
+    public int CurrentBatchId => _currentBatchIdValue;
+
+
+    private void ClearSourceAndPosition()
     {
         _source.Clear();
-        _position = 0;
-        _currentBatchId = 0;
+        _position = -1;
+        _currentBatchIdValue = 0;
+    }
+
+    public void Clear()
+    {
+        ClearSourceAndPosition();
+        // Clear event subscribers
+        BatchEnqueued = null;
+        ItemDequeued = null;
+    }
+
+    public void Dispose()
+    {
+        Clear(); // Ensures event handlers are cleared, preventing leaks
+        GC.SuppressFinalize(this);
     }
 }

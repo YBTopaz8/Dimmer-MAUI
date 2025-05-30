@@ -1,703 +1,527 @@
-﻿//using Dimmer.DimmerLive.Models;
-
-
-using Dimmer.Interfaces.Services;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.Reactive.Linq;
+using System.Reactive.Disposables;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Dimmer.Interfaces;
+using Dimmer.Interfaces.Services;
+using Dimmer.Interfaces.IServices;
+using Dimmer.Data.Models;
+using Dimmer.Utilities.Enums;
 using static Dimmer.Utilities.AppUtils;
+using Dimmer.Utilities.Extensions;
 
 namespace Dimmer.Orchestration;
 
 public class BaseAppFlow : IDisposable
 {
 
-    //public static ParseUser? CurrentUserOnline { get; set; }
+    protected readonly IDimmerStateService _state;
+    protected readonly IMapper _mapper;
+    private readonly IRepository<DimmerPlayEvent> _playEventRepo;
+    private readonly ISettingsService _settingsService;
+    private readonly ILogger<BaseAppFlow> _logger;
 
-    public static UserModel CurrentUser { get; set; }
-    public static UserModelView CurrentUserView { get; set; }
 
-    public readonly IDimmerStateService _state;
-    private readonly IRepository<SongModel> _songRepo;
-    private readonly IRepository<GenreModel> _genreRepo;
-    private readonly IRepository<DimmerPlayEvent> _pdlRepo;
+    private readonly IRepository<UserModel> _userRepo;
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
-    private readonly IRepository<UserModel> _userRepo;
-    private readonly IRepository<AppStateModel> _appstateRepo;
-    private readonly ISettingsService _settings;
-    IRealmFactory realmFactory;
-    private readonly IFolderMgtService folderMgt;
-    public readonly IMapper _mapper;
+    private readonly IRepository<SongModel> _songRepo;
+    private readonly IRepository<AppStateModel> _appStateRepo;
+
+
+    private readonly IFolderMgtService _folderManagementService;
+
+    private readonly ILibraryScannerService _libraryScannerService;
+
+
+    private readonly CompositeDisposable _subscriptions = new();
     private bool _disposed;
 
-    public static SongModelView CurrentlyPlayingSong { get; set; } = new();
+
+    public SongModelView? CurrentSongSnapshot { get; private set; }
+    public UserModel? CurrentUserInstance { get; private set; }
+    public AppStateModelView? AppStateSnapshot { get; private set; }
 
 
-    public bool IsShuffleOn
-        => _settings.ShuffleOn;
-
-    public RepeatMode CurrentRepeatMode
-        => _settings.RepeatMode;
-    // enforce a single instance of the app flow
     public BaseAppFlow(
         IDimmerStateService state,
-        IRepository<SongModel> songRepo,
-        IRepository<GenreModel> genreRepo,
+        IMapper mapper,
+        IRepository<DimmerPlayEvent> playEventRepo,
         IRepository<UserModel> userRepo,
-        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
-        IRepository<AppStateModel> appstateRepo,
-        ISettingsService settings,
-        IFolderMgtService folderMgt, SubscriptionManager subs,
-        IMapper mapper)
+        IRepository<SongModel> songRepo,
+        IRepository<AppStateModel> appStateRepo,
+        ISettingsService settingsService,
+        IFolderMgtService folderManagementService,
+        ILibraryScannerService libraryScannerService,
+        SubscriptionManager inheritedSubs,
+        ILogger<BaseAppFlow> logger)
     {
-        _appstateRepo = appstateRepo;
-        _state = state;
-        _songRepo = songRepo;
-        _pdlRepo = pdlRepo;
+        _state = state ?? throw new ArgumentNullException(nameof(state));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _playEventRepo = playEventRepo ?? throw new ArgumentNullException(nameof(playEventRepo));
+        _userRepo = userRepo;
         _playlistRepo = playlistRepo;
         _artistRepo = artistRepo;
         _albumRepo = albumRepo;
-        _genreRepo = genreRepo;
-        _settings = settings;
-        this.folderMgt=folderMgt;
-        _mapper = mapper;
-        _userRepo = userRepo;
+        _songRepo = songRepo;
+        _appStateRepo = appStateRepo;
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _folderManagementService = folderManagementService ?? throw new ArgumentNullException(nameof(folderManagementService));
+        _libraryScannerService = libraryScannerService ?? throw new ArgumentNullException(nameof(libraryScannerService));
+        _logger = logger ?? NullLogger<BaseAppFlow>.Instance;
+        // Subscribe to state for local snapshots if needed and for logging.
+        _subscriptions.Add(
+           _state.CurrentSong
+               .Subscribe(songView =>
+               {
+                   CurrentSongSnapshot = songView;
+                   _logger.LogTrace("BaseAppFlow: CurrentSongSnapshot updated to: {SongTitle}", CurrentSongSnapshot?.Title ?? "None");
+               }, ex => _logger.LogError(ex, "Error subscribing to CurrentSong for snapshot."))
+        );
+        _subscriptions.Add(
+           _state.CurrentUser
+               .Subscribe(userView =>
+               {
+                   CurrentUserInstance = userView.ToModel(_mapper); // Assuming ToModel extension exists
+                   _logger.LogTrace("BaseAppFlow: CurrentUserInstance updated to: {UserName}", CurrentUserInstance?.UserName ?? "None");
+               }, ex => _logger.LogError(ex, "Error subscribing to CurrentUser for snapshot."))
+        );
+        _subscriptions.Add(
+          _state.ApplicationSettingsState
+              .Subscribe(appStateView =>
+              {
+                  AppStateSnapshot = appStateView;
+                  _logger.LogTrace("BaseAppFlow: AppStateSnapshot updated.");
+              }, ex => _logger.LogError(ex, "Error subscribing to ApplicationSettingsState for snapshot."))
+       );
 
-        Initialize();
 
+        InitializePlaybackEventLogging();
+        InitializeFolderEventReactions(); // New method to handle reactions to folder events from state
+
+        _logger.LogInformation("BaseAppFlow (Coordinator & Logger) initialized.");
     }
-    public static AppStateModelView DimmerAppState { get; set; }
-    public static IReadOnlyCollection<SongModel> MasterList { get; internal set; }
-    public static IReadOnlyCollection<ArtistModel> MasterArtistList { get; internal set; }
-    public static IReadOnlyCollection<AlbumModel> MasterAlbumList { get; internal set; }
-    public static IReadOnlyCollection<PlaylistModel> MasterPlaylistList { get; internal set; }
-    public static IReadOnlyCollection<DimmerPlayEvent> MasterListEvents { get; internal set; }
 
-    public static bool IsAppInitialized;
-    public void Initialize(bool isAppInit = false)
+    // --- Playback Event Logging to Database (Core Responsibility) ---
+    private PlaybackStateInfo? _previousPlaybackStateForLogging;
+
+    private void InitializePlaybackEventLogging()
     {
+        _subscriptions.Add(
+            _state.CurrentPlayBackState
+                // .ObserveOn(Scheduler.Default) // Consider if DB ops are blocking
+                .Subscribe(
+                    currentPsi => LogPlaybackTransition(currentPsi),
+                    ex => _logger.LogError(ex, "Error in CurrentPlayBackState logging subscription.")
+                )
+        );
+        _logger.LogInformation("BaseAppFlow: Playback event logging initialized.");
+    }
 
+    private void LogPlaybackTransition(PlaybackStateInfo currentPsi)
+    {
+        var previousPsi = _previousPlaybackStateForLogging;
+        _previousPlaybackStateForLogging = currentPsi;
 
-        var DimmerAppStates = _appstateRepo.GetAll().ToList();
-        var usrs = _userRepo.GetAll().ToList();
-        if (usrs is null || usrs.Count <1)
+        SongModelView? songForEvent = currentPsi.SongView ?? _mapper.Map<SongModelView>(currentPsi.Songdb);
+        if (songForEvent == null && (currentPsi.State != DimmerPlaybackState.Stopped && currentPsi.State != DimmerPlaybackState.Opening))
         {
-            CurrentUser=new();
-
-            CurrentUserView = _mapper.Map<UserModelView>(CurrentUser);
-            _userRepo.AddOrUpdate(CurrentUser);
-
+            songForEvent = CurrentSongSnapshot; // Fallback to local snapshot
         }
-        else
+
+        if (previousPsi == null)
         {
-            CurrentUser = usrs[0];
-            CurrentUserView = _mapper.Map<UserModelView>(CurrentUser);
-        }
-        if (DimmerAppStates is null || DimmerAppStates.Count < 1)
-        {
-            DimmerAppState= new AppStateModelView()
+            if (currentPsi.State == DimmerPlaybackState.Playing && songForEvent != null)
             {
-                MinimizeToTrayPreference = true,
-
-            };
-            _appstateRepo.AddOrUpdate(_mapper.Map<AppStateModel>(DimmerAppState));
-
-        }
-        else
-        {
-            DimmerAppState = _mapper.Map<AppStateModelView>(DimmerAppStates[0]);
-
-
-        }
-        if (isAppInit)
-        {
+                UpdateDatabaseWithPlayEvent(songForEvent, PlayType.Play, currentPsi.ContextSongPositionSeconds);
+            }
             return;
         }
-        //folderMgt.RestartWatching();
-        IsAppInitialized = isAppInit; // Assigning to the static field only when the condition is met
-        InitAllMasterLists();
 
-        SubscribeToStateChanges();
-
-        _state.SetCurrentPlaylist([], null);
-
-        if (MasterList.Count < 1 && !isAppInit)
+        if (songForEvent == null && currentPsi.State < DimmerPlaybackState.FolderAdded) // Only log playback types if song exists
         {
-
-            AppUtils.IsUserFirstTimeOpening = true;
+            _logger.LogDebug("LogPlaybackTransition: No song context for playback state {CurrentState} from {PreviousState}. Skipping log.", currentPsi.State, previousPsi.State);
             return;
         }
 
-        _state.SetSecondSelectdSong(MasterList.First());
-        _state.SetCurrentSong(MasterList.First());
+        PlayType? playTypeToLog = DeterminePlayType(previousPsi, currentPsi, songForEvent);
+        double? positionForLog = (playTypeToLog == PlayType.Seeked || playTypeToLog == PlayType.Pause) ? currentPsi.ContextSongPositionSeconds : null;
 
-
-    }
-
-    private void InitAllMasterLists()
-    {
-        MasterList = [.. _songRepo
-            .GetAll(true)];
-
-        MasterListEvents = [.. _pdlRepo
-            .GetAll(false)];
-
-        MasterArtistList = [.. _artistRepo
-            .GetAll(false)];
-
-        MasterAlbumList = [.. _albumRepo
-            .GetAll(false)];
-
-        MasterPlaylistList = [.. _playlistRepo
-            .GetAll(false)];
-    }
-
-    private void LoadUser()
-    {
-        var user = _userRepo.GetAll().FirstOrDefault();
-        CurrentUser = user;
-
-        CurrentUserView = _mapper.Map<UserModelView>(CurrentUserView);
-        if (user != null
-            && !string.IsNullOrWhiteSpace(user.UserPassword)
-            && user.UserPassword != "Unknown Password")
+        if (playTypeToLog.HasValue)
         {
-            // fire-and-forget, but handle everything inside
-            _ = Task.Run(() =>
+            SongModelView? songToLogWithPlayType = songForEvent;
+            if (playTypeToLog == PlayType.Skipped || playTypeToLog == PlayType.Completed)
             {
-                try
-                {
-                    //if (user.SessionToken is not null)
-                    //{
-                    //    await ParseClient.Instance.BecomeAsync(user.SessionToken);
-                    //    return;
-                    //}
-                    //var online = await ParseClient.Instance
-                    //    .LogInWithAsync(user.UserName, user.UserPassword)
-                    //    .ConfigureAwait(false);
-
-                    // marshal back to UI thread
-                    //MainThread.BeginInvokeOnMainThread(() =>
-                    //    CurrentUserOnline = online
-                    //);
-                }
-                catch (Exception pe)
-                {
-                    // bad credentials → ignore
-                }
-
-            });
-        }
-    }
-
-    static List<string> listofPathsAddedInSession = new();
-    private void SubscribeToStateChanges()
-    {
-        _state.CurrentPlayBackState
-            .Subscribe(state =>
-            {
-                //IsPlaying = state.State == DimmerPlaybackState.Playing;
-                switch (state.State)
-                {
-
-                    case DimmerPlaybackState.FolderAdded:
-                        if (state.ExtraParameter is not string folder)
-                        {
-                            return;
-                        }
-                        if (listofPathsAddedInSession.Contains(folder))
-                        {
-                            return;
-                        }
-                        listofPathsAddedInSession.Add(folder);
-                        AddFolderToPath(folder);
-                        Task.Run(() => LoadSongs([.. listofPathsAddedInSession.Distinct()]));
-
-                        break;
-                    case DimmerPlaybackState.FolderRemoved:
-                        if (state.ExtraParameter is null)
-                        {
-                            _settings.ClearAllFolders();
-                            return;
-                        }
-                        _settings.RemoveMusicFolder((string)state.ExtraParameter);
-                        break;
-                    case DimmerPlaybackState.FileChanged:
-                        break;
-                    case DimmerPlaybackState.FolderNameChanged:
-                        break;
-                    case DimmerPlaybackState.FolderScanCompleted:
-                        break;
-                    case DimmerPlaybackState.FolderScanStarted:
-                        break;
-                    case DimmerPlaybackState.FolderWatchStarted:
-                        break;
-                    default:
-                        break;
-                }
-            });
-    }
-
-
-    public void SeekedTo(double? position)
-    {
-        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Seeked, position);
-    }
-
-    public void PlaySong()
-    {
-        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Play);
-    }
-
-    public void AddPauseSongEventToDB()
-    {
-        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Pause);
-    }
-
-    public void AddResumeSongToDB()
-    {
-        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Resume);
-    }
-
-    public void PlayEnded()
-    {
-        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Completed);
-    }
-
-    public void AddFolderToPath(string? path = null)
-    {
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
-        var exist = _appstateRepo.GetAll();
-
-
-        if (exist != null)
-        {
-            var appStates = exist.ToList();
-            var rappState = appStates.First();
-            var appState = new AppStateModel(rappState);
-
-
-
-            foreach (var item in DimmerAppState.UserMusicFoldersPreference)
-            {
-                if (!appState.UserMusicFoldersPreference.Contains(item, StringComparer.OrdinalIgnoreCase))
-                {
-                    appState.UserMusicFoldersPreference.Add(item);
-                }
+                songToLogWithPlayType = previousPsi.SongView ?? _mapper.Map<SongModelView>(previousPsi.Songdb);
+                positionForLog = previousPsi.ContextSongPositionSeconds;
             }
 
-            appState.UserMusicFoldersPreference.Add(path);
-            DimmerAppState.UserMusicFoldersPreference.Add(path);
-            _appstateRepo.AddOrUpdate(appState);
-        }
-
-    }
-
-    public void UpdatePlaybackState(
-        SongModelView? song,
-        PlayType type,
-        double? position = null)
-    {
-        var songDb = _mapper.Map<SongModel>(CurrentlyPlayingSong);
-
-
-        var link = new DimmerPlayEvent
-        {
-            SongId = song.Id,
-            Song= songDb,
-            PlayType = (int)type,
-            PlayTypeStr = type.ToString(),
-            DatePlayed = DateTime.Now,
-            PositionInSeconds = position ?? 0,
-            WasPlayCompleted = type == PlayType.Completed
-        };
-
-        _pdlRepo.AddOrUpdate(link);
-
-        // Generate the user-friendly log message
-        string userMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, CurrentlyPlayingSong, position);
-
-
-        AppLogModel log = new()
-        {
-            Log = userMessage,
-            ViewSongModel = CurrentlyPlayingSong,
-
-        };
-        _state.SetCurrentLogMsg(log);
-    }
-
-
-    public void UpSertUser(UserModel model)
-    {
-
-
-        _userRepo.AddOrUpdate(model);
-        AppLogModel log = new()
-        {
-            Log = $"UpSert User {model} at {DateTime.Now.ToLocalTime()}",
-        };
-        _state.SetCurrentLogMsg(log);
-    }
-
-
-    public void UpSertPlaylist(PlaylistModel model)
-    {
-        _playlistRepo.AddOrUpdate(model);
-        AppLogModel log = new()
-        {
-            Log = $"UpSert Playlist {model} at {DateTime.Now.ToLocalTime()}",
-        };
-        _state.SetCurrentLogMsg(log);
-    }
-
-    public void UpSertArtist(ArtistModel model)
-    {
-        _artistRepo.AddOrUpdate(model);
-
-        AppLogModel log = new()
-        {
-            Log = $"UpSert Artist {model} at {DateTime.Now.ToLocalTime()}",
-        };
-        _state.SetCurrentLogMsg(log);
-    }
-
-    public void UpSertAlbum(AlbumModel model)
-    {
-        _albumRepo.AddOrUpdate(model);
-        AppLogModel log = new()
-        {
-            Log = $"UpSert Album {model} at {DateTime.Now.ToLocalTime()}",
-        };
-        _state.SetCurrentLogMsg(log);
-    }
-
-    public void UpSertSong(SongModel model)
-    {
-        _songRepo.AddOrUpdate(model);
-
-        AppLogModel log = new()
-        {
-            Log = $"UpSert Song {model} at {DateTime.Now.ToLocalTime()}",
-            AppSongModel = model,
-        };
-        _state.SetCurrentLogMsg(log);
-
-    }
-    public void UpSertSongNote(SongModel model, UserNoteModel note)
-    {
-        // 1) Ensure the song has a primary key
-
-        // 2) Do everything in one Realm transaction
-        _songRepo.BatchUpdate(realm =>
-        {
-            // 3) Fetch or add the song itself
-            var song = realm.Find<SongModel>(model.Id)
-                       ?? realm.Add(model, update: true);
-
-
-
-
-            song.UserNotes.Add(note);
-
-        });
-
-        // 6) Log after the write completes
-        var log = new AppLogModel
-        {
-            Log          = $"UpSertSongNote on {model.Id} at {DateTime.Now:O}",
-            AppSongModel = model,
-        };
-        _state.SetCurrentLogMsg(log);
-    }
-
-
-    public void ToggleShuffle(bool isOn)
-    {
-        _settings.ShuffleOn = isOn;
-    }
-
-    public RepeatMode ToggleRepeatMode()
-    {
-        var next = (RepeatMode)(((int)_settings.RepeatMode + 1) % 3);
-        _settings.RepeatMode = next;
-        return next;
-    }
-
-    #region Settings Region
-
-    List<AlbumModel>? realmAlbums { get; set; }
-    List<SongModel>? realmSongs { get; set; }
-    List<GenreModel>? realGenres { get; set; }
-    List<ArtistModel>? realmArtists { get; set; }
-    void GetInitialValues()
-    {
-        MasterList = [.. _songRepo
-            .GetAll()
-            .OrderBy(x => x.DateCreated)];
-
-        realmSongs = [.. MasterList];
-        realmAlbums = [.. _albumRepo.GetAll()];
-        realGenres = [.. _genreRepo.GetAll()];
-        realmArtists = [.. _artistRepo.GetAll()];
-
-    }
-
-    public async Task<LoadSongsResult?> LoadSongs(List<string> folderPaths)
-    {
-        var _config = new ProcessingConfig(); // Use default config or load from settings
-        ICoverArtService coverArtService = new CoverArtService(_config);
-
-
-        MusicMetadataService currentScanMetadataService = new();
-        AudioFileProcessor audioFileProcessor = new AudioFileProcessor(
-            coverArtService,
-            currentScanMetadataService,
-            _config);
-
-        _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
-
-        List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
-
-
-
-        if (allFiles.Count == 0)
-        {
-            _state.SetCurrentLogMsg(new AppLogModel { Log = "No audio files found in the selected paths." });
-            return null;
-        }
-
-        GetInitialValues();
-
-        currentScanMetadataService.LoadExistingData(realmArtists, realmAlbums, realGenres, realmSongs);
-
-
-        IReadOnlyList<SongModel> newCoreSongsFromService = currentScanMetadataService.GetAllSongs();
-
-        int totalFiles = allFiles.Count;
-        int processedFileCount = 0;
-
-        foreach (string file in allFiles)
-        {
-            processedFileCount++;
-            var fileProcessingResult = await audioFileProcessor.ProcessFileAsync(file);
-
-            if (fileProcessingResult.Success && fileProcessingResult.ProcessedSong != null)
+            if (songToLogWithPlayType != null || playTypeToLog >= PlayType.LogEvent)
             {
-                _state.SetCurrentLogMsg(new AppLogModel
-                {
-                    Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
-                    AppSongModel = fileProcessingResult.ProcessedSong,
-                    AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount },
-                    ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
-                });
-            }
-            else if (fileProcessingResult.Skipped)
-            {
-                _state.SetCurrentLogMsg(new AppLogModel { Log = $"Skipped: {fileProcessingResult.SkipReason} ({processedFileCount}/{totalFiles})" });
+                UpdateDatabaseWithPlayEvent(songToLogWithPlayType, playTypeToLog.Value, positionForLog, currentPsi.ExtraParameter as string);
             }
             else
             {
-                string errors = string.Join("; ", fileProcessingResult.Errors);
-                _state.SetCurrentLogMsg(new AppLogModel { Log = $"Error processing {Path.GetFileName(file)}: {errors} ({processedFileCount}/{totalFiles})" });
+                _logger.LogWarning("Could not determine song context for PlayType {PlayType}. Prev: {PState} ({PSong}), Curr: {CState} ({CSong})",
+                   playTypeToLog, previousPsi.State, previousPsi.SongView?.Title ?? "N/A", currentPsi.State, songForEvent?.Title ?? "N/A");
+            }
+        }
+    }
+    private PlayType? DeterminePlayType(PlaybackStateInfo prev, PlaybackStateInfo curr, SongModelView? songForCurrPsi)
+    {
+        var prevSongId = prev.SongView?.Id ?? prev.Songdb?.Id;
+        var currSongId = songForCurrPsi?.Id;
+
+        // --- Playing / Resuming ---
+        if (curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed)
+        {
+            if ((prev.State == DimmerPlaybackState.PausedUI || prev.State == DimmerPlaybackState.PausedUser) && prevSongId == currSongId)
+                return PlayType.Resume;
+            if (prev.State != DimmerPlaybackState.Playing || prevSongId != currSongId) // Started new song, or from non-playing state
+                return PlayType.Play;
+        }
+        // --- Paused ---
+        else if (curr.State == DimmerPlaybackState.PausedUI || curr.State == DimmerPlaybackState.PausedUser)
+        {
+            if ((prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed) && prevSongId == currSongId)
+                return PlayType.Pause;
+        }
+        // --- Ended (Naturally) ---
+        else if (curr.State == DimmerPlaybackState.Ended)
+        {
+            // 'Ended' state is set by SongsMgtFlow with the song that just ended.
+            // So, we check if previous state was playing *that same song*.
+            if ((prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed) && prevSongId == currSongId) // ensure song context matches what ended
+                return PlayType.Completed;
+        }
+
+        bool isPrevPlayingOrResumed = prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed;
+        bool isCurrNextCommand = curr.State == DimmerPlaybackState.PlayNextUI || curr.State == DimmerPlaybackState.PlayNextUser;
+        bool isCurrPrevCommand = curr.State == DimmerPlaybackState.PlayPreviousUI || curr.State == DimmerPlaybackState.PlayPreviousUser;
+
+        // --- Skipped (due to Next/Previous command causing a *different* song to be cued) ---
+        if (isPrevPlayingOrResumed && (isCurrNextCommand || isCurrPrevCommand))
+        {
+            // A skip implies the song changed or is about to change due to user action.
+            // The new song will subsequently get a Play/Previous event.
+            // We log 'Skipped' for the song that *was* playing.
+            if (prevSongId != null) // Ensure there was a song to be skipped
+            {
+                // If the command also provides the *next* song context and it's different, it's definitely a skip.
+                var songInCommandContext = curr.SongView ?? _mapper.Map<SongModelView>(curr.Songdb);
+                if (songInCommandContext == null || songInCommandContext.Id != prevSongId)
+                {
+                    return PlayType.Skipped;
+                }
             }
         }
 
-
-
-
-
-
-        IReadOnlyList<SongModel>? newCoreSongs = currentScanMetadataService.GetAllSongs();
-        var newCoreArtists = currentScanMetadataService.GetAllArtists();
-        var newCoreAlbums = currentScanMetadataService.GetAllAlbums();
-        var newCoreGenres = currentScanMetadataService.GetAllGenres();
-
-
-        if (!newCoreSongs.Any() && !newCoreArtists.Any() && !newCoreAlbums.Any() && !newCoreGenres.Any())
+        // --- Previous (Song that *starts* as a result of a previous command) ---
+        if ((curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed) &&
+            isCurrPrevCommand &&
+            prevSongId != currSongId && // Ensure it's a different song that started
+            currSongId != null)
         {
-            _state.SetCurrentLogMsg(new AppLogModel { Log = "No new music data was found or processed." });
-            // Still check if only links need to be updated, though less likely if no new core entities
-            // For now, returning null if no new core entities.
-            return null;
+            return PlayType.Previous;
         }
-        realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
-        using (var realm = realmFactory.GetRealmInstance()) // Get ONE Realm instance
+        // --- Restarted ---
+        if (prev.State == DimmerPlaybackState.Playing &&
+            (curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed) &&
+            prevSongId == currSongId &&
+            // Corrected boolean logic for nullable doubles:
+            curr.ContextSongPositionSeconds.HasValue && curr.ContextSongPositionSeconds.Value < 3.0 && // CORRECTED
+            prev.ContextSongPositionSeconds.HasValue && prev.ContextSongPositionSeconds.Value >= 3.0)  // CORRECTED
         {
+            return PlayType.Restarted;
+        }
+        // --- Log specific events passed through PlaybackStateInfo.ExtraParameter ---
+        if (curr.ExtraParameter is PlayType explicitPlayType && explicitPlayType >= PlayType.LogEvent)
+        {
+            return explicitPlayType;
+        }
 
-            realm.Write(() =>
+        _logger.LogTrace("No specific PlayType determined for transition from {PreviousState} (Song: {PreviousSong}) to {CurrentState} (Song: {CurrentSong})",
+            prev.State, prev.SongView?.Title ?? prev.Songdb?.Title ?? "N/A",
+            curr.State, songForCurrPsi?.Title ?? "N/A");
+        return null;
+    }
+
+    // --- Reactions to Folder Management Events from State (Delegates to Services) ---
+    private void InitializeFolderEventReactions()
+    {
+        _subscriptions.Add(
+            _state.CurrentPlayBackState
+                .Where(psi => psi.State == DimmerPlaybackState.FolderAdded && psi.ExtraParameter is string)
+                .Select(psi => psi.ExtraParameter as string)
+                .Subscribe(async folderPath =>
+                {
+                    if (folderPath == null)
+                        return;
+                    _logger.LogInformation("BaseAppFlow: Detected FolderAdded state for {Path}. Triggering folder preference update and scan.", folderPath);
+                    // This path should already be added to settings by FolderMgtService, which then set this state.
+                    // BaseAppFlow's role here is to ensure LibraryScannerService processes it.
+                    // However, FolderMgtService should ideally call LibraryScannerService directly.
+                    // For now, let's assume FolderMgtService sets the state, and BaseAppFlow reacts if necessary.
+                    // This specific reaction might be redundant if FolderMgtService calls scanner.
+                    // If FolderMgtService *only* updates settings & state, then this is needed:
+                    // _folderManagementService.AddFolderToWatch(folderPath); // If not already done
+                    await _libraryScannerService.ScanSpecificPathsAsync(new List<string> { folderPath }, isIncremental: false);
+                }, ex => _logger.LogError(ex, "Error processing FolderAdded state."))
+        );
+
+        _subscriptions.Add(
+            _state.CurrentPlayBackState
+                .Where(psi => psi.State == DimmerPlaybackState.FolderRemoved && psi.ExtraParameter is string)
+                .Subscribe(async folderPath => // async void is okay for top-level event handlers if errors are logged
+                {
+                    if (folderPath == null)
+                        return;
+                    _logger.LogInformation("BaseAppFlow: Detected FolderRemoved state for {Path}. Ensuring folder is removed from watch and considering rescan.", folderPath);
+                    // _folderManagementService.RemoveFolderFromWatch(folderPath); // If not already done by the originator
+                    // After removing a folder, you might want to trigger a scan to remove its songs from the library.
+                    // This is complex as it requires identifying songs *only* from that folder.
+                    // A full rescan of remaining folders is safer but less efficient.
+                    // For now, just log; actual song removal from DB is a bigger feature.
+                    await _libraryScannerService.ScanLibraryAsync(_settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>()); // Re-scan all configured folders
+                }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
+        );
+    }
+
+
+    // --- Public Methods for Explicit Logging (Called by ViewModels or other services) ---
+    public void LogSeekEvent(SongModelView? song, double seekedToPositionSeconds)
+    {
+        if (song == null)
+        { _logger.LogWarning("LogSeekEvent called with null song."); return; }
+        UpdateDatabaseWithPlayEvent(song, PlayType.Seeked, seekedToPositionSeconds);
+        _logger.LogInformation("Seek event logged for {SongTitle} to {Position}s", song.Title, seekedToPositionSeconds);
+    }
+
+    public void LogApplicationEvent(PlayType playType, SongModelView? songContext = null, string? eventDetails = null, double? position = null)
+    {
+        if (playType < PlayType.LogEvent && songContext == null)
+        {
+            _logger.LogWarning("LogApplicationEvent: Playback-related PlayType {PlayType} called without songContext.", playType);
+            // return; // Or allow if certain playback types can be context-less.
+        }
+        if (playType < PlayType.LogEvent && songContext != null)
+        { // If it's a playback type, it should be handled by state transitions.
+            _logger.LogDebug("LogApplicationEvent: Playback-related PlayType {PlayType} with song {SongTitle} logged explicitly. This is usually handled by state transitions.", playType, songContext.Title);
+        }
+
+        UpdateDatabaseWithPlayEvent(songContext, playType, position, eventDetails);
+        // _logger.LogInformation("Application event {PlayType} logged. Details: {Details}", playType, eventDetails ?? "N/A"); // UpdateDatabaseWithPlayEvent already logs
+    }
+
+    private void UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType type, double? position = null, string? eventDetails = null)
+    {
+        if (songView == null && type < PlayType.LogEvent)
+        {
+            _logger.LogWarning("UpdateDatabaseWithPlayEvent: SongView is null for playback PlayType {PlayType}.", type);
+            return;
+        }
+
+        SongModel? songDb = null;
+        if (songView != null)
+        {
+            songDb = _mapper.Map<SongModel>(songView);
+            if (songDb == null && type < PlayType.LogEvent)
             {
-                // Add related entities first. They become managed by THIS 'realm' instance.
-                if (newCoreAlbums.Any())
-                {
-                    foreach (var album in newCoreAlbums)
-                    {
-                        if (!album.IsManaged)
-                        {
-                            realm.Add(album, update: true);
-                        }
-                    }
+                _logger.LogError("UpdateDatabaseWithPlayEvent: Failed to map SongModelView to SongModel for PlayType {PlayType} with SongId {SongId}.", type, songView.Id);
+                return;
+            }
+        }
 
-                }
-                if (newCoreArtists.Any())
-                {
-                    foreach (var artist in newCoreArtists)
-                    {
-                        if (!artist.IsManaged)
-                        {
-                            realm.Add(artist, update: true);
-                        }
-                    }
-                }
-                if (newCoreGenres.Any())
-                {
-                    foreach (var genre in newCoreGenres)
-                    {
-                        if (!genre.IsManaged)
-                        {
-                            realm.Add(genre, update: true);
-                        }
-                    }
-                }
-                // Now add/update songs
-                if (newCoreSongs.Any())
-                {
-                    foreach (var song in newCoreSongs)
-                    {
+        var playEvent = new DimmerPlayEvent
+        {
+            Id = ObjectId.GenerateNewId(),
+            SongId = songDb?.Id,
+            Song = songDb, // Store direct reference if your DB schema supports it
+            PlayType = (int)type,
+            PlayTypeStr = type.ToString(),
+            EventDate = DateTime.UtcNow,
 
-                        if (!song.IsManaged) // Song itself is new
-                        {
-                            // Fixup related objects to be from the current realm or unmanaged with PK
-                            if (song.Album != null)
-                            {
-                                if (song.Album.IsManaged && song.Album.Realm != realm)
-                                {
-                                    // Album is managed by another realm, find it in the current realm
-                                    var managedAlbum = realm.Find<AlbumModel>(song.Album.Id);
-                                    if (managedAlbum != null)
-                                    {
-                                        song.Album = managedAlbum;
-                                    }
-                                    else
-                                    {
+            DatePlayed = DateTimeOffset.UtcNow,
+            PositionInSeconds = position ?? ((type == PlayType.Completed && songDb?.DurationInSeconds > 0) ? songDb.DurationInSeconds : 0),
+            WasPlayCompleted = type == PlayType.Completed,
+        };
 
-                                        song.Album = managedAlbum;
-                                    }
-                                }
+        try
+        {
+            _playEventRepo.AddOrUpdate(playEvent);
+            _logger.LogInformation("Logged DimmerPlayEvent: Type={PlayType}, SongId={SongId}, Pos={Pos}, Details={Details}",
+                type, playEvent.SongId?.ToString() ?? "N/A", playEvent.PositionInSeconds, eventDetails ?? "N/A");
 
-                            }
-
-                            if (song.Genre != null)
-                            {
-                                if (song.Genre.IsManaged && song.Genre.Realm != realm)
-                                {
-                                    var managedGenre = realm.Find<GenreModel>(song.Genre.Id);
-                                    song.Genre = managedGenre; // Assign, even if null
-                                }
-                            }
-
-                            if (song.ArtistIds != null && song.ArtistIds.Any())
-                            {
-                                var newArtistListForSong = new List<ArtistModel>();
-                                bool artistsModified = false;
-                                foreach (var artistRef in song.ArtistIds)
-                                {
-                                    if (artistRef.IsManaged && artistRef.Realm != realm)
-                                    {
-                                        artistsModified = true;
-                                        var managedArtist = realm.Find<ArtistModel>(artistRef.Id);
-                                        if (managedArtist != null)
-                                        {
-                                            newArtistListForSong.Add(managedArtist);
-                                        }
-
-                                    }
-                                    else
-                                    {
-
-                                        newArtistListForSong.Add(artistRef);
-                                    }
-                                }
-
-                                if (artistsModified)
-                                {
-                                    // Assuming song.ArtistIds is a standard List<T> as song is unmanaged
-                                    song.ArtistIds.Clear();
-                                    foreach (var art in newArtistListForSong)
-                                    {
-                                        song.ArtistIds.Add(art);
-                                    }
-                                }
-                            }
-
-                            // The redundant try-catch block has been removed.
-                            // One try-catch for the add operation is sufficient.
-                            try
-                            {
-
-                                realm.Add(song, update: true);
-                            }
-                            catch (Realms.Exceptions.RealmObjectManagedByAnotherRealmException rre)
-                            {
-
-
-                            }
-                            catch (Exception ex)
-                            {
-
-                            }
-                        }
-
-                    }
-                }
-            }); // End realm.Write
-            MasterList = _songRepo.GetAll(false);
-            _state.SetCurrentState(new(DimmerPlaybackState.FolderScanCompleted, newCoreSongs));
-
-            return new LoadSongsResult
-            {
-                Artists = [.. newCoreArtists],
-                Albums = [.. newCoreAlbums],
-                Songs = [.. newCoreSongs],
-                Genres = [.. newCoreGenres]
-            };
+            // The log message to state service should be more generic or also triggered by the logger itself.
+            string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);
+            _state.SetCurrentLogMsg(new AppLogModel { Log = userFriendlyMessage, ViewSongModel = songView, AppSongModel = songDb });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save DimmerPlayEvent. Type: {PlayType}, SongId: {SongId}", type, playEvent.SongId?.ToString() ?? "N/A");
         }
     }
-    #endregion
 
-    // Public implementation of Dispose pattern callable by consumers.
+
+    // --- Facade Methods for Settings (Interacting with IDimmerStateService and ISettingsService) ---
+    public void ToggleShuffle(bool isOn)
+    {
+        _logger.LogDebug("ToggleShuffle called with: {IsOn}", isOn);
+        _settingsService.ShuffleOn = isOn; // Persist setting
+        _state.SetShuffleActive(isOn);      // Update global reactive state
+    }
+
+    public void ToggleRepeatMode() // Now cycles through RepeatMode enum
+    {
+        var currentMode = _settingsService.RepeatMode;
+        var enumValues = Enum.GetValues(typeof(RepeatMode)).Cast<RepeatMode>().ToList();
+        int currentIndex = enumValues.IndexOf(currentMode);
+        RepeatMode nextMode = enumValues[(currentIndex + 1) % enumValues.Count];
+
+        _logger.LogDebug("ToggleRepeatMode: From {CurrentMode} to {NextMode}", currentMode, nextMode);
+        _settingsService.RepeatMode = nextMode; // Persist setting
+        _state.SetRepeatMode(nextMode);         // Update global reactive state
+    }
+
+    // --- Facade Methods for Data CUD (Consider moving to dedicated Data Services) ---
+    // These methods now operate on instance data or use repositories directly.
+    // They log an application event.
+
+    public async Task<UserModel> UpsertUserAsync(UserModel user)
+    {
+        if (user == null)
+            throw new ArgumentNullException(nameof(user));
+        var updatedUser = _userRepo.AddOrUpdate(user);
+        LogApplicationEvent(PlayType.LogEvent, eventDetails: $"User upserted: {user.UserName ?? user.Id.ToString()}");
+        if (CurrentUserInstance?.Id == updatedUser.Id || CurrentUserInstance == null)
+        {
+            CurrentUserInstance = updatedUser; // Update local snapshot
+            _state.SetCurrentUser(_mapper.Map<UserModelView>(updatedUser)); // Update global state
+        }
+        return updatedUser;
+    }
+
+    public PlaylistModel UpsertPlaylist(PlaylistModel playlist)
+    {
+        if (playlist == null)
+            throw new ArgumentNullException(nameof(playlist));
+        var updatedPlaylist = _playlistRepo.AddOrUpdate(playlist);
+        LogApplicationEvent(PlayType.LogEvent, eventDetails: $"Playlist upserted: {playlist.PlaylistName}");
+        return updatedPlaylist;
+    }
+
+    public ArtistModel UpsertArtist(ArtistModel artist)
+    {
+        if (artist == null)
+            throw new ArgumentNullException(nameof(artist));
+        var updatedArtist = _artistRepo.AddOrUpdate(artist);
+        LogApplicationEvent(PlayType.LogEvent, eventDetails: $"Artist upserted: {artist.Name}");
+        return updatedArtist;
+    }
+
+    public AlbumModel UpsertAlbum(AlbumModel album)
+    {
+        if (album == null)
+            throw new ArgumentNullException(nameof(album));
+        var updatedAlbum = _albumRepo.AddOrUpdate(album);
+        LogApplicationEvent(PlayType.LogEvent, eventDetails: $"Album upserted: {album.Name}");
+        return updatedAlbum;
+    }
+
+    public SongModel UpsertSong(SongModel song)
+    {
+        if (song == null)
+            throw new ArgumentNullException(nameof(song));
+        var updatedSong = _songRepo.AddOrUpdate(song);
+        LogApplicationEvent(PlayType.LogEvent, _mapper.Map<SongModelView>(updatedSong), eventDetails: $"Song upserted: {song.Title}");
+        return updatedSong;
+    }
+
+    public async Task UpsertSongNoteAsync(ObjectId songId, UserNoteModel note)
+    {
+        if (note == null)
+            throw new ArgumentNullException(nameof(note));
+        // BatchUpdate might not be async in your IRepository.
+        // If it's synchronous, wrap in Task.Run for an async signature if needed,
+        // but be careful with Realm instances across threads if not using IRealmFactory inside.
+        // Assuming BatchUpdate is synchronous for now, or you adapt IRepository.
+        await Task.Run(() => _songRepo.BatchUpdate(realm =>
+        {
+            var song = realm.Find<SongModel>(songId);
+            if (song != null)
+            {
+                // If UserNotes is IList, find and update or add.
+                var existingNote = song.UserNotes.FirstOrDefault(un => un.Id == note.Id);
+                if (existingNote != null)
+                {
+                    // Update existingNote properties from note
+                    // This requires UserNoteModel to be an EmbeddedObject and for its properties to be settable.
+                    // If it's just adding, and Id ensures uniqueness or you handle replacement:
+                    // song.UserNotes.Remove(existingNote);
+                    // song.UserNotes.Add(note);
+                    // For simplicity, let's assume we are adding or replacing if ID matches (Realm Embedded might not allow PK update on embedded)
+                    // A safer way for embedded is to remove and re-add if updating complex embedded objects.
+                    // For simple add:
+                    if (existingNote == null)
+                        song.UserNotes.Add(note);
+                    else
+                    { /* update logic for existingNote */ }
+
+                }
+                else
+                {
+                    song.UserNotes.Add(note);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("UpsertSongNoteAsync: Song with Id {SongId} not found.", songId);
+            }
+        }));
+        // Log after the write completes
+        var songView = _mapper.Map<SongModelView>(_songRepo.GetById(songId)); // Fetch for logging context
+        LogApplicationEvent(PlayType.LogEvent, songView, $"Note upserted for song ID: {songId}");
+    }
+
+
+    // --- Methods from old BaseAppFlow that are now largely delegated or removed ---
+    // Initialize(): Replaced by IAppInitializerService, called externally.
+    // InitAllMasterLists(): Part of IAppInitializerService's responsibility (loading into _state).
+    // LoadUser(): Part of IAppInitializerService.
+    // SubscribeToStateChanges() for folder events: Now handled by InitializeFolderEventReactions,
+    //                                             which reacts to state set by IFolderMgtService.
+    // AddFolderToPath(): Should be part of IFolderMgtService, which updates ISettingsService.
+    // LoadSongs(): Moved to ILibraryScannerService.
+
+    // --- Disposal ---
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    // Protected implementation of Dispose pattern.
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
             return;
-
         if (disposing)
         {
-            // Dispose managed resources here.
-            _state.Dispose();
+            _logger.LogInformation("BaseAppFlow (Coordinator & Logger) disposing.");
+            _subscriptions.Dispose();
+            // Injected services (_state, _mapper, repositories, etc.) are typically managed
+            // by the DI container, so this class shouldn't dispose them unless it created them.
         }
-
-        // Free unmanaged resources here (if any).
-
         _disposed = true;
-    }
-
-    // Finalizer to ensure resources are released if Dispose is not called.
-    ~BaseAppFlow()
-    {
-        Dispose(false);
     }
 }

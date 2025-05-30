@@ -6,11 +6,13 @@
     x:Name="myPagee"
     Title="SearchSongPage"
     AutomationId="heroImage"
-    BackgroundColor="DarkSlateBlue">
-    <VerticalStackLayout>
+    BackgroundColor="DarkSlateBlue"
+    Shell.NavBarIsVisible="False">
+    <VerticalStackLayout BackgroundColor="#1e1e1e">
         <Label
             HorizontalOptions="Center"
             Text="Welcome to .NET MAUI!"
+            TextColor="White"
             VerticalOptions="Center" />
     </VerticalStackLayout>
 </ContentPage>

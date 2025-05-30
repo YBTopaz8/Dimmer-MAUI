@@ -2,8 +2,8 @@ namespace Dimmer.WinUI.Views;
 
 public partial class SettingsWindow : Window
 {
-    public HomeViewModel MyViewModel { get; internal set; }
-    public SettingsWindow(HomeViewModel vm)
+    public BaseViewModel MyViewModel { get; internal set; }
+    public SettingsWindow(BaseViewModel vm)
     {
         InitializeComponent();
         BindingContext = vm;
@@ -22,15 +22,14 @@ public partial class SettingsWindow : Window
 
     protected override void OnDestroying()
     {
-     MyViewModel.IsSettingWindoOpened=false;
         base.OnDestroying();
     }
-    private async void ChangeFolder_Clicked(object sender, EventArgs e)
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
     {
-        
+
 
         var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        await MyViewModel.SelectSongFromFolder(selectedFolder);
+        //await MyViewModel.SelectSongFromFolder(selectedFolder);
     }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
@@ -41,7 +40,7 @@ public partial class SettingsWindow : Window
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.SelectSongFromFolder();
+        //await MyViewModel.SelectSongFromFolder();
     }
 
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
@@ -62,7 +61,7 @@ public partial class SettingsWindow : Window
                 FirstTimeTabView.SelectedIndex++;
                 break;
             default:
-                
+
                 break;
         }
 

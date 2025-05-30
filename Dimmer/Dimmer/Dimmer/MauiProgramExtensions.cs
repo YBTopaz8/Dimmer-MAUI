@@ -1,5 +1,7 @@
 ﻿
 
+using Dimmer.Services;
+
 namespace Dimmer;
 
 public static class MauiProgramExtensions

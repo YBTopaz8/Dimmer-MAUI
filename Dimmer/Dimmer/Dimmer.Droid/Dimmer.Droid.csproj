@@ -170,6 +170,7 @@
 
   <ItemGroup>
     <Folder Include="Database\" />
+    <Folder Include="Utils\NativeViewAnimations\" />
   </ItemGroup>
 
   <ItemGroup>

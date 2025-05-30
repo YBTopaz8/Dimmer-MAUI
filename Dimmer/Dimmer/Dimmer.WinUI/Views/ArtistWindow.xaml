@@ -29,7 +29,7 @@
 
             </ContentPage.Resources>
 
-            <Grid BackgroundColor="Transparent" >
+            <!--<Grid BackgroundColor="Transparent" >
                 <Image Opacity="0.2"
                      x:Name="AlbumImg"/>
 
@@ -44,8 +44,6 @@
                                       EnableVirtualization="True"
                                       SwipeMovementMode="SingleItem"
                                       ItemsSource="{Binding SelectedArtistAlbums}"
-                                      SelectionChanged="ArtistsAlbumsGroup_SelectionChanged_1"
-                                      SwipeEnded="ArtistsAlbumsGroup_SwipeEnded"
                                      x:Name="ArtistsAlbumsGroup" 
                                       Loaded="ArtistsAlbumsGroup_Loaded"
                                      HorizontalOptions="Start">
@@ -142,7 +140,7 @@ HorizontalOptions="End" x:Name="SearchSongInAlbum" WidthRequest="200"
                     </CollectionView>
                 </Grid>
 
-            </Grid>
+            </Grid>-->
         </ContentPage>
     </Window.Page>
 </Window>
