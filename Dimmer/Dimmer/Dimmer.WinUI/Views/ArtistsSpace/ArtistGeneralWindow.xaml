@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window x:Class="Dimmer.WinUI.Views.ArtistsSpace.ArtistGeneralWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="using:Dimmer.WinUI.Views.ArtistsSpace" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Title="ArtistGeneralWindow" mc:Ignorable="d"
+        >
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+    <Page x:Name="AllArtistsPage" DataContext="{x:Bind ViewModel}">
+        <Grid>
+            <TextBlock Text="YB" />
+        </Grid>
+    </Page>
+
+</Window>

@@ -16,6 +16,15 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\ArtistsSpace\SpecificArtistPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ArtistsSpace\AllArtistsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\WinuiWindows\OnlinePage.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -38,9 +47,6 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\PlaylistWindow.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
-    <MauiXaml Update="Views\ArtistWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\AlbumWindow.xaml">

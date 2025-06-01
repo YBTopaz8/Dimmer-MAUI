@@ -1,4 +1,7 @@
 ﻿using System.Drawing.Imaging;
+
+using Dimmer.WinUI.Views.ArtistsSpace;
+
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -96,20 +99,6 @@ public static class PlatUtils
 
         AlbumWindow newWindow = new AlbumWindow(MyVM, mapper);
 
-        Application.Current!.OpenWindow(newWindow);
-
-        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
-
-    }
-
-
-    public static void OpenArtistWindow(SongModelView song)
-    {
-        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
-        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-
-        ArtistWindow newWindow = new ArtistWindow(MyVM, mapper);
         Application.Current!.OpenWindow(newWindow);
 
         //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);

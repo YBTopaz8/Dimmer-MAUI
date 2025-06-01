@@ -1,6 +1,7 @@
 ﻿// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 // using Dimmer.Platform; // For Window if it's a specific type
 
+
 namespace Dimmer.Interfaces.Services.Interfaces;
 
 public interface IDimmerStateService : IDisposable
@@ -29,6 +30,7 @@ public interface IDimmerStateService : IDisposable
     IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
     IObservable<double> DeviceVolume { get; } // Volume (0.0 to 1.0)
     IObservable<IReadOnlyList<DimmerPlayEvent>> AllPlayHistory { get; }
+    ReadOnlyCollection<SongModel> AllCurrentSongsInDB { get; }
 
     // --- Methods to Update State ---
     void LoadAllSongs(IEnumerable<SongModel> songs);

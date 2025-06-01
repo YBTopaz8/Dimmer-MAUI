@@ -3,6 +3,7 @@
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.ArtistsSpace;
 using Dimmer.WinUI.Views.WinuiWindows;
 
 namespace Dimmer.WinUI;
@@ -22,7 +23,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddScoped<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
+        builder.Services.AddTransient<AllArtistsPage>();
+        builder.Services.AddTransient<ArtistGeneralWindow>();
+        builder.Services.AddTransient<SpecificArtistPage>();
         builder.Services.AddTransient<OnlinePageManagement>();
+        builder.Services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
         builder.Services.AddSingleton<DimmerWin>();
         builder.Services.AddScoped<DimmerOnlineViewModel>();

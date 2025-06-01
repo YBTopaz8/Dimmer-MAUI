@@ -82,11 +82,14 @@ public partial class DimmerStateService : IDimmerStateService
     public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
     public IObservable<double> DeviceVolume => _deviceVolume.AsObservable();
 
+    public ReadOnlyCollection<SongModel> AllCurrentSongsInDB { get; private set; }
+
     // --- Setters (Implementing IDimmerStateService) ---
     public void LoadAllSongs(IEnumerable<SongModel> songs)
     {
         var songList = songs?.ToList() ?? new List<SongModel>();
         // Consider if a deep equality check is needed or if reference change is enough
+        AllCurrentSongsInDB=songs.ToList().AsReadOnly();
         _allSongsInLibrary.OnNext(songList.AsReadOnly());
     }
     public void LoadAllPlayHistory(IEnumerable<DimmerPlayEvent> events)

@@ -19,6 +19,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 {
     // Injected Services
     public readonly IMapper _mapper;
+    private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService _dimmerLiveStateService;
     private readonly AlbumsMgtFlow _albumsMgtFlow;
     private readonly PlayListMgtFlow _playlistsMgtFlow;
@@ -28,6 +29,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     protected readonly SubscriptionManager _subsManager; // Renamed from _subs to avoid conflict, and made protected
     protected readonly IFolderMgtService _folderMgtService;
     private readonly IRepository<SongModel> songRepo;
+    private readonly IRepository<ArtistModel> artistRepo;
+    private readonly IRepository<AlbumModel> albumRepo;
+    private readonly IRepository<GenreModel> genreRepo;
     private readonly LyricsMgtFlow _lyricsMgtFlow;
     protected readonly ILogger<BaseViewModel> _logger; // Added logger
     private readonly IDimmerAudioService audioService;
@@ -126,7 +130,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
     [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; set; }
+    [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedAlbumSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedArtistSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedPlaylistSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
@@ -153,10 +157,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
        LyricsMgtFlow lyricsMgtFlow,
        IFolderMgtService folderMgtService,
        IRepository<SongModel> songRepo,
+       IRepository<ArtistModel> artistRepo,
+       IRepository<AlbumModel> albumModel,
+       IRepository<GenreModel> genreModel,
        ILogger<BaseViewModel> logger)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-
+        this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
         _albumsMgtFlow = albumsMgtFlow;
         _playlistsMgtFlow = playlistsMgtFlow;
@@ -166,6 +173,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _subsManager = subsManager ?? new SubscriptionManager();
         _folderMgtService = folderMgtService;
         this.songRepo=songRepo;
+        this.artistRepo=artistRepo;
+        this.albumRepo=albumModel;
+        this.genreRepo=genreModel;
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
@@ -208,14 +218,32 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         .Subscribe(pm => CurrentlyPlayingPlaylistContext = _mapper.Map<PlaylistModelView>(pm))
 );
         _subsManager.Add(
+            Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.MediaKeyNextPressed += h, h => audioService.MediaKeyNextPressed -= h)
+                .Subscribe(async evt =>
+                {
+
+                    await NextTrack();
+                    _logger.LogInformation($"Next song is {evt.EventArgs.MediaSong}");
+                },
+                           ex => _logger.LogError(ex, "Error in play next subscription."))
+        );
+        _subsManager.Add(
+            Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.MediaKeyPreviousPressed += h, h => audioService.MediaKeyPreviousPressed -= h)
+                .Subscribe(async evt =>
+                {
+                    await PreviousTrack();
+                    _logger.LogInformation($"Previous song is {evt.EventArgs.MediaSong}");
+                },
+                           ex => _logger.LogError(ex, "Error in play next subscription."))
+        );
+        _subsManager.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.IsPlayingChanged += h, h => audioService.IsPlayingChanged -= h)
                 .Subscribe(evt =>
                 {
-                    IsPlaying = evt.EventArgs.IsPlaying;
+                    IsPlaying= evt.EventArgs.IsPlaying;
                 },
                            ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
-
         _subsManager.Add(
             _stateService.IsShuffleActive
 
@@ -561,32 +589,40 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                                        // If it was meant to influence playback, that needs a different mechanism.
     }
 
-    [RelayCommand]
+
     public void ViewAlbumDetails(AlbumModelView? albumView) // Can also pass just albumId (Guid/ObjectId)
     {
-        if (albumView == null || albumView.Id == default)
+        var albumDb = albumRepo.GetById(albumView.Id);
+
+        if (albumDb == null)
         {
-            _logger.LogWarning("ViewAlbumDetails: albumView or its ID is null/default.");
+            _logger.LogWarning("ViewArtistDetails: Album not found in repository for ID: {ArtistId}", albumView?.Id);
             return;
         }
-        _logger.LogInformation("Requesting to navigate to album details for ID: {AlbumId}", albumView.Id);
-        // _navigationService.NavigateTo(nameof(AlbumDetailPageViewModel), albumView.Id); // Example
-        // Or using a message:
-        // Messenger.Send(new NavigateToAlbumMessage(albumView.Id));
+
+        SelectedAlbum = _mapper.Map<AlbumModelView>(albumDb); // Update the selected album context
+        SelectedAlbumSongs = new ObservableCollection<SongModelView>(albumDb.SongsInAlbum.Select(s => _mapper.Map<SongModelView>(s)));
+
 
     }
 
-    [RelayCommand]
-    public async Task ViewArtistDetails(ArtistModelView? artistView) // Can also pass just artistId
+
+    public void ViewArtistDetails(ArtistModel? art) // Can also pass just artistId
     {
-        if (artistView == null || artistView.Id == default)
+
+
+        SelectedArtist = _mapper.Map<ArtistModelView>(art); // Update the selected artist context
+        SelectedArtistSongs = new ObservableCollection<SongModelView>(art.Songs.Select(s => _mapper.Map<SongModelView>(s)));
+        SelectedArtistAlbums = new ObservableCollection<AlbumModelView>(art.Albums.Select(a => _mapper.Map<AlbumModelView>(a)));
+        SelectedAlbum = _mapper.Map<AlbumModelView>(art.Albums.FirstOrDefault());
+
+        if (art == null || art.Id == default)
         {
-            _logger.LogWarning("ViewArtistDetails: artistView or its ID is null/default.");
+            _logger.LogWarning("ViewArtistDetails: art or its ID is null/default.");
             return;
         }
-        _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", artistView.Id);
-        // _navigationService.NavigateTo(nameof(ArtistDetailPageViewModel), artistView.Id); // Example
-        await Task.CompletedTask; // Placeholder
+        _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
+        // _navigationService.NavigateTo(nameof(ArtistDetailPageViewModel), art.Id); // Example
     }
 
     // Wrapper for legacy 

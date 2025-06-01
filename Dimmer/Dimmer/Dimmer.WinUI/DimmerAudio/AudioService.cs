@@ -717,6 +717,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine("[AudioService] SMTC Next Received");
         // Raise event for ViewModel/PlaylistManager to handle
         var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType= DimmerPlaybackState.PlayNextUser };
+
         MediaKeyNextPressed?.Invoke(this, eventArgs);
         args.Handled = true; // Assume it will be handled
     }

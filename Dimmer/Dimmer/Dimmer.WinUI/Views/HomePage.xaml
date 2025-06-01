@@ -48,6 +48,7 @@
                                   Text="{Static lang:DimmerLanguage.txt_home}"
                                   />
                     <syncf:SfChip x:Name="ArtistsChip"
+                                  Command="{Binding artist}"
                                   CommandParameter="Artists" ImageSource="artist.png"
                                   Text="{Static lang:DimmerLanguage.txt_artist}"
                                   />
@@ -67,10 +68,10 @@
                                   Text="Last Played"
                                   />
 
-                    <syncf:SfChip x:Name="ScrollToChip"
+                    <!--<syncf:SfChip x:Name="ScrollToChip"
                                   Clicked="SidePaneChip_Clicked" CommandParameter="Scroll"
                                   ImageSource="eye.png" Text="Scroll To"
-                                  />
+                                  />-->
 
 
 
@@ -331,7 +332,7 @@
                                                                  LongPressedCommandParameter="{Binding .}"
                                                                  >
                                                 <FlyoutBase.ContextFlyout>
-                                                    <MenuFlyout>
+                                                    <MenuFlyout >
                                                         <MenuFlyoutItem Clicked="ArtistsEffectsView_LongPressed"
                                                                         CommandParameter="{Binding .}"
                                                                         Text="{Binding ArtistName, StringFormat='View Artists : {0}'}"
@@ -374,7 +375,49 @@
         </Grid>
 
 
+        <syncf:SfPopup x:Name="ArtistsContextMenuPopup"
+                       IsFullScreen="False" IsOpen="False"
+                       IsVisible="False"
+                       >
+            <syncf:SfPopup.HeaderTemplate>
+                <DataTemplate>
+                    <HorizontalStackLayout>
+                        <Label Text="Artists" />
+                    </HorizontalStackLayout>
+                </DataTemplate>
+            </syncf:SfPopup.HeaderTemplate>
 
+            <syncf:SfPopup.ContentTemplate>
+                <DataTemplate>
+                    <CollectionView ItemsSource="{Binding CurrentPlayingSongView.ArtistIds}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ArtistModelView">
+                                <VerticalStackLayout>
+
+                                    <Label FontAttributes="Bold" FontSize="20"
+                                           HorizontalOptions="Center"
+                                           Text="{Binding Name}"
+                                           />
+                                    <Button Margin="10,0"
+                                            Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ViewArtistCommand}"
+                                            CommandParameter="{Binding .}"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Source={x:Static lang:DimmerLanguage.txt_view}, FallbackValue='View'}"
+                                            />
+                                    <Button Margin="10,0"
+                                            Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ClosePopupCommand}"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding Source={x:Static lang:DimmerLanguage.txt_close}, FallbackValue='Close'}"
+                                            />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                    </CollectionView>
+
+                </DataTemplate>
+            </syncf:SfPopup.ContentTemplate>
+        </syncf:SfPopup>
     </Grid>
 
 </ContentPage>
