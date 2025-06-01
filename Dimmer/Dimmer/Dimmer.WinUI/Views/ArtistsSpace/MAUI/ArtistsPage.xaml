@@ -41,6 +41,11 @@
                                 Text="{Binding SelectedArtist.Name}"
                                 />
                         <Label FontSize="28" Text="{Binding SelectedArtistSongs.Count, StringFormat='{0} Songs'}" />
+                        <SearchBar x:Name="SearchSongSB"
+              Grid.Column="1" BackgroundColor="Transparent"
+              Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
+              />
+
                     </VerticalStackLayout>
                 </VerticalStackLayout>
                 <CollectionView x:Name="ArtistSongsColView"

@@ -149,9 +149,15 @@ public class QueueManager<T> : IQueueManager<T>
 
     public T? Current => (_position >= 0 && _position < _source.Count) ? _source[_position] : default;
 
-    public T? PeekNext() => _source.Any() ? _source[(_position + 1) % _source.Count] : default;
+    public T? PeekNext()
+    {
+        return _source.Any() ? _source[(_position + 1) % _source.Count] : default;
+    }
 
-    public T? PeekPrevious() => _source.Any() ? _source[(_position - 1 + _source.Count) % _source.Count] : default;
+    public T? PeekPrevious()
+    {
+        return _source.Any() ? _source[(_position - 1 + _source.Count) % _source.Count] : default;
+    }
 
     public bool HasNext => _source.Any();
 

@@ -1,10 +1,10 @@
-﻿using AndroidX.Media3.Common;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+using AndroidX.Media3.Common;
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events; // Assuming this namespace is correct for PlaybackEventArgs
-
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace Dimmer.DimmerAudio;
 
@@ -56,6 +56,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<double>? SeekCompleted; // Triggered after a seek operation completes
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred; // Triggered by player errors
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler<PlaybackEventArgs> PlayStarted;
 
 
     /// <summary>
@@ -64,6 +65,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// </summary>
     public void SetBinder(ExoPlayerServiceBinder? binder)
     {
+
         if (_binder == binder)
             return; // No change
 

@@ -4,10 +4,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-             xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-             xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" Title="HomePage"
-             x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
+             xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer" xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             Title="HomePage" x:DataType="vm:BaseViewModelWin"
+             Shell.NavBarIsVisible="False"
              >
 
     <ContentPage.Resources>
@@ -37,14 +38,11 @@
     <Grid x:Name="MainAppGrid"
           Margin="10" ColumnDefinitions="*"
           >
-        <Grid x:Name="SideBar"
-              Grid.Column="0" Padding="10,0"
-              RowDefinitions="auto"
-              />
+
 
         <Grid>
             <Image Opacity="0.06" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
-            <Grid x:Name="MainUI" RowDefinitions="auto,*, auto">
+            <Grid x:Name="MainUI" RowDefinitions="auto,*,auto">
                 <Grid Grid.Row="0" RowDefinitions="50,70,auto">
 
                     <HorizontalStackLayout Grid.Row="0" Margin="0,10"
@@ -96,8 +94,8 @@
                           >
 
                         <HorizontalStackLayout x:Name="MediaBtns"
-                                               HeightRequest="50" Spacing="10"
-                                               VerticalOptions="Center"
+                                               Grid.Row="0" HeightRequest="50"
+                                               Spacing="10" VerticalOptions="Center"
                                                >
                             <syncf:SfChip x:Name="SkipPrev"
                                           Clicked="SkipPrev_Clicked"
@@ -197,21 +195,42 @@
                                     />
                         </HorizontalStackLayout>
 
+
+
                     </Grid>
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
+                            <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="40"
+                                          ImageSource="chart.png" ShowIcon="True"
+                                          WidthRequest="55"
+                                          >
 
-                </Grid>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                            </VisualState.Setters>
+                                        </VisualState>
 
-
-                <Grid Grid.Row="1" BackgroundColor="Transparent"
-                      RowDefinitions="0.1*,0.1*,*"
-                      >
-
-                    <Grid Grid.Row="0" ColumnDefinitions="*,*">
-                        <HorizontalStackLayout Grid.Column="0">
-                            <Label IsVisible="False" Text="F" />
+                                        <VisualState Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </syncf:SfChip>
                         </HorizontalStackLayout>
 
                     </Grid>
+                </Grid>
+
+
+                <Grid x:Name="SongsView"
+                      Grid.Row="1" BackgroundColor="Transparent"
+                      RowDefinitions="0.1*,0.1*,*"
+                      >
 
                     <Grid Grid.Row="1" ColumnDefinitions="*">
                         <Grid ColumnDefinitions="1.1*,1.5*,*,*,*,*,10">
@@ -327,17 +346,60 @@
                     </CollectionView>
                 </Grid>
 
-                <Grid Grid.Row="2" BackgroundColor="Transparent"
-                      RowSpacing="10"
+                <Grid x:Name="StatsView"
+                      Grid.Row="1" IsVisible="False"
+                      RowDefinitions="auto,*"
                       >
+                    <HorizontalStackLayout Grid.Row="0">
+                        <syncf:SfChip x:Name="MostPlayedFilter"
+                                      Clicked="Filter_Clicked" Text="Most Played"
+                                      />
 
+
+
+                    </HorizontalStackLayout>
+
+
+                    <Grid Grid.Row="1">
+                        <CollectionView ItemsSource="{Binding SongEvts}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="modelsDb:DimmerPlayEvent">
+                                    <Grid ColumnDefinitions="*,*,*">
+
+                                        <Label Grid.Column="0" FontSize="23"
+                                               Text="{Binding SongName}"
+                                               TextColor="White"
+                                               />
+
+                                        <Label Grid.Column="1" FontSize="23"
+                                               Text="{Binding PlayTypeStr}"
+                                               TextColor="White"
+                                               />
+
+                                        <Label Grid.Column="2" FontSize="23"
+                                               Text="{Binding EventDate}"
+                                               TextColor="White"
+                                               />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </Grid>
+                <Grid x:Name="SearchSection"
+                      Grid.Row="2" BackgroundColor="Transparent"
+                      ColumnDefinitions="auto,*" RowSpacing="10"
+                      >
+                    <HorizontalStackLayout Grid.Column="0" />
                     <SearchBar x:Name="SearchSongSB"
                                Grid.Column="1" BackgroundColor="Transparent"
                                Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
                                />
+
                 </Grid>
 
             </Grid>
+
         </Grid>
 
 

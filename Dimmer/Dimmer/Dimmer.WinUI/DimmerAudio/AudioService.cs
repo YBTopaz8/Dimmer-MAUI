@@ -127,6 +127,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         remove => _playEnded -= value;
     }
 
+    private EventHandler<PlaybackEventArgs>? _playStarted;
+    public event EventHandler<PlaybackEventArgs> PlayStarted
+    {
+        add => _playStarted += value;
+        remove => _playStarted -= value;
+    }
+
     // Additional, more granular events
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged; // More detailed state
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
@@ -631,7 +638,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine($"[AudioService] MediaOpened: {_currentTrackMetadata?.Title ?? "Unknown"}");
         Duration = sender.PlaybackSession.NaturalDuration.TotalSeconds;
         CurrentPosition = sender.PlaybackSession.Position.TotalSeconds; // Get current pos
-
+        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.Playing };
+        _playStarted?.Invoke(this, eventArgs);
     }
 
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
@@ -965,6 +973,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // Clear event handlers to release subscribers
         _isPlayingChanged = null;
         _playEnded = null;
+        _playStarted = null;
         PlaybackStateChanged = null;
         ErrorOccurred = null;
         DurationChanged = null;

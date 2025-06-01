@@ -445,13 +445,13 @@ public class ExoPlayerService : MediaSessionService
             ?? [];
 
         // 3) map to your cross-platform model
-        return devices.Select(d => new AudioOutputDevice
+        return [.. devices.Select(d => new AudioOutputDevice
         {
             Id   = d.Id.ToString(),
             Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
 
 
-        }).ToList();
+        })];
     }
 
     // --- Player Event Listener ---

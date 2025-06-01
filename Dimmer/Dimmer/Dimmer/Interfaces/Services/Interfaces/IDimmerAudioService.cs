@@ -137,6 +137,7 @@ public interface IDimmerAudioService
     /// Occurs when [error occurred].
     /// </summary>
     event EventHandler<PlaybackEventArgs>? ErrorOccurred;
+    event EventHandler<PlaybackEventArgs> PlayStarted;
 
     /// <summary>
     /// Disposes the asynchronous.

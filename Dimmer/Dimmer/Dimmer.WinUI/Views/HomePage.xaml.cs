@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
+using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer.WinUI.Views;
 
@@ -78,9 +79,11 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
+    private async void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
     {
-
+        var art = MyViewModel.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
+        DeviceStaticUtils.SelectedArtistOne = art;
+        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -116,7 +119,7 @@ public partial class HomePage : ContentPage
             Debug.WriteLine($"Search Error: {ex}");
         }
     }
-
+    List<SongModelView> songsToDisplay = new();
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
         if ((MyViewModel.NowPlayingDisplayQueue is null || MyViewModel.NowPlayingDisplayQueue.Count < 1))
@@ -124,12 +127,12 @@ public partial class HomePage : ContentPage
             return;
         }
 
-        List<SongModelView> songsToDisplay = new();
+        ObservableCollection<SongModelView> songsToDisplay = new();
 
         if (string.IsNullOrEmpty(searchText))
         {
 
-            songsToDisplay = MyViewModel.NowPlayingDisplayQueue.ToList();
+            songsToDisplay = [.. MyViewModel.NowPlayingDisplayQueue];
         }
         else
         {
@@ -143,7 +146,7 @@ public partial class HomePage : ContentPage
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
-                   .ToList();
+                   .ToObservableCollection();
 
                 return e;
             }, token);
@@ -157,8 +160,8 @@ public partial class HomePage : ContentPage
             if (token.IsCancellationRequested)
                 return;
 
-
-            SongsColView.ItemsSource = songsToDisplay.ToObservableCollection();
+            MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
+            SongsColView.ItemsSource = songsToDisplay;
 
 
 
@@ -227,30 +230,39 @@ public partial class HomePage : ContentPage
         {
             case "Title":
                 SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
                 SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             case "Album": // Assuming CommandParameter is "Album" for AlbumName
                 SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             case "Genre":
                 SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             case "Duration":
                 SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             case "Year": // Assuming CommandParameter for ReleaseYear
                 SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             case "DateAdded": // Assuming CommandParameter for DateCreated
                 SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, newOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
             default:
                 System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {sortProperty}");
                 // Reset sort state if property is unknown, or do nothing
                 _currentSortProperty = string.Empty;
+                MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
                 return;
+
         }
 
         // Optional: Scroll to top after sorting
@@ -258,5 +270,47 @@ public partial class HomePage : ContentPage
         // {
         //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
         // }
+    }
+
+    public class SortHeaderClass
+    {
+        public string SortProperty { get; set; } = string.Empty;
+        public bool IsAscending { get; set; }
+
+        public List<SortHeaderClass> DefaultHeaders { get; set; } = new List<SortHeaderClass>
+        {
+            new SortHeaderClass { SortProperty = "Title", IsAscending = true },
+            new SortHeaderClass { SortProperty = "Artist", IsAscending = true },
+            new SortHeaderClass { SortProperty = "Album", IsAscending = true },
+            new SortHeaderClass { SortProperty = "Genre", IsAscending = true },
+            new SortHeaderClass { SortProperty = "Duration", IsAscending = true },
+            new SortHeaderClass { SortProperty = "Year", IsAscending = true },
+            new SortHeaderClass { SortProperty = "DateAdded", IsAscending = true }
+        };
+
+        public SortHeaderClass() { }
+    }
+
+    private void Filter_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void StatsSfChip_Clicked(object sender, EventArgs e)
+    {
+        if (SongsView.IsVisible)
+        {
+            MyViewModel.LoadStats();
+
+            await Task.WhenAll(SongsView.AnimateFadeOutBack(400), StatsView.AnimateFadeInFront(300));
+
+
+        }
+        else
+        {
+            await Task.WhenAll(SongsView.AnimateFadeInFront(300), StatsView.AnimateFadeOutBack(400));
+
+
+        }
     }
 }

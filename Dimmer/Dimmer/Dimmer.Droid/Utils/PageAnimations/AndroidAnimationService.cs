@@ -40,16 +40,45 @@ public partial class AndroidAnimationService : IAnimationService
         };
     }
 
-    public AnimationSetting GetDefaultPushEnterAnimation() => _defaultPushEnter;
-    public AnimationSetting GetDefaultPushExitAnimation() => _defaultPushExit;
-    public AnimationSetting GetDefaultPopEnterAnimation() => _defaultPopEnter;
-    public AnimationSetting GetDefaultPopExitAnimation() => _defaultPopExit;
+    public AnimationSetting GetDefaultPushEnterAnimation()
+    {
+        return _defaultPushEnter;
+    }
 
-    public AnimationSetting GetHomePagePushEnterAnimation() => _homePagePushEnter;
-    public AnimationSetting GetHomePagePushExitAnimation() => _homePagePushExit;
-    public AnimationSetting GetHomePagePopEnterAnimation() => _homePagePopEnter;
-    public AnimationSetting GetHomePagePopExitAnimation() => _homePagePopExit;
+    public AnimationSetting GetDefaultPushExitAnimation()
+    {
+        return _defaultPushExit;
+    }
 
+    public AnimationSetting GetDefaultPopEnterAnimation()
+    {
+        return _defaultPopEnter;
+    }
+
+    public AnimationSetting GetDefaultPopExitAnimation()
+    {
+        return _defaultPopExit;
+    }
+
+    public AnimationSetting GetHomePagePushEnterAnimation()
+    {
+        return _homePagePushEnter;
+    }
+
+    public AnimationSetting GetHomePagePushExitAnimation()
+    {
+        return _homePagePushExit;
+    }
+
+    public AnimationSetting GetHomePagePopEnterAnimation()
+    {
+        return _homePagePopEnter;
+    }
+
+    public AnimationSetting GetHomePagePopExitAnimation()
+    {
+        return _homePagePopExit;
+    }
 
     public List<AnimationSetting> GetAllDefaultAnimations()
     {

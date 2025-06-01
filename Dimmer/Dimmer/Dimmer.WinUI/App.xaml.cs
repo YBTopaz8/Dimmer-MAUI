@@ -81,7 +81,7 @@ public partial class App : MauiWinUIApplication
             if (args.Data is IFileActivatedEventArgs fileArgs)
             {
                 // Extract paths. These could be null if a file object isn't a StorageFile or Path is null
-                string?[] rawPaths = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
+                string?[] rawPaths = [.. fileArgs.Files.Select(file => (file as StorageFile)?.Path)];
                 HandleFiles(rawPaths);
             }
         }

@@ -252,7 +252,7 @@ public class LibraryScannerService : ILibraryScannerService
     public void LoadInSongsAndEvents()
     {
         _logger.LogInformation("Loading all songs from database into global state.");
-        var allSongs = _songRepo.GetAll(true).ToList();
+        var allSongs = _songRepo.GetAll(true).ToList().DistinctBy(x => x.Title).ToList();
         _state.LoadAllSongs(allSongs.AsReadOnly());
         _logger.LogInformation("Loaded {SongCount} songs into global state.", allSongs.Count);
 

@@ -101,15 +101,23 @@ public class BaseAppFlow : IDisposable
               }, ex => _logger.LogError(ex, "Error subscribing to ApplicationSettingsState for snapshot."))
        );
 
-        //    _subscriptions.Add(
-        //    Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.IsPlayingChanged += h, h => audioService.IsPlayingChanged -= h)
-        //        .Subscribe(evt =>
-        //        {
-        //            UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, StatesMapper.Map(evt.EventArgs.EventType), 0);
-        //        },
-        //                   ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
-        //);
-        //InitializePlaybackEventLogging();
+        _subscriptions.Add(
+        Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.PlayEnded += h, h => audioService.PlayEnded -= h)
+            .Subscribe(evt =>
+            {
+                UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, PlayType.Completed, 0);
+            },
+                       ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
+    );
+        _subscriptions.Add(
+        Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.PlayStarted += h, h => audioService.PlayStarted -= h)
+            .Subscribe(evt =>
+            {
+                UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, PlayType.Play, 0);
+            },
+                       ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
+    );
+
         InitializeFolderEventReactions();
 
         _logger.LogInformation("BaseAppFlow (Coordinator & Logger) initialized.");

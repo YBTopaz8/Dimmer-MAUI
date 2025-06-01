@@ -231,7 +231,7 @@ public class FolderMgtService : IFolderMgtService
             if (Path.GetDirectoryName(e.FullPath) != null)
                 pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!);
 
-            await _libraryScanner.ScanSpecificPathsAsync(pathsToScan.Distinct().ToList(), isIncremental: true);
+            await _libraryScanner.ScanSpecificPathsAsync([.. pathsToScan.Distinct()], isIncremental: true);
         }
         else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath) || WasPathPreviouslyWatchedSubfolder(e.OldFullPath)) // A subfolder was renamed
         {
@@ -244,7 +244,7 @@ public class FolderMgtService : IFolderMgtService
                 pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!); // Scan new parent
 
 
-            await _libraryScanner.ScanSpecificPathsAsync(pathsToScan.Distinct().ToList(), isIncremental: true);
+            await _libraryScanner.ScanSpecificPathsAsync([.. pathsToScan.Distinct()], isIncremental: true);
         }
     }
 

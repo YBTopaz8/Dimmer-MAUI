@@ -15,6 +15,8 @@ public class ViewRegistry
     {
         AndroidViews[name] = view;
     }
-    public static View? Get(string name) => AndroidViews.TryGetValue(name, out var v) ? v : null;
-
+    public static View? Get(string name)
+    {
+        return AndroidViews.TryGetValue(name, out var v) ? v : null;
+    }
 }

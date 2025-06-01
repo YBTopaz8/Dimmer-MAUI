@@ -123,8 +123,23 @@ public class MusicMetadataService : IMusicMetadataService
         return exists; 
     }
 
-    public IReadOnlyList<ArtistModel> GetAllArtists() => _artistsByName.Values.ToList();
-    public IReadOnlyList<AlbumModel> GetAllAlbums() => _albumsByName.Values.ToList();
-    public IReadOnlyList<GenreModel> GetAllGenres() => _genresByName.Values.ToList();
-    public IReadOnlyList<SongModel> GetAllSongs() => _songs.ToList();
+    public IReadOnlyList<ArtistModel> GetAllArtists()
+    {
+        return _artistsByName.Values.ToList();
+    }
+
+    public IReadOnlyList<AlbumModel> GetAllAlbums()
+    {
+        return _albumsByName.Values.ToList();
+    }
+
+    public IReadOnlyList<GenreModel> GetAllGenres()
+    {
+        return _genresByName.Values.ToList();
+    }
+
+    public IReadOnlyList<SongModel> GetAllSongs()
+    {
+        return _songs.ToList();
+    }
 }

@@ -20,10 +20,11 @@ public interface IRealmObjectWithObjectId
 public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, IRealmObjectWithObjectId, new()
 {
     private readonly IRealmFactory _factory = factory;
-    private IMapper? _mapper;
 
-    private Realm GetNewRealm() => _factory.GetRealmInstance();
-
+    private Realm GetNewRealm()
+    {
+        return _factory.GetRealmInstance();
+    }
 
     public T AddOrUpdate(T entity) // CORRECTED version
     {
@@ -115,6 +116,18 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
         return frozen;
     }
+    public IReadOnlyCollection<T> GetAllUnfrozen(bool IsShuffled = false)
+    {
+        using var realm = GetNewRealm();
+
+        var list = realm.All<T>()
+            .ToList();
+        // 2) shuffle in place if requested
+        if (IsShuffled)
+            list.ShuffleInPlace();  // returns void
+
+        return list;
+    }
 
     /// <summary>
     /// If you really need a live collection (e.g. for direct UI binding),
@@ -143,7 +156,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         {
             // Realm processes the predicate here. If unsupported, it throws.
             var results = realm.All<T>().Where(predicate).ToList();
-            return results.Select(o => o.Freeze()).ToList();
+            return [.. results.Select(o => o.Freeze())];
         }
         catch (NotSupportedException ex)
         {
@@ -172,7 +185,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
         using var realm = GetNewRealm();
         var results = realm.All<T>().Skip(skip).Take(take).ToList();
-        return results.Select(o => o.Freeze()).ToList();
+        return [.. results.Select(o => o.Freeze())];
     }
     public int Count(Expression<Func<T, bool>>? predicate = null)
     {
@@ -186,7 +199,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         using var realm = GetNewRealm();
         var query = realm.All<T>().Where(predicate);
         query = ascending ? query.OrderBy(keySelector) : query.OrderByDescending(keySelector);
-        return query.ToList().Select(o => o.Freeze()).ToList();
+        return [.. query.ToList().Select(o => o.Freeze())];
     }
 
     public IEnumerable<SongModel> Query(Expression<Func<DimmerPlayEvent, bool>> realmPredicate)

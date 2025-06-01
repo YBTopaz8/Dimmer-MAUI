@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
 using CommunityToolkit.Mvvm.Input;
 
@@ -32,9 +33,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly IRepository<ArtistModel> artistRepo;
     private readonly IRepository<AlbumModel> albumRepo;
     private readonly IRepository<GenreModel> genreRepo;
+    private readonly IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
     private readonly LyricsMgtFlow _lyricsMgtFlow;
     protected readonly ILogger<BaseViewModel> _logger; // Added logger
     private readonly IDimmerAudioService audioService;
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerPlayEvent> DimmerPlayEventList { get; set; } = new();
 
 
     //public 
@@ -43,7 +49,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     // --- UI-Bound Properties driven by _stateService or local logic ---
     [ObservableProperty]
+    public partial CollectionStatsSummary? SummaryStatsForAllSongs { get; set; }
+    [ObservableProperty]
     public partial SongModelView? CurrentPlayingSongView { get; set; }
+    [ObservableProperty] public partial int? CurrentTotalSongsOnDisplay { get; set; }
     [ObservableProperty]
     public partial SongModelView? SelectedSongForContext { get; set; }
     [ObservableProperty]
@@ -128,7 +137,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial AlbumModelView? SelectedAlbum { get; set; }
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedAlbumArtists { get; set; }
     [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
-    
+
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
     [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedAlbumSongs { get; set; }
@@ -166,6 +175,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
+
         _albumsMgtFlow = albumsMgtFlow;
         _playlistsMgtFlow = playlistsMgtFlow;
         _songsMgtFlow = songsMgtFlow;
@@ -181,6 +191,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
         UserLocal = new UserModelView();
+        dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         Initialize();
     }
     [ObservableProperty]
@@ -377,8 +388,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         await audioService.InitializeAsync(songToPlay);
         await audioService.PlayAsync();
 
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
-
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
         {
@@ -470,8 +479,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         {
             await audioService.PlayAsync(); // Call the audio service to pause playback
 
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
-            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, currentSongVm, currentSongModel));
         }
     }
 
@@ -572,10 +579,16 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public void IncreaseVolumeLevel() => SetVolumeLevel(DeviceVolumeLevel + 0.05);
+    public void IncreaseVolumeLevel()
+    {
+        SetVolumeLevel(DeviceVolumeLevel + 0.05);
+    }
 
     [RelayCommand]
-    public void DecreaseVolumeLevel() => SetVolumeLevel(DeviceVolumeLevel - 0.05);
+    public void DecreaseVolumeLevel()
+    {
+        SetVolumeLevel(DeviceVolumeLevel - 0.05);
+    }
 
 
     // --- Methods that interact with legacy 
@@ -607,13 +620,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     }
 
-    
+
     public void ViewArtistDetails(ArtistModelView? artView) // Can also pass just artistId
     {
         var art = artistRepo.GetById(artView.Id);
 
         SelectedArtist = _mapper.Map<ArtistModelView>(art); // Update the selected artist context
-        SelectedArtistSongs = new ObservableCollection<SongModelView>(art.Songs.ToList().Select(s => _mapper.Map<SongModelView>(s.Freeze())));
+        SelectedArtistSongs = new ObservableCollection<SongModelView>(art.Songs.AsEnumerable().Select(s => _mapper.Map<SongModelView>(s.Freeze())));
 
         if (art == null || art.Id == default)
         {
@@ -672,6 +685,27 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         await _folderMgtService.AddFolderToWatchListAndScanAsync(folderPath);
 
+    }
+    [ObservableProperty] public partial ObservableCollection<DimmerPlayEventView>? SongEvts { get; set; }
+    [ObservableProperty] public partial ObservableCollection<PlayEventGroup>? GroupedPlayEvents { get; set; } = new();
+    public void LoadStats()
+    {
+
+        SongEvts ??= new();
+        SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(dimmerPlayEventRepo.GetAll().ToList());
+
+        GroupedPlayEvents.Clear();
+
+        GroupedPlayEvents = SongEvts
+           .GroupBy(e => e.PlayTypeStr ?? "Unknown")
+           .Select(g => new PlayEventGroup(
+               g.Key,
+               g.OrderByDescending(e => e.DatePlayed).ToList() // Now g contains DimmerPlayEventDisplay
+           ))
+           .OrderBy(group => group.Name)
+           .ToObservableCollection();
+
+        //SummaryStatsForAllSongs = plays
     }
 
 

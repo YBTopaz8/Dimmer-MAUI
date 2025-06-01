@@ -237,7 +237,7 @@ public class AlbumsMgtFlow : IDisposable
         var allAlbums = _albumRepo.GetAll(); // Potentially inefficient
         var sortedList = ascending
             ? allAlbums.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList()
-            : allAlbums.OrderByDescending(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            : [.. allAlbums.OrderByDescending(a => a.Name, StringComparer.OrdinalIgnoreCase)];
         _queriedAlbums.OnNext(sortedList);
     }
 

@@ -18,4 +18,5 @@ public interface IRepository<T> where T : new()
     //IObservable<IList<T>> WatchAll();
     List<T> QueryOrdered<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> keySelector, bool ascending);
     int Count(Expression<Func<T, bool>> predicate);
+    IReadOnlyCollection<T> GetAllUnfrozen(bool IsShuffled = false);
 }

@@ -3,6 +3,8 @@
 
 using System.ComponentModel;
 
+using Android.Views;
+
 using Dimmer.Data.Models;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
@@ -16,21 +18,54 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
     // _subs is inherited from BaseViewModel as _subsManager and should be used for subscriptions here too
     // private readonly SubscriptionManager _subsLocal = new(); // Use _subsManager from base
-
+    private readonly IMapper mapper;
+    private readonly IAppInitializerService appInitializerService;
+    private readonly IDimmerLiveStateService dimmerLiveStateService;
+    private readonly AlbumsMgtFlow albumsMgtFlow;
+    private readonly IDimmerAudioService audioService;
+    private readonly PlayListMgtFlow playlistsMgtFlow;
+    private readonly SongsMgtFlow songsMgtFlow;
+    private readonly IDimmerStateService stateService;
+    private readonly ISettingsService settingsService;
+    private readonly SubscriptionManager subsManager;
+    private readonly IRepository<SongModel> songRepository;
+    private readonly IRepository<ArtistModel> artistRepository;
+    private readonly IRepository<AlbumModel> albumRepository;
+    private readonly IRepository<GenreModel> genreRepository;
+    private readonly LyricsMgtFlow lyricsMgtFlow;
+    private readonly IFolderMgtService folderMgtService;
     [ObservableProperty]
     private ObservableCollection<SongModelView>? _displayedSongs; // Backing field
 
     [ObservableProperty]
     private DXCollectionView? _songLyricsCV; // Nullable, ensure it's set from XAML
-    private readonly PlayListMgtFlow playlistsMgtFlow;
 
-    private readonly IAppInitializerService appInitializerService;
     // Removed local _stateService and _mapper as they are protected in BaseViewModel
+    private readonly ILogger<BaseViewModelAnd> logger;
 
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow,
        IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, artistRepository, albumRepository, genreRepository, logger)
     {
+
+        this.mapper=mapper;
+        this.appInitializerService=appInitializerService;
+        this.dimmerLiveStateService=dimmerLiveStateService;
+        this.albumsMgtFlow=albumsMgtFlow;
+        audioService=_audioService;
+        this.playlistsMgtFlow=playlistsMgtFlow;
+        this.songsMgtFlow=songsMgtFlow;
+        this.stateService=stateService;
+        this.settingsService=settingsService;
+        this.subsManager=subsManager;
+        this.songRepository=songRepository;
+        this.artistRepository=artistRepository;
+        this.albumRepository=albumRepository;
+        this.genreRepository=genreRepository;
+        this.lyricsMgtFlow=lyricsMgtFlow;
+        this.folderMgtService=folderMgtService;
+        this.logger=logger;
+
         // _mapper and _stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
         this.playlistsMgtFlow=playlistsMgtFlow;
@@ -172,6 +207,10 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     public async Task InitializeApp()
     {
+        if (audioService.IsPlaying || audioService.CurrentTrackMetadata is not null)
+        {
+            return;
+        }
         await appInitializerService.InitializeApplicationAsync();
     }
 }

@@ -25,11 +25,11 @@ public static class CollectionSortHelper
 
         if (order == SortOrder.Ascending)
         {
-            return collection.OrderBy(keySelector).ToObservableCollection();
+            return collection.DistinctBy(keySelector).OrderBy(keySelector).ToObservableCollection();
         }
         else
         {
-            return collection.OrderByDescending(keySelector).ToObservableCollection();
+            return collection.DistinctBy(keySelector).OrderByDescending(keySelector).ToObservableCollection();
         }
 
         // Efficiently update the ObservableCollection without clearing and re-adding one by one

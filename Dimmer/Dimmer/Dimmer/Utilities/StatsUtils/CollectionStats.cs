@@ -68,9 +68,9 @@ public static class CollectionStats
     public static List<string> GetUniqueDevices(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
     {
         var songIds = songs.Select(s => s.Id).ToHashSet();
-        return Events.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value) && !string.IsNullOrEmpty(e.DeviceName))
+        return [.. Events.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value) && !string.IsNullOrEmpty(e.DeviceName))
                      .Select(e => e.DeviceName!)
-                     .Distinct().ToList();
+                     .Distinct()];
     }
 
     // 3. Distribution of play counts
@@ -81,8 +81,10 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[Dictionary<int, int>]]></returns>
     public static Dictionary<int, int> GetPlayCountDistribution(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.GroupBy(s => SongStats.GetPlayCount(s, Events))
-                .ToDictionary(g => g.Key, g => g.Count());
+    {
+        return songs.GroupBy(s => SongStats.GetPlayCount(s, Events))
+                    .ToDictionary(g => g.Key, g => g.Count());
+    }
 
     // 4. Song(s) with max skips
     /// <summary>
@@ -94,7 +96,7 @@ public static class CollectionStats
     public static List<SongModel> GetSongsWithMaxSkips(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
     {
         int max = songs.Max(s => SongStats.GetSkipCount(s, Events));
-        return songs.Where(s => SongStats.GetSkipCount(s, Events) == max).ToList();
+        return [.. songs.Where(s => SongStats.GetSkipCount(s, Events) == max)];
     }
 
     // 5. Song(s) with min plays
@@ -107,7 +109,7 @@ public static class CollectionStats
     public static List<SongModel> GetSongsWithMinPlays(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
     {
         int min = songs.Min(s => SongStats.GetPlayCount(s, Events));
-        return songs.Where(s => SongStats.GetPlayCount(s, Events) == min).ToList();
+        return [.. songs.Where(s => SongStats.GetPlayCount(s, Events) == min)];
     }
 
     // 6. Song(s) most played on a single day
@@ -162,7 +164,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
     public static double GetPercentSongsPlayed(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => 100.0 * songs.Count(s => SongStats.GetPlayCount(s, Events) > 0) / Math.Max(1, songs.Count);
+    {
+        return 100.0 * songs.Count(s => SongStats.GetPlayCount(s, Events) > 0) / Math.Max(1, songs.Count);
+    }
 
     // 9. Top N played songs
     /// <summary>
@@ -173,7 +177,9 @@ public static class CollectionStats
     /// <param name="n">The N.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
     public static List<SongModel> GetTopNPlayedSongs(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events, int n)
-        => songs.OrderByDescending(s => SongStats.GetPlayCount(s, Events)).Take(n).ToList();
+    {
+        return [.. songs.OrderByDescending(s => SongStats.GetPlayCount(s, Events)).Take(n)];
+    }
 
     // 10. Songs never skipped
     /// <summary>
@@ -183,7 +189,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
     public static List<SongModel> GetSongsNeverSkipped(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Where(s => SongStats.GetSkipCount(s, Events) == 0).ToList();
+    {
+        return [.. songs.Where(s => SongStats.GetSkipCount(s, Events) == 0)];
+    }
 
     // 11. Songs with max duration
     /// <summary>
@@ -195,7 +203,7 @@ public static class CollectionStats
     public static List<SongModel> GetSongsWithMaxDuration(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
     {
         double max = songs.Max(s => s.DurationInSeconds);
-        return songs.Where(s => s.DurationInSeconds == max).ToList();
+        return [.. songs.Where(s => s.DurationInSeconds == max)];
     }
 
     // 12. Most common play hour for the collection
@@ -238,7 +246,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>A SongModel?</returns>
     public static SongModel? GetSongWithHighestAvgPercentListened(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.OrderByDescending(s => SongStats.GetAvgPercentListened(s, Events)).FirstOrDefault();
+    {
+        return songs.OrderByDescending(s => SongStats.GetAvgPercentListened(s, Events)).FirstOrDefault();
+    }
 
     // 15. Count of songs played to completion at least once
     /// <summary>
@@ -248,7 +258,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int CountSongsPlayedToCompletion(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Count(s => SongStats.WasEverCompleted(s, Events));
+    {
+        return songs.Count(s => SongStats.WasEverCompleted(s, Events));
+    }
 
     // 16. Count of favorite songs played today
     /// <summary>
@@ -271,7 +283,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int CountSongsPlayedOnce(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Count(s => SongStats.GetPlayCount(s, Events) == 1);
+    {
+        return songs.Count(s => SongStats.GetPlayCount(s, Events) == 1);
+    }
 
     // 18. Average number of devices per song
     /// <summary>
@@ -281,7 +295,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
     public static double AvgDevicesPerSong(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Average(s => SongStats.GetPlayedDevices(s, Events).Count);
+    {
+        return songs.Average(s => SongStats.GetPlayedDevices(s, Events).Count);
+    }
 
     // 19. Song(s) played most recently in collection
     /// <summary>
@@ -291,7 +307,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>A SongModel?</returns>
     public static SongModel? GetMostRecentlyPlayedSong(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.OrderByDescending(s => SongStats.GetLastPlayedDate(s, Events) ?? DateTimeOffset.MinValue).FirstOrDefault();
+    {
+        return songs.OrderByDescending(s => SongStats.GetLastPlayedDate(s, Events) ?? DateTimeOffset.MinValue).FirstOrDefault();
+    }
 
     // 20. Count of songs skipped but never completed
     /// <summary>
@@ -301,7 +319,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int CountSongsSkippedNeverCompleted(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Count(s => SongStats.GetSkipCount(s, Events) > 0 && !SongStats.WasEverCompleted(s, Events));
+    {
+        return songs.Count(s => SongStats.GetSkipCount(s, Events) > 0 && !SongStats.WasEverCompleted(s, Events));
+    }
 
     // 21. Most common device used in collection
     /// <summary>
@@ -327,7 +347,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
     public static List<SongModel> GetSongsNeverCompleted(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Where(s => !SongStats.WasEverCompleted(s, Events)).ToList();
+    {
+        return [.. songs.Where(s => !SongStats.WasEverCompleted(s, Events))];
+    }
 
     // 23. Collection play count as Roman numeral
     /// <summary>
@@ -337,8 +359,10 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>A string</returns>
     public static string GetPlayCountRoman(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => NerdySongStats.PlayCountRoman(new SongModel { }, new[] { new DimmerPlayEvent { SongId = new MongoDB.Bson.ObjectId() } }) // just use the method above with sum
-            .Replace("N", songs.Sum(s => SongStats.GetPlayCount(s, Events)).ToString());
+    {
+        return NerdySongStats.PlayCountRoman(new SongModel { }, new[] { new DimmerPlayEvent { SongId = new MongoDB.Bson.ObjectId() } }) // just use the method above with sum
+                .Replace("N", songs.Sum(s => SongStats.GetPlayCount(s, Events)).ToString());
+    }
 
     // 24. Song(s) played at the exact same minute
     /// <summary>
@@ -361,8 +385,7 @@ public static class CollectionStats
                     dict[key].Add(s);
             }
         }
-        return dict.Values.Where(list => list.Count > 1)
-            .SelectMany(list => list.SelectMany((x, i) => list.Skip(i + 1).Select(y => (x, y)))).ToList();
+        return [.. dict.Values.Where(list => list.Count > 1).SelectMany(list => list.SelectMany((x, i) => list.Skip(i + 1).Select(y => (x, y))))];
     }
 
     // 25. Distribution of ratings in collection
@@ -373,7 +396,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[Dictionary<int, int>]]></returns>
     public static Dictionary<int, int> GetRatingDistribution(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.GroupBy(s => s.Rating).ToDictionary(g => g.Key, g => g.Count());
+    {
+        return songs.GroupBy(s => s.Rating).ToDictionary(g => g.Key, g => g.Count());
+    }
 
     // 1. Eddington Number for collection (same idea: max E such that at least E songs have at least E plays)
     /// <summary>
@@ -439,7 +464,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int CollectionPlayCountDigitSum(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Sum(s => SongStats.GetPlayCount(s, Events)).ToString().ToCharArray().Sum(c => c - '0');
+    {
+        return songs.Sum(s => SongStats.GetPlayCount(s, Events)).ToString().ToCharArray().Sum(c => c - '0');
+    }
 
     // 5. How many songs are played exactly "e" times (rounded)
     /// <summary>
@@ -449,7 +476,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int CountSongsPlayedETimes(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Count(s => SongStats.GetPlayCount(s, Events) == (int)Math.Round(Math.E));
+    {
+        return songs.Count(s => SongStats.GetPlayCount(s, Events) == (int)Math.Round(Math.E));
+    }
 
     // 6. Most common last digit in play counts
     /// <summary>
@@ -459,8 +488,10 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int MostCommonLastDigitPlayCount(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Select(s => SongStats.GetPlayCount(s, Events) % 10)
-                .GroupBy(x => x).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key ?? 0;
+    {
+        return songs.Select(s => SongStats.GetPlayCount(s, Events) % 10)
+                    .GroupBy(x => x).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key ?? 0;
+    }
 
     // 7. Sum of unique primes in play counts
     /// <summary>
@@ -494,7 +525,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
     public static double CollectionPlayCountDivPi(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Sum(s => SongStats.GetPlayCount(s, Events)) / Math.PI;
+    {
+        return songs.Sum(s => SongStats.GetPlayCount(s, Events)) / Math.PI;
+    }
 
     // 9. Number of songs whose play count is a multiple of 42
     /// <summary>
@@ -504,7 +537,9 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
     public static int SongsPlayCountIs42Multiple(IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> Events)
-        => songs.Count(s => SongStats.GetPlayCount(s, Events) != 0 && SongStats.GetPlayCount(s, Events) % 42 == 0);
+    {
+        return songs.Count(s => SongStats.GetPlayCount(s, Events) != 0 && SongStats.GetPlayCount(s, Events) % 42 == 0);
+    }
 
     // 10. Number of distinct Collatz steps for all play counts
     /// <summary>
