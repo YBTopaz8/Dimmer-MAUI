@@ -32,6 +32,7 @@ public partial class AppInitializerService : IAppInitializerService
 
     public async Task InitializeApplicationAsync()
     {
+       
         _logger.LogInformation("Application Initializer: Starting initialization...");
         try
         {

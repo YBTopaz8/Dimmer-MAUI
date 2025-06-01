@@ -37,7 +37,7 @@ public class SettingsWindowManager : ISettingsWindowManager
         {
             if (_settingWindowInstance == null)
             {
-                _settingWindowInstance = new SettingWindow(viewModel); // Pass your ViewModel
+                _settingWindowInstance = new SettingWindow(viewModel); // Pass your MyViewModel
                 _settingWindowInstance.Closed += OnSettingWindowClosed;
 
                 // This requires getting the HWND of the main MAUI window.

@@ -34,15 +34,39 @@ public sealed partial class ArtistGeneralWindow : Window
 {
     public ArtistGeneralWindow()
     {
-        InitializeComponent();
-
         BaseViewModel viewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
         ViewModel=viewModel;
+        InitializeComponent();
 
+        this.ArtistsPage.DataContext=ViewModel;
     }
     public BaseViewModel ViewModel { get; }
     SpringVector3NaturalMotionAnimation _springAnimation;
     private int previousSelectedIndex;
 
 
+    private void SelectorBar2_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        SelectorBarItem selectedItem = sender.SelectedItem;
+        int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
+        System.Type pageType = this.GetType();
+
+        switch (currentSelectedIndex)
+        {
+            case 0:
+                pageType = typeof(AllArtistsPage);
+                break;
+            case 1:
+                break;
+
+            default:
+                break;
+        }
+
+        var slideNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0 ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromLeft;
+
+        ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
+
+        previousSelectedIndex = currentSelectedIndex;
+    }
 }

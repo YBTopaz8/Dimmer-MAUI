@@ -106,7 +106,7 @@ public partial class App : MauiWinUIApplication
         // It's generally safer to resolve services when needed,
         // especially if they might have a scoped lifetime or depend on UI thread.
         // Also, ensure HomePageVM is registered as a singleton or transient as appropriate.
-        var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your ViewModel class
+        var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your MyViewModel class
         if (homePageVM != null)
         {
             // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe

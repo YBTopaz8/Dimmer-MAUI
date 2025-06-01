@@ -128,6 +128,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial AlbumModelView? SelectedAlbum { get; set; }
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedAlbumArtists { get; set; }
     [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
+    
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
     [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedAlbumSongs { get; set; }
@@ -606,21 +607,20 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     }
 
-
-    public void ViewArtistDetails(ArtistModel? art) // Can also pass just artistId
+    
+    public void ViewArtistDetails(ArtistModelView? artView) // Can also pass just artistId
     {
-
+        var art = artistRepo.GetById(artView.Id);
 
         SelectedArtist = _mapper.Map<ArtistModelView>(art); // Update the selected artist context
-        SelectedArtistSongs = new ObservableCollection<SongModelView>(art.Songs.Select(s => _mapper.Map<SongModelView>(s)));
-        SelectedArtistAlbums = new ObservableCollection<AlbumModelView>(art.Albums.Select(a => _mapper.Map<AlbumModelView>(a)));
-        SelectedAlbum = _mapper.Map<AlbumModelView>(art.Albums.FirstOrDefault());
+        SelectedArtistSongs = new ObservableCollection<SongModelView>(art.Songs.ToList().Select(s => _mapper.Map<SongModelView>(s.Freeze())));
 
         if (art == null || art.Id == default)
         {
             _logger.LogWarning("ViewArtistDetails: art or its ID is null/default.");
             return;
         }
+        SelectedArtist.ImagePath = SelectedArtistSongs[0].CoverImagePath;
         _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
         // _navigationService.NavigateTo(nameof(ArtistDetailPageViewModel), art.Id); // Example
     }

@@ -11,9 +11,9 @@ using Dimmer.WinUI.Views.ArtistsSpace;
 
 using Microsoft.Extensions.Logging; // For ILogger
 
-namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI ViewModel namespace
+namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 
-public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dimmer.ViewModel
+public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dimmer.MyViewModel
 {
     private readonly IMapper mapper;
     private readonly IAppInitializerService appInitializerService;
@@ -79,6 +79,10 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     public async Task InitializeApp()
     {
+        if(audioService.IsPlaying || audioService.CurrentTrackMetadata is not null)
+        {
+            return;
+        }
         await appInitializerService.InitializeApplicationAsync();
     }
     public void OpenSettingsWindow()
@@ -95,22 +99,11 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     }
 
 
-    public void OpenArtistsWindow(ArtistModelView artist)
+    public void OpenArtistsWindow()
     {
-        if (!settingsWindwow.IsSettingsWindowOpen)
-        {
-
-            settingsWindwow.ShowSettingsWindow(this);
-        }
-        else
-        {
-            settingsWindwow.BringSettingsWindowToFront();
-        }
 
         windowManager.GetOrCreateUniqueWindow<ArtistGeneralWindow>();
 
-        var artDb = artistRepository.GetById(artist.Id);
-        ViewArtistDetails(artDb);
     }
 
 

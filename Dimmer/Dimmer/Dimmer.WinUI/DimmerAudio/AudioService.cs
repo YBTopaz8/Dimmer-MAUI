@@ -137,7 +137,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed; // Raised by SMTC Previous command
     public event PropertyChangedEventHandler? PropertyChanged;
     // public event EventHandler<long>? IsSeekedFromNotificationBar; // Consider using SeekCompleted instead
-    // public event EventHandler? PlayStopAndShowWindow; // UI concern, better handled in ViewModel
+    // public event EventHandler? PlayStopAndShowWindow; // UI concern, better handled in MyViewModel
 
     #endregion
 
@@ -715,7 +715,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
     {
         Debug.WriteLine("[AudioService] SMTC Next Received");
-        // Raise event for ViewModel/PlaylistManager to handle
+        // Raise event for MyViewModel/PlaylistManager to handle
         var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType= DimmerPlaybackState.PlayNextUser };
 
         MediaKeyNextPressed?.Invoke(this, eventArgs);
@@ -725,7 +725,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private void CommandManager_PreviousReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPreviousReceivedEventArgs args)
     {
         Debug.WriteLine("[AudioService] SMTC Previous Received");
-        // Raise event for ViewModel/PlaylistManager to handle
+        // Raise event for MyViewModel/PlaylistManager to handle
         var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.PlayPreviousUser };
         MediaKeyPreviousPressed?.Invoke(this, eventArgs);
         args.Handled = true; // Assume it will be handled

@@ -16,6 +16,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\ArtistsSpace\MAUI\ArtistsPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <Page Update="Views\ArtistsSpace\SpecificArtistPage.xaml">
       <SubType>Designer</SubType>
     </Page>
