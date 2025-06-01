@@ -18,8 +18,6 @@ global using CommunityToolkit.Maui.Core.Extensions;
 global using Dimmer.Data.Models;
 global using Dimmer.Orchestration;
 global using System.Collections.ObjectModel;
-
-global using Dimmer.Interfaces;
 global using Dimmer.Utilities;
 global using System.Threading.Tasks;
 global using Realms;
@@ -31,11 +29,9 @@ global using ZXing.Net.Maui.Controls;
 global using MongoDB.Bson;
 
 global using Dimmer.Utilities.FileProcessorUtils;
-global using System.Reactive.Concurrency;
 
 global using Dimmer.Interfaces.Services;
 global using System.Text;
 global using System.Text.Json;
-global using Dimmer.Interfaces.IDatabase;
 
 global using Dimmer.DimmerLive.Models;

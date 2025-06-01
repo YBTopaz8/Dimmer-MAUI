@@ -155,7 +155,7 @@
                                           />
                             <syncf:SfChip x:Name="PlayPauseBtn"
                                           Clicked="PlayPauseBtn_Clicked"
-                                          Command="{Binding PlayPauseToggleAsyncCommand}"
+                                          Command="{Binding PlayPauseToggleCommand}"
                                           ImageSource="play.png" StyleClass="MediaBtnChip"
                                           >
                                 <syncf:SfChip.Triggers>

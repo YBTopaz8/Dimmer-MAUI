@@ -1,24 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿using System.Reactive.Disposables;
 
-using Dimmer.Data.Models;
-using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Enums;
+using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
+using Dimmer.Utilities.StatsUtils;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-
-using MongoDB.Bson;
-
-using Realms;
 
 using static Dimmer.Utilities.AppUtils;
 
@@ -54,11 +41,13 @@ public class BaseAppFlow : IDisposable
     public SongModelView? CurrentSongSnapshot { get; private set; }
     public UserModel? CurrentUserInstance { get; private set; }
     public AppStateModelView? AppStateSnapshot { get; private set; }
+    private readonly IDimmerAudioService audioService;
 
 
     public BaseAppFlow(
         IDimmerStateService state,
         IMapper mapper,
+       IDimmerAudioService _audioService,
         IRepository<DimmerPlayEvent> playEventRepo,
         IRepository<UserModel> userRepo,
         IRepository<PlaylistModel> playlistRepo,
@@ -74,6 +63,7 @@ public class BaseAppFlow : IDisposable
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
         _playEventRepo = playEventRepo ?? throw new ArgumentNullException(nameof(playEventRepo));
         _userRepo = userRepo;
         _playlistRepo = playlistRepo;
@@ -111,8 +101,15 @@ public class BaseAppFlow : IDisposable
               }, ex => _logger.LogError(ex, "Error subscribing to ApplicationSettingsState for snapshot."))
        );
 
-
-        InitializePlaybackEventLogging();
+        //    _subscriptions.Add(
+        //    Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.IsPlayingChanged += h, h => audioService.IsPlayingChanged -= h)
+        //        .Subscribe(evt =>
+        //        {
+        //            UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, StatesMapper.Map(evt.EventArgs.EventType), 0);
+        //        },
+        //                   ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
+        //);
+        //InitializePlaybackEventLogging();
         InitializeFolderEventReactions();
 
         _logger.LogInformation("BaseAppFlow (Coordinator & Logger) initialized.");
@@ -148,16 +145,11 @@ public class BaseAppFlow : IDisposable
         {
             if (currentPsi.State == DimmerPlaybackState.Playing && songForEvent != null)
             {
-                UpdateDatabaseWithPlayEvent(songForEvent, PlayType.Play, currentPsi.ContextSongPositionSeconds);
+                //UpdateDatabaseWithPlayEvent(songForEvent, PlayType.Play, currentPsi.ContextSongPositionSeconds);
             }
             return;
         }
 
-        if (songForEvent == null && currentPsi.State < DimmerPlaybackState.FolderAdded)
-        {
-            _logger.LogDebug("LogPlaybackTransition: No song context for playback state {CurrentState} from {PreviousState}. Skipping log.", currentPsi.State, previousPsi.State);
-            return;
-        }
 
         PlayType? playTypeToLog = DeterminePlayType(previousPsi, currentPsi, songForEvent);
         double? positionForLog = (playTypeToLog == PlayType.Seeked || playTypeToLog == PlayType.Pause) ? currentPsi.ContextSongPositionSeconds : null;
@@ -173,7 +165,7 @@ public class BaseAppFlow : IDisposable
 
             if (songToLogWithPlayType != null || playTypeToLog >= PlayType.LogEvent)
             {
-                UpdateDatabaseWithPlayEvent(songToLogWithPlayType, playTypeToLog.Value, positionForLog);
+                //UpdateDatabaseWithPlayEvent(songToLogWithPlayType, playTypeToLog.Value, positionForLog);
             }
             else
             {
@@ -190,13 +182,13 @@ public class BaseAppFlow : IDisposable
 
         if (curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed)
         {
-            if ((prev.State == DimmerPlaybackState.PausedUI || prev.State == DimmerPlaybackState.PausedUser) && prevSongId == currSongId)
+            if ((prev.State == DimmerPlaybackState.PausedDimmer || prev.State == DimmerPlaybackState.PausedUser) && prevSongId == currSongId)
                 return PlayType.Resume;
             if (prev.State != DimmerPlaybackState.Playing || prevSongId != currSongId)
                 return PlayType.Play;
         }
 
-        else if (curr.State == DimmerPlaybackState.PausedUI || curr.State == DimmerPlaybackState.PausedUser)
+        else if (curr.State == DimmerPlaybackState.PausedDimmer || curr.State == DimmerPlaybackState.PausedUser)
         {
             if ((prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed) && prevSongId == currSongId)
                 return PlayType.Pause;
@@ -331,13 +323,13 @@ public class BaseAppFlow : IDisposable
 
     }
 
-    private void UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType type, double? position = null)
+    public void UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType? type, double? position = null)
     {
-        if (songView == null && type < PlayType.LogEvent)
+        if (type is null)
         {
-            _logger.LogWarning("UpdateDatabaseWithPlayEvent: SongView is null for playback PlayType {PlayType}.", type);
             return;
         }
+
 
         ObjectId? songObjectId = null;
 

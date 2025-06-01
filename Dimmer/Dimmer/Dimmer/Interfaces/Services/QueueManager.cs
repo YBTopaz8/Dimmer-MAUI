@@ -1,10 +1,6 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions; // For ShuffleInPlace
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Dimmer.Interfaces.Services; // Or your actual namespace for implementations
 
 public class QueueManager<T> : IQueueManager<T>

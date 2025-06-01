@@ -1,7 +1,4 @@
-﻿using MongoDB.Bson;
-using static ATL.LyricsInfo;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>

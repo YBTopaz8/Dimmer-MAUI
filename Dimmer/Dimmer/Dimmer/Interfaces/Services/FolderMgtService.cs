@@ -1,16 +1,7 @@
 ﻿// --- START OF FILE FolderMgtService.cs ---
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Reactive.Linq; // For AsObservable if you keep _allFolders
-using System.Reactive.Subjects; // For BehaviorSubject if you keep _allFolders
 using System.Reactive.Disposables; // For CompositeDisposable
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 // Add other necessary using statements
-using Dimmer.Utilities.Enums;
 using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Interfaces.Services; // Or your preferred namespace for service implementations

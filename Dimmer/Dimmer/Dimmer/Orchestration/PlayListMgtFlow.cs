@@ -1,16 +1,6 @@
-﻿using Dimmer.Interfaces.Services;
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Extensions; // Your extensions
+﻿using Dimmer.Interfaces.Services.Interfaces;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Tasks; // Only if async methods are truly needed
 
 namespace Dimmer.Orchestration;
 
@@ -22,7 +12,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
     private readonly SubscriptionManager _subs; // For managing its own Rx subscriptions
     private readonly ILogger<PlayListMgtFlow> _logger;
     private readonly MultiPlaylistPlayer<SongModel> _multiPlayer;
-
+    public MultiPlaylistPlayer<SongModel> MultiPlayer => _multiPlayer;
     // Local state driven by _multiPlayer or this flow's logic
     private SongModel? _currentTrackFromPlayer; // The actual SongModel from MultiPlaylistPlayer
     private int _lastActivePlaylistIndexInPlayer = -1;
@@ -170,8 +160,10 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
     }
 
     // --- Handlers for MultiPlaylistPlayer Events ---
-    private void OnPlayerItemSelected(int playlistIndex, SongModel song, int batchId)
+    private async void OnPlayerItemSelected(int playlistIndex, SongModel song, int batchId)
     {
+        var _baseAppFlow = IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
         _currentTrackFromPlayer = song;
         _lastActivePlaylistIndexInPlayer = playlistIndex;
 
@@ -179,6 +171,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing,
             null, mapper.Map<SongModelView>(song),
             songdb: song));
+        var songV = mapper.Map<SongModelView>(song);
 
         _logger.LogInformation("Player selected: '{SongTitle}' from PIdx {PlaylistIndex}, Batch {BatchId}.",
             song.Title, playlistIndex, batchId);
@@ -208,7 +201,6 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
             case DimmerPlaybackState.PlayCompleted: // Song ended, play next
 
                 var ee = _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);
-
                 _state.SetCurrentState(new(DimmerPlaybackState.PlaylistPlay, null, mapper.Map<SongModelView>(ee), ee)); // Update state with next song
 
                 break;
@@ -252,7 +244,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
             case DimmerPlaybackState.Opening:
             case DimmerPlaybackState.Playing: // This state is usually a result, not a command here
 
-            case DimmerPlaybackState.PausedUI:
+            case DimmerPlaybackState.PausedDimmer:
             case DimmerPlaybackState.Error:
             case DimmerPlaybackState.Failed:
             case DimmerPlaybackState.RefreshStats: // UI concern
@@ -496,7 +488,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
 
         _state.SetCurrentSong(null); // Update global state
         _state.SetCurrentPlaylist(null);
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedUI, null, null, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedDimmer, null, null, null));
         _logger.LogInformation("Player cleared and playback state stopped.");
     }
 

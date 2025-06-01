@@ -1,4 +1,6 @@
-﻿using Dimmer.Interfaces.Services.Interfaces;
+﻿using System.Reactive.Subjects;
+
+using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.WinUI.DimmerAudio;
 
@@ -20,6 +22,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private readonly DispatcherQueue _dispatcherQueue; // For UI thread safety if needed
     private CancellationTokenSource? _initializationCts;
     private SongModelView? _currentTrackMetadata;
+    private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
+
+    public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
     private bool _isDisposed;
     private string? _currentAudioDeviceId; // Store the ID of the explicitly selected output device
 
@@ -157,7 +162,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             {
                 DurationChanged?.Invoke(this, value);
                 // Also raise PlaybackEventArgs when duration changes while playing/paused
-                if (IsPlaying || CurrentPlaybackState == DimmerPlaybackState.PausedUI)
+                if (IsPlaying || CurrentPlaybackState == DimmerPlaybackState.PausedDimmer)
                 {
                     RaiseIsPlayingChanged();
                 }
@@ -165,6 +170,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
     private double _currentPositionValue;
+    private readonly BehaviorSubject<double> _currPositionBS = new(0);
+
+    public IObservable<double> CurrPositionObs => _currPositionBS.AsObservable();
     public double CurrentPosition
     {
         get => _currentPositionValue; // Or directly from _mediaPlayer.PlaybackSession.Position.TotalSeconds if always preferred live
@@ -172,6 +180,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             if ((Math.Abs(_currentPositionValue - value) > 0.1 || Math.Abs(value) < 0.0001 || Math.Abs(value - Duration) < 0.0001))
             {
+                _currPositionBS.OnNext(value);
                 if (SetProperty(ref _currentPositionValue, value)) // SetProperty updates the backing field
                 {
                     PositionChanged?.Invoke(this, value);
@@ -207,16 +216,24 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             }
         }
     }
+    private readonly BehaviorSubject<bool?> _isMutedObs = new(false);
+
+    public IObservable<bool?> IsMutedObs => _isMutedObs.AsObservable();
 
     private bool _isMuted;
     public bool Muted
     {
-        get => _mediaPlayer.IsMuted;
+        get
+        {
+            return _mediaPlayer.IsMuted;
+        }
+
         set
         {
             if (_mediaPlayer.IsMuted != value)
             {
                 _mediaPlayer.IsMuted = value;
+                _isMutedObs.OnNext(value);
                 SetProperty(ref _isMuted, value, nameof(Muted));
             }
         }
@@ -272,6 +289,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             // Set metadata immediately, UI can show "loading..." for this track
             // But clear it if initialization ultimately fails
             _currentTrackMetadata = songModel;
+            _currentSong.OnNext(songModel);
             OnPropertyChanged(nameof(CurrentTrackMetadata)); // Notify UI about the new track being loaded
 
 
@@ -428,7 +446,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         OnPropertyChanged(nameof(CurrentTrackMetadata));
         CurrentPosition = 0;
         Duration = 0;
-        UpdatePlaybackState(DimmerPlaybackState.PausedUI); // Explicitly set stopped state
+        UpdatePlaybackState(DimmerPlaybackState.PausedDimmer); // Explicitly set stopped state
 
         // Cancel any pending initialization
         _initializationCts?.Cancel();
@@ -844,7 +862,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             case MediaPlaybackState.Playing:
                 return (DimmerPlaybackState.Playing, true); // Or Failed if context suggests
             case MediaPlaybackState.Paused:
-                return (DimmerPlaybackState.PausedUI, true); // Or Failed if context suggests
+                return (DimmerPlaybackState.PausedDimmer, true); // Or Failed if context suggests
             default:
                 return (DimmerPlaybackState.PlayCompleted, true); // Or Failed if context suggests
         }
@@ -854,7 +872,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private void RaiseIsPlayingChanged()
     {
         // Use current state to construct the event args        
-        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedUI;
+        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
 
         var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  eventType };
         _isPlayingChanged?.Invoke(this, args);

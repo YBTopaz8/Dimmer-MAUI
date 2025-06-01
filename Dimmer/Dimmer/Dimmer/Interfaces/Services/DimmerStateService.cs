@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿using System.Reactive.Disposables;
 // Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
-using Dimmer.Data.Models;
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Enums;
-using Dimmer.Utilities.Events;
 // using Dimmer.Platform; // For Window
 
 namespace Dimmer.Interfaces.Services;

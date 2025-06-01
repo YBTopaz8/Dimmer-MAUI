@@ -1,6 +1,4 @@
-﻿using Dimmer.DimmerLive.Models;
-
-namespace Dimmer.DimmerLive.Interfaces;
+﻿namespace Dimmer.DimmerLive.Interfaces;
 public interface IDimmerLiveStateService
 {
     void SaveUserLocally(UserModelView user);

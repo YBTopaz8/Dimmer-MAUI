@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.StatsUtils;
+﻿namespace Dimmer.Utilities.StatsUtils;
 public static class NerdySongStats
 {
     // 1. Is play count a Fibonacci number?

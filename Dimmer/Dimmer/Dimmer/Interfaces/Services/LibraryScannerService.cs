@@ -1,16 +1,4 @@
-﻿using Dimmer.Data;
-using Dimmer.Interfaces.Services.Interfaces;
-
-using Microsoft.Extensions.Logging;
-
-using Realms;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Dimmer.Interfaces.Services.Interfaces;
 
 
 namespace Dimmer.Interfaces.Services;

@@ -9,8 +9,12 @@ public static class AppUtils
 
     public static class UserFriendlyLogGenerator
     {
-        public static string GetPlaybackStateMessage(PlayType type, SongModelView? currentSong, double? position = null)
+        public static string GetPlaybackStateMessage(PlayType? type, SongModelView? currentSong, double? position = null)
         {
+            if (type == null || currentSong == null)
+            {
+                return "Playback state is unknown or song information is missing.";
+            }
             // Gracefully handle if currentSong or its Title is null/empty
             string songTitle = !string.IsNullOrWhiteSpace(currentSong?.Title) ? $"\"{currentSong.Title}\"" : "the current track";
             string artistName = !string.IsNullOrWhiteSpace(currentSong?.ArtistName) ? $" by {currentSong.ArtistName}" : ""; // Optional: Add artist if available

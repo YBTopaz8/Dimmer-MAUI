@@ -1,11 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-
-
-// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
-using Dimmer.Data.Models;
-using Dimmer.Utilities.Enums; // For CurrentPage, DimmerPlaybackState, RepeatMode
+﻿// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 // using Dimmer.Platform; // For Window if it's a specific type
 
 namespace Dimmer.Interfaces.Services.Interfaces;

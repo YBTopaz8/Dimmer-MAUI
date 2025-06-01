@@ -2,9 +2,7 @@
 
 using ATL;
 
-using Dimmer.DimmerLive.Models;
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.FileProcessorUtils;
 using Dimmer.Utils;
 
 using Parse.Infrastructure;
@@ -59,8 +57,11 @@ public class DimmerLiveStateService : IDimmerLiveStateService
          IDimmerStateService _state)
     {
         this._userRepo=userRepo;
+        _artistRepo=artistRepo;
         this._state=_state;
         this.mapper=mapper;
+        _songRepo=songRepo;
+        _genreRepo=genreRepo;
         _encryptionService = new PasswordEncryptionService();
         //UserLocalView ??= BaseAppFlow.?CurrentUserView;
     }

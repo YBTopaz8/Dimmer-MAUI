@@ -1,16 +1,8 @@
-﻿using Dimmer.Data.Models; // Assuming PlaybackStateInfo, SongModel, SongModelView are here or in sub-namespaces
-using Dimmer.Utilities.Events;
+﻿using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions; // For ToModel, ToModelView
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using ATL;
-using System.Diagnostics;
 using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Orchestration;
@@ -215,35 +207,35 @@ public partial class SongsMgtFlow : IDisposable
             switch (globalPlaybackState.State)
             {
                 case DimmerPlaybackState.PlaylistPlay:
-                   
+
                     await _audio.InitializeAsync(songModelViewForCommand!, null);
 
                     await _audio.PlayAsync();
                     break;
                 case DimmerPlaybackState.Playing:
                 case DimmerPlaybackState.Resumed:
-                    if (!_audio.IsPlaying && _audio.CurrentPosition==0)
-                    {
-                        var trc = new Track(songModelViewForCommand.FilePath);
+                    //if (!_audio.IsPlaying && _audio.CurrentPosition==0)
+                    //{
+                    //    var trc = new Track(songModelViewForCommand.FilePath);
 
-                        await _audio.InitializeAsync(songModelViewForCommand, trc.EmbeddedPictures[0].PictureData);
+                    //    await _audio.InitializeAsync(songModelViewForCommand, trc.EmbeddedPictures[0].PictureData);
 
-                        await _audio.PlayAsync();
-                    }
-                    if (_audio.CurrentTrackMetadata != globalPlaybackState.SongView)
-                    {
-                        await _audio.InitializeAsync(globalPlaybackState.SongView);
+                    //    await _audio.PlayAsync();
+                    //}
+                    //if (_audio.CurrentTrackMetadata != globalPlaybackState.SongView)
+                    //{
+                    //    await _audio.InitializeAsync(globalPlaybackState.SongView);
 
-                        await _audio.PlayAsync();
-                    }
-                    else
-                    {
-                        await _audio.PlayAsync();
+                    //    await _audio.PlayAsync();
+                    //}
+                    //else
+                    //{
+                    //    await _audio.PlayAsync();
 
-                    }
+                    //}
 
                     break;
-                case DimmerPlaybackState.PausedUI:
+                case DimmerPlaybackState.PausedDimmer:
                     if (_audio.IsPlaying)
                         await _audio.PauseAsync();
                     break;
@@ -282,7 +274,7 @@ public partial class SongsMgtFlow : IDisposable
                 currentGlobalPsiValue.State == DimmerPlaybackState.Resumed ||
                 currentGlobalPsiValue.State == DimmerPlaybackState.Loading)
             {
-                newReportedState = DimmerPlaybackState.PausedUI;
+                newReportedState = DimmerPlaybackState.PausedDimmer;
             }
             else
             {

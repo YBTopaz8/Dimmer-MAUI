@@ -1,22 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-using Dimmer.Data.Models;
-using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 
@@ -41,6 +31,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly LyricsMgtFlow _lyricsMgtFlow;
     protected readonly ILogger<BaseViewModel> _logger; // Added logger
     private readonly IDimmerAudioService audioService;
+
 
     //public 
     public IDimmerLiveStateService DimmerLiveStateService { get; }
@@ -106,7 +97,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new(); // Keep this if populated from _settingsService
-
+    private BaseAppFlow? _baseAppFlow; // This can be used to access common flows if needed, but not directly in BaseViewModel
     public const string CurrentAppVersion = "Dimmer v1.9";
 
     // User and Online state (as before, but interaction with 
@@ -204,7 +195,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     _logger.LogTrace("BaseViewModel: _stateService.CurrentSong emitted: {SongTitle}", songView?.Title ?? "None");
                     CurrentPlayingSongView = songView;
-                    CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
                     CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
                     AppTitle = songView != null
                         ? $"{songView.Title} - {songView.ArtistName} [{songView.AlbumName}] | {CurrentAppVersion}"
@@ -334,14 +324,31 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     // --- Commands that Initiate Playback ---
 
-    public void PlaySongFromListAsync(SongModelView songToPlay, IEnumerable<SongModelView> songs) // Renamed, async void is discouraged for RelayCommands unless truly fire-and-forget with no downstream await
+    public async Task PlaySongFromListAsync(SongModelView songToPlay, IEnumerable<SongModelView> songs) // Renamed, async void is discouraged for RelayCommands unless truly fire-and-forget with no downstream await
     {
         if (songToPlay == null)
         {
             _logger.LogWarning("PlaySongFromList: songToPlay is null.");
             return;
         }
+
+        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
+
         _logger.LogInformation("PlaySongFromList: Requesting to play '{SongTitle}'.", songToPlay.Title);
+
+        if (audioService.IsPlaying)
+        {
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+
+            await audioService.StopAsync();
+        }
+
+
+        await audioService.InitializeAsync(songToPlay);
+        await audioService.PlayAsync();
+
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
 
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
@@ -374,6 +381,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             int startIndex = songListModels.FindIndex(s => s?.Id == songToPlayModel.Id);
 
             _playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Custom Context List");
+
         }
 
         if (IsShuffleActive)
@@ -408,8 +416,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     // --- Playback Control Commands (Interacting with _stateService or _songsMgtFlow) ---
     [RelayCommand]
-    public void PlayPauseToggleAsync()
+    public async Task PlayPauseToggleAsync()
     {
+        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
         _logger.LogDebug("PlayPauseToggleAsync called. Current IsPlaying state: {IsPlayingState}", IsPlaying);
         SongModelView? currentSongVm = CurrentPlayingSongView; // From _stateService subscription
         if (currentSongVm == null)
@@ -423,30 +433,60 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SongModel? currentSongModel = currentSongVm.ToModel(_mapper);
         if (IsPlaying)
         {
-            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedUI, null, currentSongVm, currentSongModel));
+            await audioService.PauseAsync(); // Call the audio service to pause playback
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
+            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedDimmer, null, currentSongVm, currentSongModel));
         }
         else
         {
-            // If resuming, use Playing. If it was stopped or at start, also use Playing.
-            // _songsMgtFlow will handle if it needs to re-initialize or just resume.
+            await audioService.PlayAsync(); // Call the audio service to pause playback
+
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, currentSongVm, currentSongModel));
         }
     }
 
     [RelayCommand]
-    public void NextTrack()
+    public async Task NextTrack()
     {
-        _logger.LogDebug("NextTrack called by UI.");
-        SongModel? currentContextSong = CurrentPlayingSongView?.ToModel(_mapper);
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayNextUI, null, CurrentPlayingSongView, currentContextSong));
+        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
+        var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
+
+        if (IsPlaying)
+        {
+            await audioService.StopAsync(); // Call the audio service to pause playback
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+        }
+
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayNextUser, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
+
+
+
+        await audioService.InitializeAsync(CurrentPlayingSongView);
+        await audioService.PlayAsync();
     }
 
     [RelayCommand]
-    public void PreviousTrack()
+    public async Task PreviousTrack()
     {
-        _logger.LogDebug("PreviousTrack called by UI.");
-        SongModel? currentContextSong = CurrentPlayingSongView?.ToModel(_mapper);
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayPreviousUI, null, CurrentPlayingSongView, currentContextSong));
+        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
+
+        var nextSong = _playlistsMgtFlow.MultiPlayer.Previous();
+
+        if (IsPlaying)
+        {
+            await audioService.StopAsync(); // Call the audio service to pause playback
+        }
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Skipped, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
+
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayPreviousUI, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
+
+
+        await audioService.InitializeAsync(CurrentPlayingSongView);
+        await audioService.PlayAsync();
     }
 
     [RelayCommand]
@@ -476,6 +516,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task SeekTrackPosition(double positionSeconds) // Parameter is seconds
     {
+        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
+
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
         await _songsMgtFlow.RequestSeekAsync(positionSeconds); // Call the method on the refactored _songsMgtFlow
     }
