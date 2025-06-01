@@ -13,7 +13,7 @@ public partial class SettingsPage : ContentPage
     BaseViewModelAnd MyViewModel { get; }
     private async void PickFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.SelectSongFromFolderAndroid();
+        //await MyViewModel.SelectSongFromFolderAndroid();
     }
 
     private static async void ReportIssueBtn_Clicked(object sender, EventArgs e)
@@ -35,11 +35,11 @@ public partial class SettingsPage : ContentPage
 
 
         var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        await MyViewModel.SelectSongFromFolderAndroid(selectedFolder);
+        //await MyViewModel.SelectSongFromFolderAndroid(selectedFolder);
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.SelectSongFromFolderAndroid();
+        //await MyViewModel.SelectSongFromFolderAndroid();
     }
     private async void ViewDevices_Clicked(object sender, EventArgs e)
     {
@@ -52,7 +52,7 @@ public partial class SettingsPage : ContentPage
     {
         MainTabView.SelectedItemIndex = 4;
 
-        MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
+        //MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
         MyDevicesPopUp.Close();
     }
 

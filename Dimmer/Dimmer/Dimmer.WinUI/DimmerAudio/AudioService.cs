@@ -1,4 +1,4 @@
-﻿using static Vanara.PInvoke.Kernel32;
+﻿using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.WinUI.DimmerAudio;
 
@@ -43,7 +43,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // Initial state setup
         _volume = _mediaPlayer.Volume;
         _isMuted = _mediaPlayer.IsMuted;
-        UpdatePlaybackState(DimmerPlaybackState.Stopped); // Initial state
+        UpdatePlaybackState(DimmerPlaybackState.PlayCompleted); // Initial state
     }
 
     private void SubscribeToPlayerEvents()
@@ -71,7 +71,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void MediaPlayer_VolumeChanged(MediaPlayer sender, object args)
     {
-        
     }
 
     private void UnsubscribeFromPlayerEvents()
@@ -139,7 +138,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region Properties
 
-    private DimmerPlaybackState _playbackState = DimmerPlaybackState.Stopped;
+    private DimmerPlaybackState _playbackState = DimmerPlaybackState.PlayCompleted;
     public DimmerPlaybackState CurrentPlaybackState
     {
         get => _playbackState;
@@ -165,16 +164,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             }
         }
     }
-
+    private double _currentPositionValue;
     public double CurrentPosition
     {
-        get;
+        get => _currentPositionValue; // Or directly from _mediaPlayer.PlaybackSession.Position.TotalSeconds if always preferred live
         private set
         {
-            // Reduce noise by checking for significant change
-            if ((Math.Abs(field - value) > 0.1 || Math.Abs(value) < 0.0001 || Math.Abs(value - Duration) < 0.0001)&&SetProperty(ref field, value))
+            if ((Math.Abs(_currentPositionValue - value) > 0.1 || Math.Abs(value) < 0.0001 || Math.Abs(value - Duration) < 0.0001))
             {
-                PositionChanged?.Invoke(this, value);
+                if (SetProperty(ref _currentPositionValue, value)) // SetProperty updates the backing field
+                {
+                    PositionChanged?.Invoke(this, value);
+                }
             }
         }
     }
@@ -192,7 +193,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             {
                 return _mediaPlayer.Volume; // Directly get from player
             }
-                
+
         }
 
         set
@@ -243,76 +244,116 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public async Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage)
     {
         // 1) guard empty or null paths
-       
-        ThrowIfDisposed();
-        ArgumentNullException.ThrowIfNull(songModel);
-
-        // Cancel previous initialization if any
-        if (_initializationCts is not null)
         {
-            await _initializationCts.CancelAsync();
-        }
-        _initializationCts = new CancellationTokenSource();
-        var token = _initializationCts.Token;
+            ThrowIfDisposed();
+            ArgumentNullException.ThrowIfNull(songModel);
 
-        _currentTrackMetadata = songModel;
-        Debug.WriteLine($"[AudioService] Initializing track: {songModel.Title ?? "Unknown"}");
-        OnPropertyChanged(nameof(CurrentTrackMetadata));
 
-        // Ensure player is stopped before changing source
-        _mediaPlayer.Pause(); // Pause first
-        _mediaPlayer.Source = null; // Clear existing source immediately
+            // --- Critical Section for managing _initializationCts ---
+            CancellationTokenSource? oldCts = null;
+            CancellationTokenSource newCts = new CancellationTokenSource(); // Create new CTS for this attempt
 
-        // Reset position/duration before loading new media
-        CurrentPosition = 0;
-        Duration = 0;
-
-        try
-        {
-            var mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, SongCoverImage, token);
-            token.ThrowIfCancellationRequested();
-
-            if (mediaPlaybackItem != null)
+            lock (this) // Ensure thread-safe swap of CTS
             {
-                _mediaPlayer.Source = mediaPlaybackItem;
-                // State will transition via MediaOpened or MediaFailed events
-                Debug.WriteLine($"[AudioService] Source set for: {songModel.Title ?? "Unknown"}");
+                oldCts = _initializationCts;
+                _initializationCts = newCts;
             }
-            else
+
+            if (oldCts != null)
             {
-                // Handle case where item creation failed but wasn't cancelled
-                throw new InvalidOperationException("Failed to create MediaPlaybackItem.");
+                Debug.WriteLine("[AudioService] InitializeAsync: Cancelling previous initialization task.");
+                await oldCts.CancelAsync(); // Signal cancellation to previous task
+                oldCts.Dispose();           // Dispose the old CTS
             }
-        }
-        catch (OperationCanceledException)
-        {
-            Debug.WriteLine("[AudioService] Initialization cancelled.");
-            // State might remain Opening or revert based on subsequent actions
-            if (_mediaPlayer.Source == null) // If cancellation happened before setting source
-            {
-                UpdatePlaybackState(DimmerPlaybackState.Stopped);
-                _currentTrackMetadata = null; // Clear metadata if initialization was fully cancelled
-                OnPropertyChanged(nameof(CurrentTrackMetadata));
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[AudioService] Error initializing track '{songModel?.Title}': {ex}");
-            OnErrorOccurred($"Failed to load track: {songModel?.Title}", ex);
-            UpdatePlaybackState(DimmerPlaybackState.Error);
-            _currentTrackMetadata = null;
-            OnPropertyChanged(nameof(CurrentTrackMetadata));
-            // Ensure player source is null after failure
+            // --- End Critical Section ---
+
+            var token = newCts.Token; // Use token from the NEW CTS
+
+            // Set metadata immediately, UI can show "loading..." for this track
+            // But clear it if initialization ultimately fails
+            _currentTrackMetadata = songModel;
+            OnPropertyChanged(nameof(CurrentTrackMetadata)); // Notify UI about the new track being loaded
+
+
+
+            // It's crucial to pause and null out the source *before* any await that might be cancelled.
+            // This prevents the player from being in an indeterminate state if cancellation occurs
+            // during an async operation in CreateMediaPlaybackItemAsync.
+            _mediaPlayer.Pause();
             _mediaPlayer.Source = null;
-        }
-        finally
-        {
-            // Clean up CTS
-            _initializationCts?.Dispose();
-            _initializationCts = null;
+            Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer paused and source nulled.");
+
+            // Reset position/duration for the new track
+            // These will be updated by MediaOpened or NaturalDurationChanged if successful
+            _dispatcherQueue.TryEnqueue(() => // Ensure UI thread for property changes that might affect UI
+            {
+                CurrentPosition = 0;
+                Duration = 0;
+            });
+
+
+            MediaPlaybackItem? mediaPlaybackItem = null;
+            bool success = false;
+
+            try
+            {
+                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, null, token).ConfigureAwait(false); // Pass the token
+                token.ThrowIfCancellationRequested(); // Check if *this* operation was cancelled
+
+                if (mediaPlaybackItem != null)
+                {
+                    // This is the most critical point for the player
+                    _mediaPlayer.Source = mediaPlaybackItem;
+                    // DO NOT AWAIT HERE. MediaOpened event will signal readiness or MediaFailed will signal error.
+                    // Player will go to Opening state.
+                    Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened/MediaFailed.", songModel.Title);
+                    success = true; // Assume success for now; MediaFailed will correct this
+                }
+                else
+                {
+                    Debug.WriteLine("[AudioService] InitializeAsync: CreateMediaPlaybackItemAsync returned null for {SongTitle}. Cannot set source.", songModel.Title);
+                    // No need to throw the "Failed to create" exception here if CreateMediaPlaybackItemAsync already logged and returned null.
+                    // The 'success' flag will remain false.
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {SongTitle}.", songModel.Title);
+                // 'success' remains false. If _initializationCts was newCts, this means this *current* init was cancelled.
+            }
+            catch (Exception ex)
+            {
+            }
+            finally
+            {
+                // Critical: Only dispose the CTS if it's the one we created for *this* call
+                // and it hasn't been replaced by a newer initialization attempt.
+                lock (this)
+                {
+                    if (_initializationCts == newCts)
+                    {
+                        _initializationCts = null; // Clear the current CTS reference
+                    }
+                }
+                newCts.Dispose(); // Always dispose the CTS we created for this call
+
+                if (!success)
+                {
+                    Debug.WriteLine("[AudioService] InitializeAsync: Finalizing with FAILED status for {SongTitle}.", songModel.Title);
+                    // If we failed to set a source, or it was cancelled before setting.
+                    if (ReferenceEquals(_currentTrackMetadata, songModel)) // Only clear if it's still the one we were trying to init
+                    {
+                        _currentTrackMetadata = null;
+                        OnPropertyChanged(nameof(CurrentTrackMetadata));
+                    }
+                    UpdatePlaybackState(DimmerPlaybackState.Error); // Signal an error state
+                    OnErrorOccurred($"Failed to initialize track: {songModel?.Title}", null); // Raise specific error event
+                }
+                // If success was true, we rely on MediaOpened/MediaFailed to set the final state.
+                // Player might be in Opening state.
+            }
         }
     }
-
     /// <summary>
     /// Starts or resumes playback.
     /// </summary>
@@ -331,6 +372,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             Debug.WriteLine("[AudioService] PlayAsync executing.");
             _mediaPlayer.Play();
+            _mediaPlayer.Volume=1;
             // State update will happen via PlaybackStateChanged event
         }
         catch (Exception ex) // Catch potential errors during Play() call
@@ -386,7 +428,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         OnPropertyChanged(nameof(CurrentTrackMetadata));
         CurrentPosition = 0;
         Duration = 0;
-        UpdatePlaybackState(DimmerPlaybackState.Stopped); // Explicitly set stopped state
+        UpdatePlaybackState(DimmerPlaybackState.PausedUI); // Explicitly set stopped state
 
         // Cancel any pending initialization
         _initializationCts?.Cancel();
@@ -426,133 +468,119 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region Media Item Creation
 
-    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, byte[]? ImageBytes = null, CancellationToken token=default)
+    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, byte[]? ImageBytes = null, CancellationToken token = default)
     {
 
-        // 1) guard empty or null paths
+        // 1) Guard empty or null paths
         if (string.IsNullOrWhiteSpace(media.FilePath))
         {
-            Debug.WriteLine($"[AudioService] No FilePath for '{media.Title}', skipping MediaSource.");
-            return null;
-        }
-        // 2) try parse into a URI
-        if (!Uri.TryCreate(media.FilePath, UriKind.Absolute, out var uri))
-        {
-            // maybe it’s a local Windows path, so force file Uri
-            var full = Path.GetFullPath(media.FilePath);
-            uri = new Uri(full.StartsWith("\\\\")
-                ? $"file:///{full}"      // UNC
-                : new UriBuilder { Scheme = "file", Path = full }.Uri.ToString());
-            Debug.WriteLine($"[AudioService] Forced file‐URI: {uri}");
-        }
-
-        MediaSource? mediaSource = null;
-        string? mimeType = null;
-       
-            Debug.WriteLine($"[AudioService] Attempting to create MediaSource from URI: {uri}");
-            try
-            {
-                StorageFile? storageFile = null;
-                if (uri.IsFile)
-                {
-                    // Using StorageFile.GetFileFromPathAsync is generally more robust for file access permissions
-                    storageFile = await StorageFile.GetFileFromPathAsync(media.FilePath).AsTask(token);
-                    
-                    mediaSource = MediaSource.CreateFromStorageFile(storageFile);
-                    mimeType = storageFile.ContentType; // Get MIME type from StorageFile
-                    Debug.WriteLine($"[AudioService] Created MediaSource from StorageFile. ContentType: {mimeType}");
-                }
-                else // Handle non-file URIs (e.g., http, ms-appdata)
-                {
-                    // Note: Network streams might require background media capabilities in Package.appxmanifest
-                    mediaSource = MediaSource.CreateFromUri(uri);
-                    Debug.WriteLine($"[AudioService] Created MediaSource directly from URI: {uri}");
-                    
-                }
-            }
-            catch (FileNotFoundException fnfEx)
-            {
-                Debug.WriteLine($"[AudioService] File not found at URI '{media.FilePath}': {fnfEx.Message}. Will attempt stream fallback if possible.");
-                mediaSource = null;
-            }
-            catch (UnauthorizedAccessException uaEx)
-            {
-                Debug.WriteLine($"[AudioService] Access denied for URI '{media.FilePath}': {uaEx.Message}. Check capabilities (e.g., broadFileSystemAccess) or file permissions. Will attempt stream fallback.");
-                mediaSource = null;
-            }
-            catch (OperationCanceledException) { throw; } // Re-throw cancellation
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[AudioService] Error creating MediaSource from URI '{media.FilePath}': {ex.Message}. Will attempt stream fallback.");
-                mediaSource = null;
-            }
-        
-
-
-        // --- Now proceed ONLY if mediaSource is NOT NULL ---
-        if (mediaSource == null)
-        {
-            // This means both URI and Stream attempts failed or were cancelled
-            Debug.WriteLine($"[AudioService] Failed to create MediaSource for '{media.Title}'.");
-            // Optionally call OnErrorOccurred again or ensure it was called appropriately before
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: No FilePath for '{media.Title ?? "Unknown"}', cannot create item.");
             return null;
         }
 
-        // --- Create MediaPlaybackItem and add Metadata ---
-        var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
-        var props = mediaPlaybackItem.GetDisplayProperties(); // Get the properties object
+        Uri? uri = null;
+        StorageFile? storageFile = null; // Keep a reference if created
 
-        props.Type = MediaPlaybackType.Music; // Tell the system it's music
-
-        // Set Music Specific Properties from your SongModel
-        props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title"; // Use Title, fallback to FileName, then default
-        props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
-        props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-        
-        // Handle Thumbnail (if image bytes are available in your model)
-        if (ImageBytes != null && ImageBytes.Length > 0)
+        try
         {
-            try
+            // 2) Attempt to treat as an absolute URI or a local file path
+            if (Uri.TryCreate(media.FilePath, UriKind.Absolute, out var parsedUri) && !parsedUri.IsFile)
             {
-                // Create a stream for the thumbnail
-                using var imageStream = new InMemoryRandomAccessStream();
-                using (var writer = new DataWriter(imageStream.GetOutputStreamAt(0)))
+                uri = parsedUri; // It's a non-file URI (e.g., http)
+                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Using direct URI: {uri} for '{media.Title}'");
+            }
+            else // Treat as a local file path
+            {
+                string fullPath = Path.GetFullPath(media.FilePath); // Resolve relative paths
+                if (!File.Exists(fullPath)) // Explicit check if file exists
                 {
-                    writer.WriteBytes(ImageBytes);
-                    await writer.StoreAsync().AsTask(token); // Use await and token
-                    await writer.FlushAsync().AsTask(token); // Ensure data is written
+                    Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: File does not exist at resolved path '{fullPath}' for '{media.Title}'.");
+                    return null; // File truly doesn't exist
                 }
-                //token.ThrowIfCancellationRequested(); // Check cancellation
-                imageStream.Seek(0); // Reset stream position
-
-                // Create the reference and assign it
-                props.Thumbnail = RandomAccessStreamReference.CreateFromStream(imageStream);
+                // For local files, StorageFile is preferred for robustness & metadata
+                // uri = new Uri(fullPath); // URI for StorageFile.GetFileFromPathAsync
+                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Attempting StorageFile for path: {fullPath} for '{media.Title}'");
+                storageFile = await StorageFile.GetFileFromPathAsync(fullPath).AsTask(token);
             }
-            catch (OperationCanceledException) { throw; } // Re-throw cancellation
-            catch (Exception ex)
+
+            token.ThrowIfCancellationRequested(); // Check before creating MediaSource
+
+            MediaSource? mediaSource;
+            if (storageFile != null)
             {
-                Debug.WriteLine($"[AudioService] Error creating thumbnail stream: {ex.Message}");
-                // Non-critical error, continue without thumbnail
+                mediaSource = MediaSource.CreateFromStorageFile(storageFile);
+                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Created MediaSource from StorageFile for '{media.Title}'. ContentType: {storageFile.ContentType}");
             }
+            else if (uri != null) // Must be a non-file URI from above
+            {
+                mediaSource = MediaSource.CreateFromUri(uri);
+                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Created MediaSource from URI for '{media.Title}'.");
+            }
+            else
+            {
+                // This case should ideally not be reached if logic above is correct
+                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Could not determine how to create MediaSource for '{media.Title}'.");
+                return null;
+            }
+
+            // --- Create MediaPlaybackItem and add Metadata ---
+            var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
+            var props = mediaPlaybackItem.GetDisplayProperties();
+
+            props.Type = MediaPlaybackType.Music;
+            props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
+            props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
+            props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
+            // props.MusicProperties.TrackNumber = (uint)(media.TrackNumber ?? 0); // If you have track number
+
+            // Thumbnail: Removed manual ImageBytes handling.
+            // Windows/MediaPlayer will attempt to load it from:
+            // 1. Embedded metadata in the StorageFile.
+            // 2. System music library caches if the file is indexed there.
+            // If 'storageFile' is used, this is more likely to work. For raw URIs, it's less certain.
+            // If you used MediaSource.CreateFromStream, you'd set props.Thumbnail = RandomAccessStreamReference.CreateFromStream(...)
+            // but that was for the ImageBytes. For the song's actual cover, it's usually embedded.
+
+            mediaPlaybackItem.ApplyDisplayProperties(props);
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");
+            return mediaPlaybackItem;
         }
-
-        // Apply the configured properties back to the item!
-        mediaPlaybackItem.ApplyDisplayProperties(props);
-        return mediaPlaybackItem;
-
+        catch (OperationCanceledException)
+        {
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Operation CANCELED for '{media.Title ?? media.FilePath}'.");
+            throw; // Re-throw to be handled by InitializeAsync
+        }
+        catch (FileNotFoundException fnfEx)
+        {
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: File not found for '{media.FilePath}': {fnfEx.Message}");
+            return null;
+        }
+        catch (UnauthorizedAccessException uaEx)
+        {
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Access denied for '{media.FilePath}': {uaEx.Message}. Check capabilities (e.g., broadFileSystemAccess) or file permissions.");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Generic error creating MediaSource for '{media.FilePath}': {ex.ToString()}"); // Log full exception
+            return null;
+        }
     }
 
     #endregion
 
     #region Player Event Handlers
 
-            private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
-            {
-                MediaPlaybackState winuiState = sender.PlaybackState;
-                var newState = ConvertPlaybackState(winuiState);
-                Debug.WriteLine($"[AudioService] PlaybackStateChanged: {winuiState} -> {newState}");
-                UpdatePlaybackState(newState);
-            }
+    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
+    {
+        MediaPlaybackState winuiState = sender.PlaybackState;
+        var newState = ConvertPlaybackState(winuiState);
+        Debug.WriteLine($"[AudioService] PlaybackStateChanged: {winuiState} -> {newState}");
+        if (newState.Item2)
+        {
+            UpdatePlaybackState(newState.Item1);
+        }
+    }
 
     private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args)
     {
@@ -593,10 +621,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine($"[AudioService] MediaEnded: {_currentTrackMetadata?.Title ?? "Unknown"}");
         // Set position exactly to duration
         CurrentPosition = Duration;
-        UpdatePlaybackState(DimmerPlaybackState.Stopped); // Set specific ended state
+        UpdatePlaybackState(DimmerPlaybackState.PlayCompleted); // Set specific ended state
 
         // Raise the specific PlayEnded event (as per interface)
-        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.Ended };
+        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.PlayCompleted };
         _playEnded?.Invoke(this, eventArgs);
 
     }
@@ -607,12 +635,14 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         OnErrorOccurred($"Playback failed: {args.ErrorMessage}", args.ExtendedErrorCode, args.Error);
 
         // Try to clean up
-        sender.Source = null; // Clear the failed source
-        _currentTrackMetadata = null;
-        OnPropertyChanged(nameof(CurrentTrackMetadata));
-        UpdatePlaybackState(DimmerPlaybackState.Error);
-        CurrentPosition = 0;
-        Duration = 0;
+        // sender.Source = null; // This might be too aggressive if you want to retry.
+        // However, for a fatal media error, clearing the source is reasonable.
+        // The key is that _currentTrackMetadata is nulled and state is Error.
+        _currentTrackMetadata = null; // Correct
+        OnPropertyChanged(nameof(CurrentTrackMetadata)); // Correct
+        UpdatePlaybackState(DimmerPlaybackState.Error); // Correct
+        CurrentPosition = 0; // Correct
+        Duration = 0;      // Correct
     }
 
     #endregion
@@ -800,32 +830,32 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     }
 
     // Converts the Windows enum to our simpler enum
-    private static DimmerPlaybackState ConvertPlaybackState(MediaPlaybackState state)
+    private static (DimmerPlaybackState, bool) ConvertPlaybackState(MediaPlaybackState state)
     {
         switch (state)
         {
             case MediaPlaybackState.None:
-                return DimmerPlaybackState.Stopped; // Or Failed if context suggests
-                
+                return (DimmerPlaybackState.None, false); // Or Failed if context suggests
+
             case MediaPlaybackState.Opening:
-                return DimmerPlaybackState.Opening; // Or Failed if context suggests
+                return (DimmerPlaybackState.Opening, false); // Or Failed if context suggests
             case MediaPlaybackState.Buffering:
-                return DimmerPlaybackState.Buffering; // Or Failed if context suggests
+                return (DimmerPlaybackState.Buffering, false); // Or Failed if context suggests
             case MediaPlaybackState.Playing:
-                return DimmerPlaybackState.Playing; // Or Failed if context suggests
+                return (DimmerPlaybackState.Playing, true); // Or Failed if context suggests
             case MediaPlaybackState.Paused:
-                return DimmerPlaybackState.PausedUI; // Or Failed if context suggests
+                return (DimmerPlaybackState.PausedUI, true); // Or Failed if context suggests
             default:
-                return DimmerPlaybackState.Stopped; // Or Failed if context suggests
+                return (DimmerPlaybackState.PlayCompleted, true); // Or Failed if context suggests
         }
-     
+
     }
 
     private void RaiseIsPlayingChanged()
     {
         // Use current state to construct the event args        
-        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.Stopped;
-      
+        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedUI;
+
         var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  eventType };
         _isPlayingChanged?.Invoke(this, args);
     }

@@ -1,7 +1,3 @@
-using Syncfusion.Maui.Toolkit.Carousel;
-using System.Diagnostics;
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views;
 
 public partial class AlbumWindow : Window

@@ -1,6 +1,6 @@
 ﻿using Dimmer.Utilities.Events;
 
-namespace Dimmer.Interfaces;
+namespace Dimmer.Interfaces.Services.Interfaces;
 /// <summary>
 /// 
 /// </summary>
@@ -28,7 +28,6 @@ public interface IDimmerAudioService
     /// Stops the asynchronous.
     /// </summary>
     /// <returns></returns>
-    Task StopAsync();
 
     /// <summary>
     /// Seeks the asynchronous.
@@ -45,7 +44,7 @@ public interface IDimmerAudioService
     /// <param name="songModel">The song model.</param>
     /// <param name="SongCoverImage">The song cover image.</param>
     /// <returns></returns>
-    Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage=null);
+    Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage = null);
     /// <summary>
     /// Initializes the playlist.
     /// </summary>
@@ -143,8 +142,8 @@ public interface IDimmerAudioService
     /// Disposes the asynchronous.
     /// </summary>
     /// <returns></returns>
-    ValueTask DisposeAsync();   
-    
+    ValueTask DisposeAsync();
+    Task StopAsync();
 }
 
 /// <summary>

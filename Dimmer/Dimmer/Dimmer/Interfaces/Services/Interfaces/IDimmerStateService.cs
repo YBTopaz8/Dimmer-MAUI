@@ -1,12 +1,14 @@
 ﻿
 using System;
 using System.Collections.Generic;
+
+
 // Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 using Dimmer.Data.Models;
 using Dimmer.Utilities.Enums; // For CurrentPage, DimmerPlaybackState, RepeatMode
 // using Dimmer.Platform; // For Window if it's a specific type
 
-namespace Dimmer.Interfaces;
+namespace Dimmer.Interfaces.Services.Interfaces;
 
 public interface IDimmerStateService : IDisposable
 {
@@ -33,6 +35,7 @@ public interface IDimmerStateService : IDisposable
     IObservable<LyricPhraseModel?> CurrentLyric { get; }
     IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
     IObservable<double> DeviceVolume { get; } // Volume (0.0 to 1.0)
+    IObservable<IReadOnlyList<DimmerPlayEvent>> AllPlayHistory { get; }
 
     // --- Methods to Update State ---
     void LoadAllSongs(IEnumerable<SongModel> songs);
@@ -53,6 +56,7 @@ public interface IDimmerStateService : IDisposable
     void SetCurrentPage(CurrentPage page);
     void SetSyncLyrics(IEnumerable<LyricPhraseModel>? lyrics);
     void SetCurrentLyric(LyricPhraseModel? lyric);
+    void LoadAllPlayHistory(IEnumerable<DimmerPlayEvent> events);
 
     // Removed:
     // - IObservable<SongModel?> SecondSelectedSong

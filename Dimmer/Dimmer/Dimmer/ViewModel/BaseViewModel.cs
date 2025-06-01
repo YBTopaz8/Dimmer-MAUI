@@ -1,19 +1,23 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Dimmer.Data.Models;
-using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services;
-using Dimmer.Utilities.Extensions;
-using Dimmer.Utilities.StatsUtils;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+using Dimmer.Data.Models;
+using Dimmer.Interfaces.Services;
+using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utilities.Events;
+using Dimmer.Utilities.Extensions;
+using Dimmer.Utilities.StatsUtils;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 
 //using Dimmer.Utilities.FileProcessorUtils; // If needed
@@ -25,18 +29,22 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 {
     // Injected Services
     public readonly IMapper _mapper;
+    private readonly IDimmerLiveStateService _dimmerLiveStateService;
+    private readonly AlbumsMgtFlow _albumsMgtFlow;
+    private readonly PlayListMgtFlow _playlistsMgtFlow;
+    private readonly SongsMgtFlow _songsMgtFlow;
     protected readonly IDimmerStateService _stateService;
     protected readonly ISettingsService _settingsService;
     protected readonly SubscriptionManager _subsManager; // Renamed from _subs to avoid conflict, and made protected
     protected readonly IFolderMgtService _folderMgtService;
+    private readonly IRepository<SongModel> songRepo;
+    private readonly LyricsMgtFlow _lyricsMgtFlow;
     protected readonly ILogger<BaseViewModel> _logger; // Added logger
+    private readonly IDimmerAudioService audioService;
 
     //public 
     public IDimmerLiveStateService DimmerLiveStateService { get; }
-    public AlbumsMgtFlow AlbumsMgtFlow { get; }
-    public PlayListMgtFlow PlaylistsMgtFlow { get; }
-    public SongsMgtFlow SongsMgtFlow { get; } // Primarily for RequestSeek/RequestVolume
-    public LyricsMgtFlow LyricsMgtFlow { get; }
+
 
     // --- UI-Bound Properties driven by _stateService or local logic ---
     [ObservableProperty]
@@ -142,8 +150,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public BaseViewModel(
        IMapper mapper,
-
+       IAppInitializerService appInitializerService,
        IDimmerLiveStateService dimmerLiveStateService,
+       IDimmerAudioService _audioService,
        AlbumsMgtFlow albumsMgtFlow,
        PlayListMgtFlow playlistsMgtFlow,
        SongsMgtFlow songsMgtFlow,
@@ -152,31 +161,35 @@ public partial class BaseViewModel : ObservableObject, IDisposable
        SubscriptionManager subsManager,
        LyricsMgtFlow lyricsMgtFlow,
        IFolderMgtService folderMgtService,
+       IRepository<SongModel> songRepo,
        ILogger<BaseViewModel> logger)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
-        DimmerLiveStateService = dimmerLiveStateService;
-        AlbumsMgtFlow = albumsMgtFlow;
-        PlaylistsMgtFlow = playlistsMgtFlow;
-        SongsMgtFlow = songsMgtFlow;
+        _dimmerLiveStateService = dimmerLiveStateService;
+        _albumsMgtFlow = albumsMgtFlow;
+        _playlistsMgtFlow = playlistsMgtFlow;
+        _songsMgtFlow = songsMgtFlow;
         _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _subsManager = subsManager ?? new SubscriptionManager();
         _folderMgtService = folderMgtService;
-        LyricsMgtFlow = lyricsMgtFlow;
+        this.songRepo=songRepo;
+        _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
-
+        audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
         UserLocal = new UserModelView();
         Initialize();
     }
     [ObservableProperty]
     public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
+
     public void Initialize()
     {
         InitializeViewModelSubscriptions();
-        NowPlayingDisplayQueue.Add(new() { Title="Test Yvan" });
-        NowPlayingDisplayQueue.Add(new() { Title="Test Yvan2" });
     }
 
     protected virtual void InitializeViewModelSubscriptions() // Changed from Initialize to avoid name clash if derived
@@ -186,11 +199,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         // --- Subscribe to IDimmerStateService for UI updates ---
         _subsManager.Add(
             _stateService.CurrentSong
-                .ObserveOn(SynchronizationContext.Current!) // Ensure UI thread for UI properties
+                // Ensure UI thread for UI properties
                 .Subscribe(songView =>
                 {
                     _logger.LogTrace("BaseViewModel: _stateService.CurrentSong emitted: {SongTitle}", songView?.Title ?? "None");
                     CurrentPlayingSongView = songView;
+                    CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
                     CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
                     AppTitle = songView != null
                         ? $"{songView.Title} - {songView.ArtistName} [{songView.AlbumName}] | {CurrentAppVersion}"
@@ -200,24 +214,21 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         );
         _subsManager.Add(
     _stateService.CurrentPlaylist
-        .ObserveOn(SynchronizationContext.Current!)
+
         .Subscribe(pm => CurrentlyPlayingPlaylistContext = _mapper.Map<PlaylistModelView>(pm))
 );
         _subsManager.Add(
-            _stateService.IsPlaying
-                .ObserveOn(SynchronizationContext.Current!)
-                .Subscribe(isPlaying =>
+            Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.IsPlayingChanged += h, h => audioService.IsPlayingChanged -= h)
+                .Subscribe(evt =>
                 {
-                    _logger.LogTrace("BaseViewModel: _stateService.IsPlaying emitted: {IsPlayingState}", isPlaying);
-                    IsPlaying = isPlaying;
-                    if (CurrentPlayingSongView != null)
-                        CurrentPlayingSongView.IsCurrentPlayingHighlight = isPlaying;
-                }, ex => _logger.LogError(ex, "Error in IsPlaying subscription"))
+                    IsPlaying = evt.EventArgs.IsPlaying;
+                },
+                           ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
 
         _subsManager.Add(
             _stateService.IsShuffleActive
-                .ObserveOn(SynchronizationContext.Current!)
+
                 .Subscribe(isShuffle =>
                 {
                     _logger.LogTrace("BaseViewModel: _stateService.IsShuffleActive emitted: {IsShuffleState}", isShuffle);
@@ -229,7 +240,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         _subsManager.Add(
             _stateService.DeviceVolume
-                .ObserveOn(SynchronizationContext.Current!)
+
                 .Subscribe(volume =>
                 {
                     _logger.LogTrace("BaseViewModel: _stateService.DeviceVolume emitted: {Volume}", volume);
@@ -239,12 +250,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         // Subscribe to actual audio engine position for the progress bar
         _subsManager.Add(
-            SongsMgtFlow.AudioEnginePositionObservable // Use the direct observable from the audio bridge
-                .ObserveOn(SynchronizationContext.Current!)
+            _songsMgtFlow.AudioEnginePositionObservable // Use the direct observable from the audio bridge
+
                 .Subscribe(positionSeconds =>
                 {
                     CurrentTrackPositionSeconds = positionSeconds;
                     CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
+
                 }, ex => _logger.LogError(ex, "Error in AudioEnginePositionObservable subscription"))
         );
 
@@ -253,32 +265,42 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         // if PlayListMgtFlow is playing from "All Songs" or a mixed queue.
         _subsManager.Add(
              _stateService.AllCurrentSongs // Or a more specific "current effective queue" observable if PlayListMgtFlow provides it
-                .ObserveOn(SynchronizationContext.Current!)
                 .Subscribe(songList =>
                 {
                     _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList?.Count ?? 0);
                     NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList);
+                    CurrentPlayingSongView = NowPlayingDisplayQueue.FirstOrDefault();
+
+                }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for NowPlayingDisplayQueue subscription"))
+        );
+
+        _subsManager.Add(
+             _stateService.AllPlayHistory // Or a more specific "current effective queue" observable if PlayListMgtFlow provides it
+                .Subscribe(playEvents =>
+                {
+                    _logger.LogTrace("BaseViewModel: events (for all) emitted count: {Count}", playEvents?.Count ?? 0);
+                    AllPlayEvents = playEvents.ToObservableCollection();
                 }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for NowPlayingDisplayQueue subscription"))
         );
 
 
         // Subscriptions for lyrics (assuming LyricsMgtFlow updates _stateService)
         _subsManager.Add(_stateService.CurrentLyric
-            .ObserveOn(SynchronizationContext.Current!)
+
             .DistinctUntilChanged()
             .Subscribe(l => ActiveCurrentLyricPhrase = _mapper.Map<LyricPhraseModelView>(l),
                        ex => _logger.LogError(ex, "Error in CurrentLyric subscription"))
         );
 
         _subsManager.Add(_stateService.SyncLyrics
-             .ObserveOn(SynchronizationContext.Current!)
+
              .Subscribe(l => CurrentSynchronizedLyrics = _mapper.Map<ObservableCollection<LyricPhraseModelView>>(l),
                         ex => _logger.LogError(ex, "Error in SyncLyrics subscription"))
         );
 
         // App Logs
         _subsManager.Add(_stateService.LatestDeviceLog
-            .ObserveOn(SynchronizationContext.Current!)
+
             .DistinctUntilChanged()
             .Subscribe(log =>
             {
@@ -311,8 +333,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
     // --- Commands that Initiate Playback ---
-    [RelayCommand]
-    public void PlaySongFromListAsync(SongModelView songToPlay) // Renamed, async void is discouraged for RelayCommands unless truly fire-and-forget with no downstream await
+
+    public void PlaySongFromListAsync(SongModelView songToPlay, IEnumerable<SongModelView> songs) // Renamed, async void is discouraged for RelayCommands unless truly fire-and-forget with no downstream await
     {
         if (songToPlay == null)
         {
@@ -336,7 +358,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             // Song is part of the globally active playlist context
             _logger.LogDebug("PlaySongFromList: Playing from active playlist context '{PlaylistName}'.", activePlaylistModel.PlaylistName);
             int startIndex = activePlaylistModel.SongsInPlaylist.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
-            PlaylistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
+            _playlistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
         }
         else
         {
@@ -344,10 +366,19 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             // NowPlayingDisplayQueue should represent this generic list if that's what the UI shows.
             // Ensure NowPlayingDisplayQueue accurately reflects the list the user clicked from.
             _logger.LogDebug("PlaySongFromList: Playing from generic list/current display queue.");
-            var songListModels = NowPlayingDisplayQueue.Select(svm => svm.ToModel(_mapper)).Where(sm => sm != null).ToList()!;
-            int startIndex = NowPlayingDisplayQueue.IndexOf(songToPlay); // Index in the *displayed* list
 
-            PlaylistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Current Display Queue");
+            var songListModels = songs
+                .Select(svm => svm.ToModel(_mapper))
+                .Where(sm => sm != null) // Filter out any nulls after mapping
+                .ToList();
+            int startIndex = songListModels.FindIndex(s => s?.Id == songToPlayModel.Id);
+
+            _playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Custom Context List");
+        }
+
+        if (IsShuffleActive)
+        {
+            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
     }
     // This method is more high-level, usually called when context is broader
@@ -371,11 +402,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     startIndex = 0;
             }
         }
-        PlaylistsMgtFlow.PlayGenericSongList(songModels, startIndex, listName);
+        _playlistsMgtFlow.PlayGenericSongList(songModels, startIndex, listName);
     }
 
 
-    // --- Playback Control Commands (Interacting with _stateService or SongsMgtFlow) ---
+    // --- Playback Control Commands (Interacting with _stateService or _songsMgtFlow) ---
     [RelayCommand]
     public void PlayPauseToggleAsync()
     {
@@ -385,7 +416,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         {
             _logger.LogInformation("PlayPauseToggleAsync: No current song. Attempting to play from 'All Songs'.");
             // If no current song, try to play "All Songs" from PlayListMgtFlow
-            PlaylistsMgtFlow.PlayAllSongsFromLibrary(); // PlayListMgtFlow handles empty library
+            _playlistsMgtFlow.PlayAllSongsFromLibrary(); // PlayListMgtFlow handles empty library
             return;
         }
 
@@ -397,7 +428,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         else
         {
             // If resuming, use Playing. If it was stopped or at start, also use Playing.
-            // SongsMgtFlow will handle if it needs to re-initialize or just resume.
+            // _songsMgtFlow will handle if it needs to re-initialize or just resume.
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, currentSongVm, currentSongModel));
         }
     }
@@ -421,9 +452,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void ToggleShuffleMode()
     {
-        bool newShuffleState = !IsShuffleActive; // IsShuffleActive is bound to _stateService.IsShuffleActive
-        _logger.LogDebug("ToggleShuffleMode called. Setting shuffle to: {NewShuffleState}", newShuffleState);
-        _stateService.SetShuffleActive(newShuffleState);
+        bool newShuffleState = !IsShuffleActive; // IsShuffleActive is bound to 
         // If immediate re-shuffling of the current queue is desired when turning ON:
         if (newShuffleState)
         {
@@ -448,7 +477,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public async Task SeekTrackPosition(double positionSeconds) // Parameter is seconds
     {
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
-        await SongsMgtFlow.RequestSeekAsync(positionSeconds); // Call the method on the refactored SongsMgtFlow
+        await _songsMgtFlow.RequestSeekAsync(positionSeconds); // Call the method on the refactored _songsMgtFlow
     }
 
 
@@ -466,7 +495,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         newVolume = Math.Clamp(newVolume, 0.0, 1.0);
         _logger.LogDebug("SetVolumeLevel called by UI to: {Volume}", newVolume);
-        SongsMgtFlow.RequestSetVolume(newVolume); // Call the method on the refactored SongsMgtFlow
+        _songsMgtFlow.RequestSetVolume(newVolume); // Call the method on the refactored _songsMgtFlow
     }
 
     [RelayCommand]
@@ -557,22 +586,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                                                                 // Optionally trigger a rescan if needed, or let FolderMgtService handle that via state.
     }
 
-    public async Task AddMusicFolderAsync() // Renamed from SelectSongFromFolder
+    public async Task AddMusicFolderAsync(string folderPath) // Renamed from SelectSongFromFolder
     {
         _logger.LogInformation("User requested to add music folder.");
-        // This would involve platform-specific folder picker logic,
-        // then calling _folderMgtService.AddFolderToPreference(selectedPath);
-        // And then potentially triggering a scan via _stateService for 
-        // e.g., _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, selectedPath, null, null));
 
-        // Example call (platform code would provide the path):
-        // string? selectedPath = await _platformSpecificFolderPicker.PickFolderAsync();
-        // if (!string.IsNullOrEmpty(selectedPath)) {
-        //     FolderPaths.Add(selectedPath);
-        //     _folderMgtService.AddFolderToPreference(selectedPath);
-        //     _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, selectedPath, null, null));
-        // }
-        await Task.CompletedTask; // Placeholder
+        await _folderMgtService.AddFolderToWatchListAndScanAsync(folderPath);
+
     }
 
 

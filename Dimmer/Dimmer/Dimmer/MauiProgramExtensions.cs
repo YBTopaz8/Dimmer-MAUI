@@ -1,7 +1,4 @@
-﻿
-
-using Dimmer.Interfaces.IServices;
-using Dimmer.Services;
+﻿using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer;
 
@@ -50,6 +47,7 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
         builder.Services.AddSingleton<ILibraryScannerService, LibraryScannerService>();
+        builder.Services.AddSingleton<IAppInitializerService, AppInitializerService>();
 
 
         builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));

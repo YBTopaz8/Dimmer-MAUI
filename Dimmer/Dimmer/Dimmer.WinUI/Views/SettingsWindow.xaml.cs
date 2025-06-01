@@ -38,7 +38,7 @@ public partial class SettingsWindow : Window
         var param = send.CommandParameter.ToString();
         MyViewModel.DeleteFolderPath(param);
     }
-    private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
         //await MyViewModel.SelectSongFromFolder();
     }

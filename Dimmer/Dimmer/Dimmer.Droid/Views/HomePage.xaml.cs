@@ -30,9 +30,10 @@ public partial class HomePage : ContentPage
         //NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
+        await MyViewModel.InitializeApp();
         //MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
 
         //MyViewModel.SetCollectionView(SongsColView);

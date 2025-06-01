@@ -1,9 +1,10 @@
 ﻿using Dimmer.Data;
-using Dimmer.Interfaces.IServices;
-using Dimmer.Interfaces.Services;
+using Dimmer.Interfaces.Services.Interfaces;
 
 using Microsoft.Extensions.Logging;
+
 using Realms;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,10 +13,11 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Dimmer.Services;
+namespace Dimmer.Interfaces.Services;
 
 public class LibraryScannerService : ILibraryScannerService
 {
+    private readonly IRepository<DimmerPlayEvent> _playEventsRepo;
     private readonly IDimmerStateService _state;
     private readonly IMapper _mapper;
     private readonly IRepository<SongModel> _songRepo;
@@ -31,9 +33,11 @@ public class LibraryScannerService : ILibraryScannerService
         IDimmerStateService state, IMapper mapper,
         IRepository<SongModel> songRepo, IRepository<AlbumModel> albumRepo,
         IRepository<ArtistModel> artistRepo, IRepository<GenreModel> genreRepo,
-        IRealmFactory realmFactory, ILogger<LibraryScannerService> logger,
+        IRealmFactory realmFactory, ILogger<LibraryScannerService> logger
+        , IRepository<DimmerPlayEvent> playEventsRepo,
         ProcessingConfig? config = null)
     {
+        _playEventsRepo=playEventsRepo;
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _songRepo = songRepo ?? throw new ArgumentNullException(nameof(songRepo));
@@ -57,12 +61,10 @@ public class LibraryScannerService : ILibraryScannerService
         }
 
         _logger.LogInformation("Starting library scan for paths: {Paths}", string.Join(", ", folderPaths));
+
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanStarted, string.Join(";", folderPaths), null, null));
+
         _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
-
-
-
-
 
         MusicMetadataService currentScanMetadataService = new();
         AudioFileProcessor audioFileProcessor = new AudioFileProcessor(
@@ -81,10 +83,10 @@ public class LibraryScannerService : ILibraryScannerService
 
 
         _logger.LogDebug("Loading existing metadata from database...");
-        var existingArtists = (_artistRepo.GetAll(false)).ToList();
-        var existingAlbums = (_albumRepo.GetAll(false)).ToList();
-        var existingGenres = (_genreRepo.GetAll(false)).ToList();
-        var existingSongs = (_songRepo.GetAll(false)).ToList();
+        var existingArtists = _artistRepo.GetAll(false).ToList();
+        var existingAlbums = _albumRepo.GetAll(false).ToList();
+        var existingGenres = _genreRepo.GetAll(false).ToList();
+        var existingSongs = _songRepo.GetAll(false).ToList();
         _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
             existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
 
@@ -176,7 +178,7 @@ public class LibraryScannerService : ILibraryScannerService
                             {
 
 
-                                if (!song.Album.IsManaged || (song.Album.IsManaged && song.Album.Realm != realm))
+                                if (!song.Album.IsManaged || song.Album.IsManaged && song.Album.Realm != realm)
                                 {
                                     var managedAlbum = realm.Find<AlbumModel>(song.Album.Id);
                                     if (managedAlbum != null)
@@ -190,7 +192,7 @@ public class LibraryScannerService : ILibraryScannerService
 
                             if (song.Genre != null)
                             {
-                                if (!song.Genre.IsManaged || (song.Genre.IsManaged && song.Genre.Realm != realm))
+                                if (!song.Genre.IsManaged || song.Genre.IsManaged && song.Genre.Realm != realm)
                                 {
                                     var managedGenre = realm.Find<GenreModel>(song.Genre.Id);
                                     if (managedGenre != null)
@@ -203,7 +205,7 @@ public class LibraryScannerService : ILibraryScannerService
                                 var updatedArtistListForSong = new List<ArtistModel>();
                                 foreach (var artistRef in song.ArtistIds)
                                 {
-                                    if (!artistRef.IsManaged || (artistRef.IsManaged && artistRef.Realm != realm))
+                                    if (!artistRef.IsManaged || artistRef.IsManaged && artistRef.Realm != realm)
                                     {
                                         var managedArtist = realm.Find<ArtistModel>(artistRef.Id);
                                         if (managedArtist != null)
@@ -242,7 +244,7 @@ public class LibraryScannerService : ILibraryScannerService
 
 
 
-        var finalSongListFromDb = (_songRepo.GetAll(false)).ToList();
+        var finalSongListFromDb = _songRepo.GetAll(false).ToList();
         _state.LoadAllSongs(finalSongListFromDb.AsReadOnly());
         _logger.LogInformation("Global state updated with {SongCount} songs from database after scan.", finalSongListFromDb.Count);
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, null, null, null));
@@ -259,11 +261,18 @@ public class LibraryScannerService : ILibraryScannerService
         };
     }
 
+    public void LoadInSongsAndEvents()
+    {
+        _logger.LogInformation("Loading all songs from database into global state.");
+        var allSongs = _songRepo.GetAll(true).ToList();
+        _state.LoadAllSongs(allSongs.AsReadOnly());
+        _logger.LogInformation("Loaded {SongCount} songs into global state.", allSongs.Count);
+
+        var allEvents = _playEventsRepo.GetAll();
+        _state.LoadAllPlayHistory(allEvents);
+    }
     public async Task<LoadSongsResult?> ScanSpecificPathsAsync(List<string> pathsToScan, bool isIncremental = true)
     {
-
-
-
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));
         return await ScanLibraryAsync(pathsToScan).ConfigureAwait(false);
     }

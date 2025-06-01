@@ -1,5 +1,8 @@
 ﻿using AndroidX.Media3.Common;
+
+using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events; // Assuming this namespace is correct for PlaybackEventArgs
+
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 

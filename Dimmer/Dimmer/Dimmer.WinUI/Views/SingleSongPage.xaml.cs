@@ -33,7 +33,7 @@ public partial class SingleSongPage : ContentPage
         // =int.Parse(param); switch view
     }
 
-    private async void MediaChipBtn_ChipClicked(object sender, EventArgs e)
+    private void MediaChipBtn_ChipClicked(object sender, EventArgs e)
     {
         //SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
         //string? param = ee.CommandParameter.ToString();

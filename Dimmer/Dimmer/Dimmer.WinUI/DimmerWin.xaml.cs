@@ -1,4 +1,4 @@
-
+using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.WinUI;
 
@@ -69,6 +69,7 @@ public partial class DimmerWin : Window
         }
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+
     }
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {

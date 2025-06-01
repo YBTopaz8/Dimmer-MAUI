@@ -1,4 +1,5 @@
-﻿using Dimmer.Interfaces.IServices;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +43,7 @@ public partial class AppInitializerService : IAppInitializerService
         {
             // 1. Load/Initialize User
             var users = _userRepo.GetAll(); // Assuming async repo
-            UserModel currentUserInstance = users.FirstOrDefault();
+            UserModel? currentUserInstance = users.FirstOrDefault();
             if (currentUserInstance == null)
             {
                 currentUserInstance = new UserModel { UserName = "Default User" /* other defaults */ };
@@ -60,8 +61,8 @@ public partial class AppInitializerService : IAppInitializerService
             // 4. Trigger Initial Full Library Scan
             _logger.LogInformation("Triggering initial library scan...");
             // Library scanner will update _state.LoadAllSongs upon completion
-            await _libraryScanner.ScanLibraryAsync(_settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>());
 
+            _libraryScanner.LoadInSongsAndEvents();
             _state.SetCurrentPlaylist(null); // Ensure no playlist is active initially
 
             // Optionally, load last played song/queue if that's a feature

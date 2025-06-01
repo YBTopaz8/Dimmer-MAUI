@@ -1,27 +1,12 @@
-﻿
-using Android.Content;
-using Android.Graphics.Drawables;
-using Android.OS;
-using Android.Util;
-using Android.Views;
-using Android.Widget;
+﻿using Android.OS;
+
 using AndroidX.Fragment.App;
+
 using Dimmer.Utils.PageAnimations;
+
 using Google.Android.Material.BottomNavigation;
-using Google.Android.Material.BottomSheet;
-using Google.Android.Material.Navigation;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.Platform.Compatibility;
-using Microsoft.Maui.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
+
 using AColor = Android.Graphics.Color;
-using AView = Android.Views.View;
-using IMenu = Android.Views.IMenu;
 using LP = Android.Views.ViewGroup.LayoutParams;
 using Orientation = Android.Widget.Orientation;
 using View = Android.Views.View;
@@ -148,13 +133,12 @@ public partial class MyShellItemRenderer : ShellItemRenderer
     }
 
     // --- Tab Switch Animation (Example) ---
-    // Add to PublicStats: public static long TabSwitchAnimationDurationMs { get; set; } = 250;
     protected override void OnShellSectionChanged()
     {
         if (_theNavigationAreaInstance != null && Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
         {
             // Simple Fade out
-            _theNavigationAreaInstance.Animate()
+            _theNavigationAreaInstance.Animate()!
                 .Alpha(0f)
                 .SetDuration(PublicStats.TabSwitchAnimationDurationMs) // Use from PublicStats
                 .SetInterpolator(PublicStats.AccelerateInterpolator) // Use from PublicStats
@@ -162,7 +146,7 @@ public partial class MyShellItemRenderer : ShellItemRenderer
                 {
                     base.OnShellSectionChanged(); // Swaps content
                     _theNavigationAreaInstance.Alpha = 0f;
-                    _theNavigationAreaInstance.Animate()
+                    _theNavigationAreaInstance.Animate()!
                         .Alpha(1f)
                         .SetDuration(PublicStats.EndTabSwitchAnimationDurationMs)
                         .SetInterpolator(PublicStats.DecelerateInterpolator)
@@ -188,18 +172,7 @@ public partial class MyShellItemRenderer : ShellItemRenderer
         // ... (your existing OnDestroy logic for _moreBottomSheetDialogInstance) ...
         base.OnDestroy();
     }
-    //static List<(string title, ImageSource icon, bool tabEnabled)> CreateTabList(ShellItem shellItem)
-    //{
-    //    var items = new List<(string title, ImageSource icon, bool tabEnabled)>();
-    //    var shellItems = ((IShellItemController)shellItem).GetItems();
 
-    //    for (int i = 0; i < shellItems.Count; i++)
-    //    {
-    //        var item = shellItems[i];
-    //        items.Add((item.Title, item.Icon, item.IsEnabled));
-    //    }
-    //    return items;
-    //}
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -334,11 +307,8 @@ public partial class MyShellItemRenderer : ShellItemRenderer
                 image.LayoutParameters = lp;
 
                 IServiceProvider services = ShellContext.Shell.Handler!.MauiContext!.Services;
-                //var provider = services.GetRequiredService<IImageSourceServiceProvider>();
-                //var icon = shellContent.Icon;
 
-                shellContent.Icon.LoadImage(
-                    ShellContext.Shell.Handler.MauiContext,
+                shellContent.Icon.LoadImage(ShellContext.Shell.Handler.MauiContext,
                     (result) =>
                     {
                         image.SetImageDrawable(result?.Value);
@@ -354,7 +324,7 @@ public partial class MyShellItemRenderer : ShellItemRenderer
                 using (var text = new TextView(Context))
                 {
                     text.Typeface = services.GetRequiredService<IFontManager>()
-                        .GetTypeface(Microsoft.Maui.Font.OfSize("sans-serif-medium", 0.0));
+                        .GetTypeface(Microsoft.Maui.Font.OfSize("OpenSansRegular", 0.0));
 
                     // Change textcolor here
                     text.SetTextColor(PublicStats.TabTitleTextColor);

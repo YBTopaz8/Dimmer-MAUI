@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Interfaces;
+﻿namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IAppUtil
 {
     public Shell GetShell();

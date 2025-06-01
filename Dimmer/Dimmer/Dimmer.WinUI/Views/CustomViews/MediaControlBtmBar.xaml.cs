@@ -123,7 +123,7 @@ public partial class MediaControlBtmBar : ContentView
         //MyViewModel.PlayNext(true);
     }
 
-    private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
+    private void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
     {
         //await MyViewModel.PlayPauseAsync();
     }

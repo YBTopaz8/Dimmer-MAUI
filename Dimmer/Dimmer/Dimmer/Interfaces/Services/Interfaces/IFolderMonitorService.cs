@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Interfaces;
+﻿namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IFolderMonitorService : IDisposable
 {
     void Start(IEnumerable<string> paths);

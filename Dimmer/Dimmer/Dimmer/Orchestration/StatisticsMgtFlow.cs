@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Orchestration;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+
+namespace Dimmer.Orchestration;
 public class StatisticsMgtFlow
 {
     public StatisticsMgtFlow(IDimmerStateService state, IRepository<SongModel> songRepo,

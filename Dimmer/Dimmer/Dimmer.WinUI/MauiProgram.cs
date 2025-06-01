@@ -1,6 +1,10 @@
 ﻿
 
 
+using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.WinuiWindows;
+
 namespace Dimmer.WinUI;
 
 public static class MauiProgram
@@ -26,6 +30,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomePage>();
 
         builder.Services.AddTransient<SingleSongPage>();
+        builder.Services.AddTransient<SettingWindow>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
@@ -75,7 +80,10 @@ public static class MauiProgram
             });
         });
 
-
+        builder.Services.AddSingleton<ISettingsWindowManager, SettingsWindowManager>();
+        builder.Services.AddSingleton<FolderScanPage>();
+        builder.Services.AddSingleton<OnlinePage>();
+        builder.Services.AddSingleton<SettingWindow>();
         //if (ParseSetup.InitializeParseClient())
         //{
         //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));

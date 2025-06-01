@@ -1,4 +1,7 @@
 ﻿using ATL;
+
+using Dimmer.Interfaces.Services.Interfaces;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,7 +125,6 @@ public class AudioFileProcessor : IAudioFileProcessor
             ArtistName= artistString,
             Genre = genre,
             Composer = track.Composer,
-
             CoverImagePath = coverPath ?? album.ImagePath, // Song specific or album's
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,

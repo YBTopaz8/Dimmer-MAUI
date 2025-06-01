@@ -1,8 +1,11 @@
 ﻿using Android.Content;
+
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Fragment.App;
+
 using Microsoft.Maui;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,20 +113,7 @@ public partial class MyShellRenderer : ShellRenderer
 
 
 
-    private Android.Views.View FindFlyoutMenuView(DrawerLayout drawerLayout)
-    {
-        for (int i = 0; i < drawerLayout.ChildCount; i++)
-        {
-            var child = drawerLayout.GetChildAt(i);
-            var lp = child.LayoutParameters as DrawerLayout.LayoutParams;
-            if (lp != null && (lp.Gravity == (int)GravityFlags.Start || lp.Gravity == (int)GravityCompat.Start ||
-                               lp.Gravity == (int)GravityFlags.End || lp.Gravity == (int)GravityCompat.End))
-            {
-                return child;
-            }
-        }
-        return null; // Or the first child if only one has gravity
-    }
+
     protected override void OnElementSet(Shell shell)
     {
         base.OnElementSet(shell); // Let the base class do its , including creating _flyoutView

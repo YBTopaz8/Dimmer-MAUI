@@ -2,6 +2,7 @@
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 using Microsoft.Windows.AppLifecycle;
+
 using Windows.ApplicationModel.Activation;
 
 namespace Dimmer.WinUI;
@@ -231,7 +232,7 @@ public partial class App : MauiWinUIApplication
     protected override MauiApp CreateMauiApp()
     {
         var s = IPlatformApplication.Current;
-        
+
         return MauiProgram.CreateMauiApp();
     }
 

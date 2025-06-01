@@ -1,9 +1,13 @@
 ﻿// ----------------------------
 // RealmCoreRepo.cs
 // ----------------------------
+using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions;
+
 using Microsoft.Maui.Controls;
+
 using Realms;
+
 using System.Linq.Expressions;
 using System.Reflection;
 

@@ -1,13 +1,14 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 // Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 using Dimmer.Data.Models;
-using Dimmer.Interfaces; // For IMapper
+using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Enums;
+using Dimmer.Utilities.Events;
 // using Dimmer.Platform; // For Window
 
 namespace Dimmer.Interfaces.Services;
@@ -25,6 +26,8 @@ public partial class DimmerStateService : IDimmerStateService
     private readonly BehaviorSubject<TimeSpan> _currentSongDuration = new(TimeSpan.Zero);
 
     private readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongsInLibrary = new(Array.Empty<SongModel>());
+
+    private readonly BehaviorSubject<IReadOnlyList<DimmerPlayEvent>> _allEventsInLibrary = new(Array.Empty<DimmerPlayEvent>());
     private readonly BehaviorSubject<UserModelView?> _currentUser = new(null);
     private readonly BehaviorSubject<AppStateModelView?> _applicationSettingsState = new(null);
     private readonly BehaviorSubject<CurrentPage> _currentPage = new(Utilities.Enums.CurrentPage.HomePage);
@@ -39,7 +42,9 @@ public partial class DimmerStateService : IDimmerStateService
     private readonly IMapper _mapper;
     private readonly CompositeDisposable _disposables = new();
 
-    public DimmerStateService(IMapper mapper)
+    private readonly IDimmerAudioService _audioService;
+
+    public DimmerStateService(IMapper mapper, IDimmerAudioService audioService)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -47,14 +52,6 @@ public partial class DimmerStateService : IDimmerStateService
         _latestDeviceLog = new BehaviorSubject<AppLogModel>(new AppLogModel { Log = $"StateService Initialized. + {DateTimeOffset.UtcNow}" });
         _playbackState = new BehaviorSubject<PlaybackStateInfo>(new PlaybackStateInfo(DimmerPlaybackState.Opening, null, null, null));
 
-        // Derived state: IsPlaying from PlaybackState
-        _disposables.Add(
-          _playbackState
-              .Select(psi => psi.State == DimmerPlaybackState.Playing || psi.State == DimmerPlaybackState.Resumed)
-              .DistinctUntilChanged()
-              .Subscribe(_isPlaying.OnNext, // Pass the OnNext action directly
-                         ex => { /* Log error for _isPlaying subscription if needed */ })
-      );
         // Derived state: Reset position and duration when song changes to null (or a new song)
         _disposables.Add(
              _currentSong
@@ -66,6 +63,7 @@ public partial class DimmerStateService : IDimmerStateService
                  },
                  ex => { /* Log error for _currentSong reset subscription if needed */ })
          );
+        _audioService= audioService ?? throw new ArgumentNullException(nameof(audioService));
     }
 
     // --- Observables (Implementing IDimmerStateService) ---
@@ -77,6 +75,8 @@ public partial class DimmerStateService : IDimmerStateService
     public IObservable<RepeatMode> CurrentRepeatMode => _currentRepeatMode.AsObservable();
     public IObservable<TimeSpan> CurrentSongPosition => _currentSongPosition.AsObservable();
     public IObservable<TimeSpan> CurrentSongDuration => _currentSongDuration.AsObservable();
+
+    public IObservable<IReadOnlyList<DimmerPlayEvent>> AllPlayHistory => _allEventsInLibrary.AsObservable();
 
     public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongsInLibrary.AsObservable();
     public IObservable<UserModelView?> CurrentUser => _currentUser.AsObservable();
@@ -96,6 +96,12 @@ public partial class DimmerStateService : IDimmerStateService
         var songList = songs?.ToList() ?? new List<SongModel>();
         // Consider if a deep equality check is needed or if reference change is enough
         _allSongsInLibrary.OnNext(songList.AsReadOnly());
+    }
+    public void LoadAllPlayHistory(IEnumerable<DimmerPlayEvent> events)
+    {
+        var eventsList = events?.ToList() ?? new List<DimmerPlayEvent>();
+        // Consider if a deep equality check is needed or if reference change is enough
+        _allEventsInLibrary.OnNext(eventsList.AsReadOnly());
     }
 
     public void SetCurrentSong(SongModel? songModel)
@@ -266,6 +272,7 @@ public partial class DimmerStateService : IDimmerStateService
         _currentSongPosition.Dispose();
         _currentSongDuration.Dispose();
         _allSongsInLibrary.Dispose();
+        _allEventsInLibrary.Dispose();
         _currentUser.Dispose();
         _applicationSettingsState.Dispose();
         _currentPage.Dispose();

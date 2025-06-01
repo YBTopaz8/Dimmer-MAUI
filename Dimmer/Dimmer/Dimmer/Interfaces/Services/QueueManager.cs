@@ -1,4 +1,6 @@
-﻿using Dimmer.Utilities.Extensions; // For ShuffleInPlace
+﻿using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utilities.Extensions; // For ShuffleInPlace
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

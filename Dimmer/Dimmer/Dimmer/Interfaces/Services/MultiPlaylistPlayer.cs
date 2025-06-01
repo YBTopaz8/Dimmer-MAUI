@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Dimmer.Interfaces.Services.Interfaces;
+
 namespace Dimmer.Interfaces.Services;
 
 public class MultiPlaylistPlayer<T> : IDisposable

@@ -1,14 +1,14 @@
 ﻿using System.Linq.Expressions;
 
-namespace Dimmer.Interfaces;
+namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IRepository<T> where T : new()
 {
-    T AddOrUpdate(T entity);
+    T? AddOrUpdate(T entity);
     void AddOrUpdate(IEnumerable<T> entities);
     void BatchUpdate(Action<Realm> updates);
     void Delete(T entity);
     void Delete(IEnumerable<T> entities);
-    
+
     IReadOnlyCollection<T> GetAll(bool IsShuffled = false);
     IRealmCollection<T> GetAllLive();
     T? GetById(ObjectId primaryKey);

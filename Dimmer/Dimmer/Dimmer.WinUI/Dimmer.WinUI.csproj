@@ -50,9 +50,12 @@
     <None Remove="Views\OnlinePageManagement.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
     <None Remove="Views\SettingsWindow.xaml" />
+    <None Remove="Views\SettingWindow.xaml" />
     <None Remove="Views\SingleSongPage.xaml" />
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
+    <None Remove="Views\WinuiWindows\FolderScanPage.xaml" />
+    <None Remove="Views\WinuiWindows\OnlinePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -190,6 +193,21 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\WinuiWindows\OnlinePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\WinuiWindows\FolderScanPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\SettingWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <WebView2UseWinRT>False</WebView2UseWinRT>

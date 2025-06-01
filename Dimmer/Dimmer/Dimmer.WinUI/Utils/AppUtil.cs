@@ -1,4 +1,6 @@
-﻿namespace Dimmer.WinUI.Utils;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+
+namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
     public Shell GetShell()

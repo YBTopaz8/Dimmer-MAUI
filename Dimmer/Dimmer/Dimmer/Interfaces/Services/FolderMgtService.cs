@@ -10,13 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 // Add other necessary using statements
-using Dimmer.Interfaces; // For IMapper if needed (unlikely here)
-using Dimmer.Interfaces.Services; // For IFolderMonitorService, ISettingsService, IDimmerStateService
-using Dimmer.Interfaces.IServices; // For ILibraryScannerService
-using Dimmer.Data.Models;       // For FolderModel, PlaybackStateInfo
-using Dimmer.Utilities.Enums;   // For DimmerPlaybackState
+using Dimmer.Utilities.Enums;
+using Dimmer.Interfaces.Services.Interfaces;
 
-namespace Dimmer.Services; // Or your preferred namespace for service implementations
+namespace Dimmer.Interfaces.Services; // Or your preferred namespace for service implementations
 
 public class FolderMgtService : IFolderMgtService
 {
@@ -70,7 +67,7 @@ public class FolderMgtService : IFolderMgtService
 
         _logger.LogInformation("Starting to watch folders: {Folders}", string.Join(", ", foldersToWatchPaths));
 
-        var folderModels = foldersToWatchPaths.Select(p => new FolderModel { FolderPath = p }).ToList();
+        var folderModels = foldersToWatchPaths.Select(p => new FolderModel { Path = p }).ToList();
         _allFoldersBehaviorSubject.OnNext(folderModels.AsReadOnly());
 
         // Unsubscribe from previous monitor events if any

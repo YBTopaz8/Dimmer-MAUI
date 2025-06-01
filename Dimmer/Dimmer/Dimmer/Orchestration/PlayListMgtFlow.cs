@@ -1,8 +1,10 @@
-﻿using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services;
+﻿using Dimmer.Interfaces.Services;
+using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions; // Your extensions
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,6 +16,7 @@ namespace Dimmer.Orchestration;
 
 public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPlayingSong, etc.
 {
+    private readonly IMapper mapper;
     private readonly IDimmerStateService _state;
     private readonly IRepository<PlaylistModel> _playlistRepo; // For loading playlist definitions
     private readonly SubscriptionManager _subs; // For managing its own Rx subscriptions
@@ -35,6 +38,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
 
     private IEnumerable<SongModel>? _allCurrentSongsCache;
     public PlayListMgtFlow(
+
         IDimmerStateService state,
         IRepository<SongModel> songRepo, // For fetching song details if needed, not for queue mgmt
         IRepository<PlaylistModel> playlistRepo,
@@ -53,6 +57,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         IRepository<ArtistModel> artistRepo // Added ArtistModel repository
     )
     {
+        this.mapper=mapper;
         _state=state;
 
         _playlistRepo = playlistRepo ?? throw new ArgumentNullException(nameof(playlistRepo));
@@ -66,7 +71,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         _multiPlayer.AllQueuesExhausted += OnPlayerAllQueuesExhausted;
 
         InitializeInternalSubscriptions();
-        LoadInitialDataAsync().ConfigureAwait(false); // Fire-and-forget async load
+        LoadInitialData();
         _logger.LogInformation("PlayListMgtFlow initialized.");
         _subs.Add(
     _state.AllCurrentSongs
@@ -76,9 +81,10 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
               _logger.LogDebug("AllCurrentSongsCache updated with {SongCount} songs.", _allCurrentSongsCache.Count());
           })
 );
+        Debug.WriteLine("Done With Pl Mgt Flow");
     }
 
-    private async Task LoadInitialDataAsync()
+    private void LoadInitialData()
     {
         AllAvailablePlaylists.Clear();
         try
@@ -171,7 +177,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
 
         _state.SetCurrentSong(song); // Update global state with the new SongModel
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing,
-            null, null,
+            null, mapper.Map<SongModelView>(song),
             songdb: song));
 
         _logger.LogInformation("Player selected: '{SongTitle}' from PIdx {PlaylistIndex}, Batch {BatchId}.",
@@ -189,7 +195,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         _logger.LogInformation("Player: All queues exhausted.");
         _currentTrackFromPlayer = null;
         _state.SetCurrentSong(null); // Clear current song in global state
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Stopped, null, null, null)); // Or EndedAll
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayCompleted, null, null, null)); // Or EndedAll
     }
 
     // --- Handler for Global Playback Commands ---
@@ -199,15 +205,26 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
 
         switch (command)
         {
+            case DimmerPlaybackState.PlayCompleted: // Song ended, play next
+
+                var ee = _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);
+
+                _state.SetCurrentState(new(DimmerPlaybackState.PlaylistPlay, null, mapper.Map<SongModelView>(ee), ee)); // Update state with next song
+
+                break;
             case DimmerPlaybackState.PlayNextUser:
+
             case DimmerPlaybackState.PlayNextUI:
-            case DimmerPlaybackState.Ended: // Song ended, play next
-                _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);
+
+                var e = _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);
+
+                _state.SetCurrentState(new(DimmerPlaybackState.Playing, null, mapper.Map<SongModelView>(e), e)); // Update state with next song
                 break;
 
             case DimmerPlaybackState.PlayPreviousUI:
             case DimmerPlaybackState.PlayPreviousUser:
-                _multiPlayer.Previous(randomizeSourcePlaylist: false); // Typically don't shuffle on previous
+                var previousSong = _multiPlayer.Previous(randomizeSourcePlaylist: false); // Typically don't shuffle on previous
+                _state.SetCurrentState(new(DimmerPlaybackState.Playing, null, mapper.Map<SongModelView>(previousSong), previousSong)); // Update state with previous song
                 break;
 
             case DimmerPlaybackState.ShuffleRequested: // User explicitly requested shuffle toggle
@@ -234,7 +251,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
             // States that this flow might not directly act upon for track changes:
             case DimmerPlaybackState.Opening:
             case DimmerPlaybackState.Playing: // This state is usually a result, not a command here
-            case DimmerPlaybackState.Stopped:
+
             case DimmerPlaybackState.PausedUI:
             case DimmerPlaybackState.Error:
             case DimmerPlaybackState.Failed:
@@ -323,7 +340,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
             // This will trigger OnPlayerItemSelected, which updates global state
             OnPlayerItemSelected(0, newQueue.Current, newQueue.CurrentBatchId); // Manually invoke for the first item
         }
-        else if (songList.Any()) // Should not happen if Initialize works
+        else if (songList.Count!=0) // Should not happen if Initialize works
         {
             _logger.LogError("Queue initialized with songs but Current is null. This is an issue in QueueManager or list processing.");
             ClearPlayerAndStopState();
@@ -465,20 +482,6 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
             }
         }
 
-        if (songAfterShuffle != null && indexOfPlaylistAfterShuffle != -1)
-        {
-            OnPlayerItemSelected(indexOfPlaylistAfterShuffle, songAfterShuffle, _multiPlayer.Playlists[indexOfPlaylistAfterShuffle].CurrentBatchId);
-        }
-        else if (_multiPlayer.TotalCount > 0) // Player has songs, but no Current item was found (should be rare)
-        {
-            _logger.LogWarning("Shuffled queues, but no current item found in any queue. Trying Next().");
-            _multiPlayer.Next(_currentShuffleStateValue);
-        }
-        else // All queues became empty (highly unlikely just from shuffle)
-        {
-            _logger.LogInformation("Shuffled queues, but all are now empty.");
-            ClearPlayerAndStopState();
-        }
     }
     private bool _currentShuffleStateValue = false;
     private bool disposedValue;
@@ -493,7 +496,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
 
         _state.SetCurrentSong(null); // Update global state
         _state.SetCurrentPlaylist(null);
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Stopped, null, null, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedUI, null, null, null));
         _logger.LogInformation("Player cleared and playback state stopped.");
     }
 

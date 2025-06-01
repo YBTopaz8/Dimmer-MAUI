@@ -33,6 +33,7 @@ using Java.Util.Concurrent;
 using Android.Media;
 using Dimmer.Activities;
 using MediaController = AndroidX.Media3.Session.MediaController;
+using Dimmer.Interfaces.Services.Interfaces;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct

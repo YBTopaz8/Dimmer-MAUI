@@ -1,12 +1,15 @@
 ﻿
 //using System.Reactive.Linq;
 
+using System.ComponentModel;
+
 using Dimmer.Data.Models;
 using Dimmer.Interfaces.Services;
+using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions;
 using Dimmer.ViewModel;
+
 using Microsoft.Extensions.Logging;
-using System.ComponentModel;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -19,33 +22,23 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     private DXCollectionView? _songLyricsCV; // Nullable, ensure it's set from XAML
+    private readonly PlayListMgtFlow playlistsMgtFlow;
 
+    private readonly IAppInitializerService appInitializerService;
     // Removed local _stateService and _mapper as they are protected in BaseViewModel
 
-    public BaseViewModelAnd(
-        IMapper mapper,
-        IDimmerLiveStateService dimmerLiveStateService,
-        AlbumsMgtFlow albumsMgtFlow,
-        PlayListMgtFlow playlistsMgtFlow,
-        SongsMgtFlow songsMgtFlow,
-        IDimmerStateService stateService,
-        ISettingsService settingsService,
-        SubscriptionManager subsManager, // This is _subsManager in BaseViewModel
-        LyricsMgtFlow lyricsMgtFlow,
-        IFolderMgtService folderMgtService,
-        ILogger<BaseViewModel> logger // Passed to base
-                                      // Add IFilePicker if it's specific to this Android VM and not in BaseViewModel
-                                      // IFilePicker filePicker // Example
-        ) : base(mapper, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow,
-                 stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, logger)
+    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow,
+       IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
+IRepository<SongModel> songRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelWin> logger, ISettingsWindowManager settingsWindwow) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, logger)
     {
         // _mapper and _stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
+        this.playlistsMgtFlow=playlistsMgtFlow;
 
         // Populate DisplayedSongs by subscribing to the state (can be done once)
         _subsManager.Add( // Use the inherited _subsManager
             _stateService.AllCurrentSongs
-                .ObserveOn(SynchronizationContext.Current!)
+
                 .Subscribe(songList =>
                 {
                     DisplayedSongs = _mapper.Map<ObservableCollection<SongModelView>>(songList);
@@ -66,8 +59,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
           handler => this.PropertyChanged -= handler) // Unsubscribe
       .Where(evtArgs => evtArgs.EventArgs.PropertyName == nameof(this.ActiveCurrentLyricPhrase)) // Filter for changes to the specific property
       .Select(_ => this.ActiveCurrentLyricPhrase) // Get the new value of the property
-      .ObserveOn(SynchronizationContext.Current!) // Ensure execution on the UI thread for UI updates
-      .Where(activePhrase => activePhrase != null && SongLyricsCV != null) // Further filter after ObserveOn, ensuring SongLyricsCV is also ready
+                                                  // Ensure execution on the UI thread for UI updates
       .Subscribe(activePhrase =>
       {
           if (activePhrase == null || SongLyricsCV == null)
@@ -163,24 +155,23 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
             _logger.LogDebug("Playing '{SongTitle}' from active playlist context '{PlaylistName}'.", songToPlay.Title, activePlaylistModel.PlaylistName);
             int startIndex = activePlaylistModel.SongsInPlaylist.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
-            PlaylistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
+            playlistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
         }
         else if (DisplayedSongs != null && DisplayedSongs.Any(svm => svm.Id == songToPlay.Id))
         {
             _logger.LogDebug("Playing '{SongTitle}' from current 'DisplayedSongs' list.", songToPlay.Title);
             var songListModels = DisplayedSongs.Select(svm => svm.ToModel(_mapper)).Where(sm => sm != null).ToList()!;
             int startIndex = DisplayedSongs.IndexOf(songToPlay);
-            PlaylistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Current Displayed List");
+            playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Current Displayed List");
         }
         else
         {
-            _logger.LogInformation("Playing '{SongTitle}' from full library as fallback.", songToPlay.Title);
-            var allLibrarySongs = _stateService.AllCurrentSongs.FirstAsync().Wait(); // Blocking!
-            int startIndex = allLibrarySongs.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
-            PlaylistsMgtFlow.PlayAllSongsFromLibrary(allLibrarySongs, Math.Max(0, startIndex));
+
         }
     }
 
-    // Dispose method is inherited from BaseViewModel and should handle _subsManager.
-    // If _subsLocal was used, it would need to be disposed here.
+    public async Task InitializeApp()
+    {
+        await appInitializerService.InitializeApplicationAsync();
+    }
 }

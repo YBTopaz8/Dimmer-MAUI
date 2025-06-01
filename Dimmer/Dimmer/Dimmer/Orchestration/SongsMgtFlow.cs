@@ -1,5 +1,4 @@
-﻿using Dimmer.Interfaces;
-using Dimmer.Data.Models; // Assuming PlaybackStateInfo, SongModel, SongModelView are here or in sub-namespaces
+﻿using Dimmer.Data.Models; // Assuming PlaybackStateInfo, SongModel, SongModelView are here or in sub-namespaces
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions; // For ToModel, ToModelView
 using Microsoft.Extensions.Logging;
@@ -10,20 +9,25 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using ATL;
+using System.Diagnostics;
+using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Orchestration;
 
-public class SongsMgtFlow : IDisposable
+public partial class SongsMgtFlow : IDisposable
 {
     private readonly IDimmerStateService _state;
     private readonly IDimmerAudioService _audio;
     private readonly IMapper _mapper;
+    private readonly IRepository<SongModel> songsRepo;
     private readonly ILogger<SongsMgtFlow> _logger;
+    private readonly BaseAppFlow baseAppFlow;
     private readonly CompositeDisposable _subscriptions = new();
     private PlaybackStateInfo _currentGlobalPlaybackStateTracked = new(DimmerPlaybackState.Opening, null, null, null);
-    private SongModel? _currentlyLoadedTrackInAudioEngine_SongModel; // Store as SongModel
-    private SongModelView? _currentGlobalSongViewTracked;
 
+    private SongModelView? _currentGlobalSongViewTracked;
+    public SongModelView? CurrentSongView => _currentGlobalSongViewTracked;
     public IObservable<bool> AudioEngineIsPlayingObservable { get; }
     public IObservable<double> AudioEnginePositionObservable { get; }
     public IObservable<double> AudioEngineVolumeObservable { get; }
@@ -32,13 +36,17 @@ public class SongsMgtFlow : IDisposable
         IDimmerStateService state,
         IDimmerAudioService audioService,
         IMapper mapper,
-        ILogger<SongsMgtFlow> logger)
+        IRepository<SongModel> songsRepo,
+        ILogger<SongsMgtFlow> logger
+        ,
+        BaseAppFlow baseAppFlow)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _audio = audioService ?? throw new ArgumentNullException(nameof(audioService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        this.songsRepo=songsRepo;
         _logger = logger ?? NullLogger<SongsMgtFlow>.Instance;
-
+        this.baseAppFlow=baseAppFlow;
         AudioEngineIsPlayingObservable = Observable.FromEventPattern<PlaybackEventArgs>(
                                              h => _audio.IsPlayingChanged += h,
                                              h => _audio.IsPlayingChanged -= h)
@@ -55,30 +63,27 @@ public class SongsMgtFlow : IDisposable
 
         AudioEngineVolumeObservable = _state.DeviceVolume.StartWith(_audio.Volume).Replay(1).RefCount();
 
-        _subscriptions.Add(
-            _state.CurrentSong
-                .Subscribe(songView => _currentGlobalSongViewTracked = songView,
-                           ex => _logger.LogError(ex, "Error in _state.CurrentSong tracker subscription."))
-        );
 
-        _subscriptions.Add(
-            _state.CurrentSong
-                .DistinctUntilChanged(sv => sv?.Id)
-                .ObserveOn(TaskPoolScheduler.Default)
-                .SelectMany(async songView =>
-                {
-                    await LoadAndPrepareSongInAudioEngineAsync(songView);
-                    return System.Reactive.Unit.Default;
-                })
-                .Subscribe(_ => { }, ex => _logger.LogError(ex, "Error processing CurrentSong change."))
-        );
+        InitializeSongMgtFlow(state);
+        Debug.WriteLine("Done With Song Mgt Flow");
+    }
+
+    private void InitializeSongMgtFlow(IDimmerStateService state)
+    {
 
         _subscriptions.Add(
             _state.CurrentPlayBackState
                 .DistinctUntilChanged(psi => new { psi.State, SongViewId = psi.SongView?.Id }) // Use .SongView
-                .ObserveOn(TaskPoolScheduler.Default)
                 .SelectMany(async playbackStateInfo =>
                 {
+                    if (playbackStateInfo.Songdb is null || playbackStateInfo.SongView is null)
+                    {
+                        return System.Reactive.Unit.Default;
+                    }
+                    else if (_audio.CurrentTrackMetadata == playbackStateInfo.SongView)
+                    {
+                        return System.Reactive.Unit.Default;
+                    }
                     await ControlAudioEnginePlaybackAsync(playbackStateInfo);
                     return System.Reactive.Unit.Default;
                 })
@@ -100,7 +105,15 @@ public class SongsMgtFlow : IDisposable
 
         _subscriptions.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(h => _audio.IsPlayingChanged += h, h => _audio.IsPlayingChanged -= h)
-                .Subscribe(evt => ReportAudioEngineIsPlayingChanged(evt.EventArgs),
+                .Subscribe(evt =>
+                {
+                    if (!isChangedAndPassedChangedCheck)
+                    {
+
+                        isChangedAndPassedChangedCheck=true;
+                        ReportAudioEngineIsPlayingChanged(evt.EventArgs);
+                    }
+                },
                            ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
 
@@ -147,44 +160,30 @@ public class SongsMgtFlow : IDisposable
         _logger.LogInformation("SongsMgtFlow (AudioServiceBridge) initialized.");
     }
 
+    bool isChangedAndPassedChangedCheck;
     private async Task LoadAndPrepareSongInAudioEngineAsync(SongModelView? songViewFromState)
     {
+        if (songViewFromState== null)
+        {
+            return;
+        }
         SongModel? songModelToLoad = songViewFromState?.ToModel(_mapper);
 
         if (songModelToLoad == null)
         {
-            if (_currentlyLoadedTrackInAudioEngine_SongModel != null)
-            {
-                _logger.LogInformation("Global current song is now null. Stopping audio engine.");
-                await _audio.StopAsync();
-                _currentlyLoadedTrackInAudioEngine_SongModel = null;
-            }
+
+            _logger.LogInformation("Global current song is now null. Stopping audio engine.");
+
+
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(songModelToLoad.FilePath))
-        {
-            _logger.LogWarning("Song '{SongTitle}' (ID: {SongId}) from global state has no FilePath. Cannot play.", songModelToLoad.Title, songModelToLoad.Id);
-            if (_currentlyLoadedTrackInAudioEngine_SongModel != null)
-                await _audio.StopAsync();
-            _currentlyLoadedTrackInAudioEngine_SongModel = null;
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Error, "Missing file path.", songViewFromState, songModelToLoad));
-            return;
-        }
-
-        if (_audio.CurrentTrackMetadata?.Id == songViewFromState?.Id)
-        {
-            _logger.LogDebug("Song '{SongTitle}' is already the current track in audio engine. No reload needed.", songModelToLoad.Title);
-            _currentlyLoadedTrackInAudioEngine_SongModel = songModelToLoad;
-            return;
-        }
 
         _logger.LogInformation("AudioEngine: New global current song '{SongTitle}'. Preparing to load.", songModelToLoad.Title);
 
         try
         {
             await _audio.InitializeAsync(songViewFromState!, songViewFromState?.ImageBytes);
-            _currentlyLoadedTrackInAudioEngine_SongModel = songModelToLoad;
             _logger.LogInformation("AudioEngine: Successfully initialized with '{SongTitle}'.", songModelToLoad.Title);
 
             var currentGlobalPlaybackState = await _state.CurrentPlayBackState.FirstAsync();
@@ -199,68 +198,64 @@ public class SongsMgtFlow : IDisposable
         {
             _logger.LogError(ex, "AudioEngine: Error initializing song '{SongTitle}'.", songModelToLoad.Title);
             _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Error, $"Init failed: {ex.Message}", songViewFromState, songModelToLoad));
-            _currentlyLoadedTrackInAudioEngine_SongModel = null;
         }
     }
 
-    private async Task ControlAudioEnginePlaybackAsync(PlaybackStateInfo globalPlaybackState)
+    public async Task ControlAudioEnginePlaybackAsync(PlaybackStateInfo globalPlaybackState)
     {
-        SongModelView? songViewForCommand = globalPlaybackState.SongView;
-        SongModel? songModelForCommand = songViewForCommand?.ToModel(_mapper);
+        SongModel? songModelForCommand = globalPlaybackState.Songdb;
+        SongModelView? songModelViewForCommand = globalPlaybackState.SongView;
+        _currentGlobalSongViewTracked=songModelViewForCommand;
 
-
-        if (songModelForCommand == null)
-        {
-            if (globalPlaybackState.State == DimmerPlaybackState.Playing || globalPlaybackState.State == DimmerPlaybackState.Resumed)
-            {
-                _logger.LogWarning("AudioEngine: Received command {Command} but no song context in PlaybackStateInfo.", globalPlaybackState.State);
-                if (_audio.IsPlaying)
-                    await _audio.StopAsync();
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Stopped, null, null, null));
-            }
-            return;
-        }
-
-        if (_currentlyLoadedTrackInAudioEngine_SongModel == null || _currentlyLoadedTrackInAudioEngine_SongModel.Id != songModelForCommand.Id)
-        {
-            _logger.LogDebug("AudioEngine: Playback command {Command} for '{ContextSongTitle}', but audio engine has '{LoadedSongTitle}'. Waiting for correct song to load.",
-                globalPlaybackState.State, songModelForCommand.Title, _currentlyLoadedTrackInAudioEngine_SongModel?.Title ?? "nothing");
-            return;
-        }
+        //var cover = FileCoverImageProcessor.SaveOrGetCoverImageToFilePath(songModelViewForCommand.CoverImagePath);
 
         _logger.LogDebug("AudioEngine: Handling global state {Command} for song '{SongTitle}'", globalPlaybackState.State, songModelForCommand.Title);
         try
         {
             switch (globalPlaybackState.State)
             {
+                case DimmerPlaybackState.PlaylistPlay:
+                   
+                    await _audio.InitializeAsync(songModelViewForCommand!, null);
+
+                    await _audio.PlayAsync();
+                    break;
                 case DimmerPlaybackState.Playing:
                 case DimmerPlaybackState.Resumed:
-                    if (!_audio.IsPlaying)
+                    if (!_audio.IsPlaying && _audio.CurrentPosition==0)
                     {
-                        if (_audio.CurrentTrackMetadata?.Id == _currentlyLoadedTrackInAudioEngine_SongModel.ToModelView(_mapper)?.Id)
-                        {
-                            await _audio.PlayAsync();
-                        }
-                        else
-                        {
-                            _logger.LogWarning("AudioEngine: Play command for {SongTitle}, but audio engine's current track is {AudioEngineTrackTitle}. Mismatch.", _currentlyLoadedTrackInAudioEngine_SongModel.Title, _audio.CurrentTrackMetadata?.Title ?? "None");
-                        }
+                        var trc = new Track(songModelViewForCommand.FilePath);
+
+                        await _audio.InitializeAsync(songModelViewForCommand, trc.EmbeddedPictures[0].PictureData);
+
+                        await _audio.PlayAsync();
                     }
+                    if (_audio.CurrentTrackMetadata != globalPlaybackState.SongView)
+                    {
+                        await _audio.InitializeAsync(globalPlaybackState.SongView);
+
+                        await _audio.PlayAsync();
+                    }
+                    else
+                    {
+                        await _audio.PlayAsync();
+
+                    }
+
                     break;
                 case DimmerPlaybackState.PausedUI:
                     if (_audio.IsPlaying)
                         await _audio.PauseAsync();
                     break;
-                case DimmerPlaybackState.Stopped:
-                    if (_audio.IsPlaying || _currentlyLoadedTrackInAudioEngine_SongModel != null)
-                        await _audio.StopAsync();
+                case DimmerPlaybackState.PlayCompleted:
+                    //await _audio.StopAsync();
                     break;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "AudioEngine: Error executing command {Command} for '{SongTitle}'.", globalPlaybackState.State, songModelForCommand.Title);
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Error, $"Cmd failed: {ex.Message}", songViewForCommand, songModelForCommand));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Error, $"Cmd failed: {ex.Message}", null, songModelForCommand));
         }
     }
 
@@ -268,15 +263,8 @@ public class SongsMgtFlow : IDisposable
     {
         SongModelView? eventSongView = args.MediaSong;
         SongModel? eventSongModel = eventSongView?.ToModel(_mapper);
-        SongModel? relevantSongModel = eventSongModel ?? _currentlyLoadedTrackInAudioEngine_SongModel;
+        SongModel? relevantSongModel = eventSongModel;
 
-        if (relevantSongModel == null && args.IsPlaying)
-        {
-            _logger.LogWarning("AudioEngine: IsPlayingChanged to TRUE, but no track context. Forcing stop.");
-            Task.Run(async () => await _audio.StopAsync());
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Stopped, null, null, null));
-            return;
-        }
         if (relevantSongModel == null && !args.IsPlaying)
             return;
 
@@ -316,35 +304,18 @@ public class SongsMgtFlow : IDisposable
     private void ReportAudioEnginePlayEnded(PlaybackEventArgs args)
     {
         SongModelView? endedSongView = args.MediaSong;
-        SongModel? endedSongModel = endedSongView?.ToModel(_mapper) ?? _currentlyLoadedTrackInAudioEngine_SongModel;
+        SongModel? endedSongModel = endedSongView?.ToModel(_mapper);
 
-        if (endedSongModel == null)
-        {
-            _logger.LogWarning("AudioEngine: PlayEnded event but no track context. Current global song: {GlobalSongTitle}", _currentGlobalSongViewTracked?.Title ?? "None");
-            if (_currentGlobalSongViewTracked != null)
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Ended, null, _currentGlobalSongViewTracked, _currentGlobalSongViewTracked.ToModel(_mapper)));
-            return;
-        }
 
         _logger.LogInformation("AudioEngine: PlayEnded event for song '{SongTitle}'.", endedSongModel.Title);
 
-        if (_currentGlobalSongViewTracked?.Id == endedSongView?.Id)
-        {
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Ended, args.EventType, endedSongView, endedSongModel));
-        }
-        else
-        {
-            _logger.LogWarning("AudioEngine: PlayEnded for '{ActualEndedSongTitle}', but global current song is '{GlobalCurrentSongTitle}'. Suppressing Ended state.",
-                endedSongModel.Title, _currentGlobalSongViewTracked?.Title ?? "None");
-        }
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayCompleted, args.EventType, endedSongView, endedSongModel));
     }
 
     public async Task RequestSeekAsync(double positionSeconds)
     {
-        if (_currentlyLoadedTrackInAudioEngine_SongModel != null &&
-            (_audio.CurrentTrackMetadata?.Id == _currentlyLoadedTrackInAudioEngine_SongModel.ToModelView(_mapper)?.Id || _audio.IsPlaying))
+        if (_audio.IsPlaying)
         {
-            _logger.LogDebug("AudioEngine: UI Requesting Seek to {PositionSec}s for '{SongTitle}'", positionSeconds, _currentlyLoadedTrackInAudioEngine_SongModel.Title);
             await _audio.SeekAsync(positionSeconds);
         }
         else

@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Interfaces.Services;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+
+namespace Dimmer.Interfaces.Services;
 public partial class DimmerSettingsService : ISettingsService
 {
     private readonly Realm _realm;

@@ -2,8 +2,8 @@
 public enum DimmerPlaybackState
 {
     Opening,
-    Stopped,
     Playing,
+    PlaylistPlay,
     Resumed,
     PausedUI,
     PausedUser,
@@ -14,9 +14,9 @@ public enum DimmerPlaybackState
     LyricsLoad,
     ShowPlayBtn,
     ShowPauseBtn,
+    None,
     RefreshStats,
     Initialized,
-    Ended,
     CoverImageDownload,
     LoadingSongs,
     SyncingData,

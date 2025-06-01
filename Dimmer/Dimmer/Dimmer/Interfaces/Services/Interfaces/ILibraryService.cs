@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.Interfaces.IServices;
+namespace Dimmer.Interfaces.Services.Interfaces;
 
 public class LoadSongsResult // Define this class (or similar) if needed
 {

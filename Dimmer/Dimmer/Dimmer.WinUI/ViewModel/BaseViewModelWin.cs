@@ -1,36 +1,21 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
-using CommunityToolkit.Mvvm.ComponentModel; // For ObservableObject
-using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data.Models;
-using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services;
-using Dimmer.Utilities.Extensions;
-using Microsoft.Extensions.Logging; // For ILogger
-using Microsoft.Extensions.Logging.Abstractions; // For NullLogger
-using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading; // For SynchronizationContext
-using System.Threading.Tasks;
-using ZXing.Net.Maui.Controls; // For BarcodeGeneratorView
-using Microsoft.Maui.ApplicationModel.DataTransfer; // For Share
-using Microsoft.Maui.Storage; // For FilePicker, FilePickerFileType, PickOptions, ShareFile
+using Dimmer.Interfaces.Services.Interfaces;
+
+
 // Assuming SkiaSharp and ZXing.SkiaSharp are correctly referenced for barcode scanning
-using SkiaSharp;
-using ZXing;
 
 // Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
-using Vanara.PInvoke;
-using Vanara.Windows.Shell;
-using Microsoft.Maui.Platform;
+using Dimmer.WinUI.Utils.WinMgt;
+
+using Microsoft.Extensions.Logging; // For ILogger
 
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI ViewModel namespace
 
 public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dimmer.ViewModel
 {
     private readonly IMapper mapper;
+    private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly AlbumsMgtFlow albumsMgtFlow;
     private readonly PlayListMgtFlow playlistsMgtFlow;
@@ -41,11 +26,14 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly LyricsMgtFlow lyricsMgtFlow;
     private readonly IFolderMgtService folderMgtService;
     private readonly ILogger<BaseViewModelWin> logger;
+    private readonly ISettingsWindowManager settingsWindwow;
 
-
-    public BaseViewModelWin(IMapper mapper, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelWin> logger) : base(mapper, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, logger)
+    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow,
+       IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
+IRepository<SongModel> songRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelWin> logger, ISettingsWindowManager settingsWindwow) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, logger)
     {
         this.mapper=mapper;
+        this.appInitializerService=appInitializerService;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.albumsMgtFlow=albumsMgtFlow;
         this.playlistsMgtFlow=playlistsMgtFlow;
@@ -56,6 +44,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         this.lyricsMgtFlow=lyricsMgtFlow;
         this.folderMgtService=folderMgtService;
         this.logger=logger;
+        this.settingsWindwow=settingsWindwow;
     }
 
     [ObservableProperty]
@@ -73,4 +62,23 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
             MediaBarGridRowPosition=0;
         }
     }
+
+    public async Task InitializeApp()
+    {
+        await appInitializerService.InitializeApplicationAsync();
+    }
+    public void OpenSettingsWindow()
+    {
+        if (!settingsWindwow.IsSettingsWindowOpen)
+        {
+
+            settingsWindwow.ShowSettingsWindow(this);
+        }
+        else
+        {
+            settingsWindwow.BringSettingsWindowToFront();
+        }
+    }
+    [ObservableProperty]
+    public partial bool IsSearching { get; set; }
 }

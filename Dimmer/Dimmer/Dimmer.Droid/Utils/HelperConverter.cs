@@ -1,13 +1,17 @@
 ﻿using Android.Content;
 using Android.Views.Animations;
+
 using AndroidX.Annotations;
+
 using Dimmer.Utils.CustomShellUtils.Enums;
 using Dimmer.Utils.CustomShellUtils.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using static System.TimeZoneInfo;
 
 namespace Dimmer.Utils;
@@ -112,10 +116,10 @@ public static class HelperConverter
                 animRes = Resource.Animation.scale_out;
                 break;
             case TransitionType.None:
-
+                animRes = Resource.Animation.none;
                 break;
             default:
-                animRes = Resource.Animation.none;
+                animRes = Resource.Animation.m3_motion_fade_enter;
                 break;
         }
 

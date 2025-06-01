@@ -1,23 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="Dimmer.Views.HomePage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-    xmlns:dx="http://schemas.devexpress.com/maui"
-    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-    xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit"
-    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-    xmlns:vm="clr-namespace:Dimmer.ViewModels"
-    x:Name="myPage"
-    Title="HomePage"
-    x:DataType="vm:BaseViewModelAnd"
-    BackgroundColor="#1E1E1E"
-    Shell.NavBarIsVisible="False"
-    Shell.TabBarIsVisible="True">
+<ContentPage x:Name="myPage"
+             x:Class="Dimmer.Views.HomePage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:dx="http://schemas.devexpress.com/maui" xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer" xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.ViewModels"
+             Title="HomePage" x:DataType="vm:BaseViewModelAnd"
+             BackgroundColor="#1E1E1E" Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="True"
+             >
 
 
     <ContentPage.Resources>
@@ -47,80 +39,63 @@
     </ContentPage.Resources>
 
     <dx:DXStackLayout>
+        <Button Clicked="TestNav_Clicked2" />
         <Grid BackgroundColor="Transparent" IsVisible="True">
 
 
 
-            <dx:DXImage
-                Grid.RowSpan="2"
-                Aspect="AspectFill"
-                Opacity="0.07"
-                Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-            <dx:DXCollectionView
-                x:Name="SongsColView"
-                AllowFixedGroupHeaders="True"
-                BackgroundColor="Transparent"
-                Header="Hi"
-                ItemSpacing="5"
-                ItemsSource="{Binding PlaylistSongs}"
-                Loaded="SongsColView_Loaded"
-                Tap="SongsColView_Tap">
+            <dx:DXImage Grid.RowSpan="2" Aspect="AspectFill"
+                        Opacity="0.07"
+                        Source="{Binding TemporarilyPickedSong.CoverImagePath}"
+                        />
+            <dx:DXCollectionView x:Name="SongsColView"
+                                 AllowFixedGroupHeaders="True" BackgroundColor="Transparent"
+                                 Header="Hi" ItemSpacing="5"
+                                 ItemsSource="{Binding PlaylistSongs}"
+                                 Loaded="SongsColView_Loaded" Tap="SongsColView_Tap"
+                                 >
                 <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongModelView">
-                        <Grid
-                            BackgroundColor="Transparent"
-                            ColumnDefinitions="0.3*,*,0.2*"
-                            HeightRequest="80"
-                            VerticalOptions="Center">
-                            <dx:DXImage
-                                x:Name="CoverImg"
-                                Grid.Column="0"
-                                BackgroundColor="Transparent"
-                                HeightRequest="80"
-                                Source="{Binding CoverImagePath}"
-                                VerticalOptions="Center"
-                                WidthRequest="80" />
+                        <Grid BackgroundColor="Transparent" ColumnDefinitions="0.3*,*,0.2*"
+                              HeightRequest="80" VerticalOptions="Center"
+                              >
+                            <dx:DXImage x:Name="CoverImg"
+                                        Grid.Column="0" BackgroundColor="Transparent"
+                                        HeightRequest="80"
+                                        Source="{Binding CoverImagePath}"
+                                        VerticalOptions="Center" WidthRequest="80"
+                                        />
 
-                            <dx:DXStackLayout
-                                x:Name="TitleAndArtists"
-                                Grid.Column="1"
-                                BackgroundColor="Transparent"
-                                VerticalOptions="Center">
-                                <Label
-                                    BackgroundColor="Transparent"
-                                    FontAttributes="Bold"
-                                    FontSize="23"
-                                    Text="{Binding Title}"
-                                    TextColor="{AppThemeBinding Dark=White,
-                                                                Light=White}"
-                                    VerticalOptions="Center" />
-                                <Label
-                                    BackgroundColor="Transparent"
-                                    FontSize="18"
-                                    Opacity="0.4"
-                                    Text="{Binding ArtistName}"
-                                    TextColor="white"
-                                    VerticalOptions="Center" />
+                            <dx:DXStackLayout x:Name="TitleAndArtists"
+                                              Grid.Column="1" BackgroundColor="Transparent"
+                                              VerticalOptions="Center"
+                                              >
+                                <Label BackgroundColor="Transparent" FontAttributes="Bold"
+                                       FontSize="23"
+                                       Text="{Binding Title}"
+                                       TextColor="{AppThemeBinding Dark=White,
+                                                                   Light=White}"
+                                       VerticalOptions="Center"
+                                       />
+                                <Label BackgroundColor="Transparent" FontSize="18"
+                                       Opacity="0.4"
+                                       Text="{Binding ArtistName}"
+                                       TextColor="white" VerticalOptions="Center"
+                                       />
 
 
                             </dx:DXStackLayout>
 
-                            <dx:DXStackLayout
-                                x:Name="MoreActionSection"
-                                Grid.Column="2"
-                                BackgroundColor="Transparent"
-                                Orientation="Horizontal">
-                                <dx:DXButton
-                                    AnimationDuration="500"
-                                    BackgroundColor="Transparent"
-                                    Clicked="TestNav_Clicked2"
-                                    Icon="more1.png"
-                                    IconColor="DarkSlateBlue"
-                                    IconHeight="40"
-                                    IconWidth="40"
-                                    PressedBackgroundColor="DarkSlateBlue"
-                                    PressedIconColor="White"
-                                    Rotation="90" />
+                            <dx:DXStackLayout x:Name="MoreActionSection"
+                                              Grid.Column="2" BackgroundColor="Transparent"
+                                              Orientation="Horizontal"
+                                              >
+                                <dx:DXButton AnimationDuration="500" BackgroundColor="Transparent"
+                                             Clicked="TestNav_Clicked2" Icon="more1.png"
+                                             IconColor="DarkSlateBlue" IconHeight="40"
+                                             IconWidth="40" PressedBackgroundColor="DarkSlateBlue"
+                                             PressedIconColor="White" Rotation="90"
+                                             />
                             </dx:DXStackLayout>
                         </Grid>
                     </DataTemplate>

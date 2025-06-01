@@ -1,4 +1,7 @@
 ﻿using Dimmer.CustomShellRenderers;
+using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utils.PageAnimations;
+
 using Microsoft.Maui.Controls.Compatibility.Hosting;
 
 namespace Dimmer;
@@ -34,15 +37,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomePage>();
         builder.Services.AddSingleton<DimmerSettings>();
         builder.Services.AddSingleton<DimmerVault>();
+        builder.Services.AddSingleton<IAnimationService, AndroidAnimationService>();
         builder.Services.AddSingleton<SearchSongPage>();
 
-        builder.Services.AddSingleton<HomePageViewModel>();
 
         builder.Services.AddSingleton<BaseViewModelAnd>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
         .ConfigureMauiHandlers(handlers =>
         {
-            handlers.AddHandler<MusicPlayerPage, MusicPlayerPageHandler>();
             handlers.AddHandler<Shell, MyShellRenderer>();
 
         });

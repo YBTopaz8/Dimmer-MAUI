@@ -41,6 +41,10 @@ public partial class PlaybackStateInfo : IEquatable<PlaybackStateInfo>
         {
             extrasEqual = thisList.SequenceEqual(otherList); // Example: content equality for song lists
         }
+        else if(Songdb != other.Songdb || (SongView != other.SongView))
+        {
+            return false;
+        }
         else
         {
             extrasEqual = Equals(ExtraParameter, other.ExtraParameter); // Default object.Equals or reference
