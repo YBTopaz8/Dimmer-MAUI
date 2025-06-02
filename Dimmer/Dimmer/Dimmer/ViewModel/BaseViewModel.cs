@@ -10,6 +10,8 @@ using Dimmer.Utilities.StatsUtils;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
+using static Dimmer.Utilities.StatsUtils.SongStatTwop;
+
 
 //using Dimmer.Utilities.FileProcessorUtils; // If needed
 //using Dimmer.Utilities.StatsUtils; // If CollectionStats is here
@@ -262,6 +264,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 .Subscribe(evt =>
                 {
                     IsPlaying= evt.EventArgs.IsPlaying;
+                    if (IsPlaying)
+                    {
+                        CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
+                    }
+                    else
+                    {
+                        CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
+                    }
                 },
                            ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
@@ -700,6 +710,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     }
     [ObservableProperty] public partial ObservableCollection<DimmerPlayEventView>? SongEvts { get; set; }
+    [ObservableProperty] public partial SongSingleStatsSummary SingleSongStatsSumm { get; set; }
+    [ObservableProperty] public partial int CurrSongCompletedTimes { get; set; }
     [ObservableProperty] public partial ObservableCollection<PlayEventGroup>? GroupedPlayEvents { get; set; } = new();
     public void LoadStats()
     {
@@ -720,7 +732,41 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         //SummaryStatsForAllSongs = plays
     }
+    public void LoadStatsForSong(SongModelView song)
+    {
 
+        SongEvts ??= new();
+        var s = songRepo.GetById(song.Id);
+        var evts = s.PlayHistory.ToList();
+        SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(evts);
+
+        GroupedPlayEvents.Clear();
+
+        CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
+
+        SingleSongStatsSumm = SongStatTwop.GetSingleSongSummary(s, evts);
+    }
+
+    public void RateSong(int newRating)
+    {
+        if (CurrentPlayingSongView == null)
+        {
+            _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
+            return;
+        }
+        _logger.LogInformation("Rating song '{SongTitle}' with new rating: {NewRating}", CurrentPlayingSongView.Title, newRating);
+        var songModel = CurrentPlayingSongView.ToModel(_mapper);
+        if (songModel == null)
+        {
+            _logger.LogWarning("RateSong: Could not map CurrentPlayingSongView to SongModel.");
+            return;
+        }
+        songModel.Rating = newRating;
+        var song = songRepo.AddOrUpdate(songModel);
+        _logger.LogInformation("Song '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
+
+        _stateService.SetCurrentSong(song);
+    }
 
     public void Dispose()
     {

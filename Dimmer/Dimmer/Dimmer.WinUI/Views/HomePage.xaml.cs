@@ -80,6 +80,7 @@ public partial class HomePage : ContentPage
 
     private async void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
     {
+
         var art = MyViewModel.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
         DeviceStaticUtils.SelectedArtistOne = art;
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
@@ -299,7 +300,7 @@ public partial class HomePage : ContentPage
     {
         if (SongsView.IsVisible)
         {
-            MyViewModel.LoadStats();
+            MyViewModel.LoadStatsForSong(MyViewModel.CurrentPlayingSongView!);
 
             await Task.WhenAll(SongsView.AnimateFadeOutBack(400), StatsView.AnimateFadeInFront(300));
 

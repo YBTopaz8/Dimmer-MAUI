@@ -332,7 +332,6 @@ public partial class HomePage : ContentPage
                         {
                             btmBarHeight=BtmBar.Height;
                             NowPlayingBtmSheet.Show();
-                            await BtmBar.AnimateSlideDown(BtmBar.Height);
 
                         }
                         catch { }
@@ -340,7 +339,7 @@ public partial class HomePage : ContentPage
 
                 }
 
-                //await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
                 break;
 
 
@@ -371,10 +370,10 @@ public partial class HomePage : ContentPage
 
     private async void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
-        if (e.NewValue !=BottomSheetState.FullExpanded)
-        {
-            await BtmBar.AnimateSlideUp(btmBarHeight);
-        }
+        //if (e.NewValue !=BottomSheetState.FullExpanded)
+        //{
+        //    await BtmBar.AnimateSlideUp(btmBarHeight);
+        //}
     }
 }
 

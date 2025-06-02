@@ -40,10 +40,12 @@
           >
 
 
-        <Grid>
+        <Grid RowDefinitions="*,auto">
             <Image Opacity="0.06" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
-            <Grid x:Name="MainUI" RowDefinitions="auto,*,auto">
-                <Grid Grid.Row="0" RowDefinitions="50,70,auto">
+            <Grid x:Name="MainUI"
+                  Grid.Row="0" RowDefinitions="auto,*,auto"
+                  >
+                <Grid RowDefinitions="50,70,auto">
 
                     <HorizontalStackLayout Grid.Row="0" Margin="0,10"
                                            BackgroundColor="Transparent" HorizontalOptions="Center"
@@ -86,7 +88,10 @@
                             <Label Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
                         </Border>
-
+                        <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="30"
+                                      ImageSource="chart.png" ShowIcon="True"
+                                      StrokeThickness="0" WidthRequest="40"
+                                      />
                     </HorizontalStackLayout>
                     <Grid x:Name="SecondA"
                           Grid.Row="1" ColumnDefinitions="auto,*,auto"
@@ -198,7 +203,9 @@
 
 
                     </Grid>
-                    <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*"
+                          IsVisible="False"
+                          >
                         <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
                             <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="40"
                                           ImageSource="chart.png" ShowIcon="True"
@@ -324,17 +331,21 @@
                                                                         />
                                                     </MenuFlyout>
                                                 </FlyoutBase.ContextFlyout>
-                                                <Label Grid.Column="1" Text="{Binding ArtistName}" />
+                                                <Label Grid.Column="1" HorizontalOptions="Center"
+                                                       Text="{Binding ArtistName}"
+                                                       />
                                             </syncf:SfEffectsView>
 
-                                            <Label Grid.Column="2" HorizontalTextAlignment="Start"
-                                                   LineBreakMode="TailTruncation"
+                                            <Label Grid.Column="2" HorizontalOptions="Center"
+                                                   HorizontalTextAlignment="Start" LineBreakMode="TailTruncation"
                                                    Text="{Binding AlbumName}"
                                                    ToolTipProperties.Text="{Binding AlbumName}"
                                                    />
                                             <Label Grid.Column="3" Text="{Binding Genre.Name}" />
-                                            <Label Grid.Column="4" Text="{Binding ReleaseYear}" />
-                                            <Label Grid.Column="5" HorizontalTextAlignment="Center"
+                                            <Label Grid.Column="4" HorizontalOptions="Center"
+                                                   Text="{Binding ReleaseYear}"
+                                                   />
+                                            <Label Grid.Column="5" HorizontalOptions="Center"
                                                    Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
                                                    />
                                         </Grid>
@@ -360,45 +371,39 @@
                     </HorizontalStackLayout>
 
 
-                    <Grid Grid.Row="1">
-                        <CollectionView ItemsSource="{Binding SongEvts}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="modelsDb:DimmerPlayEvent">
-                                    <Grid ColumnDefinitions="*,*,*">
+                    <Grid Grid.Row="1" RowDefinitions="*,*">
 
-                                        <Label Grid.Column="0" FontSize="23"
-                                               Text="{Binding SongName}"
-                                               TextColor="White"
-                                               />
+                        <VerticalStackLayout Margin="20" Spacing="20">
+                            <Label FontSize="28" Text="{Binding SingleSongStatsSumm.SongTitle, StringFormat='Song Name: {0}'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.ArtistName, StringFormat='Artist Name: {0}'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.LongestListeningStreakDays, StringFormat='Longest Listening Streak : {0} Days'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.AveragePercentListened, StringFormat='AveragePercentListened : {0:n2}%'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.Completions, StringFormat='Played Completely: {0}'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.TotalListeningTimeFormatted, StringFormat='Total Listening Time: {0}'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.PlayCountInRomanNumerals, StringFormat='Played Count: {0}'}" />
+                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.SeekFrequency, StringFormat='Seek Frequency: {0}'}" />
 
-                                        <Label Grid.Column="1" FontSize="23"
-                                               Text="{Binding PlayTypeStr}"
-                                               TextColor="White"
-                                               />
-
-                                        <Label Grid.Column="2" FontSize="23"
-                                               Text="{Binding EventDate}"
-                                               TextColor="White"
-                                               />
-                                    </Grid>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                        </VerticalStackLayout>
                     </Grid>
-                </Grid>
-                <Grid x:Name="SearchSection"
-                      Grid.Row="2" BackgroundColor="Transparent"
-                      ColumnDefinitions="auto,*" RowSpacing="10"
-                      >
-                    <HorizontalStackLayout Grid.Column="0" />
-                    <SearchBar x:Name="SearchSongSB"
-                               Grid.Column="1" BackgroundColor="Transparent"
-                               Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
-                               />
+
 
                 </Grid>
+
 
             </Grid>
+
+            <Grid x:Name="SearchSection"
+                  Grid.Row="1" BackgroundColor="Transparent"
+                  ColumnDefinitions="auto,*" RowSpacing="10"
+                  >
+                <HorizontalStackLayout Grid.Column="0" />
+                <SearchBar x:Name="SearchSongSB"
+                           Grid.Column="1" BackgroundColor="Transparent"
+                           Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
+                           />
+
+            </Grid>
+
 
         </Grid>
 
