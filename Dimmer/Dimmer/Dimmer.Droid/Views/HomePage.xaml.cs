@@ -123,13 +123,13 @@ public partial class HomePage : ContentPage
 
 
 
-
+    private async void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        await MyViewModel.SeekTrackPosition(ProgressSlider.Value);
+    }
 
     /*
-    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
-    {
-        //MyViewModel.SeekSongPosition(currPosPer: ProgressSlider.Value);
-    }
+   
 
     private static void CurrentlyPlayingSection_ChipLongPress(object sender, System.ComponentModel.HandledEventArgs e)
     {
@@ -331,7 +331,7 @@ public partial class HomePage : ContentPage
                         try
                         {
                             btmBarHeight=BtmBar.Height;
-                            SongsMenuPopup.Show();
+                            NowPlayingBtmSheet.Show();
                             await BtmBar.AnimateSlideDown(BtmBar.Height);
 
                         }
@@ -367,6 +367,14 @@ public partial class HomePage : ContentPage
 
         await MyViewModel.PlayPauseToggleAsync();
 
+    }
+
+    private async void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
+        if (e.NewValue !=BottomSheetState.FullExpanded)
+        {
+            await BtmBar.AnimateSlideUp(btmBarHeight);
+        }
     }
 }
 
