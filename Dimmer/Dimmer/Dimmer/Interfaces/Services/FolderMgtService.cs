@@ -109,13 +109,13 @@ public class FolderMgtService : IFolderMgtService
             throw new DirectoryNotFoundException($"Directory not found: {path}");
         }
 
-        if (_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
-        {
-            _logger.LogInformation("Folder {Path} is already in the watch list.", path);
-            // Optionally, still trigger a scan if user explicitly re-adds
-            // await _libraryScanner.ScanSpecificPathsAsync(new List<string> { path }, isIncremental: false);
-            return;
-        }
+        //if (_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+        //{
+        //    _logger.LogInformation("Folder {Path} is already in the watch list.", path);
+        //    // Optionally, still trigger a scan if user explicitly re-adds
+        //    // await _libraryScanner.ScanSpecificPathsAsync(new List<string> { path }, isIncremental: false);
+        //    return;
+        //}
 
         _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
         _settingsService.AddMusicFolder(path); // Persist to settings

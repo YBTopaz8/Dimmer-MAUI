@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-using Frame = Microsoft.UI.Xaml.Controls.Frame;
-using Page = Microsoft.UI.Xaml.Controls.Page;
-using Window = Microsoft.UI.Xaml.Window;
+using Application = Microsoft.Maui.Controls.Application;
+using Page = Microsoft.Maui.Controls.Page;
+using Window = Microsoft.Maui.Controls.Window;
+
+
 
 namespace Dimmer.WinUI.Utils.WinMgt;
 internal class WindowManagerService : IWindowManagerService
@@ -35,7 +37,7 @@ internal class WindowManagerService : IWindowManagerService
         {
             var window = new T();
             TrackWindow(window);
-            window.Activate();
+            Application.Current!.ActivateWindow(window);
             Debug.WriteLine($"Native WinUI window created and activated: {typeof(T).FullName}");
             return window;
         }
@@ -62,7 +64,7 @@ internal class WindowManagerService : IWindowManagerService
                 return null;
             }
             TrackWindow(window);
-            window.Activate();
+            Application.Current!.ActivateWindow(window);
             Debug.WriteLine($"Native WinUI window created with parameter and activated: {typeof(T).FullName}");
             return window;
         }
@@ -88,16 +90,9 @@ internal class WindowManagerService : IWindowManagerService
         try
         {
             var window = new Window(); // Generic host window
-            var bord = new Frame(); // Create a Frame to host the Page
-            window.Content = bord;
+            var bord = new Page(); // Create a Frame to host the Page
+            window.Page = bord;
 
-            // How to get instance of pageType?
-            // Option 1: Activator (simple, no DI for the page itself unless handled internally)
-            // Page pageInstance = Activator.CreateInstance(pageType) as Page;
-
-            // Option 2: Resolve from a WinUI-specific DI container if you set one up for native parts.
-            // For now, let's use Activator. If your native pages need MAUI services, it's more complex.
-            // You might need to pass _mauiServiceProvider to the page constructor if it expects it.
             Page? pageInstance = null;
             try
             {
@@ -124,13 +119,13 @@ internal class WindowManagerService : IWindowManagerService
                 return null;
             }
 
-            bord.Navigate(pageType, navigationParameter); // Navigate the bord to the page
+            //bord.Navigate(pageType, navigationParameter); // Navigate the bord to the page
 
             if (!string.IsNullOrEmpty(title))
             {
                 window.Title = title;
             }
-            else if (pageInstance is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name)) // Or a custom Title property on your Page base
+            else if (pageInstance is Page fe && !string.IsNullOrEmpty(fe.Title)) // Or a custom Title property on your Page base
             {
                 // WinUI Pages don't have a 'Title' property like MAUI pages.
                 // You might set window.Title based on pageType.Name or a custom property.
@@ -139,8 +134,7 @@ internal class WindowManagerService : IWindowManagerService
 
 
             TrackWindow(window);
-            window.Activate();
-            Debug.WriteLine($"Native WinUI content window created for page: {pageType.FullName}, Title: {window.Title}");
+Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native WinUI content window created for page: {pageType.FullName}, Title: {window.Title}");
             return window;
         }
         catch (Exception ex)
@@ -173,7 +167,7 @@ internal class WindowManagerService : IWindowManagerService
         {
             TrackWindow(newWindow); // Tracks in _openWindows
             _trackedUniqueTypedWindows[typeof(T)] = newWindow; // Tracks in specific typed dict
-            newWindow.Activate();
+            Application.Current!.ActivateWindow(newWindow);
             Debug.WriteLine($"Unique typed window created and activated: {typeof(T).FullName}");
         }
         return newWindow;
@@ -217,14 +211,23 @@ internal class WindowManagerService : IWindowManagerService
         if (!_openWindows.Contains(window))
         {
             _openWindows.Add(window);
-            window.Closed += OnWindowClosed; // Subscribe to Closed event
+            Application.Current!.CloseWindow(window);
+            window.Destroying += Window_Destroying; // Subscribe to Destroying event for cleanup
+        }
+    }
+
+    private void Window_Destroying(object? sender, EventArgs e)
+    {
+        if (sender is Window closedWindow)
+        {
+            UntrackWindow(closedWindow);
+            Debug.WriteLine($"Native WinUI window closed and untracked: {closedWindow.Title}");
         }
     }
 
     private void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);
-        window.Closed -= OnWindowClosed; // Unsubscribe
 
         // Also remove from unique tracking if it was there
         var uniqueTypedKey = _trackedUniqueTypedWindows.FirstOrDefault(kvp => kvp.Value == window).Key;
@@ -272,7 +275,7 @@ internal class WindowManagerService : IWindowManagerService
 
     public Window? GetContentWindowByPageType(Type pageType)
     {
-        return _openWindows.FirstOrDefault(w => w.Content is Frame frame && frame.CurrentSourcePageType == pageType && IsWindowOpen(w));
+        return _openWindows.FirstOrDefault(w => w.Page is Page frame && frame.GetType() == pageType && IsWindowOpen(w));
     }
 
 
@@ -288,7 +291,7 @@ internal class WindowManagerService : IWindowManagerService
         {
             if (IsWindowOpen(window)) // Check if we are tracking it as open
             {
-                window.Close(); // This will trigger the OnWindowClosed event, which untracks it.
+                Application.Current.CloseWindow(window);
                 Debug.WriteLine($"Native WinUI window close requested: {window.Title}");
             }
         }
@@ -312,8 +315,7 @@ internal class WindowManagerService : IWindowManagerService
         if (IsWindowOpen(window))
         {
             // The native WinUI Window object itself is the one to activate
-            window.Activate();
-            Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
+Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
 
             // For a more forceful bring to front:
             // var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);

@@ -160,7 +160,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
     }
 
     // --- Handlers for MultiPlaylistPlayer Events ---
-    private async void OnPlayerItemSelected(int playlistIndex, SongModel song, int batchId)
+    private void OnPlayerItemSelected(int playlistIndex, SongModel song, int batchId)
     {
         var _baseAppFlow = IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 

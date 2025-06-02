@@ -98,7 +98,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
         // Try to get cover art path early to associate with album
         PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-        string? coverPath = await _coverArtService.SaveOrGetCoverImageAsync(filePath, firstPicture);
+        string? coverPath = string.Empty;// await _coverArtService.SaveOrGetCoverImageAsync(filePath, firstPicture);
 
         var album = _metadataService.GetOrCreateAlbum(albumName, coverPath
             );
@@ -131,6 +131,8 @@ public class AudioFileProcessor : IAudioFileProcessor
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             //ArtistIds = [.. artists.Select(a => a.Id)],
             Id= ObjectId.GenerateNewId()
+            ,
+            IsNewOrModified=true
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting
         };
 

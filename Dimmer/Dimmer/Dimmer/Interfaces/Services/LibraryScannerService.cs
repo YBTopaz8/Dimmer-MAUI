@@ -41,7 +41,7 @@ public class LibraryScannerService : ILibraryScannerService
 
     public async Task<LoadSongsResult?> ScanLibraryAsync(List<string> folderPaths)
     {
-        if (folderPaths == null || !folderPaths.Any())
+        if (folderPaths == null || folderPaths.Count==0)
         {
             _logger.LogWarning("ScanLibraryAsync called with no folder paths.");
             _state.SetCurrentLogMsg(new AppLogModel { Log = "No folders selected for scanning." });
@@ -122,10 +122,10 @@ public class LibraryScannerService : ILibraryScannerService
         _logger.LogInformation("File processing complete. Consolidating metadata changes.");
 
 
-        IReadOnlyList<SongModel> newOrUpdatedSongs = currentScanMetadataService.GetAllSongs().Where(s => s.IsNewOrModified).ToList();
-        IReadOnlyList<ArtistModel> newOrUpdatedArtists = currentScanMetadataService.GetAllArtists().Where(a => a.IsNewOrModified).ToList();
-        IReadOnlyList<AlbumModel> newOrUpdatedAlbums = currentScanMetadataService.GetAllAlbums().Where(a => a.IsNewOrModified).ToList();
-        IReadOnlyList<GenreModel> newOrUpdatedGenres = currentScanMetadataService.GetAllGenres().Where(g => g.IsNewOrModified).ToList();
+        IReadOnlyList<SongModel> newOrUpdatedSongs = [.. currentScanMetadataService.GetAllSongs().Where(s => s.IsNewOrModified)];
+        IReadOnlyList<ArtistModel> newOrUpdatedArtists = [.. currentScanMetadataService.GetAllArtists().Where(a => a.IsNewOrModified)];
+        IReadOnlyList<AlbumModel> newOrUpdatedAlbums = [.. currentScanMetadataService.GetAllAlbums().Where(a => a.IsNewOrModified)];
+        IReadOnlyList<GenreModel> newOrUpdatedGenres = [.. currentScanMetadataService.GetAllGenres().Where(g => g.IsNewOrModified)];
 
         _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
             newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
@@ -242,10 +242,10 @@ public class LibraryScannerService : ILibraryScannerService
 
         return new LoadSongsResult
         {
-            Artists = newOrUpdatedArtists.ToList(),
-            Albums = newOrUpdatedAlbums.ToList(),
-            Songs = newOrUpdatedSongs.ToList(),
-            Genres = newOrUpdatedGenres.ToList()
+            Artists = [.. newOrUpdatedArtists],
+            Albums = [.. newOrUpdatedAlbums],
+            Songs = [.. newOrUpdatedSongs],
+            Genres = [.. newOrUpdatedGenres]
         };
     }
 

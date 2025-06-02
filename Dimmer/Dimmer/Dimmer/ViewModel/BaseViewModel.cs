@@ -204,17 +204,22 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void Initialize()
     {
-        InitializeApp();
-        InitializeViewModelSubscriptions();
-    }
-
-    public void InitializeApp()
-    {
         if (audioService.IsPlaying || audioService.CurrentTrackMetadata is not null)
         {
             return;
         }
         appInitializerService.InitializeApplication();
+        InitializeViewModelSubscriptions();
+
+    }
+
+    public void InitializeApp()
+    {
+        if (NowPlayingDisplayQueue.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
+        {
+            var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
+            
+        }
     }
     protected virtual void InitializeViewModelSubscriptions() // Changed from Initialize to avoid name clash if derived
     {
@@ -264,6 +269,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 .Subscribe(evt =>
                 {
                     IsPlaying= evt.EventArgs.IsPlaying;
+                    if (CurrentPlayingSongView is null)
+                        return;
                     if (IsPlaying)
                     {
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;

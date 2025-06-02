@@ -1,4 +1,7 @@
+using Dimmer.WinUI.Views.AlbumsPage;
+using Dimmer.WinUI.Views.ArtistsSpace;
 using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
+using Dimmer.WinUI.Views.SettingsSpace;
 
 namespace Dimmer.WinUI;
 
@@ -13,6 +16,9 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
         Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
+        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
+        Routing.RegisterRoute(nameof(AllAlbumsPage), typeof(AllAlbumsPage));
+        Routing.RegisterRoute(nameof(SpecificArtistPage), typeof(SpecificArtistPage));
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
     }

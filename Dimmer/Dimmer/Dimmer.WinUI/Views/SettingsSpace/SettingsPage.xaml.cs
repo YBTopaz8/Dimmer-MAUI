@@ -1,35 +1,24 @@
 using System.Threading.Tasks;
 
-namespace Dimmer.WinUI.Views;
+namespace Dimmer.WinUI.Views.SettingsSpace;
 
-public partial class SettingsWindow : Window
+public partial class SettingsPage : ContentPage
 {
     public BaseViewModelWin MyViewModel { get; internal set; }
-    public SettingsWindow(BaseViewModelWin vm)
+    public SettingsPage(BaseViewModelWin vm)
     {
         InitializeComponent();
         BindingContext = vm;
         MyViewModel=vm;
 
-        this.Height = 800;
-        this.Width = 800;
     }
 
-
-    protected override void OnCreated()
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
     {
-        base.OnCreated();
 
-    }
 
-    protected override void OnDestroying()
-    {
-        base.OnDestroying();
-    }
-    private async void ChangeFolder_Clicked(object sender, EventArgs e)
-    {
         var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-      //await  MyViewModel.AddMusicFolderAsync(selectedFolder);
+        //await MyViewModel.SelectSongFromFolder(selectedFolder);
     }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
@@ -40,7 +29,7 @@ public partial class SettingsWindow : Window
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PickFolderToScan();
+await MyViewModel.PickFolderToScan();
     }
 
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)

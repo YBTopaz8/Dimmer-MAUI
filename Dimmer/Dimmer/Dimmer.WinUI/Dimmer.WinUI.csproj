@@ -43,8 +43,10 @@
     <None Remove="AppShell.xaml" />
     <None Remove="DimmerWin.xaml" />
     <None Remove="DimmerWindow.xaml" />
-    <None Remove="Views\ArtistsSpace\AllArtistsPage.xaml" />
+    <None Remove="Views\AlbumsPage\AllAlbumsPage.xaml" />
+    <None Remove="Views\AlbumsPage\SingleAlbumPage.xaml" />
     <None Remove="Views\ArtistsSpace\ArtistGeneralWindow.xaml" />
+    <None Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <None Remove="Views\ArtistsSpace\SpecificArtistPage.xaml" />
     <None Remove="Views\ArtistWindow.xaml" />
@@ -53,8 +55,8 @@
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
+    <None Remove="Views\SettingsSpace\SettingsPage.xaml" />
     <None Remove="Views\SettingsWindow.xaml" />
-    <None Remove="Views\SettingWindow.xaml" />
     <None Remove="Views\SingleSongPage.xaml" />
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
@@ -66,7 +68,10 @@
     <Page Remove="AppShell.xaml" />
     <Page Remove="DimmerWin.xaml" />
     <Page Remove="DimmerWindow.xaml" />
+    <Page Remove="Views\AlbumsPage\AllAlbumsPage.xaml" />
+    <Page Remove="Views\AlbumsPage\SingleAlbumPage.xaml" />
     <Page Remove="Views\AlbumWindow.xaml" />
+    <Page Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
     <Page Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <Page Remove="Views\ArtistWindow.xaml" />
     <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
@@ -74,6 +79,7 @@
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
     <Page Remove="Views\PlaylistWindow.xaml" />
+    <Page Remove="Views\SettingsSpace\SettingsPage.xaml" />
     <Page Remove="Views\SettingsWindow.xaml" />
     <Page Remove="Views\SingleSongPage.xaml" />
     <Page Remove="Views\SongNotifierWindow.xaml" />
@@ -121,9 +127,9 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
-  </ItemGroup>
+  </ItemGroup>-->
 
 
   <!--
@@ -141,7 +147,13 @@
     <MauiXaml Include="DimmerWin.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\AlbumsPage\AllAlbumsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\AlbumWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\ArtistsSpace\MAUI\ArtistsPage.xaml">
@@ -159,12 +171,21 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Database\" />
+    <Folder Include="Views\DimmerLiveSection\" />
+  </ItemGroup>
+  <ItemGroup>
+    <MauiXaml Include="Views\AlbumsPage\SingleAlbumPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
   </ItemGroup>
   <ItemGroup>
     <MauiXaml Include="Views\OnlinePageManagement.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\PlaylistWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\SettingsSpace\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\SettingsWindow.xaml">
@@ -205,11 +226,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\ArtistsSpace\AllArtistsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -221,11 +237,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\WinuiWindows\FolderScanPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\SettingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

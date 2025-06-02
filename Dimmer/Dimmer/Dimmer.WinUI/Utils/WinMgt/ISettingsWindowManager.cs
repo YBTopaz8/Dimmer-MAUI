@@ -3,9 +3,9 @@ namespace Dimmer.WinUI.Utils.WinMgt;
 
 public interface ISettingsWindowManager
 {
-    void ShowSettingsWindow(BaseViewModel viewModel);
+    void ShowSettingsWindow(BaseViewModelWin viewModel);
     void BringSettingsWindowToFront();
     void CloseSettingsWindow();
     bool IsSettingsWindowOpen { get; }
-    SettingWindow InstanceWindow { get; }
+    SettingsWindow InstanceWindow { get; }
 }

@@ -53,7 +53,7 @@ public class MusicMetadataService : IMusicMetadataService
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
         if (!_artistsByName.TryGetValue(name, out var artist))
         {
-            artist = new ArtistModel { Name = name, Id=ObjectId.GenerateNewId()};
+            artist = new ArtistModel { Name = name, Id=ObjectId.GenerateNewId(),IsNewOrModified=true};
             _artistsByName[name] = artist;
             NewArtists.Add(artist);
         }
@@ -69,6 +69,7 @@ public class MusicMetadataService : IMusicMetadataService
                 Name = name, 
                 Id=ObjectId.GenerateNewId(), 
                 ImagePath = initialCoverPath,
+                IsNewOrModified=true
             };
             _albumsByName[name] = album;
             NewAlbums.Add(album);
@@ -90,7 +91,7 @@ public class MusicMetadataService : IMusicMetadataService
         {
             genre = new GenreModel {
                 Id=ObjectId.GenerateNewId(),
-                Name = name };
+                Name = name,IsNewOrModified=true };
             _genresByName[name] = genre;
             NewGenres.Add(genre);
         }

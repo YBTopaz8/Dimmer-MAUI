@@ -1,11 +1,13 @@
 ﻿using Microsoft.UI.Xaml;
 
+using Application = Microsoft.Maui.Controls.Application;
+
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public class SettingsWindowManager : ISettingsWindowManager
 {
-    public SettingWindow InstanceWindow => _settingWindowInstance;
-    private SettingWindow _settingWindowInstance;
+    public SettingsWindow InstanceWindow => _settingWindowInstance;
+    private SettingsWindow _settingWindowInstance;
     private DispatcherQueue _dispatcherQueue; // To run UI operations on the correct thread
 
     public bool IsSettingsWindowOpen => _settingWindowInstance != null;
@@ -31,14 +33,15 @@ public class SettingsWindowManager : ISettingsWindowManager
     }
 
 
-    public void ShowSettingsWindow(BaseViewModel viewModel)
+    public void ShowSettingsWindow(BaseViewModelWin viewModel)
     {
         GetDispatcherQueue().TryEnqueue(() =>
         {
             if (_settingWindowInstance == null)
             {
-                _settingWindowInstance = new SettingWindow(viewModel); // Pass your MyViewModel
-                _settingWindowInstance.Closed += OnSettingWindowClosed;
+                _settingWindowInstance = new SettingsWindow(viewModel); // Pass your MyViewModel
+                _settingWindowInstance.Destroying +=_settingWindowInstance_Destroying;
+                ;
 
                 // This requires getting the HWND of the main MAUI window.
                 var mauiApplication = Microsoft.Maui.Controls.Application.Current;
@@ -54,11 +57,23 @@ public class SettingsWindowManager : ISettingsWindowManager
                         //winuiAppWindow.?
                     }
                 }
-                _settingWindowInstance.Activate();
+                Application.Current.OpenWindow(_settingWindowInstance);
             }
             else
             {
-                _settingWindowInstance.Activate(); // Bring to front if already open
+                Application.Current.ActivateWindow(_settingWindowInstance);
+            }
+        });
+    }
+
+    private void _settingWindowInstance_Destroying(object? sender, EventArgs e)
+    {
+        GetDispatcherQueue().TryEnqueue(() =>
+        {
+            if (_settingWindowInstance != null)
+            {
+                _settingWindowInstance = null;
+                System.Diagnostics.Debug.WriteLine("SettingsWindow closed and reference cleared.");
             }
         });
     }
@@ -67,15 +82,7 @@ public class SettingsWindowManager : ISettingsWindowManager
     {
         // Ensure cleanup happens on the UI thread if it involves UI elements
         // though usually, just nulling out the reference is fine here.
-        GetDispatcherQueue().TryEnqueue(() =>
-        {
-            if (_settingWindowInstance != null)
-            {
-                _settingWindowInstance.Closed -= OnSettingWindowClosed;
-                _settingWindowInstance = null;
-                System.Diagnostics.Debug.WriteLine("SettingsWindow closed and reference cleared.");
-            }
-        });
+       
     }
 
     public void BringSettingsWindowToFront()
@@ -84,7 +91,7 @@ public class SettingsWindowManager : ISettingsWindowManager
         {
             GetDispatcherQueue().TryEnqueue(() =>
             {
-                _settingWindowInstance?.Activate();
+                Application.Current.ActivateWindow( _settingWindowInstance);
             });
         }
     }
@@ -95,7 +102,7 @@ public class SettingsWindowManager : ISettingsWindowManager
         {
             GetDispatcherQueue().TryEnqueue(() =>
             {
-                _settingWindowInstance?.Close();
+                Application.Current.CloseWindow(_settingWindowInstance);
                 // The Closed event handler will set _settingWindowInstance to null
             });
         }

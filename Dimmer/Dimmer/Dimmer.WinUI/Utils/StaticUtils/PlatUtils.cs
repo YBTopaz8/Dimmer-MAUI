@@ -108,7 +108,7 @@ public static class PlatUtils
 
     public static void OpenSettingsWindow()
     {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModel>();
+        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>();
         //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
 
 
