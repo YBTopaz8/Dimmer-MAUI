@@ -132,7 +132,6 @@ public partial class MyShellItemRenderer : ShellItemRenderer
         }
     }
 
-    // --- Tab Switch Animation (Example) ---
     protected override void OnShellSectionChanged()
     {
         if (_theNavigationAreaInstance != null && Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
@@ -324,7 +323,7 @@ public partial class MyShellItemRenderer : ShellItemRenderer
                 using (var text = new TextView(Context))
                 {
                     text.Typeface = services.GetRequiredService<IFontManager>()
-                        .GetTypeface(Microsoft.Maui.Font.OfSize("OpenSansRegular", 0.0));
+                        .GetTypeface(Microsoft.Maui.Font.OfSize("AleySans", 0.0));
 
                     // Change textcolor here
                     text.SetTextColor(PublicStats.TabTitleTextColor);

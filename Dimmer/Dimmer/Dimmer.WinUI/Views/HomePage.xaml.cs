@@ -21,10 +21,9 @@ public partial class HomePage : ContentPage
     }
 
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await MyViewModel.InitializeApp();
     }
 
 

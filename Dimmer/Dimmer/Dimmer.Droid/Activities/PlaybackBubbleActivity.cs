@@ -10,7 +10,7 @@ using ImageButton = Android.Widget.ImageButton; // <--- Ensure this is present
 namespace Dimmer.Activities;
 // Match attributes with AndroidManifest.xml
 [Activity(Label = "Playback Bubble", Theme = "@style/Theme.AppCompat.DayNight.NoActionBar", AllowEmbedded = true, ResizeableActivity = true, DocumentLaunchMode = Android.Content.PM.DocumentLaunchMode.Always, Exported = false)]
-public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, IPlaybackBubbleUpdateListener
+public class PlaybackBubbleActivity : AppCompatActivity, View.IOnClickListener, IPlaybackBubbleUpdateListener
 {
     // --- UI Elements ---
     private ImageView? _coverImageView;
@@ -66,8 +66,8 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
         if (_serviceConnection != null)
         {
             Intent serviceIntent = new Intent(this, typeof(ExoPlayerServiceBinder)); // <<< Use YOUR actual service class name here
-                                                                                  // Start the service explicitly if it might not be running (optional, depends on your service lifecycle)
-                                                                                  // StartService(serviceIntent);
+                                                                                     // Start the service explicitly if it might not be running (optional, depends on your service lifecycle)
+                                                                                     // StartService(serviceIntent);
             BindService(serviceIntent, _serviceConnection, Bind.AutoCreate);
         }
         else
@@ -84,7 +84,6 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
         if (_isBound && _serviceConnection != null)
         {
             // IMPORTANT: Tell the service this bubble activity is no longer the primary listener
-            _serviceBinder?.Service.SetBubbleUpdateListener(null); // <<< Implement SetBubbleUpdateListener in your Service
 
             UnbindService(_serviceConnection);
         }
@@ -98,7 +97,8 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
     public void UpdateMetadataUI(string? title, string? artist, string? album /*, Bitmap coverArt = null */)
     {
         // Ensure updates happen on the UI thread
-        RunOnUiThread(() => {
+        RunOnUiThread(() =>
+        {
             Console.WriteLine($"PlaybackBubbleActivity: Updating Metadata - Title: {title}");
             _titleTextView?.SetText(title ?? "Unknown Title", TextView.BufferType.Normal);
             _artistTextView?.SetText(artist ?? "Unknown Artist", TextView.BufferType.Normal);
@@ -121,7 +121,8 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
     public void UpdatePlaybackStateUI(bool isPlaying, int currentPositionMs, int durationMs)
     {
         // Ensure updates happen on the UI thread
-        RunOnUiThread(() => {
+        RunOnUiThread(() =>
+        {
             Console.WriteLine($"PlaybackBubbleActivity: Updating State - IsPlaying: {isPlaying}, Pos: {currentPositionMs}, Dur: {durationMs}");
             // Update Play/Pause Button Icon
             _playPauseButton?.SetImageResource(isPlaying
@@ -170,7 +171,7 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
         if (id == Resource.Id.bubble_play_pause_button)
         {
             Console.WriteLine("PlaybackBubbleActivity: Play/Pause clicked - Sending command to service.");
-            
+
             if (service.GetPlayerInstance()!.IsPlaying) // <<< Implement TogglePlayPause (or similar) in your Service
             {
                 service.GetPlayerInstance()!.Pause();
@@ -180,7 +181,7 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
             {
                 service.GetPlayerInstance()!.Play();
             }
-           
+
         }
         else if (id == Resource.Id.bubble_close_button)
         {
@@ -220,11 +221,7 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
                 var sessionService = binder.Service; // <<< Use YOUR actual service class name
                 if (sessionService != null)
                 {
-                    // 1. Register this activity as the listener in the service
-                    sessionService.SetBubbleUpdateListener(_activity); // <<< Implement this method in your service
 
-                    // 2. Request current state from service to update UI immediately
-                    sessionService.RequestCurrentStateForBubble(); // <<< Implement this method in your service
                 }
                 else
                 {
@@ -243,7 +240,6 @@ public class PlaybackBubbleActivity: AppCompatActivity, View.IOnClickListener, I
             // Clean up references
             if (_activity != null)
             { // Check if activity still exists
-                _activity._serviceBinder?.Service.SetBubbleUpdateListener(null); // Unregister listener
                 _activity._isBound = false;
                 _activity._serviceBinder = null;
             }

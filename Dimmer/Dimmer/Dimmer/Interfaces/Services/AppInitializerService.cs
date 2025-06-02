@@ -30,9 +30,9 @@ public partial class AppInitializerService : IAppInitializerService
         _logger = logger;
     }
 
-    public async Task InitializeApplicationAsync()
+    public void InitializeApplication()
     {
-       
+
         _logger.LogInformation("Application Initializer: Starting initialization...");
         try
         {

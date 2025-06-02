@@ -151,6 +151,9 @@
       <Generator>MSBuild:Compile</Generator>
       <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
     </MauiXaml>
+    <MauiXaml Update="Views\ArtistsSpace\ArtistsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

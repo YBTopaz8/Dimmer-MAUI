@@ -205,12 +205,4 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         }
     }
 
-    public async Task InitializeApp()
-    {
-        if (audioService.IsPlaying || audioService.CurrentTrackMetadata is not null)
-        {
-            return;
-        }
-        await appInitializerService.InitializeApplicationAsync();
-    }
 }

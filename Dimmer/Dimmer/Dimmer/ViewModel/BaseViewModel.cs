@@ -84,7 +84,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView> NowPlayingDisplayQueue { get; set; } = new(); // Renamed from NowPlayingQueue & PlaylistSongs
+    public partial ObservableCollection<SongModelView> NowPlayingDisplayQueue { get; set; }  // Renamed from NowPlayingQueue & PlaylistSongs
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? CurrentSynchronizedLyrics { get; set; }
@@ -202,9 +202,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void Initialize()
     {
+        InitializeApp();
         InitializeViewModelSubscriptions();
     }
 
+    public void InitializeApp()
+    {
+        if (audioService.IsPlaying || audioService.CurrentTrackMetadata is not null)
+        {
+            return;
+        }
+        appInitializerService.InitializeApplication();
+    }
     protected virtual void InitializeViewModelSubscriptions() // Changed from Initialize to avoid name clash if derived
     {
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
@@ -297,6 +306,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
              _stateService.AllCurrentSongs // Or a more specific "current effective queue" observable if PlayListMgtFlow provides it
                 .Subscribe(songList =>
                 {
+                    if (songList.Count < 1)
+                    {
+                        return;
+                    }
                     _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList?.Count ?? 0);
                     NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList);
                     CurrentPlayingSongView = NowPlayingDisplayQueue.FirstOrDefault();
