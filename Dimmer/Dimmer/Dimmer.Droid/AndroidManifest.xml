@@ -32,9 +32,12 @@
     
     
     
-		<activity android:name=".PlaybackBubbleActivity" android:label="Playback Bubble" 
+		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" 
               android:allowEmbedded="true" android:resizeableActivity="true" 
-              android:documentLaunchMode="always" android:exported="false" />
+              android:documentLaunchMode="always" android:exported="false"
+              android:taskAffinity="" android:launchMode="singleInstance"
+              android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+              />
 		<service android:name="com.yvanbrunel.dimmer.ExoPlayerService" 
              android:exported="false" android:foregroundServiceType="mediaPlayback" />
 		<service android:name="com.yvanbrunel.dimmer.QuickSettingsTileService" 

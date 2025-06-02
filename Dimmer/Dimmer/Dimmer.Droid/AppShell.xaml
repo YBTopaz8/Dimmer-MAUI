@@ -1,37 +1,64 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.AppShell"
-       Title="Dimmer"
-      xmlns:views="clr-namespace:Dimmer.Views"
-       FlyoutBehavior="Disabled"
-       BackgroundColor="{AppThemeBinding Dark=#1e1e1e,Light=White}"
-       Shell.TabBarBackgroundColor="{AppThemeBinding Dark=#1e1e1e,Light=White}"
-       Shell.TabBarUnselectedColor="{AppThemeBinding Dark=White,Light=Grey}"
-       Shell.TabBarTitleColor="{AppThemeBinding Dark=White,Light=DarkSlateBlue}"
-       
-       >
+<Shell
+    x:Class="Dimmer.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:utils="clr-namespace:Dimmer.Utils"
+    xmlns:views="clr-namespace:Dimmer.Views"
+    Title="Dimmer"
+    BackgroundColor="{AppThemeBinding Dark=pink,
+                                      Light=White}"
+    FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="{AppThemeBinding Dark=#1e1e1e,
+                                                  Light=White}"
+    Shell.TabBarTitleColor="{AppThemeBinding Dark=White,
+                                             Light=DarkSlateBlue}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Dark=White,
+                                                  Light=Grey}">
 
     <TabBar>
         <ShellContent
-    Title="Home" Icon="house.png"
-    ContentTemplate="{DataTemplate views:HomePage}"
-    Route="MainPage" >
-        </ShellContent>
+            Title="Home"
+            ContentTemplate="{DataTemplate views:HomePage}"
+            Icon="house.png"
+            Route="MainPage" />
 
         <ShellContent
-    Title="Vault" Icon="chatdimmer.png"
-    ContentTemplate="{DataTemplate views:DimmerVault}"
-    Route="VaultPage" />
+            Title="Vault"
+            ContentTemplate="{DataTemplate views:MusicPlayerPage}"
+            Icon="musical_notes.png"
+            Route="MusicPlayerPage" />
 
         <ShellContent
-    Title="Settings" Icon="settings.png"
-    ContentTemplate="{DataTemplate views:SettingsPage}"
-    Route="SettingsPage" >
-            
+            Title="Search"
+            ContentTemplate="{DataTemplate views:SearchSongPage}"
+            Icon="songfind.png"
+            Route="SearchSongPage" />
 
-        </ShellContent>
+        <ShellContent
+            Title="re"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Icon="settings.png"
+            Route="SettingsPage" />
+
+        <ShellContent
+            Title="aa"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Icon="settings.png"
+            Route="SettingsPage" />
+
+        <ShellContent
+            Title="yb"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Icon="arrowcircleleft.png"
+            Route="SettingsPage" />
+
+        <ShellContent
+            Title="yc"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Icon="settings.png"
+            Route="SettingsPage" />
 
     </TabBar>
-    
+
 </Shell>

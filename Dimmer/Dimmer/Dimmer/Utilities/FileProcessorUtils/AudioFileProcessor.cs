@@ -1,9 +1,6 @@
 ﻿using ATL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Utilities.FileProcessorUtils;
 
@@ -21,7 +18,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         ICoverArtService coverArtService,
         IMusicMetadataService metadataService,
         ProcessingConfig config
-        
+
         )
     {
         _coverArtService = coverArtService;
@@ -83,29 +80,29 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         // --- Artist Processing ---
 
-        
+
         List<string> rawArtistNames = AudioFileUtils.ExtractArtistNames(track.Artist, track.AlbumArtist);
         List<ArtistModel> artists = new();
         var s = rawArtistNames;
         foreach (var item in rawArtistNames)
         {
             var e = _metadataService.GetOrCreateArtist(item);
-            
+
             artists.Add(e);
         }
-        
+
         string artistString = string.Join(", ", artists.Select(a => a.Name));
 
         // --- Album Processing ---
-        
+
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
         // Try to get cover art path early to associate with album
         PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
         string? coverPath = await _coverArtService.SaveOrGetCoverImageAsync(filePath, firstPicture);
 
-        var album= _metadataService.GetOrCreateAlbum(albumName, coverPath
+        var album = _metadataService.GetOrCreateAlbum(albumName, coverPath
             );
-        
+
 
 
         // --- Genre Processing ---
@@ -122,12 +119,10 @@ public class AudioFileProcessor : IAudioFileProcessor
             ArtistName= artistString,
             Genre = genre,
             Composer = track.Composer,
-
             CoverImagePath = coverPath ?? album.ImagePath, // Song specific or album's
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             TrackNumber= track.TrackNumber,
-            UserIDOnline = BaseAppFlow.CurrentUserView.Id.ToString(),
             FileSize = new FileInfo(filePath).Length,
             FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
             ReleaseYear = track.Year,

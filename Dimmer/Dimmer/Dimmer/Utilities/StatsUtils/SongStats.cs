@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.StatsUtils;
+﻿namespace Dimmer.Utilities.StatsUtils;
 public static class SongStats
 {
     // 1. Play count
     public static int GetPlayCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Count(e => e.SongId == song.Id && e.PlayType == 0);
+    {
+        return events.Count(e => e.SongId == song.Id && e.PlayType == 0);
+    }
 
     // 2. Skip count
     public static int GetSkipCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Count(e => e.SongId == song.Id && e.PlayType == 5);
+    {
+        return events.Count(e => e.SongId == song.Id && e.PlayType == 5);
+    }
 
     // 3. Complete play count
     public static int GetCompletedPlayCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Count(e => e.SongId == song.Id && e.WasPlayCompleted);
+    {
+        return events.Count(e => e.SongId == song.Id && e.PlayType==3);
+    }
 
     // 4. Average percent listened (as a fraction)
     public static double GetAvgPercentListened(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -30,63 +30,82 @@ public static class SongStats
 
     // 5. Last played date
     public static DateTimeOffset? GetLastPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && e.PlayType == 0)
-                 .OrderByDescending(e => e.DatePlayed)
-                 .FirstOrDefault()?.DatePlayed;
+    {
+        return events.Where(e => e.SongId == song.Id && e.PlayType == 0)
+                     .OrderByDescending(e => e.DatePlayed)
+                     .FirstOrDefault()?.DatePlayed;
+    }
 
     // 6. First played date
     public static DateTimeOffset? GetFirstPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && e.PlayType == 0)
-                 .OrderBy(e => e.DatePlayed)
-                 .FirstOrDefault()?.DatePlayed;
+    {
+        return events.Where(e => e.SongId == song.Id && e.PlayType == 0)
+                     .OrderBy(e => e.DatePlayed)
+                     .FirstOrDefault()?.DatePlayed;
+    }
 
     // 7. Devices song was played on
     public static List<string> GetPlayedDevices(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceName))
-                 .Select(e => e.DeviceName!)
-                 .Distinct()
-                 .ToList();
+    {
+        return [.. events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceName))
+                     .Select(e => e.DeviceName!)
+                     .Distinct()];
+    }
 
     // 8. Most used device
     public static string? GetMostUsedDevice(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceName))
-                 .GroupBy(e => e.DeviceName)
-                 .OrderByDescending(g => g.Count())
-                 .FirstOrDefault()?.Key;
+    {
+        return events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceName))
+                     .GroupBy(e => e.DeviceName)
+                     .OrderByDescending(g => g.Count())
+                     .FirstOrDefault()?.Key;
+    }
 
     // 9. Longest single playback session (in seconds)
     public static double GetLongestSession(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id)
-                 .Select(e => e.DateFinished.Subtract(e.DatePlayed).TotalSeconds)
-                 .DefaultIfEmpty(0)
-                 .Max();
+    {
+        return events.Where(e => e.SongId == song.Id)
+                     .Select(e => e.DateFinished.Subtract(e.DatePlayed).TotalSeconds)
+                     .DefaultIfEmpty(0)
+                     .Max();
+    }
 
     // 10. Total listening time (seconds)
     public static double GetTotalListeningTime(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id)
-                 .Sum(e => e.DateFinished.Subtract(e.DatePlayed).TotalSeconds);
+    {
+        return events.Where(e => e.SongId == song.Id)
+                     .Sum(e => e.DateFinished.Subtract(e.DatePlayed).TotalSeconds);
+    }
 
     // 11. Most active hour for this song
     public static int? GetMostActiveHour(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id)
-                 .GroupBy(e => e.DatePlayed.Hour)
-                 .OrderByDescending(g => g.Count())
-                 .FirstOrDefault()?.Key;
+    {
+        return events.Where(e => e.SongId == song.Id)
+                     .GroupBy(e => e.DatePlayed.Hour)
+                     .OrderByDescending(g => g.Count())
+                     .FirstOrDefault()?.Key;
+    }
 
     // 12. Was ever played to completion
     public static bool WasEverCompleted(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Any(e => e.SongId == song.Id && e.WasPlayCompleted);
+    {
+        return events.Any(e => e.SongId == song.Id && e.WasPlayCompleted);
+    }
 
     // 13. Number of times resumed
     public static int GetResumeCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Count(e => e.SongId == song.Id && e.PlayType == 2);
+    {
+        return events.Count(e => e.SongId == song.Id && e.PlayType == 2);
+    }
 
     // 14. Distinct days song was played
     public static int GetDistinctDaysPlayed(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id)
-                 .Select(e => e.DatePlayed.Date)
-                 .Distinct()
-                 .Count();
+    {
+        return events.Where(e => e.SongId == song.Id)
+                     .Select(e => e.DatePlayed.Date)
+                     .Distinct()
+                     .Count();
+    }
 
     // 15. Average position when skipped (seconds)
     public static double GetAvgPositionWhenSkipped(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -99,9 +118,11 @@ public static class SongStats
 
     // 16. Play count by device form factor
     public static Dictionary<string, int> GetPlayCountByDeviceFormFactor(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceFormFactor))
-                 .GroupBy(e => e.DeviceFormFactor!)
-                 .ToDictionary(g => g.Key, g => g.Count());
+    {
+        return events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceFormFactor))
+                     .GroupBy(e => e.DeviceFormFactor!)
+                     .ToDictionary(g => g.Key, g => g.Count());
+    }
 
     // 17. Longest gap between plays (in days)
     public static double GetLongestGapBetweenPlays(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -129,22 +150,30 @@ public static class SongStats
 
     // 19. Most recent device used
     public static string? GetMostRecentDevice(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceName))
-                 .OrderByDescending(e => e.DatePlayed)
-                 .FirstOrDefault()?.DeviceName;
+    {
+        return events.Where(e => e.SongId == song.Id && !string.IsNullOrEmpty(e.DeviceName))
+                     .OrderByDescending(e => e.DatePlayed)
+                     .FirstOrDefault()?.DeviceName;
+    }
 
     // 20. Number of times played as favorite
     public static int GetPlayCountAsFavorite(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => song.IsFavorite ? GetPlayCount(song, events) : 0;
+    {
+        return song.IsFavorite ? GetPlayCount(song, events) : 0;
+    }
 
     // 21. Number of skips after 50% played
     public static int GetSkipAfterHalfPlayedCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Count(e => e.SongId == song.Id && e.PlayType == 5 && song.DurationInSeconds > 0 && e.PositionInSeconds / song.DurationInSeconds >= 0.5);
+    {
+        return events.Count(e => e.SongId == song.Id && e.PlayType == 5 && song.DurationInSeconds > 0 && e.PositionInSeconds / song.DurationInSeconds >= 0.5);
+    }
 
     // 22. Number of play sessions with lyric view opened
     // (Assuming you have play Events for when lyrics opened)
     public static int GetLyricViewSessions(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Count(e => e.SongId == song.Id && e.PlayType == 10); // suppose 10 = LyricView
+    {
+        return events.Count(e => e.SongId == song.Id && e.PlayType == 10); // suppose 10 = LyricView
+    }
 
     // 23. Days since last play
     public static int? GetDaysSinceLastPlay(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -157,41 +186,55 @@ public static class SongStats
 
     // 24. Number of unique devices ever played on
     public static int GetUniqueDevicesCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => GetPlayedDevices(song, events).Count;
+    {
+        return GetPlayedDevices(song, events).Count;
+    }
 
     // 25. Was the song ever played at midnight?
     public static bool WasPlayedAtMidnight(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Any(e => e.SongId == song.Id && e.DatePlayed.Hour == 0);
+    {
+        return events.Any(e => e.SongId == song.Id && e.DatePlayed.Hour == 0);
+    }
 }
 
 public static class SongComparison
 {
     // 1. Which song has higher play count?
     public static SongModel GetMorePlayedSong(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetPlayCount(songA, events) >= SongStats.GetPlayCount(songB, events) ? songA : songB;
+    {
+        return SongStats.GetPlayCount(songA, events) >= SongStats.GetPlayCount(songB, events) ? songA : songB;
+    }
 
     // 2. Which song was played more recently?
     public static SongModel GetMostRecentlyPlayedSong(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => (SongStats.GetLastPlayedDate(songA, events) ?? DateTimeOffset.MinValue) >= (SongStats.GetLastPlayedDate(songB, events) ?? DateTimeOffset.MinValue) ? songA : songB;
+    {
+        return (SongStats.GetLastPlayedDate(songA, events) ?? DateTimeOffset.MinValue) >= (SongStats.GetLastPlayedDate(songB, events) ?? DateTimeOffset.MinValue) ? songA : songB;
+    }
 
     // 3. Which song has more skips?
     public static SongModel GetMoreSkippedSong(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetSkipCount(songA, events) >= SongStats.GetSkipCount(songB, events) ? songA : songB;
+    {
+        return SongStats.GetSkipCount(songA, events) >= SongStats.GetSkipCount(songB, events) ? songA : songB;
+    }
 
     // 4. Which song is played on more devices?
     public static SongModel GetSongWithMoreDevices(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetUniqueDevicesCount(songA, events) >= SongStats.GetUniqueDevicesCount(songB, events) ? songA : songB;
+    {
+        return SongStats.GetUniqueDevicesCount(songA, events) >= SongStats.GetUniqueDevicesCount(songB, events) ? songA : songB;
+    }
 
     // 5. Difference in total listening time (seconds)
     public static double GetListeningTimeDifference(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => Math.Abs(SongStats.GetTotalListeningTime(songA, events) - SongStats.GetTotalListeningTime(songB, events));
+    {
+        return Math.Abs(SongStats.GetTotalListeningTime(songA, events) - SongStats.GetTotalListeningTime(songB, events));
+    }
 
     // 6. Both played on same device(s)
     public static List<string> GetCommonDevices(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
     {
         var devicesA = SongStats.GetPlayedDevices(songA, events);
         var devicesB = SongStats.GetPlayedDevices(songB, events);
-        return devicesA.Intersect(devicesB).ToList();
+        return [.. devicesA.Intersect(devicesB)];
     }
 
     // 7. Are both songs ever played back-to-back (adjacent in history)?
@@ -212,7 +255,9 @@ public static class SongComparison
 
     // 8. Which song is more often skipped before halfway?
     public static SongModel GetMoreSkippedBeforeHalf(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetSkipAfterHalfPlayedCount(songA, events) <= SongStats.GetSkipAfterHalfPlayedCount(songB, events) ? songA : songB;
+    {
+        return SongStats.GetSkipAfterHalfPlayedCount(songA, events) <= SongStats.GetSkipAfterHalfPlayedCount(songB, events) ? songA : songB;
+    }
 
     // 9. Both played on same day?
     public static bool WerePlayedSameDay(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -224,15 +269,21 @@ public static class SongComparison
 
     // 10. Which song has a longer average session?
     public static SongModel GetSongWithLongerAvgSession(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetLongestSession(songA, events) >= SongStats.GetLongestSession(songB, events) ? songA : songB;
+    {
+        return SongStats.GetLongestSession(songA, events) >= SongStats.GetLongestSession(songB, events) ? songA : songB;
+    }
 
     // 11. Which song has more distinct days played?
     public static SongModel GetSongWithMoreDistinctDaysPlayed(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetDistinctDaysPlayed(songA, events) >= SongStats.GetDistinctDaysPlayed(songB, events) ? songA : songB;
+    {
+        return SongStats.GetDistinctDaysPlayed(songA, events) >= SongStats.GetDistinctDaysPlayed(songB, events) ? songA : songB;
+    }
 
     // 12. Which song has a higher average percent listened?
     public static SongModel GetSongWithHigherAvgPercentListened(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetAvgPercentListened(songA, events) >= SongStats.GetAvgPercentListened(songB, events) ? songA : songB;
+    {
+        return SongStats.GetAvgPercentListened(songA, events) >= SongStats.GetAvgPercentListened(songB, events) ? songA : songB;
+    }
 
     // 13. Which was played on more unique device models?
     public static SongModel GetSongWithMoreDeviceModels(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -256,7 +307,9 @@ public static class SongComparison
 
     // 15. Are both songs marked as favorite?
     public static bool AreBothFavorites(SongModel songA, SongModel songB)
-        => songA.IsFavorite && songB.IsFavorite;
+    {
+        return songA.IsFavorite && songB.IsFavorite;
+    }
 
     // 16. Days between first play of A and first play of B
     public static int? DaysBetweenFirstPlays(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -270,11 +323,15 @@ public static class SongComparison
 
     // 17. Are both songs from same album?
     public static bool AreFromSameAlbum(SongModel songA, SongModel songB)
-        => songA.AlbumName == songB.AlbumName;
+    {
+        return songA.AlbumName == songB.AlbumName;
+    }
 
     // 18. Are both songs from same artist?
     public static bool AreFromSameArtist(SongModel songA, SongModel songB)
-        => songA.ArtistName == songB.ArtistName;
+    {
+        return songA.ArtistName == songB.ArtistName;
+    }
 
     // 19. Was one always played after the other (never before)?
     public static bool IsAlwaysPlayedAfter(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -320,7 +377,9 @@ public static class SongComparison
 
     // 24. Which song has higher rating?
     public static SongModel GetHigherRatedSong(SongModel songA, SongModel songB)
-        => songA.Rating >= songB.Rating ? songA : songB;
+    {
+        return songA.Rating >= songB.Rating ? songA : songB;
+    }
 
     // 25. Which song was last played on a different device?
     public static SongModel GetSongWithMoreRecentDifferentDevice(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)

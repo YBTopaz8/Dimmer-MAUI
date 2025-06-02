@@ -1,44 +1,36 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.WinUI.Views.DimmerSongWindow"
-            xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
-         xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
- xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
- xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
- xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
- xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
- x:DataType="vm:BaseViewModelWin" 
- x:Name="myPage"
- xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
- xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
- xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
- xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
- Shell.NavBarIsVisible="False"
+<Window x:Name="myPage"
+        x:Class="Dimmer.WinUI.Views.DimmerSongWindow" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+        xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+        xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" xmlns:models="[models ]clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+        xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+        xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+        x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
         >
 
-    <!--xmlns:modelsLive ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"-->
+    <!--  xmlns:modelsLive ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"  -->
     <ContentPage>
 
         <ContentPage.Resources>
-            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
-            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
-            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
-            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
-            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
-            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+            <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
             <converters:VolumeConverter x:Key="VolConverter" />
 
         </ContentPage.Resources>
 
-        <Grid Margin="10" >
+        <!--<Grid Margin="10" >
             <Image Opacity="1" Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
 
             <Grid ColumnDefinitions="0.3*,*"
-              ColumnSpacing="10" 
+              ColumnSpacing="10"
               >
                 <Grid.Effects>
                     <uranium:BlurEffect />
@@ -53,19 +45,19 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                 HeightRequest="130"
                                 Source="{Binding UserLocal.UserProfileImage}"
                             />
-                            
+
                             <Button Text="View Profile"
-                                    x:Name="ViewProfile" 
+                                    x:Name="ViewProfile"
                                     Clicked="ViewProfile_Clicked"/>
                         </VerticalStackLayout>
                     </Border>
                     <VerticalStackLayout Grid.Row="1">
-                        <SearchBar Placeholder="Paste Shared Code" 
+                        <SearchBar Placeholder="Paste Shared Code"
                                    SearchButtonPressed="GetSharedSong_SearchButtonPressed" x:Name="GetSharedSong"
                                    />
                     </VerticalStackLayout>
-                    
-                    
+
+
                     <CollectionView ItemsSource="{Binding UserDevices}"
                                     EmptyView="Empty.." IsVisible="False"
                                     Grid.Row="1">
@@ -77,12 +69,13 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                        />
                             </HorizontalStackLayout>
                         </CollectionView.Header>
-                        <!--<CollectionView.ItemTemplate>
+        -->
+        <!--<CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="modelsLive:UserDeviceSession">
                                 <syncf:SfEffectsView
                                     TouchDownEffects="Ripple"
                                     RippleAnimationDuration="2000">
-                                    
+
                                     <Grid>
                                         <VerticalStackLayout>
                                             <Label Text="{Binding DeviceName}"/>
@@ -94,17 +87,18 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                 </syncf:SfEffectsView>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>-->
+        <!--
                     </CollectionView>
                 </Grid>
 
                 <Grid Grid.Column="1" RowDefinitions="0.15*,*,0.3*"   >
-                <Grid Grid.Row="0" ColumnDefinitions="*,*" BackgroundColor="Transparent"> 
+                <Grid Grid.Row="0" ColumnDefinitions="*,*" BackgroundColor="Transparent">
                     <VerticalStackLayout Grid.Column="0">
                         <Label Text="{Binding TemporarilyPickedSong.Title, StringFormat='You are Playing {0}'}"/>
                         <Label Text="{Binding UserLocal.DeviceFormFactor, StringFormat='On {0}'}"
                                />
                     </VerticalStackLayout>
-                    
+
                     <VerticalStackLayout Grid.Column="1">
                             <Label Text="{Binding LatestScanningLog}"/>
                     </VerticalStackLayout>
@@ -116,7 +110,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                         <VerticalStackLayout>
                             <HorizontalStackLayout Spacing="15">
                                 <Border StrokeShape="RoundRectangle 50"
-                                        
+
        HeightRequest="150"
                                     WidthRequest="150">
 
@@ -129,7 +123,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                     <Label Text="{Binding UserLocal.Email}" FontSize="22"/>
                                     <Label Text="{Binding UserLocal.DeviceFormFactor}"
                                            FontSize="22"/>
-                                    
+
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
 
@@ -137,7 +131,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                 <Label Text="Adjust Your Photo" />
                                 <Border BackgroundColor="#2B2B2B"
                                         Padding="20" StrokeShape="RoundRectangle 15">
-                                    
+
                                     <Grid ColumnDefinitions="*,*" BackgroundColor="Transparent">
                                         <HorizontalStackLayout Grid.Column="0" Spacing="10">
                                             <Image Source="folder.png" HeightRequest="30"
@@ -146,15 +140,15 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                         </HorizontalStackLayout>
                                         <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
                                             <Button Text="Browse files"
-                                                  Command="{Binding PickNewProfileImageCommand}" 
+                                                  Command="{Binding PickNewProfileImageCommand}"
                                                     BackgroundColor="#3C3C3C"/>
                                         </HorizontalStackLayout>
                                     </Grid>
                                 </Border>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
-                        
-                        
+
+
                     </Grid>
 
                     <Grid ColumnDefinitions="*"
@@ -162,16 +156,16 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                           IsVisible="False">
                         <HorizontalStackLayout >
 
-                            <Border HorizontalOptions="Center" 
+                            <Border HorizontalOptions="Center"
             VerticalOptions="Center" StrokeShape="RoundRectangle 30">
-                                <VerticalStackLayout HeightRequest="200" 
+                                <VerticalStackLayout HeightRequest="200"
                                          WidthRequest="200" >
 
-                                    <zxing:BarcodeGeneratorView 
+                                    <zxing:BarcodeGeneratorView
                     Value="{Binding barCodeInvitationValue}"
 x:Name="BarCode" Format="QrCode"  BackgroundColor="Transparent"
                                 ForegroundColor="DarkSlateBlue"
-                
+
 />
 
                                 </VerticalStackLayout>
@@ -191,13 +185,13 @@ x:Name="BarCode" Format="QrCode"  BackgroundColor="Transparent"
 
 
 
-                    <Grid Grid.Row="2" RowDefinitions="*,0.6*" 
+                    <Grid Grid.Row="2" RowDefinitions="*,0.6*"
                           IsVisible="{Binding IsPlaying}"
                           >
 
-                        <VerticalStackLayout Grid.Row="0" BackgroundColor="Transparent" 
+                        <VerticalStackLayout Grid.Row="0" BackgroundColor="Transparent"
                                              HorizontalOptions="Center" VerticalOptions="End">
-                            <syncf:SfChipGroup x:Name="ActualSongView" 
+                            <syncf:SfChipGroup x:Name="ActualSongView"
 ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
 >
                                 <syncf:SfChipGroup.Resources>
@@ -211,7 +205,7 @@ ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
                                     </ResourceDictionary>
                                 </syncf:SfChipGroup.Resources>
                                 <syncf:SfChipGroup.ChipLayout>
-                                    <HorizontalStackLayout Spacing="10" 
+                                    <HorizontalStackLayout Spacing="10"
   HorizontalOptions="Center"/>
                                 </syncf:SfChipGroup.ChipLayout>
                                 <syncf:SfChip Text="{Binding TemporarilyPickedSong.Title}" FontSize="20" CommandParameter="0"/>
@@ -224,12 +218,12 @@ ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
 
                                 <Label Grid.Column="0"
              Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
-                HorizontalOptions="Center" FontSize="14" 
+                HorizontalOptions="Center" FontSize="14"
                 />
-                                <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted" 
+                                <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted"
              Value="{Binding CurrentPositionInSeconds}" MinimumWidthRequest="250"
                  x:Name="CurrentPositionSlider" MinimumTrackColor="DarkSlateBlue"
-                 VerticalOptions="Center" ThumbColor="AliceBlue"  
+                 VerticalOptions="Center" ThumbColor="AliceBlue"
  Minimum="0" Maximum="{Binding TemporarilyPickedSong.DurationInSeconds}"/>
 
                                 <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
@@ -264,6 +258,6 @@ ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
 
 
             </Grid>
-        </Grid>
+        </Grid>-->
     </ContentPage>
 </Window>

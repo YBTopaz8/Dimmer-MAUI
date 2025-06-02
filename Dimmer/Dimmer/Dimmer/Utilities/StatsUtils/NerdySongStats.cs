@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.StatsUtils;
+﻿namespace Dimmer.Utilities.StatsUtils;
 public static class NerdySongStats
 {
     // 1. Is play count a Fibonacci number?
@@ -31,8 +25,10 @@ public static class NerdySongStats
 
     // 3. Number of palindromic seconds listened (e.g., 121, 232, etc.)
     public static int CountPalindromicSeconds(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id)
-                 .Count(e => IsPalindrome((int)e.PositionInSeconds));
+    {
+        return events.Where(e => e.SongId == song.Id)
+                     .Count(e => IsPalindrome((int)e.PositionInSeconds));
+    }
 
     static bool IsPalindrome(int n)
     {
@@ -42,11 +38,15 @@ public static class NerdySongStats
 
     // 4. Play count modulo 7
     public static int PlayCountMod7(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetPlayCount(song, events) % 7;
+    {
+        return SongStats.GetPlayCount(song, events) % 7;
+    }
 
     // 5. Play count as binary string
     public static string PlayCountBinary(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => Convert.ToString(SongStats.GetPlayCount(song, events), 2);
+    {
+        return Convert.ToString(SongStats.GetPlayCount(song, events), 2);
+    }
 
     // 6. Is duration a perfect square (seconds)?
     public static bool IsDurationPerfectSquare(SongModel song)
@@ -58,19 +58,27 @@ public static class NerdySongStats
 
     // 7. Play count digits sum
     public static int PlayCountDigitSum(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetPlayCount(song, events).ToString().ToCharArray().Sum(c => c - '0');
+    {
+        return SongStats.GetPlayCount(song, events).ToString().ToCharArray().Sum(c => c - '0');
+    }
 
     // 8. Song title vowel count
     public static int TitleVowelCount(SongModel song)
-        => song.Title.Count(c => "aeiouAEIOU".Contains(c));
+    {
+        return song.Title.Count(c => "aeiouAEIOU".Contains(c));
+    }
 
     // 9. Average play time (in golden ratio)
     public static double AvgPlayTimeGoldenRatio(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetTotalListeningTime(song, events) / 1.618;
+    {
+        return SongStats.GetTotalListeningTime(song, events) / 1.618;
+    }
 
     // 10. Play count in hexadecimal
     public static string PlayCountHex(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetPlayCount(song, events).ToString("X");
+    {
+        return SongStats.GetPlayCount(song, events).ToString("X");
+    }
 
     // 11. Days between first and last play (is it a leap year span?)
     public static bool IsSpanLeapYear(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -103,7 +111,9 @@ public static class NerdySongStats
 
     // 13. Number of times played on Friday the 13th
     public static int PlayedOnFriday13th(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && e.DatePlayed.Day == 13 && e.DatePlayed.DayOfWeek == DayOfWeek.Friday).Count();
+    {
+        return events.Where(e => e.SongId == song.Id && e.DatePlayed.Day == 13 && e.DatePlayed.DayOfWeek == DayOfWeek.Friday).Count();
+    }
 
     // 14. Play count as Roman numeral
     public static string PlayCountRoman(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -155,7 +165,9 @@ public static class NerdySongStats
 
     // 18. Times played at exact minute 42 (i.e., :42 in the hour)
     public static int PlayedAtMinute42(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Where(e => e.SongId == song.Id && e.DatePlayed.Minute == 42).Count();
+    {
+        return events.Where(e => e.SongId == song.Id && e.DatePlayed.Minute == 42).Count();
+    }
 
     // 19. Duration divisible by play count?
     public static bool IsDurationDivisibleByPlayCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -178,7 +190,9 @@ public static class NerdySongStats
 
     // 21. Number of vowels in artist name
     public static int VowelCountInArtist(SongModel song)
-        => song.ArtistName.Count(c => "aeiouAEIOU".Contains(c));
+    {
+        return song.ArtistName.Count(c => "aeiouAEIOU".Contains(c));
+    }
 
     // 22. Skip count as Morse code
     public static string SkipCountMorse(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
@@ -199,11 +213,15 @@ public static class NerdySongStats
 
     // 24. Played on Pi Day? (March 14)
     public static bool PlayedOnPiDay(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => events.Any(e => e.SongId == song.Id && e.DatePlayed.Month == 3 && e.DatePlayed.Day == 14);
+    {
+        return events.Any(e => e.SongId == song.Id && e.DatePlayed.Month == 3 && e.DatePlayed.Day == 14);
+    }
 
     // 25. Title starts and ends with same letter?
     public static bool TitleIsCircular(SongModel song)
-        => !string.IsNullOrEmpty(song.Title) && song.Title.First() == song.Title.Last();
+    {
+        return !string.IsNullOrEmpty(song.Title) && song.Title.First() == song.Title.Last();
+    }
 
 
     // Helper: Fibonacci sequence
@@ -380,7 +398,7 @@ public static class NerdySongStats
             string mm = e.DatePlayed.Month.ToString("00");
             string dd = e.DatePlayed.Day.ToString("00");
             string combined = dd + mm;
-            return combined == new string(combined.Reverse().ToArray());
+            return combined == new string([.. combined.Reverse()]);
         });
     }
 
@@ -679,7 +697,9 @@ public static class NerdySongStats
 
     // 9. Is play count divisible by 42? (The answer to life)
     public static bool IsPlayCountDivisibleBy42(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
-        => SongStats.GetPlayCount(song, events) % 42 == 0 && SongStats.GetPlayCount(song, events) != 0;
+    {
+        return SongStats.GetPlayCount(song, events) % 42 == 0 && SongStats.GetPlayCount(song, events) != 0;
+    }
 
     // 10. Does the ratio (play count / skip count) approximate π?
     public static bool PlayToSkipRatioIsPi(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)

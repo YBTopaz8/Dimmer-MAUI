@@ -1,7 +1,4 @@
-﻿using MongoDB.Bson;
-using static ATL.LyricsInfo;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
@@ -37,7 +34,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The name of the album.
     /// </value>
-    public string AlbumName { get; set; } 
+    public string AlbumName { get; set; }
     /// <summary>
     /// Gets or sets the file path.
     /// </summary>
@@ -57,9 +54,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// </summary>
     /// <value>
     /// The release year.
-    /// </value>
-    [Backlink(nameof(PlaylistModel.Songs))]
-    public IQueryable<PlaylistModel> Playlists { get; }
+
     public int? ReleaseYear { get; set; }
     /// <summary>
     /// Gets or sets the track number.
@@ -133,7 +128,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// The un synchronize lyrics.
     /// </value>
     public string? UnSyncLyrics { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether this instance is favorite.
     /// </summary>
@@ -176,35 +171,35 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The name of the device.
     /// </value>
-    public string? DeviceName { get; set; } 
+    public string? DeviceName { get; set; }
     /// <summary>
     /// Gets or sets the device form factor.
     /// </summary>
     /// <value>
     /// The device form factor.
     /// </value>
-    public string? DeviceFormFactor { get; set; } 
+    public string? DeviceFormFactor { get; set; }
     /// <summary>
     /// Gets or sets the device model.
     /// </summary>
     /// <value>
     /// The device model.
     /// </value>
-    public string? DeviceModel { get; set; } 
+    public string? DeviceModel { get; set; }
     /// <summary>
     /// Gets or sets the device manufacturer.
     /// </summary>
     /// <value>
     /// The device manufacturer.
     /// </value>
-    public string? DeviceManufacturer { get; set; } 
+    public string? DeviceManufacturer { get; set; }
     /// <summary>
     /// Gets or sets the device version.
     /// </summary>
     /// <value>
     /// The device version.
     /// </value>
-    public string? DeviceVersion { get; set; } 
+    public string? DeviceVersion { get; set; }
     /// <summary>
     /// Gets or sets the user identifier online.
     /// </summary>
@@ -214,22 +209,26 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public string? UserIDOnline { get; set; }
 
     public IList<UserNoteModel> UserNotes { get; }
-    public AlbumModel? Album { get;  set; }
-    public GenreModel? Genre { get;  set; }
+    public AlbumModel? Album { get; set; }
+    public GenreModel? Genre { get; set; }
     public IList<ArtistModel> ArtistIds { get; }
-    [Backlink(nameof(TagModel.Songs))]
-    public IQueryable<TagModel> Tags { get; }
-    [Backlink(nameof(DimmerPlayEvent.Song))]
-    public IQueryable<DimmerPlayEvent> PlayHistory { get; }
+    public IList<TagModel> Tags { get; }
+
+
+    public IList<DimmerPlayEvent> PlayHistory { get; }
+
+    public IList<SongModel> Playlists { get; }
+    public bool IsNewOrModified { get; set; }
+
     public SongModel()
     {
-        
+
     }
 }
 
 public partial class UserNoteModel : EmbeddedObject
 {
-    
+
     public string Id { get; set; } = AudioFileUtils.GenerateId("UNote");
     public string? UserMessageText { get; set; }
     public string? UserMessageImagePath { get; set; }
@@ -237,6 +236,6 @@ public partial class UserNoteModel : EmbeddedObject
     public bool IsPinned { get; set; }
     public int UserRating { get; set; }
     public string? MessageColor { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }  
+    public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset ModifiedAt { get; set; }
 }

@@ -1,5 +1,4 @@
-﻿using ATL;
-using static ATL.LyricsInfo;
+﻿using static ATL.LyricsInfo;
 
 namespace Dimmer.Data.Models;
 public class Content

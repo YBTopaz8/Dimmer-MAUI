@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.FileProcessorUtils;
+﻿namespace Dimmer.Utilities.FileProcessorUtils;
 public interface IMusicMetadataService
 {
     ArtistModel GetOrCreateArtist(string name);

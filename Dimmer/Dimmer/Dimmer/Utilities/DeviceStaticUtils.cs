@@ -8,4 +8,8 @@ public class DeviceStaticUtils
                (DeviceInfo.Current.Name + "_" + DeviceInfo.Current.Model + "_" + System.Net.Dns.GetHostName()).Replace(" ", "_") :
                (DeviceInfo.Current.Platform.ToString() + "_" + DeviceInfo.Current.VersionString); // DeviceInfo.Id can be useful if available & stable
     }
+
+    public static ArtistModelView? SelectedArtistOne { get; set; }
+    public static ArtistModelView? SelectedArtistTwo { get; set; }
+
 }

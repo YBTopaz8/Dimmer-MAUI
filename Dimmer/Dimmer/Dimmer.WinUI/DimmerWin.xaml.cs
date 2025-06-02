@@ -1,14 +1,14 @@
-
+using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.WinUI;
 
 public partial class DimmerWin : Window
 {
     public BaseViewModelWin MyViewModel { get; set; }
-	public DimmerWin(BaseViewModelWin vm)
-	{
-		InitializeComponent();
-		Page = IPlatformApplication.Current!.Services.GetService<IAppUtil>()?.GetShell();
+    public DimmerWin(BaseViewModelWin vm)
+    {
+        InitializeComponent();
+        Page = IPlatformApplication.Current!.Services.GetService<IAppUtil>()?.GetShell();
         MyViewModel= vm;
         BindingContext=vm;
     }
@@ -26,7 +26,7 @@ public partial class DimmerWin : Window
             }
             subMgr.Dispose();
             base.OnDestroying();
-            
+
             return;
         }
         bool result = await Shell.Current.DisplayAlert(
@@ -69,10 +69,10 @@ public partial class DimmerWin : Window
         }
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+
     }
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);
         StickTopImgBtn.IsVisible = false;
         UnStickTopImgBtn.IsVisible = true;
 
@@ -80,7 +80,6 @@ public partial class DimmerWin : Window
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);
         StickTopImgBtn.IsVisible = true;
         UnStickTopImgBtn.IsVisible = false;
     }

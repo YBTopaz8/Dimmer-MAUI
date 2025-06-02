@@ -2,6 +2,7 @@
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 using Microsoft.Windows.AppLifecycle;
+
 using Windows.ApplicationModel.Activation;
 
 namespace Dimmer.WinUI;
@@ -80,7 +81,7 @@ public partial class App : MauiWinUIApplication
             if (args.Data is IFileActivatedEventArgs fileArgs)
             {
                 // Extract paths. These could be null if a file object isn't a StorageFile or Path is null
-                string?[] rawPaths = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
+                string?[] rawPaths = [.. fileArgs.Files.Select(file => (file as StorageFile)?.Path)];
                 HandleFiles(rawPaths);
             }
         }
@@ -105,7 +106,7 @@ public partial class App : MauiWinUIApplication
         // It's generally safer to resolve services when needed,
         // especially if they might have a scoped lifetime or depend on UI thread.
         // Also, ensure HomePageVM is registered as a singleton or transient as appropriate.
-        var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your ViewModel class
+        var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your MyViewModel class
         if (homePageVM != null)
         {
             // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe
@@ -231,7 +232,7 @@ public partial class App : MauiWinUIApplication
     protected override MauiApp CreateMauiApp()
     {
         var s = IPlatformApplication.Current;
-        
+
         return MauiProgram.CreateMauiApp();
     }
 

@@ -6,6 +6,7 @@
 /// <seealso cref="RealmObject" />
 public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
 {
+    public bool IsNewOrModified { get; set; }
     /// <summary>
     /// Gets or sets the local device identifier.
     /// </summary>
@@ -14,6 +15,10 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// </value>
     [PrimaryKey]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+
+    [Backlink(nameof(SongModel.PlayHistory))] // If you want to navigate from Song to its events
+    public IQueryable<SongModel>? SongsLinkingToThisEvent { get; }
+
     /// <summary>
     /// Gets or sets the song identifier.
     /// </summary>
@@ -21,6 +26,10 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The song identifier.
     /// </value>
     public ObjectId? SongId { get; set; }
+    /// <summary>
+    /// Gets or sets the song name.
+    /// </summary>
+    public string? SongName { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.
     /// Possible VALID values for <see cref="PlayType" />:
@@ -30,9 +39,8 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The type of the play.
     /// </value>
     public int PlayType { get; set; }
-    public string PlayTypeStr { get; set; }
+    public string? PlayTypeStr { get; set; }
 
-    public SongModel Song { get; set; }
 
     /// <summary>
     /// Gets or sets the date played.
@@ -75,39 +83,39 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The name of the device.
     /// </value>
-    public string? DeviceName { get; set; } 
+    public string? DeviceName { get; set; }
     /// <summary>
     /// Gets or sets the device form factor.
     /// </summary>
     /// <value>
     /// The device form factor.
     /// </value>
-    public string? DeviceFormFactor { get; set; } 
+    public string? DeviceFormFactor { get; set; }
     /// <summary>
     /// Gets or sets the device model.
     /// </summary>
     /// <value>
     /// The device model.
     /// </value>
-    public string? DeviceModel { get; set; } 
+    public string? DeviceModel { get; set; }
     /// <summary>
     /// Gets or sets the device manufacturer.
     /// </summary>
     /// <value>
     /// The device manufacturer.
     /// </value>
-    public string? DeviceManufacturer { get; set; } 
+    public string? DeviceManufacturer { get; set; }
     /// <summary>
     /// Gets or sets the device version.
     /// </summary>
     /// <value>
     /// The device version.
     /// </value>
-    
-    public string? DeviceVersion { get; set; } 
+
+    public string? DeviceVersion { get; set; }
     /// <summary>
     /// Initializes a new instance of the <see cref="DimmerPlayEvent"/> class.
     /// </summary>
-    
+
 
 }

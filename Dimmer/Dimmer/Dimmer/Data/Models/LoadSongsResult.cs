@@ -1,11 +1,5 @@
 ﻿namespace Dimmer.Data.Models;
-public class LoadSongsResult
-{
-    public List<ArtistModel> Artists { get; set; }
-    public List<AlbumModel> Albums { get; set; }
-    public List<SongModel> Songs { get; set; }
-    public List<GenreModel> Genres { get; set; }
-}
+
 public class FileProcessingResult
 {
     public SongModel? ProcessedSong { get; set; }

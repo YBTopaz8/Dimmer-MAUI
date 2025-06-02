@@ -1,6 +1,12 @@
 ﻿
 
 
+using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.ArtistsSpace;
+using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
+using Dimmer.WinUI.Views.WinuiWindows;
+
 namespace Dimmer.WinUI;
 
 public static class MauiProgram
@@ -18,16 +24,20 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddScoped<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
+        builder.Services.AddTransient<AllArtistsPage>();
+        builder.Services.AddTransient<ArtistGeneralWindow>();
+        builder.Services.AddSingleton<ArtistsPage>();
+        builder.Services.AddTransient<SpecificArtistPage>();
         builder.Services.AddTransient<OnlinePageManagement>();
+        builder.Services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
         builder.Services.AddSingleton<DimmerWin>();
         builder.Services.AddScoped<DimmerOnlineViewModel>();
-        
-        builder.Services.AddSingleton<HomePage>();
-        builder.Services.AddScoped<HomeViewModel>();
 
-        builder.Services.AddScoped<SingleSongPageViewModel>();
+        builder.Services.AddSingleton<HomePage>();
+
         builder.Services.AddTransient<SingleSongPage>();
+        builder.Services.AddTransient<SettingWindow>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
@@ -39,7 +49,7 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnWindowCreated(window =>
                 {
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
-                    
+
                     if (nativeWindowHandle != IntPtr.Zero)
                     {
                         PlatUtils.DimmerHandle = nativeWindowHandle;
@@ -51,13 +61,13 @@ public static class MauiProgram
                             {
                                 PlatUtils.IsAppInForeground =s.IsVisible;
                             }
-                            
+
                         };
-                        
+
                         PlatUtils.AppWinPresenter = winuiAppWindow.Presenter;
                         PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
-                      
-                        
+
+
                     }
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")
@@ -77,7 +87,10 @@ public static class MauiProgram
             });
         });
 
-
+        builder.Services.AddSingleton<ISettingsWindowManager, SettingsWindowManager>();
+        builder.Services.AddSingleton<FolderScanPage>();
+        builder.Services.AddSingleton<OnlinePage>();
+        builder.Services.AddSingleton<SettingWindow>();
         //if (ParseSetup.InitializeParseClient())
         //{
         //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
@@ -86,6 +99,13 @@ public static class MauiProgram
         //    ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
         //    ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
         //}
+
+
+
+        //IMapper? mapperWin = AutoMapperConfWinUI.ConfigureAutoMapper();
+        //builder.Services.AddSingleton(mapperWin);
+
+
         return builder.Build();
     }
 }

@@ -1,11 +1,7 @@
-﻿
-
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reactive.Linq;
+﻿using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Orchestration;
-public class AlbumsMgtFlow : BaseAppFlow, IDisposable
+public class AlbumsMgtFlow : IDisposable
 {
     private readonly IDimmerStateService state;
     private readonly IRepository<SongModel> _songRepo;
@@ -42,11 +38,11 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         IRepository<AlbumModel> albumRepo,
         IRepository<AppStateModel> appstateRepo,
         ISettingsService settings,
-        IFolderMgtService folderMonitor,        
+        IFolderMgtService folderMonitor,
         IMapper mapper,
         SubscriptionManager subs
-        
-    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMonitor, subs, mapper)
+
+    )
     {
         this.state=state;
         _songRepo=songRepo;
@@ -122,7 +118,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     {
         // Use the Query method from your repository
         var list = _albumRepo.Query(a => a.ReleaseYear >= startYear && a.ReleaseYear <= endYear);
-        _queriedAlbums.OnNext(list); 
+        _queriedAlbums.OnNext(list);
     }
     public void GetAlbumsByArtistId(ObjectId artistId) // Changed parameter to ObjectId for directness
     {
@@ -130,23 +126,23 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         // and Realm supports .Any() on primitive lists with an equality check.
         // This is a common pattern that Realm *often* supports.
         List<SongModel> songsOfArtist;
-       
-            songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(id => id.Id == artistId));
+
+        songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(id => id.Id == artistId));
 
 
-            if (songsOfArtist.Count==0)
-            {
-                _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
-                return;
-            }
+        if (songsOfArtist.Count==0)
+        {
+            _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
+            return;
+        }
 
-            var albums = songsOfArtist
-                .Where(s => s.Album != null)
-                .Select(s => s.Album)
-                .DistinctBy(al => al!.Id)
-                .ToList();
-            _queriedAlbums.OnNext(albums!);
-        
+        var albums = songsOfArtist
+            .Where(s => s.Album != null)
+            .Select(s => s.Album)
+            .DistinctBy(al => al!.Id)
+            .ToList();
+        _queriedAlbums.OnNext(albums!);
+
     }
     public void GetSongsByGenreId(ObjectId genreId) // Changed to ID for directness
     {
@@ -162,7 +158,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             return;
         }
 
-       
+
         // Assuming you can get songs for an artist efficiently:
         var songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(a => a.Id == artist.Id));
         var albums = songsOfArtist.Select(s => s.Album)
@@ -217,9 +213,9 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         _queriedAlbums.OnNext(list);
     }
 
-    public void GetAlbumsWithoutAnySongs() 
+    public void GetAlbumsWithoutAnySongs()
     {
-        var list = _albumRepo.Query(a => !a.Songs.Any());
+        var list = _albumRepo.Query(a => !a.SongsInAlbum.Any());
         _queriedAlbums.OnNext(list);
     }
 
@@ -241,7 +237,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         var allAlbums = _albumRepo.GetAll(); // Potentially inefficient
         var sortedList = ascending
             ? allAlbums.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList()
-            : allAlbums.OrderByDescending(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            : [.. allAlbums.OrderByDescending(a => a.Name, StringComparer.OrdinalIgnoreCase)];
         _queriedAlbums.OnNext(sortedList);
     }
 
@@ -258,7 +254,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         // If GetAll() loads everything, this is bad.
         // IDEAL: _albumRepo.Count(a => true); or _albumRepo.Count();
         return _albumRepo.Count(a => true); // Assumes GetAll() is returning a list of frozen objects.
-                                          // A dedicated Count method in the repo is better.
+                                            // A dedicated Count method in the repo is better.
     }
 
 

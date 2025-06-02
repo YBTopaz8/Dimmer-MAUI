@@ -1,13 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Dimmer.Data.Models;
 
-namespace Dimmer.Data.Models;
-public partial class TagModel : RealmObject
+public partial class TagModel : RealmObject, IRealmObjectWithObjectId
 {
-    [PrimaryKey] public ObjectId Id { get; set; }
-    public string Name { get; set; }
-    public IList<SongModel> Songs { get; }
+    [PrimaryKey]
+    public ObjectId Id { get; set; }
+    public string Name { get; set; } = "Unknown Tag";
+    public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
+    public string? DeviceName { get; set; }
+    public string? DeviceFormFactor { get; set; }
+    public string? DeviceModel { get; set; }
+    public string? DeviceManufacturer { get; set; }
+    public string? DeviceVersion { get; set; }
+
+    [Backlink(nameof(SongModel.Tags))]
+    public IQueryable<SongModel>? Songs { get; }
+
+    [Backlink(nameof(ArtistModel.Tags))]
+    public IQueryable<ArtistModel>? Artists { get; }
+
+    [Backlink(nameof(AlbumModel.Tags))]
+    public IQueryable<AlbumModel>? Albums { get; }
+
+    [Backlink(nameof(UserModel.Tags))]
+    public IQueryable<UserModel>? Users { get; }
+
+    public bool IsNewOrModified { get; set; }
+
 }

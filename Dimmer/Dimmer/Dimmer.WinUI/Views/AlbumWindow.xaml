@@ -15,26 +15,27 @@
         <ContentPage>
 
             <ContentPage.Resources>
-            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
-            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
-            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
-            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
-            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
-            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
-            <converters:VolumeConverter x:Key="VolConverter" />
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+                <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+                <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+                <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+                <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+                <converters:VolumeConverter x:Key="VolConverter" />
 
 
-        </ContentPage.Resources>
+            </ContentPage.Resources>
 
-            <Grid BackgroundColor="Transparent" >
+            <!--<Grid BackgroundColor="Transparent" >
                 <Image Source="{Binding SelectedAlbumsSongs[0].CoverImagePath}" Opacity="0.1"
                        x:Name="AlbumImg"/>
 
                 <Grid   BackgroundColor="Transparent" IsVisible="True"
                 RowDefinitions="Auto,*">
-                    <!--<syncf:SfChipGroup Grid.Column="0" 
+                    -->
+            <!--<syncf:SfChipGroup Grid.Column="0" 
                    ChipClicked="AlbumArtistsGroup_ChipClicked"
                   x:Name="AlbumArtistsGroup" 
                                        ChipType="Filter"
@@ -51,6 +52,7 @@
                         </syncf:SfChipGroup.ItemTemplate>
 
                     </syncf:SfChipGroup>-->
+            <!--
                    
                     <HorizontalStackLayout HorizontalOptions="End" Grid.Row="0">
                         <ImageButton Source="restartcircle.png" HeightRequest="40"
@@ -131,7 +133,7 @@
             </CollectionView>
             </Grid>
 
-            </Grid>
+            </Grid>-->
         </ContentPage>
     </Window.Page>
 </Window>

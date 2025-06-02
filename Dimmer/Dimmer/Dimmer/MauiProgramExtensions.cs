@@ -1,4 +1,4 @@
-﻿
+﻿using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer;
 
@@ -9,6 +9,7 @@ public static class MauiProgramExtensions
         builder
             .UseMauiApp<App>()
             .UseBarcodeReader()
+
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
@@ -18,8 +19,7 @@ public static class MauiProgramExtensions
             })
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("AleySans.ttf", "AleySans");
                 fonts.AddFont("FontAwesomeRegular400.otf", "FontAwesomeRegular");
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");
@@ -36,7 +36,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
-     
+
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IDimmerStateService, DimmerStateService>();
         builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();
@@ -45,6 +45,9 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<SubscriptionManager>();
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
+        builder.Services.AddSingleton<ILibraryScannerService, LibraryScannerService>();
+        builder.Services.AddSingleton<IAppInitializerService, AppInitializerService>();
+
 
         builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
         builder.Services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));

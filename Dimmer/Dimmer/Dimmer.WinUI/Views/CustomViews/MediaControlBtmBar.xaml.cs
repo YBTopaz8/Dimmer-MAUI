@@ -2,20 +2,20 @@ namespace Dimmer.WinUI.Views.CustomViews;
 
 public partial class MediaControlBtmBar : ContentView
 {
-    public HomeViewModel MyViewModel { get; internal set; }
+    public BaseViewModel MyViewModel { get; internal set; }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public MediaControlBtmBar()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
-		InitializeComponent();
-        
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        InitializeComponent();
+
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
         BindingContext = MyViewModel;
     }
 
     private void MediaControlBtmBar_Loaded(object? sender, EventArgs e)
     {
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
         BindingContext = MyViewModel;
 
     }
@@ -32,7 +32,7 @@ public partial class MediaControlBtmBar : ContentView
         _isThrottling = true;
         Slider send = (Slider)sender;
         double s = send.Value;
-        MyViewModel.SeekTo( s, true);
+        //MyViewModel.SeekTo( s, true);
 
 
         await Task.Delay(throttleDelay);
@@ -59,7 +59,7 @@ public partial class MediaControlBtmBar : ContentView
 
     private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
     {
-        MyViewModel.ToggleRepeatMode();
+        //MyViewModel.ToggleRepeatMode();
     }
     private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
@@ -84,16 +84,16 @@ public partial class MediaControlBtmBar : ContentView
         {
             if (mouseWheelDelta > 0)
             {
-                if (MyViewModel.VolumeLevel >=1)
-                {
-                    return;
-                }
-                MyViewModel.IncreaseVolume();
+                //if (MyViewModel.VolumeLevel >=1)
+                //{
+                //    return;
+                //}
+                //MyViewModel.IncreaseVolume();
                 // Handle scroll up
             }
             else
             {
-                MyViewModel.DecreaseVolume();
+                //MyViewModel.DecreaseVolume();
                 // Handle scroll down
             }
         }
@@ -115,21 +115,21 @@ public partial class MediaControlBtmBar : ContentView
 
     private void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.PlayPrevious();
+        //MyViewModel.PlayPrevious();
     }
 
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.PlayNext(true);
+        //MyViewModel.PlayNext(true);
     }
 
-    private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
+    private void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
     {
-        await MyViewModel.PlayPauseAsync();
+        //await MyViewModel.PlayPauseAsync();
     }
 
     private void ShuffleBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.ToggleRepeatMode();
+        //MyViewModel.ToggleRepeatMode();
     }
 }

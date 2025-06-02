@@ -1,13 +1,18 @@
 ﻿using Android.Content;
+
+using Dimmer.Interfaces.Services.Interfaces;
+
 using System.Security.Cryptography;
 using System.Text;
+
+using Window = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.Utils;
 public class AppUtil : IAppUtil
 {
     public Shell GetShell()
     {
-        return new AppShell();  
+        return new AppShell();
     }
 
     public Window LoadWindow()
@@ -51,8 +56,6 @@ public class AppUtil : IAppUtil
         // Add method to get ContentUri using FileProvider for local files
     }
 
-    // 1. Update App Actions For Recent Audio
-    // Assumes you have a way to get recent file paths (e.g., from Preferences or DB)
     public static async Task UpdateAppActionsForRecentAudioAsync(Func<Task<IEnumerable<string>>> getRecentFilesFunc, int count)
     {
         if (!AppActions.IsSupported || getRecentFilesFunc == null)

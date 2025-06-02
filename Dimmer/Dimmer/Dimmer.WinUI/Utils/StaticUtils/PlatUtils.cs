@@ -1,4 +1,7 @@
 ﻿using System.Drawing.Imaging;
+
+using Dimmer.WinUI.Views.ArtistsSpace;
+
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -91,27 +94,11 @@ public static class PlatUtils
 
     public static void OpenAlbumWindow(SongModelView song)
     {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
         var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
-       
-        AlbumWindow newWindow = new AlbumWindow( MyVM, mapper);
 
-        Application.Current!.OpenWindow(newWindow);
+        AlbumWindow newWindow = new AlbumWindow(MyVM, mapper);
 
-        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
-
-    }
-
-
-    public static void OpenArtistWindow(SongModelView song)
-    {
-        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
-        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-
-        ArtistWindow newWindow = new ArtistWindow( MyVM, mapper);
-        newWindow.SetTitle(song);
-        //newWindow.
         Application.Current!.OpenWindow(newWindow);
 
         //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
@@ -121,12 +108,12 @@ public static class PlatUtils
 
     public static void OpenSettingsWindow()
     {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModel>();
         //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-        
+
 
         SettingsWindow newWindow = new(MyVM);
-        
+
         //newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
@@ -137,7 +124,7 @@ public static class PlatUtils
 
     public static void MiniMimizeWindow(Window win)
     {
-        
+
         var nativeWindow = win.Handler.PlatformView;
         IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
         ShowWindow(windowHandle, SW_HIDE);
@@ -147,13 +134,13 @@ public static class PlatUtils
     {
         try
         {
-             OverLappedPres = appPresenter as OverlappedPresenter;
+            OverLappedPres = appPresenter as OverlappedPresenter;
             if (IsToFullScreen)
             {
                 OverLappedPres!.IsAlwaysOnTop = true;
                 OverLappedPres.SetBorderAndTitleBar(false, false);
                 OverLappedPres!.Maximize();
-                
+
             }
             else
             {
@@ -226,28 +213,24 @@ public static class PlatUtils
     public static IntPtr GetWindowHandle()
     {
         var window = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
-        
-        // Get the underlying native window (WinUI).
-        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
-        if (nativeWindow == null)
-            throw new InvalidOperationException("Unable to retrieve the native window.");
 
-        
+        // Get the underlying native window (WinUI).
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window??throw new InvalidOperationException("Unable to retrieve the native window.");
+
+
         DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
         return DimmerHandle;
     }
     public static IntPtr GetAnyWindowHandle(Window window)
     {
-        
+
         if (window == null)
             throw new ArgumentNullException(nameof(window));
         // Get the underlying native window (WinUI).
-        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
-        if (nativeWindow == null)
-            throw new InvalidOperationException("Unable to retrieve the native window.");
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window??throw new InvalidOperationException("Unable to retrieve the native window.");
 
         var intPtrHandle = WindowNative.GetWindowHandle(nativeWindow);
-        
+
         return intPtrHandle;
     }
 
@@ -266,31 +249,25 @@ public static class PlatUtils
     {
         public static DisplayArea? DisplayArea { get; set; }
 
-        public static void LaunchSecondWindow()
-        {
-            HomeViewModel? vm = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
 
-            var window = new TestPage(vm);
-            window.Activate();
-        }
-        
+
         public async static Task LaunchNotificationWindowAndFadeItAwayAfterSixSeconds(BaseViewModelWin vm)
         {
 
             SongNotifierWindow newNotif = new SongNotifierWindow(vm);
-        
+
             newNotif.Height = 300;
             newNotif.Width = AppUtils.UserScreenWidth;
 
             Application.Current?.OpenWindow(newNotif);
 
-            
+
             await Task.Delay(6000);
 
 
             Application.Current?.CloseWindow(newNotif);
 
-            
+
         }
 
     }

@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+
 using Window = Microsoft.UI.Xaml.Window;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -10,17 +11,17 @@ namespace Dimmer.WinUI.Views;
 /// </summary>
 public sealed partial class TestPage : Window
 {
-    public TestPage(HomeViewModel viewModel)
+    public TestPage()
     {
         this.InitializeComponent();
-        MyViewModel=viewModel;        
+        //MyViewModel=viewModel;        
     }
 
-    public HomeViewModel MyViewModel { get; }
-    
+    //public HomeViewModel MyViewModel { get; }
+
     private void MyTableView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
-        FrameworkElement view = (FrameworkElement)e.OriginalSource;       
+        FrameworkElement view = (FrameworkElement)e.OriginalSource;
 
         SongModelView? song = (SongModelView)view.DataContext;
 

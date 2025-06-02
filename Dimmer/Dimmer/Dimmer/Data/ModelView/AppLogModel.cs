@@ -1,6 +1,4 @@
-﻿using Dimmer.DimmerLive.Models;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public class AppLogModel
 {
     public string Log { get; set; } = string.Empty;

@@ -21,7 +21,6 @@ global using WinRT.Interop;
 global using CommunityToolkit.Maui.Core.Extensions;
 
 global using Dimmer.Orchestration;
-global using Dimmer.UIUtils;
 global using Dimmer.Utilities.Enums;
 global using System.Threading.Tasks;
 
@@ -60,10 +59,6 @@ global using System.Drawing;
 global using System.Reflection;
 global using Vanara.PInvoke;
 global using Dimmer.DimmerLive.Interfaces;
-global using Parse;
 
 global using CommunityToolkit.Mvvm.Input;
 global using Dimmer.Interfaces.Services;
-
-global using Dimmer.Utilities.FileProcessorUtils;
-global using System.Reactive.Concurrency;

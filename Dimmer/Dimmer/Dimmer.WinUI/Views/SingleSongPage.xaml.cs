@@ -2,25 +2,22 @@ namespace Dimmer.WinUI.Views;
 
 public partial class SingleSongPage : ContentPage
 {
-    public SingleSongPageViewModel MyViewModel { get; }
-    public SingleSongPage(SingleSongPageViewModel vm)
+    public SingleSongPage()
     {
         InitializeComponent();
-        MyViewModel = vm;
-        BindingContext = vm;
 
     }
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = CurrentPage.NowPlayingPage;
+        //MyViewModel.CurrentlySelectedPage = CurrentPage.NowPlayingPage;
 
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        MyViewModel.UnSetCollectionView();
+        //MyViewModel.UnSetCollectionView();
     }
 
     private void SfChipGroup_ChipClicked(object sender, EventArgs e)
@@ -36,42 +33,42 @@ public partial class SingleSongPage : ContentPage
         // =int.Parse(param); switch view
     }
 
-    private async void MediaChipBtn_ChipClicked(object sender, EventArgs e)
+    private void MediaChipBtn_ChipClicked(object sender, EventArgs e)
     {
-        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
-        string? param = ee.CommandParameter.ToString();
-        if (param is null)
-        {
-            return;
-        }
-        var CurrentIndex = int.Parse(param);
-        switch (CurrentIndex)
-        {
-            case 0:
-                MyViewModel.ToggleRepeatMode();
-                break;
-            case 1:
-                MyViewModel.PlayPrevious();
-                break;
-            case 2:
-            case 3:
-                await MyViewModel.PlayPauseAsync();
+        //SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        //string? param = ee.CommandParameter.ToString();
+        //if (param is null)
+        //{
+        //    return;
+        //}
+        //var CurrentIndex = int.Parse(param);
+        //switch (CurrentIndex)
+        //{
+        //    case 0:
+        //        MyViewModel.ToggleRepeatMode();
+        //        break;
+        //    case 1:
+        //        MyViewModel.PlayPrevious();
+        //        break;
+        //    case 2:
+        //    case 3:
+        //        await MyViewModel.PlayPauseAsync();
 
-                break;
-            case 4:
-                MyViewModel.PlayNext(true);
-                break;
-            case 5:
-                MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
-                break;
+        //        break;
+        //    case 4:
+        //        MyViewModel.PlayNext(true);
+        //        break;
+        //    case 5:
+        //        MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
+        //        break;
 
-            case 6:
-                MyViewModel.IncreaseVolume();
-                break;
+        //    case 6:
+        //        MyViewModel.IncreaseVolume();
+        //        break;
 
-            default:
-                break;
-        }
+        //    default:
+        //        break;
+        //}
     }
     private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
     {

@@ -1,6 +1,9 @@
-﻿namespace Dimmer.WinUI.Utils;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+
+namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
+
     public Shell GetShell()
     {
         return new AppShell();
@@ -11,7 +14,7 @@ public class AppUtil : IAppUtil
         var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         if (win is null)
         {
-            dimmerWin = new DimmerWin(vm);            
+            dimmerWin = new DimmerWin(vm);
         }
         else
         {
@@ -21,6 +24,8 @@ public class AppUtil : IAppUtil
         dimmerWin.MinimumWidth = 900;
         dimmerWin.Height = 850;
         dimmerWin.Width = 1100;
+
+
 
         return dimmerWin;
     }

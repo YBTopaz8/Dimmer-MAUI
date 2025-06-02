@@ -1,7 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Dimmer.Orchestration; 
-public class LyricsMgtFlow : BaseAppFlow, IDisposable
+using Dimmer.Interfaces.Services.Interfaces;
+
+namespace Dimmer.Orchestration;
+public class LyricsMgtFlow : IDisposable
 {
     private readonly SongsMgtFlow songsMgt;
     private LyricSynchronizer? _synchronizer;
@@ -36,7 +38,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IRepository<AppStateModel> appstateRepo,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
+    )
     {
         this.songsMgt=songsMgt;
         _state = state;
@@ -54,13 +56,13 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
                 LoadLyricsForSong(song);
             }));
 
-        
+
         SubscribeToPosition();
     }
 
     private void LoadLyricsForSong(SongModelView song)
     {
-        
+
         if (string.IsNullOrWhiteSpace(song.SyncLyrics))
         {
             _lyrics = new();
@@ -91,7 +93,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
                         .OrderBy(x => x!.TimeStampMs)
                         .ToList()!;
 
-        if(lines is not null)
+        if (lines is not null)
         {
             _state.SetSyncLyrics(lines);
             _lyrics = lines;
@@ -103,12 +105,12 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
 
     private void SubscribeToPosition()
     {
-        _subs.Add(songsMgt.Position
-            .Sample(TimeSpan.FromMilliseconds(700))
-            .Subscribe( pos =>
-            {
-                UpdateCurrentLyricIndex(pos);
-            }));
+        //_subs.Add(songsMgt.Position
+        //    .Sample(TimeSpan.FromMilliseconds(700))
+        //    .Subscribe( pos =>
+        //    {
+        //        UpdateCurrentLyricIndex(pos);
+        //    }));
     }
 
     private void UpdateCurrentLyricIndex(double pos)
@@ -119,7 +121,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         var current = _synchronizer.GetCurrentLine(TimeSpan.FromSeconds(pos));
         if (current != null)
         {
-            _state.SetCurrentLyric(current);    
+            _state.SetCurrentLyric(current);
         }
     }
 

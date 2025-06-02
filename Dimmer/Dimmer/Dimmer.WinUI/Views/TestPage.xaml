@@ -1,20 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Window
-    x:Class="Dimmer.WinUI.Views.TestPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    xmlns:vm="using:Dimmer.ViewModel"
-    Title="TestPage"
-    >
+<?xml version="1.0" encoding="utf-8" ?>
+<Window x:Class="Dimmer.WinUI.Views.TestPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="using:Dimmer.WinUI.Views" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Dimmer.ViewModel" Title="TestPage"
+        mc:Ignorable="d"
+        >
 
-    <Grid DataContext="{x:Bind MyViewModel}" >
-       
+    <Grid>
+
         <!--<Slider Value="{x:Bind MyViewModel.CurrentPositionPercentageUI}" ValueChanged="Slider_ValueChanged"/>-->
-        
-      
+
+
     </Grid>
 </Window>

@@ -5,9 +5,9 @@ public class MusicMetadataService : IMusicMetadataService
     private readonly Dictionary<string, ArtistModel> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AlbumModel> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, GenreModel> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly List<SongModel> _songs = new(); // Or a dictionary for faster lookups if needed
+    private readonly List<SongModel> _songs = new(); 
 
-    // For tracking newly created entities during a session, if needed for persistence
+    
     public List<ArtistModel> NewArtists { get; } = new();
     public List<AlbumModel> NewAlbums { get; } = new();
     public List<GenreModel> NewGenres { get; } = new();
@@ -15,7 +15,7 @@ public class MusicMetadataService : IMusicMetadataService
 
     public MusicMetadataService() { }
 
-    // Call this if you have pre-existing data to load (e.g., from a database)
+    
     public void LoadExistingData(
         IEnumerable<ArtistModel> existingArtists,
         IEnumerable<AlbumModel> existingAlbums,
@@ -75,7 +75,7 @@ public class MusicMetadataService : IMusicMetadataService
         }
         else if (album.ImagePath == null && initialCoverPath != null)
         {
-            // Update existing album if it was missing a cover and now we have one
+            
             album.ImagePath = initialCoverPath;
             
         }
@@ -104,14 +104,42 @@ public class MusicMetadataService : IMusicMetadataService
 
     public bool DoesSongExist(string title, int durationInSeconds)
     {
-        // Simple duplicate check, can be made more robust
-        return _songs.Any(s =>
+        
+        if (_songs == null)
+        {
+            
+            System.Diagnostics.Debug.WriteLine("Error: _songs collection is null in DoesSongExist.");
+            return false; 
+        }
+
+        title??=string.Empty;
+
+        bool exists = _songs.Any(s =>
+            s != null && 
+            s.Title != null && 
             s.Title.Equals(title, System.StringComparison.OrdinalIgnoreCase) &&
             s.DurationInSeconds == durationInSeconds);
+
+        return exists; 
     }
 
-    public IReadOnlyList<ArtistModel> GetAllArtists() => _artistsByName.Values.ToList();
-    public IReadOnlyList<AlbumModel> GetAllAlbums() => _albumsByName.Values.ToList();
-    public IReadOnlyList<GenreModel> GetAllGenres() => _genresByName.Values.ToList();
-    public IReadOnlyList<SongModel> GetAllSongs() => _songs.ToList();
+    public IReadOnlyList<ArtistModel> GetAllArtists()
+    {
+        return _artistsByName.Values.ToList();
+    }
+
+    public IReadOnlyList<AlbumModel> GetAllAlbums()
+    {
+        return _albumsByName.Values.ToList();
+    }
+
+    public IReadOnlyList<GenreModel> GetAllGenres()
+    {
+        return _genresByName.Values.ToList();
+    }
+
+    public IReadOnlyList<SongModel> GetAllSongs()
+    {
+        return _songs.ToList();
+    }
 }

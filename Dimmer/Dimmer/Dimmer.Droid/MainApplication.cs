@@ -1,5 +1,8 @@
 using Android.App;
 using Android.Runtime;
+using AndroidX.DrawerLayout.Widget;
+using Dimmer.CustomShellRenderers;
+using Debug = System.Diagnostics.Debug;
 
 namespace Dimmer;
 
@@ -13,15 +16,15 @@ public class MainApplication : MauiApplication
 
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
-        
+
     }
 
 
     public static void HandleAppAction(AppAction appAction)
     {
         Debug.WriteLine($"HandleAppAction invoked with ID: {appAction.Id}"); // Add logging!
-                                                                                                // Ensure you dispatch to the main thread for UI work
-        
+                                                                             // Ensure you dispatch to the main thread for UI work
+
     }
 
 
@@ -44,7 +47,7 @@ public class MainApplication : MauiApplication
         Debug.WriteLine(errorDetails);
 
         // Log to file
-       LogException(e.Exception);
+        LogException(e.Exception);
 
     }
     private static readonly object _logLock = new();
@@ -100,6 +103,79 @@ public class MainApplication : MauiApplication
         catch (Exception loggingEx)
         {
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
+        }
+    }
+    sealed partial class MyDrawerListener : DrawerLayout.SimpleDrawerListener
+    {
+        private readonly MyShellRenderer _renderer;
+        private readonly Android.Views.View _contentViewToAnimate; // The main content view
+
+        public MyDrawerListener(MyShellRenderer renderer, Android.Views.View contentView)
+        {
+            _renderer = renderer;
+            _contentViewToAnimate = contentView;
+        }
+
+        public override void OnDrawerSlide(Android.Views.View drawerView, float slideOffset)
+        {
+            base.OnDrawerSlide(drawerView, slideOffset);
+
+            // `drawerView` is the flyout menu view itself.
+            // `_contentViewToAnimate` is the page content area.
+
+            if (_contentViewToAnimate != null)
+            {
+                // 1. Parallax effect for content
+                // float contentTranslationX = drawerView.Width * slideOffset * 0.3f; // Adjust 0.3f for intensity
+                //_contentViewToAnimate.TranslationX = contentTranslationX;
+
+                // 2. Scale down content (subtle)
+                float scale = 1.0f - (slideOffset * 0.1f); // Scale down by 10% when fully open
+                _contentViewToAnimate.ScaleX = scale;
+                _contentViewToAnimate.ScaleY = scale;
+
+                // 3. Corner Radius for content (requires a CardView or custom background drawable)
+                // If _contentViewToAnimate is a CardView or has a GradientDrawable background,
+                // you can animate its corner radius.
+                // This is more complex as you'd need to ensure _contentViewToAnimate has this capability.
+                // For example, if _contentViewToAnimate is a FrameLayout, you could wrap its first child in a CardView.
+
+                // 4. Fade out content slightly
+                _contentViewToAnimate.Alpha = 1.0f - (slideOffset * 0.2f); // Fade out by 20%
+
+                // 5. Rotate drawer icon (hamburger to arrow) - This is usually handled by DrawerLayout itself
+                // if the Toolbar is correctly set up with it. But you could do custom things here.
+            }
+
+            // Animate flyout items (staggered reveal) - best done in MyShellFlyoutRenderer with RecyclerView
+            // but you *could* try to access children of `drawerView` here (more fragile)
+        }
+
+        public override void OnDrawerOpened(Android.Views.View drawerView)
+        {
+            base.OnDrawerOpened(drawerView);
+            // E.g., Announce for accessibility
+            drawerView.AnnounceForAccessibility("Navigation menu opened");
+        }
+
+        public override void OnDrawerClosed(Android.Views.View drawerView)
+        {
+            base.OnDrawerClosed(drawerView);
+            // Reset any transformations if not fully reset by slideOffset = 0
+            if (_contentViewToAnimate != null)
+            {
+                _contentViewToAnimate.TranslationX = 0;
+                _contentViewToAnimate.ScaleX = 1f;
+                _contentViewToAnimate.ScaleY = 1f;
+                _contentViewToAnimate.Alpha = 1f;
+            }
+            drawerView.AnnounceForAccessibility("Navigation menu closed");
+        }
+
+        public override void OnDrawerStateChanged(int newState)
+        {
+            base.OnDrawerStateChanged(newState);
+            // newState can be DrawerLayout.StateIdle, StateDragging, StateSettling
         }
     }
     protected override MauiApp CreateMauiApp()

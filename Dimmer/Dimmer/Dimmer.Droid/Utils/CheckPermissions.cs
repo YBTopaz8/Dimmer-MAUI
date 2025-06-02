@@ -40,7 +40,7 @@ public class CheckPermissions : Permissions.BasePlatformPermission // Renamed fo
              }
             
 
-            return result.ToArray();
+            return [.. result];
         }
     }
     private bool IsLegacyStorageOptedIn()

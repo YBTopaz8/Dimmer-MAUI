@@ -1,8 +1,10 @@
+using ImageButton = Microsoft.Maui.Controls.ImageButton;
+
 namespace Dimmer.Views;
 
 public partial class SettingsPage : ContentPage
 {
-	public SettingsPage(BaseViewModelAnd vm)
+    public SettingsPage(BaseViewModelAnd vm)
     {
         InitializeComponent();
         this.MyViewModel = vm;
@@ -11,7 +13,7 @@ public partial class SettingsPage : ContentPage
     BaseViewModelAnd MyViewModel { get; }
     private async void PickFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.SelectSongFromFolderAndroid();
+        //await MyViewModel.SelectSongFromFolderAndroid();
     }
 
     private static async void ReportIssueBtn_Clicked(object sender, EventArgs e)
@@ -21,23 +23,36 @@ public partial class SettingsPage : ContentPage
         await Browser.Default.OpenAsync(reportingLink, BrowserLaunchMode.SystemPreferred);
     }
 
-    private void ScanAllBtn_Clicked(object sender, EventArgs e)
+    private void DeleteBtn_Clicked(object sender, EventArgs e)
     {
-        //await MyViewModel.LoadSongsFromFolders();
+        var send = (ImageButton)sender;
+        var param = send.CommandParameter.ToString();
+        MyViewModel.DeleteFolderPath(param);
     }
 
+    private async void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+
+
+        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
+        //await MyViewModel.SelectSongFromFolderAndroid(selectedFolder);
+    }
+    private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    {
+        //await MyViewModel.SelectSongFromFolderAndroid();
+    }
     private async void ViewDevices_Clicked(object sender, EventArgs e)
     {
-        
+
         await MyDevicesPopUp.ShowAsync();
 
     }
 
-    private async void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
+    private void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
     {
         MainTabView.SelectedItemIndex = 4;
-        
-        await MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
+
+        //MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
         MyDevicesPopUp.Close();
     }
 

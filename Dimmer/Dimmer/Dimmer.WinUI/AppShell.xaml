@@ -1,14 +1,77 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.WinUI.AppShell"
-             Title="Dimmer"
-       xmlns:views ="clr-namespace:Dimmer.WinUI.Views">
+<Shell x:Class="Dimmer.WinUI.AppShell" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+       xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+       xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+       xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+       xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+       xmlns:views="clr-namespace:Dimmer.WinUI.Views" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+       Shell.FlyoutBehavior="Flyout"
+       >
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate views:HomePage}"
-        Route="MainPage" >
-        
-    </ShellContent>
+    <Shell.FlyoutContent>
+        <ScrollView Grid.Row="0" Padding="10">
+
+            <VerticalStackLayout x:Name="TopLeftPart" Spacing="15">
+
+                <syncf:SfChip x:Name="HomeChip"
+                              Clicked="SidePaneChip_Clicked" CommandParameter="0"
+                              ImageSource="house.png"
+                              Text="{Static lang:DimmerLanguage.txt_home}"
+                              />
+                <syncf:SfChip x:Name="ArtistsChip"
+                              Clicked="SidePaneChip_Clicked" CommandParameter="Artists"
+                              ImageSource="artist.png"
+                              Text="{Static lang:DimmerLanguage.txt_artist}"
+                              />
+                <syncf:SfChip x:Name="AlbumsChip"
+                              Clicked="SidePaneChip_Clicked" CommandParameter="Albums"
+                              ImageSource="musicalbum.png"
+                              Text="{Static lang:DimmerLanguage.txt_album}"
+                              />
+                <syncf:SfChip x:Name="GenresChip"
+                              Clicked="SidePaneChip_Clicked" CommandParameter="Genres"
+                              Text="Genres"
+                              />
+
+                <BoxView Margin="0,10" HeightRequest="1"
+                         Color="DarkSlateBlue"
+                         />
+                <syncf:SfChip x:Name="LastPlayedChip"
+                              CommandParameter="LastPlayed" ImageSource="repeat.png"
+                              Text="Last Played"
+                              />
+
+                <!--<syncf:SfChip x:Name="ScrollToChip"
+                        Clicked="SidePaneChip_Clicked" CommandParameter="Scroll"
+                        ImageSource="eye.png" Text="Scroll To"
+                        />-->
+
+
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Shell.FlyoutContent>
+
+
+    <Shell.FlyoutFooter>
+
+        <VerticalStackLayout x:Name="BottomLeft" Grid.Row="1">
+            <syncf:SfChip x:Name="SettingsChip"
+                          Clicked="SettingsChip_Clicked" CommandParameter="Settings"
+                          Text="Settings"
+                          >
+                <syncf:SfChip.ImageSource>
+                    <FontImageSource FontFamily="FontAwesomeSolid" Glyph="cog"
+                                     Color="DarkSlateBlue"
+                                     />
+                </syncf:SfChip.ImageSource>
+            </syncf:SfChip>
+        </VerticalStackLayout>
+    </Shell.FlyoutFooter>
+    <ShellContent Title="Home"
+                  ContentTemplate="{DataTemplate views:HomePage}"
+                  Route="MainPage"
+                  />
 </Shell>
