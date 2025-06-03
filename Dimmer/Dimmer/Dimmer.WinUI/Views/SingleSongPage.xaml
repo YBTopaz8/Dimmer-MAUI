@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="Dimmer.WinUI.Views.SingleSongPage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-    xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
-    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    x:Name="myPage"
-    Title="SingleSongPage"
-    x:DataType="vm:BaseViewModelWin">
+<ContentPage x:Name="myPage"
+             x:Class="Dimmer.WinUI.Views.SingleSongPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             Title="SingleSongPage" x:DataType="vm:BaseViewModelWin"
+             Shell.NavBarIsVisible="False"
+             >
     <ContentPage.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
         <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
@@ -24,182 +20,99 @@
 
     </ContentPage.Resources>
 
-    <!--<Grid ColumnDefinitions="auto,*">
-        <Grid RowDefinitions="600,*,*">
-            <Image Grid.Row="0" Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-            <syncf:SfChipGroup
-                Grid.Row="1"
-                ChipClicked="SfChipGroup_ChipClicked"
-                ChipTextColor="White"
-                ChipType="Choice"
-                HorizontalOptions="Center"
-                SelectedChipTextColor="White"
-                SelectionIndicatorColor="DarkSlateBlue">
-                <syncf:SfChipGroup.ChipLayout>
-                    <VerticalStackLayout HorizontalOptions="Start" Spacing="10" />
-                </syncf:SfChipGroup.ChipLayout>
-                <syncf:SfChipGroup.Items>
-                    <syncf:SfChip
-                        CommandParameter="0"
-                        Text="{Binding TemporarilyPickedSong.Title}"
-                        TextColor="White" />
-                    <syncf:SfChip
-                        CommandParameter="1"
-                        Text="{Binding TemporarilyPickedSong.ArtistName}"
-                        TextColor="White" />
-                    <syncf:SfChip
-                        CommandParameter="2"
-                        Text="{Binding TemporarilyPickedSong.AlbumName}"
-                        TextColor="White" />
-                    <syncf:SfChip
-                        CommandParameter="3"
-                        ImageSource="lyrics.png"
-                        ShowIcon="{Binding TemporarilyPickedSong.HasSyncedLyrics}" />
-                </syncf:SfChipGroup.Items>
-            </syncf:SfChipGroup>
+    <Grid ColumnDefinitions="400,*">
+        <Image Grid.ColumnSpan="2" BackgroundColor="Transparent"
+               Opacity="0.2"
+               Source="{Binding SelectedSongOnPage.CoverImagePath}"
+               />
 
-            <VerticalStackLayout Grid.Row="2">
-                <syncf:SfChipGroup
-                    x:Name="MediaChipBtn"
-                    ChipClicked="MediaChipBtn_ChipClicked"
-                    ChipType="Action"
-                    HorizontalOptions="Center"
-                    SelectionIndicatorColor="DarkSlateBlue">
-                    <syncf:SfChipGroup.Resources>
-                        <ResourceDictionary>
-                            <Style TargetType="syncf:SfChip">
-                                <Setter Property="ShowIcon" Value="True" />
-                                <Setter Property="StrokeThickness" Value="0" />
-                                <Setter Property="ImageSize" Value=" 40" />
-                                <Setter Property="Text" Value="" />
-                            </Style>
-                        </ResourceDictionary>
-                    </syncf:SfChipGroup.Resources>
-                    <syncf:SfChipGroup.ChipLayout>
-                        <HorizontalStackLayout HorizontalOptions="Start" Spacing="10" />
-                    </syncf:SfChipGroup.ChipLayout>
-                    <syncf:SfChipGroup.Items>
+        <Grid Grid.Column="0" Margin="10,10"
+              RowDefinitions="*,auto"
+              >
+            <VerticalStackLayout Grid.Row="0" BackgroundColor="Transparent"
+                                 Spacing="10" VerticalOptions="Start"
+                                 >
+                <Image HeightRequest="200"
+                       Source="{Binding SelectedSongOnPage.CoverImagePath}"
+                       WidthRequest="200"
+                       />
+                <VerticalStackLayout HorizontalOptions="Center">
 
-                        <syncf:SfChip
-                            CommandParameter="0"
-                            HorizontalOptions="Center"
-                            ImageSize="40">
+                    <Label FontSize="55" HorizontalTextAlignment="Center"
+                           Text="{Binding SelectedSongOnPage.Title}"
+                           TextColor="DarkSlateBlue"
+                           />
+                    <Label FontSize="40" HorizontalTextAlignment="Center"
+                           Text="{Binding SelectedSongOnPage.ArtistName}"
+                           />
+                    <Label FontSize="30" HorizontalTextAlignment="Center"
+                           Text="{Binding SelectedSongOnPage.AlbumName}"
+                           />
+                    <Label FontSize="20" HorizontalTextAlignment="Center"
+                           Text="{Binding SelectedSongOnPage.ReleaseYear}"
+                           />
 
-                            <syncf:SfChip.Triggers>
-
-                                <DataTrigger
-                                    Binding="{Binding RepeatMode}"
-                                    TargetType="syncf:SfChip"
-                                    Value="0">
-
-                                    <Setter Property="ImageSource" Value="repoff.png" />
-                                </DataTrigger>
-
-                                <DataTrigger
-                                    Binding="{Binding RepeatMode}"
-                                    TargetType="syncf:SfChip"
-                                    Value="1">
-
-                                    <Setter Property="ImageSource" Value="repeat.png" />
-                                </DataTrigger>
-
-                                <DataTrigger
-                                    Binding="{Binding RepeatMode}"
-                                    TargetType="syncf:SfChip"
-                                    Value="2">
-
-                                    <Setter Property="ImageSource" Value="repone.png" />
-                                </DataTrigger>
-
-                                <DataTrigger
-                                    Binding="{Binding RepeatMode}"
-                                    TargetType="syncf:SfChip"
-                                    Value="4">
-                                    <Setter Property="ImageSource" Value="repone.png" />
-                                </DataTrigger>
-                            </syncf:SfChip.Triggers>
-                        </syncf:SfChip>
-
-
-                        <syncf:SfChip
-                            CommandParameter="1"
-                            ImageSource="skipprevious.png"
-                            TextColor="White" />
-
-                        <syncf:SfChip
-                            CommandParameter="2"
-                            ImageSource="pause.png"
-                            IsVisible="{Binding IsPlaying}"
-                            TextColor="White" />
-
-                        <syncf:SfChip
-                            CommandParameter="3"
-                            ImageSource="playcircle.png"
-                            IsVisible="{Binding IsPlaying, Converter={x:StaticResource BoolToInverse}}"
-                            TextColor="White" />
-
-                        <syncf:SfChip
-                            CommandParameter="4"
-                            ImageSource="skipnext.png"
-                            TextColor="White" />
-                        <syncf:SfChip
-                            CommandParameter="5"
-                            ImageSource="shuffle.png"
-                            TextColor="White">
-
-                            <syncf:SfChip.Triggers>
-
-                                <DataTrigger
-                                    Binding="{Binding IsShuffle}"
-                                    TargetType="syncf:SfChip"
-                                    Value="True">
-
-                                    <Setter Property="BackgroundColor" Value="#B197FC" />
-                                </DataTrigger>
-
-                                <DataTrigger
-                                    Binding="{Binding IsPlaying}"
-                                    TargetType="syncf:SfChip"
-                                    Value="False">
-
-                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                </DataTrigger>
-
-                            </syncf:SfChip.Triggers>
-                        </syncf:SfChip>
-
-                    </syncf:SfChipGroup.Items>
-                </syncf:SfChipGroup>
-
-                <Grid ColumnDefinitions="auto,*,auto" ColumnSpacing="5">
-
-                    <Label
-                        Grid.Column="0"
-                        Margin="0,5,0,0"
-                        FontSize="16"
-                        HorizontalOptions="Center"
-                        Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" />
-                    <Slider
-                        x:Name="CurrentPositionSlider"
-                        Grid.Column="1"
-                        DragCompleted="CurrentPositionSlider_DragCompleted"
-                        Maximum="{Binding TemporarilyPickedSong.DurationInSeconds}"
-                        Minimum="0"
-                        MinimumTrackColor="DarkSlateBlue"
-                        ThumbColor="AliceBlue"
-                        VerticalOptions="End"
-                        Value="{Binding CurrentPositionInSeconds}" />
-
-                    <Label
-                        Grid.Column="2"
-                        Margin="0,5,0,0"
-                        FontSize="16"
-                        HorizontalOptions="Center"
-                        Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
-                </Grid>
+                </VerticalStackLayout>
             </VerticalStackLayout>
 
+            <HorizontalStackLayout Grid.Row="1" VerticalOptions="End">
+                <HorizontalStackLayout.Resources>
+                    <ResourceDictionary>
+                        <Style TargetType="syncf:SfChip">
+
+                        </Style>
+                    </ResourceDictionary>
+                </HorizontalStackLayout.Resources>
+                <syncf:SfChip x:Name="ToggleFav"
+                              Clicked="ToggleFav_Clicked" ImageSize="40"
+                              ImageSource="heartbroken.png" WidthRequest="60"
+                              >
+                    <syncf:SfChip.Triggers>
+                        <DataTrigger Binding="{Binding SelectedSongOnPage.IsFavorite}"
+                                     TargetType="syncf:SfChip" Value="True"
+                                     >
+
+                            <Setter Property="ImageSource" Value="heart.png" />
+                            <Setter Property="Stroke" Value="DarkSlateBlue" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SelectedSongOnPage.IsFavorite}"
+                                     TargetType="syncf:SfChip" Value="False"
+                                     >
+
+                            <Setter Property="ImageSource" Value="heart.png" />
+                            <Setter Property="Stroke" Value="Grey" />
+                        </DataTrigger>
+                    </syncf:SfChip.Triggers>
+                </syncf:SfChip>
+
+                <syncf:SfChip ImageSource="lyricist.png" />
+            </HorizontalStackLayout>
+
         </Grid>
-        <Grid />
-    </Grid>-->
+
+        <Grid Grid.Column="1" RowDefinitions="auto,*">
+
+
+            <VerticalStackLayout Grid.Row="0" Margin="20"
+                                 Spacing="20"
+                                 >
+                <Label FontSize="28" Text="{Binding SingleSongStatsSumm.SongTitle, StringFormat='Song Name: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.ArtistName, StringFormat='Artist Name: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.LongestListeningStreakDays, StringFormat='Longest Listening Streak : {0} Days'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.AveragePercentListened, StringFormat='AveragePercentListened : {0:n2}%'}" />
+
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.TotalSkips, StringFormat='Total Skips: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.TotalPlays, StringFormat='Total Plays: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.PlayCountInRomanNumerals, StringFormat='Played Count (In Roman Numeral) : {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.Completions, StringFormat='Total Completions: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.TotalListeningTimeFormatted, StringFormat='Total Listening Time: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.SeekFrequency, StringFormat='Seek Frequency: {0}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.FirstPlayedDate, StringFormat='First Date Played: {0:dddd dd, MMMM yyyy}'}" />
+                <Label FontSize="24" Text="{Binding SingleSongStatsSumm.LastPlayedDate, StringFormat='Latest Date Played: {0:dddd dd, MMMM yyyy}'}" />
+
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Grid.Row="1" />
+        </Grid>
+    </Grid>
 </ContentPage>

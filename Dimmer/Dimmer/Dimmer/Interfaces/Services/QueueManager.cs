@@ -163,7 +163,7 @@ public class QueueManager<T> : IQueueManager<T>
 
     public int Count => _source.Count;
 
-    public IReadOnlyList<T> Items => _source.AsReadOnly();
+    public IReadOnlyList<T> CurrentItems => _source.AsReadOnly();
 
     public int CurrentBatchId => _currentBatchIdValue;
 

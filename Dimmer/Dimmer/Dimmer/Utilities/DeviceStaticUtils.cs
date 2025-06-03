@@ -10,6 +10,7 @@ public class DeviceStaticUtils
     }
 
     public static ArtistModelView? SelectedArtistOne { get; set; }
+    public static SongModelView SelectedSongOne { get; set; }
     public static ArtistModelView? SelectedArtistTwo { get; set; }
 
 }

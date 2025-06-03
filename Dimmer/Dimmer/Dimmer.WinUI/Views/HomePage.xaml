@@ -41,7 +41,7 @@
 
 
         <Grid RowDefinitions="*,auto">
-            <Image Opacity="0.06" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+            <Image Opacity="0.1" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
             <Grid x:Name="MainUI"
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >
@@ -55,7 +55,7 @@
                             <Style TargetType="Label">
                                 <Setter Property="FontSize" Value="21" />
                                 <Setter Property="FontAttributes" Value="Bold" />
-                                <Setter Property="WidthRequest" Value="200" />
+                                <Setter Property="WidthRequest" Value="300" />
                             </Style>
                             <Style TargetType="Border">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
@@ -66,7 +66,8 @@
 
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer x:Name="CurrPlayingSongGesRec"
-                                                      CommandParameter="Tit" Tapped="CurrPlayingSongGesRec_Tapped"
+                                                      CommandParameter="{Binding CurrentPlayingSongView}"
+                                                      Tapped="CurrPlayingSongGesRec_Tapped"
                                                       />
                             </Border.GestureRecognizers>
 
@@ -90,8 +91,9 @@
 
                         </Border>
                         <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="30"
-                                      ImageSource="chart.png" ShowIcon="True"
-                                      StrokeThickness="0" WidthRequest="40"
+                                      ImageSource="bookmark.png" ShowIcon="True"
+                                      StrokeThickness="0" ToolTipProperties.Text="Save To Playlist"
+                                      WidthRequest="40"
                                       />
                     </HorizontalStackLayout>
                     <Grid x:Name="SecondA"
@@ -255,7 +257,20 @@
                             </Grid.Resources>
                             <syncf:SfChip Grid.Column="0" Clicked="Sort_Clicked"
                                           CommandParameter="Title" Text="Title"
-                                          />
+                                          >
+                                <syncf:SfChip.Triggers>
+                                    <DataTrigger Binding="{Binding IsPlaying}"
+                  TargetType="syncf:SfChip" Value="true"
+                  >
+                                        <Setter Property="ImageSource" Value="pause.png" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsPlaying}"
+                  TargetType="syncf:SfChip" Value="false"
+                  >
+                                        <Setter Property="ImageSource" Value="play.png" />
+                                    </DataTrigger>
+                                </syncf:SfChip.Triggers>
+                            </syncf:SfChip>
                             <syncf:SfChip Grid.Column="1" Clicked="Sort_Clicked"
                                           CommandParameter="Artist" Text="Artist"
                                           />
@@ -318,11 +333,19 @@
                                                     <Setter Property="FontSize" Value="18" />
                                                 </Style>
                                             </Grid.Resources>
-                                            <Label Grid.Column="0" Text="{Binding Title}" />
+                                            <Label Grid.Column="0" Text="{Binding Title}">
+                                                <FlyoutBase.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem x:Name="ViewSong"
+                                                                        Clicked="ViewSong_Clicked"
+                                                                        CommandParameter="{Binding .}"
+                                                                        Text="View Song Info"
+                                                                        />
+                                                    </MenuFlyout>
+                                                </FlyoutBase.ContextFlyout>
+                                            </Label>
                                             <syncf:SfEffectsView x:Name="ArtistsEffectsView"
                                                                  Grid.Column="1" BackgroundColor="Transparent"
-                                                                 LongPressEffects="Scale" LongPressed="ArtistsEffectsView_LongPressed"
-                                                                 LongPressedCommandParameter="{Binding .}"
                                                                  >
                                                 <FlyoutBase.ContextFlyout>
                                                     <MenuFlyout>
@@ -331,6 +354,7 @@
                                                                         Text="{Binding ArtistName, StringFormat='View Artists : {0}'}"
                                                                         />
                                                     </MenuFlyout>
+
                                                 </FlyoutBase.ContextFlyout>
                                                 <Label Grid.Column="1" HorizontalOptions="Center"
                                                        Text="{Binding ArtistName}"

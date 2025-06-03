@@ -55,6 +55,7 @@ public static class MauiProgram
                         PlatUtils.DimmerHandle = nativeWindowHandle;
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
+
                         winuiAppWindow.Changed += (s, e) =>
                         {
                             if (e.DidVisibilityChange)
@@ -69,6 +70,11 @@ public static class MauiProgram
 
 
                     }
+
+
+
+
+
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")
                     {

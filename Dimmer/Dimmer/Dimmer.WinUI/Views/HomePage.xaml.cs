@@ -79,8 +79,24 @@ public partial class HomePage : ContentPage
 
     private async void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
     {
+        var song = e.Parameter as SongModelView;
+        if (song is not null)
+        {
+            DeviceStaticUtils.SelectedSongOne = song;
+            await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+            return;
+        }
 
-        var art = MyViewModel.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
+        switch (e.Parameter)
+        {
+            case "Alb":
+                //DeviceStaticUtils.SelectedAlbumOne = song.AlbumId;
+                //await Shell.Current.GoToAsync(nameof(AlbumPage), true);
+                return;
+            default:
+                break;
+        }
+        var art = MyViewModel.CurrentPlayingSongView.ArtistIds.FirstOrDefault();
         DeviceStaticUtils.SelectedArtistOne = art;
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
@@ -265,7 +281,7 @@ public partial class HomePage : ContentPage
         }
 
         // Optional: Scroll to top after sorting
-        // if (SongsColView.Items.Count > 0)
+        // if (SongsColView.CurrentItems.Count > 0)
         // {
         //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
         // }
@@ -311,5 +327,14 @@ public partial class HomePage : ContentPage
 
 
         }
+    }
+
+    private static async void ViewSong_Clicked(object sender, EventArgs e)
+    {
+
+        var song = (SongModelView)((MenuFlyoutItem)sender).CommandParameter;
+
+        DeviceStaticUtils.SelectedSongOne = song;
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
 }

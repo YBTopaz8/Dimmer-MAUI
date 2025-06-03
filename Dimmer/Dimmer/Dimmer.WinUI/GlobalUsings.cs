@@ -54,7 +54,6 @@ global using Windows.Storage.Streams;
 global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 global using Dimmer.Utilities;
 global using Dimmer.WinUI.Utils.Helpers;
-global using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
 
 global using System.Drawing;
 global using System.Reflection;

@@ -98,8 +98,10 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     }
 
-
+    
 
     [ObservableProperty]
     public partial bool IsSearching { get; set; }
+    [ObservableProperty]
+    public partial SongModelView SelectedSongOnPage { get; set; }
 }
