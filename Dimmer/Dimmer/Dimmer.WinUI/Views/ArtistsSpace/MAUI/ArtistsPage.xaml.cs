@@ -35,6 +35,10 @@ public partial class ArtistsPage : ContentPage
     {
         await Shell.Current.GoToAsync("..");
     }
+    private async void PlayAll_Clicked(object sender, EventArgs e)
+    {
+        
+    }
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Name="myPage"
+             x:Class="Dimmer.WinUI.Views.SingleSongPages.SingleSongPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+             xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer" xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
+             >
+
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+
+
+        <DataTemplate x:Key="MultiColumnsView">
+            <Grid ColumnDefinitions="0.4,*,*,*,*,*,*">
+                <HorizontalStackLayout Grid.Column="0" />
+                <HorizontalStackLayout Grid.Column="1" />
+                <HorizontalStackLayout Grid.Column="2" />
+                <HorizontalStackLayout Grid.Column="3" />
+                <HorizontalStackLayout Grid.Column="4" />
+                <HorizontalStackLayout Grid.Column="5" />
+
+            </Grid>
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <Grid x:Name="MainAppGrid"
+          Margin="10" ColumnDefinitions="300,*"
+          >
+
+        <Grid Grid.Column="0" RowDefinitions="*,*">
+            <VerticalStackLayout Grid.Row="0">
+                <ImageButton Aspect="AspectFill" Source="{Binding CurrentPlayingSongView.ImageBytes}" />
+
+                <Label Margin="0,10,0,0" FontAttributes="Bold"
+                       FontSize="24" HorizontalOptions="Center"
+                       Text="{Binding CurrentPlayingSongView.Title}"
+                       VerticalOptions="Start"
+                       />
+
+                <Label Margin="0,10,0,0" FontAttributes="Bold"
+                       FontSize="24" HorizontalOptions="Center"
+                       Text="{Binding CurrentPlayingSongView.ArtistName}"
+                       VerticalOptions="Start"
+                       />
+
+                <Label Margin="0,10,0,0" FontAttributes="Bold"
+                       FontSize="24" HorizontalOptions="Center"
+                       Text="{Binding CurrentPlayingSongView.AlbumName}"
+                       VerticalOptions="Start"
+                       />
+
+                <Label Margin="0,10,0,0" FontAttributes="Bold"
+                       FontSize="24" HorizontalOptions="Center"
+                       Text="{Binding CurrentPlayingSongView.Genre}"
+                       VerticalOptions="Start"
+                       />
+
+                <Label Margin="0,10,0,0" FontAttributes="Bold"
+                       FontSize="24" HorizontalOptions="Center"
+                       Text="{Binding CurrentPlayingSongView.ReleaseYear}"
+                       VerticalOptions="Start"
+                       />
+
+            </VerticalStackLayout>
+
+            <HorizontalStackLayout Grid.Column="1" HorizontalOptions="Center"
+                                   VerticalOptions="Start"
+                                   >
+                <syncf:SfChip ImageSource="fileinfo.png" />
+
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid Grid.Column="1" />
+    </Grid>
+
+
+</ContentPage>

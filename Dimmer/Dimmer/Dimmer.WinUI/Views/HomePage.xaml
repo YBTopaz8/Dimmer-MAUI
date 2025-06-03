@@ -55,6 +55,7 @@
                             <Style TargetType="Label">
                                 <Setter Property="FontSize" Value="21" />
                                 <Setter Property="FontAttributes" Value="Bold" />
+                                <Setter Property="WidthRequest" Value="200" />
                             </Style>
                             <Style TargetType="Border">
                                 <Setter Property="BackgroundColor" Value="Transparent" />

@@ -5,6 +5,8 @@ using System.ComponentModel;
 
 using Android.Views;
 
+using CommunityToolkit.Maui.Storage;
+
 using Dimmer.Data.Models;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
@@ -22,6 +24,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly AlbumsMgtFlow albumsMgtFlow;
+    private readonly IFolderPicker folderPicker;
     private readonly IDimmerAudioService audioService;
     private readonly PlayListMgtFlow playlistsMgtFlow;
     private readonly SongsMgtFlow songsMgtFlow;
@@ -43,7 +46,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     // Removed local _stateService and _mapper as they are protected in BaseViewModel
     private readonly ILogger<BaseViewModelAnd> logger;
 
-    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow,
+    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
        IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, artistRepository, albumRepository, genreRepository, logger)
     {
@@ -52,6 +55,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.appInitializerService=appInitializerService;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.albumsMgtFlow=albumsMgtFlow;
+        this.folderPicker=folderPicker;
         audioService=_audioService;
         this.playlistsMgtFlow=playlistsMgtFlow;
         this.songsMgtFlow=songsMgtFlow;
@@ -128,24 +132,33 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
         if (status == PermissionStatus.Granted)
         {
-            _logger.LogInformation("SelectSongFromFolderAndroid: Storage permission granted.");
-            string? selectedFolderPath = "/storage/emulated/0/Music/TestFolder"; // Placeholder
+            var res = await folderPicker.PickAsync(CancellationToken.None);
 
-            if (!string.IsNullOrEmpty(selectedFolderPath))
+            if (res is null)
             {
-                _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
-                // The FolderManagementService should handle adding to settings and triggering the scan.
-                // We just need to tell it the folder was selected by the user.
 
-                await _folderMgtService.AddFolderToWatchListAndScanAsync(selectedFolderPath); // This method in IFolderMgtService will:
-                                                                                              // 1. Add to ISettingsService
-                                                                                              // 2. Restart IFolderMonitorService
-                                                                                              // 3. Call ILibraryScannerService.ScanSpecificPathsAsync for this new path
+
+                string? selectedFolderPath = res!.Folder!.Path;
+
+                if (!string.IsNullOrEmpty(selectedFolderPath))
+                {
+                    _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
+                    // The FolderManagementService should handle adding to settings and triggering the scan.
+                    // We just need to tell it the folder was selected by the user.
+
+                    await _folderMgtService.AddFolderToWatchListAndScanAsync(selectedFolderPath); // This method in IFolderMgtService will:
+                                                                                                  // 1. Add to ISettingsService
+                                                                                                  // 2. Restart IFolderMonitorService
+                                                                                                  // 3. Call ILibraryScannerService.ScanSpecificPathsAsync for this new path
+                }
+                else
+                {
+                    _logger.LogInformation("No folder selected by user.");
+                }
+
+
             }
-            else
-            {
-                _logger.LogInformation("No folder selected by user.");
-            }
+
         }
         else
         {
@@ -199,10 +212,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
             int startIndex = DisplayedSongs.IndexOf(songToPlay);
             playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Current Displayed List");
         }
-        else
-        {
 
-        }
     }
 
 }

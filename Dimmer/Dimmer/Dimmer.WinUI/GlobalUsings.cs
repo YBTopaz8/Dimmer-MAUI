@@ -24,6 +24,7 @@ global using Dimmer.Orchestration;
 global using Dimmer.Utilities.Enums;
 global using System.Threading.Tasks;
 
+global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 global using Syncfusion.Maui.Toolkit.Chips;
 global using Syncfusion.Maui.Toolkit.EffectsView;

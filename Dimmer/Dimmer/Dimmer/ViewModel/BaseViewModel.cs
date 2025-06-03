@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
 
+using ATL;
+
 using CommunityToolkit.Mvvm.Input;
 
 using Dimmer.Interfaces.Services.Interfaces;
@@ -226,8 +228,20 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 // Ensure UI thread for UI properties
                 .Subscribe(songView =>
                 {
-                    _logger.LogTrace("BaseViewModel: _stateService.CurrentSong emitted: {SongTitle}", songView?.Title ?? "None");
+                    if (songView is null)
+                    {
+                        return;
+                    }
+                    CurrentPlayingSongView = null;
+                    Track trck = new Track(songView.FilePath);
                     CurrentPlayingSongView = songView;
+                    var e = trck.EmbeddedPictures.FirstOrDefault();
+                    if (e is not null && CurrentPlayingSongView.ImageBytes is null)
+                    {
+                        CurrentPlayingSongView.ImageBytes = e.PictureData;
+                    }
+                    _logger.LogTrace("BaseViewModel: _stateService.CurrentSong emitted: {SongTitle}", songView?.Title ?? "None");
+
                     CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
                     AppTitle = songView != null
                         ? $"{songView.Title} - {songView.ArtistName} [{songView.AlbumName}] | {CurrentAppVersion}"
@@ -266,6 +280,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     IsPlaying= evt.EventArgs.IsPlaying;
                     if (IsPlaying)
                     {
+
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
                     }
                     else

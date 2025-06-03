@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
 using View = Microsoft.Maui.Controls.View;
