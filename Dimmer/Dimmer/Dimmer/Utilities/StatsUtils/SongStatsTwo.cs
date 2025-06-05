@@ -82,7 +82,7 @@ public static class SongStatTwop
             .Where(e => e.PlayType == 1 || e.PlayType == 3 || e.PlayType == 5) // Pause, Completed, Skipped
             .ToList();
 
-        if (!terminalEvents.Any())
+        if (terminalEvents.Count==0)
             return 0;
 
         double totalPercentageSum = 0;
@@ -109,7 +109,7 @@ public static class SongStatTwop
 
     private static DateTimeOffset? CoreGetLastPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
     {
-        if (!songSpecificEvents.Any())
+        if (songSpecificEvents.Count==0)
             return null;
         // Considers any event's DatePlayed for "last activity"
         return songSpecificEvents.Max(e => e.DatePlayed);
@@ -226,7 +226,7 @@ public static class SongStatTwop
     /// <summary>Gets the date this song was first played based on any of its specific events.</summary>
     public static DateTimeOffset? GetSongFirstPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
     {
-        if (!songSpecificEvents.Any())
+        if (songSpecificEvents.Count==0)
             return null;
         return songSpecificEvents.Min(e => e.DatePlayed);
     }
@@ -365,7 +365,7 @@ public static class SongStatTwop
     /// <summary>Gets the distribution of all play event types for the song.</summary>
     public static List<LabelValue> GetPlayTypeDistribution(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
     {
-        if (!songSpecificEvents.Any())
+        if (songSpecificEvents.Count==0)
             return [];
         return songSpecificEvents.GroupBy(e => e.PlayType)
                          .Select(g => new LabelValue(GetPlayTypeName(g.Key), g.Count()))

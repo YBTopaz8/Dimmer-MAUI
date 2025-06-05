@@ -320,7 +320,8 @@ public partial class SongsMgtFlow : IDisposable
     {
         double newVolume = Math.Clamp(volume, 0.0, 1.0);
         _logger.LogDebug("AudioEngine: UI Requesting SetVolume to {Volume}", newVolume);
-        _state.SetDeviceVolume(newVolume);
+
+        _audio.Volume = newVolume; // Update audio service volume
     }
 
     public void Dispose()

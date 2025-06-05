@@ -27,16 +27,16 @@ public static class AudioFileUtils
         ParseAndAddNames(primaryArtistField, names);
         ParseAndAddNames(albumArtistField, names);
 
-        if (!names.Any() && !string.IsNullOrWhiteSpace(primaryArtistField))
+        if (names.Count==0 && !string.IsNullOrWhiteSpace(primaryArtistField))
         {
             // If parsing failed to split but there was content, add the raw field.
             names.Add(primaryArtistField.Trim());
         }
-        if (!names.Any() && !string.IsNullOrWhiteSpace(albumArtistField))
+        if (names.Count==0 && !string.IsNullOrWhiteSpace(albumArtistField))
         {
             names.Add(albumArtistField.Trim());
         }
-        if (!names.Any())
+        if (names.Count==0)
         {
             names.Add("Unknown Artist");
         }
@@ -51,13 +51,14 @@ public static class AudioFileUtils
 
         // Normalize separators: "feat.", "ft.", "vs.", "vs", "&", " x ", " X "
         string normalized = input
-            .Replace(" feat. ", ",", StringComparison.OrdinalIgnoreCase)
-            .Replace(" featuring ", ",", StringComparison.OrdinalIgnoreCase)
-            .Replace(" ft. ", ",", StringComparison.OrdinalIgnoreCase)
-            .Replace(" vs. ", ",", StringComparison.OrdinalIgnoreCase)
-            .Replace(" vs ", ",", StringComparison.OrdinalIgnoreCase)
-            .Replace(" & ", ",", StringComparison.OrdinalIgnoreCase)
-            .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase); // "Artist A x Artist B"
+            .Replace(" feat. ", "" +
+            "|", StringComparison.OrdinalIgnoreCase)
+            .Replace(" featuring ", "|", StringComparison.OrdinalIgnoreCase)
+            .Replace(" ft. ", "|", StringComparison.OrdinalIgnoreCase)
+            .Replace(" vs. ", "|", StringComparison.OrdinalIgnoreCase)
+            .Replace(" vs ", "|", StringComparison.OrdinalIgnoreCase)
+            .Replace(" & ", "|", StringComparison.OrdinalIgnoreCase)
+            .Replace(" x ", "|", StringComparison.OrdinalIgnoreCase); // "Artist A x Artist B"
 
         string[] individualArtists = normalized.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -79,7 +80,7 @@ public static class AudioFileUtils
         int semiColonIndex = rawTitle.IndexOf(';');
         if (semiColonIndex > 0)
         {
-            return rawTitle.Substring(0, semiColonIndex).Trim();
+            return rawTitle[..semiColonIndex].Trim();
         }
         return rawTitle.Trim();
     }

@@ -24,7 +24,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// </value>
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
     public IList<SongModel>? SongsInPlaylist { get; }
     public string? CurrentSongId { get; set; }
     public string? Description { get; set; }

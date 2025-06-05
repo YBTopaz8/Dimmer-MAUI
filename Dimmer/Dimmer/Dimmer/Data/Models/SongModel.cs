@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.Models;
+﻿using ATL;
+
+namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
@@ -70,7 +72,9 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// The file format.
     /// </value>
     public string FileFormat { get; set; } = string.Empty;
+    public string Lyricist { get; set; } = string.Empty;
     public string Composer { get; set; } = string.Empty;
+    public string Conductor { get; set; } = string.Empty;
     /// <summary>
     /// Gets or sets the size of the file.
     /// </summary>
@@ -113,7 +117,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The synchronize lyrics.
     /// </value>
-    public string SyncLyrics { get; set; } = string.Empty;
+    public string? SyncLyrics { get; set; } = string.Empty;
     /// <summary>
     /// Gets or sets the cover image path.
     /// </summary>
@@ -218,7 +222,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public IList<DimmerPlayEvent> PlayHistory { get; }
 
     public IList<SongModel> Playlists { get; }
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
 
     public SongModel()
     {

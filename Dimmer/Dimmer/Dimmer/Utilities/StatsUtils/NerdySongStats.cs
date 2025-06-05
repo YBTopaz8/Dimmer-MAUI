@@ -364,7 +364,7 @@ public static class NerdySongStats
             .Select(g => g.Count())
             .ToList();
 
-        if (!dailyPlays.Any())
+        if (dailyPlays.Count==0)
             return 0;
         double avgPlaysOnPlayingDays = dailyPlays.Average();
         int maxPlaysInADay = dailyPlays.Max();
@@ -578,7 +578,7 @@ public static class NerdySongStats
             .OrderBy(d => d)
             .ToList();
 
-        if (!playDays.Any())
+        if (playDays.Count==0)
             return 0;
 
         int longestStreak = 0;

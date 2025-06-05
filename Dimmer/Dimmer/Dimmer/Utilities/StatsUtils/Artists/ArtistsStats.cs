@@ -24,7 +24,7 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> songsByArtist,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (songsByArtist == null || !songsByArtist.Any())
+        if (songsByArtist == null || songsByArtist.Count==0)
             return new List<DimmerPlayEvent>();
 
         var songIds = songsByArtist.Select(s => s.Id).ToHashSet();
@@ -143,7 +143,7 @@ public static class ArtistStats
             TotalSongsInLibrary = songsByArtist.Count
         };
 
-        if (!songsByArtist.Any())
+        if (songsByArtist.Count==0)
             return summary; // No songs by this artist in the library
 
         var relevantEventsForArtistSongs = GetRelevantEventsForArtistSongs(songsByArtist, allEvents);
@@ -199,10 +199,10 @@ public static class ArtistStats
 
         summary.AverageSongDurationSeconds = songsByArtist.Average(s => s.DurationInSeconds);
         summary.AverageSongDurationFormatted = FormatTimeSpan(TimeSpan.FromSeconds(summary.AverageSongDurationSeconds));
-        summary.AverageRatingOfPlayedSongs = playedSongsByArtist.Any() ? playedSongsByArtist.Average(s => s.Rating) : 0;
+        summary.AverageRatingOfPlayedSongs = playedSongsByArtist.Count!=0 ? playedSongsByArtist.Average(s => s.Rating) : 0;
 
         var artistPlayInitiationEvents = relevantEventsForArtistSongs.Where(IsPlayInitiationEventLocal).ToList();
-        if (artistPlayInitiationEvents.Any())
+        if (artistPlayInitiationEvents.Count!=0)
         {
             summary.FirstEverPlayDate = artistPlayInitiationEvents.Min(e => e.DatePlayed);
             summary.LastEverPlayDate = artistPlayInitiationEvents.Max(e => e.DatePlayed);
@@ -267,7 +267,7 @@ public static class ArtistStats
                                     .FirstOrDefault()?.Key ?? "N/A";
 
         var validDateCreatedSongs = songsByArtist.Where(s => s.DateCreated.HasValue).ToList();
-        if (validDateCreatedSongs.Any())
+        if (validDateCreatedSongs.Count!=0)
         {
             summary.EarliestSongAddedDate = validDateCreatedSongs.Min(s => s.DateCreated!.Value);
             summary.LatestSongAddedDate = validDateCreatedSongs.Max(s => s.DateCreated!.Value);
@@ -327,7 +327,7 @@ public static class ArtistStats
         var sharedSongs = songsByArtist2.Where(s => songsByArtist1Ids.Contains(s.Id)).ToList();
         result.SharedSongsInLibraryCount = sharedSongs.Count;
         result.SharedSongTitles = sharedSongs.Select(s => s.Title ?? "Untitled").OrderBy(t => t).ToList();
-        if (sharedSongs.Any())
+        if (sharedSongs.Count!=0)
             result.SharedSongsTotalPlays = sharedSongs.Sum(s => SongStats.GetPlayCount(s, allEvents));
 
         return result;
@@ -375,7 +375,7 @@ public static class ArtistStats
 
         var songsByArtist = GetSongsByArtistId(targetArtist.Id, allSongsInLibrary);
         var data = new ArtistPlottableData { ArtistName = targetArtist.Name ?? "Unknown Artist", ArtistId = targetArtist.Id };
-        if (!songsByArtist.Any())
+        if (songsByArtist.Count==0)
             return data;
 
         var relevantArtistEvents = GetRelevantEventsForArtistSongs(songsByArtist, allEvents);
@@ -436,7 +436,7 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (targetArtists == null || !targetArtists.Any())
+        if (targetArtists == null || targetArtists.Count==0)
             return new List<ArtistSingleStatsSummary>();
 
         return targetArtists.Select(artist => GetSingleArtistStats(artist, allSongsInLibrary, allEvents)).ToList();
@@ -448,7 +448,7 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (sourceSong?.ArtistIds == null || artistIndices == null || !artistIndices.Any())
+        if (sourceSong?.ArtistIds == null || artistIndices == null || artistIndices.Count==0)
             return new List<ArtistSingleStatsSummary>();
 
         var artistsToQuery = new List<ArtistModel>();

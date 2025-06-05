@@ -11,7 +11,7 @@ public interface IRealmObjectWithObjectId
 {
     [PrimaryKey]
     ObjectId Id { get; set; }
-    bool IsNewOrModified { get; set; } // Property to check if the object is new or modified
+    bool IsNew { get; set; } // Property to check if the object is new or modified
 }
 /// <summary>
 /// Thread‑safe Realm repo. Each call opens its own Realm;

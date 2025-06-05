@@ -14,10 +14,10 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
     }
 
-    protected override void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
-        var vm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
-        vm.Initialize();
+        BaseViewModel vm = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+
     }
 }

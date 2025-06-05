@@ -6,7 +6,7 @@
 public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
 {
 
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
 
     /// <summary>
     /// Gets or sets the name.
@@ -36,6 +36,9 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// The number of tracks.
     /// </value>
     public int NumberOfTracks { get; set; }
+    public int? TrackTotal { get; set; }
+    public int? DiscTotal { get; set; }
+    public int? DiscNumber { get; set; }
     /// <summary>
     /// Gets or sets the image path.
     /// </summary>

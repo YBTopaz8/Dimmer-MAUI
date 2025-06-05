@@ -62,6 +62,13 @@
                           Clicked="SettingsChip_Clicked" CommandParameter="Settings"
                           Text="Settings"
                           >
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Command="{Binding RescanSongsCommand}"
+                                        IconImageSource="repeat.png" Text="Rescan Songs"
+                                        />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
                 <syncf:SfChip.ImageSource>
                     <FontImageSource FontFamily="FontAwesomeSolid" Glyph="cog"
                                      Color="DarkSlateBlue"

@@ -1,4 +1,6 @@
-﻿using Dimmer.Interfaces.Services.Interfaces;
+﻿using System.Diagnostics;
+
+using Dimmer.Interfaces.Services.Interfaces;
 
 
 namespace Dimmer.Interfaces.Services;
@@ -6,6 +8,7 @@ namespace Dimmer.Interfaces.Services;
 public class LibraryScannerService : ILibraryScannerService
 {
     private readonly IRepository<DimmerPlayEvent> _playEventsRepo;
+    private readonly ISettingsService settingsService;
     private readonly IDimmerStateService _state;
     private readonly IMapper _mapper;
     private readonly IRepository<SongModel> _songRepo;
@@ -23,9 +26,11 @@ public class LibraryScannerService : ILibraryScannerService
         IRepository<ArtistModel> artistRepo, IRepository<GenreModel> genreRepo,
         IRealmFactory realmFactory, ILogger<LibraryScannerService> logger
         , IRepository<DimmerPlayEvent> playEventsRepo,
+        ISettingsService settingsService,
         ProcessingConfig? config = null)
     {
         _playEventsRepo=playEventsRepo;
+        this.settingsService=settingsService;
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _songRepo = songRepo ?? throw new ArgumentNullException(nameof(songRepo));
@@ -39,13 +44,15 @@ public class LibraryScannerService : ILibraryScannerService
         _coverArtService = new CoverArtService(_config);
     }
 
-    public async Task<LoadSongsResult?> ScanLibraryAsync(List<string> folderPaths)
+    public async Task<LoadSongsResult?> ScanLibraryAsync(List<string>? folderPaths)
     {
-        if (folderPaths == null || !folderPaths.Any())
+        if (folderPaths == null || folderPaths.Count==0)
         {
             _logger.LogWarning("ScanLibraryAsync called with no folder paths.");
             _state.SetCurrentLogMsg(new AppLogModel { Log = "No folders selected for scanning." });
-            return null;
+
+            folderPaths = settingsService.UserMusicFoldersPreference.ToList();
+
         }
 
         _logger.LogInformation("Starting library scan for paths: {Paths}", string.Join(", ", folderPaths));
@@ -86,6 +93,10 @@ public class LibraryScannerService : ILibraryScannerService
         int totalFiles = allFiles.Count;
         int processedFileCount = 0;
         _logger.LogInformation("Processing {TotalFiles} audio files...", totalFiles);
+        //List<SongModel> newOrUpdatedSongs = new();
+        //List<ArtistModel> newOrUpdatedArtists = new();
+        //List<AlbumModel> newOrUpdatedAlbums = new();
+        //List<GenreModel> newOrUpdatedGenres = new();
 
         foreach (string file in allFiles)
         {
@@ -106,6 +117,7 @@ public class LibraryScannerService : ILibraryScannerService
                     AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount },
                     ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
                 });
+
             }
             else if (fileProcessingResult.Skipped)
             {
@@ -122,10 +134,10 @@ public class LibraryScannerService : ILibraryScannerService
         _logger.LogInformation("File processing complete. Consolidating metadata changes.");
 
 
-        IReadOnlyList<SongModel> newOrUpdatedSongs = currentScanMetadataService.GetAllSongs().Where(s => s.IsNewOrModified).ToList();
-        IReadOnlyList<ArtistModel> newOrUpdatedArtists = currentScanMetadataService.GetAllArtists().Where(a => a.IsNewOrModified).ToList();
-        IReadOnlyList<AlbumModel> newOrUpdatedAlbums = currentScanMetadataService.GetAllAlbums().Where(a => a.IsNewOrModified).ToList();
-        IReadOnlyList<GenreModel> newOrUpdatedGenres = currentScanMetadataService.GetAllGenres().Where(g => g.IsNewOrModified).ToList();
+        IReadOnlyList<SongModel> newOrUpdatedSongs = currentScanMetadataService.GetAllSongs().Where(s => s.IsNew).ToList();
+        IReadOnlyList<ArtistModel> newOrUpdatedArtists = currentScanMetadataService.GetAllArtists().Where(a => a.IsNew).ToList();
+        IReadOnlyList<AlbumModel> newOrUpdatedAlbums = currentScanMetadataService.GetAllAlbums().Where(a => a.IsNew).ToList();
+        IReadOnlyList<GenreModel> newOrUpdatedGenres = currentScanMetadataService.GetAllGenres().Where(g => g.IsNew).ToList();
 
         _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
             newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
@@ -148,14 +160,81 @@ public class LibraryScannerService : ILibraryScannerService
                 await realm.WriteAsync(() =>
                 {
                     if (newOrUpdatedAlbums.Any())
+                    {
                         foreach (var album in newOrUpdatedAlbums)
-                            realm.Add(album, update: true);
+                        {
+                            if (!album.IsManaged)
+                            {
+                                realm.Add(album, update: true);
+
+                            }
+                            else if (album.IsManaged)
+                            {
+                                var mged = realm.Find<AlbumModel>(album.Id);
+                                if (mged != null)
+                                {
+                                    realm.Add(mged, update: true);
+                                }
+                                else
+                                {
+                                    Debug.WriteLine("skipped...album in newOrUpdatedAlbums");
+                                }
+
+                            }
+                        }
+                    }
+
                     if (newOrUpdatedArtists.Any())
+                    {
                         foreach (var artist in newOrUpdatedArtists)
-                            realm.Add(artist, update: true);
+                        {
+                            if (!artist.IsManaged)
+                            {
+                                realm.Add(artist, update: true);
+
+                            }
+                            else if (artist.IsManaged)
+                            {
+                                var mged = realm.Find<ArtistModel>(artist.Id);
+                                if (mged != null)
+                                {
+                                    realm.Add(mged, update: true);
+                                }
+                                else
+                                {
+                                    Debug.WriteLine("skipped...album in newOrUpdatedAlbums");
+                                }
+
+                            }
+
+
+                        }
+                    }
+
                     if (newOrUpdatedGenres.Any())
+                    {
                         foreach (var genre in newOrUpdatedGenres)
-                            realm.Add(genre, update: true);
+                        {
+                            if (!genre.IsManaged)
+                            {
+                                realm.Add(genre, update: true);
+
+                            }
+                            else if (genre.IsManaged)
+                            {
+                                var mged = realm.Find<GenreModel>(genre.Id);
+                                if (mged != null)
+                                {
+                                    realm.Add(mged, update: true);
+                                }
+                                else
+                                {
+                                    Debug.WriteLine("skipped...album in newOrUpdatedAlbums");
+                                }
+
+                            }
+                        }
+                    }
 
                     if (newOrUpdatedSongs.Any())
                     {
@@ -165,26 +244,44 @@ public class LibraryScannerService : ILibraryScannerService
                             if (song.Album != null)
                             {
 
-
-                                if (!song.Album.IsManaged || song.Album.IsManaged && song.Album.Realm != realm)
+                                if (!song.Album.IsManaged)
+                                {
+                                    // If the album is not managed, add it to the realm
+                                    realm.Add(song.Album, true);
+                                }
+                                else if (song.Album.IsManaged)
                                 {
                                     var managedAlbum = realm.Find<AlbumModel>(song.Album.Id);
+
                                     if (managedAlbum != null)
-                                        song.Album = managedAlbum;
+                                    {
 
-
-
-
+                                        //song.Album = managedAlbum;
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.WriteLine("skipped...album in song");
                                 }
                             }
 
                             if (song.Genre != null)
                             {
-                                if (!song.Genre.IsManaged || song.Genre.IsManaged && song.Genre.Realm != realm)
+                                if (!song.Genre.IsManaged)
+                                {
+                                    realm.Add(song.Genre, true);
+                                }
+                                else if (song.Genre.IsManaged)
                                 {
                                     var managedGenre = realm.Find<GenreModel>(song.Genre.Id);
                                     if (managedGenre != null)
-                                        song.Genre = managedGenre;
+                                    {
+                                        //song.Genre = managedGenre;
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.WriteLine("skipped...Genre in song");
                                 }
                             }
 
@@ -193,16 +290,25 @@ public class LibraryScannerService : ILibraryScannerService
                                 var updatedArtistListForSong = new List<ArtistModel>();
                                 foreach (var artistRef in song.ArtistIds)
                                 {
-                                    if (!artistRef.IsManaged || artistRef.IsManaged && artistRef.Realm != realm)
+                                    if (artistRef is not null)
                                     {
-                                        var managedArtist = realm.Find<ArtistModel>(artistRef.Id);
-                                        if (managedArtist != null)
-                                            updatedArtistListForSong.Add(managedArtist);
 
-                                    }
-                                    else
-                                    {
-                                        updatedArtistListForSong.Add(artistRef);
+                                        if (!artistRef.IsManaged)
+                                        {
+                                            realm.Add(song.Genre, true);
+                                        }
+                                        else if (artistRef.IsManaged)
+                                        {
+                                            var managedArtist = realm.Find<ArtistModel>(artistRef.Id);
+                                            if (managedArtist != null)
+                                            {
+                                                updatedArtistListForSong.Add(managedArtist);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            updatedArtistListForSong.Add(artistRef);
+                                        }
                                     }
                                 }
 
@@ -212,17 +318,17 @@ public class LibraryScannerService : ILibraryScannerService
                                 {
                                     song.ArtistIds.Clear();
                                     foreach (var art in updatedArtistListForSong)
+                                    {
                                         song.ArtistIds.Add(art);
+                                    }
                                 }
+
                                 else
                                 {
-
-
-
-
+                                    Debug.WriteLine("skipped...art  in song");
                                 }
                             }
-                            realm.Add(song, update: true);
+                            //realm.Add(song, update: true);
                         }
                     }
                 }).ConfigureAwait(false);

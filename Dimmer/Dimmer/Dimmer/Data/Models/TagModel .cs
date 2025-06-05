@@ -24,6 +24,6 @@ public partial class TagModel : RealmObject, IRealmObjectWithObjectId
     [Backlink(nameof(UserModel.Tags))]
     public IQueryable<UserModel>? Users { get; }
 
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
 
 }

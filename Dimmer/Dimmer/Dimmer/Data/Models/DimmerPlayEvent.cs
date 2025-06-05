@@ -6,7 +6,7 @@
 /// <seealso cref="RealmObject" />
 public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
 {
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
     /// <summary>
     /// Gets or sets the local device identifier.
     /// </summary>

@@ -71,7 +71,7 @@ public class AlbumsMgtFlow : IDisposable
         // For case-insensitive, you might need to fetch and filter or store normalized names.
         // Assuming case-sensitive for now:
         var artists = _artistRepo.Query(ar => ar.Name == artistName);
-        if (!artists.Any())
+        if (artists.Count==0)
         {
             _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
             return;
@@ -97,7 +97,7 @@ public class AlbumsMgtFlow : IDisposable
             .Where(s => s.ArtistIds != null && s.ArtistIds.Any(songArtistId => artistIds.Contains(songArtistId.Id)))
             .ToList();
 
-        if (!songsByArtists.Any())
+        if (songsByArtists.Count==0)
         {
             _queriedAlbums.OnNext(Enumerable.Empty<AlbumModel>().ToList());
             return;

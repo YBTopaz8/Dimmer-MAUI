@@ -2,6 +2,7 @@
 public interface ILibraryScannerService
 {
     void LoadInSongsAndEvents();
-    Task<LoadSongsResult?> ScanLibraryAsync(List<string> folderPaths); // Full scan
+    void RemoveDupesFromDB();
+    Task<LoadSongsResult?> ScanLibraryAsync(List<string>? folderPaths); // Full scan
     Task<LoadSongsResult?> ScanSpecificPathsAsync(List<string> pathsToScan, bool isIncremental = true); // Incremental for new files/folders
 }

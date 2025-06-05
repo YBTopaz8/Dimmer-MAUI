@@ -58,9 +58,7 @@
             <HorizontalStackLayout Grid.Row="1" VerticalOptions="End">
                 <HorizontalStackLayout.Resources>
                     <ResourceDictionary>
-                        <Style TargetType="syncf:SfChip">
-
-                        </Style>
+                        <Style TargetType="syncf:SfChip" />
                     </ResourceDictionary>
                 </HorizontalStackLayout.Resources>
                 <syncf:SfChip x:Name="ToggleFav"

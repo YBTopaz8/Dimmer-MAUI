@@ -7,8 +7,9 @@
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.ViewModels"
              Title="HomePage" x:DataType="vm:BaseViewModelAnd"
-             BackgroundColor="#1E1E1E" Shell.NavBarIsVisible="False"
-             Shell.TabBarIsVisible="True"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5,
+                                               Dark=#1E1E1E}"
+             Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="True"
              >
 
 
@@ -25,6 +26,12 @@
 
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="FontSize" Value="19" />
+            </Style>
+
+            <Style TargetType="Grid">
+
+                <Setter Property="BackgroundColor" Value="Transparent" />
+
             </Style>
 
             <Style TargetType="dx:DXButton">
@@ -48,10 +55,10 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="*,auto">
+    <Grid BackgroundColor="Transparent" RowDefinitions="*,auto">
 
         <dx:DXStackLayout Grid.Row="0">
-            <Grid ColumnDefinitions="*,*,*">
+            <Grid BackgroundColor="Transparent" ColumnDefinitions="*,*,*">
                 <dx:DXButton Grid.Column="0" HorizontalOptions="Start"
                              Icon="searchd.png" WidthRequest="50"
                              />
@@ -73,14 +80,14 @@
 
                 <dx:DXImage Grid.RowSpan="2" Aspect="AspectFill"
                             Opacity="0.07"
-                            Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                            Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
                             />
 
                 <dx:DXCollectionView x:Name="SongsColView"
                                      AllowFixedGroupHeaders="True" BackgroundColor="Transparent"
                                      Header="{Binding VisibleItemCount, Source={x:Reference SongsColView}, StringFormat='{0} Songs'}"
                                      ItemSpacing="5"
-                                     ItemsSource="{Binding NowPlayingDisplayQueue}"
+                                     ItemsSource="{Binding BaseVM.NowPlayingDisplayQueue}"
                                      Loaded="SongsColView_Loaded" Tap="SongsColView_Tap"
                                      >
                     <dx:DXCollectionView.ItemTemplate>
@@ -136,17 +143,17 @@
 
 
         <dx:DXBorder x:Name="BtmBar"
-                     Grid.Row="1" CornerRadius="15"
-                     HeightRequest="150"
+                     Grid.Row="1" Padding="5"
+                     CornerRadius="20,20,0,0" HeightRequest="150"
                      >
             <dx:DXBorder.Triggers>
-                <DataTrigger Binding="{Binding IsPlaying}"
+                <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
                              TargetType="dx:DXBorder" Value="True"
                              >
                     <Setter Property="BorderThickness" Value="2" />
                     <Setter Property="BorderColor" Value="DarkSlateBlue" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding IsPlaying}"
+                <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
                              TargetType="dx:DXBorder" Value="False"
                              >
                     <Setter Property="BorderThickness" Value="0" />
@@ -158,20 +165,22 @@
                 <PanGestureRecognizer x:Name="PanGesture" PanUpdated="PanGesture_PanUpdated" />
             </dx:DXBorder.GestureRecognizers>
             <dx:DXBorder.Content>
-                <StackLayout>
-                    <ProgressBar Progress="{Binding CurrentTrackPositionPercentage}" ProgressColor="DarkSlateBlue" />
-                    <Grid Padding="10,0" ColumnDefinitions="auto,*">
+                <StackLayout BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#242629}">
+                    <ProgressBar Progress="{Binding BaseVM.CurrentTrackPositionPercentage}" ProgressColor="DarkSlateBlue" />
+                    <Grid Padding="10,0" BackgroundColor="Transparent"
+                          ColumnDefinitions="auto,*"
+                          >
                         <StackLayout Grid.Column="0" Orientation="Horizontal">
                             <dx:DXImage Aspect="AspectFit" HeightRequest="90"
-                                        Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
                                         WidthRequest="90"
                                         />
                         </StackLayout>
 
-                        <StackLayout Grid.Column="1" HorizontalOptions="Center"
-                                     Orientation="Vertical"
+                        <StackLayout Grid.Column="1" BackgroundColor="Transparent"
+                                     HorizontalOptions="Center" Orientation="Vertical"
                                      >
-                            <Label Text="{Binding CurrentPlayingSongView.Title}" TextColor="White" />
+                            <Label Text="{Binding BaseVM.CurrentPlayingSongView.Title}" TextColor="White" />
                             <Label FontAttributes="Italic" Text="{Binding CurrentPlayingSongView.ArtistName}" />
                         </StackLayout>
 
@@ -186,7 +195,7 @@
                             HeightRequest="300"
                             >
                 <Grid>
-                    <dx:DXImage Opacity="0.15" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+                    <dx:DXImage Opacity="0.15" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
                     <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
                         <dx:DXStackLayout.Resources>
                             <ResourceDictionary>
@@ -213,10 +222,10 @@
 
                                 <Label FontSize="20" HorizontalTextAlignment="Center"
                                        LineBreakMode="NoWrap"
-                                       Text="{Binding CurrentPlayingSongView.Title}"
+                                       Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
                                        />
                                 <Label FontSize="14" HorizontalTextAlignment="Center"
-                                       Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                       Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}"
                                        />
                             </dx:DXStackLayout>
                         </dx:DXStackLayout>
@@ -266,9 +275,11 @@
                 <Grid Margin="10,0" HorizontalOptions="Center">
 
                     <dx:DXImage IsVisible="False" Opacity="0.6"
-                                Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                                Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
                                 />
-                    <Grid RowDefinitions="*,auto,*">
+                    <Grid BackgroundColor="Transparent" RowDefinitions="*,auto,*"
+                          RowSpacing="20"
+                          >
 
                         <dx:DXBorder Grid.Row="0" BorderColor="DarkSlateBlue"
                                      BorderThickness="5" CornerRadius="25"
@@ -277,13 +288,13 @@
                                 <TapGestureRecognizer Tapped="BtmBarTapGest_Tapped" />
                             </dx:DXBorder.GestureRecognizers>
                             <dx:DXBorder.Triggers>
-                                <DataTrigger Binding="{Binding IsPlaying}"
+                                <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
                                              TargetType="dx:DXBorder" Value="True"
                                              >
                                     <Setter Property="BorderThickness" Value="2" />
                                     <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding IsPlaying}"
+                                <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
                                              TargetType="dx:DXBorder" Value="False"
                                              >
                                     <Setter Property="BorderThickness" Value="0" />
@@ -291,29 +302,29 @@
                                 </DataTrigger>
                             </dx:DXBorder.Triggers>
 
-                            <dx:DXImage Opacity="0.6" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+                            <dx:DXImage Opacity="0.6" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
                         </dx:DXBorder>
-                        <dx:DXStackLayout Grid.Row="1" Margin="0,20,0,280"
+                        <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
                                           ItemSpacing="15"
                                           >
                             <dx:Chip BackgroundColor="Transparent" BorderColor="DarkSlateBlue"
                                      BorderThickness="0.4"
-                                     Text="{Binding CurrentPlayingSongView.Title}"
+                                     Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
                                      />
                             <dx:Chip BackgroundColor="Transparent" BorderColor="DarkSlateBlue"
                                      BorderThickness="0.1"
-                                     Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                     Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}"
                                      />
                         </dx:DXStackLayout>
-                        <dx:DXStackLayout Grid.Row="2">
+                        <dx:DXStackLayout Grid.Row="2" ItemSpacing="20">
 
 
                             <dx:DXSlider x:Name="ProgressSlider"
                                          Grid.Row="1" BackgroundColor="Transparent"
-                                         MaxValue="{Binding CurrentPlayingSongView.DurationInSeconds}"
+                                         MaxValue="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds}"
                                          MinValue="0" TapReleased="ProgressSlider_TapReleased"
                                          ValueStep="1"
-                                         Value="{Binding CurrentTrackPositionSeconds}"
+                                         Value="{Binding BaseVM.CurrentTrackPositionSeconds}"
                                          >
 
                                 <dx:DXSlider.TooltipAppearance>
@@ -331,18 +342,46 @@
                                                                 />
                                 </dx:DXSlider.ThumbAppearance>
                             </dx:DXSlider>
-                            <dx:DXStackLayout Orientation="Horizontal">
-                                <dx:DXButton Grid.Column="0"
-                                             Command="{Binding PreviousTrackCommand}"
-                                             Icon="skipprevious.png" IconHeight="70"
-                                             IconWidth="70"
-                                             />
-                                <dx:DXButton Grid.Column="1"
-                                             Command="{Binding NextTrackCommand}"
-                                             Icon="skipnext.png" IconHeight="70"
-                                             IconWidth="70"
-                                             />
-                            </dx:DXStackLayout>
+                            <Grid ColumnDefinitions="auto,*">
+                                <dx:DXStackLayout Grid.Column="0" HorizontalOptions="Start"
+                                                  ItemSpacing="10" Orientation="Vertical"
+                                                  >
+                                    <dx:DXButton Grid.Column="0" BackgroundColor="DarkSlateBlue"
+                                                 Command="{Binding BaseVM.PreviousTrackCommand}"
+                                                 Icon="skipprevious.png" IconColor="White"
+                                                 IconHeight="60" IconWidth="60"
+                                                 />
+                                    <dx:DXButton Grid.Column="1" BackgroundColor="DarkSlateBlue"
+                                                 Command="{Binding BaseVM.NextTrackCommand}"
+                                                 Icon="skipnext.png" IconColor="White"
+                                                 IconHeight="70" IconWidth="70"
+                                                 />
+                                </dx:DXStackLayout>
+
+                                <dx:DXButton Grid.Column="1" BackgroundColor="DarkSlateBlue"
+                                             Command="{Binding BaseVM.PlayPauseToggleCommand}"
+                                             Icon="play.png" IconColor="White"
+                                             IconHeight="140" IconWidth="90"
+                                             >
+                                    <dx:DXButton.Triggers>
+                                        <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                     TargetType="dx:DXButton" Value="True"
+                                                     >
+                                            <Setter Property="BorderThickness" Value="2" />
+                                            <Setter Property="BackgroundColor" Value="Transparent" />
+                                            <Setter Property="Icon" Value="pause.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                     TargetType="dx:DXButton" Value="False"
+                                                     >
+                                            <Setter Property="BorderThickness" Value="0" />
+                                            <Setter Property="BackgroundColor" Value="Transparent" />
+                                            <Setter Property="Icon" Value="play.png" />
+                                        </DataTrigger>
+                                    </dx:DXButton.Triggers>
+                                </dx:DXButton>
+                            </Grid>
+
                         </dx:DXStackLayout>
 
                     </Grid>

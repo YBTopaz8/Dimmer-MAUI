@@ -13,6 +13,7 @@ using DevExpress.Maui.Editors;
 
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
+using Dimmer.ViewModel;
 
 using Color = Microsoft.Maui.Graphics.Color;
 using View = Microsoft.Maui.Controls.View;
@@ -37,6 +38,14 @@ public partial class HomePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        await MyViewModel.FiniInit();
+        Debug.WriteLine(MyViewModel.BaseVM.NowPlayingDisplayQueue is null);
+        Debug.WriteLine(MyViewModel.BaseVM.NowPlayingDisplayQueue?.Count);
+
+        var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+        Debug.WriteLine(baseVm.NowPlayingDisplayQueue is null);
+        Debug.WriteLine(baseVm.NowPlayingDisplayQueue?.Count);
 
     }
 
@@ -75,13 +84,13 @@ public partial class HomePage : ContentPage
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
     }
 
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
-        var art = MyViewModel.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
+        var art = MyViewModel.BaseVM.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
         DeviceStaticUtils.SelectedArtistOne = art;
         await SongsMenuPopup.CloseAsync();
     }
@@ -125,7 +134,7 @@ public partial class HomePage : ContentPage
 
     private async void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {
-        await MyViewModel.SeekTrackPosition(ProgressSlider.Value);
+        await MyViewModel.BaseVM.SeekTrackPosition(ProgressSlider.Value);
     }
 
     /*
@@ -269,7 +278,7 @@ public partial class HomePage : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                await MyViewModel.NextTrack();
+                                await MyViewModel.BaseVM.NextTrack();
 
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -278,7 +287,7 @@ public partial class HomePage : ContentPage
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                await MyViewModel.PreviousTrack();
+                                await MyViewModel.BaseVM.PreviousTrack();
 
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -302,7 +311,7 @@ public partial class HomePage : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            await MyViewModel.PreviousTrack();
+                            await MyViewModel.BaseVM.PreviousTrack();
                             Debug.WriteLine("Swiped left");
                             Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
                             Task t2 = Task.Delay(500);
@@ -319,7 +328,7 @@ public partial class HomePage : ContentPage
 
                         try
                         {
-                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
                             SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
                             HapticFeedback.Perform(HapticFeedbackType.LongPress);
@@ -364,7 +373,7 @@ public partial class HomePage : ContentPage
         //DXBorder send = (DXBorder)sender;
 
 
-        await MyViewModel.PlayPauseToggleAsync();
+        await MyViewModel.BaseVM.PlayPauseToggleAsync();
 
     }
 

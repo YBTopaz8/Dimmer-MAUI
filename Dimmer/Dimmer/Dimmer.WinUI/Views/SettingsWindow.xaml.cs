@@ -1,4 +1,3 @@
-namespace Dimmer.WinUI.Views;
 
 public partial class SettingsWindow : Window
 {
@@ -55,10 +54,8 @@ public partial class SettingsWindow : Window
         switch (param)
         {
             case "0":
-                FirstTimeTabView.SelectedIndex--;
                 break;
             case "1":
-                FirstTimeTabView.SelectedIndex++;
                 break;
             default:
 

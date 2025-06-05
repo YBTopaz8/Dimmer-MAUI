@@ -13,7 +13,7 @@ public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
     [Backlink(nameof(SongModel.Genre))]
     public IQueryable<SongModel> Songs { get; }
 
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
 
     public IList<UserNoteModel> UserNotes { get; }
     public GenreModel()

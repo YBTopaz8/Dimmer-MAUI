@@ -42,6 +42,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
     private readonly IRepository<PlaylistModel> playlistRepo;
+    private readonly ILibraryScannerService libService;
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> DimmerPlayEventList { get; set; } = new();
@@ -81,6 +82,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial double DeviceVolumeLevel { get; set; }
+    partial void OnDeviceVolumeLevelChanged(double oldValue, double newValue)
+    {
+        _songsMgtFlow.RequestSetVolume(newValue);
+    }
 
     [ObservableProperty]
     public partial string AppTitle { get; set; }
@@ -88,7 +93,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial SongModelView? CurrentPlayingSongView { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView> NowPlayingDisplayQueue { get; set; }
+    public partial ObservableCollection<SongModelView> NowPlayingDisplayQueue { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? CurrentSynchronizedLyrics { get; set; }
@@ -197,7 +202,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
-        Initialize();
+        libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
     }
     [ObservableProperty]
     public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
@@ -205,10 +210,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
 
-    public void Initialize()
+    public async Task Initialize()
     {
         InitializeApp();
-        InitializeViewModelSubscriptions();
+        await InitializeViewModelSubscriptions();
     }
 
     public void InitializeApp()
@@ -219,7 +224,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
         appInitializerService.InitializeApplication();
     }
-    protected virtual void InitializeViewModelSubscriptions()
+    protected virtual async Task InitializeViewModelSubscriptions()
     {
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
 
@@ -334,6 +339,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         _subsManager.Add(
              _stateService.AllCurrentSongs
+             .SubscribeOn(await MainThread.GetMainThreadSynchronizationContextAsync())
                 .Subscribe(songList =>
                 {
                     if (songList.Count < 1)
@@ -388,6 +394,19 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
                 }
 
+                if (log.ViewSongModel is null || log.AppSongModel is null)
+                {
+                    return;
+                }
+                if (log.ViewSongModel is null && log.AppSongModel is not null)
+                {
+                    var vSong = _mapper.Map<SongModelView>(log.AppSongModel);
+                    if (NowPlayingDisplayQueue.Count <1 || !NowPlayingDisplayQueue.Contains(vSong))
+                    {
+                        NowPlayingDisplayQueue.Add(vSong);
+                    }
+
+                }
                 ScanningLogs ??= new ObservableCollection<AppLogModel>();
                 if (ScanningLogs.Count > 20)
                     ScanningLogs.RemoveAt(0);
@@ -525,9 +544,22 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
     }
 
+    partial void OnCurrentPlayingSongViewChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue != audioService.CurrentTrackMetadata)
+        {
+            CurrentPlayingSongView =audioService.CurrentTrackMetadata;
+
+        }
+    }
+
     [RelayCommand]
     public async Task NextTrack()
     {
+        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        {
+            return;
+        }
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
         var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
@@ -549,6 +581,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task PreviousTrack()
     {
+
+        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        {
+            return;
+        }
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
 
@@ -571,6 +608,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void ToggleShuffleMode()
     {
+        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        {
+            return;
+        }
         bool newShuffleState = !IsShuffleActive;
 
         if (newShuffleState)
@@ -595,6 +636,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task SeekTrackPosition(double positionSeconds)
     {
+        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        {
+            return;
+        }
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
         _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
@@ -645,10 +690,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
     }
-
-    public async Task RescanSongs()
+    [RelayCommand]
+    public void RescanSongs()
     {
-        
+        libService.ScanLibraryAsync(null);
+
     }
 
     public void ViewAlbumDetails(AlbumModelView? albumView)

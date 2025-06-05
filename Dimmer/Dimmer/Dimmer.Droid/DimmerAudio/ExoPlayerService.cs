@@ -34,6 +34,7 @@ using Android.Media;
 using Dimmer.Activities;
 using MediaController = AndroidX.Media3.Session.MediaController;
 using Dimmer.Interfaces.Services.Interfaces;
+using System.Threading.Tasks;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -568,7 +569,11 @@ public class ExoPlayerService : MediaSessionService
 
         }
         public void OnCues(CueGroup? p0) { /* Handle subtitles/cues */ }
-        public void OnDeviceInfoChanged(DeviceInfo? p0) { /* Log if needed */ }
+        public void OnDeviceInfoChanged(DeviceInfo? deviceInfo)
+        {
+
+            /* Log if needed */
+        }
         public void OnDeviceVolumeChanged(int volume, bool muted)
         {
             Console.WriteLine($"[PlayerEventListener] DeviceVolumeChanged: Volume={volume}, Muted={muted}");
@@ -587,7 +592,10 @@ public class ExoPlayerService : MediaSessionService
             {
                 var eventType = events.Get(i);
                 Console.WriteLine($"Event {i}: {eventType}");
-
+                if (eventType == 11)
+                {
+                    Console.WriteLine($"Song ended {player.MediaMetadata.Title}");
+                }
             }
             // Example inspection:
 
@@ -622,7 +630,7 @@ public class ExoPlayerService : MediaSessionService
             Console.WriteLine(timeline.WindowCount);
             Console.WriteLine(timeline.PeriodCount);
 
-
+            Console.WriteLine("SKIP??");
             Console.WriteLine($"[PlayerEventListener] TimelineChanged: Reason={reason}");
 
         }
@@ -685,14 +693,14 @@ public class ExoPlayerService : MediaSessionService
         // --- Command Handling ---
 
 
-        public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
+        public async Task<bool> OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
 
             if (intent == null || intent.Action == null)
                 return false;
 
             Console.WriteLine($"[SessionCallback] OnMediaButtonEvent: Received intent {intent.Action}");
-
+            await Shell.Current.DisplayAlert("Media Button Event", $"Received intent: {intent.Action}", "OK");
             return true;
         }
         // Decide whether to allow a specific PLAYER command requested by a controllerInfo

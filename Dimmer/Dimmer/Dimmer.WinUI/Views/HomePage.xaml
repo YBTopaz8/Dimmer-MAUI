@@ -55,7 +55,6 @@
                             <Style TargetType="Label">
                                 <Setter Property="FontSize" Value="21" />
                                 <Setter Property="FontAttributes" Value="Bold" />
-                                <Setter Property="WidthRequest" Value="300" />
                             </Style>
                             <Style TargetType="Border">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
@@ -198,7 +197,7 @@
                                 </syncf:SfChip.Triggers>
                             </syncf:SfChip>
                             <Slider Minimum="0" MinimumTrackColor="DarkSlateBlue"
-                                    VerticalOptions="Center" WidthRequest="90"
+                                    VerticalOptions="Center" WidthRequest="140"
                                     Value="{Binding DeviceVolumeLevel}"
                                     />
                         </HorizontalStackLayout>
@@ -260,13 +259,13 @@
                                           >
                                 <syncf:SfChip.Triggers>
                                     <DataTrigger Binding="{Binding IsPlaying}"
-                  TargetType="syncf:SfChip" Value="true"
-                  >
+                                                 TargetType="syncf:SfChip" Value="true"
+                                                 >
                                         <Setter Property="ImageSource" Value="pause.png" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding IsPlaying}"
-                  TargetType="syncf:SfChip" Value="false"
-                  >
+                                                 TargetType="syncf:SfChip" Value="false"
+                                                 >
                                         <Setter Property="ImageSource" Value="play.png" />
                                     </DataTrigger>
                                 </syncf:SfChip.Triggers>
