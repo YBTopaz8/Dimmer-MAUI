@@ -49,9 +49,6 @@
     <MauiXaml Update="Views\StatisticsPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\SettingsWindow.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
     <MauiXaml Update="Views\PlaylistWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

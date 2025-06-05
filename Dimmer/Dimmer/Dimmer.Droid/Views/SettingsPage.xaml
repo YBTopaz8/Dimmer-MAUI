@@ -128,6 +128,7 @@
                                 <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
                                     <Image HeightRequest="30" Source="folder.png" />
                                     <Label FontSize="21" Text="Folders" />
+                                    <Label FontSize="21" Text="{Binding BaseVM.LatestAppLog.Log}" />
                                 </dx:DXStackLayout>
 
                                 <dx:DXStackLayout x:DataType="vm:BaseViewModelAnd" BackgroundColor="Transparent"

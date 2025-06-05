@@ -106,20 +106,6 @@ public static class PlatUtils
     }
 
 
-    public static void OpenSettingsWindow()
-    {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModel>();
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-
-
-        SettingsWindow newWindow = new(MyVM);
-
-        //newWindow.SetTitle(song);
-        Application.Current!.OpenWindow(newWindow);
-
-        //MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
-
-    }
 
 
     public static void MiniMimizeWindow(Window win)

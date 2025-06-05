@@ -38,6 +38,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Utils\StaticUtils\TaskBarSection\TaskbarThumbnailManager.cs" />
+    <Compile Remove="Views\SettingsWindow.xaml.cs" />
   </ItemGroup>
 
 
@@ -173,9 +174,6 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\PlaylistWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SettingsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\SingleSongPage.xaml">

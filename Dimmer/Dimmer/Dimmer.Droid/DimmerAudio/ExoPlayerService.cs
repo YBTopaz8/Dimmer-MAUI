@@ -594,7 +594,7 @@ public class ExoPlayerService : MediaSessionService
                 Console.WriteLine($"Event {i}: {eventType}");
                 if (eventType == 11)
                 {
-                    Console.WriteLine($"Song ended {player.MediaMetadata.Title}");
+                    Console.WriteLine($"Song ended {player.MediaMetadata.Title} {DateTime.Now}");
                 }
             }
             // Example inspection:

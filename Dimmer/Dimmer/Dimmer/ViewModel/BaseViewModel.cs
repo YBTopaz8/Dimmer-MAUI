@@ -398,7 +398,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     return;
                 }
-                if (log.ViewSongModel is null && log.AppSongModel is not null)
+                if (log.ViewSongModel is null || log.AppSongModel is not null)
                 {
                     var vSong = _mapper.Map<SongModelView>(log.AppSongModel);
                     if (NowPlayingDisplayQueue.Count <1 || !NowPlayingDisplayQueue.Contains(vSong))

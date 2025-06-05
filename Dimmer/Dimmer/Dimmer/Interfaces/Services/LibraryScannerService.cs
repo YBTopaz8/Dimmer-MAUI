@@ -154,188 +154,141 @@ public class LibraryScannerService : ILibraryScannerService
 
         if (newOrUpdatedArtists.Any() || newOrUpdatedAlbums.Any() || newOrUpdatedGenres.Any() || newOrUpdatedSongs.Any())
         {
+            var mapper = _mapper ?? throw new ArgumentNullException(nameof(_mapper)); // Ensure you have an IMapper instance
             _logger.LogInformation("Persisting metadata changes to database...");
+
             using (var realm = _realmFactory.GetRealmInstance())
             {
                 await realm.WriteAsync(() =>
                 {
+                    // --- Helper function to process an individual item (Album, Artist, Genre) ---
+                    // This ensures it's correctly added/updated in the current realm.
+                    // Returns the managed instance from the CURRENT realm, or null if it couldn't be processed.
+                    T ProcessTopLevelEntity<T>(T entityData) where T : class, IRealmObject, new()
+                    {
+                        if (entityData == null)
+                            return null;
+
+                        // 1. If it’s genuinely unmanaged, just add/update it directly.
+                        if (!entityData.IsManaged)
+                        {
+                            return realm.Add(entityData, update: true);
+                        }
+
+                        // 2. If it’s already managed by THIS realm, re-add/update is a no-op (or explicit Add is fine).
+                        if (entityData.Realm == realm)
+                        {
+                            return realm.Add(entityData, update: true);
+                        }
+
+                        // 3. Otherwise it’s managed by a different live realm (regardless of frozen or not).
+                        //    We must create an unmanaged copy and then add that.
+                        var unmanagedCopy = mapper.Map<T>(entityData);
+
+
+                        return realm.Add(unmanagedCopy, update: true);
+                    }
+
+                    // --- Process top-level entities first to ensure they exist for relationships ---
                     if (newOrUpdatedAlbums.Any())
                     {
-                        foreach (var album in newOrUpdatedAlbums)
+                        foreach (var albumData in newOrUpdatedAlbums)
                         {
-                            if (!album.IsManaged)
-                            {
-                                realm.Add(album, update: true);
-
-                            }
-                            else if (album.IsManaged)
-                            {
-                                var mged = realm.Find<AlbumModel>(album.Id);
-                                if (mged != null)
-                                {
-                                    realm.Add(mged, update: true);
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("skipped...album in newOrUpdatedAlbums");
-                                }
-
-                            }
+                            ProcessTopLevelEntity(albumData); // We don't strictly need the return value here for now
                         }
                     }
 
                     if (newOrUpdatedArtists.Any())
                     {
-                        foreach (var artist in newOrUpdatedArtists)
+                        foreach (var artistData in newOrUpdatedArtists)
                         {
-                            if (!artist.IsManaged)
-                            {
-                                realm.Add(artist, update: true);
-
-                            }
-                            else if (artist.IsManaged)
-                            {
-                                var mged = realm.Find<ArtistModel>(artist.Id);
-                                if (mged != null)
-                                {
-                                    realm.Add(mged, update: true);
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("skipped...album in newOrUpdatedAlbums");
-                                }
-
-                            }
-
-
+                            ProcessTopLevelEntity(artistData);
                         }
                     }
 
                     if (newOrUpdatedGenres.Any())
                     {
-                        foreach (var genre in newOrUpdatedGenres)
+                        foreach (var genreData in newOrUpdatedGenres)
                         {
-                            if (!genre.IsManaged)
-                            {
-                                realm.Add(genre, update: true);
-
-                            }
-                            else if (genre.IsManaged)
-                            {
-                                var mged = realm.Find<GenreModel>(genre.Id);
-                                if (mged != null)
-                                {
-                                    realm.Add(mged, update: true);
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("skipped...album in newOrUpdatedAlbums");
-                                }
-
-                            }
+                            ProcessTopLevelEntity(genreData);
                         }
                     }
 
+                    // --- Process Songs ---
                     if (newOrUpdatedSongs.Any())
                     {
-                        foreach (var song in newOrUpdatedSongs)
+                        foreach (var song in newOrUpdatedSongs) // Assuming 'song' itself is usually unmanaged or from foreign realm
                         {
-
+                            AlbumModel? finalAlbumForSong = null;
                             if (song.Album != null)
                             {
-
-                                if (!song.Album.IsManaged)
-                                {
-                                    // If the album is not managed, add it to the realm
-                                    realm.Add(song.Album, true);
-                                }
-                                else if (song.Album.IsManaged)
-                                {
-                                    var managedAlbum = realm.Find<AlbumModel>(song.Album.Id);
-
-                                    if (managedAlbum != null)
-                                    {
-
-                                        //song.Album = managedAlbum;
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("skipped...album in song");
-                                }
+                                finalAlbumForSong = ProcessTopLevelEntity(song.Album); // Use helper
                             }
 
+                            GenreModel? finalGenreForSong = null;
                             if (song.Genre != null)
                             {
-                                if (!song.Genre.IsManaged)
-                                {
-                                    realm.Add(song.Genre, true);
-                                }
-                                else if (song.Genre.IsManaged)
-                                {
-                                    var managedGenre = realm.Find<GenreModel>(song.Genre.Id);
-                                    if (managedGenre != null)
-                                    {
-                                        //song.Genre = managedGenre;
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("skipped...Genre in song");
-                                }
+                                finalGenreForSong = ProcessTopLevelEntity(song.Genre); // Use helper
                             }
 
-                            if (song.ArtistIds != null && song.ArtistIds.Any())
+                            var finalArtistsForSong = new List<ArtistModel>();
+                            if (song.ArtistIds != null)
                             {
-                                var updatedArtistListForSong = new List<ArtistModel>();
                                 foreach (var artistRef in song.ArtistIds)
                                 {
-                                    if (artistRef is not null)
+                                    var processedArtist = ProcessTopLevelEntity(artistRef);
+                                    if (processedArtist != null)
                                     {
-
-                                        if (!artistRef.IsManaged)
-                                        {
-                                            realm.Add(song.Genre, true);
-                                        }
-                                        else if (artistRef.IsManaged)
-                                        {
-                                            var managedArtist = realm.Find<ArtistModel>(artistRef.Id);
-                                            if (managedArtist != null)
-                                            {
-                                                updatedArtistListForSong.Add(managedArtist);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            updatedArtistListForSong.Add(artistRef);
-                                        }
+                                        finalArtistsForSong.Add(processedArtist);
                                     }
-                                }
-
-
-
-                                if (!song.IsManaged)
-                                {
-                                    song.ArtistIds.Clear();
-                                    foreach (var art in updatedArtistListForSong)
-                                    {
-                                        song.ArtistIds.Add(art);
-                                    }
-                                }
-
-                                else
-                                {
-                                    Debug.WriteLine("skipped...art  in song");
                                 }
                             }
-                            //realm.Add(song, update: true);
+
+                            // Now, prepare the song instance itself for adding/updating.
+                            // If 'song' is unmanaged or from a foreign realm, we use AutoMapper to get a clean unmanaged copy.
+                            // If 'song' is already managed by THIS realm, we find it and update its properties.
+
+                            SongModel songToPersist;
+                            if (!song.IsManaged || song.Realm != realm || song.IsFrozen)
+                            {
+                                // Song is unmanaged, or from another realm, or frozen.
+                                // Create/get an unmanaged version with the song's current data.
+                                // If song is already unmanaged, Map will just return a new unmanaged instance with copied data.
+                                songToPersist = mapper.Map<SongModel>(song); // Create an unmanaged representation
+
+                                // Assign the correctly processed related objects (which are now managed by current realm)
+                                songToPersist.Album = finalAlbumForSong;
+                                songToPersist.Genre = finalGenreForSong;
+                                songToPersist.ArtistIds.Clear();
+                                foreach (var art in finalArtistsForSong)
+                                {
+                                    songToPersist.ArtistIds.Add(art);
+                                }
+                                realm.Add(songToPersist, update: true);
+                            }
+                            else // Song is already managed by THIS realm (song.Realm == realm && !song.IsFrozen)
+                            {
+                                songToPersist = song; // It's the live object
+
+                                // Update its properties directly
+                                songToPersist.Album = finalAlbumForSong;
+                                songToPersist.Genre = finalGenreForSong;
+                                songToPersist.ArtistIds.Clear();
+                                foreach (var art in finalArtistsForSong)
+                                {
+                                    songToPersist.ArtistIds.Add(art);
+                                }
+                                // No explicit realm.Add(songToPersist) needed here, changes to managed object are saved.
+                                // However, calling realm.Add(songToPersist, update:true) is also safe and can be explicit.
+                                // For consistency with the other branch, let's keep it if you prefer:
+                                // realm.Add(songToPersist, update: true);
+                            }
                         }
                     }
                 }).ConfigureAwait(false);
                 _logger.LogInformation("Metadata changes persisted.");
             }
         }
-
 
 
         var finalSongListFromDb = _songRepo.GetAll(false).ToList();

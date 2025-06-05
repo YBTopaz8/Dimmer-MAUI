@@ -17,7 +17,7 @@
         <ResourceDictionary>
 
             <Style TargetType="Label">
-                <Setter Property="Text" Value="{AppThemeBinding Dark=White}" />
+                <Setter Property="Text" Value="{AppThemeBinding Dark=White, Light=black}" />
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="FontSize" Value="26" />
             </Style>
@@ -109,14 +109,12 @@
                                     <Label BackgroundColor="Transparent" FontAttributes="Bold"
                                            FontSize="23"
                                            Text="{Binding Title}"
-                                           TextColor="{AppThemeBinding Dark=White,
-                                                                       Light=White}"
                                            VerticalOptions="Center"
                                            />
                                     <Label BackgroundColor="Transparent" FontSize="18"
-                                           Opacity="0.4"
+                                           Opacity="0.4" 
                                            Text="{Binding ArtistName}"
-                                           TextColor="white" VerticalOptions="Center"
+                                           VerticalOptions="Center"
                                            />
 
 

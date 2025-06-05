@@ -16,7 +16,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
 
-        
+
     }
 
     protected override async void OnAppearing()
@@ -31,7 +31,7 @@ public partial class AppShell : Shell
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void SidePaneChip_Clicked(object sender, EventArgs e)
     {
-        
+
         var send = (SfChip)sender;
         var param = send.CommandParameter.ToString();
         switch (param)
@@ -40,17 +40,15 @@ public partial class AppShell : Shell
                 MyViewModel.OpenArtistsWindow();
                 break;
 
-
-                break;
             default:
                 break;
         }
 
     }
 
-    private async void SettingsChip_Clicked(object sender, EventArgs e)
+    private void SettingsChip_Clicked(object sender, EventArgs e)
     {
-        
+
         MyViewModel.OpenSettingsWindow();
     }
 
