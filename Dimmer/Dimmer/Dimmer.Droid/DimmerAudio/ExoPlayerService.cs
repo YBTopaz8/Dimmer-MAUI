@@ -138,6 +138,75 @@ public class ExoPlayerService : MediaSessionService
         Buffering?.Invoke(this, EventArgs.Empty);
     }
 
+    internal void GetMaxVolumeLevel()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+    }
+
+
+    public List<AudioOutputDevice> GetAvailableAudioOutputMAUI()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+        // 2) query all output devices (API 23+)
+        var devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? [];
+
+        
+        // 3) map to your cross-platform model
+        var we =  devices.Select(d => new AudioOutputDevice
+        {
+            Id   = d.Id.ToString(),
+            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
+
+
+        });
+        foreach (var item in we)
+        {
+            Console.WriteLine(item.Id);
+            Console.WriteLine(item.Name);
+        }
+        return we.ToList();
+    }
+
+    internal List<AudioDeviceInfo> GetAvailableAudioOutputs()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+        // 2) query all output devices (API 23+)
+        AudioDeviceInfo[]? devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? [];
+
+        return devices.ToList();
+      
+    }
+    public bool SetPreferredDevice(AudioOutputDevice dev)
+    {
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+        // 2) query all output devices (API 23+)
+        AudioDeviceInfo[]? devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? [];
+        var specDev = devices.FirstOrDefault(x => x.Id== int.Parse(dev.Id));
+        if (specDev is not null)
+        {
+            player.SetPreferredAudioDevice(specDev);
+            return true;
+        }
+        return false;
+    }
+
     internal void RaiseDurationChanged(long durationMs)
     {
         DurationChanged?.Invoke(this, durationMs);
@@ -462,27 +531,6 @@ public class ExoPlayerService : MediaSessionService
 
 
         return Task.CompletedTask;
-    }
-
-    public static async Task<List<AudioOutputDevice>> GetAvailableAudioOutputs()
-    {
-        // 1) grab the Android AudioManager
-        var audioManager = Platform.AppContext
-            .GetSystemService(AudioService) as AudioManager;
-
-        // 2) query all output devices (API 23+)
-        var devices = audioManager?
-            .GetDevices(GetDevicesTargets.Outputs)
-            ?? [];
-
-        // 3) map to your cross-platform model
-        return [.. devices.Select(d => new AudioOutputDevice
-        {
-            Id   = d.Id.ToString(),
-            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
-
-
-        })];
     }
 
     // --- Player Event Listener ---

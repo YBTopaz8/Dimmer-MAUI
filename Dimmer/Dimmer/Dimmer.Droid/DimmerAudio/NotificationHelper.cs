@@ -355,7 +355,7 @@ public static class NotificationHelper
             .SetSmallIcon(Resource.Drawable.exo_icon_circular_play)! // use your icon
             .SetOngoing(true)!
             .SetPriority(0)!
-            .SetVisibility(NotificationVisibility.Private)!;
+            .SetVisibility(NotificationVisibility.Secret)!;
 
         return builder.Build();
     }

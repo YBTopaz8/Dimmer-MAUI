@@ -145,6 +145,8 @@ public interface IDimmerAudioService
     /// <returns></returns>
     ValueTask DisposeAsync();
     Task StopAsync();
+    List<AudioOutputDevice>? GetAllAudioDevices();
+    bool SetPreferredOutputDevice(AudioOutputDevice dev);
 }
 
 /// <summary>

@@ -58,6 +58,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public partial CollectionStatsSummary? SummaryStatsForAllSongs { get; set; }
 
     [ObservableProperty] public partial int? CurrentTotalSongsOnDisplay { get; set; }
+    [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AudioDevices { get; set; }
+    [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
     [ObservableProperty]
     public partial SongModelView? SelectedSongForContext { get; set; }
     [ObservableProperty]
@@ -205,8 +207,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
     }
+
     [ObservableProperty]
     public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
+
+    [ObservableProperty]
+    public partial int MaxDeviceVolumeLevel { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
@@ -302,14 +308,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 .Subscribe(evt =>
                 {
                     IsPlaying= evt.EventArgs.IsPlaying;
-                    if (CurrentPlayingSongView is null)
-                    {
-                        CurrentPlayingSongView = evt.EventArgs.MediaSong;
-                    }
+                    CurrentPlayingSongView ??= evt.EventArgs.MediaSong;
                     if (IsPlaying)
                     {
 
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
+                        AudioDevices = audioService.GetAllAudioDevices().ToObservableCollection();
                     }
                     else
                     {
@@ -507,8 +511,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
     }
-
-
+    [RelayCommand]
+    public void SetPreferredAudioDevice(AudioOutputDevice dev)
+    {
+        audioService.SetPreferredOutputDevice(dev);
+    }
     public void RequestPlayGenericList(IEnumerable<SongModelView> songs, SongModelView? startWithSong, string listName = "Custom List")
     {
         if (songs == null || !songs.Any())

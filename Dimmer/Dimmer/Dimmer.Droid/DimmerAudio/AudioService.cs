@@ -96,6 +96,16 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
 
     }
+
+    public List<AudioOutputDevice>? GetAllAudioDevices()
+    {
+        return  Service.GetAvailableAudioOutputMAUI();
+        
+    }
+    public bool SetPreferredOutputDevice(AudioOutputDevice dev)
+    {
+        return Service.SetPreferredDevice(dev);
+    }
     public Task InitializeAsync(SongModelView songModel, byte[]? songCoverImage)
     {
         _currentSongModel = songModel;
