@@ -39,6 +39,10 @@
 
 
 
+    <PackageReference Include="LocalizationResourceManager.Maui" Version="1.2.2" />
+
+
+
 
     <PackageReference Include="UraniumUI.Material" Version="2.12.1" />
     <PackageReference Include="UraniumUI.Blurs" Version="2.12.1" />

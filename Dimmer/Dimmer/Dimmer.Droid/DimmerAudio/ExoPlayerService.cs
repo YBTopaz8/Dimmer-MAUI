@@ -68,7 +68,7 @@ public class ExoPlayerService : MediaSessionService
 
     // --- Internal State ---
     internal static MediaItem? currentMediaItem; // Choose a unique ID
-    internal static SongModelView? CurrentSongItem; // Choose a unique ID
+    public SongModelView? CurrentSongItem; // Choose a unique ID
 
     // --- Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
@@ -78,6 +78,7 @@ public class ExoPlayerService : MediaSessionService
     public event CoverReloadedEventHandler? CoverReloaded;
 
     public event PlayingChangedEventHandler? PlayingChanged;
+    public event PlayingChangedEventHandler? PlayingEnded;
     public event PositionChangedEventHandler? PositionChanged;
     public event SeekCompletedEventHandler? SeekCompleted;
     public event PlayNextEventHandler? PlayNextPressed; // Triggered by MediaKeyNextPressed
@@ -109,17 +110,17 @@ public class ExoPlayerService : MediaSessionService
         _positionHandler?.RemoveCallbacks(_positionRunnable!);
     }
 
-    internal void RaiseStatusChanged(DimmerPlaybackState state)
-    {
-        //Console.WriteLine(state);
+    //internal void RaiseStatusChanged(DimmerPlaybackState state)
+    //{
+    //    //Console.WriteLine(state);
 
 
-        var pbEvents = new PlaybackEventArgs(CurrentSongItem);
-        pbEvents.EventType = state;
-        StatusChanged?.Invoke(this, pbEvents);
+    //    var pbEvents = new PlaybackEventArgs(CurrentSongItem);
+    //    pbEvents.EventType = state;
+    //    StatusChanged?.Invoke(this, pbEvents);
 
 
-    }
+    //}
 
     internal void RaiseIsPlayingChanged(bool isPlaying)
     {
@@ -158,9 +159,9 @@ public class ExoPlayerService : MediaSessionService
             .GetDevices(GetDevicesTargets.Outputs)
             ?? [];
 
-        
+
         // 3) map to your cross-platform model
-        var we =  devices.Select(d => new AudioOutputDevice
+        var we = devices.Select(d => new AudioOutputDevice
         {
             Id   = d.Id.ToString(),
             Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
@@ -187,7 +188,7 @@ public class ExoPlayerService : MediaSessionService
             ?? [];
 
         return devices.ToList();
-      
+
     }
     public bool SetPreferredDevice(AudioOutputDevice dev)
     {
@@ -590,7 +591,8 @@ public class ExoPlayerService : MediaSessionService
             // Forward to your service or session as needed...
             if (playbackState == 4)
             {
-                service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
+                service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
+                //service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
             }
         }
         public void OnLoadingChanged(bool isLoading)
@@ -657,11 +659,9 @@ public class ExoPlayerService : MediaSessionService
             if (reason == 1)
             {
                 service.player!.Stop();
-                service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
 
-                service.RaisePlayNextEventHandler();
-                Console.WriteLine("Called Next most likely" + mediaItem.MediaId + mediaItem.MediaMetadata.Title);
-                Console.WriteLine("Called Prev 2nd likely" + mediaItem.MediaId + mediaItem.MediaMetadata.Title);
+                service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
+
             }
             //Console.WriteLine($"[PlayerEventListener] MediaItemTransition: Item='{mediaItem?.MediaId ?? "None"}', Reason={reasonString} ({reason})");
             //QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);

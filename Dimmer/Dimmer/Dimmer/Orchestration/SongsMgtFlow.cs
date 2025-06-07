@@ -171,7 +171,7 @@ public partial class SongsMgtFlow : IDisposable
 
                     await _audio.InitializeAsync(songModelViewForCommand!, null);
 
-                    await _audio.PlayAsync();
+                    _audio.Play();
                     break;
                 case DimmerPlaybackState.Playing:
                 case DimmerPlaybackState.Resumed:
@@ -181,7 +181,7 @@ public partial class SongsMgtFlow : IDisposable
 
                     //    await _audio.InitializeAsync(songModelViewForCommand, trc.EmbeddedPictures[0].PictureData);
 
-                    //    await _audio.PlayAsync();
+                    //    _audio.Play();
                     //}
                     //if (_audio.CurrentTrackMetadata != globalPlaybackState.SongView)
                     //{
@@ -198,7 +198,7 @@ public partial class SongsMgtFlow : IDisposable
                     break;
                 case DimmerPlaybackState.PausedDimmer:
                     if (_audio.IsPlaying)
-                        await _audio.PauseAsync();
+                        _audio.Pause();
                     break;
                 case DimmerPlaybackState.PlayCompleted:
                     //await _audio.StopAsync();

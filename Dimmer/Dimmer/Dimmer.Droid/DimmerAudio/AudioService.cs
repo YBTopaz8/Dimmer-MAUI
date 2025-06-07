@@ -99,8 +99,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public List<AudioOutputDevice>? GetAllAudioDevices()
     {
-        return  Service.GetAvailableAudioOutputMAUI();
-        
+        return Service.GetAvailableAudioOutputMAUI();
+
     }
     public bool SetPreferredOutputDevice(AudioOutputDevice dev)
     {
@@ -121,38 +121,34 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         return Task.CompletedTask;
     }
 
-    public Task PlayAsync()
+    public void Play()
     {
         Player?.Play();
         Console.WriteLine("[AudioService] Play command sent.");
 
-        return Task.CompletedTask; // Android service calls are mostly async fire-and-forget
+        //IsPlayingChanged?.Invoke(this, new(_currentSongModel) { MediaSong = _currentSongModel, IsPlaying = true });
     }
 
 
-    public Task PauseAsync()
+    public void Pause()
     {
         Player?.Pause();
 
-        return Task.CompletedTask;
     }
 
-    public Task StopAsync()
+    public void Stop()
     {
         Player?.Stop();
         Console.WriteLine("[AudioService] Stop command sent.");
 
-        return Task.CompletedTask;
     }
 
-    public Task SeekAsync(double positionSeconds)
+    public void Seek(double positionSeconds)
     {
         long positionMs = (long)(positionSeconds * 1000.0);
         Player?.SeekTo(positionMs);
         Console.WriteLine($"[AudioService] Seek command sent to {positionMs}ms.");
         SeekCompleted?.Invoke(this, positionSeconds);
-
-        return Task.CompletedTask;
     }
 
     public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
@@ -234,12 +230,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.StatusChanged += OnStatusChanged;
         Service.Buffering += OnBuffering;
         Service.CoverReloaded += OnCoverReloaded;
+        Service.PlayingEnded += OnPlayEnded; // Assuming this is a custom event in the service
 
         Service.PlayingChanged += Service_PlayingChanged;
         Service.PositionChanged += OnPositionChanged;
         Service.PlayNextPressed += Service_PlayNextPressed;
         Service.PlayPreviousPressed += Service_PlayPreviousPressed;
 
+    }
+
+    private void OnPlayEnded(object sender, PlaybackEventArgs e)
+    {
+        throw new NotImplementedException();
     }
 
     private void Service_PlayPreviousPressed(object sender, PlaybackEventArgs PreviousStateArgs)
@@ -272,7 +274,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.StatusChanged -= OnStatusChanged;
         Service.Buffering -= OnBuffering;
         Service.CoverReloaded -= OnCoverReloaded;
-
+        Service.PlayingEnded -= OnPlayEnded; // Assuming this is a custom event in the service
         Service.PlayingChanged -= Service_PlayingChanged;
         Service.PositionChanged -= OnPositionChanged;
         Service.PlayNextPressed -= Service_PlayNextPressed;

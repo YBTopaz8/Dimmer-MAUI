@@ -465,12 +465,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         {
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
 
-            await audioService.StopAsync();
+            audioService.Stop();
         }
 
 
         await audioService.InitializeAsync(songToPlay);
-        await audioService.PlayAsync();
+        audioService.Play();
 
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
@@ -558,7 +558,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SongModel? currentSongModel = currentSongVm.ToModel(_mapper);
         if (IsPlaying)
         {
-            await audioService.PauseAsync();
+            audioService.Pause();
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedDimmer, null, currentSongVm, currentSongModel));
         }
@@ -568,7 +568,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             {
                 await audioService.InitializeAsync(CurrentPlayingSongView);
             }
-            await audioService.PlayAsync();
+            audioService.Play();
 
         }
     }
@@ -595,7 +595,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         if (IsPlaying)
         {
-            await audioService.StopAsync();
+            audioService.Stop();
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
 
@@ -604,7 +604,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
         await audioService.InitializeAsync(CurrentPlayingSongView);
-        await audioService.PlayAsync();
+        audioService.Play();
     }
 
     [RelayCommand]
@@ -622,7 +622,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         if (IsPlaying)
         {
-            await audioService.StopAsync();
+            audioService.Stop();
         }
         _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Skipped, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
@@ -631,7 +631,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
         await audioService.InitializeAsync(CurrentPlayingSongView);
-        await audioService.PlayAsync();
+        audioService.Play();
     }
 
     [RelayCommand]
