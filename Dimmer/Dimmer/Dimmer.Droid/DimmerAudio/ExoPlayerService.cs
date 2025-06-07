@@ -602,10 +602,19 @@ public class ExoPlayerService : MediaSessionService
             {
                 1 => "Repeat",
                 2 => "Auto",
-                3 => "Seek",
+                3 => "Seek for prev/next",
                 4 => "PlaylistChanged",
                 _ => "Unknown"
             };
+            if (reason == 1)
+            {
+                service.player!.Stop();
+                service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
+
+                service.RaisePlayNextEventHandler();
+                Console.WriteLine("Called Next most likely" + mediaItem.MediaId + mediaItem.MediaMetadata.Title);
+                Console.WriteLine("Called Prev 2nd likely" + mediaItem.MediaId + mediaItem.MediaMetadata.Title);
+            }
             //Console.WriteLine($"[PlayerEventListener] MediaItemTransition: Item='{mediaItem?.MediaId ?? "None"}', Reason={reasonString} ({reason})");
             //QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);
 
