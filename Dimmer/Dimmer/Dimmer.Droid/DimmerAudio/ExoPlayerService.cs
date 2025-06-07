@@ -801,8 +801,6 @@ public class ExoPlayerService : MediaSessionService
                         service.player!.Stop();
                         service.RaisePlayPreviousEventHandler();
 
-                        //Console.WriteLine("[SessionCallback] User pressed PREVIOUS button.");
-
                         break;
 
                     default:
