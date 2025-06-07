@@ -29,9 +29,8 @@ namespace Dimmer;
     ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
-    private static string AppLinkHost;
 
-    private IOnBackInvokedCallback _onBackInvokedCallback; // For API 33+
+    private IOnBackInvokedCallback? _onBackInvokedCallback; // For API 33+
     private bool _isBackCallbackRegistered = false;
     MediaPlayerServiceConnection? _serviceConnection;
     Intent? _serviceIntent;
@@ -279,9 +278,9 @@ public class MainActivity : MauiAppCompatActivity
 #elif DEBUG
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-        
+
         //Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
-                                                                      // Tells the Window to draw under the status bar
+        // Tells the Window to draw under the status bar
 
 
 #endif

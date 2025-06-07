@@ -55,6 +55,10 @@ global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 global using Dimmer.Utilities;
 global using Dimmer.WinUI.Utils.Helpers;
 
+
+global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
+global using Dimmer.WinUI.Views.SettingsCenter;
+
 global using System.Drawing;
 global using System.Reflection;
 global using Vanara.PInvoke;

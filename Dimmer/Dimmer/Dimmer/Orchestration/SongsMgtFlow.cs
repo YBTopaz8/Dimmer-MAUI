@@ -153,45 +153,6 @@ public partial class SongsMgtFlow : IDisposable
     }
 
     bool isChangedAndPassedChangedCheck;
-    private async Task LoadAndPrepareSongInAudioEngineAsync(SongModelView? songViewFromState)
-    {
-        if (songViewFromState== null)
-        {
-            return;
-        }
-        SongModel? songModelToLoad = songViewFromState?.ToModel(_mapper);
-
-        if (songModelToLoad == null)
-        {
-
-            _logger.LogInformation("Global current song is now null. Stopping audio engine.");
-
-
-            return;
-        }
-
-
-        _logger.LogInformation("AudioEngine: New global current song '{SongTitle}'. Preparing to load.", songModelToLoad.Title);
-
-        try
-        {
-            await _audio.InitializeAsync(songViewFromState!, songViewFromState?.ImageBytes);
-            _logger.LogInformation("AudioEngine: Successfully initialized with '{SongTitle}'.", songModelToLoad.Title);
-
-            var currentGlobalPlaybackState = await _state.CurrentPlayBackState.FirstAsync();
-            if (currentGlobalPlaybackState.State == DimmerPlaybackState.Playing &&
-                (currentGlobalPlaybackState.SongView?.Id == songViewFromState?.Id || currentGlobalPlaybackState.SongView == null))
-            {
-                _logger.LogInformation("AudioEngine: Global state is 'Playing' for '{SongTitle}', playing immediately after load.", songModelToLoad.Title);
-                await _audio.PlayAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "AudioEngine: Error initializing song '{SongTitle}'.", songModelToLoad.Title);
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Error, $"Init failed: {ex.Message}", songViewFromState, songModelToLoad));
-        }
-    }
 
     public async Task ControlAudioEnginePlaybackAsync(PlaybackStateInfo globalPlaybackState)
     {

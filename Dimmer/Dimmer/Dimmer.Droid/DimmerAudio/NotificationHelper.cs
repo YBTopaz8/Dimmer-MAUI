@@ -179,6 +179,10 @@ public static class NotificationHelper
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
         mgr.SetUseFastForwardActionInCompactView(false);
+        mgr.SetUsePreviousAction(true);
+        mgr.SetUseNextActionInCompactView(true);
+        mgr.SetUsePreviousActionInCompactView(true);
+        mgr.SetUseNextAction(true);
         mgr.SetUseRewindActionInCompactView(false);
 
         Log.Debug("NotifHelper", "Manager built");

@@ -106,16 +106,15 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
                 string? selectedFolderPath = res!.Folder!.Path;
 
+
+
                 if (!string.IsNullOrEmpty(selectedFolderPath))
                 {
                     logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
                     // The FolderManagementService should handle adding to settings and triggering the scan.
                     // We just need to tell it the folder was selected by the user.
 
-                    await folderMgtService.AddFolderToWatchListAndScanAsync(selectedFolderPath); // This method in IFolderMgtService will:
-                                                                                                 // 1. Add to ISettingsService
-                                                                                                 // 2. Restart IFolderMonitorService
-                                                                                                 // 3. Call ILibraryScannerService.ScanSpecificPathsAsync for this new path
+                    baseVM.AddMusicFolderByPassingToService(selectedFolderPath);
                 }
                 else
                 {
@@ -132,10 +131,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
             // TODO: Show message to user explaining why permission is needed.
         }
 
-    }
-    internal async Task SelectSongFromFolderAndroid()
-    {
-        throw new NotImplementedException();
     }
 
     public void Dispose()

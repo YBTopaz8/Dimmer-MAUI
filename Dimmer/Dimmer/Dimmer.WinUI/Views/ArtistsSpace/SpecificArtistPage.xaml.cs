@@ -3,8 +3,6 @@ using System.Numerics;
 using Dimmer.Data.Models;
 using Dimmer.WinUI.Utils.Models;
 using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views.WinuiWindows;
-using Dimmer.WinUI.Views.WinuiWindows;
 
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;

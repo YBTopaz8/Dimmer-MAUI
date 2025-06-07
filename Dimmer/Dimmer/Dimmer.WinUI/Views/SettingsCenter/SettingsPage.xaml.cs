@@ -1,28 +1,17 @@
+namespace Dimmer.WinUI.Views.SettingsCenter;
 
-public partial class SettingsWindow : Window
+public partial class SettingsPage : ContentPage
 {
-    public BaseViewModel MyViewModel { get; internal set; }
-    public SettingsWindow(BaseViewModel vm)
+    public BaseViewModelWin MyViewModel { get; internal set; }
+    public SettingsPage(BaseViewModelWin vm)
     {
         InitializeComponent();
         BindingContext = vm;
         MyViewModel=vm;
 
-        this.Height = 800;
-        this.Width = 800;
     }
 
 
-    protected override void OnCreated()
-    {
-        base.OnCreated();
-
-    }
-
-    protected override void OnDestroying()
-    {
-        base.OnDestroying();
-    }
     private void ChangeFolder_Clicked(object sender, EventArgs e)
     {
 
@@ -37,9 +26,9 @@ public partial class SettingsWindow : Window
         var param = send.CommandParameter.ToString();
         MyViewModel.DeleteFolderPath(param);
     }
-    private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        //await MyViewModel.SelectSongFromFolder();
+        await MyViewModel.AddMusicFolderViaPickerAsync();
     }
 
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)

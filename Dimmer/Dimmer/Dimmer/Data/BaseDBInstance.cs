@@ -18,9 +18,12 @@ public class RealmFactory : IRealmFactory
         {
             Directory.CreateDirectory(dbPath);
         }
-
+#if RELEASE
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
+#elif DEBUG
 
+        string filePath = Path.Combine(dbPath, "DimmerDbDebug.realm");
+#endif
         if (!File.Exists(filePath))
         {
             AppUtils.IsUserFirstTimeOpening = true;

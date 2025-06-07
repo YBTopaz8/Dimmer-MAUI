@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 
-using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
+using Dimmer.WinUI.Utils.WinMgt;
+
 
 namespace Dimmer.WinUI;
 
@@ -15,6 +16,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
         Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
+        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
 
 
     }
@@ -37,7 +39,7 @@ public partial class AppShell : Shell
         switch (param)
         {
             case "Artists":
-                MyViewModel.OpenArtistsWindow();
+
                 break;
 
             default:
@@ -49,7 +51,10 @@ public partial class AppShell : Shell
     private void SettingsChip_Clicked(object sender, EventArgs e)
     {
 
-        MyViewModel.OpenSettingsWindow();
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWindowManagerService>()!;
+
+        winMgr.GetOrCreateUniqueWindow(() => new SettingWin(MyViewModel));
+        //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
 }

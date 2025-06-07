@@ -377,12 +377,22 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
         //if (e.NewValue !=BottomSheetState.FullExpanded)
         //{
         //    await BtmBar.AnimateSlideUp(btmBarHeight);
         //}
+    }
+
+    private void VolumeSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+
+    }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+        NowPlayingBtmSheet.Close();
     }
 }
 

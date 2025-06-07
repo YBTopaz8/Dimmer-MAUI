@@ -25,7 +25,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
             svc.Buffering       += _activity.OnBuffering;
             svc.CoverReloaded   += _activity.OnCoverReloaded;
             svc.SeekCompleted += _activity.OnSeekCompleted;
-            svc.PlayingChanged  += _activity.OnPlayingChanged;
+            svc.PlayingChanged  += _activity.OnStatusChanged;
             svc.PositionChanged += _activity.OnPositionChanged;
         }
     }
@@ -40,7 +40,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
             svc.Buffering       -= _activity.OnBuffering;
             svc.CoverReloaded   -= _activity.OnCoverReloaded;
             svc.SeekCompleted  -= _activity.OnSeekCompleted;
-            svc.PlayingChanged  -= _activity.OnPlayingChanged;
+            svc.PlayingChanged  -= _activity.OnStatusChanged;
             svc.PositionChanged -= _activity.OnPositionChanged;
         }
         _activity.Binder = null;

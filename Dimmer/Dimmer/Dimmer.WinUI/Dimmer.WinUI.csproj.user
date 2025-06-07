@@ -16,6 +16,12 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\SettingsCenter\SettingWin.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\SettingsCenter\SettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\SingleSongPages\SingleSongPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -29,15 +35,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinuiWindows\OnlinePage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinuiWindows\FolderScanPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\SettingWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <MauiXaml Update="Views\DimmerSongWindow.xaml">

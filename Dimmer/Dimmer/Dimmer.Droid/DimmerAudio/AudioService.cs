@@ -195,14 +195,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public void OnPlayingChanged(object sender, bool isPlaying)
     {
-        Console.WriteLine($"[AudioService] OnPlayingChanged received: IsPlaying={isPlaying}");
 
-        IsPlayingChanged.Invoke(this, new(_currentSongModel)
-        {
-            MediaSong=_currentSongModel,
-            IsPlaying=isPlaying
-        });
-        NotifyPropertyChanged(nameof(IsPlaying));
 
     }
 
@@ -232,10 +225,33 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.Buffering += OnBuffering;
         Service.CoverReloaded += OnCoverReloaded;
 
-        Service.PlayingChanged += OnPlayingChanged;
+        Service.PlayingChanged += Service_PlayingChanged;
         Service.PositionChanged += OnPositionChanged;
+        Service.PlayNextPressed += Service_PlayNextPressed;
+        Service.PlayPreviousPressed += Service_PlayPreviousPressed;
 
+    }
 
+    private void Service_PlayPreviousPressed(object sender, PlaybackEventArgs PreviousStateArgs)
+    {
+        MediaKeyPreviousPressed?.Invoke(this, PreviousStateArgs);
+    }
+
+    private void Service_PlayNextPressed(object sender, PlaybackEventArgs PreviousStateArgs)
+    {
+        var eventArgs = new PlaybackEventArgs(PreviousStateArgs.MediaSong) { EventType=DimmerPlaybackState.PlayNextUser };
+        MediaKeyNextPressed?.Invoke(this, eventArgs);
+    }
+
+    public void Service_PlayingChanged(object sender, PlaybackEventArgs e)
+    {
+
+        IsPlayingChanged?.Invoke(this, new(_currentSongModel)
+        {
+            MediaSong=_currentSongModel,
+            IsPlaying=e.IsPlaying
+        });
+        NotifyPropertyChanged(nameof(IsPlaying));
     }
 
     private void DisconnectEvents()
@@ -247,8 +263,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.Buffering -= OnBuffering;
         Service.CoverReloaded -= OnCoverReloaded;
 
-        Service.PlayingChanged -= OnPlayingChanged;
+        Service.PlayingChanged -= Service_PlayingChanged;
         Service.PositionChanged -= OnPositionChanged;
+        Service.PlayNextPressed -= Service_PlayNextPressed;
+        Service.PlayPreviousPressed -= Service_PlayPreviousPressed;
 
     }
 

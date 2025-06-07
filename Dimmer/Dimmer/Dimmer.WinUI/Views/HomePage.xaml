@@ -7,8 +7,8 @@
              xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer" xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-             Title="HomePage" x:DataType="vm:BaseViewModelWin"
-             Shell.NavBarIsVisible="False"
+             xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls" Title="HomePage"
+             x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
              >
 
     <ContentPage.Resources>
@@ -300,6 +300,24 @@
                                 <Border Padding="10" BackgroundColor="Transparent"
                                         StrokeShape="RoundRectangle 20"
                                         >
+                                    <Border.Triggers>
+
+                                        <DataTrigger Binding="{Binding IsPlaying}"
+                                                     TargetType="Border" Value="true"
+                                                     >
+                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                            <Setter Property="StrokeThickness" Value="1" />
+
+                                        </DataTrigger>
+
+                                        <DataTrigger Binding="{Binding IsPlaying}"
+                                                     TargetType="Border" Value="false"
+                                                     >
+                                            <Setter Property="Stroke" Value="Transparent" />
+                                            <Setter Property="StrokeThickness" Value="0" />
+
+                                        </DataTrigger>
+                                    </Border.Triggers>
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
                                             <VisualState x:Name="Normal">
@@ -422,7 +440,8 @@
                   >
                 <HorizontalStackLayout Grid.Column="0" />
                 <SearchBar x:Name="SearchSongSB"
-                           Grid.Column="1" BackgroundColor="Transparent"
+                           Grid.Column="1" windows:SearchBar.IsSpellCheckEnabled="True"
+                           windows:VisualElement.AccessKey="F" BackgroundColor="Transparent"
                            Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
                            />
 

@@ -5,6 +5,7 @@ using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
@@ -279,6 +280,23 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 },
                            ex => _logger.LogError(ex, "Error in play next subscription."))
         );
+
+        _subsManager.Add(
+         _stateService.CurrentPlayBackState
+             .Where(psi => psi.State == DimmerPlaybackState.FolderScanCompleted)
+             .Subscribe(folderPath =>
+             {
+
+
+                 FolderPaths = new ObservableCollection<string>(_settingsService.UserMusicFoldersPreference ?? Enumerable.Empty<string>());
+
+                 NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
+
+
+
+             }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
+     );
+
         _subsManager.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.IsPlayingChanged += h, h => audioService.IsPlayingChanged -= h)
                 .Subscribe(evt =>
@@ -539,6 +557,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
         else
         {
+            if (audioService.CurrentPosition == 0)
+            {
+                await audioService.InitializeAsync(CurrentPlayingSongView);
+            }
             await audioService.PlayAsync();
 
         }
@@ -696,6 +718,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         libService.ScanLibraryAsync(null);
 
     }
+    public void AddMusicFolderByPassingToService(string folderPath)
+    {
+        _logger.LogInformation("User requested to add music folder.");
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, folderPath, null, null));
+    }
 
     public void ViewAlbumDetails(AlbumModelView? albumView)
     {
@@ -772,13 +799,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     }
 
-    public async Task AddMusicFolderAsync(string folderPath)
-    {
-        _logger.LogInformation("User requested to add music folder.");
 
-        await _folderMgtService.AddFolderToWatchListAndScanAsync(folderPath);
-
-    }
     [ObservableProperty] public partial ObservableCollection<DimmerPlayEventView>? SongEvts { get; set; }
     [ObservableProperty] public partial SongSingleStatsSummary SingleSongStatsSumm { get; set; }
     [ObservableProperty] public partial int CurrSongCompletedTimes { get; set; }

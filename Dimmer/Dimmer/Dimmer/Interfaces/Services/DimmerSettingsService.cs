@@ -3,7 +3,8 @@
 namespace Dimmer.Interfaces.Services;
 public partial class DimmerSettingsService : ISettingsService
 {
-    private readonly Realm _realm;
+    private Realm _realm;
+    private readonly IRealmFactory factory;
     private AppStateModel _model;
 
     public AppStateModel CurrentAppStateModel
@@ -21,6 +22,7 @@ public partial class DimmerSettingsService : ISettingsService
     {
         _realm = factory.GetRealmInstance();
         _model = LoadSettings();
+        this.factory=factory;
     }
 
     public AppStateModel LoadSettings()
@@ -123,9 +125,13 @@ public partial class DimmerSettingsService : ISettingsService
     // Add a folder
     public void AddMusicFolder(string path)
     {
-
+        _realm = factory.GetRealmInstance();
         _realm.Write(() =>
         {
+            if (true)
+            {
+
+            }
             _model.UserMusicFoldersPreference.Add(path);
 
 

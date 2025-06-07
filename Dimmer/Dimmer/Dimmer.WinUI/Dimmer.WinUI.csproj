@@ -22,6 +22,7 @@
     <PublishAot>false</PublishAot>
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
+    <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
   </PropertyGroup>
 
 
@@ -38,7 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Utils\StaticUtils\TaskBarSection\TaskbarThumbnailManager.cs" />
-    <Compile Remove="Views\SettingsWindow.xaml.cs" />
+    <Compile Remove="Views\SettingWindow.xaml.cs" />
   </ItemGroup>
 
 
@@ -57,14 +58,13 @@
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
-    <None Remove="Views\SettingsWindow.xaml" />
+    <None Remove="Views\SettingsCenter\SettingsPage.xaml" />
+    <None Remove="Views\SettingsCenter\SettingWin.xaml" />
     <None Remove="Views\SettingWindow.xaml" />
     <None Remove="Views\SingleSongPage.xaml" />
     <None Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
-    <None Remove="Views\WinuiWindows\FolderScanPage.xaml" />
-    <None Remove="Views\WinuiWindows\OnlinePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -79,7 +79,9 @@
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
     <Page Remove="Views\PlaylistWindow.xaml" />
-    <Page Remove="Views\SettingsWindow.xaml" />
+    <Page Remove="Views\SettingsCenter\SettingsPage.xaml" />
+    <Page Remove="Views\SettingsCenter\SettingWin.xaml" />
+    <Page Remove="Views\SettingWindow.xaml" />
     <Page Remove="Views\SingleSongPage.xaml" />
     <Page Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <Page Remove="Views\SongNotifierWindow.xaml" />
@@ -176,6 +178,12 @@
     <MauiXaml Include="Views\PlaylistWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\SettingsCenter\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\SettingsCenter\SettingWin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\SingleSongPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -220,21 +228,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\WinuiWindows\OnlinePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\WinuiWindows\FolderScanPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\SettingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
