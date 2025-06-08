@@ -111,7 +111,7 @@
                 <HorizontalStackLayout BackgroundColor="Transparent" IsVisible="True">
                     <dx:Chip x:Name="SortCategory"
                              BackgroundColor="Transparent" BorderColor="Transparent"
-                             Icon="roundaltarrowup.png" IconSize="60"
+                             Icon="roundaltarrowup.png" IconSize="30,30"
                              IsIconVisible="True" LongPress="SortCategory_LongPress"
                              Tap="Sort_Clicked"
                              Text="{Binding BaseVM.CurrentSortProperty}"
@@ -142,7 +142,7 @@
 
 
                 <dx:DXCollectionView x:Name="SongsColView"
-                                     AllowDragDropItems="True" AllowFixedGroupHeaders="True"
+                                     AllowDragDropItems="False" AllowFixedGroupHeaders="True"
                                      BackgroundColor="Transparent"
                                      FilteringUITemplate="{StaticResource filteringUIFormTemplate}"
                                      ItemSpacing="5"
