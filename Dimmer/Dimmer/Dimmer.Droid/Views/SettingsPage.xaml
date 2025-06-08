@@ -43,7 +43,7 @@
                         IsSelectedItemIndicatorVisible="True" ItemHeaderFontSize="15"
                         ItemHeaderTextColor="{AppThemeBinding Light=black,
                                                               Dark=white}"
-                        SelectedItemIndex="{Binding SettingsPageIndex}"
+                        SelectedItemIndex="{Binding BaseVM.SettingsPageIndex}"
                         SelectedItemIndicatorColor="DarkSlateBlue" SwipeEnabled="True"
                         >
                 <!--<dx:TabViewItem HeaderText="Main" HeaderTextColor="{AppThemeBinding Dark=White, Light=Black}">
@@ -117,7 +117,18 @@
                     </dx:TabViewItem.Content>
                 </dx:TabViewItem>-->
 
-
+                <dx:TabViewItem HeaderText="Main">
+                    <dx:TabViewItem.Content>
+                        <StackLayout>
+                            <dx:DXImage HeightRequest="150"
+                                        Source="{Binding BaseVM.UserLocal.UserProfileImage}"
+                                        WidthRequest="150"
+                                        />
+                            <Label FontSize="34" Text="{Binding BaseVM.UserLocal.Username}" />
+                            <Label FontSize="24" Text="{Binding BaseVM.UserLocal.Email}" />
+                        </StackLayout>
+                    </dx:TabViewItem.Content>
+                </dx:TabViewItem>
 
                 <dx:TabViewItem HeaderText="Folders Management">
                     <dx:TabViewItem.Content>

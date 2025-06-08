@@ -230,6 +230,7 @@ public partial class HomePage : ContentPage
 
     private void Sort_Clicked(object sender, EventArgs e)
     {
+
         var chip = sender as SfChip; // Or whatever your SfChip type is
         if (chip == null || chip.CommandParameter == null)
             return;

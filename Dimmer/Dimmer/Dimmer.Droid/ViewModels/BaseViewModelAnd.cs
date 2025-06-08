@@ -41,11 +41,16 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     private readonly BaseViewModel baseVM;
     public BaseViewModel BaseVM => baseVM; // Expose BaseViewModel reference if needed
 
+
     [ObservableProperty]
     private DXCollectionView? _songLyricsCV; // Nullable, ensure it's set from XAML
 
     // Removed local stateService and mapper as they are protected in BaseViewModel
     private readonly ILogger<BaseViewModelAnd> logger;
+
+
+
+
 
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
        IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,

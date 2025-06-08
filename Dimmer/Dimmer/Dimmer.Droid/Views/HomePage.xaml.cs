@@ -10,10 +10,13 @@ using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
+using DevExpress.Xpo;
 
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.ViewModel;
+
+using Syncfusion.Maui.Toolkit.Chips;
 
 using Color = Microsoft.Maui.Graphics.Color;
 using View = Microsoft.Maui.Controls.View;
@@ -443,6 +446,133 @@ public partial class HomePage : ContentPage
             }
         }
     }
+
+    private void Sort_Clicked(object sender, EventArgs e)
+    {
+        SortBottomSheet.Show();
+    }
+
+    private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
+    {
+        SongsColView.Commands.ShowDetailForm.Execute(null);
+    }
+
+    private void DXButton_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void MoreIcon_Clicked(object sender, EventArgs e)
+    {
+        SongsMenuPopup.Show();
+    }
+
+    private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
+    {
+        SearchBy.Focus();
+    }
+
+    List<SongModelView> songsToDisplay = new();
+    private void SortChoose_Clicked(object sender, EventArgs e)
+    {
+
+        var chip = sender as DXButton; // Or whatever your SfChip type is
+        if (chip == null || chip.CommandParameter == null)
+            return;
+
+        string sortProperty = chip.CommandParameter.ToString();
+        if (string.IsNullOrEmpty(sortProperty))
+            return;
+
+
+        // Update current sort state
+        MyViewModel.BaseVM.CurrentSortProperty = sortProperty;
+
+
+        SortOrder newOrder;
+
+        // Toggle order if sorting by the same property again
+        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+
+
+        MyViewModel.BaseVM.CurrentSortOrder = newOrder;
+        MyViewModel.BaseVM.CurrentSortOrderInt = (int)newOrder;
+        // Optional: Update UI to show sort indicators (e.g., change chip appearance)
+        bool flowControl = SortIndeed();
+        if (!flowControl)
+        {
+            return;
+        }
+
+        // Optional: Scroll to top after sorting
+        // if (SongsColView.CurrentItems.Count > 0)
+        // {
+        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
+        // }
+    }
+    SortOrder internalOrder = SortOrder.Ascending;
+    private bool SortIndeed()
+    {
+        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
+        ;
+        if (songs == null || !songs.Any())
+            return false;
+        internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
+
+        MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
+
+        switch (MyViewModel.BaseVM.CurrentSortProperty)
+        {
+            case "Title":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
+                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Album": // Assuming CommandParameter is "Album" for AlbumName
+                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Genre":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Duration":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Year": // Assuming CommandParameter for ReleaseYear
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "DateAdded": // Assuming CommandParameter for DateCreated
+                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            default:
+                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.BaseVM.CurrentSortProperty}");
+                // Reset sort state if property is unknown, or do nothing
+                MyViewModel.BaseVM.CurrentSortProperty = string.Empty;
+                MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
+                break;
+
+        }
+        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
+
+        return true;
+    }
+
+    private void SortCategory_LongPress(object sender, HandledEventArgs e)
+    {
+        SortIndeed();
+    }
 }
 
 /*
@@ -618,12 +748,6 @@ private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
     //MyViewModel.ToggleShuffleState();
 }
 
-private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
-{
-    var song = (SongModelView)e.Item;
-    MyViewModel.SetCurrentlyPickedSong(song);
-    //ContextBtmSheet.Show();
-}
 
 private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
 {

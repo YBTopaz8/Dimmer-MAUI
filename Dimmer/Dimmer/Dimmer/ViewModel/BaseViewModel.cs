@@ -58,8 +58,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public partial CollectionStatsSummary? SummaryStatsForAllSongs { get; set; }
 
     [ObservableProperty] public partial int? CurrentTotalSongsOnDisplay { get; set; }
+    [ObservableProperty] public partial int? CurrentSortOrderInt { get; set; }
+    [ObservableProperty] public partial string? CurrentSortProperty { get; set; } = "Title";
+    [ObservableProperty] public partial SortOrder CurrentSortOrder { get; set; } = SortOrder.Ascending;
+
     [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AudioDevices { get; set; }
+    [ObservableProperty] public partial List<string>? SortingModes { get; set; } = new List<string> { "Title", "Artist", "Album", "Duration", "Year" };
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
+    [ObservableProperty] public partial string? SelectedSortingMode { get; set; }
+    [ObservableProperty] public partial bool? IsAscending { get; set; }
     [ObservableProperty]
     public partial SongModelView? SelectedSongForContext { get; set; }
     [ObservableProperty]

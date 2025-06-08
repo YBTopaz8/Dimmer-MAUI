@@ -155,6 +155,9 @@
     <MauiXaml Update="Views\ArtistsSpace\ArtistsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\DetailSongPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
