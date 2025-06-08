@@ -173,10 +173,10 @@ public class ExoPlayerService : MediaSessionService
             Console.WriteLine(item.Id);
             Console.WriteLine(item.Name);
         }
-        return we.ToList();
+        return we.DistinctBy(x => x.Name).ToList();
     }
 
-    internal List<AudioDeviceInfo> GetAvailableAudioOutputs()
+    internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
@@ -562,15 +562,15 @@ public class ExoPlayerService : MediaSessionService
         //}
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
-            //Console.WriteLine($"[PlayerEventListener] OnPositionDiscontinuity:");
+            Console.WriteLine($"!!!!!!!!!!!!!!!!!!!!!!!!![PlayerEventListener] OnPositionDiscontinuity:");
 
-            //Console.WriteLine($"  Old Position: {oldPosition?.PositionMs}ms");
-            //Console.WriteLine($"  New Position: {newPosition?.PositionMs}ms");
+            Console.WriteLine($"  Old Position: {oldPosition?.PositionMs}ms");
+            Console.WriteLine($"  New Position: {newPosition?.PositionMs}ms");
 
             Log.WriteLine(LogPriority.Info, "MyAppSeekDebug", $"*** OnPositionDiscontinuity Entered! Reason={reason} ***");
             Log.Debug("PlayerEventListener", $"OnPositionDiscontinuity Detail: Reason={reason}, From={oldPosition?.PositionMs ?? -1}, To={newPosition?.PositionMs ?? -1}");
-
-            if (reason == 1)
+            //Console.WriteLine(  );
+            if (reason == 1 && newPosition?.PositionMs != 0)
             {
                 //Console.WriteLine($"  Reason: {reason} == Seek normally"); // Check this against Player.DISCONTINUITY_REASON_ constants
                 service.RaiseSeekCompleted((double)newPosition?.PositionMs);

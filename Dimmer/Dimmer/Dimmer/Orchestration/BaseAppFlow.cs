@@ -451,7 +451,7 @@ public class BaseAppFlow : IDisposable
 
 
 
-    public async Task<UserModel> UpsertUserAsync(UserModel user)
+    public UserModel UpsertUserAsync(UserModel user)
     {
         if (user == null)
             throw new ArgumentNullException(nameof(user));

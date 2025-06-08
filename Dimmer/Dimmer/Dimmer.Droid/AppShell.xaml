@@ -19,11 +19,6 @@
                       Icon="house.png" Route="MainPage"
                       />
 
-        <ShellContent Title="Vault"
-                      ContentTemplate="{DataTemplate views:MusicPlayerPage}"
-                      Icon="musical_notes.png" Route="MusicPlayerPage"
-                      />
-
         <ShellContent Title="Search"
                       ContentTemplate="{DataTemplate views:SearchSongPage}"
                       Icon="songfind.png" Route="SearchSongPage"

@@ -213,7 +213,7 @@ public partial class HomePage : ContentPage
 
         _isThrottling = true;
 
-        await MyViewModel.SeekTrackPosition(send.Value);
+        MyViewModel.SeekTrackPosition(send.Value);
 
 
         await Task.Delay(throttleDelay);

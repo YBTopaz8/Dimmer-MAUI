@@ -116,14 +116,14 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // Interface Events (using backing fields for safety)
     private EventHandler<PlaybackEventArgs>? _isPlayingChanged;
-    event EventHandler<PlaybackEventArgs> IDimmerAudioService.IsPlayingChanged
+    public event EventHandler<PlaybackEventArgs> IsPlayingChanged
     {
         add => _isPlayingChanged += value;
         remove => _isPlayingChanged -= value;
     }
 
     private EventHandler<PlaybackEventArgs>? _playEnded;
-    event EventHandler<PlaybackEventArgs> IDimmerAudioService.PlayEnded
+    public event EventHandler<PlaybackEventArgs> PlayEnded
     {
         add => _playEnded += value;
         remove => _playEnded -= value;
@@ -1028,20 +1028,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     readonly MMDeviceEnumerator _enum = new MMDeviceEnumerator();
 
-    public List<AudioOutputDevice> GetAllAudioDevices()
-    {
-        var list = new List<AudioOutputDevice>();
-        foreach (var d in _enum.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
-        {
-            //d.
-            list.Add(new AudioOutputDevice
-            {
-                Id   = d.ID,
-                Name = d.FriendlyName
-            });
-        }
-        return list.DistinctBy(x => x.Name).ToList();
-    }
 
     public bool SetPreferredOutputDevice(AudioOutputDevice dev)
     {
@@ -1055,6 +1041,22 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             return false;
         }
+    }
+
+
+    public List<AudioOutputDevice>? GetAllAudioDevices()
+    {
+        var list = new List<AudioOutputDevice>();
+        foreach (var d in _enum.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+        {
+            //d.
+            list.Add(new AudioOutputDevice
+            {
+                Id   = d.ID,
+                Name = d.FriendlyName
+            });
+        }
+        return list.DistinctBy(x => x.Name).ToList();
     }
 
 

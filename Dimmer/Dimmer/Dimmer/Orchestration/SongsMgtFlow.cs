@@ -265,11 +265,11 @@ public partial class SongsMgtFlow : IDisposable
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayCompleted, args.EventType, endedSongView, endedSongModel));
     }
 
-    public async Task RequestSeekAsync(double positionSeconds)
+    public void RequestSeek(double positionSeconds)
     {
         if (_audio.IsPlaying)
         {
-            await _audio.SeekAsync(positionSeconds);
+            _audio.Seek(positionSeconds);
         }
         else
         {

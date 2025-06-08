@@ -20,7 +20,7 @@ public interface IDimmerAudioService
 
 
 
-    Task SeekAsync(double positionSeconds);
+    void Seek(double positionSeconds);
 
 
 
@@ -33,14 +33,6 @@ public interface IDimmerAudioService
 
 
     void InitializePlaylist(IEnumerable<SongModelView> songModels);
-
-
-
-
-    Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync();
-
-
-
 
 
 

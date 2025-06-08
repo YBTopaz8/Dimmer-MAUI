@@ -164,9 +164,6 @@
     <MauiXaml Update="Views\DimmerSettings.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\MusicPlayerPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="Views\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

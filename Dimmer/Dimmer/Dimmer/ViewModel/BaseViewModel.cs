@@ -122,6 +122,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
+
     private BaseAppFlow? _baseAppFlow;
     public const string CurrentAppVersion = "Dimmer v1.9";
 
@@ -593,7 +594,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
 
-        if (IsPlaying)
+        if (audioService.IsPlaying)
         {
             audioService.Stop();
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
@@ -663,27 +664,28 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public async Task SeekTrackPosition(double positionSeconds)
+    public void SeekTrackPosition(double positionSeconds)
     {
         if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
         {
             return;
         }
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
-
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
 
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
-        await _songsMgtFlow.RequestSeekAsync(positionSeconds);
+        _songsMgtFlow.RequestSeek(positionSeconds);
+
+        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
+
     }
 
 
-    public async Task RequestSeekPercentage(double percentage)
+    public void RequestSeekPercentage(double percentage)
     {
         if (CurrentTrackDurationSeconds > 0)
         {
             double targetSeconds = percentage * CurrentTrackDurationSeconds;
-            await SeekTrackPosition(targetSeconds);
+            SeekTrackPosition(targetSeconds);
         }
     }
 

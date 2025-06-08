@@ -21,7 +21,7 @@ public partial class DimmerWin : Window
             var dimmerAudio = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>();
             if (dimmerAudio is not null)
             {
-                await dimmerAudio.StopAsync();
+                dimmerAudio.Stop();
                 await dimmerAudio.DisposeAsync();
             }
             subMgr.Dispose();

@@ -4,7 +4,9 @@ using System.Runtime.CompilerServices;
 using AndroidX.Media3.Common;
 
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Events; // Assuming this namespace is correct for PlaybackEventArgs
+using Dimmer.Orchestration;
+using Dimmer.Utilities.Events;
+using Dimmer.Utilities.StatsUtils;
 
 namespace Dimmer.DimmerAudio;
 
@@ -151,12 +153,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         SeekCompleted?.Invoke(this, positionSeconds);
     }
 
-    public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
+    public List<AudioOutputDevice> GetAvailableAudioOutputs()
     {
-
-        return null;
-        //var s = await Service.GetAvailableAudioOutputs();
-        //return Service?.GetAvailableAudioOutputs()!;
+        return Service?.GetAvailableAudioOutputMAUI()!;
 
     }
 
@@ -165,33 +164,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     // Binder property by IAudioActivity interface
     ExoPlayerServiceBinder? IAudioActivity.Binder { get => _binder; set => SetBinder(value); }
 
-    public void OnStatusChanged(object sender, EventArgs e)
-    {
-
-        var playerState = Player?.PlaybackState ?? Player?.PlaybackState;
-        var isPlaying = Player?.IsPlaying ?? false;
-        Console.WriteLine($"[AudioService] OnStatusChanged received. PlayerState: {playerState}, IsPlaying: {isPlaying}");
-
-
-        NotifyPropertyChanged(nameof(IsPlaying));
-        NotifyPropertyChanged(nameof(Duration)); // Duration might become available when Ready
-
-
-    }
-
-    public void OnBuffering(object sender, EventArgs e) // Assuming EventArgs for now
-    {
-
-        Console.WriteLine($"[AudioService] OnBuffering received. Player Buffering: {Player?.IsLoading}");
-
-    }
-
-
-    public void OnCoverReloaded(object sender, EventArgs e)
-    {
-        Console.WriteLine("[AudioService] OnCoverReloaded received.");
-
-    }
 
     public void OnPlaying(object sender, EventArgs e)
     {
@@ -201,6 +173,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public void OnPlayingChanged(object sender, bool isPlaying)
     {
+        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
+
+        var args = new PlaybackEventArgs(CurrentTrackMetadata) { IsPlaying= IsPlaying, EventType=  eventType };
+        IsPlayingChanged?.Invoke(this, args);
+
+        var _baseAppFlow = IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentTrackMetadata, StatesMapper.Map(eventType), 0);
 
 
     }
@@ -218,6 +197,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         NotifyPropertyChanged(nameof(CurrentPosition));
         SeekCompleted?.Invoke(this, positionSeconds);
 
+        var _baseAppFlow = IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentTrackMetadata, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
+
     }
 
     // --- Helper Methods ---
@@ -227,11 +209,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         if (Service == null)
             return;
         // SubscribeAsync to events coming *from* the ExoPlayerService
-        Service.StatusChanged += OnStatusChanged;
-        Service.Buffering += OnBuffering;
-        Service.CoverReloaded += OnCoverReloaded;
-        Service.PlayingEnded += OnPlayEnded; // Assuming this is a custom event in the service
 
+        Service.PlayingEnded += OnPlayEnded;
         Service.PlayingChanged += Service_PlayingChanged;
         Service.PositionChanged += OnPositionChanged;
         Service.PlayNextPressed += Service_PlayNextPressed;
@@ -241,7 +220,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void OnPlayEnded(object sender, PlaybackEventArgs e)
     {
-        throw new NotImplementedException();
+        BaseAppFlow _baseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>()!;
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(e.MediaSong, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), 0);
+        PlayEnded?.Invoke(this, e);
     }
 
     private void Service_PlayPreviousPressed(object sender, PlaybackEventArgs PreviousStateArgs)
@@ -263,7 +244,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             MediaSong=_currentSongModel,
             IsPlaying=e.IsPlaying
         });
-        NotifyPropertyChanged(nameof(IsPlaying));
+        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
+
+        var _baseAppFlow = IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentTrackMetadata, StatesMapper.Map(eventType), 0);
+
     }
 
     private void DisconnectEvents()
@@ -271,10 +256,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         if (Service == null)
             return;
         // Unsubscribe from events
-        Service.StatusChanged -= OnStatusChanged;
-        Service.Buffering -= OnBuffering;
-        Service.CoverReloaded -= OnCoverReloaded;
-        Service.PlayingEnded -= OnPlayEnded; // Assuming this is a custom event in the service
+        Service.PlayingEnded -= OnPlayEnded;
         Service.PlayingChanged -= Service_PlayingChanged;
         Service.PositionChanged -= OnPositionChanged;
         Service.PlayNextPressed -= Service_PlayNextPressed;
@@ -306,4 +288,15 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         await Task.CompletedTask; // Return completed task
     }
 
+    public void OnStatusChanged(object sender, EventArgs e)
+    {
+    }
+
+    public void OnBuffering(object sender, EventArgs e)
+    {
+    }
+
+    public void OnCoverReloaded(object sender, EventArgs e)
+    {
+    }
 }
