@@ -91,16 +91,36 @@ public partial class HomePage : ContentPage
     }
 
 
-    private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
+    private async void Chip_Tap(object sender, HandledEventArgs e)
     {
-        var art = MyViewModel.BaseVM.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
+        var send = (Chip)sender;
+
+        var song = send.TapCommandParameter as SongModelView;
+        var result = await Shell.Current.DisplayActionSheet("Select Artist To View", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        if (result == "Cancel" || string.IsNullOrEmpty(result))
+            return;
+        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
         DeviceStaticUtils.SelectedArtistOne = art;
         await SongsMenuPopup.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+
+    }
+    private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
+    {
+
+        var song = MyViewModel.BaseVM.SelectedSongForContext;
+        var result = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        if (result == "Cancel" || string.IsNullOrEmpty(result))
+            return;
+        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
+        DeviceStaticUtils.SelectedArtistOne = art;
+        await SongsMenuPopup.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
     private void ClosePopup(object sender, EventArgs e)
     {
-        //SongsMenuPopup.Close();
+        SongsMenuPopup.Close();
     }
 
 
@@ -466,10 +486,19 @@ public partial class HomePage : ContentPage
     {
 
     }
-
-    private void MoreIcon_Clicked(object sender, EventArgs e)
+    SongModelView selectedSongPopUp = new SongModelView();
+    private async void MoreIcon_Clicked(object sender, EventArgs e)
     {
+        var send = (DXButton)sender;
+        var paramss = send.CommandParameter as SongModelView;
+        if (paramss is null)
+        {
+            return;
+        }
+        selectedSongPopUp = paramss;
+        MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
         SongsMenuPopup.Show();
+
     }
 
     private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
@@ -573,6 +602,7 @@ public partial class HomePage : ContentPage
     {
         SortIndeed();
     }
+
 }
 
 /*

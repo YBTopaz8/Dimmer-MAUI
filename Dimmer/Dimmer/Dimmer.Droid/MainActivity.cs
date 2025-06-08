@@ -46,12 +46,11 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnNewIntent(Intent? intent)
     {
         base.OnNewIntent(intent);
-        Task.Run(async () => await HandleIntent(intent));
 
 
     }
 
-    private static async Task HandleIntent(Intent? intent)
+    private static void HandleIntent(Intent? intent)
     {
 
     }

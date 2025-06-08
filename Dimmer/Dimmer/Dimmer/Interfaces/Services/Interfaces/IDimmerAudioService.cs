@@ -9,23 +9,7 @@ public interface IDimmerAudioService
     void Pause();
 
 
-
-
-
-
-
-
-
-
-
-
-
     void Seek(double positionSeconds);
-
-
-
-
-
 
     Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage = null);
 
@@ -112,8 +96,7 @@ public interface IDimmerAudioService
 
 
     event EventHandler<PlaybackEventArgs>? ErrorOccurred;
-    event EventHandler<PlaybackEventArgs> PlayStarted;
-
+    
 
 
 

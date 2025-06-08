@@ -36,17 +36,20 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     protected readonly IFolderMgtService _folderMgtService;
     private readonly IRepository<SongModel> songRepo;
     private readonly IRepository<ArtistModel> artistRepo;
+    private readonly IRepository<PlaylistModel> playlistRepo;
     private readonly IRepository<AlbumModel> albumRepo;
     private readonly IRepository<GenreModel> genreRepo;
     private readonly IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
     private readonly LyricsMgtFlow _lyricsMgtFlow;
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
-    private readonly IRepository<PlaylistModel> playlistRepo;
     private readonly ILibraryScannerService libService;
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> DimmerPlayEventList { get; set; } = new();
+
+    [ObservableProperty]
+    public partial ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } = new();
 
 
 
@@ -456,6 +459,34 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
 
+    [RelayCommand]
+    public void SetPreferredAudioDevice(AudioOutputDevice dev)
+    {
+        audioService.SetPreferredOutputDevice(dev);
+    }
+    public void RequestPlayGenericList(IEnumerable<SongModelView> songs, SongModelView? startWithSong, string listName = "Custom List")
+    {
+        if (songs == null || !songs.Any())
+        {
+            _logger.LogWarning("RequestPlayGenericList: Provided song list is empty.");
+            return;
+        }
+        var songModels = songs.Select(svm => svm.ToModel(_mapper)).Where(sm => sm != null).ToList()!;
+        int startIndex = 0;
+        if (startWithSong != null)
+        {
+            var startWithModel = startWithSong.ToModel(_mapper);
+            if (startWithModel != null)
+            {
+                startIndex = songModels.FindIndex(s => s.Id == startWithModel.Id);
+                if (startIndex < 0)
+                    startIndex = 0;
+            }
+        }
+        _playlistsMgtFlow.PlayGenericSongList(songModels, startIndex, listName);
+    }
+
+
     public async Task PlaySongFromListAsync(SongModelView songToPlay, IEnumerable<SongModelView> songs)
     {
         if (songToPlay == null)
@@ -519,34 +550,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
     }
-    [RelayCommand]
-    public void SetPreferredAudioDevice(AudioOutputDevice dev)
-    {
-        audioService.SetPreferredOutputDevice(dev);
-    }
-    public void RequestPlayGenericList(IEnumerable<SongModelView> songs, SongModelView? startWithSong, string listName = "Custom List")
-    {
-        if (songs == null || !songs.Any())
-        {
-            _logger.LogWarning("RequestPlayGenericList: Provided song list is empty.");
-            return;
-        }
-        var songModels = songs.Select(svm => svm.ToModel(_mapper)).Where(sm => sm != null).ToList()!;
-        int startIndex = 0;
-        if (startWithSong != null)
-        {
-            var startWithModel = startWithSong.ToModel(_mapper);
-            if (startWithModel != null)
-            {
-                startIndex = songModels.FindIndex(s => s.Id == startWithModel.Id);
-                if (startIndex < 0)
-                    startIndex = 0;
-            }
-        }
-        _playlistsMgtFlow.PlayGenericSongList(songModels, startIndex, listName);
-    }
-
-
 
     [RelayCommand]
     public async Task PlayPauseToggleAsync()
@@ -567,7 +570,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         if (IsPlaying)
         {
             audioService.Pause();
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
+
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedDimmer, null, currentSongVm, currentSongModel));
         }
         else
@@ -578,6 +581,47 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             }
             audioService.Play();
 
+        }
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
+
+        var songToPlay = CurrentPlayingSongView;
+        var songToPlayModel = songToPlay.ToModel(_mapper);
+        if (songToPlayModel == null)
+        {
+            _logger.LogWarning("PlaySongFromList: Could not map songToPlay to SongModel.");
+            return;
+        }
+
+
+        var activePlaylistContextFromState = this.CurrentlyPlayingPlaylistContext;
+        var activePlaylistModel = _mapper.Map<PlaylistModel>(activePlaylistContextFromState);
+        if (activePlaylistModel != null && activePlaylistModel.SongsInPlaylist.Any(s => s.Id == songToPlayModel.Id))
+        {
+
+            _logger.LogDebug("PlaySongFromList: Playing from active playlist context '{PlaylistName}'.", activePlaylistModel.PlaylistName);
+            int startIndex = activePlaylistModel.SongsInPlaylist.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
+            _playlistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
+        }
+        else
+        {
+
+
+
+            _logger.LogDebug("PlaySongFromList: Playing from generic list/current display queue.");
+
+            var songListModels = NowPlayingDisplayQueue
+                .Select(svm => svm.ToModel(_mapper))
+                .Where(sm => sm != null)
+                .ToList();
+            int startIndex = songListModels.FindIndex(s => s?.Id == songToPlayModel.Id);
+
+            _playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Custom Context List");
+
+        }
+
+        if (IsShuffleActive)
+        {
+            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
     }
 
@@ -769,6 +813,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _logger.LogWarning("ViewArtistDetails: art or its ID is null/default.");
             return;
         }
+        var uniqueAlbums = SelectedArtistSongs.Select(x => x).DistinctBy(x => x.AlbumName)
+            .Select(x=>x.Album);
+        SelectedArtistAlbums = uniqueAlbums.ToObservableCollection();
         SelectedArtist.ImagePath = SelectedArtistSongs[0].CoverImagePath;
         _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
 
@@ -897,19 +944,59 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _stateService.SetCurrentSong(song);
     }
 
-    //[RelayCommand]
-    //public void AddToPlaylist(string PlName, List<SongModelView> songs)
-    //{
-    //    if (string.IsNullOrEmpty(PlName) || songs == null || !songs.Any())
-    //    {
-    //        _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', songs count = {Count}", PlName, songs?.Count ?? 0);
-    //        return;
-    //    }
 
-    //    _logger.LogInformation("Adding songs to playlist '{PlName}'.", PlName);
+    public void AddToPlaylist(string PlName, List<SongModelView> songs)
+    {
+        if (string.IsNullOrEmpty(PlName) || songs == null || !songs.Any())
+        {
+            _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', songs count = {Count}", PlName, songs?.Count ?? 0);
+            return;
+        }
 
-    //    //_playlistsMgtFlow.add
-    //}
+        _logger.LogInformation("Adding songs to playlist '{PlName}'.", PlName);
+
+        var playlistModel = playlistRepo.GetAll();
+        PlaylistModel playlistt = new();
+        if (playlistModel == null)
+        {
+            _logger.LogWarning("AddToPlaylist: No playlists found in repository.");
+            playlistt.PlaylistName  =PlName;
+        }
+
+        if (playlistt.Songs is not null && playlistt.Songs.Count>0)
+        {
+            var allDistinctSongs = playlistt.Songs.ToList();
+            var s = _mapper.Map<List<SongModel>>(songs);
+            allDistinctSongs.AddRange(s.Where(ns => !allDistinctSongs.Any(os => os.Id == ns.Id)));
+        }
+        playlistRepo.AddOrUpdate(playlistt);
+        var allPL = playlistRepo.GetAll();
+        AllPlaylists = _mapper.Map<ObservableCollection<PlaylistModelView>>(allPL.ToList());
+
+    }
+
+    public void RemoveFromPlaylist(ObjectId Id, List<SongModelView> songs)
+    {
+
+        _logger.LogInformation("Removing songs from playlist '{PlName}'.", Id);
+
+        var playlistModel = playlistRepo.GetById(Id);
+        if (playlistModel == null)
+        {
+            _logger.LogWarning("RemoveFromPlaylist: Playlist '{PlName}' not found.", Id);
+            return;
+        }
+
+        var songsToRemove = _mapper.Map<List<SongModel>>(songs);
+        var songsInPlaylist = playlistModel.Songs.ToList();
+        songsInPlaylist.RemoveAll(existingSong => songsToRemove.Any(song => song.Id == existingSong.Id));
+        playlistModel.Songs.Clear();
+
+
+        playlistRepo.AddOrUpdate(playlistModel);
+        var allPL = playlistRepo.GetAll();
+        AllPlaylists = _mapper.Map<ObservableCollection<PlaylistModelView>>(allPL.ToList());
+    }
 
 
     public void Dispose()

@@ -553,15 +553,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
             props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            // props.MusicProperties.TrackNumber = (uint)(media.TrackNumber ?? 0); // If you have track number
+            props.Thumbnail = storageFile != null
+                ? RandomAccessStreamReference.CreateFromFile(storageFile) // Use StorageFile for thumbnail
+                : null; // If no StorageFile, thumbnail will be null
 
-            // Thumbnail: Removed manual ImageBytes handling.
-            // Windows/MediaPlayer will attempt to load it from:
-            // 1. Embedded metadata in the StorageFile.
-            // 2. System music library caches if the file is indexed there.
-            // If 'storageFile' is used, this is more likely to work. For raw URIs, it's less certain.
-            // If you used MediaSource.CreateFromStream, you'd set props.Thumbnail = RandomAccessStreamReference.CreateFromStream(...)
-            // but that was for the ImageBytes. For the song's actual cover, it's usually embedded.
 
             mediaPlaybackItem.ApplyDisplayProperties(props);
             Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");
@@ -657,10 +652,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine($"[AudioService] MediaFailed: Error={args.Error}, Code={args.ExtendedErrorCode}, Msg={args.ErrorMessage}");
         OnErrorOccurred($"Playback failed: {args.ErrorMessage}", args.ExtendedErrorCode, args.Error);
 
-        // Try to clean up
-        // sender.Source = null; // This might be too aggressive if you want to retry.
-        // However, for a fatal media error, clearing the source is reasonable.
-        // The key is that _currentTrackMetadata is nulled and state is Error.
+
         _currentTrackMetadata = null; // Correct
         OnPropertyChanged(nameof(CurrentTrackMetadata)); // Correct
         UpdatePlaybackState(DimmerPlaybackState.Error); // Correct

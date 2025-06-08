@@ -36,6 +36,8 @@ public partial class HomePage : ContentPage
     {
         var send = (MenuFlyoutItem)sender;
         var song = send.BindingContext as SongModelView;
+
+
         var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
         if (result == "Cancel" || string.IsNullOrEmpty(result))
             return;

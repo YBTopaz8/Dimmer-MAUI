@@ -11,10 +11,7 @@ public partial class SettingsPage : ContentPage
         BindingContext = vm;
     }
     BaseViewModelAnd MyViewModel { get; }
-    private async void PickFolder_Clicked(object sender, EventArgs e)
-    {
-        //await MyViewModel.SelectSongFromFolderAndroid();
-    }
+
 
     private static async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {

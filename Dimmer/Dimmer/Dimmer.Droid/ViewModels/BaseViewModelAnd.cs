@@ -19,14 +19,21 @@ using Microsoft.Extensions.Logging;
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : ObservableObject, IDisposable
 {
+    public readonly IMapper _mapper;
+    private readonly IAppInitializerService appInitializerService;
+    protected readonly IDimmerStateService _stateService;
+    protected readonly ISettingsService _settingsService;
+    protected readonly SubscriptionManager _subsManager;
+    protected readonly IFolderMgtService _folderMgtService;
+    protected readonly ILogger<BaseViewModel> _logger;
+    private readonly IDimmerAudioService audioService;
+
     // _subs is inherited from BaseViewModel as _subsManager and should be used for subscriptions here too
     // private readonly SubscriptionManager _subsLocal = new(); // Use _subsManager from base
     private readonly IMapper mapper;
-    private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly AlbumsMgtFlow albumsMgtFlow;
     private readonly IFolderPicker folderPicker;
-    private readonly IDimmerAudioService audioService;
     private readonly PlayListMgtFlow playlistsMgtFlow;
     private readonly SongsMgtFlow songsMgtFlow;
     private readonly IDimmerStateService stateService;
@@ -141,5 +148,10 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     public void Dispose()
     {
         ((IDisposable)songsMgtFlow).Dispose();
+    }
+
+    internal void ViewArtistDetails(ArtistModelView? s)
+    {
+        baseVM.ViewArtistDetails(s);
     }
 }

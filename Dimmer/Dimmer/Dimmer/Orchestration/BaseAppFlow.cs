@@ -109,14 +109,7 @@ public class BaseAppFlow : IDisposable
             },
                        ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
     );
-        _subscriptions.Add(
-        Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.PlayStarted += h, h => audioService.PlayStarted -= h)
-            .Subscribe(evt =>
-            {
-                UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, PlayType.Play, 0);
-            },
-                       ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
-    );
+       
 
         InitializeFolderEventReactions();
 

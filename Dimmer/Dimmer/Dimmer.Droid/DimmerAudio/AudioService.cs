@@ -58,7 +58,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<double>? SeekCompleted; // Triggered after a seek operation completes
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred; // Triggered by player errors
     public event PropertyChangedEventHandler? PropertyChanged;
-    public event EventHandler<PlaybackEventArgs> PlayStarted;
 
 
     /// <summary>

@@ -31,6 +31,7 @@ public partial class ArtistsPage : ContentPage
         MyViewModel.ViewArtistDetails(s);
 
     }
+
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync("..");
