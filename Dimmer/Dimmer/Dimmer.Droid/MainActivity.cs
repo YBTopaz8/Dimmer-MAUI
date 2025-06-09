@@ -221,7 +221,7 @@ public class MainActivity : MauiAppCompatActivity
             return; // Should not happen in OnCreate after base call
 
 #if RELEASE
-     Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
+        Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
 #elif DEBUG
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
