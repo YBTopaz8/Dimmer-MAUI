@@ -154,9 +154,9 @@ public class DimmerLiveStateService : IDimmerLiveStateService
    private readonly IRepository<ArtistModel> _artistRepo;
    private readonly IRepository<AlbumModel> _albumRepo;
    private readonly IRepository<UserModel> _userRepo;
-   private readonly IDimmerStateService _state;
+   private readonly IDimmerStateService _stateService;
    private readonly IMapper mapper;
-   readonly CompositeDisposable _subs = new();
+   readonly CompositeDisposable _subsManager = new();
 
    public DimmerLiveStateService(IMapper mapper,
 
@@ -167,11 +167,11 @@ public class DimmerLiveStateService : IDimmerLiveStateService
        IRepository<PlaylistModel> playlistRepo,
        IRepository<ArtistModel> artistRepo,
        IRepository<AlbumModel> albumRepo,
-        IDimmerStateService _state)
+        IDimmerStateService _stateService)
    {
        this._userRepo=userRepo;
        _artistRepo=artistRepo;
-       this._state=_state;
+       this._stateService=_stateService;
        this.mapper=mapper;
        _songRepo=songRepo;
        _genreRepo=genreRepo;
@@ -324,7 +324,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
    public void Dispose()
    {
-       _subs.Dispose();
+       _subsManager.Dispose();
    }
 
    public Task FullySyncUser(string userEmail)
@@ -1153,9 +1153,9 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                     ArtistName = sharedSong.Artist,
                     AlbumName = sharedSong.Album
                 };
-                _state.SetCurrentSong(mapper.Map<SongModel>(newSong));
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, null, null));
-                _state.SetCurrentLogMsg(new AppLogModel()
+                _stateService.SetCurrentSong(mapper.Map<SongModel>(newSong));
+                _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, null, null));
+                _stateService.SetCurrentLogMsg(new AppLogModel()
                 {
                     UserModel = UserLocalView,
                     Log = $"User {UserLocalView.Username} fetched song {sharedSong.Title} with code {sharedSongCode}.",

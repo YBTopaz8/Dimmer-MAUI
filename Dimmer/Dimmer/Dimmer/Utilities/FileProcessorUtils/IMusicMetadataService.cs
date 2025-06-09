@@ -1,9 +1,11 @@
-﻿namespace Dimmer.Utilities.FileProcessorUtils;
+﻿using ATL;
+
+namespace Dimmer.Utilities.FileProcessorUtils;
 public interface IMusicMetadataService
 {
-    ArtistModel GetOrCreateArtist(string name);
-    AlbumModel GetOrCreateAlbum(string name, string? initialCoverPath = null);
-    GenreModel GetOrCreateGenre(string name);
+    ArtistModel GetOrCreateArtist(Track track, string name);
+    AlbumModel GetOrCreateAlbum(Track track, string name, string? initialCoverPath = null);
+    GenreModel GetOrCreateGenre(Track track, string name);
     void AddSong(SongModel song); // For tracking processed songs, e.g., for duplicate checks
     bool DoesSongExist(string title, int durationInSeconds); // Example duplicate check
 

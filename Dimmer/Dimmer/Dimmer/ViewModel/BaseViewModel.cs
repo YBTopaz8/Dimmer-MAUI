@@ -44,7 +44,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
     private readonly ILibraryScannerService libService;
-
+    [ObservableProperty]
+    public partial ObservableCollection<LyricPhraseModel> AllLines { get; set; }
+    [ObservableProperty]
+    public partial LyricPhraseModel? PreviousLine { get; set; }
+    [ObservableProperty]
+    public partial LyricPhraseModel? CurrentLine { get; set; }
+    [ObservableProperty]
+    public partial LyricPhraseModel? NextLine { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> DimmerPlayEventList { get; set; } = new();
 
@@ -212,7 +219,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         this.genreRepo=genreModel;
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
-        audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
+        audioService= _audioService;
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
@@ -239,14 +246,31 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         if (NowPlayingDisplayQueue.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
         {
             var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
-            
+
         }
     }
     protected virtual async Task InitializeViewModelSubscriptions()
     {
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
 
+        _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
+            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync()) // If updating UI, switch to the main thread!
+            .Subscribe(lines => AllLines = lines.ToObservableCollection()));
 
+        _subsManager.Add(_lyricsMgtFlow.CurrentLyric
+            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync())
+            .Subscribe(line => CurrentLine = line));
+
+        _subsManager.Add(_lyricsMgtFlow.PreviousLyric
+            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync())
+            .Subscribe(line => PreviousLine = line));
+
+        _subsManager.Add(_lyricsMgtFlow.NextLyric
+            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync())
+            .Subscribe(line =>
+            {
+                NextLine = line;
+            }));
         _subsManager.Add(
             _stateService.CurrentSong
 
@@ -257,13 +281,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                         return;
                     }
                     CurrentPlayingSongView = null;
-                    Track trck = new Track(songView.FilePath);
+                    //Track trck = new Track(songView.FilePath);
                     CurrentPlayingSongView = songView;
-                    var e = trck.EmbeddedPictures.FirstOrDefault();
-                    if (e is not null && CurrentPlayingSongView.ImageBytes is null)
-                    {
-                        CurrentPlayingSongView.ImageBytes = e.PictureData;
-                    }
+                    //var e = trck.EmbeddedPictures.FirstOrDefault();
+                    //if (e is not null && CurrentPlayingSongView.CoverImageBytes is null)
+                    //{
+                    //CurrentPlayingSongView.CoverImageBytes = e.PictureData;
+                    //}
                     _logger.LogTrace("BaseViewModel: _stateService.CurrentSong emitted: {SongTitle}", songView?.Title ?? "None");
 
                     CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
@@ -333,6 +357,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 },
                            ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
+
         _subsManager.Add(
             _stateService.IsShuffleActive
 

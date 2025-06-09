@@ -209,7 +209,7 @@ public class FolderMgtService : IFolderMgtService
             _logger.LogInformation("Relevant audio file changed: {FilePath}. Triggering incremental scan of parent directory.", fullPath);
             await _libraryScanner.ScanSpecificPathsAsync(new List<string> { Path.GetDirectoryName(fullPath)! }, isIncremental: true);
             // Optionally, set a more specific state if UI needs to react to just a file change
-            // _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FileChanged, fullPath, null, null));
+            // _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FileChanged, fullPath, null, null));
         }
     }
 

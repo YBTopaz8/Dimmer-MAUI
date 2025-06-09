@@ -27,7 +27,7 @@
 
 
         <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}"
-                      Icon="arrowcircleleft.png" Route="SettingsPage"
+                      Icon="settings.png" Route="SettingsPage"
                       />
 
 

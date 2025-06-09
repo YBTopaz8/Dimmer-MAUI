@@ -30,6 +30,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// The name of the artist.
     /// </value>
     public string ArtistName { get; set; }
+    public string OtherArtistsName { get; set; }
     /// <summary>
     /// Gets or sets the name of the album.
     /// </summary>
@@ -75,6 +76,10 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public string Lyricist { get; set; } = string.Empty;
     public string Composer { get; set; } = string.Empty;
     public string Conductor { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Language { get; set; } = string.Empty;
+    public int? DiscNumber { get; set; }
+    public int? DiscTotal { get; set; }
     /// <summary>
     /// Gets or sets the size of the file.
     /// </summary>
@@ -125,6 +130,9 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// The cover image path.
     /// </value>
     public string? CoverImagePath { get; set; }
+    public byte[]? CoverImageBytes { get; set; }
+    public byte[]? ArtistImageBytes { get; set; }
+    public byte[]? AlbumImageBytes { get; set; }
     /// <summary>
     /// Gets or sets the un synchronize lyrics.
     /// </summary>

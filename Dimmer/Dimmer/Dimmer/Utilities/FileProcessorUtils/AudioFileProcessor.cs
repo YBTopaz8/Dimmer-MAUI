@@ -1,4 +1,6 @@
-﻿using ATL;
+﻿using System.Diagnostics;
+
+using ATL;
 
 using Dimmer.Interfaces.Services.Interfaces;
 
@@ -22,17 +24,17 @@ public class AudioFileProcessor : IAudioFileProcessor
         _config = config;
     }
 
-    public async Task<List<FileProcessingResult>> ProcessFilesAsync(IEnumerable<string> filePaths)
+    public List<FileProcessingResult> ProcessFiles(IEnumerable<string> filePaths)
     {
         var results = new List<FileProcessingResult>();
         foreach (var path in filePaths)
         {
-            results.Add(await ProcessFileAsync(path));
+            results.Add(ProcessFile(path));
         }
         return results;
     }
 
-    public async Task<FileProcessingResult> ProcessFileAsync(string filePath)
+    public FileProcessingResult ProcessFile(string filePath)
     {
         var result = new FileProcessingResult();
 
@@ -77,7 +79,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         List<ArtistModel> artists = new();
         foreach (var item in rawArtistNames)
         {
-            var art = _metadataService.GetOrCreateArtist(item);
+            var art = _metadataService.GetOrCreateArtist(track, item);
 
             artists.Add(art);
         }
@@ -91,7 +93,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
         string? coverPath = string.Empty;// await _coverArtService.SaveOrGetCoverImageAsync(filePath, firstPicture);
 
-        var album = _metadataService.GetOrCreateAlbum(albumName, coverPath
+        var album = _metadataService.GetOrCreateAlbum(track, albumName, coverPath
             );
         //album.DiscNumber = track.DiscNumber;
         //album.DiscTotal = track.DiscTotal;
@@ -100,7 +102,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         // --- Genre Processing ---
         string genreName = string.IsNullOrWhiteSpace(track.Genre) ? "Unknown Genre" : track.Genre.Trim();
-        var genre = _metadataService.GetOrCreateGenre(genreName);
+        var genre = _metadataService.GetOrCreateGenre(track, genreName);
 
         // --- Song Model Creation ---
         var song = new SongModel
@@ -109,29 +111,32 @@ public class AudioFileProcessor : IAudioFileProcessor
             Title = title,
             Album = album,
             AlbumName = album.Name,
-            ArtistName= artistString,
+            ArtistName= track.AlbumArtist,
+            OtherArtistsName= artistString,
             Genre = genre,
             Composer = track.Composer,
-            CoverImagePath = coverPath ?? album.ImagePath, // Song specific or album's
+            CoverImageBytes = track.EmbeddedPictures?.FirstOrDefault(x => x.PicType==PictureInfo.PIC_TYPE.Front)?.PictureData,
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             TrackNumber= track.TrackNumber,
             FileSize = new FileInfo(filePath).Length,
             FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
             ReleaseYear = track.Year,
+            DiscNumber = track.DiscNumber,
+            DiscTotal = track.DiscTotal,
+            Description= track.Description ?? string.Empty,
+            Language = track.Language ?? string.Empty,
             HasLyrics = !string.IsNullOrWhiteSpace(track.Lyrics?.UnsynchronizedLyrics),
             UnSyncLyrics = track.Lyrics?.UnsynchronizedLyrics,
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
-            SyncLyrics = track.Lyrics.SynchronizedLyrics.Select(l => l.Text).ToList().ToString(),
+            SyncLyrics = track.Lyrics?.SynchronizedLyrics.Select(l => l.Text).ToList().ToString(),
             IsNew=true,
             //ArtistIds = [.. artists.Select(a => a.Id)],
             Id= ObjectId.GenerateNewId()
             ,
-            IsNewOrModified=true
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting
         };
-
         foreach (var id in artists)
         {
             song.ArtistIds.Add(id);

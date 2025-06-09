@@ -50,7 +50,6 @@
     <None Remove="DimmerWindow.xaml" />
     <None Remove="Views\AlbumsPage\AllAlbumsPage.xaml" />
     <None Remove="Views\AlbumsPage\SingleAlbumPage.xaml" />
-    <None Remove="Views\ArtistsSpace\ArtistGeneralWindow.xaml" />
     <None Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <None Remove="Views\ArtistsSpace\SpecificArtistPage.xaml" />
@@ -159,6 +158,9 @@
     <MauiXaml Include="Views\AlbumsPage\AllAlbumsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\AlbumsPage\SingleAlbumPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\AlbumWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -229,11 +231,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\ArtistsSpace\SpecificArtistPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

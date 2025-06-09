@@ -248,7 +248,7 @@ public class BaseAppFlow : IDisposable
     private void InitializeFolderEventReactions()
     {
         //_subscriptions.Add(
-        //    _state.CurrentPlayBackState
+        //    _stateService.CurrentPlayBackState
         //        .Where(psi => psi.State == DimmerPlaybackState.FolderAdded)
         //        .Select(psi => psi.ExtraParameter as string)
         //        .Subscribe(async folderPath =>

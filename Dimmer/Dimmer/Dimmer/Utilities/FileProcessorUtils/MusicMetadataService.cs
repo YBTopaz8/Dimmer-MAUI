@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Utilities.FileProcessorUtils;
+﻿using ATL;
+
+namespace Dimmer.Utilities.FileProcessorUtils;
 
 public class MusicMetadataService : IMusicMetadataService
 {
@@ -48,7 +50,7 @@ public class MusicMetadataService : IMusicMetadataService
     }
 
 
-    public ArtistModel GetOrCreateArtist(string name)
+    public ArtistModel GetOrCreateArtist(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
         if (!_artistsByName.TryGetValue(name, out var artist))
@@ -62,7 +64,7 @@ public class MusicMetadataService : IMusicMetadataService
         return artist;
     }
 
-    public AlbumModel GetOrCreateAlbum(string name, string? initialCoverPath = null)
+    public AlbumModel GetOrCreateAlbum(Track track, string name, string? initialCoverPath = null)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Album" : name.Trim();
         if (!_albumsByName.TryGetValue(name, out var album))
@@ -72,7 +74,9 @@ public class MusicMetadataService : IMusicMetadataService
                 Name = name,
                 Id=ObjectId.GenerateNewId(),
                 ImagePath = initialCoverPath,
-                IsNew=true
+                IsNew=true,
+
+
             };
 
             _albumsByName[name] = album;
@@ -88,7 +92,7 @@ public class MusicMetadataService : IMusicMetadataService
         return album;
     }
 
-    public GenreModel GetOrCreateGenre(string name)
+    public GenreModel GetOrCreateGenre(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Genre" : name.Trim();
         if (!_genresByName.TryGetValue(name, out var genre))
@@ -97,7 +101,8 @@ public class MusicMetadataService : IMusicMetadataService
             {
                 Id=ObjectId.GenerateNewId(),
                 Name = name,
-                IsNew = true
+                IsNew = true,
+
             };
             _genresByName[name] = genre;
             NewGenres.Add(genre);

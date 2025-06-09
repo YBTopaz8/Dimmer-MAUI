@@ -28,7 +28,6 @@ public static class MauiProgram
         builder.Services.AddTransient<AllArtistsPage>();
         builder.Services.AddTransient<SingleAlbumPage>();
         builder.Services.AddTransient<AllAlbumsPage>();
-        builder.Services.AddTransient<ArtistGeneralWindow>();
         builder.Services.AddSingleton<ArtistsPage>();
         builder.Services.AddTransient<SpecificArtistPage>();
         builder.Services.AddTransient<OnlinePageManagement>();
