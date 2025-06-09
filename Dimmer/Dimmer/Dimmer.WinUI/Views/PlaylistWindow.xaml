@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.WinUI.Views.PlaylistWindow"
-             Title="PlaylistWindow">
+<Window x:Class="Dimmer.WinUI.Views.PlaylistWindow" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" Title="PlaylistWindow"
+        >
+    <ContentPage>
+
+        <Grid>
+            <Label Text="Playlists" />
+        </Grid>
+    </ContentPage>
 </Window>
