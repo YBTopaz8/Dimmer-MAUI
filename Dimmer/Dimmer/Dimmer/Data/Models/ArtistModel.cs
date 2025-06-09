@@ -2,7 +2,7 @@
 public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 {
 
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
 
     [PrimaryKey]
     public ObjectId Id { get; set; }

@@ -13,10 +13,10 @@ public partial class AndroidAnimationService : IAnimationService
     private readonly AnimationSetting _defaultPopEnter = new AnimationSetting { DisplayName = "Slide In Left (Default)", ResourceId = Resource.Animation.nav_default_enter_anim };
     private readonly AnimationSetting _defaultPopExit = new AnimationSetting { DisplayName = "Slide Out Right (Default)", ResourceId = Resource.Animation.nav_default_exit_anim };
 
-    private readonly AnimationSetting _homePagePushEnter = new AnimationSetting { DisplayName = "Home: Slide Down In", ResourceId = Resource.Animation.mtrl_bottom_sheet_slide_out };
-    private readonly AnimationSetting _homePagePushExit = new AnimationSetting { DisplayName = "Home: Slide Up Out", ResourceId = Resource.Animation.mtrl_bottom_sheet_slide_in };
-    private readonly AnimationSetting _homePagePopEnter = new AnimationSetting { DisplayName = "Home: Slide Down In (Pop)", ResourceId = Resource.Animation.mtrl_bottom_sheet_slide_out };
-    private readonly AnimationSetting _homePagePopExit = new AnimationSetting { DisplayName = "Home: Slide Up Out (Pop)", ResourceId = Resource.Animation.mtrl_bottom_sheet_slide_in };
+    private readonly AnimationSetting _homePagePushEnter = new AnimationSetting { DisplayName = "Home: Slide Down In", ResourceId = Resource.Animation.m3_bottom_sheet_slide_in };
+    private readonly AnimationSetting _homePagePushExit = new AnimationSetting { DisplayName = "Home: Slide Up Out", ResourceId = Resource.Animation.m3_bottom_sheet_slide_out };
+    private readonly AnimationSetting _homePagePopEnter = new AnimationSetting { DisplayName = "Home: Slide Down In (Pop)", ResourceId = Resource.Animation.m3_bottom_sheet_slide_in };
+    private readonly AnimationSetting _homePagePopExit = new AnimationSetting { DisplayName = "Home: Slide Up Out (Pop)", ResourceId = Resource.Animation.m3_bottom_sheet_slide_out };
     public List<AnimationSetting> GetAvailablePageAnimations()
     {
         // Populate this list with all the Resource.Animation values you want to expose

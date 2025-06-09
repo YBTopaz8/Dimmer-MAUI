@@ -67,7 +67,7 @@ public class MultiPlaylistPlayer<T> : IDisposable
     public T? Next(bool randomizeSourcePlaylist = false)
     {
         var activePlaylists = _playlists.Where(p => p.Count > 0).ToList();
-        if (!activePlaylists.Any())
+        if (activePlaylists.Count==0)
         {
             AllQueuesExhausted?.Invoke();
             return default;
@@ -82,7 +82,7 @@ public class MultiPlaylistPlayer<T> : IDisposable
             if (activePlaylists.Count > 1 && _lastSuccessfullyPlayedPlaylist != null && activePlaylists.Contains(_lastSuccessfullyPlayedPlaylist))
             {
                 var eligibleForRandom = activePlaylists.Where(p => p != _lastSuccessfullyPlayedPlaylist).ToList();
-                if (eligibleForRandom.Any())
+                if (eligibleForRandom.Count!=0)
                     chosenRandom = eligibleForRandom[_random.Next(eligibleForRandom.Count)];
             }
             selectedPlaylist = chosenRandom ?? activePlaylists[_random.Next(activePlaylists.Count)];
@@ -164,7 +164,7 @@ public class MultiPlaylistPlayer<T> : IDisposable
         _playlists.RemoveAt(index);
         playlistToRemove.Dispose(); // Call Dispose on the QueueManager
 
-        if (_lastSuccessfullyPlayedPlaylist == null && _playlists.Any())
+        if (_lastSuccessfullyPlayedPlaylist == null && _playlists.Count!=0)
         {
             int newPotentialIndex = Math.Clamp(_lastSuccessfullyPlayedPlaylistGlobalIndex, 0, Math.Max(0, _playlists.Count - 1));
             if (_playlists.Count > 0)

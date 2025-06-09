@@ -9,10 +9,6 @@ public class AudioFileProcessor : IAudioFileProcessor
     private readonly ICoverArtService _coverArtService;
     private readonly IMusicMetadataService _metadataService;
     private readonly ProcessingConfig _config;
-    private readonly IRepository<SongModel> songRepo;
-    private readonly IRepository<AlbumModel> albumRepo;
-    private readonly IRepository<GenreModel> genreRepo;
-    private readonly IRepository<ArtistModel> artistRepo;
 
     public AudioFileProcessor(
         ICoverArtService coverArtService,
@@ -24,10 +20,6 @@ public class AudioFileProcessor : IAudioFileProcessor
         _coverArtService = coverArtService;
         _metadataService = metadataService;
         _config = config;
-        this.songRepo=songRepo;
-        this.albumRepo=albumRepo;
-        this.genreRepo=genreRepo;
-        this.artistRepo=artistRepo;
     }
 
     public async Task<List<FileProcessingResult>> ProcessFilesAsync(IEnumerable<string> filePaths)
@@ -83,12 +75,11 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         List<string> rawArtistNames = AudioFileUtils.ExtractArtistNames(track.Artist, track.AlbumArtist);
         List<ArtistModel> artists = new();
-        var s = rawArtistNames;
         foreach (var item in rawArtistNames)
         {
-            var e = _metadataService.GetOrCreateArtist(item);
+            var art = _metadataService.GetOrCreateArtist(item);
 
-            artists.Add(e);
+            artists.Add(art);
         }
 
         string artistString = string.Join(", ", artists.Select(a => a.Name));
@@ -102,6 +93,8 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         var album = _metadataService.GetOrCreateAlbum(albumName, coverPath
             );
+        //album.DiscNumber = track.DiscNumber;
+        //album.DiscTotal = track.DiscTotal;
 
 
 
@@ -129,6 +122,9 @@ public class AudioFileProcessor : IAudioFileProcessor
             HasLyrics = !string.IsNullOrWhiteSpace(track.Lyrics?.UnsynchronizedLyrics),
             UnSyncLyrics = track.Lyrics?.UnsynchronizedLyrics,
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
+            Conductor= track.Conductor ?? string.Empty,
+            SyncLyrics = track.Lyrics.SynchronizedLyrics.Select(l => l.Text).ToList().ToString(),
+            IsNew=true,
             //ArtistIds = [.. artists.Select(a => a.Id)],
             Id= ObjectId.GenerateNewId()
             ,

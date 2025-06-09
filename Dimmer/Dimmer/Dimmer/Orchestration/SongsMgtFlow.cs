@@ -153,45 +153,6 @@ public partial class SongsMgtFlow : IDisposable
     }
 
     bool isChangedAndPassedChangedCheck;
-    private async Task LoadAndPrepareSongInAudioEngineAsync(SongModelView? songViewFromState)
-    {
-        if (songViewFromState== null)
-        {
-            return;
-        }
-        SongModel? songModelToLoad = songViewFromState?.ToModel(_mapper);
-
-        if (songModelToLoad == null)
-        {
-
-            _logger.LogInformation("Global current song is now null. Stopping audio engine.");
-
-
-            return;
-        }
-
-
-        _logger.LogInformation("AudioEngine: New global current song '{SongTitle}'. Preparing to load.", songModelToLoad.Title);
-
-        try
-        {
-            await _audio.InitializeAsync(songViewFromState!, songViewFromState?.ImageBytes);
-            _logger.LogInformation("AudioEngine: Successfully initialized with '{SongTitle}'.", songModelToLoad.Title);
-
-            var currentGlobalPlaybackState = await _state.CurrentPlayBackState.FirstAsync();
-            if (currentGlobalPlaybackState.State == DimmerPlaybackState.Playing &&
-                (currentGlobalPlaybackState.SongView?.Id == songViewFromState?.Id || currentGlobalPlaybackState.SongView == null))
-            {
-                _logger.LogInformation("AudioEngine: Global state is 'Playing' for '{SongTitle}', playing immediately after load.", songModelToLoad.Title);
-                await _audio.PlayAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "AudioEngine: Error initializing song '{SongTitle}'.", songModelToLoad.Title);
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Error, $"Init failed: {ex.Message}", songViewFromState, songModelToLoad));
-        }
-    }
 
     public async Task ControlAudioEnginePlaybackAsync(PlaybackStateInfo globalPlaybackState)
     {
@@ -210,7 +171,7 @@ public partial class SongsMgtFlow : IDisposable
 
                     await _audio.InitializeAsync(songModelViewForCommand!, null);
 
-                    await _audio.PlayAsync();
+                    _audio.Play();
                     break;
                 case DimmerPlaybackState.Playing:
                 case DimmerPlaybackState.Resumed:
@@ -220,7 +181,7 @@ public partial class SongsMgtFlow : IDisposable
 
                     //    await _audio.InitializeAsync(songModelViewForCommand, trc.EmbeddedPictures[0].PictureData);
 
-                    //    await _audio.PlayAsync();
+                    //    _audio.Play();
                     //}
                     //if (_audio.CurrentTrackMetadata != globalPlaybackState.SongView)
                     //{
@@ -237,7 +198,7 @@ public partial class SongsMgtFlow : IDisposable
                     break;
                 case DimmerPlaybackState.PausedDimmer:
                     if (_audio.IsPlaying)
-                        await _audio.PauseAsync();
+                        _audio.Pause();
                     break;
                 case DimmerPlaybackState.PlayCompleted:
                     //await _audio.StopAsync();
@@ -304,11 +265,11 @@ public partial class SongsMgtFlow : IDisposable
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayCompleted, args.EventType, endedSongView, endedSongModel));
     }
 
-    public async Task RequestSeekAsync(double positionSeconds)
+    public void RequestSeek(double positionSeconds)
     {
         if (_audio.IsPlaying)
         {
-            await _audio.SeekAsync(positionSeconds);
+            _audio.Seek(positionSeconds);
         }
         else
         {
@@ -320,7 +281,8 @@ public partial class SongsMgtFlow : IDisposable
     {
         double newVolume = Math.Clamp(volume, 0.0, 1.0);
         _logger.LogDebug("AudioEngine: UI Requesting SetVolume to {Volume}", newVolume);
-        _state.SetDeviceVolume(newVolume);
+
+        _audio.Volume = newVolume; // Update audio service volume
     }
 
     public void Dispose()

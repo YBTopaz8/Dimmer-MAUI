@@ -31,9 +31,14 @@ public partial class ArtistsPage : ContentPage
         MyViewModel.ViewArtistDetails(s);
 
     }
+
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync("..");
+    }
+    private async void PlayAll_Clicked(object sender, EventArgs e)
+    {
+        
     }
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {

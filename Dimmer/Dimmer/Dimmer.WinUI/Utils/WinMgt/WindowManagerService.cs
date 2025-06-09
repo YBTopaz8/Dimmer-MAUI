@@ -8,9 +8,9 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 using Application = Microsoft.Maui.Controls.Application;
+using Grid = Microsoft.Maui.Controls.Grid;
 using Page = Microsoft.Maui.Controls.Page;
 using Window = Microsoft.Maui.Controls.Window;
-
 
 
 namespace Dimmer.WinUI.Utils.WinMgt;
@@ -64,6 +64,7 @@ internal class WindowManagerService : IWindowManagerService
                 return null;
             }
             TrackWindow(window);
+
             Application.Current!.ActivateWindow(window);
             Debug.WriteLine($"Native WinUI window created with parameter and activated: {typeof(T).FullName}");
             return window;
@@ -90,8 +91,8 @@ internal class WindowManagerService : IWindowManagerService
         try
         {
             var window = new Window(); // Generic host window
-            var bord = new Page(); // Create a Frame to host the Page
-            window.Page = bord;
+            var grid = new Page(); // Create a Frame to host the Page
+            window.Page = grid;
 
             Page? pageInstance = null;
             try
@@ -119,22 +120,18 @@ internal class WindowManagerService : IWindowManagerService
                 return null;
             }
 
-            //bord.Navigate(pageType, navigationParameter); // Navigate the bord to the page
 
             if (!string.IsNullOrEmpty(title))
             {
                 window.Title = title;
             }
-            else if (pageInstance is Page fe && !string.IsNullOrEmpty(fe.Title)) // Or a custom Title property on your Page base
-            {
-                // WinUI Pages don't have a 'Title' property like MAUI pages.
-                // You might set window.Title based on pageType.Name or a custom property.
-                window.Title = pageType.Name;
-            }
+
 
 
             TrackWindow(window);
-Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native WinUI content window created for page: {pageType.FullName}, Title: {window.Title}");
+
+            Application.Current!.ActivateWindow(window);
+            Debug.WriteLine($"Native WinUI content window created for page: {pageType.FullName}, Title: {window.Title}");
             return window;
         }
         catch (Exception ex)
@@ -144,12 +141,11 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
         }
     }
 
-
-    public T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window, new()
+    public T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window
     {
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
-            if (IsWindowOpen(existingTypedWindow)) // Check if it's truly open
+            if (IsWindowOpen(existingTypedWindow))
             {
                 BringToFront(existingTypedWindow);
                 Debug.WriteLine($"Unique typed window {typeof(T).FullName} already exists. Bringing to front.");
@@ -157,19 +153,21 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
             }
             else
             {
-                _trackedUniqueTypedWindows.Remove(typeof(T)); // Was tracked but closed
-                UntrackWindow(existingGenericWindow); // Also remove from generic list
+                _trackedUniqueTypedWindows.Remove(typeof(T));
+                UntrackWindow(existingGenericWindow);
             }
         }
 
-        T? newWindow = windowFactory != null ? windowFactory() : new T();
-        if (newWindow != null)
-        {
-            TrackWindow(newWindow); // Tracks in _openWindows
-            _trackedUniqueTypedWindows[typeof(T)] = newWindow; // Tracks in specific typed dict
-            Application.Current!.ActivateWindow(newWindow);
-            Debug.WriteLine($"Unique typed window created and activated: {typeof(T).FullName}");
-        }
+        if (windowFactory == null)
+            throw new ArgumentNullException(nameof(windowFactory), $"No factory provided and no parameterless constructor for {typeof(T).Name}");
+
+        T newWindow = windowFactory();
+        TrackWindow(newWindow);
+        _trackedUniqueTypedWindows[typeof(T)] = newWindow;
+
+        Application.Current!.OpenWindow(newWindow);
+        Debug.WriteLine($"Unique typed window created and activated: {typeof(T).FullName}");
+
         return newWindow;
     }
 
@@ -211,8 +209,8 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
         if (!_openWindows.Contains(window))
         {
             _openWindows.Add(window);
-            Application.Current!.CloseWindow(window);
-            window.Destroying += Window_Destroying; // Subscribe to Destroying event for cleanup
+            window.Destroying += Window_Destroying;
+            ; // Subscribe to Closed event
         }
     }
 
@@ -228,6 +226,7 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
     private void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);
+        window.Destroying -= Window_Destroying; // Unsubscribe
 
         // Also remove from unique tracking if it was there
         var uniqueTypedKey = _trackedUniqueTypedWindows.FirstOrDefault(kvp => kvp.Value == window).Key;
@@ -241,11 +240,7 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
-        if (sender is Window closedWindow)
-        {
-            UntrackWindow(closedWindow);
-            Debug.WriteLine($"Native WinUI window closed and untracked: {closedWindow.Title}");
-        }
+
     }
 
     private bool IsWindowOpen(Window window)
@@ -291,7 +286,8 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
         {
             if (IsWindowOpen(window)) // Check if we are tracking it as open
             {
-                Application.Current.CloseWindow(window);
+
+                Application.Current!.CloseWindow(window);
                 Debug.WriteLine($"Native WinUI window close requested: {window.Title}");
             }
         }
@@ -315,7 +311,9 @@ Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Native
         if (IsWindowOpen(window))
         {
             // The native WinUI Window object itself is the one to activate
-Application.Current!.ActivateWindow(window);            Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
+
+            Application.Current!.ActivateWindow(window);
+            Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
 
             // For a more forceful bring to front:
             // var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);

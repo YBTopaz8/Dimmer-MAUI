@@ -2,6 +2,8 @@
 
 using Dimmer.Interfaces.Services.Interfaces;
 
+using NAudio.CoreAudioApi;
+
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -114,14 +116,14 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // Interface Events (using backing fields for safety)
     private EventHandler<PlaybackEventArgs>? _isPlayingChanged;
-    event EventHandler<PlaybackEventArgs> IDimmerAudioService.IsPlayingChanged
+    public event EventHandler<PlaybackEventArgs> IsPlayingChanged
     {
         add => _isPlayingChanged += value;
         remove => _isPlayingChanged -= value;
     }
 
     private EventHandler<PlaybackEventArgs>? _playEnded;
-    event EventHandler<PlaybackEventArgs> IDimmerAudioService.PlayEnded
+    public event EventHandler<PlaybackEventArgs> PlayEnded
     {
         add => _playEnded += value;
         remove => _playEnded -= value;
@@ -383,13 +385,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// Starts or resumes playback.
     /// </summary>
     /// <returns>Task indicating completion.</returns>
-    public Task PlayAsync()
+    public void Play()
     {
         ThrowIfDisposed();
         if (_mediaPlayer.Source == null)
         {
             Debug.WriteLine("[AudioService] PlayAsync called but no source is set.");
-            return Task.CompletedTask; // Nothing to play
         }
 
         // Play is synchronous, but return Task for interface consistency
@@ -406,14 +407,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             OnErrorOccurred("Failed to start playback.", ex);
             UpdatePlaybackState(DimmerPlaybackState.Error); // Reflect failure state
         }
-        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Pauses playback.
     /// </summary>
     /// <returns>Task indicating completion.</returns>
-    public Task PauseAsync()
+    public void Pause()
     {
         ThrowIfDisposed();
         if (_mediaPlayer.PlaybackSession.CanPause)
@@ -436,14 +436,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             Debug.WriteLine("[AudioService] PauseAsync called but cannot pause in current state.");
         }
-        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Stops playback, resets position, and clears the current source.
     /// </summary>
     /// <returns>Task indicating completion.</returns>
-    public Task StopAsync()
+    public void Stop()
     {
         ThrowIfDisposed();
         Debug.WriteLine("[AudioService] StopAsync executing.");
@@ -460,7 +459,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _initializationCts?.Dispose();
         _initializationCts = null;
 
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -468,7 +466,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// </summary>
     /// <param name="positionSeconds">The target position in seconds.</param>
     /// <returns>Task indicating completion of the seek request (not necessarily the completion of the seek operation itself).</returns>
-    public Task SeekAsync(double positionSeconds)
+    public void Seek(double positionSeconds)
     {
         ThrowIfDisposed();
         if (_mediaPlayer.PlaybackSession.CanSeek)
@@ -486,7 +484,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             Debug.WriteLine("[AudioService] SeekAsync requested but cannot seek.");
         }
-        return Task.CompletedTask; // Position setting is synchronous
     }
 
     #endregion
@@ -556,15 +553,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
             props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            // props.MusicProperties.TrackNumber = (uint)(media.TrackNumber ?? 0); // If you have track number
+            props.Thumbnail = storageFile != null
+                ? RandomAccessStreamReference.CreateFromFile(storageFile) // Use StorageFile for thumbnail
+                : null; // If no StorageFile, thumbnail will be null
 
-            // Thumbnail: Removed manual ImageBytes handling.
-            // Windows/MediaPlayer will attempt to load it from:
-            // 1. Embedded metadata in the StorageFile.
-            // 2. System music library caches if the file is indexed there.
-            // If 'storageFile' is used, this is more likely to work. For raw URIs, it's less certain.
-            // If you used MediaSource.CreateFromStream, you'd set props.Thumbnail = RandomAccessStreamReference.CreateFromStream(...)
-            // but that was for the ImageBytes. For the song's actual cover, it's usually embedded.
 
             mediaPlaybackItem.ApplyDisplayProperties(props);
             Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");
@@ -660,10 +652,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine($"[AudioService] MediaFailed: Error={args.Error}, Code={args.ExtendedErrorCode}, Msg={args.ErrorMessage}");
         OnErrorOccurred($"Playback failed: {args.ErrorMessage}", args.ExtendedErrorCode, args.Error);
 
-        // Try to clean up
-        // sender.Source = null; // This might be too aggressive if you want to retry.
-        // However, for a fatal media error, clearing the source is reasonable.
-        // The key is that _currentTrackMetadata is nulled and state is Error.
+
         _currentTrackMetadata = null; // Correct
         OnPropertyChanged(nameof(CurrentTrackMetadata)); // Correct
         UpdatePlaybackState(DimmerPlaybackState.Error); // Correct
@@ -675,7 +664,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region SMTC Command Handlers
 
-    private async void CommandManager_PlayReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPlayReceivedEventArgs args)
+    private void CommandManager_PlayReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPlayReceivedEventArgs args)
     {
         Debug.WriteLine("[AudioService] SMTC Play Received");
         // Use deferral for async operations within event handlers
@@ -684,7 +673,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             if (_mediaPlayer.Source != null)
             {
-                await PlayAsync();
+                Play();
                 args.Handled = true;
             }
             else
@@ -698,7 +687,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
-    private async void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
+    private void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
     {
         Debug.WriteLine("[AudioService] SMTC Pause Received");
         var deferral = args.GetDeferral();
@@ -706,7 +695,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             if (_mediaPlayer.PlaybackSession.CanPause)
             {
-                await PauseAsync();
+                Pause();
                 args.Handled = true;
             }
             else
@@ -1026,8 +1015,61 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public void InitializePlaylist(IEnumerable<SongModelView> songModels)
     {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
     }
 
-}
+    readonly MMDeviceEnumerator _enum = new MMDeviceEnumerator();
 
+
+    public bool SetPreferredOutputDevice(AudioOutputDevice dev)
+    {
+        try
+        {
+            var pc = new PolicyConfigClient() as IPolicyConfig;
+            pc.SetDefaultEndpoint(dev.Id, Role.eMultimedia);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+
+    public List<AudioOutputDevice>? GetAllAudioDevices()
+    {
+        var list = new List<AudioOutputDevice>();
+        foreach (var d in _enum.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+        {
+            //d.
+            list.Add(new AudioOutputDevice
+            {
+                Id   = d.ID,
+                Name = d.FriendlyName
+            });
+        }
+        return list.DistinctBy(x => x.Name).ToList();
+    }
+
+
+    // COM interop to call IPolicyConfig.SetDefaultEndpoint
+    [ComImport, Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")]
+    class PolicyConfigClient { }
+
+    enum Role : int
+    {
+        eConsole = 0,
+        eMultimedia = 1,
+        eCommunications = 2
+    }
+
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("F8679F50-850A-41CF-9C72-430F290290C8")]
+    interface IPolicyConfig
+    {
+        // skipping other methods...
+        void SetDefaultEndpoint(
+            [MarshalAs(UnmanagedType.LPWStr)] string wszDeviceId,
+            Role eRole);
+    }
+}

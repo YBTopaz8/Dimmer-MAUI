@@ -5,9 +5,9 @@ public class MusicMetadataService : IMusicMetadataService
     private readonly Dictionary<string, ArtistModel> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AlbumModel> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, GenreModel> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly List<SongModel> _songs = new(); 
+    private readonly List<SongModel> _songs = new();
 
-    
+
     public List<ArtistModel> NewArtists { get; } = new();
     public List<AlbumModel> NewAlbums { get; } = new();
     public List<GenreModel> NewGenres { get; } = new();
@@ -15,7 +15,7 @@ public class MusicMetadataService : IMusicMetadataService
 
     public MusicMetadataService() { }
 
-    
+
     public void LoadExistingData(
         IEnumerable<ArtistModel> existingArtists,
         IEnumerable<AlbumModel> existingAlbums,
@@ -39,7 +39,7 @@ public class MusicMetadataService : IMusicMetadataService
         }
         foreach (var genre in existingGenres)
         {
-            if (!string.IsNullOrEmpty(genre.Name))            
+            if (!string.IsNullOrEmpty(genre.Name))
             {
                 _genresByName.TryAdd(genre.Name, genre);
             }
@@ -53,10 +53,12 @@ public class MusicMetadataService : IMusicMetadataService
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
         if (!_artistsByName.TryGetValue(name, out var artist))
         {
-            artist = new ArtistModel { Name = name, Id=ObjectId.GenerateNewId(),IsNewOrModified=true};
+            artist = new ArtistModel { Name = name, Id=ObjectId.GenerateNewId(), IsNew=true };
             _artistsByName[name] = artist;
             NewArtists.Add(artist);
         }
+
+
         return artist;
     }
 
@@ -65,22 +67,24 @@ public class MusicMetadataService : IMusicMetadataService
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Album" : name.Trim();
         if (!_albumsByName.TryGetValue(name, out var album))
         {
-            album = new AlbumModel { 
-                Name = name, 
-                Id=ObjectId.GenerateNewId(), 
+            album = new AlbumModel
+            {
+                Name = name,
+                Id=ObjectId.GenerateNewId(),
                 ImagePath = initialCoverPath,
-                IsNewOrModified=true
+                IsNew=true
             };
+
             _albumsByName[name] = album;
             NewAlbums.Add(album);
         }
         else if (album.ImagePath == null && initialCoverPath != null)
         {
-            
+
             album.ImagePath = initialCoverPath;
-            
+
         }
-        
+
         return album;
     }
 
@@ -89,9 +93,12 @@ public class MusicMetadataService : IMusicMetadataService
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Genre" : name.Trim();
         if (!_genresByName.TryGetValue(name, out var genre))
         {
-            genre = new GenreModel {
+            genre = new GenreModel
+            {
                 Id=ObjectId.GenerateNewId(),
-                Name = name,IsNewOrModified=true };
+                Name = name,
+                IsNew = true
+            };
             _genresByName[name] = genre;
             NewGenres.Add(genre);
         }
@@ -105,23 +112,23 @@ public class MusicMetadataService : IMusicMetadataService
 
     public bool DoesSongExist(string title, int durationInSeconds)
     {
-        
+
         if (_songs == null)
         {
-            
+
             System.Diagnostics.Debug.WriteLine("Error: _songs collection is null in DoesSongExist.");
-            return false; 
+            return false;
         }
 
         title??=string.Empty;
 
         bool exists = _songs.Any(s =>
-            s != null && 
-            s.Title != null && 
+            s != null &&
+            s.Title != null &&
             s.Title.Equals(title, System.StringComparison.OrdinalIgnoreCase) &&
             s.DurationInSeconds == durationInSeconds);
 
-        return exists; 
+        return exists;
     }
 
     public IReadOnlyList<ArtistModel> GetAllArtists()

@@ -1,16 +1,30 @@
+using static Vanara.PInvoke.User32;
+
 namespace Dimmer.WinUI.Views;
 
 public partial class SingleSongPage : ContentPage
 {
-    public SingleSongPage()
+    public SingleSongPage(BaseViewModelWin vm)
     {
         InitializeComponent();
+        BindingContext = vm;
+        MyViewModel=vm;
 
     }
+    public BaseViewModelWin MyViewModel { get; internal set; }
+
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+
+        base.OnNavigatedTo(args);
+
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        //MyViewModel.CurrentlySelectedPage = CurrentPage.NowPlayingPage;
+        MyViewModel.SelectedSongOnPage= DeviceStaticUtils.SelectedSongOne;
+        MyViewModel.LoadStatsForSong(MyViewModel.SelectedSongOnPage!);
 
     }
 
@@ -74,4 +88,8 @@ public partial class SingleSongPage : ContentPage
     {
     }
 
+    private void ToggleFav_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleFavSong();
+    }
 }

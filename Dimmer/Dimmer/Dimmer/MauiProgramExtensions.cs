@@ -19,7 +19,7 @@ public static class MauiProgramExtensions
             })
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("AleySans.ttf", "AleySans");
+                fonts.AddFont("nothingfont.ttf", "AleySans");
                 fonts.AddFont("FontAwesomeRegular400.otf", "FontAwesomeRegular");
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");

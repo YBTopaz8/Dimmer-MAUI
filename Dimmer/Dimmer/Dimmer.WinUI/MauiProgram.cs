@@ -6,7 +6,6 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.ArtistsSpace;
 using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
-using Dimmer.WinUI.Views.WinuiWindows;
 
 namespace Dimmer.WinUI;
 
@@ -25,6 +24,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddScoped<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
+        builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<AllArtistsPage>();
         builder.Services.AddTransient<SingleAlbumPage>();
         builder.Services.AddTransient<AllAlbumsPage>();
@@ -57,6 +57,7 @@ public static class MauiProgram
                         PlatUtils.DimmerHandle = nativeWindowHandle;
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
+
                         winuiAppWindow.Changed += (s, e) =>
                         {
                             if (e.DidVisibilityChange)
@@ -71,6 +72,11 @@ public static class MauiProgram
 
 
                     }
+
+
+
+
+
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")
                     {
@@ -89,9 +95,6 @@ public static class MauiProgram
             });
         });
 
-        builder.Services.AddSingleton<ISettingsWindowManager, SettingsWindowManager>();
-        builder.Services.AddSingleton<FolderScanPage>();
-        builder.Services.AddSingleton<OnlinePage>();
         //if (ParseSetup.InitializeParseClient())
         //{
         //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));

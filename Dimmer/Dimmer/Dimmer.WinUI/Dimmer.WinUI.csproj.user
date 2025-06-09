@@ -19,16 +19,13 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
-    <MauiXaml Update="Views\AlbumsPage\SingleAlbumPage.xaml">
+    <MauiXaml Update="Views\SettingsCenter\SettingWin.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\AlbumsPage\AllAlbumsPage.xaml">
+    <MauiXaml Update="Views\SettingsCenter\SettingsPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
-    <MauiXaml Update="Views\SettingsSpace\SettingsPage.xaml">
+    <MauiXaml Update="Views\SingleSongPages\SingleSongPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\ArtistsSpace\MAUI\ArtistsPage.xaml">
@@ -40,12 +37,6 @@
     <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\WinuiWindows\OnlinePage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinuiWindows\FolderScanPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <MauiXaml Update="Views\DimmerSongWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -53,9 +44,6 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\StatisticsPage.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
-    <MauiXaml Update="Views\SettingsWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\PlaylistWindow.xaml">

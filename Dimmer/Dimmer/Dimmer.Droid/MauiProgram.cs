@@ -1,6 +1,6 @@
-﻿using Dimmer.CustomShellRenderers;
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utils.PageAnimations;
+﻿
+
+using Dimmer.Views.CustomViewsParts;
 
 using Microsoft.Maui.Controls.Compatibility.Hosting;
 
@@ -17,9 +17,10 @@ public static class MauiProgram
               .ConfigureEssentials(essentials =>
               {
                   essentials
-                      .AddAppAction("play_last_audio", "Play Last Audio", icon: "atom") // Provide actual icon resource                      
-                                                                                        //.AddAppAction("browse_audio", "Browse Audio Files", icon: "browse_action_icon")
-                                                                                        //.AddAppAction("app_settings", "App Settings", subtitle: "Configure preferences")
+                      .AddAppAction("play_last_audio", "Play Last Audio", icon: "atom")
+                      // Provide actual icon resource                      
+                      //.AddAppAction("browse_audio", "Browse Audio Files", icon: "browse_action_icon")
+                      //.AddAppAction("app_settings", "App Settings", subtitle: "Configure preferences")
                       .OnAppAction(MainApplication.HandleAppAction);
               })
             .UseDevExpress(useLocalization: false)
@@ -29,6 +30,7 @@ public static class MauiProgram
             .UseDevExpressEditors()
             .UseDevExpressGauges()
             .UseUraniumUI()
+            
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseSharedMauiApp();
@@ -39,9 +41,12 @@ public static class MauiProgram
         builder.Services.AddSingleton<DimmerVault>();
         builder.Services.AddSingleton<IAnimationService, AndroidAnimationService>();
         builder.Services.AddSingleton<SearchSongPage>();
+        builder.Services.AddSingleton<ArtistsPage>();
 
 
         builder.Services.AddSingleton<BaseViewModelAnd>();
+        builder.Services.AddSingleton<BtmBar>();
+        builder.Services.AddSingleton<NowPlayingbtmsheet>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
         .ConfigureMauiHandlers(handlers =>
         {

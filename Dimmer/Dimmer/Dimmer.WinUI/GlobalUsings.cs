@@ -24,6 +24,7 @@ global using Dimmer.Orchestration;
 global using Dimmer.Utilities.Enums;
 global using System.Threading.Tasks;
 
+global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 global using Syncfusion.Maui.Toolkit.Chips;
 global using Syncfusion.Maui.Toolkit.EffectsView;
@@ -53,7 +54,10 @@ global using Windows.Storage.Streams;
 global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 global using Dimmer.Utilities;
 global using Dimmer.WinUI.Utils.Helpers;
-global using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
+
+
+global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
+global using Dimmer.WinUI.Views.SettingsCenter;
 
 global using System.Drawing;
 global using System.Reflection;

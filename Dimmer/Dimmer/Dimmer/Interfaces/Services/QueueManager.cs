@@ -28,14 +28,14 @@ public class QueueManager<T> : IQueueManager<T>
         ClearSourceAndPosition();
         _source.AddRange(items ?? Enumerable.Empty<T>()); // Handle null items
 
-        if (_source.Any())
+        if (_source.Count!=0)
         {
             _position = Math.Clamp(startIndex, 0, _source.Count - 1);
             // Initial batch enqueue based on the starting position
             int batchStart = (_position / _batchSize) * _batchSize;
             _currentBatchIdValue = (batchStart / _batchSize) + 1; // Set initial batch ID
             var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
-            if (batch.Any())
+            if (batch.Count!=0)
             {
                 // Directly invoke, as this is the first batch for this initialization
                 BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
@@ -50,7 +50,7 @@ public class QueueManager<T> : IQueueManager<T>
 
     public List<T> ShuffleQueueInPlace()
     {
-        if (!_source.Any())
+        if (_source.Count==0)
             return _source;
 
         T? currentItem = Current; // Preserve current item if possible
@@ -84,12 +84,12 @@ public class QueueManager<T> : IQueueManager<T>
         }
 
         // After shuffle, the batching context changes, re-evaluate current batch
-        if (_source.Any())
+        if (_source.Count!=0)
         {
             int batchStart = (_position / _batchSize) * _batchSize;
             _currentBatchIdValue = (batchStart / _batchSize) + 1;
             var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
-            if (batch.Any())
+            if (batch.Count!=0)
             {
                 BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
             }
@@ -103,7 +103,7 @@ public class QueueManager<T> : IQueueManager<T>
 
     private void EnqueueBatchIfNeeded(int oldPosition, int newPosition)
     {
-        if (!_source.Any())
+        if (_source.Count==0)
             return;
 
         int oldBatchNumber = oldPosition == -1 ? -1 : (oldPosition / _batchSize);
@@ -113,7 +113,7 @@ public class QueueManager<T> : IQueueManager<T>
         {
             int batchStart = newBatchNumber * _batchSize;
             var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
-            if (batch.Any())
+            if (batch.Count!=0)
             {
                 _currentBatchIdValue = newBatchNumber + 1; // Batch IDs are 1-based
                 BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
@@ -123,7 +123,7 @@ public class QueueManager<T> : IQueueManager<T>
 
     public T? Next()
     {
-        if (!_source.Any())
+        if (_source.Count==0)
             return default;
 
         int oldPosition = _position;
@@ -136,7 +136,7 @@ public class QueueManager<T> : IQueueManager<T>
 
     public T? Previous()
     {
-        if (!_source.Any())
+        if (_source.Count==0)
             return default;
 
         int oldPosition = _position;
@@ -151,19 +151,19 @@ public class QueueManager<T> : IQueueManager<T>
 
     public T? PeekNext()
     {
-        return _source.Any() ? _source[(_position + 1) % _source.Count] : default;
+        return _source.Count!=0 ? _source[(_position + 1) % _source.Count] : default;
     }
 
     public T? PeekPrevious()
     {
-        return _source.Any() ? _source[(_position - 1 + _source.Count) % _source.Count] : default;
+        return _source.Count!=0 ? _source[(_position - 1 + _source.Count) % _source.Count] : default;
     }
 
-    public bool HasNext => _source.Any();
+    public bool HasNext => _source.Count!=0;
 
     public int Count => _source.Count;
 
-    public IReadOnlyList<T> Items => _source.AsReadOnly();
+    public IReadOnlyList<T> CurrentItems => _source.AsReadOnly();
 
     public int CurrentBatchId => _currentBatchIdValue;
 

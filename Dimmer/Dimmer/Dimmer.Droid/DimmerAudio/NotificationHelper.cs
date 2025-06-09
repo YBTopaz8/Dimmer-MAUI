@@ -179,6 +179,10 @@ public static class NotificationHelper
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
         mgr.SetUseFastForwardActionInCompactView(false);
+        mgr.SetUsePreviousAction(true);
+        mgr.SetUseNextActionInCompactView(true);
+        mgr.SetUsePreviousActionInCompactView(true);
+        mgr.SetUseNextAction(true);
         mgr.SetUseRewindActionInCompactView(false);
 
         Log.Debug("NotifHelper", "Manager built");
@@ -351,7 +355,7 @@ public static class NotificationHelper
             .SetSmallIcon(Resource.Drawable.exo_icon_circular_play)! // use your icon
             .SetOngoing(true)!
             .SetPriority(0)!
-            .SetVisibility(NotificationVisibility.Private)!;
+            .SetVisibility(NotificationVisibility.Secret)!;
 
         return builder.Build();
     }

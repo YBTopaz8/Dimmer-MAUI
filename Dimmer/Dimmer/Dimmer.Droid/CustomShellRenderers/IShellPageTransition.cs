@@ -20,8 +20,8 @@ public class MyCustomPageTransition : Java.Lang.Object, IShellPageTransition
 
     private int _enterAnim = Resource.Animation.m3_motion_fade_enter; // Example XML anim
     private int _exitAnim = Resource.Animation.m3_motion_fade_exit;
-    private int _popEnterAnim = Resource.Animation.nav_default_pop_enter_anim;
-    private int _popExitAnim = Resource.Animation.nav_default_pop_exit_anim;
+    private int _popEnterAnim = Resource.Animation.m3_bottom_sheet_slide_out;
+    private int _popExitAnim = Resource.Animation.m3_bottom_sheet_slide_in;
 
     public MyCustomPageTransition()
     {

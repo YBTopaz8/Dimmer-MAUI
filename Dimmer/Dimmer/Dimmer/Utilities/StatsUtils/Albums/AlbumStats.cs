@@ -24,7 +24,7 @@ public static class AlbumStats
         IReadOnlyCollection<SongModel> songs,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (songs == null || !songs.Any())
+        if (songs == null || songs.Count==0)
             return new List<DimmerPlayEvent>();
 
         var songIds = songs.Select(s => s.Id).ToHashSet();
@@ -142,7 +142,7 @@ public static class AlbumStats
             TotalTracksInLibraryForAlbum = songsOnAlbum.Count
         };
 
-        if (!songsOnAlbum.Any())
+        if (songsOnAlbum.Count==0)
             return summary;
 
         summary.PrimaryArtistNames = songsOnAlbum
@@ -170,7 +170,7 @@ public static class AlbumStats
         summary.AverageSkipsPerSongOnAlbum = summary.TotalTracksInLibraryForAlbum > 0 ? (double)summary.TotalSkipsOnAlbum / summary.TotalTracksInLibraryForAlbum : 0;
         summary.AverageListeningTimePerSongOnAlbumSeconds = summary.TotalTracksInLibraryForAlbum > 0 ? summary.TotalListeningTimeOnAlbumSeconds / summary.TotalTracksInLibraryForAlbum : 0;
         summary.AverageListeningTimePerSongOnAlbumFormatted = FormatTimeSpanLocal(TimeSpan.FromSeconds(summary.AverageListeningTimePerSongOnAlbumSeconds));
-        summary.AverageSongRatingOnAlbum = songsOnAlbum.Any() ? songsOnAlbum.Average(s => s.Rating) : 0; // Or average of played songs: playedSongsOnAlbum.Any() ? playedSongsOnAlbum.Average(s=>s.Rating) : 0;
+        summary.AverageSongRatingOnAlbum = songsOnAlbum.Count!=0 ? songsOnAlbum.Average(s => s.Rating) : 0; // Or average of played songs: playedSongsOnAlbum.Any() ? playedSongsOnAlbum.Average(s=>s.Rating) : 0;
         summary.AverageSongDurationOnAlbumSeconds = songsOnAlbum.Average(s => s.DurationInSeconds);
         summary.AverageSongDurationOnAlbumFormatted = FormatTimeSpanLocal(TimeSpan.FromSeconds(summary.AverageSongDurationOnAlbumSeconds));
 
@@ -211,7 +211,7 @@ public static class AlbumStats
 
 
         var albumPlayInitiationEvents = relevantEventsForAlbum.Where(IsPlayInitiationEventLocal).ToList();
-        if (albumPlayInitiationEvents.Any())
+        if (albumPlayInitiationEvents.Count!=0)
         {
             summary.FirstPlayDateForAlbum = albumPlayInitiationEvents.Min(e => e.DatePlayed);
             summary.LastPlayDateForAlbum = albumPlayInitiationEvents.Max(e => e.DatePlayed);
@@ -260,7 +260,7 @@ public static class AlbumStats
         summary.NumberOfSoloArtistTracksOnAlbum = songsOnAlbum.Count(s => s.ArtistIds.Count == 1);
 
         var validDateCreatedSongs = songsOnAlbum.Where(s => s.DateCreated.HasValue).ToList();
-        if (validDateCreatedSongs.Any())
+        if (validDateCreatedSongs.Count!=0)
         {
             summary.EarliestSongAddedDateToAlbum = validDateCreatedSongs.Min(s => s.DateCreated!.Value);
             summary.LatestSongAddedDateToAlbum = validDateCreatedSongs.Max(s => s.DateCreated!.Value);
@@ -308,7 +308,7 @@ public static class AlbumStats
                             .ToList();
 
         var data = new AlbumPlottableData { AlbumName = targetAlbum.Name ?? "Unknown Album", AlbumId = targetAlbum.Id };
-        if (!songsOnAlbum.Any())
+        if (songsOnAlbum.Count==0)
             return data;
 
         data.PlaysPerTrackNumber = songsOnAlbum
@@ -448,7 +448,7 @@ public static class AlbumStats
             TotalSongsByArtistOnThisAlbum = songsByArtistOnThisAlbum.Count
         };
 
-        if (!songsByArtistOnThisAlbum.Any())
+        if (songsByArtistOnThisAlbum.Count==0)
             return summary;
 
         var relevantEventsForArtistOnAlbum = GetRelevantEventsForSongs(songsByArtistOnThisAlbum, allEvents);
@@ -486,7 +486,7 @@ public static class AlbumStats
         }
 
         var artistAlbumPlayInitiationEvents = relevantEventsForArtistOnAlbum.Where(IsPlayInitiationEventLocal).ToList();
-        if (artistAlbumPlayInitiationEvents.Any())
+        if (artistAlbumPlayInitiationEvents.Count!=0)
         {
             summary.FirstPlayDateForArtistOnThisAlbum = artistAlbumPlayInitiationEvents.Min(e => e.DatePlayed);
             summary.LastPlayDateForArtistOnThisAlbum = artistAlbumPlayInitiationEvents.Max(e => e.DatePlayed);
@@ -590,7 +590,7 @@ public static class AlbumStats
         var songsOnThisAlbum = GetSongsByAlbumId(targetAlbum.Id, allSongsInLibrary);
 
         HashSet<ObjectId> artistsToConsiderIds;
-        if (specificArtistsToCompare != null && specificArtistsToCompare.Any())
+        if (specificArtistsToCompare != null && specificArtistsToCompare.Count!=0)
         {
             artistsToConsiderIds = specificArtistsToCompare.Select(a => a.Id).ToHashSet();
         }

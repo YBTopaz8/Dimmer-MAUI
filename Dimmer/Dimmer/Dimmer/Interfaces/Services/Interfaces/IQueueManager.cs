@@ -18,7 +18,7 @@ public interface IQueueManager<T> : IDisposable // 1. Implement IDisposable
     int Count { get; }
 
     // 3. Add properties assumed/needed by MultiPlaylistPlayer or PlayListMgtFlow
-    IReadOnlyList<T> Items { get; }
+    IReadOnlyList<T> CurrentItems { get; }
     int CurrentBatchId { get; } // To get the batch ID associated with the Current item
 
     void Clear();

@@ -1,4 +1,6 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
+using System.Buffers.Text;
+
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
@@ -38,12 +40,13 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly LyricsMgtFlow lyricsMgtFlow;
     private readonly IFolderMgtService folderMgtService;
     private readonly ILogger<BaseViewModelWin> logger;
-    private readonly ISettingsWindowManager settingsWindwow;
+    private readonly IWindowManagerService winMgrService;
+    private readonly IFolderPicker folderPicker;
 
     public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
         IWindowManagerService windowManager,
        IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
-IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelWin> logger, ISettingsWindowManager settingsWindwow) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, artistRepository, albumRepository, genreRepository, logger)
+IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelWin> logger, IWindowManagerService windMgr) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, artistRepository, albumRepository, genreRepository, logger)
     {
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
@@ -64,7 +67,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.lyricsMgtFlow=lyricsMgtFlow;
         this.folderMgtService=folderMgtService;
         this.logger=logger;
-        this.settingsWindwow=settingsWindwow;
+        this.winMgrService=windMgr;
     }
 
     [ObservableProperty]
@@ -83,40 +86,45 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         }
     }
 
-    public void OpenSettingsWindow()
+
+    public async Task AddMusicFolderViaPickerAsync()
     {
-        if (!settingsWindwow.IsSettingsWindowOpen)
+
+        logger.LogInformation("SelectSongFromFolderWindows: Requesting storage permission.");
+
+        var res = await folderPicker.PickAsync(CancellationToken.None);
+
+        if (res is not null && res.Folder is not null)
         {
 
-            settingsWindwow.ShowSettingsWindow(this);
-        }
-        else
-        {
-            settingsWindwow.BringSettingsWindowToFront();
-        }
-    }
+
+            string? selectedFolderPath = res!.Folder!.Path;
+
+
+
+            if (!string.IsNullOrEmpty(selectedFolderPath))
+            {
+                logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
+
+                AddMusicFolderByPassingToService(selectedFolderPath);
+            }
+            else
+            {
+                logger.LogInformation("No folder selected by user.");
+            }
 
     public async Task PickFolderToScan()
     {
         var pick = await folderPicker.PickAsync(CancellationToken.None);
 
-        if (pick is not null)
-        {
-            var path = pick.Folder?.Path;
-            var Name= pick.Folder?.Name;
-             await folderMgtService.AddFolderToWatchListAndScanAsync(path!);
         }
-    }
 
-    public void OpenArtistsWindow()
-    {
-
-        //windowManager.SettingsChip_ClickedGetOrCreateUniqueWindow<ArtistGeneralWindow>();
 
     }
-
 
 
     [ObservableProperty]
     public partial bool IsSearching { get; set; }
+    [ObservableProperty]
+    public partial SongModelView SelectedSongOnPage { get; set; }
 }

@@ -109,14 +109,7 @@ public class BaseAppFlow : IDisposable
             },
                        ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
     );
-        _subscriptions.Add(
-        Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.PlayStarted += h, h => audioService.PlayStarted -= h)
-            .Subscribe(evt =>
-            {
-                UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, PlayType.Play, 0);
-            },
-                       ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
-    );
+       
 
         InitializeFolderEventReactions();
 
@@ -126,17 +119,7 @@ public class BaseAppFlow : IDisposable
 
     private PlaybackStateInfo? _previousPlaybackStateForLogging;
 
-    private void InitializePlaybackEventLogging()
-    {
-        _subscriptions.Add(
-            _state.CurrentPlayBackState
-                .Subscribe(
-                    LogPlaybackTransition,
-                    ex => _logger.LogError(ex, "Error in CurrentPlayBackState logging subscription.")
-                )
-        );
-        _logger.LogInformation("BaseAppFlow: Playback event logging initialized.");
-    }
+
 
     private void LogPlaybackTransition(PlaybackStateInfo currentPsi)
     {
@@ -264,23 +247,46 @@ public class BaseAppFlow : IDisposable
 
     private void InitializeFolderEventReactions()
     {
+        //_subscriptions.Add(
+        //    _state.CurrentPlayBackState
+        //        .Where(psi => psi.State == DimmerPlaybackState.FolderAdded)
+        //        .Select(psi => psi.ExtraParameter as string)
+        //        .Subscribe(async folderPath =>
+        //        {
+        //            if (folderPath == null)
+        //                return;
+        //            _logger.LogInformation("BaseAppFlow: Detected FolderAdded state for {Path}. Triggering folder preference update and scan.", folderPath);
+
+
+
+        //            await _libraryScannerService.ScanLibraryAsync(new List<string> { folderPath });
+
+        //        }, ex => _logger.LogError(ex, "Error processing FolderAdded state."))
+        //);
         _subscriptions.Add(
             _state.CurrentPlayBackState
-                .Where(psi => psi.State == DimmerPlaybackState.FolderAdded && psi.ExtraParameter is string)
-                .Select(psi => psi.ExtraParameter as string)
-                .Subscribe(async folderPath =>
+            .Where(psi => psi.State == DimmerPlaybackState.FolderAdded)
+               .Subscribe(folderPath =>
                 {
                     if (folderPath == null)
                         return;
                     _logger.LogInformation("BaseAppFlow: Detected FolderAdded state for {Path}. Triggering folder preference update and scan.", folderPath);
 
 
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            _logger.LogInformation("BaseAppFlow: FolderAdded -> {Path}", folderPath);
+                            await _libraryScannerService.ScanLibraryAsync(new List<string> { folderPath.ExtraParameter as string });
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error during folder scan.");
+                        }
+                    });
 
 
-
-
-
-                    await _libraryScannerService.ScanSpecificPathsAsync(new List<string> { folderPath }, isIncremental: false);
                 }, ex => _logger.LogError(ex, "Error processing FolderAdded state."))
         );
 
@@ -438,7 +444,7 @@ public class BaseAppFlow : IDisposable
 
 
 
-    public async Task<UserModel> UpsertUserAsync(UserModel user)
+    public UserModel UpsertUserAsync(UserModel user)
     {
         if (user == null)
             throw new ArgumentNullException(nameof(user));

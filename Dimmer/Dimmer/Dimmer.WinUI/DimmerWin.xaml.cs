@@ -21,7 +21,7 @@ public partial class DimmerWin : Window
             var dimmerAudio = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>();
             if (dimmerAudio is not null)
             {
-                await dimmerAudio.StopAsync();
+                dimmerAudio.Stop();
                 await dimmerAudio.DisposeAsync();
             }
             subMgr.Dispose();
@@ -95,8 +95,8 @@ public partial class DimmerWin : Window
             onLeftClick: () =>
             {
                 Debug.WriteLine("Left click on tray icon - restoring window");
-                NativeMethods.ShowWindow(hwnd, NativeMethods.SW_RESTORE);
-                NativeMethods.SetForegroundWindow(hwnd);
+                //NativeMethods.ShowWindow(hwnd, NativeMethods.SW_RESTORE);
+                //NativeMethods.SetForegroundWindow(hwnd);
             },
             onRightClickOpenHome: () =>
             {

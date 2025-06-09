@@ -160,7 +160,7 @@ public static class PlotStats
         return [.. songs.Select(s =>
             {
                 var playEvents = events.Where(e => e.SongId == s.Id).ToList();
-                double avg = playEvents.Any() ? playEvents.Average(e => (e.DateFinished - e.DatePlayed).TotalSeconds) : 0;
+                double avg = playEvents.Count!=0 ? playEvents.Average(e => (e.DateFinished - e.DatePlayed).TotalSeconds) : 0;
                 return new LabelValue(s.Title, avg);
             })];
     }

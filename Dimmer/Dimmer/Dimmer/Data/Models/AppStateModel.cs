@@ -4,7 +4,7 @@ namespace Dimmer.Data.Models;
 public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 
-    public bool IsNewOrModified { get; set; }
+    public bool IsNew { get; set; }
     [PrimaryKey]
     public ObjectId Id { get; set; }
     public string CurrentSongId { get; set; }

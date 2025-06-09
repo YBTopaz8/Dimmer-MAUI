@@ -1,7 +1,8 @@
-using Dimmer.WinUI.Views.AlbumsPage;
-using Dimmer.WinUI.Views.ArtistsSpace;
-using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
+using System.Threading.Tasks;
 using Dimmer.WinUI.Views.SettingsSpace;
+
+using Dimmer.WinUI.Utils.WinMgt;
+
 
 namespace Dimmer.WinUI;
 
@@ -17,26 +18,31 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
-        Routing.RegisterRoute(nameof(AllAlbumsPage), typeof(AllAlbumsPage));
-        Routing.RegisterRoute(nameof(SpecificArtistPage), typeof(SpecificArtistPage));
 
-        MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        await MyViewModel.Initialize();
+
+    }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void SidePaneChip_Clicked(object sender, EventArgs e)
     {
+
         var send = (SfChip)sender;
         var param = send.CommandParameter.ToString();
         switch (param)
         {
             case "Artists":
-                MyViewModel.OpenArtistsWindow();
-                break;
-
 
                 break;
+
             default:
                 break;
         }
@@ -45,7 +51,11 @@ public partial class AppShell : Shell
 
     private void SettingsChip_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.OpenSettingsWindow();
+
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWindowManagerService>()!;
+
+        winMgr.GetOrCreateUniqueWindow(() => new SettingWin(MyViewModel));
+        //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
 }

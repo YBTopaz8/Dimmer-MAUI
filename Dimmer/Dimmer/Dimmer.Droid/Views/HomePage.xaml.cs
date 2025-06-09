@@ -10,9 +10,13 @@ using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
+using DevExpress.Xpo;
 
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
+using Dimmer.ViewModel;
+
+using Syncfusion.Maui.Toolkit.Chips;
 
 using Color = Microsoft.Maui.Graphics.Color;
 using View = Microsoft.Maui.Controls.View;
@@ -37,6 +41,14 @@ public partial class HomePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        await MyViewModel.FiniInit();
+        Debug.WriteLine(MyViewModel.BaseVM.NowPlayingDisplayQueue is null);
+        Debug.WriteLine(MyViewModel.BaseVM.NowPlayingDisplayQueue?.Count);
+
+        var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+        Debug.WriteLine(baseVm.NowPlayingDisplayQueue is null);
+        Debug.WriteLine(baseVm.NowPlayingDisplayQueue?.Count);
 
     }
 
@@ -75,58 +87,31 @@ public partial class HomePage : ContentPage
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
     }
 
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
-        var art = MyViewModel.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
+
+        var song = MyViewModel.BaseVM.SelectedSongForContext;
+        var result = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        if (result == "Cancel" || string.IsNullOrEmpty(result))
+            return;
+        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
         DeviceStaticUtils.SelectedArtistOne = art;
         await SongsMenuPopup.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private void ClosePopup(object sender, EventArgs e)
     {
-        //SongsMenuPopup.Close();
+
+        SongsMenuPopup.Close();
     }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-    private async void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
-    {
-        await MyViewModel.SeekTrackPosition(ProgressSlider.Value);
-    }
 
     /*
    
@@ -222,134 +207,8 @@ public partial class HomePage : ContentPage
 
 
     */
-    private double _startX;
-    private double _startY;
-    private bool _isPanning;
-
-    double btmBarHeight = 145;
 
 
-
-    private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
-    {
-        View send = (View)sender;
-
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _isPanning = true;
-                _startX = BtmBar.TranslationX;
-                _startY = BtmBar.TranslationY;
-                break;
-
-            case GestureStatus.Running:
-                if (!_isPanning)
-                    return; // Safety check
-
-                BtmBar.TranslationX = _startX + e.TotalX;
-                BtmBar.TranslationY = _startY + e.TotalY;
-                break;
-
-            case GestureStatus.Completed:
-                _isPanning = false;
-
-                double deltaX = BtmBar.TranslationX - _startX;
-                double deltaY = BtmBar.TranslationY - _startY;
-                double absDeltaX = Math.Abs(deltaX);
-                double absDeltaY = Math.Abs(deltaY);
-
-                if (absDeltaX > absDeltaY) // Horizontal swipe
-                {
-                    if (absDeltaX > absDeltaY) // Horizontal swipe
-                    {
-                        try
-                        {
-                            if (deltaX > 0) // Right
-                            {
-                                HapticFeedback.Perform(HapticFeedbackType.LongPress);
-                                Debug.WriteLine("Swiped Right");
-
-                                await MyViewModel.NextTrack();
-
-                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
-
-                                await Task.WhenAll(bounceTask);
-                            }
-                            else // Left
-                            {
-                                Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                await MyViewModel.PreviousTrack();
-
-                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
-
-                                await Task.WhenAll(bounceTask);
-                            }
-                        }
-                        catch (Exception ex) // Handle exceptions
-                        {
-                            Debug.WriteLine($"Error: {ex.Message}"); // Log the error
-                        }
-                        finally
-                        {
-                            BtmBar.TranslationX = 0; // Reset translation
-                            BtmBar.TranslationY = 0; // Reset translation
-
-                        }
-                    }
-
-                    else // Left
-                    {
-                        try
-                        {
-                            Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            await MyViewModel.PreviousTrack();
-                            Debug.WriteLine("Swiped left");
-                            Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
-                            Task t2 = Task.Delay(500);
-                            Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
-                            await Task.WhenAll(t1, t2, t3);
-                        }
-                        catch { }
-                    }
-                }
-                else  //Vertical swipe
-                {
-                    if (deltaY > 0) // Down
-                    {
-
-                        try
-                        {
-                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-                            SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-
-                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
-                        }
-                        catch { }
-                    }
-                    else  // Up
-                    {
-                        try
-                        {
-                            btmBarHeight=BtmBar.Height;
-                            NowPlayingBtmSheet.Show();
-
-                        }
-                        catch { }
-                    }
-
-                }
-
-                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
-                break;
-
-
-            case GestureStatus.Canceled:
-                _isPanning = false;
-                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut); // Return to original position
-                break;
-
-        }
-    }
     int prevViewIndex = 0;
     async Task AnimateColor(VisualElement element, Color color)
     {
@@ -359,21 +218,239 @@ public partial class HomePage : ContentPage
     }
 
 
-    private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
-    {
-        //DXBorder send = (DXBorder)sender;
 
-
-        await MyViewModel.PlayPauseToggleAsync();
-
-    }
-
-    private async void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
         //if (e.NewValue !=BottomSheetState.FullExpanded)
         //{
         //    await BtmBar.AnimateSlideUp(btmBarHeight);
         //}
+    }
+
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+        NowPlayingBtmSheet.Close();
+    }
+
+
+    string SearchParam = string.Empty;
+
+    private void SearchBy_TextChanged(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(SearchBy.Text))
+        {
+            ByAll();
+            return;
+        }
+        switch (SearchParam)
+        {
+            case "Title":
+                ByTitle();
+                break;
+            case "Artist":
+                ByArtist();
+                break;
+            case "":
+                ByAll();
+                break;
+            default:
+                ByAll();
+                break;
+        }
+
+    }
+
+    private void ByTitle()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+
+                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
+            }
+            
+        }
+    }
+    private void ByAll()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                SongsColView.FilterString =
+                    $"Contains([Title], '{SearchBy.Text}') OR " +
+                    $"Contains([ArtistName], '{SearchBy.Text}') OR " +
+                    $"Contains([AlbumName], '{SearchBy.Text}')";
+            }
+            else
+            {
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+        else
+        {
+            SongsColView.FilterString = string.Empty;
+        }
+    }
+    private void ByArtist()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
+
+            }
+            else
+            {
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+
+    private void Sort_Clicked(object sender, EventArgs e)
+    {
+        SortBottomSheet.Show();
+    }
+
+    private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
+    {
+        SongsColView.Commands.ShowDetailForm.Execute(null);
+    }
+
+    private void DXButton_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+    SongModelView selectedSongPopUp = new SongModelView();
+    private async void MoreIcon_Clicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var paramss = send.CommandParameter as SongModelView;
+        if (paramss is null)
+        {
+            return;
+        }
+        selectedSongPopUp = paramss;
+        MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
+        SongsMenuPopup.Show();
+
+    }
+
+
+    List<SongModelView> songsToDisplay = new();
+    private void SortChoose_Clicked(object sender, EventArgs e)
+    {
+
+        var chip = sender as DXButton; // Or whatever your SfChip type is
+        if (chip == null || chip.CommandParameter == null)
+            return;
+
+        string sortProperty = chip.CommandParameter.ToString();
+        if (string.IsNullOrEmpty(sortProperty))
+            return;
+
+
+        // Update current sort state
+        MyViewModel.BaseVM.CurrentSortProperty = sortProperty;
+
+
+        SortOrder newOrder;
+
+        // Toggle order if sorting by the same property again
+        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+
+
+        MyViewModel.BaseVM.CurrentSortOrder = newOrder;
+        MyViewModel.BaseVM.CurrentSortOrderInt = (int)newOrder;
+        // Optional: Update UI to show sort indicators (e.g., change chip appearance)
+        bool flowControl = SortIndeed();
+        if (!flowControl)
+        {
+            return;
+        }
+
+        // Optional: Scroll to top after sorting
+        // if (SongsColView.CurrentItems.Count > 0)
+        // {
+        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
+        // }
+    }
+    SortOrder internalOrder = SortOrder.Ascending;
+    private bool SortIndeed()
+    {
+        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
+        ;
+        if (songs == null || !songs.Any())
+            return false;
+        internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
+
+        MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
+
+        switch (MyViewModel.BaseVM.CurrentSortProperty)
+        {
+            case "Title":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
+                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Album": // Assuming CommandParameter is "Album" for AlbumName
+                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Genre":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Duration":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "Year": // Assuming CommandParameter for ReleaseYear
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            case "DateAdded": // Assuming CommandParameter for DateCreated
+                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
+                break;
+            default:
+                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.BaseVM.CurrentSortProperty}");
+                // Reset sort state if property is unknown, or do nothing
+                MyViewModel.BaseVM.CurrentSortProperty = string.Empty;
+                MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
+                break;
+
+        }
+        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
+
+        return true;
+    }
+
+    private void SortCategory_LongPress(object sender, HandledEventArgs e)
+    {
+        SortIndeed();
+    }
+
+    private void AddToPlaylist_Clicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        var pl = MyViewModel.BaseVM.AllPlaylists;
+        var listt = new List<SongModelView>();
+        listt.Add(song);
+
+        MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
     }
 }
 
@@ -550,12 +627,6 @@ private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
     //MyViewModel.ToggleShuffleState();
 }
 
-private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
-{
-    var song = (SongModelView)e.Item;
-    MyViewModel.SetCurrentlyPickedSong(song);
-    //ContextBtmSheet.Show();
-}
 
 private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
 {
@@ -581,85 +652,6 @@ private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
 //}
 
 
-string SearchParam = string.Empty;
-
-//private void SearchBy_TextChanged(object sender, EventArgs e)
-//{
-//    if (string.IsNullOrEmpty(SearchBy.Text))
-//    {
-//        ByAll();
-//        return;
-//    }
-//    switch (SearchParam)
-//    {
-//        case "Title":
-//            ByTitle();
-//            break;
-//        case "Artist":
-//            ByArtist();
-//            break;
-//        case "":
-//            ByAll();
-//            break;
-//        default:
-//            ByAll();
-//            break;
-//    }
-
-//}
-
-//private void ByTitle()
-//{
-//    if (!string.IsNullOrEmpty(SearchBy.Text))
-//    {
-//        if (SearchBy.Text.Length >= 1)
-//        {
-//            MyViewModel.IsOnSearchMode = true;
-//            SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
-//        }
-//        else
-//        {
-//            MyViewModel.IsOnSearchMode = false;
-//            SongsColView.FilterString = string.Empty;
-//        }
-//    }
-//}
-//private void ByAll()
-//{
-//    if (!string.IsNullOrEmpty(SearchBy.Text))
-//    {
-//        if (SearchBy.Text.Length >= 1)
-//        {
-//            MyViewModel.IsOnSearchMode = true;
-//            SongsColView.FilterString =
-//                $"Contains([Title], '{SearchBy.Text}') OR " +
-//                $"Contains([ArtistName], '{SearchBy.Text}') OR " +
-//                $"Contains([AlbumName], '{SearchBy.Text}')";
-//        }
-//        else
-//        {
-//            MyViewModel.IsOnSearchMode = false;
-//            SongsColView.FilterString = string.Empty;
-//        }
-//    }
-//}
-//private void ByArtist()
-//{
-//    if (!string.IsNullOrEmpty(SearchBy.Text))
-//    {
-//        if (SearchBy.Text.Length >= 1)
-//        {
-//            MyViewModel.IsOnSearchMode = true;
-//            SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
-
-//        }
-//        else
-//        {
-//            MyViewModel.IsOnSearchMode = false;
-//            SongsColView.FilterString = string.Empty;
-//        }
-//    }
-//}
 
 //private void ChipGroup_ChipTap(object sender, ChipEventArgs e)
 //{
@@ -674,28 +666,6 @@ string SearchParam = string.Empty;
 
 //        default:
 //            break;
-//    }
-//}
-
-//private async void PlayPauseBtn_Clicked(object sender, EventArgs e)
-//{
-
-//    if (MyViewModel.IsPlaying)
-//    {
-
-//        await MyViewModel.PlayPauseAsync();
-
-//    }
-//    else
-//    {
-//        if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
-//        {
-//            await MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
-//        }
-//        else
-//        {
-//            await MyViewModel.PlayPauseAsync();
-//        }
 //    }
 //}
 

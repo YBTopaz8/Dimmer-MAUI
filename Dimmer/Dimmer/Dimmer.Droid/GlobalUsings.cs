@@ -42,7 +42,10 @@ global using System.Collections.Generic;
 global using System.Linq;
 global using System.Text;
 global using Microsoft.Maui.Controls.Platform;
-
+global using Dimmer.CustomShellRenderers;
+global using Dimmer.Interfaces.Services.Interfaces;
+global using Dimmer.Utils.PageAnimations;
+global using Dimmer.Views.ArtistsSpace;
 namespace Dimmer;
 internal class GlobalUsings
 {

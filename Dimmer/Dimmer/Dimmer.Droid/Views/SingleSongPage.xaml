@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Dimmer.Views.SingleSongPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:customViewParts="clr-namespace:Dimmer.Views.CustomViewsParts" xmlns:dx="http://schemas.devexpress.com/maui"
+             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer" xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:vm="clr-namespace:Dimmer.ViewModels" Title="SingleSongPage"
+             x:DataType="vm:BaseViewModelAnd"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5,
+                                               Dark=#1E1E1E}"
+             Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="True"
+             >
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+    </ContentPage.Resources>
+    <Grid>
+        <dx:DXImage Aspect="AspectFill" Opacity="0.1"
+                    Source="{Binding BaseVM.SelectedSongForContext.CoverImagePath}"
+                    />
+        <dx:DXStackLayout Margin="0,10,0,0" BackgroundColor="Transparent"
+                          CornerRadius="20" ItemSpacing="10"
+                          >
+
+
+
+            <dx:Chip Text="{Binding BaseVM.SelectedSongForContext.ArtistName}" />
+            <dx:Chip Text="{Binding BaseVM.SelectedSongForContext.AlbumName}" />
+            <dx:Chip Text="{Binding BaseVM.SelectedSongForContext.ReleaseYear}" />
+            <Grid Grid.Column="1" BackgroundColor="Transparent"
+                  IsVisible="True" RowDefinitions="auto,*"
+                  >
+
+
+                <VerticalStackLayout Grid.Row="0" Margin="20"
+                                     Spacing="20"
+                                     >
+                    <Label FontSize="28" Text="{Binding BaseVM.SingleSongStatsSumm.SongTitle, StringFormat='Song Name: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.ArtistName, StringFormat='Artist Name: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.LongestListeningStreakDays, StringFormat='Longest Listening Streak : {0} Days'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.AveragePercentListened, StringFormat='AveragePercentListened : {0:n2}%'}" />
+
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.TotalSkips, StringFormat='Total Skips: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.TotalPlays, StringFormat='Total Plays: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.PlayCountInRomanNumerals, StringFormat='Played Count (In Roman Numeral) : {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.Completions, StringFormat='Total Completions: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.TotalListeningTimeFormatted, StringFormat='Total Listening Time: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.SeekFrequency, StringFormat='Seek Frequency: {0}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.FirstPlayedDate, StringFormat='First Date Played: {0:dddd dd, MMMM yyyy}'}" />
+                    <Label FontSize="24" Text="{Binding BaseVM.SingleSongStatsSumm.LastPlayedDate, StringFormat='Latest Date Played: {0:dddd dd, MMMM yyyy}'}" />
+
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Row="1" />
+            </Grid>
+
+        </dx:DXStackLayout>
+
+
+    </Grid>
+</ContentPage>

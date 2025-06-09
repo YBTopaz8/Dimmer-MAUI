@@ -10,6 +10,7 @@
     <LangVersion>preview</LangVersion>
     <PublishAot>False</PublishAot>
     <PublishTrimmed>False</PublishTrimmed>
+    <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +36,10 @@
 
 
     <PackageReference Include="AutoMapper" Version="14.0.0" />
+
+
+
+    <PackageReference Include="LocalizationResourceManager.Maui" Version="1.2.2" />
 
 
 

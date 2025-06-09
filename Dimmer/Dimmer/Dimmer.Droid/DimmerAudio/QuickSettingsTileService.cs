@@ -157,7 +157,7 @@ public class QuickSettingsTileService : TileService
 
         builder.SetTitle("Playback Options"); // Set a title
 
-        // Add Dialog Items (Example: Play/Pause, Next, Open App)
+        // Add Dialog CurrentItems (Example: Play/Pause, Next, Open App)
         string[] items = { "Toggle Play/Pause", "Next Track", "Open Dimmer App" };
         builder.SetItems(items, (sender, args) =>
         {

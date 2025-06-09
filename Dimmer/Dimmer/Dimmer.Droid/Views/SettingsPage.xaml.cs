@@ -11,10 +11,7 @@ public partial class SettingsPage : ContentPage
         BindingContext = vm;
     }
     BaseViewModelAnd MyViewModel { get; }
-    private async void PickFolder_Clicked(object sender, EventArgs e)
-    {
-        //await MyViewModel.SelectSongFromFolderAndroid();
-    }
+
 
     private static async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -27,19 +24,19 @@ public partial class SettingsPage : ContentPage
     {
         var send = (ImageButton)sender;
         var param = send.CommandParameter.ToString();
-        MyViewModel.DeleteFolderPath(param);
+        MyViewModel.BaseVM.DeleteFolderPath(param);
     }
 
     private async void ChangeFolder_Clicked(object sender, EventArgs e)
     {
 
 
-        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        //await MyViewModel.SelectSongFromFolderAndroid(selectedFolder);
+        var selectedFolder = (string)((DXButton)sender).CommandParameter;
+        await MyViewModel.AddMusicFolderViaPickerAsync(selectedFolder);
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        //await MyViewModel.SelectSongFromFolderAndroid();
+        await MyViewModel.AddMusicFolderViaPickerAsync();
     }
     private async void ViewDevices_Clicked(object sender, EventArgs e)
     {

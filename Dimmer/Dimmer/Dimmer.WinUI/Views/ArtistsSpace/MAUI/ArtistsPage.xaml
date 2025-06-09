@@ -20,8 +20,8 @@
             </HorizontalStackLayout>
             <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
                 <ImageButton x:Name="PlayAll"
-                             Clicked="NavHome_Clicked" HeightRequest="30"
-                             Source="house.png" WidthRequest="30"
+                             Clicked="PlayAll_Clicked" HeightRequest="30"
+                             Source="play.png" WidthRequest="30"
                              />
                 <ImageButton x:Name="Save"
                              Clicked="NavHome_Clicked" HeightRequest="30"
@@ -32,19 +32,24 @@
 
         <Grid x:Name="ArtistsContents" Grid.Row="1">
             <Image Opacity="0.2" Source="{Binding SelectedArtist.ImagePath}" />
-            <Grid x:Name="AllSongsView" RowDefinitions="auto,*">
-                <VerticalStackLayout Grid.Row="0">
-                    <VerticalStackLayout HorizontalOptions="Center">
+            <Grid x:Name="AllSongsView"
+                  Margin="10,10" RowDefinitions="auto,*"
+                  >
+                <VerticalStackLayout Grid.Row="0" Spacing="30">
+                    <VerticalStackLayout Spacing="5">
                         <Button BackgroundColor="Transparent" BorderColor="DarkSlateBlue"
                                 BorderWidth="2" FontAttributes="Bold"
                                 FontSize="20"
                                 Text="{Binding SelectedArtist.Name}"
                                 />
-                        <Label FontSize="28" Text="{Binding SelectedArtistSongs.Count, StringFormat='{0} Songs'}" />
+                        <HorizontalStackLayout>
+                            <Label FontSize="28" Text="{Binding SelectedArtistSongs.Count, StringFormat='{0} Songs'}" />
+
+                        </HorizontalStackLayout>
                         <SearchBar x:Name="SearchSongSB"
-              Grid.Column="1" BackgroundColor="Transparent"
-              Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
-              />
+                                   Grid.Column="1" BackgroundColor="Transparent"
+                                   Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
+                                   />
 
                     </VerticalStackLayout>
                 </VerticalStackLayout>

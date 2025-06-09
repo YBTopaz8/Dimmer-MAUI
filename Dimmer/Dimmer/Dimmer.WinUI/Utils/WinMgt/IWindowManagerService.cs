@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Dimmer.WinUI.Utils.WinMgt;
 public interface IWindowManagerService
 {
@@ -15,7 +16,7 @@ public interface IWindowManagerService
     Window? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null);
 
     // Get or create a unique window by its type (e.g., only one Settings native window)
-    T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window, new();
+    T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window;
     Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null);
 
     T? GetWindow<T>() where T : Window;

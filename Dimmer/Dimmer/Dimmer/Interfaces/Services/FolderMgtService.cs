@@ -49,7 +49,7 @@ public class FolderMgtService : IFolderMgtService
         }
 
         var foldersToWatchPaths = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-        if (!foldersToWatchPaths.Any())
+        if (foldersToWatchPaths.Count==0)
         {
             _logger.LogInformation("No folders configured to watch.");
             _allFoldersBehaviorSubject.OnNext(Array.Empty<FolderModel>());
@@ -109,17 +109,14 @@ public class FolderMgtService : IFolderMgtService
             throw new DirectoryNotFoundException($"Directory not found: {path}");
         }
 
-        //if (_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
-        //{
-        //    _logger.LogInformation("Folder {Path} is already in the watch list.", path);
-        //    // Optionally, still trigger a scan if user explicitly re-adds
-        //    // await _libraryScanner.ScanSpecificPathsAsync(new List<string> { path }, isIncremental: false);
-        //    return;
-        //}
+        if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+        {
+
+            StartWatchingConfiguredFolders();     // Refresh watchers with the new list
+            _settingsService.AddMusicFolder(path); // Persist to settings
+        }
 
         _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
-        _settingsService.AddMusicFolder(path); // Persist to settings
-        StartWatchingConfiguredFolders();     // Refresh watchers with the new list
 
         // Signal to the app that a folder preference was added (UI might react)
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));

@@ -1,8 +1,8 @@
 ﻿//using Dimmer.DimmerLive.Models;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
 using View = Microsoft.Maui.Controls.View;
@@ -32,11 +32,17 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
+    private static async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
         var song = send.BindingContext as SongModelView;
-        var art = song.ArtistIds?.FirstOrDefault();
+
+
+        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        if (result == "Cancel" || string.IsNullOrEmpty(result))
+            return;
+
+        var art = song.ArtistIds?.FirstOrDefault(x => x.Name==result);
         DeviceStaticUtils.SelectedArtistOne = art;
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
@@ -80,44 +86,74 @@ public partial class HomePage : ContentPage
 
     private async void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
     {
+        var song = e.Parameter as SongModelView;
+        if (song is not null)
+        {
+            DeviceStaticUtils.SelectedSongOne = song;
+            await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+            return;
+        }
 
-        var art = MyViewModel.CurrentPlayingSongView.ArtistIds?.FirstOrDefault();
+        switch (e.Parameter)
+        {
+            case "Alb":
+                //DeviceStaticUtils.SelectedAlbumOne = song.AlbumId;
+                //await Shell.Current.GoToAsync(nameof(AlbumPage), true);
+                return;
+            default:
+                break;
+        }
+        var art = MyViewModel.CurrentPlayingSongView.ArtistIds.FirstOrDefault();
         DeviceStaticUtils.SelectedArtistOne = art;
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
-    private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
-
-        SearchBar searchBar = (SearchBar)sender;
-        string txt = searchBar.Text;
-
-
-        _debounceTimer?.CancelAsync();
-        _debounceTimer?.Dispose();
-        _debounceTimer = new CancellationTokenSource();
-        CancellationToken token = _debounceTimer.Token;
-        int delayMilliseconds = 600;
-
 
         try
         {
-            await Task.Delay(delayMilliseconds, token);
+            Task.Run(async () =>
+            {
 
-            if (token.IsCancellationRequested)
-                return;
-            await SearchSongsAsync(txt, token);
+                SearchBar searchBar = (SearchBar)sender;
+                string txt = searchBar.Text;
 
-        }
-        catch (OperationCanceledException ex)
-        {
-            Debug.WriteLine("Search operation cancelled." +ex.Message);
+
+                _debounceTimer?.CancelAsync();
+                _debounceTimer?.Dispose();
+                _debounceTimer = new CancellationTokenSource();
+                CancellationToken token = _debounceTimer.Token;
+                int delayMilliseconds = 600;
+
+
+                try
+                {
+                    await Task.Delay(delayMilliseconds, token);
+
+                    if (token.IsCancellationRequested)
+                        return;
+                    await SearchSongsAsync(txt, token);
+
+                }
+                catch (OperationCanceledException ex)
+                {
+                    Debug.WriteLine("Search operation cancelled." +ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Search Error: {ex}");
+                }
+
+
+            });
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Search Error: {ex}");
+            Debug.WriteLine(ex.Message);
         }
+
     }
     List<SongModelView> songsToDisplay = new();
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
@@ -179,7 +215,7 @@ public partial class HomePage : ContentPage
 
         _isThrottling = true;
 
-        await MyViewModel.SeekTrackPosition(send.Value);
+        MyViewModel.SeekTrackPosition(send.Value);
 
 
         await Task.Delay(throttleDelay);
@@ -196,6 +232,7 @@ public partial class HomePage : ContentPage
 
     private void Sort_Clicked(object sender, EventArgs e)
     {
+
         var chip = sender as SfChip; // Or whatever your SfChip type is
         if (chip == null || chip.CommandParameter == null)
             return;
@@ -266,7 +303,7 @@ public partial class HomePage : ContentPage
         }
 
         // Optional: Scroll to top after sorting
-        // if (SongsColView.Items.Count > 0)
+        // if (SongsColView.CurrentItems.Count > 0)
         // {
         //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
         // }
@@ -312,5 +349,14 @@ public partial class HomePage : ContentPage
 
 
         }
+    }
+
+    private static async void ViewSong_Clicked(object sender, EventArgs e)
+    {
+
+        var song = (SongModelView)((MenuFlyoutItem)sender).CommandParameter;
+
+        DeviceStaticUtils.SelectedSongOne = song;
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
 }

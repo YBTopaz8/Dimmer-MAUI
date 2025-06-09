@@ -34,6 +34,9 @@ using Android.Media;
 using Dimmer.Activities;
 using MediaController = AndroidX.Media3.Session.MediaController;
 using Dimmer.Interfaces.Services.Interfaces;
+using System.Threading.Tasks;
+using Dimmer.Utilities.Events;
+using System.Diagnostics;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -65,7 +68,7 @@ public class ExoPlayerService : MediaSessionService
 
     // --- Internal State ---
     internal static MediaItem? currentMediaItem; // Choose a unique ID
-    internal static SongModelView? CurrentSongItem; // Choose a unique ID
+    public SongModelView? CurrentSongItem; // Choose a unique ID
 
     // --- Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
@@ -75,8 +78,11 @@ public class ExoPlayerService : MediaSessionService
     public event CoverReloadedEventHandler? CoverReloaded;
 
     public event PlayingChangedEventHandler? PlayingChanged;
+    public event PlayingChangedEventHandler? PlayingEnded;
     public event PositionChangedEventHandler? PositionChanged;
     public event SeekCompletedEventHandler? SeekCompleted;
+    public event PlayNextEventHandler? PlayNextPressed; // Triggered by MediaKeyNextPressed
+    public event PlayPreviousEventHandler? PlayPreviousPressed; // Triggered by MediaKeyPreviousPressed
     public event EventHandler<long>? DurationChanged;
     //public event EventHandler<double>? SeekCompleted; // Triggered after a seek operation completes
 
@@ -104,17 +110,24 @@ public class ExoPlayerService : MediaSessionService
         _positionHandler?.RemoveCallbacks(_positionRunnable!);
     }
 
-    internal void RaiseStatusChanged(int playbackState)
-    {
-        Console.WriteLine(playbackState);
-        StatusChanged?.Invoke(this, new EventArgs());
+    //internal void RaiseStatusChanged(DimmerPlaybackState state)
+    //{
+    //    //Console.WriteLine(state);
 
 
-    }
+    //    var pbEvents = new PlaybackEventArgs(CurrentSongItem);
+    //    pbEvents.EventType = state;
+    //    StatusChanged?.Invoke(this, pbEvents);
+
+
+    //}
 
     internal void RaiseIsPlayingChanged(bool isPlaying)
     {
-        PlayingChanged?.Invoke(player, isPlaying);
+        var pbEvents = new PlaybackEventArgs(CurrentSongItem);
+        pbEvents.IsPlaying = isPlaying;
+        pbEvents.EventType = isPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
+        PlayingChanged?.Invoke(player, pbEvents);
         if (isPlaying)
             StartPositionUpdates();
         else
@@ -124,6 +137,75 @@ public class ExoPlayerService : MediaSessionService
     internal void RaiseIsBufferingChanged(bool isBuffering)
     {
         Buffering?.Invoke(this, EventArgs.Empty);
+    }
+
+    internal void GetMaxVolumeLevel()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+    }
+
+
+    public List<AudioOutputDevice> GetAvailableAudioOutputMAUI()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+        // 2) query all output devices (API 23+)
+        var devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? [];
+
+
+        // 3) map to your cross-platform model
+        var we = devices.Select(d => new AudioOutputDevice
+        {
+            Id   = d.Id.ToString(),
+            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
+
+
+        });
+        foreach (var item in we)
+        {
+            Console.WriteLine(item.Id);
+            Console.WriteLine(item.Name);
+        }
+        return we.DistinctBy(x => x.Name).ToList();
+    }
+
+    internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+        // 2) query all output devices (API 23+)
+        AudioDeviceInfo[]? devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? [];
+
+        return devices.ToList();
+
+    }
+    public bool SetPreferredDevice(AudioOutputDevice dev)
+    {
+        var audioManager = Platform.AppContext
+            .GetSystemService(AudioService) as AudioManager;
+
+        // 2) query all output devices (API 23+)
+        AudioDeviceInfo[]? devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? [];
+        var specDev = devices.FirstOrDefault(x => x.Id== int.Parse(dev.Id));
+        if (specDev is not null)
+        {
+            player.SetPreferredAudioDevice(specDev);
+            return true;
+        }
+        return false;
     }
 
     internal void RaiseDurationChanged(long durationMs)
@@ -141,11 +223,33 @@ public class ExoPlayerService : MediaSessionService
         StopPositionUpdates();
     }
 
-    internal void RaiseSeekCompleted(double newPosition)
+    internal void RaiseSeekCompleted(double? newPosition)
     {
 
-        Console.WriteLine("RaiseSeekCompleted");
-        SeekCompleted?.Invoke(this, newPosition);
+        //Console.WriteLine("RaiseSeekCompleted");
+        if (newPosition is null)
+        {
+            return;
+        }
+        SeekCompleted?.Invoke(this, (double)newPosition);
+
+    }
+
+    internal void RaisePlayNextEventHandler()
+    {
+
+        var eventArgs = new PlaybackEventArgs(CurrentSongItem) { EventType=DimmerPlaybackState.PlayNextUser };
+
+        PlayNextPressed?.Invoke(this, eventArgs);
+
+    }
+
+    internal void RaisePlayPreviousEventHandler()
+    {
+
+
+        var eventArgs = new PlaybackEventArgs(CurrentSongItem) { EventType=DimmerPlaybackState.PlayPreviousUser };
+        PlayPreviousPressed?.Invoke(this, eventArgs);
 
     }
 
@@ -153,7 +257,7 @@ public class ExoPlayerService : MediaSessionService
     public async override void OnCreate()
     {
         base.OnCreate();
-        Console.WriteLine("[ExoPlayerService] OnCreate");
+        //Console.WriteLine("[ExoPlayerService] OnCreate");
         try
         {
             player = new ExoPlayerBuilder(this)
@@ -161,6 +265,8 @@ public class ExoPlayerService : MediaSessionService
                 .SetHandleAudioBecomingNoisy(true)!
                 .SetWakeMode(C.WakeModeNetwork)!
                 .SetSkipSilenceEnabled(true)!
+                .SetDeviceVolumeControlEnabled(true)!
+                .SetSuppressPlaybackOnUnsuitableOutput(false)!
 
                 .Build();
 
@@ -259,8 +365,6 @@ public class ExoPlayerService : MediaSessionService
 
 
 
-    // … rest of your service (StartForeground, OnStartCommand, cleanup, etc.) …
-
     public override MediaSession? OnGetSession(MediaSession.ControllerInfo? p0)
     {
         // Called by controllers connecting to the session. Return the session instance.
@@ -270,20 +374,17 @@ public class ExoPlayerService : MediaSessionService
         }
         else
         {
-            Console.WriteLine($"[ExoPlayerService] OnGetSession: Returning session instance to {p0?.PackageName}.");
+            //Console.WriteLine($"[ExoPlayerService] OnGetSession: Returning session instance to {p0?.PackageName}.");
         }
         return mediaSession;
     }
-    public class PlaybackStateEventArgs : EventArgs { public int PlaybackState { get; } public PlaybackStateEventArgs(int state) { PlaybackState = state; } }
-    public class PlaybackExceptionEventArgs : EventArgs { public PlaybackException Error { get; } public PlaybackExceptionEventArgs(PlaybackException error) { Error = error; } }
-
 
 
 
     public override void OnDestroy()
     {
 
-        Console.WriteLine("[ExoPlayerService] OnDestroy");
+        //Console.WriteLine("[ExoPlayerService] OnDestroy");
         // Release resources in reverse order of creation
         mediaSession?.Release();
         player?.Release();
@@ -336,19 +437,19 @@ public class ExoPlayerService : MediaSessionService
 
     private static void LogInitWarning(string stage)
     {
-        Console.WriteLine($"[ExoPlayerService] Warning: {stage} called but initialization may have failed or is incomplete.");
-        Console.WriteLine("---> Check previous logs for errors and verify NuGet packages are correct! <---");
+        //Console.WriteLine($"[ExoPlayerService] Warning: {stage} called but initialization may have failed or is incomplete.");
+        //Console.WriteLine("---> Check previous logs for errors and verify NuGet packages are correct! <---");
     }
     private static void HandleInitError(string type, Java.Lang.Throwable ex)
     {
-        Console.WriteLine($"[ExoPlayerService] !!! CRITICAL JAVA {type} ERROR: {ex.Class.Name} - {ex.LocalizedMessage} !!!");
-        Console.WriteLine($"[ExoPlayerService] Java Stack Trace: {Log.GetStackTraceString(ex)}");
+        //Console.WriteLine($"[ExoPlayerService] !!! CRITICAL JAVA {type} ERROR: {ex.Class.Name} - {ex.LocalizedMessage} !!!");
+        //Console.WriteLine($"[ExoPlayerService] Java Stack Trace: {Log.GetStackTraceString(ex)}");
         if (ex.Cause != null)
         {
-            Console.WriteLine($"[ExoPlayerService] Java Cause: {ex.Cause}");
+            //Console.WriteLine($"[ExoPlayerService] Java Cause: {ex.Cause}");
         }
-        Console.WriteLine("---> CHECK NuGet Packages: Media3.*, AndroidX.Concurrent.Futures, Guava/ListenableFuture <---");
-        Console.WriteLine("---> Check for Java class/method not found errors - often due to mismatched bindings. <---");
+        //Console.WriteLine("---> CHECK NuGet Packages: Media3.*, AndroidX.Concurrent.Futures, Guava/ListenableFuture <---");
+        //Console.WriteLine("---> Check for Java class/method not found errors - often due to mismatched bindings. <---");
     }
 
 
@@ -381,6 +482,7 @@ public class ExoPlayerService : MediaSessionService
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)!
             .SetArtist(artist)!
+
             .SetAlbumTitle(album)!
             .SetUserRating(new HeartRating(true))! // Ensure HeartRating class exists
             .SetUserRating(new ThumbRating(true))! // Ensure HeartRating class exists
@@ -396,16 +498,14 @@ public class ExoPlayerService : MediaSessionService
             try
             {
                 metadataBuilder.SetArtworkUri(Uri.FromFile(new Java.IO.File(imagePath)));
-                Console.WriteLine($"[ExoPlayerService] Set ArtworkUri: {imagePath}");
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
+                //Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
         else if (!string.IsNullOrEmpty(imagePath))
         {
-            Console.WriteLine($"[ExoPlayerService] Warning: Artwork file not found: {imagePath}");
         }
 
         try
@@ -416,42 +516,22 @@ public class ExoPlayerService : MediaSessionService
                .SetMediaMetadata(metadataBuilder!.Build())!
                .Build();
 
-            Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={0}");
+            //Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={0}");
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
+
             player.AddMediaItem(currentMediaItem);
-            //player.SetMediaItems(new[] { currentMediaItem,currentMediaItem }); // Set item and start position
+            player.AddMediaItem(currentMediaItem);
             player.Prepare();
 
             //player.Play(); // Start playback immediately
 
-            Console.WriteLine("[ExoPlayerService] Player Prepare() called.");
+            //Console.WriteLine("[ExoPlayerService] Player Prepare() called.");
 
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
 
 
         return Task.CompletedTask;
-    }
-
-    public static async Task<List<AudioOutputDevice>> GetAvailableAudioOutputs()
-    {
-        // 1) grab the Android AudioManager
-        var audioManager = Platform.AppContext
-            .GetSystemService(AudioService) as AudioManager;
-
-        // 2) query all output devices (API 23+)
-        var devices = audioManager?
-            .GetDevices(GetDevicesTargets.Outputs)
-            ?? [];
-
-        // 3) map to your cross-platform model
-        return [.. devices.Select(d => new AudioOutputDevice
-        {
-            Id   = d.Id.ToString(),
-            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
-
-
-        })];
     }
 
     // --- Player Event Listener ---
@@ -463,9 +543,41 @@ public class ExoPlayerService : MediaSessionService
 
 
 
-        [Obsolete("Media3 now prefers OnPlaybackStateChanged(int), but this must still be implemented.")]
+        //[Obsolete("Media3 now prefers OnPlaybackStateChanged(int), but this must still be implemented.")]
 
-        public void OnPlayerStateChanged(bool playWhenReady, int playbackState)
+        //public void OnPlayerStateChanged(bool playWhenReady, int playbackState)
+        //{
+        //    var stateString = playbackState switch
+        //    {
+        //        1 => "Idle",
+        //        2 => "Buffering",
+        //        3 => "Ready",
+        //        4 => "Ended",
+        //        _ => "Unknown"
+        //    };
+        ////    Console.WriteLine($"[PlayerEventListener] PlayerStateChanged: PlayWhenReady={playWhenReady}, State={stateString} ({playbackState})");
+        //    // Forward to your service or session as needed...
+
+        //    service.RaiseStatusChanged(playbackState); // Use your service method to raise events
+        //}
+        public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
+        {
+            Console.WriteLine($"!!!!!!!!!!!!!!!!!!!!!!!!![PlayerEventListener] OnPositionDiscontinuity:");
+
+            Console.WriteLine($"  Old Position: {oldPosition?.PositionMs}ms");
+            Console.WriteLine($"  New Position: {newPosition?.PositionMs}ms");
+
+            Log.WriteLine(LogPriority.Info, "MyAppSeekDebug", $"*** OnPositionDiscontinuity Entered! Reason={reason} ***");
+            Log.Debug("PlayerEventListener", $"OnPositionDiscontinuity Detail: Reason={reason}, From={oldPosition?.PositionMs ?? -1}, To={newPosition?.PositionMs ?? -1}");
+            //Console.WriteLine(  );
+            if (reason == 1 && newPosition?.PositionMs != 0)
+            {
+                //Console.WriteLine($"  Reason: {reason} == Seek normally"); // Check this against Player.DISCONTINUITY_REASON_ constants
+                service.RaiseSeekCompleted((double)newPosition?.PositionMs);
+            }
+
+        }
+        public void OnPlaybackStateChanged(int playbackState)
         {
             var stateString = playbackState switch
             {
@@ -475,40 +587,29 @@ public class ExoPlayerService : MediaSessionService
                 4 => "Ended",
                 _ => "Unknown"
             };
-            Console.WriteLine($"[PlayerEventListener] PlayerStateChanged: PlayWhenReady={playWhenReady}, State={stateString} ({playbackState})");
+            //Console.WriteLine($"[PlayerEventListener] State={stateString} ({playbackState})");
             // Forward to your service or session as needed...
-            service.RaiseStatusChanged(playbackState); // Use your service method to raise events
-        }
-        public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
-        {
-            Console.WriteLine($"[PlayerEventListener] OnPositionDiscontinuity:");
-            Console.WriteLine($"  Reason: {reason}"); // Check this against Player.DISCONTINUITY_REASON_ constants
-            Console.WriteLine($"  Old Position: {oldPosition?.PositionMs}ms");
-            Console.WriteLine($"  New Position: {newPosition?.PositionMs}ms");
-
-            Log.WriteLine(LogPriority.Info, "MyAppSeekDebug", $"*** OnPositionDiscontinuity Entered! Reason={reason} ***");
-            Log.Debug("PlayerEventListener", $"OnPositionDiscontinuity Detail: Reason={reason}, From={oldPosition?.PositionMs ?? -1}, To={newPosition?.PositionMs ?? -1}");
-
-        }
-        public void OnPlaybackStateChanged(int playbackState)
-        {
-            service.RaiseStatusChanged(playbackState); // Use your service method to raise events
-            Console.WriteLine("new "+playbackState);
+            if (playbackState == 4)
+            {
+                service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
+                //service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
+            }
         }
         public void OnLoadingChanged(bool isLoading)
         {
 
-            Console.WriteLine("new "+isLoading);
+            //Console.WriteLine("new is loading: "+isLoading);
         }
 
         public void OnIsPlayingChanged(bool isPlaying)
         {
             if (isPlaying)
             {
-                QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);
+                //QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);
                 //NotificationHelper.ShowPlaybackBubble(Platform.AppContext.ApplicationContext, service.player.MediaMetadata.Title.ToString());
             }
-            Console.WriteLine($"[PlayerEventListener] IsPlayingChanged: {isPlaying}");
+            //Console.WriteLine($"[PlayerEventListener] IsPlayingChanged: {isPlaying}");
+
             service.RaiseIsPlayingChanged(isPlaying);
         }
 
@@ -516,7 +617,7 @@ public class ExoPlayerService : MediaSessionService
         {
             if (error is null)
                 return;
-            Console.WriteLine($"[PlayerEventListener] PlayerError: Code={error.ErrorCodeName}, ChatMessage={error.Message}");
+            //Console.WriteLine($"[PlayerEventListener] PlayerError: Code={error.ErrorCodeName}, ChatMessage={error.Message}");
             // Log the full error
 
             // Optionally stop the player or service on error
@@ -529,14 +630,14 @@ public class ExoPlayerService : MediaSessionService
         {
             if (error != null)
             {
-                Console.WriteLine($"[PlayerEventListener] PlayerErrorChanged: Code={error.ErrorCodeName}, ChatMessage={error.Message}");
+                //Console.WriteLine($"[PlayerEventListener] PlayerErrorChanged: Code={error.ErrorCodeName}, ChatMessage={error.Message}");
 
 
                 service.RaiseErrorOccurred(error);
             }
             else
             {
-                Console.WriteLine("[PlayerEventListener] PlayerErrorChanged: Error cleared.");
+                //Console.WriteLine("[PlayerEventListener] PlayerErrorChanged: Error cleared.");
             }
         }
 
@@ -551,12 +652,19 @@ public class ExoPlayerService : MediaSessionService
             {
                 1 => "Repeat",
                 2 => "Auto",
-                3 => "Seek",
+                3 => "Seek for prev/next",
                 4 => "PlaylistChanged",
                 _ => "Unknown"
             };
-            Console.WriteLine($"[PlayerEventListener] MediaItemTransition: Item='{mediaItem?.MediaId ?? "None"}', Reason={reasonString} ({reason})");
-            QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);
+            if (reason == 1)
+            {
+                service.player!.Stop();
+
+                service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
+
+            }
+            //Console.WriteLine($"[PlayerEventListener] MediaItemTransition: Item='{mediaItem?.MediaId ?? "None"}', Reason={reasonString} ({reason})");
+            //QuickSettingsTileService.RequestTileUpdate(Platform.AppContext.ApplicationContext);
 
         }
 
@@ -568,10 +676,14 @@ public class ExoPlayerService : MediaSessionService
 
         }
         public void OnCues(CueGroup? p0) { /* Handle subtitles/cues */ }
-        public void OnDeviceInfoChanged(DeviceInfo? p0) { /* Log if needed */ }
+        public void OnDeviceInfoChanged(DeviceInfo? deviceInfo)
+        {
+
+            /* Log if needed */
+        }
         public void OnDeviceVolumeChanged(int volume, bool muted)
         {
-            Console.WriteLine($"[PlayerEventListener] DeviceVolumeChanged: Volume={volume}, Muted={muted}");
+            //Console.WriteLine($"[PlayerEventListener] DeviceVolumeChanged: Volume={volume}, Muted={muted}");
             /* Log if needed */
         }
         public void OnEvents(IPlayer? player, PlayerEvents? events)
@@ -581,13 +693,16 @@ public class ExoPlayerService : MediaSessionService
                 return;
             // Example checks (Constants are in IPlayer):
             var siz = events.Size();
-            Console.WriteLine(events.Size());
+            //Console.WriteLine(events.Size());
 
             for (int i = 0; i < siz; i++)
             {
                 var eventType = events.Get(i);
-                Console.WriteLine($"Event {i}: {eventType}");
-
+                //Console.WriteLine($"Event {i}: {eventType}");
+                if (eventType == 11)
+                {
+                    //Console.WriteLine($"Song ended {player.MediaMetadata.Title} {DateTime.Now}");
+                }
             }
             // Example inspection:
 
@@ -596,20 +711,20 @@ public class ExoPlayerService : MediaSessionService
         }
         public void OnIsLoadingChanged(bool isLoading)
         {
-            Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}");
+            //Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}");
         }
 
         public void OnMaxSeekToPreviousPositionChanged(long p0) { /* Log if needed */ }
         // public void OnMetadata(MediaMetadata? volume) {} // Superseded by OnMediaMetadataChanged? Check docs.
-        public void OnPlayWhenReadyChanged(bool playWhenReady, int reason) { Console.WriteLine($"[PlayerEventListener] PlayWhenReadyChanged: {playWhenReady}, Reason={reason}"); }
+        //public void OnPlayWhenReadyChanged(bool playWhenReady, int reason) { Console.WriteLine($"[PlayerEventListener] PlayWhenReadyChanged: {playWhenReady}, Reason={reason}"); }
         public void OnPlaybackParametersChanged(PlaybackParameters? playbackParameters)
         {
-            Console.WriteLine($"[PlayerEventListener] PlaybackParametersChanged: {playbackParameters?.Speed}, {playbackParameters?.Pitch}");
+            //Console.WriteLine($"[PlayerEventListener] PlaybackParametersChanged: {playbackParameters?.Speed}, {playbackParameters?.Pitch}");
             /* Log if needed */
         }
-        public void OnPlaybackSuppressionReasonChanged(int reason) { Console.WriteLine($"[PlayerEventListener] PlaybackSuppressionReasonChanged: {reason}"); }
+        //public void OnPlaybackSuppressionReasonChanged(int reason) { Console.WriteLine($"[PlayerEventListener] PlaybackSuppressionReasonChanged: {reason}"); }
 
-        public void OnRenderedFirstFrame() { Console.WriteLine($"[PlayerEventListener] RenderedFirstFrame"); }
+        //public void OnRenderedFirstFrame() { Console.WriteLine($"[PlayerEventListener] RenderedFirstFrame"); }
         public void OnRepeatModeChanged(int p0) { /* Log if needed */ }
         public void OnSeekBackIncrementChanged(long p0) { /* Log if needed */ }
         public void OnSeekForwardIncrementChanged(long p0) { /* Log if needed */ }
@@ -618,24 +733,24 @@ public class ExoPlayerService : MediaSessionService
         public void OnSurfaceSizeChanged(int p0, int p1) { /* Video related */ }
         public void OnTimelineChanged(Timeline? timeline, int reason)
         {
-            Console.WriteLine(timeline.IsEmpty);
-            Console.WriteLine(timeline.WindowCount);
-            Console.WriteLine(timeline.PeriodCount);
+            //Console.WriteLine(timeline.IsEmpty);
+            //Console.WriteLine(timeline.WindowCount);
+            //Console.WriteLine(timeline.PeriodCount);
 
-
-            Console.WriteLine($"[PlayerEventListener] TimelineChanged: Reason={reason}");
+            //Console.WriteLine("SKIP??");
+            //Console.WriteLine($"[PlayerEventListener] TimelineChanged: Reason={reason}");
 
         }
         public void OnTrackSelectionParametersChanged(TrackSelectionParameters? p0) { /* Log if needed */ }
         public void OnTracksChanged(Tracks? tracks)
         {
-            Console.WriteLine(tracks?.ToString());
+            //Console.WriteLine(tracks?.ToString());
             /* Log if needed */
         }
         public void OnVideoSizeChanged(VideoSize? p0) { /* Video related */ }
         public void OnVolumeChanged(float volume)
         {
-            Console.WriteLine("New Volume "+volume);
+            //Console.WriteLine("New Volume "+volume);
         }
 
     } // End PlayerEventListener
@@ -657,7 +772,7 @@ public class ExoPlayerService : MediaSessionService
   MediaSession? session,
   MediaSession.ControllerInfo? controller)
         {
-            Console.WriteLine($"[{TAG}] OnConnect from {controller?.PackageName}");
+            //Console.WriteLine($"[{TAG}] OnConnect from {controller?.PackageName}");
 
             var sessionCommands = new SessionCommands.Builder()
                    .Add(SessionCommand.CommandCodeSessionSetRating)!
@@ -665,51 +780,51 @@ public class ExoPlayerService : MediaSessionService
             var playerCommands = new PlayerCommands.Builder()
               .AddAllCommands()!
               .Build();
-            Console.WriteLine();
+            //Console.WriteLine();
             return MediaSession.ConnectionResult.Accept(sessionCommands, playerCommands)!;
         }
         public void OnPostConnect(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
 
-            Console.WriteLine($"[SessionCallback] OnPostConnect: Controller {controller?.PackageName} connected.");
+            //Console.WriteLine($"[SessionCallback] OnPostConnect: Controller {controller?.PackageName} connected.");
 
         }
 
         public void OnDisconnected(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
 
-            Console.WriteLine($"[SessionCallback] OnDisconnected: Controller {controller?.PackageName} disconnected.");
+            //Console.WriteLine($"[SessionCallback] OnDisconnected: Controller {controller?.PackageName} disconnected.");
 
         }
 
         // --- Command Handling ---
 
 
-        public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
+        public async static Task<bool> OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
 
             if (intent == null || intent.Action == null)
                 return false;
 
-            Console.WriteLine($"[SessionCallback] OnMediaButtonEvent: Received intent {intent.Action}");
-
+            //Console.WriteLine($"[SessionCallback] OnMediaButtonEvent: Received intent {intent.Action}");
+            await Shell.Current.DisplayAlert("Media Button Event", $"Received intent: {intent.Action}", "OK");
             return true;
         }
         // Decide whether to allow a specific PLAYER command requested by a controllerInfo
         public int OnPlayerCommandRequest(MediaSession? session, MediaSession.ControllerInfo? controller, int playerCommand)
         {
-            Console.WriteLine($"[SessionCallback] OnPlayerCommandRequest: Command={playerCommand} from. Allowing.");
+            //Console.WriteLine($"[SessionCallback] OnPlayerCommandRequest: Command={playerCommand} from. Allowing.");
 
             return SessionResult.ResultSuccess;
         }
         public void OnPlayerInteractionFinished(MediaSession? session, MediaSession.ControllerInfo? controllerInfo, PlayerCommands? playerCommands)
         {
-            Console.WriteLine($"[SessionCallback] OnPlayerInteractionFinished: Controller={controllerInfo?.PackageName} Commands={playerCommands?.Size() ?? 0}");
+            //Console.WriteLine($"[SessionCallback] OnPlayerInteractionFinished: Controller={controllerInfo?.PackageName} Commands={playerCommands?.Size() ?? 0}");
 
-
+            #region Old code. still useful in case
             if (playerCommands == null || playerCommands.Size() == 0)
             {
-                Console.WriteLine("[SessionCallback] No specific playerCommands reported (system change?)");
+                //Console.WriteLine("[SessionCallback] No specific playerCommands reported (system change?)");
                 return;
             }
 
@@ -719,34 +834,39 @@ public class ExoPlayerService : MediaSessionService
 
                 switch (command)
                 {
-                    case 0:
-                        Console.WriteLine("[SessionCallback] User pressed PLAY/PAUSE button.");
-                        break;
+                    //case 0:
+                    ////    //Console.WriteLine("[SessionCallback] User pressed PLAY/PAUSE button.");
+                    //    break;
 
-                    case 1:
-                        Console.WriteLine("[SessionCallback] User pressed PLAY/PAUSE button.");
-                        break;
+                    //case 1:
+                    ////    Console.WriteLine("[SessionCallback] User pressed PLAY/PAUSE button.");
+                    //    break;
 
-                    case 5:
-                        Console.WriteLine("[SessionCallback] User seeked to a position. "+session?.Player?.CurrentPosition);
-                        service.RaiseSeekCompleted(session?.Player?.CurrentPosition ?? 0);
+                    //case 5:
+                    ////    Console.WriteLine("[SessionCallback] User seeked to a position. "+session?.Player?.CurrentPosition);
+                    //    service.RaiseSeekCompleted(session?.Player?.CurrentPosition ?? 0);
 
-                        break;
+                    //    break;
 
                     case 9:
-                        Console.WriteLine("[SessionCallback] User pressed NEXT button.");
+                        service.player!.Stop();
+                        service.RaisePlayNextEventHandler();
+                        //Console.WriteLine("[SessionCallback] User pressed NEXT button.");
                         break;
 
                     case 7:
-                        Console.WriteLine("[SessionCallback] User pressed PREVIOUS button.");
+                        service.player!.Stop();
+                        service.RaisePlayPreviousEventHandler();
 
                         break;
 
                     default:
-                        Console.WriteLine($"[SessionCallback] Unknown command: {command}");
+                        //Console.WriteLine($"[SessionCallback] Unknown command: {command}");
                         break;
                 }
             }
+
+            #endregion
         }
 
 
@@ -756,33 +876,7 @@ public class ExoPlayerService : MediaSessionService
 
     private IPlaybackBubbleUpdateListener? _bubbleListener;
 
-    public void SetBubbleUpdateListener(IPlaybackBubbleUpdateListener? listener)
-    {
-        _bubbleListener = listener;
-        Log.Debug("MediaSessionService", $"Bubble listener {(listener == null ? "removed" : "set")}.");
-    }
-    public void RequestCurrentStateForBubble()
-    {
-        if (_bubbleListener != null)
-        {
-            // Get current state from your player/MediaSession
-            string currentTitle = player?.MediaMetadata?.Title?.ToString() ?? "Unknown";
-            string currentArtist = player?.MediaMetadata?.Artist?.ToString() ?? "Unknown";
-            string currentAlbum = player?.MediaMetadata?.AlbumTitle?.ToString() ?? "Unknown";
-            bool isPlaying = player?.IsPlaying ?? false;
-            int position = (int)(player?.CurrentPosition ?? 0);
-            int duration = (int)(player?.Duration ?? 0);
-            // Bitmap coverArt = GetCurrentCoverArtBitmap(); // Your method to get art
 
-            Log.Debug("MediaSessionService", "Sending current state to bubble.");
-            _bubbleListener.UpdateMetadataUI(currentTitle, currentArtist, currentAlbum /*, coverArt */);
-            _bubbleListener.UpdatePlaybackStateUI(isPlaying, position, duration);
-        }
-        else
-        {
-            Log.Debug("MediaSessionService", "RequestCurrentStateForBubble called but no listener set.");
-        }
-    }
 
 } // End ExoPlayerService class
 

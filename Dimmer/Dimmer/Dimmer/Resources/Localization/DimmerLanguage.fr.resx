@@ -169,73 +169,73 @@
     <value />
   </data>
   <data name="txt_view" xml:space="preserve">
-    <value />
+    <value>Voir</value>
   </data>
   <data name="txt_minimize" xml:space="preserve">
-    <value />
+    <value>Minimizer</value>
   </data>
   <data name="txt_close" xml:space="preserve">
-    <value />
+    <value>Fermer</value>
   </data>
   <data name="txt_remove" xml:space="preserve">
-    <value />
+    <value>Retirer</value>
   </data>
   <data name="txt_delete" xml:space="preserve">
-    <value />
+    <value>Supprimer</value>
   </data>
   <data name="txt_edit" xml:space="preserve">
-    <value />
+    <value>Modifier</value>
   </data>
   <data name="txt_email" xml:space="preserve">
-    <value />
+    <value>Email</value>
   </data>
   <data name="txt_send" xml:space="preserve">
-    <value />
+    <value>Envoyer</value>
   </data>
   <data name="txt_cancel" xml:space="preserve">
-    <value />
+    <value>Annuler</value>
   </data>
   <data name="txt_confirm" xml:space="preserve">
-    <value />
+    <value>Confirmer</value>
   </data>
   <data name="txt_continue" xml:space="preserve">
-    <value />
+    <value>Continuer</value>
   </data>
   <data name="txt_selectfolders" xml:space="preserve">
-    <value />
+    <value>Selectionner les dossier</value>
   </data>
   <data name="gettingstart_txt_wlc" xml:space="preserve">
-    <value />
+    <value>Bienvenu!</value>
   </data>
   <data name="txt_statististics" xml:space="preserve">
-    <value />
+    <value>Statistiques</value>
   </data>
   <data name="txt_stats" xml:space="preserve">
-    <value />
+    <value>Stats</value>
   </data>
   <data name="txt_album" xml:space="preserve">
-    <value />
+    <value>Albums</value>
   </data>
   <data name="txt_artist" xml:space="preserve">
-    <value />
+    <value>Artiste</value>
   </data>
   <data name="txt_previous" xml:space="preserve">
     <value />
   </data>
   <data name="txt_next" xml:space="preserve">
-    <value />
+    <value>Suivant</value>
   </data>
   <data name="txt_play" xml:space="preserve">
-    <value />
+    <value>Jouer</value>
   </data>
   <data name="txt_stop" xml:space="preserve">
     <value />
   </data>
   <data name="txt_pause" xml:space="preserve">
-    <value />
+    <value>Pause</value>
   </data>
   <data name="txt_scan" xml:space="preserve">
-    <value />
+    <value>Scanner</value>
   </data>
   <data name="txt_login" xml:space="preserve">
     <value />
