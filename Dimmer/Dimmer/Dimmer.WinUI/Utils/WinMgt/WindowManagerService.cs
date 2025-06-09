@@ -94,13 +94,6 @@ internal class WindowManagerService : IWindowManagerService
             var grid = new Page(); // Create a Frame to host the Page
             window.Page = grid;
 
-            // How to get instance of pageType?
-            // Option 1: Activator (simple, no DI for the page itself unless handled internally)
-            // Page pageInstance = Activator.CreateInstance(pageType) as Page;
-
-            // Option 2: Resolve from a WinUI-specific DI container if you set one up for native parts.
-            // For now, let's use Activator. If your native pages need MAUI services, it's more complex.
-            // You might need to pass _mauiServiceProvider to the page constructor if it expects it.
             Page? pageInstance = null;
             try
             {

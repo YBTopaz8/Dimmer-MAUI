@@ -57,7 +57,7 @@
 
     <Shell.FlyoutFooter>
 
-        <VerticalStackLayout x:Name="BottomLeft" Grid.Row="1">
+        <VerticalStackLayout x:Name="BottomLeft" Grid.Row="1" Margin="0,10">
             <syncf:SfChip x:Name="SettingsChip"
                           Clicked="SettingsChip_Clicked" CommandParameter="Settings"
                           Text="Settings"

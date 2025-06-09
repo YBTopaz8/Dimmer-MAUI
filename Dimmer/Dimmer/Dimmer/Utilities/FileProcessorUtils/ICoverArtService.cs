@@ -4,7 +4,7 @@ namespace Dimmer.Utilities.FileProcessorUtils;
 public interface ICoverArtService
 {
     Task<string?> SaveOrGetCoverImageAsync(string audioFilePath, PictureInfo? embeddedPictureInfo);
-    Task<string?> GetExistingCoverImageAsync(string audioFilePath);
+    string? GetExistingCoverImageAsync(string audioFilePath);
 }
 
 public class CoverArtService : ICoverArtService
@@ -40,8 +40,9 @@ public class CoverArtService : ICoverArtService
         };
     }
 
-    public async Task<string?> GetExistingCoverImageAsync(string audioFilePath)
+    public string? GetExistingCoverImageAsync(string audioFilePath)
     {
+        
         if (string.IsNullOrWhiteSpace(audioFilePath))
             return null;
 
@@ -65,7 +66,7 @@ public class CoverArtService : ICoverArtService
             return null;
 
         // 1. Check if an image already exists for this file name
-        string? existingPath = await GetExistingCoverImageAsync(audioFilePath);
+        string? existingPath = GetExistingCoverImageAsync(audioFilePath);
         if (existingPath != null)
         {
             return existingPath;

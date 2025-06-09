@@ -13,7 +13,9 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.ArtistsSpace;
 
-using Microsoft.Extensions.Logging; // For ILogger
+using Microsoft.Extensions.Logging;
+
+using System.Threading.Tasks; // For ILogger
 
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 
@@ -23,6 +25,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly AlbumsMgtFlow albumsMgtFlow;
+    private readonly IFolderPicker folderPicker;
     private readonly IWindowManagerService windowManager;
     private readonly IDimmerAudioService audioService;
     private readonly PlayListMgtFlow playlistsMgtFlow;
@@ -110,6 +113,9 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
                 logger.LogInformation("No folder selected by user.");
             }
 
+    public async Task PickFolderToScan()
+    {
+        var pick = await folderPicker.PickAsync(CancellationToken.None);
 
         }
 

@@ -3,6 +3,9 @@
   <PropertyGroup>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <ItemGroup>
     <None Update="App.xaml">
       <SubType>Designer</SubType>
@@ -29,9 +32,6 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <Page Update="Views\ArtistsSpace\SpecificArtistPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\ArtistsSpace\AllArtistsPage.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">

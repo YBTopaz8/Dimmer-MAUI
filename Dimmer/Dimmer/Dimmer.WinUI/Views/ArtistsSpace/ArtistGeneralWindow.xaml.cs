@@ -21,6 +21,7 @@ using Button = Microsoft.UI.Xaml.Controls.Button;
 using Page = Microsoft.UI.Xaml.Controls.Page;
 using SpringVector3NaturalMotionAnimation = Microsoft.UI.Composition.SpringVector3NaturalMotionAnimation;
 using Window = Microsoft.UI.Xaml.Window;
+using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 

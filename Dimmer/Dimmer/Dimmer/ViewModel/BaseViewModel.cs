@@ -236,11 +236,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void InitializeApp()
     {
-        if (audioService.IsPlaying || audioService.CurrentTrackMetadata is not null)
+        if (NowPlayingDisplayQueue.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
         {
-            return;
+            var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
+            
         }
-        appInitializerService.InitializeApplication();
     }
     protected virtual async Task InitializeViewModelSubscriptions()
     {

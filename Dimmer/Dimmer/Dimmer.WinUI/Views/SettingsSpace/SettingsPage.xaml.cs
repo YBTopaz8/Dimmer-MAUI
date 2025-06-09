@@ -1,4 +1,6 @@
-namespace Dimmer.WinUI.Views.SettingsCenter;
+using System.Threading.Tasks;
+
+namespace Dimmer.WinUI.Views.SettingsSpace;
 
 public partial class SettingsPage : ContentPage
 {
@@ -11,11 +13,12 @@ public partial class SettingsPage : ContentPage
 
     }
 
-
     private void ChangeFolder_Clicked(object sender, EventArgs e)
     {
+
+
         var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-      //await  MyViewModel.AddMusicFolderAsync(selectedFolder);
+        //await MyViewModel.SelectSongFromFolder(selectedFolder);
     }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
@@ -26,7 +29,7 @@ public partial class SettingsPage : ContentPage
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.AddMusicFolderViaPickerAsync();
+await MyViewModel.PickFolderToScan();
     }
 
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
@@ -41,8 +44,10 @@ public partial class SettingsPage : ContentPage
         switch (param)
         {
             case "0":
+                FirstTimeTabView.SelectedIndex--;
                 break;
             case "1":
+                FirstTimeTabView.SelectedIndex++;
                 break;
             default:
 

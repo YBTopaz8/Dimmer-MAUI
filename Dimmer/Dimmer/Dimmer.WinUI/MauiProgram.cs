@@ -3,6 +3,7 @@
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.ArtistsSpace;
 using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
@@ -25,6 +26,8 @@ public static class MauiProgram
         builder.Services.AddTransient<AlbumWindow>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<AllArtistsPage>();
+        builder.Services.AddTransient<SingleAlbumPage>();
+        builder.Services.AddTransient<AllAlbumsPage>();
         builder.Services.AddTransient<ArtistGeneralWindow>();
         builder.Services.AddSingleton<ArtistsPage>();
         builder.Services.AddTransient<SpecificArtistPage>();
