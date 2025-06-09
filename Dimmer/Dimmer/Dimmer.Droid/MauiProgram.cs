@@ -30,6 +30,7 @@ public static class MauiProgram
             .UseDevExpressEditors()
             .UseDevExpressGauges()
             .UseUraniumUI()
+            
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseSharedMauiApp();
