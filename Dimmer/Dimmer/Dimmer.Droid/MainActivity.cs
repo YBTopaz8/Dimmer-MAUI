@@ -56,58 +56,6 @@ public class MainActivity : MauiAppCompatActivity
     }
     private static bool _firstTimeSetupDone = false;
     const string FirstTimeSetupKey = "FirstTimeBubbleSetupDone";
-    private void FirstTimeBubbleSetup(Context context)
-    {
-        // Using SharedPreferences to ensure this runs only once per install,
-        // or when you want to force a reset by changing the logic.
-        ISharedPreferences prefs = Android.Preferences.PreferenceManager.GetDefaultSharedPreferences(context);
-        bool alreadyDone = prefs.GetBoolean(FirstTimeSetupKey, false);
-
-        if (!_firstTimeSetupDone && !alreadyDone) // Only run once per app session AND once per install
-        {
-            Log.Warn("BubbleDebug", "PERFORMING AGGRESSIVE ONE-TIME BUBBLE CHANNEL RESET!");
-
-            // 1. Delete the old channel if it exists
-            var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
-            if (notificationManager != null)
-            {
-                notificationManager.DeleteNotificationChannel(NotificationHelper.ChannelId);
-                Log.Info("BubbleDebug", $"Attempted to delete channel: {NotificationHelper.ChannelId}");
-            }
-
-            // 2. Recreate the channel with bubble support explicitly enabled
-            // Call your existing CreateChannel, ensuring it explicitly sets SetAllowBubbles(true)
-            NotificationHelper.CreateChannel(context); // Use the version that can force
-
-            // 3. Mark as done
-            prefs.Edit().PutBoolean(FirstTimeSetupKey, true).Apply();
-            _firstTimeSetupDone = true;
-            Log.Info("BubbleDebug", "One-time bubble channel reset complete.");
-
-            // 4. Immediately check and log the status
-            var channel = notificationManager.GetNotificationChannel(NotificationHelper.ChannelId);
-            if (channel != null && Build.VERSION.SdkInt >= BuildVersionCodes.Q)
-            {
-                Log.Info("BubbleDebug", $"IMMEDIATE POST-RESET: Channel '{NotificationHelper.ChannelId}' CanBubble: {channel.CanBubble()}");
-                if (!channel.CanBubble())
-                {
-                    Log.Error("BubbleDebug", "STILL CANNOT BUBBLE IMMEDIATELY AFTER RESET. Check global/app/developer settings!");
-                    // This is the point where you might Toast to guide the user directly to settings.
-                    Toast.MakeText(context, "Bubble setup issue. Please check App Notification Settings & Developer Options for Bubbles.", ToastLength.Long).Show();
-                    NotificationHelper.OpenBubbleSettings(context); // Or OpenBubbleSettings
-                }
-            }
-            else if (channel == null)
-            {
-                Log.Error("BubbleDebug", "Channel is NULL immediately after recreate attempt!");
-            }
-        }
-        else
-        {
-            // On subsequent starts, just ensure channel exists without aggressive reset
-            NotificationHelper.CreateChannel(context);
-        }
-    }
 
     protected override void OnResume()
     {

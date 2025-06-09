@@ -270,7 +270,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     AppTitle = songView != null
                         ? $"{songView.Title} - {songView.ArtistName} [{songView.AlbumName}] | {CurrentAppVersion}"
                         : CurrentAppVersion;
-
+                    CurrentPlayingSongView.PlayEvents = DimmerPlayEventList.Where(x => x.SongId==CurrentPlayingSongView.Id).ToObservableCollection();
                 }, ex => _logger.LogError(ex, "Error in CurrentSong subscription"))
         );
         _subsManager.Add(
@@ -767,6 +767,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
     {
         _logger.LogTrace("SetCurrentlyPickedSongForContext called with: {SongTitle}", song?.Title ?? "None");
+
+
+        song.PlayEvents = DimmerPlayEventList.Where(x => x.SongId==song.Id).ToObservableCollection();
         SelectedSongForContext = song;
 
 
@@ -814,7 +817,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             return;
         }
         var uniqueAlbums = SelectedArtistSongs.Select(x => x).DistinctBy(x => x.AlbumName)
-            .Select(x=>x.Album);
+            .Select(x => x.Album);
         SelectedArtistAlbums = uniqueAlbums.ToObservableCollection();
         SelectedArtist.ImagePath = SelectedArtistSongs[0].CoverImagePath;
         _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);

@@ -38,7 +38,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial byte[]? ImageBytes { get; set; } 
+    public partial byte[]? ImageBytes { get; set; }
     [ObservableProperty]
     public partial string CoverImagePath { get; set; } = "musicnoteslider.png";
     [ObservableProperty]
@@ -46,7 +46,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
-    public partial bool IsCurrentPlayingHighlight { get; set; } =false;
+    public partial bool IsCurrentPlayingHighlight { get; set; } = false;
     [ObservableProperty]
     public partial bool IsFavorite { get; set; }
     [ObservableProperty]
@@ -58,20 +58,22 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
-    public partial string? DeviceName { get; set; } 
+    public partial string? DeviceName { get; set; }
     [ObservableProperty]
-    public partial string? DeviceFormFactor { get; set; } 
+    public partial string? DeviceFormFactor { get; set; }
     [ObservableProperty]
-    public partial string? DeviceModel { get; set; } 
+    public partial string? DeviceModel { get; set; }
     [ObservableProperty]
-    public partial string? DeviceManufacturer { get; set; } 
+    public partial string? DeviceManufacturer { get; set; }
     [ObservableProperty]
-    public partial string? DeviceVersion { get; set; } 
+    public partial string? DeviceVersion { get; set; }
+
+    public ObservableCollection<DimmerPlayEvent>? PlayEvents { get; set; }
 
 
-    
+
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView> ? UserNote { get; set; }
+    public partial ObservableCollection<UserNoteModelView>? UserNote { get; set; }
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {

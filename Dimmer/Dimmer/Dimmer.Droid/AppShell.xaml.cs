@@ -12,6 +12,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SearchSongPage), typeof(SearchSongPage));
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
+        Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
     }
 
     protected override void OnAppearing()

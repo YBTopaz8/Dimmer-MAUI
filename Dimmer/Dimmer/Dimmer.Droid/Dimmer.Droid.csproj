@@ -155,6 +155,9 @@
     <MauiXaml Update="Views\ArtistsSpace\ArtistsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\BtmBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\DetailSongPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -167,7 +170,13 @@
     <MauiXaml Update="Views\DimmerSettings.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\NowPlayingbtmsheet.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SingleSongPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

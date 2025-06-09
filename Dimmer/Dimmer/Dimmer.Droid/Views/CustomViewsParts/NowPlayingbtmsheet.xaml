@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:BottomSheet x:Name="NowPlayingBtmSheet"
+                x:Class="Dimmer.Views.CustomViewsParts.NowPlayingbtmsheet" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+                xmlns:dx="http://schemas.devexpress.com/maui" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+                xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit" xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit"
+                xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+                xmlns:vm="clr-namespace:Dimmer.ViewModels" x:DataType="vm:BaseViewModelAnd"
+                AllowedState="FullExpanded" CornerRadius="0"
+                ShowGrabber="False" StateChanged="NowPlayingBtmSheet_StateChanged"
+                Unloaded="NowPlayingBtmSheet_Unloaded"
+                >
+    <dx:BottomSheet.Resources>
+        <ResourceDictionary>
+
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+            <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        </ResourceDictionary>
+    </dx:BottomSheet.Resources>
+    <Grid Margin="10,0">
+
+        <dx:DXImage IsVisible="False" Opacity="0.6"
+                    Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
+                    />
+        <dx:TabView HeaderPanelPosition="Bottom" SelectedItemIndicatorColor="DarkSlateBlue">
+
+            <dx:TabViewItem>
+                <dx:TabViewItem.HeaderContent>
+                    <dx:DXStackLayout Orientation="Horizontal">
+                        <Image HeightRequest="50" Source="musiccircle.png"
+                               WidthRequest="90"
+                               />
+                    </dx:DXStackLayout>
+                </dx:TabViewItem.HeaderContent>
+                <dx:TabViewItem.Content>
+                    <Grid BackgroundColor="Transparent" RowDefinitions="*,auto,auto,auto"
+                          RowSpacing="20"
+                          >
+
+                        <dx:DXBorder x:Name="TopRowWithImage"
+                                     Grid.Row="0" BorderColor="DarkSlateBlue"
+                                     BorderThickness="0" CornerRadius="20"
+                                     >
+
+
+
+                            <dx:DXImage x:Name="SongPicture"
+                                        Aspect="AspectFill" Opacity="0.6"
+                                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
+                                        />
+                        </dx:DXBorder>
+                        <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
+                                          ItemSpacing="15"
+                                          >
+                            <dx:Chip x:Name="SongTitleChip"
+                                     BackgroundColor="Transparent" BorderColor="Transparent"
+                                     BorderThickness="0.4" FontSize="30"
+                                     Tap="SongTitleChip_Tap"
+                                     Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
+                                     >
+                                <dx:Chip.Triggers>
+                                    <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                 TargetType="dx:Chip" Value="True"
+                                                 >
+                                        <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                 TargetType="dx:Chip" Value="False"
+                                                 >
+                                        <Setter Property="TextColor" Value="Grey" />
+                                    </DataTrigger>
+                                </dx:Chip.Triggers>
+                            </dx:Chip>
+                            <dx:Chip BackgroundColor="Transparent" BorderColor="Transparent"
+                                     BorderThickness="0.1" FontSize="25"
+                                     Tap="Chip_Tap"
+                                     TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
+                                     Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}"
+                                     />
+
+                        </dx:DXStackLayout>
+                        <Grid Grid.Row="2" RowDefinitions="auto,auto,*"
+                              RowSpacing="15"
+                              >
+
+                            <Grid x:Name="ProgressAndPrev"
+                                  Grid.Row="0" BackgroundColor="Transparent"
+                                  ColumnDefinitions="0.4*,*" ColumnSpacing="10"
+                                  >
+
+                                <dx:DXButton Grid.Column="0" BackgroundColor="#343534"
+                                             Command="{Binding BaseVM.PreviousTrackCommand}"
+                                             Icon="skipprevious.png" IconColor="#f5f5f5"
+                                             IconHeight="80" IconWidth="80"
+                                             Opacity="0.3" PressedBackgroundColor="DarkSlateBlue"
+                                             />
+                                <Grid Grid.Column="1" BackgroundColor="Transparent"
+                                      ColumnDefinitions="*,*" RowDefinitions="*,*"
+                                      >
+                                    <dx:DXSlider x:Name="ProgressSlider"
+                                                 Grid.Row="0" Grid.Column="0"
+                                                 Grid.ColumnSpan="2" BackgroundColor="Transparent"
+                                                 MaxValue="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds}"
+                                                 MinValue="0" Opacity="0.7"
+                                                 TapReleased="ProgressSlider_TapReleased" ValueStep="1"
+                                                 VerticalOptions="End"
+                                                 Value="{Binding BaseVM.CurrentTrackPositionSeconds}"
+                                                 >
+
+
+                                        <dx:DXSlider.TooltipAppearance>
+                                            <dx:DXSliderTooltipAppearance BackgroundColor="#626680" FontAttributes="Bold"
+                                                                          FontSize="16"
+                                                                          TextColor="{AppThemeBinding Dark=White,
+                                                                                                      Light=black}"
+                                                                          />
+                                        </dx:DXSlider.TooltipAppearance>
+
+                                        <dx:DXSlider.TrackAppearance>
+                                            <dx:DXSliderTrackAppearance ActiveBackgroundColor="DarkSlateBlue" BackgroundColor="#626680"
+                                                                        Thickness="12"
+                                                                        />
+                                        </dx:DXSlider.TrackAppearance>
+                                        <dx:DXSlider.ThumbAppearance>
+                                            <dx:DXSliderThumbAppearance Width="2" Height="35"
+                                                                        BackgroundColor="#A99BDE"
+                                                                        />
+                                        </dx:DXSlider.ThumbAppearance>
+                                    </dx:DXSlider>
+                                    <Label Grid.Row="1" Grid.Column="0"
+                                           FontSize="14"
+                                           Text="{Binding BaseVM.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}"
+                                           />
+                                    <Label Grid.Row="1" Grid.Column="1"
+                                           FontSize="14" HorizontalOptions="End"
+                                           Text="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                                           />
+                                </Grid>
+
+                            </Grid>
+
+                            <Grid x:Name="PlayPauseAndNext"
+                                  Grid.Row="1" BackgroundColor="Transparent"
+                                  ColumnDefinitions="*,0.4*" ColumnSpacing="10"
+                                  >
+                                <dx:DXButton Grid.Column="0" AnimationDuration="1500"
+                                             BackgroundColor="DarkSlateBlue"
+                                             Command="{Binding BaseVM.PlayPauseToggleCommand}"
+                                             Icon="play.png" IconColor="White"
+                                             IconHeight="100" IconWidth="100"
+                                             Opacity="0.7" PressedBackgroundColor="Purple"
+                                             >
+                                    <dx:DXButton.Triggers>
+
+                                        <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                     TargetType="dx:DXButton" Value="True"
+                                                     >
+                                            <Setter Property="BorderThickness" Value="2" />
+                                            <Setter Property="Icon" Value="pause.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                     TargetType="dx:DXButton" Value="False"
+                                                     >
+                                            <Setter Property="BorderThickness" Value="0" />
+                                            <Setter Property="Icon" Value="play.png" />
+                                        </DataTrigger>
+                                    </dx:DXButton.Triggers>
+                                </dx:DXButton>
+
+                                <dx:DXButton Grid.Row="1" Grid.Column="1"
+                                             AnimationDuration="800" BackgroundColor="#343534"
+                                             Command="{Binding BaseVM.NextTrackCommand}"
+                                             Icon="skipnext.png" IconColor="#f5f5f5"
+                                             IconHeight="80" IconWidth="80"
+                                             Opacity="0.3" PressedBackgroundColor="DarkSlateBlue"
+                                             />
+
+                            </Grid>
+
+                            <Grid Grid.Row="2" RowDefinitions="*,*"
+                                  VerticalOptions="End"
+                                  >
+                                <dx:DXButton Grid.Row="0"
+                                             Command="{Binding Commands.ToggleExpandState, Source={x:Reference BottomExpander}}"
+                                             Content="volume" IsVisible="False"
+                                             />
+                            </Grid>
+                        </Grid>
+
+
+                        <dx:DXExpander x:Name="BottomExpander"
+                                       Grid.Row="3" BackgroundColor="Transparent"
+                                       HeightRequest="100" HorizontalExpandMode="FromStartToEnd"
+                                       IsExpanded="False" VerticalExpandMode="FromEndToStart"
+                                       >
+                            <dx:DXExpander.Content>
+
+                                <dx:DXSlider x:Name="VolumeSlider"
+                                             Margin="10,0" BackgroundColor="Transparent"
+                                             IsVisible="True" MaxValue="1"
+                                             MinValue="0" Opacity="0.7"
+                                             ValueStep="0.1"
+                                             Value="{Binding BaseVM.DeviceVolumeLevel}"
+                                             >
+
+                                    <dx:DXSlider.TooltipAppearance>
+                                        <dx:DXSliderTooltipAppearance BackgroundColor="#626680" FontAttributes="Bold"
+                                                                      FontSize="16"
+                                                                      TextColor="{AppThemeBinding Dark=White,
+                                                                                                  Light=black}"
+                                                                      />
+                                    </dx:DXSlider.TooltipAppearance>
+
+                                    <dx:DXSlider.TrackAppearance>
+                                        <dx:DXSliderTrackAppearance ActiveBackgroundColor="DarkSlateBlue" BackgroundColor="#626680" />
+                                    </dx:DXSlider.TrackAppearance>
+                                    <dx:DXSlider.ThumbAppearance>
+                                        <dx:DXSliderThumbAppearance Width="2" Height="25"
+                                                                    BackgroundColor="#A99BDE"
+                                                                    />
+                                    </dx:DXSlider.ThumbAppearance>
+                                </dx:DXSlider>
+
+                            </dx:DXExpander.Content>
+                        </dx:DXExpander>
+
+
+                    </Grid>
+
+                </dx:TabViewItem.Content>
+
+            </dx:TabViewItem>
+
+            <dx:TabViewItem>
+                <dx:TabViewItem.HeaderContent>
+                    <dx:DXStackLayout Orientation="Horizontal">
+                        <Image HeightRequest="50" Source="lyrics.png"
+                               WidthRequest="90"
+                               />
+                    </dx:DXStackLayout>
+                </dx:TabViewItem.HeaderContent>
+                <dx:TabViewItem.Content>
+                    <Grid>
+                        <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
+                        <dx:DXCollectionView ItemsSource="{Binding BaseVM.CurrentSynchronizedLyrics}" />
+                    </Grid>
+                </dx:TabViewItem.Content>
+
+            </dx:TabViewItem>
+
+        </dx:TabView>
+    </Grid>
+
+</dx:BottomSheet>

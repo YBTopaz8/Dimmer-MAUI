@@ -1,5 +1,7 @@
 ﻿
 
+using Dimmer.Views.CustomViewsParts;
+
 using Microsoft.Maui.Controls.Compatibility.Hosting;
 
 namespace Dimmer;
@@ -42,6 +44,8 @@ public static class MauiProgram
 
 
         builder.Services.AddSingleton<BaseViewModelAnd>();
+        builder.Services.AddSingleton<BtmBar>();
+        builder.Services.AddSingleton<NowPlayingbtmsheet>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
         .ConfigureMauiHandlers(handlers =>
         {

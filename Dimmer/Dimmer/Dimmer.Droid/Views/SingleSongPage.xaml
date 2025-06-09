@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Dimmer.Views.SingleSongPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:customViewParts="clr-namespace:Dimmer.Views.CustomViewsParts" xmlns:dx="http://schemas.devexpress.com/maui"
+             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer" xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:vm="clr-namespace:Dimmer.ViewModels"
+             Title="SingleSongPage" x:DataType="vm:BaseViewModelAnd"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5,
+                                               Dark=#1E1E1E}"
+             Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="True"
+             >
+    <Grid>
+        <dx:DXImage Aspect="AspectFill" Opacity="0.1"
+                    Source="{Binding BaseVM.SelectedSongForContext.CoverImagePath}"
+                    />
+        <dx:DXStackLayout BackgroundColor="Transparent" CornerRadius="20">
+
+
+            <dx:Chip Text="{Binding BaseVM.SelectedSongForContext.ArtistName}" />
+            <dx:Chip Text="{Binding BaseVM.SelectedSongForContext.AlbumName}" />
+            <dx:Chip Text="{Binding BaseVM.SelectedSongForContext.ReleaseYear}" />
+
+        </dx:DXStackLayout>
+    </Grid>
+</ContentPage>

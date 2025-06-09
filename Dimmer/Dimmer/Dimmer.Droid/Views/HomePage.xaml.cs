@@ -91,20 +91,6 @@ public partial class HomePage : ContentPage
     }
 
 
-    private async void Chip_Tap(object sender, HandledEventArgs e)
-    {
-        var send = (Chip)sender;
-
-        var song = send.TapCommandParameter as SongModelView;
-        var result = await Shell.Current.DisplayActionSheet("Select Artist To View", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
-        if (result == "Cancel" || string.IsNullOrEmpty(result))
-            return;
-        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
-        DeviceStaticUtils.SelectedArtistOne = art;
-        await SongsMenuPopup.CloseAsync();
-        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-
-    }
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
 
@@ -120,17 +106,12 @@ public partial class HomePage : ContentPage
 
     private void ClosePopup(object sender, EventArgs e)
     {
+
         SongsMenuPopup.Close();
     }
 
 
-    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
-    {
-        var send = (DXSlider)sender;
 
-
-        MyViewModel.BaseVM.SeekTrackPosition(ProgressSlider.Value);
-    }
 
     /*
    
@@ -226,134 +207,8 @@ public partial class HomePage : ContentPage
 
 
     */
-    private double _startX;
-    private double _startY;
-    private bool _isPanning;
-
-    double btmBarHeight = 145;
 
 
-
-    private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
-    {
-        View send = (View)sender;
-
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _isPanning = true;
-                _startX = BtmBar.TranslationX;
-                _startY = BtmBar.TranslationY;
-                break;
-
-            case GestureStatus.Running:
-                if (!_isPanning)
-                    return; // Safety check
-
-                BtmBar.TranslationX = _startX + e.TotalX;
-                BtmBar.TranslationY = _startY + e.TotalY;
-                break;
-
-            case GestureStatus.Completed:
-                _isPanning = false;
-
-                double deltaX = BtmBar.TranslationX - _startX;
-                double deltaY = BtmBar.TranslationY - _startY;
-                double absDeltaX = Math.Abs(deltaX);
-                double absDeltaY = Math.Abs(deltaY);
-
-                if (absDeltaX > absDeltaY) // Horizontal swipe
-                {
-                    if (absDeltaX > absDeltaY) // Horizontal swipe
-                    {
-                        try
-                        {
-                            if (deltaX > 0) // Right
-                            {
-                                HapticFeedback.Perform(HapticFeedbackType.LongPress);
-                                Debug.WriteLine("Swiped Right");
-
-                                await MyViewModel.BaseVM.NextTrack();
-
-                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
-
-                                await Task.WhenAll(bounceTask);
-                            }
-                            else // Left
-                            {
-                                Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                await MyViewModel.BaseVM.PreviousTrack();
-
-                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
-
-                                await Task.WhenAll(bounceTask);
-                            }
-                        }
-                        catch (Exception ex) // Handle exceptions
-                        {
-                            Debug.WriteLine($"Error: {ex.Message}"); // Log the error
-                        }
-                        finally
-                        {
-                            BtmBar.TranslationX = 0; // Reset translation
-                            BtmBar.TranslationY = 0; // Reset translation
-
-                        }
-                    }
-
-                    else // Left
-                    {
-                        try
-                        {
-                            Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            await MyViewModel.BaseVM.PreviousTrack();
-                            Debug.WriteLine("Swiped left");
-                            Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
-                            Task t2 = Task.Delay(500);
-                            Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
-                            await Task.WhenAll(t1, t2, t3);
-                        }
-                        catch { }
-                    }
-                }
-                else  //Vertical swipe
-                {
-                    if (deltaY > 0) // Down
-                    {
-
-                        try
-                        {
-                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
-                            SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-
-                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
-                        }
-                        catch { }
-                    }
-                    else  // Up
-                    {
-                        try
-                        {
-                            btmBarHeight=BtmBar.Height;
-                            NowPlayingBtmSheet.Show();
-
-                        }
-                        catch { }
-                    }
-
-                }
-
-                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
-                break;
-
-
-            case GestureStatus.Canceled:
-                _isPanning = false;
-                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut); // Return to original position
-                break;
-
-        }
-    }
     int prevViewIndex = 0;
     async Task AnimateColor(VisualElement element, Color color)
     {
@@ -363,14 +218,6 @@ public partial class HomePage : ContentPage
     }
 
 
-    private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
-    {
-        //DXBorder send = (DXBorder)sender;
-
-
-        await MyViewModel.BaseVM.PlayPauseToggleAsync();
-
-    }
 
     private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
@@ -380,17 +227,12 @@ public partial class HomePage : ContentPage
         //}
     }
 
-    private void VolumeSlider_TapReleased(object sender, DXTapEventArgs e)
-    {
-
-    }
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
         NowPlayingBtmSheet.Close();
     }
 
-    private CancellationTokenSource? _debounceTimer;
 
     string SearchParam = string.Empty;
 
@@ -428,10 +270,7 @@ public partial class HomePage : ContentPage
 
                 SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
             }
-            else
-            {
-                SongsColView.FilterString = string.Empty;
-            }
+            
         }
     }
     private void ByAll()
@@ -449,6 +288,10 @@ public partial class HomePage : ContentPage
             {
                 SongsColView.FilterString = string.Empty;
             }
+        }
+        else
+        {
+            SongsColView.FilterString = string.Empty;
         }
     }
     private void ByArtist()
@@ -501,10 +344,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
-    {
-        SearchBy.Focus();
-    }
 
     List<SongModelView> songsToDisplay = new();
     private void SortChoose_Clicked(object sender, EventArgs e)
@@ -603,6 +442,16 @@ public partial class HomePage : ContentPage
         SortIndeed();
     }
 
+    private void AddToPlaylist_Clicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        var pl = MyViewModel.BaseVM.AllPlaylists;
+        var listt = new List<SongModelView>();
+        listt.Add(song);
+
+        MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
+    }
 }
 
 /*

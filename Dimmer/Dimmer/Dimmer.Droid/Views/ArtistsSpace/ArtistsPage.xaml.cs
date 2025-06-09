@@ -27,6 +27,13 @@ public partial class ArtistsPage : ContentPage
         var s = DeviceStaticUtils.SelectedArtistOne;
         MyViewModel.ViewArtistDetails(s);
 
+
+
+    }
+    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        var song = e.Item as SongModelView;
+        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
@@ -40,7 +47,7 @@ public partial class ArtistsPage : ContentPage
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        var ee = ArtistSongsColView.ItemsSource as IEnumerable<SongModelView>;
+        var ee = SongsColView.ItemsSource as IEnumerable<SongModelView>;
         songsToDisplay =ee.ToObservableCollection();
         await MyViewModel.BaseVM.PlaySongFromListAsync(song, ee);
     }
@@ -102,10 +109,10 @@ public partial class ArtistsPage : ContentPage
     ObservableCollection<SongModelView> songsToDisplay = new();
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
-        var songs = ArtistSongsColView.ItemsSource as IEnumerable<SongModelView>;
+        var songs = SongsColView.ItemsSource as IEnumerable<SongModelView>;
 
         Debug.WriteLine(songs is null);
-        if(songs is null)
+        if (songs is null)
         {
             return;
         }
@@ -147,10 +154,181 @@ public partial class ArtistsPage : ContentPage
                 return;
 
             MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
-            ArtistSongsColView.ItemsSource = songsToDisplay;
+            SongsColView.ItemsSource = songsToDisplay;
 
 
 
         });
+    }
+    SortOrder internalOrder = SortOrder.Ascending;
+    private bool SortIndeed()
+    {
+        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
+        ;
+        if (songs == null || !songs.Any())
+            return false;
+        internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
+
+        MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
+
+        switch (MyViewModel.BaseVM.CurrentSortProperty)
+        {
+            case "Title":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
+                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            case "Album": // Assuming CommandParameter is "Album" for AlbumName
+                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            case "Genre":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            case "Duration":
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            case "Year": // Assuming CommandParameter for ReleaseYear
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            case "DateAdded": // Assuming CommandParameter for DateCreated
+                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
+                break;
+            default:
+                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.BaseVM.CurrentSortProperty}");
+                // Reset sort state if property is unknown, or do nothing
+                MyViewModel.BaseVM.CurrentSortProperty = string.Empty;
+                MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
+                break;
+
+        }
+        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
+
+        return true;
+    }
+
+
+    private void SortChoose_Clicked(object sender, EventArgs e)
+    {
+
+        var chip = sender as DXButton; // Or whatever your SfChip type is
+        if (chip == null || chip.CommandParameter == null)
+            return;
+
+        string sortProperty = chip.CommandParameter.ToString();
+        if (string.IsNullOrEmpty(sortProperty))
+            return;
+
+
+        // Update current sort state
+        MyViewModel.BaseVM.CurrentSortProperty = sortProperty;
+
+
+        SortOrder newOrder;
+
+        // Toggle order if sorting by the same property again
+        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+
+
+        MyViewModel.BaseVM.CurrentSortOrder = newOrder;
+        MyViewModel.BaseVM.CurrentSortOrderInt = (int)newOrder;
+        // Optional: Update UI to show sort indicators (e.g., change chip appearance)
+        bool flowControl = SortIndeed();
+        if (!flowControl)
+        {
+            return;
+        }
+
+        // Optional: Scroll to top after sorting
+        // if (SongsColView.CurrentItems.Count > 0)
+        // {
+        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
+        // }
+    }
+
+    string SearchParam = string.Empty;
+
+    private void SearchBy_TextChanged(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(SearchBy.Text))
+        {
+            ByAll();
+            return;
+        }
+        switch (SearchParam)
+        {
+            case "Title":
+                ByTitle();
+                break;
+            case "Artist":
+                ByArtist();
+                break;
+            case "":
+                ByAll();
+                break;
+            default:
+                ByAll();
+                break;
+        }
+
+    }
+
+    private void ByTitle()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+
+                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
+            }
+            else
+            {
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+    private void ByAll()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                SongsColView.FilterString =
+                    $"Contains([Title], '{SearchBy.Text}') OR " +
+                    $"Contains([ArtistName], '{SearchBy.Text}') OR " +
+                    $"Contains([AlbumName], '{SearchBy.Text}')";
+            }
+            else
+            {
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+        else
+        {
+            SongsColView.FilterString = string.Empty;
+        }
+    }
+    private void ByArtist()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
+
+            }
+            else
+            {
+                SongsColView.FilterString = string.Empty;
+            }
+        }
     }
 }
