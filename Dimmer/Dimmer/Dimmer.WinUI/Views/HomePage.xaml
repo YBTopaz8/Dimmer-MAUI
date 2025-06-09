@@ -41,7 +41,7 @@
 
 
         <Grid RowDefinitions="*,auto">
-            <Image Opacity="0.1" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+            <Image Opacity="0.1" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid x:Name="MainUI"
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >
@@ -70,7 +70,7 @@
                                                       />
                             </Border.GestureRecognizers>
 
-                            <Label Text="{Binding CurrentPlayingSongView.Title}" />
+                            <Label FontFamily="AleySans" Text="{Binding CurrentPlayingSongView.Title}" />
 
                         </Border>
                         <Border>
@@ -78,7 +78,7 @@
                                 <TapGestureRecognizer CommandParameter="Art" Tapped="CurrPlayingSongGesRec_Tapped" />
                             </Border.GestureRecognizers>
 
-                            <Label Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                            <Label FontFamily="AleySans" Text="{Binding CurrentPlayingSongView.ArtistName}" />
 
                         </Border>
                         <Border>
@@ -86,7 +86,7 @@
                                 <TapGestureRecognizer CommandParameter="Alb" Tapped="CurrPlayingSongGesRec_Tapped" />
                             </Border.GestureRecognizers>
 
-                            <Label Text="{Binding CurrentPlayingSongView.AlbumName}" />
+                            <Label FontFamily="AleySans" Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
                         </Border>
                         <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="30"
@@ -94,6 +94,7 @@
                                       StrokeThickness="0" ToolTipProperties.Text="Save To Playlist"
                                       WidthRequest="40"
                                       />
+
                     </HorizontalStackLayout>
                     <Grid x:Name="SecondA"
                           Grid.Row="1" ColumnDefinitions="auto,*,auto"
@@ -206,9 +207,21 @@
 
                     </Grid>
                     <Grid Grid.Row="2" ColumnDefinitions="*,*"
-                          IsVisible="False"
+                          IsVisible="True"
                           >
-                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
+                        <VerticalStackLayout Grid.Column="0">
+
+                            <Label FontSize="17" Text="{Binding PreviousLine.Text}" />
+                            <Label FontAttributes="Bold" FontSize="30"
+                                   Text="{Binding CurrentLine.Text}"
+                                   TextColor="DarkSlateBlue"
+                                   />
+                            <Label FontSize="22" Text="{Binding NextLine.Text}" />
+                        </VerticalStackLayout>
+                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
+                                               VerticalOptions="Start"
+                                               >
+                            <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" />
                             <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="40"
                                           ImageSource="chart.png" ShowIcon="True"
                                           WidthRequest="55"
@@ -250,12 +263,14 @@
                                 <Style TargetType="syncf:SfChip">
                                     <Setter Property="StrokeThickness" Value="0" />
                                     <Setter Property="FontSize" Value="30" />
+                                    <Setter Property="FontFamily" Value="AleySans" />
                                     <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
                                     <Setter Property="SelectionIndicatorColor" Value="DarkSlateBlue" />
                                 </Style>
                             </Grid.Resources>
                             <syncf:SfChip Grid.Column="0" Clicked="Sort_Clicked"
-                                          CommandParameter="Title" Text="Title"
+                                          CommandParameter="Title" FontFamily="AleySans"
+                                          Text="Title"
                                           >
                                 <syncf:SfChip.Triggers>
                                     <DataTrigger Binding="{Binding IsPlaying}"
@@ -383,7 +398,9 @@
                                                    Text="{Binding AlbumName}"
                                                    ToolTipProperties.Text="{Binding AlbumName}"
                                                    />
-                                            <Label Grid.Column="3" Text="{Binding Genre.Name}" />
+                                            <Label Grid.Column="3" HorizontalOptions="Center"
+                                                   Text="{Binding Genre.Name}"
+                                                   />
                                             <Label Grid.Column="4" HorizontalOptions="Center"
                                                    Text="{Binding ReleaseYear}"
                                                    />
@@ -403,14 +420,7 @@
                       Grid.Row="1" IsVisible="False"
                       RowDefinitions="auto,*"
                       >
-                    <HorizontalStackLayout Grid.Row="0">
-                        <syncf:SfChip x:Name="MostPlayedFilter"
-                                      Clicked="Filter_Clicked" Text="Most Played"
-                                      />
-
-
-
-                    </HorizontalStackLayout>
+                    <Grid Grid.Row="0" />
 
 
                     <Grid Grid.Row="1" RowDefinitions="*,*">

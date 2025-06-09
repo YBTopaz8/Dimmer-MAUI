@@ -109,7 +109,7 @@ public class BaseAppFlow : IDisposable
             },
                        ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
     );
-       
+
 
         InitializeFolderEventReactions();
 
@@ -259,7 +259,7 @@ public class BaseAppFlow : IDisposable
 
 
 
-        //            await _libraryScannerService.ScanLibraryAsync(new List<string> { folderPath });
+        //            await _libraryScannerService.ScanLibrary(new List<string> { folderPath });
 
         //        }, ex => _logger.LogError(ex, "Error processing FolderAdded state."))
         //);
@@ -278,7 +278,7 @@ public class BaseAppFlow : IDisposable
                         try
                         {
                             _logger.LogInformation("BaseAppFlow: FolderAdded -> {Path}", folderPath);
-                            await _libraryScannerService.ScanLibraryAsync(new List<string> { folderPath.ExtraParameter as string });
+                            _libraryScannerService.ScanLibrary(new List<string> { folderPath.ExtraParameter as string });
                         }
                         catch (Exception ex)
                         {
@@ -303,7 +303,7 @@ public class BaseAppFlow : IDisposable
 
 
 
-                    await _libraryScannerService.ScanLibraryAsync(_settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>());
+                    Task.Run(async () => await _libraryScannerService.ScanLibrary(_settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>()));
                 }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
         );
     }

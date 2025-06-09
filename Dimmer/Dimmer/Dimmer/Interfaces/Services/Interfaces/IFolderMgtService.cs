@@ -2,7 +2,7 @@
 
 public interface IFolderMgtService : IDisposable
 {
-    Task AddFolderToWatchListAndScanAsync(string path);
-    Task ClearAllWatchedFoldersAndRescanAsync();
-    Task RemoveFolderFromWatchListAsync(string path);
+    void AddFolderToWatchListAndScanAsync(string path);
+    void ClearAllWatchedFoldersAndRescanAsync();
+    void RemoveFolderFromWatchListAsync(string path);
 }

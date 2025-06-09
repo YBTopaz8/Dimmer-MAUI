@@ -96,7 +96,7 @@ public class FolderMgtService : IFolderMgtService
         _isCurrentlyWatching = false;
     }
 
-    public async Task AddFolderToWatchListAndScanAsync(string path)
+    public void AddFolderToWatchListAndScanAsync(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -122,10 +122,10 @@ public class FolderMgtService : IFolderMgtService
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));
 
         _logger.LogInformation("Triggering scan for newly added folder: {Path}", path);
-        await _libraryScanner.ScanSpecificPathsAsync(new List<string> { path }, isIncremental: false);
+        Task.Run(async () => await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false));
     }
 
-    public async Task RemoveFolderFromWatchListAsync(string path)
+    public void RemoveFolderFromWatchListAsync(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
             return;
@@ -145,7 +145,7 @@ public class FolderMgtService : IFolderMgtService
             // re-evaluates based on the current set of watched folders.
             _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
             var remainingFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-            await _libraryScanner.ScanLibraryAsync(remainingFolders);
+            Task.Run(async () => await _libraryScanner.ScanLibrary(remainingFolders));
         }
         else
         {
@@ -153,7 +153,7 @@ public class FolderMgtService : IFolderMgtService
         }
     }
 
-    public async Task ClearAllWatchedFoldersAndRescanAsync()
+    public void ClearAllWatchedFoldersAndRescanAsync()
     {
         _logger.LogInformation("Clearing all watched folders and settings.");
         _settingsService.ClearAllFolders(); // Persist
@@ -162,7 +162,7 @@ public class FolderMgtService : IFolderMgtService
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));
 
         _logger.LogInformation("Triggering library scan with empty folder list (to clear library).");
-        await _libraryScanner.ScanLibraryAsync(new List<string>()); // Scan with empty list
+        _libraryScanner.ScanLibrary(new List<string>()); // Scan with empty list
     }
 
     // --- FileSystemWatcher Event Handlers ---
@@ -174,12 +174,12 @@ public class FolderMgtService : IFolderMgtService
             _logger.LogInformation("Relevant audio file created: {FilePath}. Triggering incremental scan of parent directory.", e.FullPath);
             // It's often better to scan the directory in case multiple files were added in quick succession
             // or if metadata relies on folder structure.
-            await _libraryScanner.ScanSpecificPathsAsync(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
+            _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
         }
         else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath)) // A new subfolder inside a watched folder
         {
             _logger.LogInformation("New directory created within watched scope: {FolderPath}. Triggering incremental scan.", e.FullPath);
-            await _libraryScanner.ScanSpecificPathsAsync(new List<string> { e.FullPath }, isIncremental: true); // Scan the new folder
+            _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true); // Scan the new folder
         }
     }
 
@@ -190,14 +190,14 @@ public class FolderMgtService : IFolderMgtService
         {
             _logger.LogInformation("Relevant audio file or known audio path deleted: {FilePath}. Triggering library refresh of parent.", e.FullPath);
             // Re-scan parent directory to update library (remove song, potentially update album/artist if they become empty)
-            await _libraryScanner.ScanSpecificPathsAsync(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
+            _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
         }
         else if (WasPathPreviouslyWatchedSubfolder(e.FullPath)) // A subfolder we might have scanned was deleted
         {
             _logger.LogInformation("Watched sub-directory deleted: {FolderPath}. Triggering full library refresh.", e.FullPath);
             // Simplest is to rescan all configured folders.
             var currentFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-            await _libraryScanner.ScanLibraryAsync(currentFolders);
+            _libraryScanner.ScanLibrary(currentFolders);
         }
     }
 
@@ -207,7 +207,7 @@ public class FolderMgtService : IFolderMgtService
         if (IsRelevantAudioFile(fullPath)) // Only rescan if an audio file's metadata might have changed
         {
             _logger.LogInformation("Relevant audio file changed: {FilePath}. Triggering incremental scan of parent directory.", fullPath);
-            await _libraryScanner.ScanSpecificPathsAsync(new List<string> { Path.GetDirectoryName(fullPath)! }, isIncremental: true);
+            _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(fullPath)! }, isIncremental: true);
             // Optionally, set a more specific state if UI needs to react to just a file change
             // _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FileChanged, fullPath, null, null));
         }
@@ -228,7 +228,7 @@ public class FolderMgtService : IFolderMgtService
             if (Path.GetDirectoryName(e.FullPath) != null)
                 pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!);
 
-            await _libraryScanner.ScanSpecificPathsAsync([.. pathsToScan.Distinct()], isIncremental: true);
+            _libraryScanner.ScanSpecificPaths([.. pathsToScan.Distinct()], isIncremental: true);
         }
         else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath) || WasPathPreviouslyWatchedSubfolder(e.OldFullPath)) // A subfolder was renamed
         {
@@ -241,7 +241,7 @@ public class FolderMgtService : IFolderMgtService
                 pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!); // Scan new parent
 
 
-            await _libraryScanner.ScanSpecificPathsAsync([.. pathsToScan.Distinct()], isIncremental: true);
+            _libraryScanner.ScanSpecificPaths([.. pathsToScan.Distinct()], isIncremental: true);
         }
     }
 

@@ -7,7 +7,7 @@ public partial class ArtistModelView : ObservableObject
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]
-    public partial string? ImagePath { get; set; }
+    public partial byte[]? ImageBytes { get; set; }
     [ObservableProperty]
     public partial string? Bio { get; set; }
     [ObservableProperty]
@@ -17,9 +17,9 @@ public partial class ArtistModelView : ObservableObject
 
 
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
-    public string? DeviceName { get; set; } 
-    public string? DeviceFormFactor { get; set; } 
-    public string? DeviceModel { get; set; } 
-    public string? DeviceManufacturer { get; set; } 
-    public string? DeviceVersion { get; set; } 
+    public string? DeviceName { get; set; }
+    public string? DeviceFormFactor { get; set; }
+    public string? DeviceModel { get; set; }
+    public string? DeviceManufacturer { get; set; }
+    public string? DeviceVersion { get; set; }
 }

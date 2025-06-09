@@ -254,19 +254,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
 
         _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
-            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync()) // If updating UI, switch to the main thread!
             .Subscribe(lines => AllLines = lines.ToObservableCollection()));
 
         _subsManager.Add(_lyricsMgtFlow.CurrentLyric
-            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync())
             .Subscribe(line => CurrentLine = line));
 
         _subsManager.Add(_lyricsMgtFlow.PreviousLyric
-            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync())
             .Subscribe(line => PreviousLine = line));
 
         _subsManager.Add(_lyricsMgtFlow.NextLyric
-            .ObserveOn(await MainThread.GetMainThreadSynchronizationContextAsync())
             .Subscribe(line =>
             {
                 NextLine = line;
@@ -803,7 +799,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void RescanSongs()
     {
-        libService.ScanLibraryAsync(null);
+        Task.Run(() => libService.ScanLibrary(null));
 
     }
     public void AddMusicFolderByPassingToService(string folderPath)
@@ -831,6 +827,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void ViewArtistDetails(ArtistModelView? artView)
     {
+        if (artView is null)
+        {
+            return;
+        }
         var art = artistRepo.GetById(artView.Id);
 
         SelectedArtist = _mapper.Map<ArtistModelView>(art);
@@ -844,7 +844,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var uniqueAlbums = SelectedArtistSongs.Select(x => x).DistinctBy(x => x.AlbumName)
             .Select(x => x.Album);
         SelectedArtistAlbums = uniqueAlbums.ToObservableCollection();
-        SelectedArtist.ImagePath = SelectedArtistSongs[0].CoverImagePath;
+        SelectedArtist.ImageBytes = SelectedArtistSongs[0].CoverImageBytes;
         _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
 
     }
@@ -916,6 +916,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
     public void LoadStatsForSong(SongModelView? song)
     {
+        //return;
         if (song is null)
         {
             song=CurrentPlayingSongView!;
@@ -923,9 +924,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SongEvts ??= new();
         var s = songRepo.GetById(song.Id);
         var evts = s.PlayHistory.ToList();
-        SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(evts);
+        //SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(evts);
 
-        GroupedPlayEvents.Clear();
+        GroupedPlayEvents?.Clear();
 
         CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
 

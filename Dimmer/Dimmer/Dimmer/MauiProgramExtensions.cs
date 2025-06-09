@@ -19,7 +19,7 @@ public static class MauiProgramExtensions
             })
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("nothingfont.ttf", "AleySans");
+                fonts.AddFont("nothingfont.otf", "AleySans");
                 fonts.AddFont("FontAwesomeRegular400.otf", "FontAwesomeRegular");
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");
@@ -29,6 +29,15 @@ public static class MauiProgramExtensions
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
+
+        builder.Services.AddSingleton<ILyricsMetadataService, LyricsMetadataService>();
+
+        // Configure a named HttpClient for LrcLib
+        builder.Services.AddHttpClient("LrcLib", client =>
+        {
+            client.BaseAddress = new Uri("https://lrclib.net/");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer/2.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
+        });
 
 
         builder.Services.AddSingleton(FolderPicker.Default);

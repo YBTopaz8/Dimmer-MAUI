@@ -19,6 +19,7 @@ public class LyricsMgtFlow : IDisposable
     private readonly IDimmerStateService _stateService;
     private readonly IDimmerAudioService _audioService;
     private readonly SubscriptionManager _subsManager;
+    private readonly ILyricsMetadataService lyricsMetadataService;
     private readonly ILogger<LyricsMgtFlow> _logger;
 
     // --- Private State ---
@@ -44,20 +45,23 @@ public class LyricsMgtFlow : IDisposable
         IDimmerStateService stateService,
         IDimmerAudioService audioService,
         ILogger<LyricsMgtFlow> logger,
-        SubscriptionManager subsManager
+        SubscriptionManager subsManager,
+        ILyricsMetadataService lyricsMetadataService
+        , SongsMgtFlow songsMgtFlow
     // ... other dependencies are no longer needed here if they aren't directly used
     )
     {
         _stateService = stateService;
         _audioService = audioService;
         _subsManager = subsManager;
+        this.lyricsMetadataService=lyricsMetadataService;
         _logger = logger ?? NullLogger<LyricsMgtFlow>.Instance;
-
+        _songsMgtFlow=songsMgtFlow;
         // 1. When the song changes, load its lyrics.
         _subsManager.Add(_stateService.CurrentSong
             .DistinctUntilChanged()
             .Subscribe(
-                song => LoadLyricsForSong(song),
+                async song => await LoadLyricsForSong(song),
                 ex => _logger.LogError(ex, "Error processing new song for lyrics.")
             ));
 
@@ -74,10 +78,10 @@ public class LyricsMgtFlow : IDisposable
         SubscribeToPosition();
     }
 
-    private void LoadLyricsForSong(SongModelView? song)
+    private async Task LoadLyricsForSong(SongModelView? song)
     {
         // If the song is null or has no lyrics, reset everything.
-        if (song == null || string.IsNullOrWhiteSpace(song.SyncLyrics))
+        if (song == null)
         {
             _lyrics = Array.Empty<LyricPhraseModel>();
             _synchronizer = null;
@@ -92,8 +96,43 @@ public class LyricsMgtFlow : IDisposable
 
         try
         {
+            bool hasSync = !string.IsNullOrEmpty(song.SyncLyrics);
+
+            string? lyrr = string.Empty;
+            if (!hasSync)
+            {
+                string? local = await lyricsMetadataService.GetLocalLyricsAsync(song);
+                if (string.IsNullOrEmpty(local))
+                {
+                    var online = await lyricsMetadataService.SearchOnlineAsync(song);
+                    lyrr = online.FirstOrDefault()?.SyncedLyrics;
+                }
+                else
+                {
+                    lyrr= local; // Use the local lyrics if available.
+                }
+            }
+            else
+            {
+                lyrr= song.SyncLyrics!; // Use the synced lyrics directly from the song model.
+            }
+            if (lyrr is null)
+            {
+               
+                    _lyrics = Array.Empty<LyricPhraseModel>();
+                    _synchronizer = null;
+
+                    // Notify subscribers that there are no lyrics.
+                    _allLyricsSubject.OnNext(_lyrics);
+                    _previousLyricSubject.OnNext(null);
+                    _currentLyricSubject.OnNext(null);
+                    _nextLyricSubject.OnNext(null);
+                    return;
+                
+
+            }
             // Parse the LRC format lyrics.
-            var lines = song.SyncLyrics
+            var lines = lyrr
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(l =>
                 {
@@ -155,16 +194,12 @@ public class LyricsMgtFlow : IDisposable
     {
         // This is the main reactive pipeline for lyric synchronization.
         _subsManager.Add(
-            // 1. Create a timer that "ticks" every 250ms.
-            Observable.Interval(TimeSpan.FromMilliseconds(250))
-                // 2. On each tick, we don't care about the tick count (the '_'). 
-                //    Instead, we go and get the current position from the audio service.
-                //    This turns our timer into a stream of position values (doubles).
-                .Select(_ => _audioService.CurrentPosition)
+            _songsMgtFlow.AudioEnginePositionObservable
                 // 3. Only process if playing and lyrics are loaded.
                 .Where(_ => _isPlaying && _synchronizer != null)
                 // 4. (Optional but recommended) Only proceed if the position has actually changed.
                 //    This prevents processing when paused.
+                .Sample(TimeSpan.FromMilliseconds(450))
                 .DistinctUntilChanged()
                 .Subscribe(
                     // The 'position' here is a double (in seconds).
@@ -228,7 +263,7 @@ public class LyricsMgtFlow : IDisposable
     }
 
     // This inner class is great, let's just add a method to get the index too.
-    private class LyricSynchronizer
+    sealed class LyricSynchronizer
     {
         private readonly IReadOnlyList<LyricPhraseModel> _lyrics;
         private int _lastFoundIndex = -1;

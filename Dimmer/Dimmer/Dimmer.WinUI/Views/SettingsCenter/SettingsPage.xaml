@@ -199,7 +199,7 @@
 
         </Grid>
 
-        <Grid ColumnDefinitions="0.3*,*" IsVisible="False">
+        <Grid ColumnDefinitions="0.45*,*" IsVisible="False">
             <Grid.Triggers>
                 <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
                              TargetType="Grid" Value="False"
@@ -214,7 +214,7 @@
             </Grid.Triggers>
 
             <Grid Grid.Column="0" Margin="10">
-                <Grid RowDefinitions="*,0.3*">
+                <Grid RowDefinitions="*,0.6*">
                     <syncf:SfChipGroup x:Name="SettingsNavChips"
                                        Grid.Row="0" ChipClicked="SettingsNavChips_ChipClicked"
                                        ChipTextColor="White" ChipType="Choice"
@@ -258,22 +258,23 @@
                 </Grid>
             </Grid>
             <syncf:SfTabView x:Name="GettingStartedTabView"
-                             Grid.Column="1" EnableSwiping="True"
+                             Grid.Column="1" EnableSwiping="False"
                              SelectedIndex="{Binding SettingsPageIndex}"
                              TabBarHeight="0"
                              >
 
                 <syncf:SfTabItem Header="{Static lang:DimmerLanguage.txt_folder}">
                     <syncf:SfTabItem.Content>
-                        <Grid RowDefinitions="Auto,*,*">
+                        <Grid RowDefinitions="Auto,*">
                             <Label Grid.Row="0" FontAttributes="Bold"
                                    FontSize="34" Text="Music Folders"
                                    />
-                            <Grid Grid.Row="1" RowDefinitions="*,0.2*">
+                            <Grid Grid.Row="1" RowDefinitions="*,0.4*">
 
                                 <CollectionView x:Name="ListOfFolders"
                                                 Grid.Row="0" Header="List of Folders"
                                                 ItemsSource="{Binding FolderPaths}"
+                                                MaximumWidthRequest="250"
                                                 >
                                     <CollectionView.EmptyView>
                                         <VerticalStackLayout>
@@ -306,18 +307,28 @@
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
-                                <Button Grid.Row="1" Clicked="AddNewMusicFolder_Clicked"
-                                        HorizontalOptions="Start" Text="Add New Folder"
-                                        />
+                                <VerticalStackLayout Grid.Row="1" BackgroundColor="Transparent"
+                                                     Spacing="10"
+                                                     >
+
+                                    <Button Clicked="AddNewMusicFolder_Clicked" HorizontalOptions="Start"
+                                            Text="Add New Folder"
+                                            />
+                                    <Button x:Name="ReScanAllBtn"
+                                            BorderColor="DarkSlateBlue"
+                                            Command="{Binding RescanSongsCommand}"
+                                            Text="Rescan folders"
+                                            />
+
+                                </VerticalStackLayout>
                             </Grid>
 
 
-                            <VerticalStackLayout Grid.Row="2" />
                         </Grid>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
 
-                <syncf:SfTabItem Header="Dimmer Live">
+                <!--<syncf:SfTabItem Header="Dimmer Live">
                     <syncf:SfTabItem.Content>
                         <Grid>
                             <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 30"
@@ -383,7 +394,7 @@
                             <Button Command="{Binding ToggleSettingsPageCommand}" Text="Done" />
                         </VerticalStackLayout>
                     </syncf:SfTabItem.Content>
-                </syncf:SfTabItem>
+                </syncf:SfTabItem>-->
             </syncf:SfTabView>
 
         </Grid>

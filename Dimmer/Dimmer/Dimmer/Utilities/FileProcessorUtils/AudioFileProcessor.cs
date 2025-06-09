@@ -111,7 +111,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             Title = title,
             Album = album,
             AlbumName = album.Name,
-            ArtistName= track.AlbumArtist,
+            ArtistName= string.IsNullOrEmpty(track.AlbumArtist) ? track.Artist : track.AlbumArtist,
             OtherArtistsName= artistString,
             Genre = genre,
             Composer = track.Composer,
@@ -130,7 +130,6 @@ public class AudioFileProcessor : IAudioFileProcessor
             UnSyncLyrics = track.Lyrics?.UnsynchronizedLyrics,
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
-            SyncLyrics = track.Lyrics?.SynchronizedLyrics.Select(l => l.Text).ToList().ToString(),
             IsNew=true,
             //ArtistIds = [.. artists.Select(a => a.Id)],
             Id= ObjectId.GenerateNewId()
@@ -146,7 +145,11 @@ public class AudioFileProcessor : IAudioFileProcessor
         if (song.HasSyncedLyrics && track.Lyrics?.SynchronizedLyrics != null)
         {
             // Basic to string, real app might parse into a structured format or just store raw
-            song.SyncLyrics = string.Join(Environment.NewLine, track.Lyrics.SynchronizedLyrics.Select(l => $"[{l.TimestampMs / 1000.0:F3}] {l.Text}"));
+            foreach (var item in track.Lyrics.SynchronizedLyrics)
+            {
+                song.EmbeddedSync.Add(new SyncLyrics(item.TimestampMs, item.Text));
+            }
+
         }
 
 

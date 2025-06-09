@@ -226,7 +226,7 @@
                         AllowedState="HalfExpanded" HalfExpandedRatio="0.8"
                         >
             <Grid>
-                <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.SelectedSongForContext.CoverImagePath}" />
+                <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                 <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
                     <dx:DXStackLayout.Resources>
                         <ResourceDictionary>

@@ -81,6 +81,7 @@ public partial class SongModelView : ObservableObject
         {
             return this.Id == other.Id;
         }
+
         return false;
     }
 
