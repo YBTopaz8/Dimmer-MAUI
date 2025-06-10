@@ -31,7 +31,7 @@
         </Grid>
 
         <Grid x:Name="ArtistsContents" Grid.Row="1">
-            <Image Opacity="0.2" Source="{Binding SelectedArtist.ImagePath}" />
+            <Image Opacity="0.2" Source="{Binding SelectedArtist.ImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid x:Name="AllSongsView"
                   Margin="10,10" RowDefinitions="auto,*"
                   >
@@ -100,7 +100,7 @@
                                         </Grid.GestureRecognizers>
                                         <HorizontalStackLayout Grid.Column="0">
                                             <ImageButton Aspect="AspectFit" HeightRequest="100"
-                                                         Source="{Binding CoverImagePath}"
+                                                         Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                                          ToolTipProperties.Text="{Binding Title}"
                                                          WidthRequest="100"
                                                          />

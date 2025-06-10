@@ -23,7 +23,7 @@
     <Grid ColumnDefinitions="400,*">
         <Image Grid.ColumnSpan="2" BackgroundColor="Transparent"
                Opacity="0.2"
-               Source="{Binding SelectedSongOnPage.CoverImagePath}"
+               Source="{Binding SelectedSongOnPage.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                />
 
         <Grid Grid.Column="0" Margin="10,10"
@@ -33,7 +33,7 @@
                                  Spacing="10" VerticalOptions="Start"
                                  >
                 <Image HeightRequest="200"
-                       Source="{Binding SelectedSongOnPage.CoverImagePath}"
+                       Source="{Binding SelectedSongOnPage.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                        WidthRequest="200"
                        />
                 <VerticalStackLayout HorizontalOptions="Center">

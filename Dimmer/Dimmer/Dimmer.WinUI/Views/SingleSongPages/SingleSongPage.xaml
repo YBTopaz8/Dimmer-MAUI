@@ -42,7 +42,7 @@
 
         <Grid Grid.Column="0" RowDefinitions="*,*">
             <VerticalStackLayout Grid.Row="0">
-                <ImageButton Aspect="AspectFill" Source="{Binding CurrentPlayingSongView.ImageBytes}" />
+                <ImageButton Aspect="AspectFill" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
 
                 <Label Margin="0,10,0,0" FontAttributes="Bold"
                        FontSize="24" HorizontalOptions="Center"

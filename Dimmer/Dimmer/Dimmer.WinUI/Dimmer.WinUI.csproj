@@ -50,10 +50,8 @@
     <None Remove="DimmerWindow.xaml" />
     <None Remove="Views\AlbumsPage\AllAlbumsPage.xaml" />
     <None Remove="Views\AlbumsPage\SingleAlbumPage.xaml" />
-    <None Remove="Views\ArtistsSpace\ArtistGeneralWindow.xaml" />
     <None Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
-    <None Remove="Views\ArtistsSpace\SpecificArtistPage.xaml" />
     <None Remove="Views\ArtistWindow.xaml" />
     <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
     <None Remove="Views\DimmerSongWindow.xaml" />
@@ -159,6 +157,9 @@
     <MauiXaml Include="Views\AlbumsPage\AllAlbumsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\AlbumsPage\SingleAlbumPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\AlbumWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -226,16 +227,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\ArtistsSpace\SpecificArtistPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\ArtistsSpace\ArtistGeneralWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <WebView2UseWinRT>False</WebView2UseWinRT>

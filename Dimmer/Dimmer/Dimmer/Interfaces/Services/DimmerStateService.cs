@@ -36,7 +36,7 @@ public partial class DimmerStateService : IDimmerStateService
 
     private readonly IDimmerAudioService _audioService;
 
-    public DimmerStateService(IMapper mapper, IDimmerAudioService audioService)
+    public DimmerStateService(IMapper mapper, IDimmerAudioService audioService, IRepository<SongModel> songRepo)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -56,6 +56,7 @@ public partial class DimmerStateService : IDimmerStateService
                  ex => { /* Log error for _currentSong reset subscription if needed */ })
          );
         _audioService= audioService ?? throw new ArgumentNullException(nameof(audioService));
+        _allSongsInLibrary.OnNext(songRepo.GetAll(true).ToList());
     }
 
     // --- Observables (Implementing IDimmerStateService) ---

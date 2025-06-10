@@ -116,7 +116,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
             {
 
 
-                string? selectedFolderPath = res!.Folder!.Path;
+                string? selectedFolderPath = res?.Folder?.Path;
 
 
 

@@ -24,7 +24,7 @@
     <dx:DXStackLayout>
 
         <Grid ColumnDefinitions="*,*">
-            <Image Source="{Binding song.CoverImagePath}" />
+            <Image Source="{Binding song.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <dx:DXStackLayout Grid.Column="0">
                 <Label Text="{Binding song.Title}" />
                 <Label Text="{Binding song.ArtistName}" />

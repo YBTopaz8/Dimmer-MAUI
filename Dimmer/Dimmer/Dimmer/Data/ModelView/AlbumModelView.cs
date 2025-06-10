@@ -17,6 +17,7 @@ public partial class AlbumModelView : ObservableObject
     public partial string? Description { get; set; }
     [ObservableProperty]
     public partial string? ImagePath { get; set; } = "musicalbum.png";
+    [ObservableProperty] public partial byte[]? ImageBytes { get; set; }
 
     [Backlink(nameof(SongModel.Album))]
     public IQueryable<SongModel> Songs { get; }

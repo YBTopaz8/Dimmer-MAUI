@@ -7,7 +7,7 @@
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Dimmer.ViewModels" Padding="5"
              x:DataType="vm:BaseViewModelAnd" CornerRadius="20,20,20,20"
-             HeightRequest="80" 
+             HeightRequest="80"
              >
 
     <dx:DXBorder.Resources>
@@ -33,7 +33,7 @@
                   >
                 <StackLayout Grid.Column="0" Orientation="Horizontal">
                     <dx:DXImage Aspect="AspectFit" HeightRequest="70"
-                                Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
+                                Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                 />
                 </StackLayout>
                 <Grid Grid.Column="1" ColumnDefinitions="*,auto">

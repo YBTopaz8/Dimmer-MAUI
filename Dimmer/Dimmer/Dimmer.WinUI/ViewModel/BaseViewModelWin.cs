@@ -41,7 +41,6 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IFolderMgtService folderMgtService;
     private readonly ILogger<BaseViewModelWin> logger;
     private readonly IWindowManagerService winMgrService;
-    private readonly IFolderPicker folderPicker;
 
     public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
         IWindowManagerService windowManager,
@@ -112,15 +111,20 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
             {
                 logger.LogInformation("No folder selected by user.");
             }
+        }
+        else
+        {
+            logger.LogInformation("Folder selection was cancelled or failed.");
+        }
+    }
 
     public async Task PickFolderToScan()
     {
-        var pick = await folderPicker.PickAsync(CancellationToken.None);
-
-        }
-
-
+        await AddMusicFolderViaPickerAsync();
     }
+
+
+
 
 
     [ObservableProperty]

@@ -117,7 +117,7 @@
                     </dx:TabViewItem.Content>
                 </dx:TabViewItem>-->
 
-                <dx:TabViewItem HeaderText="Main">
+                <!--<dx:TabViewItem HeaderText="Main" >
                     <dx:TabViewItem.Content>
                         <StackLayout>
                             <dx:DXImage HeightRequest="150"
@@ -128,7 +128,7 @@
                             <Label FontSize="24" Text="{Binding BaseVM.UserLocal.Email}" />
                         </StackLayout>
                     </dx:TabViewItem.Content>
-                </dx:TabViewItem>
+                </dx:TabViewItem>-->
 
                 <dx:TabViewItem HeaderText="Folders Management">
                     <dx:TabViewItem.Content>
@@ -139,9 +139,18 @@
                                 <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
                                     <Image HeightRequest="30" Source="folder.png" />
                                     <Label FontSize="21" Text="Folders" />
-                                    <Label FontSize="21" Text="{Binding BaseVM.LatestAppLog.Log}" />
-                                </dx:DXStackLayout>
+                                    <Label FontSize="15" Text="{Binding BaseVM.LatestAppLog.Log}" />
+                                    <dx:DXCollectionView HeightRequest="50">
+                                        <dx:DXCollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <Label Text="{Binding .}" />
+                                            </DataTemplate>
+                                        </dx:DXCollectionView.ItemTemplate>
 
+                                    </dx:DXCollectionView>
+
+                                </dx:DXStackLayout>
+                                <dx:DXButton Command="{Binding BaseVM.RescanSongsCommand}" Content="ReScan Folders" />
                                 <dx:DXStackLayout x:DataType="vm:BaseViewModelAnd" BackgroundColor="Transparent"
                                                   ItemSpacing="10" Scale="0.9"
                                                   >
@@ -154,13 +163,13 @@
 
                                     <dx:DXButton x:Name="ReScanAllBtn"
                                                  BorderColor="DarkSlateBlue" ButtonType="Outlined"
-                                                 Command="{Binding RescanSongsCommand}"
+                                                 Command="{Binding BaseVM.RescanSongsCommand}"
                                                  Content="Rescan folders" PressedBackgroundColor="DarkSlateBlue"
                                                  />
                                     <dx:DXCollectionView x:Name="ListOfFolders"
                                                          Grid.Row="1" BackgroundColor="Transparent"
                                                          Header="List of Folders"
-                                                         ItemsSource="{Binding FolderPaths}"
+                                                         ItemsSource="{Binding BaseVM.FolderPaths}"
                                                          >
                                         <dx:DXCollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="x:String">

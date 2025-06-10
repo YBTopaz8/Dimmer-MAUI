@@ -22,7 +22,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
     public ObservableCollection<PlaylistModel> AllAvailablePlaylists { get; } = new(); // For UI selection
     // ActivePlaylistModel is now primarily for knowing which *PlaylistModel* context is active,
     // not necessarily the direct source of songs for _multiPlayer if playing "All Songs".
-    // It's updated when _state.CurrentPlaylist changes.
+    // It's updated when _stateService.CurrentPlaylist changes.
     public PlaylistModel? ActivePlaylistModel { get; private set; }
     public SongModelView CurrentlyPlayingSong { get; private set; }
 
@@ -134,7 +134,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         );
 
         // Update our own `CurrentlyPlayingSong` (from BaseAppFlow) when the state's song changes.
-        // This is mainly for UI binding consistency if other things can change _state.CurrentSong.
+        // This is mainly for UI binding consistency if other things can change _stateService.CurrentSong.
         _subs.Add(
             _state.CurrentSong
                   .DistinctUntilChanged(s => s?.Id)

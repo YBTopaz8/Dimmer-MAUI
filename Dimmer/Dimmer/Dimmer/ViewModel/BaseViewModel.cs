@@ -44,7 +44,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
     private readonly ILibraryScannerService libService;
-
+    [ObservableProperty]
+    public partial ObservableCollection<LyricPhraseModel> AllLines { get; set; }
+    [ObservableProperty]
+    public partial LyricPhraseModel? PreviousLine { get; set; }
+    [ObservableProperty]
+    public partial LyricPhraseModel? CurrentLine { get; set; }
+    [ObservableProperty]
+    public partial LyricPhraseModel? NextLine { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> DimmerPlayEventList { get; set; } = new();
 
@@ -212,7 +219,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         this.genreRepo=genreModel;
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
-        audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
+        audioService= _audioService;
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
@@ -239,14 +246,27 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         if (NowPlayingDisplayQueue.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
         {
             var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
-            
+
         }
     }
     protected virtual async Task InitializeViewModelSubscriptions()
     {
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
 
+        _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
+            .Subscribe(lines => AllLines = lines.ToObservableCollection()));
 
+        _subsManager.Add(_lyricsMgtFlow.CurrentLyric
+            .Subscribe(line => CurrentLine = line));
+
+        _subsManager.Add(_lyricsMgtFlow.PreviousLyric
+            .Subscribe(line => PreviousLine = line));
+
+        _subsManager.Add(_lyricsMgtFlow.NextLyric
+            .Subscribe(line =>
+            {
+                NextLine = line;
+            }));
         _subsManager.Add(
             _stateService.CurrentSong
 
@@ -257,13 +277,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                         return;
                     }
                     CurrentPlayingSongView = null;
-                    Track trck = new Track(songView.FilePath);
+                    //Track trck = new Track(songView.FilePath);
                     CurrentPlayingSongView = songView;
-                    var e = trck.EmbeddedPictures.FirstOrDefault();
-                    if (e is not null && CurrentPlayingSongView.ImageBytes is null)
-                    {
-                        CurrentPlayingSongView.ImageBytes = e.PictureData;
-                    }
+                    //var e = trck.EmbeddedPictures.FirstOrDefault();
+                    //if (e is not null && CurrentPlayingSongView.CoverImageBytes is null)
+                    //{
+                    //CurrentPlayingSongView.CoverImageBytes = e.PictureData;
+                    //}
                     _logger.LogTrace("BaseViewModel: _stateService.CurrentSong emitted: {SongTitle}", songView?.Title ?? "None");
 
                     CurrentTrackDurationSeconds = songView?.DurationInSeconds ?? 1;
@@ -333,6 +353,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 },
                            ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
+
         _subsManager.Add(
             _stateService.IsShuffleActive
 
@@ -778,7 +799,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void RescanSongs()
     {
-        libService.ScanLibraryAsync(null);
+        Task.Run(() => libService.ScanLibrary(null));
 
     }
     public void AddMusicFolderByPassingToService(string folderPath)
@@ -806,6 +827,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void ViewArtistDetails(ArtistModelView? artView)
     {
+        if (artView is null)
+        {
+            return;
+        }
         var art = artistRepo.GetById(artView.Id);
 
         SelectedArtist = _mapper.Map<ArtistModelView>(art);
@@ -819,7 +844,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var uniqueAlbums = SelectedArtistSongs.Select(x => x).DistinctBy(x => x.AlbumName)
             .Select(x => x.Album);
         SelectedArtistAlbums = uniqueAlbums.ToObservableCollection();
-        SelectedArtist.ImagePath = SelectedArtistSongs[0].CoverImagePath;
+        SelectedArtist.ImageBytes = SelectedArtistSongs[0].CoverImageBytes;
+
+        foreach (var item in SelectedArtistAlbums)
+        {
+            item.ImageBytes=item.Songs.Where(x => x.CoverImageBytes != null).Select(x => x.CoverImageBytes).FirstOrDefault();
+        }
         _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
 
     }
@@ -891,6 +921,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
     public void LoadStatsForSong(SongModelView? song)
     {
+        //return;
         if (song is null)
         {
             song=CurrentPlayingSongView!;
@@ -898,9 +929,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SongEvts ??= new();
         var s = songRepo.GetById(song.Id);
         var evts = s.PlayHistory.ToList();
-        SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(evts);
+        //SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(evts);
 
-        GroupedPlayEvents.Clear();
+        GroupedPlayEvents?.Clear();
 
         CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
 

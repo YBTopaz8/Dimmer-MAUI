@@ -143,11 +143,11 @@ public partial class SongsMgtFlow : IDisposable
        state.CurrentPlayBackState
            .Subscribe(
                psi => _currentGlobalPlaybackStateTracked = psi,
-               ex => _logger.LogError(ex, "Error in _state.CurrentPlayBackState tracker subscription.")
+               ex => _logger.LogError(ex, "Error in _stateService.CurrentPlayBackState tracker subscription.")
            )
    );
-        // Avoid Task.Run here if SetDeviceVolume might interact with UI thread sensitive code in _state
-        // Better to ensure _state setters are safe or use appropriate scheduler if needed
+        // Avoid Task.Run here if SetDeviceVolume might interact with UI thread sensitive code in _stateService
+        // Better to ensure _stateService setters are safe or use appropriate scheduler if needed
         _state.SetDeviceVolume(_audio.Volume);
         _logger.LogInformation("SongsMgtFlow (AudioServiceBridge) initialized.");
     }
