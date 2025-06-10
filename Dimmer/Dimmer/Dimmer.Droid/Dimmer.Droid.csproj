@@ -78,6 +78,7 @@
     <!-- Media3 Dependencies (Consolidated & Updated) -->
     <PackageReference Include="Xamarin.AndroidX.Media3.Common" Version="1.6.1.2" />
     <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer" Version="1.6.1.2" />
+    <PackageReference Include="morelinq" Version="4.4.0" />
     <!-- Use only ONE reference -->
     <PackageReference Include="Xamarin.AndroidX.Media3.Extractor" Version="1.6.1.2" />
     <PackageReference Include="Xamarin.AndroidX.Media3.Session" Version="1.6.1.2" />
@@ -178,6 +179,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\SingleSongPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Stats\PlayHistoryPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

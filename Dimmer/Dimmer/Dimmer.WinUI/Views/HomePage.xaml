@@ -41,7 +41,7 @@
 
 
         <Grid RowDefinitions="*,auto">
-            <Image Opacity="0.5" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+            <Image Opacity="0.25" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid x:Name="MainUI"
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >
@@ -222,6 +222,9 @@
                                                VerticalOptions="Start"
                                                >
                             <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" />
+
+
+
                             <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="40"
                                           ImageSource="chart.png" ShowIcon="True"
                                           WidthRequest="55"
@@ -419,25 +422,49 @@
                 </Grid>
 
                 <Grid x:Name="StatsView"
-                      Grid.Row="1" IsVisible="False"
-                      RowDefinitions="auto,*"
+                      Grid.Row="1" BackgroundColor="Transparent"
+                      IsVisible="False" RowDefinitions="auto,*"
                       >
-                    <Grid Grid.Row="0" />
+                    <Label Grid.Row="0" FontSize="28"
+                           Text="{Binding DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
+                           VerticalOptions="Start"
+                           />
 
 
-                    <Grid Grid.Row="1" RowDefinitions="*,*">
+                    <Grid Grid.Row="1" Margin="20"
+                          ColumnDefinitions="*,auto" RowSpacing="20"
+                          >
 
-                        <VerticalStackLayout Margin="20" Spacing="20">
-                            <Label FontSize="28" Text="{Binding SingleSongStatsSumm.SongTitle, StringFormat='Song Name: {0}'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.ArtistName, StringFormat='Artist Name: {0}'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.LongestListeningStreakDays, StringFormat='Longest Listening Streak : {0} Days'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.AveragePercentListened, StringFormat='AveragePercentListened : {0:n2}%'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.Completions, StringFormat='Played Completely: {0}'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.TotalListeningTimeFormatted, StringFormat='Total Listening Time: {0}'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.PlayCountInRomanNumerals, StringFormat='Played Count: {0}'}" />
-                            <Label FontSize="24" Text="{Binding SingleSongStatsSumm.SeekFrequency, StringFormat='Seek Frequency: {0}'}" />
+                        <CollectionView Grid.Column="0" ItemsSource="{Binding DimmerPlayEventList}">
 
-                        </VerticalStackLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:DimmerPlayEventView">
+                                    <HorizontalStackLayout Spacing="20">
+
+                                        <Label FontSize="17" Text="{Binding SongName}" />
+                                        <Label Text="was" />
+                                        <Label Text="{Binding PlayTypeStr}" />
+                                        <Label Text="On" />
+                                        <Label Text="{Binding EventDate, Converter={converters:DateTimeOffsetToLocalDateConverter}}" />
+                                    </HorizontalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <Grid Grid.Column="1" IsEnabled="True"
+                              IsVisible="True"
+                              >
+
+                            <CollectionView ItemsSource="{Binding TopSongsLastMonth}">
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Label Text="{Binding Count}" />
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                        </Grid>
                     </Grid>
 
 

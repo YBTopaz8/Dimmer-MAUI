@@ -89,7 +89,7 @@ public static class SongStats
     // 12. Was ever played to completion
     public static bool WasEverCompleted(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
     {
-        return events.Any(e => e.SongId == song.Id && e.WasPlayCompleted);
+        return events.Any(e => e.SongId == song.Id && e.PlayType == 3);
     }
 
     // 13. Number of times resumed

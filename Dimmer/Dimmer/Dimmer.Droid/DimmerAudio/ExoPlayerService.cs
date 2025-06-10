@@ -572,6 +572,10 @@ public class ExoPlayerService : MediaSessionService
             //Console.WriteLine(  );
             if (reason == 1 && newPosition?.PositionMs != 0)
             {
+                if (service.player.IsPlaying)
+                {
+                    service.player.Stop(); // Stop the player if it was playing
+                }
                 //Console.WriteLine($"  Reason: {reason} == Seek normally"); // Check this against Player.DISCONTINUITY_REASON_ constants
                 service.RaiseSeekCompleted((double)newPosition?.PositionMs);
             }
@@ -591,6 +595,10 @@ public class ExoPlayerService : MediaSessionService
             // Forward to your service or session as needed...
             if (playbackState == 4)
             {
+                if (service.player.IsPlaying)
+                {
+                    service.player.Stop(); // Stop the player if it was playing
+                }
                 service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
                 //service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
             }
@@ -658,7 +666,10 @@ public class ExoPlayerService : MediaSessionService
             };
             if (reason == 1)
             {
-                service.player!.Stop();
+                if (service.player is not null && service.player.IsPlaying)
+                {
+                    service.player.Stop(); // Stop the player if it was playing
+                }
 
                 service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
 
