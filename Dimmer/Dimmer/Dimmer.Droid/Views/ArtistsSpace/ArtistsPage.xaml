@@ -76,7 +76,7 @@
                     <dx:DXStackLayout Grid.Row="0" ItemSpacing="20">
                         <dx:DXImage Margin="0,0,0,-20" Aspect="Fill"
                                     Opacity="0.6"
-                                    Source="{Binding BaseVM.SelectedArtist.ImagePath}"
+                                    Source="{Binding BaseVM.SelectedArtist.ImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                     />
                         <dx:DXStackLayout IsVisible="False" Orientation="Horizontal">
                             <dx:Chip BorderThickness="0" Icon="play.png"
@@ -126,7 +126,7 @@
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:AlbumModelView">
                                 <dx:DXStackLayout Orientation="Vertical">
-                                    <dx:DXImage HeightRequest="130" Source="{Binding ImagePath}" />
+                                    <dx:DXImage HeightRequest="130" Source="{Binding Songs[0].CoverImageBytes}" />
                                     <Label FontSize="18"
                                            Text="{Binding Name}"
                                            WidthRequest="200"
@@ -158,7 +158,7 @@
                                                  WidthRequest="60"
                                                  >
 
-                                        <Image Source="{Binding CoverImagePath}" />
+                                        <Image Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
 
                                     </dx:DXBorder>
                                     <dx:DXStackLayout x:Name="TitleAndArtists"

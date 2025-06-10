@@ -41,7 +41,7 @@
 
 
         <Grid RowDefinitions="*,auto">
-            <Image Opacity="0.1" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+            <Image Opacity="0.5" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid x:Name="MainUI"
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >

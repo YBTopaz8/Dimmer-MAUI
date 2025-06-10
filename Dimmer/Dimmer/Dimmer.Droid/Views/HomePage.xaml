@@ -66,7 +66,7 @@
 
 
         <dx:DXImage Grid.RowSpan="2" Aspect="AspectFill"
-                    Opacity="0.03"
+                    Opacity="0.15"
                     Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                     />
         <dx:DXStackLayout Grid.Row="0" Margin="0,10,0,0">

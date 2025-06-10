@@ -845,6 +845,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             .Select(x => x.Album);
         SelectedArtistAlbums = uniqueAlbums.ToObservableCollection();
         SelectedArtist.ImageBytes = SelectedArtistSongs[0].CoverImageBytes;
+
+        foreach (var item in SelectedArtistAlbums)
+        {
+            item.ImageBytes=item.Songs.Where(x => x.CoverImageBytes != null).Select(x => x.CoverImageBytes).FirstOrDefault();
+        }
         _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
 
     }

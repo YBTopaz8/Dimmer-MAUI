@@ -1,9 +1,11 @@
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Editors;
 
+using Dimmer.Data.Models;
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.ViewModel;
@@ -44,7 +46,17 @@ public partial class NowPlayingbtmsheet : BottomSheet
         var send = (Chip)sender;
 
         var song = send.TapCommandParameter as SongModelView;
-        var result = await Shell.Current.DisplayActionSheet("Select Artist To View", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        if (song is null)
+        {
+            return;
+        }
+        var artRepo = IPlatformApplication.Current!.Services.GetService<IRepository<ArtistModel>>();
+
+        var allArtists = artRepo.GetAll().Where(x => x.Songs.Any(s => s.Id == song.Id));
+
+        var listOfArtNames = allArtists.Select(x => x.Name).ToArray();
+
+        var result = await Shell.Current.DisplayActionSheet("Select Artist To View", "Cancel", null, listOfArtNames);
 
         if (result is null)
         {

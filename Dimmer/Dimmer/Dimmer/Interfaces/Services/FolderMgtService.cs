@@ -190,7 +190,7 @@ public class FolderMgtService : IFolderMgtService
         {
             _logger.LogInformation("Relevant audio file or known audio path deleted: {FilePath}. Triggering library refresh of parent.", e.FullPath);
             // Re-scan parent directory to update library (remove song, potentially update album/artist if they become empty)
-            _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
+            Task.Run(() => _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true));
         }
         else if (WasPathPreviouslyWatchedSubfolder(e.FullPath)) // A subfolder we might have scanned was deleted
         {
