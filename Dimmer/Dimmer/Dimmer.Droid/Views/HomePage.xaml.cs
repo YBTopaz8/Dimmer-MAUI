@@ -43,12 +43,8 @@ public partial class HomePage : ContentPage
         base.OnAppearing();
 
         await MyViewModel.FiniInit();
-        Debug.WriteLine(MyViewModel.BaseVM.NowPlayingDisplayQueue is null);
-        Debug.WriteLine(MyViewModel.BaseVM.NowPlayingDisplayQueue?.Count);
 
         var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
-        Debug.WriteLine(baseVm.NowPlayingDisplayQueue is null);
-        Debug.WriteLine(baseVm.NowPlayingDisplayQueue?.Count);
 
     }
 
@@ -270,7 +266,7 @@ public partial class HomePage : ContentPage
 
                 SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
             }
-            
+
         }
     }
     private void ByAll()

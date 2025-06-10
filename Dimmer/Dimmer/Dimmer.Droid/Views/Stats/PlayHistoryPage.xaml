@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Dimmer.Views.Stats.PlayHistoryPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:customViewParts="clr-namespace:Dimmer.Views.CustomViewsParts" xmlns:dx="http://schemas.devexpress.com/maui"
+             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer" xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:vm="clr-namespace:Dimmer.ViewModels"
+             Title="PlayHistoryPage" x:DataType="vm:BaseViewModelAnd"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5,
+                                               Dark=#1E1E1E}"
+             Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="True"
+             >
+    <ScrollView>
+
+
+        <Grid Margin="20" RowDefinitions="0.6*,*"
+              RowSpacing="20"
+              >
+            <Label Grid.Row="0" FontSize="28"
+                   Text="{Binding BaseVM.DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
+                   VerticalOptions="Start"
+                   />
+            <CollectionView Grid.Row="1" ItemsSource="{Binding BaseVM.DimmerPlayEventList}">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DimmerPlayEventView">
+                        <HorizontalStackLayout Spacing="20">
+
+                            <Label FontSize="23" Text="{Binding SongName}" />
+                            <Label Text="was" />
+                            <Label Text="{Binding PlayTypeStr}" />
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+
+        </Grid>
+    </ScrollView>
+</ContentPage>

@@ -5,6 +5,7 @@ using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
@@ -12,6 +13,7 @@ using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 
 using Microsoft.Extensions.Logging.Abstractions;
+
 
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
 
@@ -53,7 +55,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial LyricPhraseModel? NextLine { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<DimmerPlayEvent> DimmerPlayEventList { get; set; } = new();
+    public partial ObservableCollection<DimmerPlayEventView> DimmerPlayEventList { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } = new();
@@ -531,6 +533,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         await audioService.InitializeAsync(songToPlay);
         audioService.Play();
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
 
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
@@ -593,6 +596,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             audioService.Pause();
 
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedDimmer, null, currentSongVm, currentSongModel));
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
+
         }
         else
         {
@@ -601,10 +606,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 await audioService.InitializeAsync(CurrentPlayingSongView);
             }
             audioService.Play();
-
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
         }
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
-
         var songToPlay = CurrentPlayingSongView;
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
@@ -827,35 +830,144 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void ViewArtistDetails(ArtistModelView? artView)
     {
-        if (artView is null)
+        if (artView?.Id == null)
         {
+            _logger.LogWarning("ViewArtistDetails called with a null artist view or ID.");
             return;
         }
-        var art = artistRepo.GetById(artView.Id);
 
-        SelectedArtist = _mapper.Map<ArtistModelView>(art);
-        SelectedArtistSongs = new ObservableCollection<SongModelView>(art.Songs.AsEnumerable().DistinctBy(x => x.Title).Select(s => _mapper.Map<SongModelView>(s.Freeze())));
-
-        if (art == null || art.Id == default)
+        // ====================================================================
+        // 1. Fetch ALL Data in a Single, Efficient Operation
+        // ====================================================================
+        // Get the live artist object. This should be on the correct thread (e.g., UI thread).
+        var artist = artistRepo.GetById(artView.Id);
+        if (artist == null)
         {
-            _logger.LogWarning("ViewArtistDetails: art or its ID is null/default.");
+            _logger.LogWarning("Artist with ID {ArtistId} not found in the database.", artView.Id);
             return;
         }
-        var uniqueAlbums = SelectedArtistSongs.Select(x => x).DistinctBy(x => x.AlbumName)
-            .Select(x => x.Album);
-        SelectedArtistAlbums = uniqueAlbums.ToObservableCollection();
-        SelectedArtist.ImageBytes = SelectedArtistSongs[0].CoverImageBytes;
 
-        foreach (var item in SelectedArtistAlbums)
+        // Get all songs for this artist. This is a single, efficient query thanks to the backlink.
+        // We immediately "freeze" them and map them to ViewModels. Now they are thread-safe
+        // and detached from the live Realm instance, perfect for a ViewModel.
+        var allArtistSongs = artist.Songs
+                                   .AsEnumerable() // Move from IQueryable to IEnumerable
+                                   .DistinctBy(s => s.Title)
+                                   .Select(s => _mapper.Map<SongModelView>(s.Freeze()))
+                                   .ToList(); // Materialize the list in memory
+
+        if (!allArtistSongs.Any()) // Use MoreLINQ's replacement for .Count() > 0
         {
-            item.ImageBytes=item.Songs.Where(x => x.CoverImageBytes != null).Select(x => x.CoverImageBytes).FirstOrDefault();
+            _logger.LogInformation("Artist {ArtistName} has no songs to display.", artist.Name);
+            // We can still show the artist, just with empty lists.
+            SelectedArtist = _mapper.Map<ArtistModelView>(artist.Freeze());
+            SelectedArtistSongs = new ObservableCollection<SongModelView>();
+            SelectedArtistAlbums = new ObservableCollection<AlbumModelView>();
+            return;
         }
-        _logger.LogInformation("Requesting to navigate to artist details for ID: {ArtistId}", art.Id);
 
+        // ====================================================================
+        // 2. Process Data In-Memory to Fulfill Requirements
+        // ====================================================================
+
+        // Requirement 1: Get the artist's image from their FIRST song with cover art.
+        // We use FirstOrDefault to be safe against lists where no song has cover art.
+        var artistImageBytes = allArtistSongs
+            .Select(s => s.CoverImageBytes)
+            .FirstOrDefault(bytes => bytes != null && bytes.Length > 0);
+
+        // Requirement 2: Get all unique albums and their cover images.
+        // This is the perfect use case for GroupBy!
+        var albumsWithCovers = allArtistSongs
+            .Where(s => s.Album != null) // Ensure song has an album
+            .GroupBy(s => s.Album!.Id)  // Group all songs by their Album's ID
+            .Select(albumGroup =>
+            {
+                // The "Key" of the group is the AlbumId.
+                // The group itself (albumGroup) is a collection of all songs for that album.
+
+                // Get the AlbumViewModel from the first song in the group.
+                var albumViewModel = albumGroup.First().Album;
+
+                // Find the first song IN THIS GROUP that has cover art.
+                albumViewModel.ImageBytes = albumGroup
+                    .Select(s => s.CoverImageBytes)
+                    .FirstOrDefault(bytes => bytes != null && bytes.Length > 0);
+
+                return albumViewModel;
+            })
+            .ToList();
+
+
+        // ====================================================================
+        // 3. Atomically Update the ViewModel Properties
+        // ====================================================================
+        // This ensures the UI updates smoothly all at once.
+
+        SelectedArtist = _mapper.Map<ArtistModelView>(artist.Freeze());
+        SelectedArtist.ImageBytes = artistImageBytes;
+
+        SelectedArtistSongs = new ObservableCollection<SongModelView>(allArtistSongs);
+        SelectedArtistAlbums = new ObservableCollection<AlbumModelView>(albumsWithCovers);
+
+        var allArtistSongsDb = artist.Songs
+                                 .AsEnumerable() // Move from IQueryable to IEnumerable
+                                 .DistinctBy(s => s.Title)
+                                 .ToList(); // Materialize the list in memory
+        var topSongs = TopStats.GetTopCompletedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10);
+        foreach (var item in topSongs)
+        {
+            Console.WriteLine($"#{topSongs.IndexOf(item) + 1}: '{item.Song.Title}' with {item.Count} completions.");
+        }
+
+        // Get Top 5 most completed artists of all time
+        //var topArtists = TopStats.GetTopCompletedArtists(allArtistSongsDb, allEvents, 5);
+
+        // --- ADVANCED USAGE: Filtering by DATE ---
+
+        // Define a date range for "last month"
+        var endDate = DateTimeOffset.UtcNow;
+        var startDate = endDate.AddMonths(-1);
+
+        // Get the Top 10 most completed songs in the last month
+        var topSongsLastMonth = TopStats.GetTopCompletedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+
+        // --- OTHER "TOPS" ---
+
+        // Get the 5 most SKIPPED songs of all time
+        var mostSkipped = TopStats.GetTopSkippedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 5);
+
+        // Get the 10 songs with the most TOTAL LISTENING TIME in the last month
+        var mostListened = TopStats.GetTopSongsByListeningTime(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+        foreach (var item in mostListened)
+        {
+            Console.WriteLine($"'{item.Song.Title}' was listened to for {TimeSpan.FromSeconds(item.TotalSeconds):g} total.");
+        }
+        _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
     }
 
+    public void GetStatsGeneral()
+    {
+        // Get Top 5 most completed artists of all time
+        //var topArtists = TopStats.GetTopCompletedArtists(allArtistSongsDb, allEvents, 5);
 
+        // --- ADVANCED USAGE: Filtering by DATE ---
 
+        // Define a date range for "last month"
+        var endDate = DateTimeOffset.UtcNow;
+        var startDate = endDate.AddMonths(-1);
+
+        // Get the Top 10 most completed songs in the last month
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+
+        // --- OTHER "TOPS" ---
+
+        // Get the 5 most SKIPPED songs of all time
+        MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 5);
+
+        // Get the 10 songs with the most TOTAL LISTENING TIME in the last month
+        MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+    }
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
         if (userNote == null || songWithNote == null)
@@ -878,7 +990,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
 
+    [ObservableProperty]
+    public partial List<(SongModel Song, int Count)>? TopSongsLastMonth { get; set; }
 
+    [ObservableProperty]
+    public partial List<(SongModel Song, int Count)>? MostSkipped { get; set; }
+
+    [ObservableProperty]
+    public partial List<(SongModel Song, double TotalSeconds)>? MostListened { get; set; }
 
 
 
@@ -936,6 +1055,21 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
 
         SingleSongStatsSumm = SongStatTwop.GetSingleSongSummary(s, evts);
+    }
+
+    public void LoadStatsApp()
+    {
+        //return;
+
+        SongEvts ??= new();
+        var s = dimmerPlayEventRepo.GetAll();
+        var ss = songRepo.GetAll();
+        DimmerPlayEventList= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(s);
+        //SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(evts);
+
+        GroupedPlayEvents?.Clear();
+
+        var sss = CollectionStats.GetSummary(ss, s);
     }
 
     public void RateSong(int newRating)

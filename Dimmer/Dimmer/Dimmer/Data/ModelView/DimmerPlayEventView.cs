@@ -10,6 +10,9 @@ public class DimmerPlayEventView
     public ObjectId Id { get; set; } // Or public string Id if you prefer for display
     public bool IsNewOrModified { get; set; } // If needed by UI
     public string? SongName { get; set; }
+
+
+    public ObjectId? SongId { get; set; }
     public int PlayType { get; set; }
     public string? PlayTypeStr { get; set; }
     public DateTimeOffset DatePlayed { get; set; }

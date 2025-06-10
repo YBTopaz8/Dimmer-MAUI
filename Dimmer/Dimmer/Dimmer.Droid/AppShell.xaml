@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Shell x:Class="Dimmer.AppShell" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:utils="clr-namespace:Dimmer.Utils"
-       xmlns:views="clr-namespace:Dimmer.Views"
+       xmlns:views="clr-namespace:Dimmer.Views" xmlns:viewsStats="clr-namespace:Dimmer.Views.Stats"
        BackgroundColor="{AppThemeBinding Dark=pink,
                                          Light=White}"
        FlyoutBehavior="Disabled"
@@ -23,6 +23,11 @@
 
         <ShellContent ContentTemplate="{DataTemplate views:SingleSongPage}"
                       Icon="musicnoteslider.png" Route="SingleSongPage"
+                      />
+
+
+        <ShellContent ContentTemplate="{DataTemplate viewsStats:PlayHistoryPage}"
+                      Icon="chart.png" Route="PlayHistoryPage"
                       />
 
 

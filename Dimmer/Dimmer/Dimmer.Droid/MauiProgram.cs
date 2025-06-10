@@ -1,6 +1,7 @@
 ﻿
 
 using Dimmer.Views.CustomViewsParts;
+using Dimmer.Views.Stats;
 
 using Microsoft.Maui.Controls.Compatibility.Hosting;
 
@@ -30,7 +31,7 @@ public static class MauiProgram
             .UseDevExpressEditors()
             .UseDevExpressGauges()
             .UseUraniumUI()
-            
+
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseSharedMauiApp();
@@ -47,6 +48,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<BaseViewModelAnd>();
         builder.Services.AddSingleton<BtmBar>();
         builder.Services.AddSingleton<NowPlayingbtmsheet>();
+        builder.Services.AddSingleton<PlayHistoryPage>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
         .ConfigureMauiHandlers(handlers =>
         {

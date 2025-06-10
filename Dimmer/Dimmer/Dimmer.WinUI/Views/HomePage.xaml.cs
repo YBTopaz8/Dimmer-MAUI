@@ -337,7 +337,7 @@ public partial class HomePage : ContentPage
     {
         if (SongsView.IsVisible)
         {
-            MyViewModel.LoadStatsForSong(MyViewModel.CurrentPlayingSongView!);
+            MyViewModel.LoadStatsApp();
 
             await Task.WhenAll(SongsView.AnimateFadeOutBack(400), StatsView.AnimateFadeInFront(300));
 
@@ -358,5 +358,12 @@ public partial class HomePage : ContentPage
 
         DeviceStaticUtils.SelectedSongOne = song;
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+    }
+
+    private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
+    {
+        Debug.WriteLine(e.NewIndexes);
+        Debug.WriteLine(e.NewIndexes.GetType());
+        
     }
 }

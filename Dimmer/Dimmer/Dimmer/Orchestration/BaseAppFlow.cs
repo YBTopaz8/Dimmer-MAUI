@@ -109,6 +109,7 @@ public class BaseAppFlow : IDisposable
             },
                        ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
     );
+       
 
 
         InitializeFolderEventReactions();

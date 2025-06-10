@@ -1,4 +1,5 @@
 using Dimmer.ViewModel;
+using Dimmer.Views.Stats;
 
 namespace Dimmer;
 
@@ -13,6 +14,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
+        Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
     }
 
     protected override void OnAppearing()

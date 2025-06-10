@@ -68,7 +68,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string? DeviceVersion { get; set; }
 
-    public ObservableCollection<DimmerPlayEvent>? PlayEvents { get; set; }
+    public ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
 
 
 
