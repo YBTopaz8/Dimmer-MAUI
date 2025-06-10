@@ -46,21 +46,51 @@
                                      Grid.Row="0" BorderColor="DarkSlateBlue"
                                      BorderThickness="0" CornerRadius="20"
                                      >
+                            <Grid>
 
 
+                                <VerticalStackLayout Grid.Column="0" Spacing="10"
+                                                     VerticalOptions="Center"
+                                                     >
 
-                            <dx:DXImage x:Name="SongPicture"
-                                        Aspect="AspectFill" Opacity="0.6"
-                                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
-                                        />
+
+                                    <Label FontSize="17" HorizontalOptions="Center"
+                                           Text="{Binding BaseVM.PreviousLine.Text}"
+                                           />
+                                    <Label BackgroundColor="Transparent" FontAttributes="Bold"
+                                           FontAutoScalingEnabled="True" FontFamily="AleySans"
+                                           FontSize="34" HorizontalOptions="Fill"
+                                           HorizontalTextAlignment="Center" Opacity="1"
+                                           Text="{Binding BaseVM.CurrentLine.Text}"
+                                           TextColor="DarkSlateBlue"
+                                           >
+                                        <Label.Triggers>
+                                            <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                         TargetType="Label" Value="True"
+                                                         />
+                                            <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                                         TargetType="Label" Value="false"
+                                                         />
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label FontSize="22" HorizontalOptions="Center"
+                                           Text="{Binding BaseVM.NextLine.Text}"
+                                           />
+                                </VerticalStackLayout>
+                                <dx:DXImage x:Name="SongPicture"
+                                            Aspect="AspectFill" Opacity="0.20"
+                                            Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
+                                            />
+
+                            </Grid>
                         </dx:DXBorder>
                         <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
                                           ItemSpacing="15"
                                           >
                             <dx:Chip x:Name="SongTitleChip"
                                      BackgroundColor="Transparent" BorderColor="Transparent"
-                                     BorderThickness="0.4" FontSize="30"
-                                     Tap="SongTitleChip_Tap"
+                                     BorderThickness="0.4" FontFamily="AleySans"
+                                     FontSize="30" Tap="SongTitleChip_Tap"
                                      Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
                                      >
                                 <dx:Chip.Triggers>
@@ -77,8 +107,8 @@
                                 </dx:Chip.Triggers>
                             </dx:Chip>
                             <dx:Chip BackgroundColor="Transparent" BorderColor="Transparent"
-                                     BorderThickness="0.1" FontSize="25"
-                                     Tap="Chip_Tap"
+                                     BorderThickness="0.1" FontFamily="AleySans"
+                                     FontSize="25" Tap="Chip_Tap"
                                      TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
                                      Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}"
                                      />
@@ -134,11 +164,12 @@
                                         </dx:DXSlider.ThumbAppearance>
                                     </dx:DXSlider>
                                     <Label Grid.Row="1" Grid.Column="0"
-                                           FontSize="14"
+                                           FontFamily="AleySans" FontSize="14"
                                            Text="{Binding BaseVM.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}"
                                            />
                                     <Label Grid.Row="1" Grid.Column="1"
-                                           FontSize="14" HorizontalOptions="End"
+                                           FontFamily="AleySans" FontSize="14"
+                                           HorizontalOptions="End"
                                            Text="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                                            />
                                 </Grid>

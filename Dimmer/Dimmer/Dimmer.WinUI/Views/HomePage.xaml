@@ -365,7 +365,9 @@
                                                     <Setter Property="FontSize" Value="18" />
                                                 </Style>
                                             </Grid.Resources>
-                                            <Label Grid.Column="0" Text="{Binding Title}">
+                                            <Label Grid.Column="0" FontFamily="AleySans"
+                                                   Text="{Binding Title}"
+                                                   >
                                                 <FlyoutBase.ContextFlyout>
                                                     <MenuFlyout>
                                                         <MenuFlyoutItem x:Name="ViewSong"

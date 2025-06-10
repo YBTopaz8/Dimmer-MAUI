@@ -167,21 +167,23 @@
                                                   VerticalOptions="Center"
                                                   >
                                     <Label BackgroundColor="Transparent" FontAttributes="Bold"
-                                           FontSize="20" LineBreakMode="TailTruncation"
+                                           FontFamily="AleySans" FontSize="20"
+                                           LineBreakMode="TailTruncation"
                                            Text="{Binding Title}"
                                            TextColor="#F5F5F5" VerticalOptions="Center"
                                            />
 
                                     <Label x:Name="ArtistsChip"
                                            Padding="-1" BackgroundColor="Transparent"
-                                           FontSize="12" HorizontalOptions="Start"
-                                           LineBreakMode="TailTruncation" Opacity="0.4"
+                                           FontFamily="AleySans" FontSize="12"
+                                           HorizontalOptions="Start" LineBreakMode="TailTruncation"
+                                           Opacity="0.4"
                                            Text="{Binding ArtistName}"
                                            VerticalOptions="Center"
                                            />
 
-                                    <Label BackgroundColor="Transparent" FontSize="12"
-                                           Opacity="0.4"
+                                    <Label BackgroundColor="Transparent" FontFamily="AleySans"
+                                           FontSize="12" Opacity="0.4"
                                            Text="{Binding ReleaseYear}"
                                            VerticalOptions="Center"
                                            />
@@ -233,6 +235,13 @@
                         AllowedState="HalfExpanded" HalfExpandedRatio="0.7"
                         HeightRequest="300"
                         >
+            <dx:BottomSheet.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="Label">
+                        <Setter Property="FontFamily" Value="AleySans" />
+                    </Style>
+                </ResourceDictionary>
+            </dx:BottomSheet.Resources>
             <Grid>
                 <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.SelectedSongForContext.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                 <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
@@ -259,11 +268,12 @@
                      CornerRadius="15" BorderWidth="0"/>-->
                         <dx:DXStackLayout Orientation="Vertical" VerticalOptions="Center">
 
-                            <Label FontSize="20" HorizontalTextAlignment="Center"
-                                   LineBreakMode="NoWrap"
+                            <Label FontFamily="AleySans" FontSize="20"
+                                   HorizontalTextAlignment="Center" LineBreakMode="NoWrap"
                                    Text="{Binding BaseVM.SelectedSongForContext.Title}"
                                    />
-                            <Label FontSize="14" HorizontalTextAlignment="Center"
+                            <Label FontFamily="AleySans" FontSize="14"
+                                   HorizontalTextAlignment="Center"
                                    Text="{Binding BaseVM.SelectedSongForContext.ArtistName}"
                                    />
                         </dx:DXStackLayout>

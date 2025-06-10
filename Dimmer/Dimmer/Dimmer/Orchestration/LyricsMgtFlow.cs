@@ -118,17 +118,17 @@ public class LyricsMgtFlow : IDisposable
             }
             if (lyrr is null)
             {
-               
-                    _lyrics = Array.Empty<LyricPhraseModel>();
-                    _synchronizer = null;
 
-                    // Notify subscribers that there are no lyrics.
-                    _allLyricsSubject.OnNext(_lyrics);
-                    _previousLyricSubject.OnNext(null);
-                    _currentLyricSubject.OnNext(null);
-                    _nextLyricSubject.OnNext(null);
-                    return;
-                
+                _lyrics = Array.Empty<LyricPhraseModel>();
+                _synchronizer = null;
+
+                // Notify subscribers that there are no lyrics.
+                _allLyricsSubject.OnNext(_lyrics);
+                _previousLyricSubject.OnNext(null);
+                _currentLyricSubject.OnNext(null);
+                _nextLyricSubject.OnNext(null);
+                return;
+
 
             }
             // Parse the LRC format lyrics.
@@ -199,7 +199,7 @@ public class LyricsMgtFlow : IDisposable
                 .Where(_ => _isPlaying && _synchronizer != null)
                 // 4. (Optional but recommended) Only proceed if the position has actually changed.
                 //    This prevents processing when paused.
-                .Sample(TimeSpan.FromMilliseconds(450))
+                .Sample(TimeSpan.FromMilliseconds(50))
                 .DistinctUntilChanged()
                 .Subscribe(
                     // The 'position' here is a double (in seconds).
