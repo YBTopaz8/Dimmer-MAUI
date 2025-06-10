@@ -26,13 +26,8 @@
             </TitleBar.Resources>
             <TitleBar.TrailingContent>
                 <HorizontalStackLayout BackgroundColor="Transparent">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="sss" />
-                            <MenuFlyoutItem Text="sss" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <ImageButton Clicked="Minimize_Clicked" Source="threesquares.png" />
+
+                    <!--<ImageButton Clicked="Minimize_Clicked" Source="threesquares.png" />-->
 
                     <ImageButton x:Name="StickTopImgBtn"
                                  BackgroundColor="Black" Clicked="StickTopImgBtn_Clicked"

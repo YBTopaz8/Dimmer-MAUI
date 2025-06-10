@@ -139,12 +139,13 @@ public class ExoPlayerService : MediaSessionService
         Buffering?.Invoke(this, EventArgs.Empty);
     }
 
-    internal void GetMaxVolumeLevel()
+    internal static void GetMaxVolumeLevel()
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
             .GetSystemService(AudioService) as AudioManager;
-
+        var ss = audioManager.GetStreamMaxVolume(Android.Media.Stream.Music);
+        Console.WriteLine($"Max Volume Level: {ss}");
     }
 
 

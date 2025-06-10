@@ -398,7 +398,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             Debug.WriteLine("[AudioService] PlayAsync executing.");
             _mediaPlayer.Play();
-            _mediaPlayer.Volume=1;
+
             // State update will happen via PlaybackStateChanged event
         }
         catch (Exception ex) // Catch potential errors during Play() call

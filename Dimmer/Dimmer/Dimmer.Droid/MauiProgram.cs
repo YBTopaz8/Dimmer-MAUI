@@ -1,5 +1,4 @@
-﻿
-
+﻿using Dimmer.Utils.CustomHandlers.CollectionView;
 using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
 
@@ -53,6 +52,7 @@ public static class MauiProgram
         .ConfigureMauiHandlers(handlers =>
         {
             handlers.AddHandler<Shell, MyShellRenderer>();
+            handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
 
         });
 

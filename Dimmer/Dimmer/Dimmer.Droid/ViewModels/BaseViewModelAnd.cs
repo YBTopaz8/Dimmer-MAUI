@@ -3,15 +3,18 @@
 
 using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 using Android.Views;
 
+using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions;
+using Dimmer.Utils.PageAnimations;
 using Dimmer.ViewModel;
 
 using Microsoft.Extensions.Logging;
@@ -34,6 +37,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly AlbumsMgtFlow albumsMgtFlow;
     private readonly IFolderPicker folderPicker;
+    private readonly IAnimationService animService;
     private readonly PlayListMgtFlow playlistsMgtFlow;
     private readonly SongsMgtFlow songsMgtFlow;
     private readonly IDimmerStateService stateService;
@@ -59,7 +63,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
 
-    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
+    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker, IAnimationService animService,
        IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
@@ -69,6 +73,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.albumsMgtFlow=albumsMgtFlow;
         this.folderPicker=folderPicker;
+        this.animService=animService;
         audioService=_audioService;
         this.playlistsMgtFlow=playlistsMgtFlow;
         this.songsMgtFlow=songsMgtFlow;
@@ -102,6 +107,34 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         }
     }
 
+
+
+
+    [ObservableProperty] public partial Page CurrentUserPage { get; set; }
+
+    [ObservableProperty] public partial ObservableCollection<AnimationSetting>? PageAnimations { get; set; }
+    public void GetAllAnimations()
+    {
+        PageAnimations = animService.GetAvailableAnimations().ToObservableCollection();
+    }
+    public async Task SavePage(Page PageToSave, int duration, bool IsEnter)
+    {
+
+        // (Add null checks here for safety)
+
+        // STEP 3: Call our public API to save the settings.
+        // This is the key method call you were asking about!
+        // It takes the page type and the four chosen AnimationSetting objects.
+        AnimationManager.SetPageAnimations(
+            PageToSave.GetType(),
+            null,
+            null,
+            null,
+            null
+        );
+
+        await Shell.Current.DisplayAlert("Success", "Settings saved!", "OK");
+    }
     public async Task AddMusicFolderViaPickerAsync(string? selectedFolder = null)
     {
 

@@ -1,5 +1,7 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
 
+using SkiaSharp.Views.Maui.Controls.Hosting;
+
 namespace Dimmer;
 
 public static class MauiProgramExtensions
@@ -9,7 +11,7 @@ public static class MauiProgramExtensions
         builder
             .UseMauiApp<App>()
             .UseBarcodeReader()
-
+            .UseSkiaSharp()
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);

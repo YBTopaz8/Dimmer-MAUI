@@ -1061,7 +1061,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
 
         SingleSongStatsSumm = SongStatTwop.GetSingleSongSummary(s, evts);
-        
+
     }
 
     public void LoadStatsApp()

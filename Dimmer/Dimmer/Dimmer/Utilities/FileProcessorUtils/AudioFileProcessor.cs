@@ -4,6 +4,8 @@ using ATL;
 
 using Dimmer.Interfaces.Services.Interfaces;
 
+using static Dimmer.Utilities.AppUtils;
+
 namespace Dimmer.Utilities.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
@@ -91,9 +93,9 @@ public class AudioFileProcessor : IAudioFileProcessor
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
         // Try to get cover art path early to associate with album
         PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-        string? coverPath = string.Empty;// await _coverArtService.SaveOrGetCoverImageAsync(filePath, firstPicture);
+        byte[]? resizedCoverBytes = ImageResizer.ResizeImage(firstPicture?.PictureData);
 
-        var album = _metadataService.GetOrCreateAlbum(track, albumName, coverPath
+        var album = _metadataService.GetOrCreateAlbum(track, albumName, string.Empty
             );
         //album.DiscNumber = track.DiscNumber;
         //album.DiscTotal = track.DiscTotal;
@@ -115,7 +117,8 @@ public class AudioFileProcessor : IAudioFileProcessor
             OtherArtistsName= artistString,
             Genre = genre,
             Composer = track.Composer,
-            CoverImageBytes = track.EmbeddedPictures?.FirstOrDefault(x => x.PicType==PictureInfo.PIC_TYPE.Front)?.PictureData,
+            CoverImageBytes = resizedCoverBytes,
+
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             TrackNumber= track.TrackNumber,

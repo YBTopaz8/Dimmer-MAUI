@@ -84,8 +84,18 @@ public partial class HomePage : ContentPage
     {
         var song = e.Item as SongModelView;
         await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
+        //HomeView.IsVisible=false;
+        //DetailView.IsVisible=true;
+
     }
 
+    private void DXButton_Clicked_2(object sender, EventArgs e)
+    {
+        AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, startView: DetailView, HomeView);
+        HomeView.IsVisible=true;
+        DetailView.IsVisible=false;
+    }
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
@@ -447,6 +457,12 @@ public partial class HomePage : ContentPage
         listt.Add(song);
 
         MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
+    }
+
+    private async void DXButton_Clicked_3(object sender, EventArgs e)
+    {
+        await this.SongsMenuPopup.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 }
 

@@ -5,18 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.Utils.PageAnimations;
+
 public interface IAnimationService
 {
-    List<AnimationSetting> GetAvailablePageAnimations();
+    // Gets all animations found in the Android project's resources
+    List<AnimationSetting> GetAvailableAnimations();
+
+    // Provides the ultimate fallback defaults
     AnimationSetting GetDefaultPushEnterAnimation();
     AnimationSetting GetDefaultPushExitAnimation();
     AnimationSetting GetDefaultPopEnterAnimation();
     AnimationSetting GetDefaultPopExitAnimation();
 
-    // Specific for HomePage defaults
+    // Special case for HomePage
     AnimationSetting GetHomePagePushEnterAnimation();
     AnimationSetting GetHomePagePushExitAnimation();
     AnimationSetting GetHomePagePopEnterAnimation();
     AnimationSetting GetHomePagePopExitAnimation();
 }
-
