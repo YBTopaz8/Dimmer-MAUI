@@ -319,6 +319,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 },
                            ex => _logger.LogError(ex, "Error in play next subscription."))
         );
+        _subsManager.Add(
+            Observable.FromEventPattern<double>(h => audioService.SeekCompleted += h, h => audioService.SeekCompleted -= h)
+                .Subscribe(async evt =>
+                {
+
+                    _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+                    _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), evt.EventArgs);
+                    _logger.LogInformation($"Seeked to ");
+                },
+                           ex => _logger.LogError(ex, "Error in play next subscription."))
+        );
 
         _subsManager.Add(
          _stateService.CurrentPlayBackState
@@ -533,7 +544,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         await audioService.InitializeAsync(songToPlay);
         audioService.Play();
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
 
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
@@ -749,8 +760,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
         _songsMgtFlow.RequestSeek(positionSeconds);
 
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
 
     }
 
@@ -930,19 +939,16 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var startDate = endDate.AddMonths(-1);
 
         // Get the Top 10 most completed songs in the last month
-        var topSongsLastMonth = TopStats.GetTopCompletedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
 
         // --- OTHER "TOPS" ---
 
         // Get the 5 most SKIPPED songs of all time
-        var mostSkipped = TopStats.GetTopSkippedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 5);
+        MostSkipped = TopStats.GetTopSkippedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 5);
 
         // Get the 10 songs with the most TOTAL LISTENING TIME in the last month
-        var mostListened = TopStats.GetTopSongsByListeningTime(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
-        foreach (var item in mostListened)
-        {
-            Console.WriteLine($"'{item.Song.Title}' was listened to for {TimeSpan.FromSeconds(item.TotalSeconds):g} total.");
-        }
+        MostListened = TopStats.GetTopSongsByListeningTime(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+
         _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
     }
 
@@ -1055,13 +1061,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
 
         SingleSongStatsSumm = SongStatTwop.GetSingleSongSummary(s, evts);
+        
     }
 
     public void LoadStatsApp()
     {
         //return;
 
-        SongEvts ??= new();
+        //SongEvts ??= new();
         var s = dimmerPlayEventRepo.GetAll();
         var ss = songRepo.GetAll();
         DimmerPlayEventList= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(s);
@@ -1069,7 +1076,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         GroupedPlayEvents?.Clear();
 
-        var sss = CollectionStats.GetSummary(ss, s);
+        //CollectionStatsSummary? sss = CollectionStats.GetSummary(ss, s);
+
+        GetStatsGeneral();
     }
 
     public void RateSong(int newRating)

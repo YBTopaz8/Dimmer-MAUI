@@ -423,65 +423,47 @@
 
                 <Grid x:Name="StatsView"
                       Grid.Row="1" BackgroundColor="Transparent"
-                      IsVisible="False" RowDefinitions="*"
+                      IsVisible="False" RowDefinitions="auto,*"
                       >
+                    <Label Grid.Row="0" FontSize="28"
+                           Text="{Binding DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
+                           VerticalOptions="Start"
+                           />
 
 
+                    <Grid Grid.Row="1" Margin="20"
+                          ColumnDefinitions="*,auto" RowSpacing="20"
+                          >
 
-                    <Grid Margin="20" ColumnDefinitions="0.6*,*,*"
-                              RowSpacing="20"
-                              >
-                        <Label Grid.Column="0" FontSize="28"
-                                   Text="{Binding DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
-                                   VerticalOptions="Start"
-                                   />
-                        <CollectionView Grid.Column="1" ItemsSource="{Binding DimmerPlayEventList}">
+                        <CollectionView Grid.Column="0" ItemsSource="{Binding DimmerPlayEventList}">
 
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:DimmerPlayEventView">
                                     <HorizontalStackLayout Spacing="20">
 
-                                        <Label FontSize="23" Text="{Binding SongName}" />
+                                        <Label FontSize="17" Text="{Binding SongName}" />
                                         <Label Text="was" />
                                         <Label Text="{Binding PlayTypeStr}" />
+                                        <Label Text="On" />
+                                        <Label Text="{Binding EventDate, Converter={converters:DateTimeOffsetToLocalDateConverter}}" />
                                     </HorizontalStackLayout>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
 
-                        <Grid Grid.Column="2" IsEnabled="False"
-                                  IsVisible="False"
-                                  >
-                            <VerticalStackLayout>
+                        <Grid Grid.Column="1" IsEnabled="True"
+                              IsVisible="True"
+                              >
 
-                                <syncf:SfCartesianChart Title="Top Dimmed Genres" Grid.Column="1"
-                                                            BackgroundColor="Transparent"
-                                                            >
-                                    <syncf:SfCartesianChart.XAxes>
-                                        <syncf:NumericalAxis>
+                            <CollectionView ItemsSource="{Binding TopSongsLastMonth}">
 
-                                            <syncf:NumericalAxis.Title>
-                                                <syncf:ChartAxisTitle Text="Song Title" />
-                                            </syncf:NumericalAxis.Title>
-                                        </syncf:NumericalAxis>
-                                    </syncf:SfCartesianChart.XAxes>
-                                    <syncf:SfCartesianChart.YAxes>
-                                        <syncf:DateTimeAxis Interval="5" ShowMajorGridLines="False">
-                                            <syncf:DateTimeAxis.Title>
-                                                <syncf:ChartAxisTitle Text="Dimm Count" />
-                                            </syncf:DateTimeAxis.Title>
-                                        </syncf:DateTimeAxis>
-                                    </syncf:SfCartesianChart.YAxes>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Label Text="{Binding Count}" />
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
 
-                                    <syncf:ScatterSeries EnableAnimation="True" EnableTooltip="True"
-                                                             ItemsSource="{Binding DimmerPlayEventList}"
-                                                             PointHeight="7" PointWidth="7"
-                                                             ShowDataLabels="True" XBindingPath="PlayEvent"
-                                                             YBindingPath="EventDate"
-                                                             />
-                                </syncf:SfCartesianChart>
-
-                            </VerticalStackLayout>
                         </Grid>
                     </Grid>
 
