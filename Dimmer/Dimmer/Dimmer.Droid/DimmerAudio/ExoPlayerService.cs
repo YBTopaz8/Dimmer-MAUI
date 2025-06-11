@@ -165,16 +165,16 @@ public class ExoPlayerService : MediaSessionService
         var we = devices.Select(d => new AudioOutputDevice
         {
             Id   = d.Id.ToString(),
-            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
-
-
+            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString(),
+            Type =d.Type.ToString(),
+            IsSource=d.IsSource
         });
         foreach (var item in we)
         {
             Console.WriteLine(item.Id);
             Console.WriteLine(item.Name);
         }
-        return we.DistinctBy(x => x.Name).ToList();
+        return we.ToList();
     }
 
     internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()

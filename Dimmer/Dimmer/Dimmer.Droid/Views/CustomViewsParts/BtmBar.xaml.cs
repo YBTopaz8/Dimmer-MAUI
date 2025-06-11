@@ -142,11 +142,11 @@ public partial class BtmBar : DXBorder
 
                         try
                         {
-                            DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
-                            int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
-                            songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+                            //DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
+                            //int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+                            //songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
-                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                            //HapticFeedback.Perform(HapticFeedbackType.LongPress);
                         }
                         catch { }
                     }

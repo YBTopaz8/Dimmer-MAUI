@@ -415,8 +415,8 @@ public partial class MyShellItemRenderer : ShellItemRenderer
                 // A simple fade is often a much cleaner user experience.
                 // This will OVERRIDE the default pop animation for this specific action.
                 t.SetCustomAnimations(
-                    Resource.Animation.m3_motion_fade_enter, // New page (the root) fades in
-                    Resource.Animation.m3_motion_fade_exit   // Current page fades out
+                    Resource.Animation.m3_bottom_sheet_slide_in, // New page (the root) fades in
+                    Resource.Animation.m3_bottom_sheet_slide_out// Current page fades out
                 );
                 break;
 

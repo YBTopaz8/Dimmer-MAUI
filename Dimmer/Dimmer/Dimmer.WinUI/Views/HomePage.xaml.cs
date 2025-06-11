@@ -32,18 +32,13 @@ public partial class HomePage : ContentPage
 
     }
 
-    private static async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
+    private async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
         var song = send.BindingContext as SongModelView;
 
+        await MyViewModel.SelectedArtistAndNavtoPage(song);
 
-        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
-        if (result == "Cancel" || string.IsNullOrEmpty(result))
-            return;
-
-        var art = song.ArtistIds?.FirstOrDefault(x => x.Name==result);
-        DeviceStaticUtils.SelectedArtistOne = art;
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
@@ -364,6 +359,6 @@ public partial class HomePage : ContentPage
     {
         Debug.WriteLine(e.NewIndexes);
         Debug.WriteLine(e.NewIndexes.GetType());
-        
+
     }
 }

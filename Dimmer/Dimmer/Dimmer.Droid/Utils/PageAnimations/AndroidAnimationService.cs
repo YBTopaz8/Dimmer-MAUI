@@ -16,9 +16,9 @@ public partial class AndroidAnimationService : IAnimationService
     private readonly AnimationSetting _defaultPopEnter = new() { DisplayName = "Default Slide In Left", ResourceId = Resource.Animation.m3_bottom_sheet_slide_in };
     private readonly AnimationSetting _defaultPopExit = new() { DisplayName = "Default Slide Out Right", ResourceId = Resource.Animation.m3_bottom_sheet_slide_out };
 
-    private readonly AnimationSetting _homePagePushEnter = new() { DisplayName = "Home: Sheet Up In", ResourceId = Resource.Animation.m3_motion_fade_enter };
+    private readonly AnimationSetting _homePagePushEnter = new() { DisplayName = "Home: Sheet Up In", ResourceId = Resource.Animation.m3_side_sheet_enter_from_left };
     private readonly AnimationSetting _homePagePushExit = new() { DisplayName = "Home: Fade Out", ResourceId = Resource.Animation.m3_motion_fade_exit };
-    private readonly AnimationSetting _homePagePopEnter = new() { DisplayName = "Home: Fade In", ResourceId = Resource.Animation.m3_motion_fade_enter };
+    private readonly AnimationSetting _homePagePopEnter = new() { DisplayName = "Home: Fade In", ResourceId = Resource.Animation.m3_side_sheet_enter_from_right };
     private readonly AnimationSetting _homePagePopExit = new() { DisplayName = "Home: Sheet Down Out", ResourceId = Resource.Animation.m3_motion_fade_exit };
 
     // --- DYNAMICALLY LOADED ANIMATIONS (CACHED) ---

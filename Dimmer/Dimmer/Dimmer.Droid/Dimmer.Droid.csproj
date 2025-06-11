@@ -150,6 +150,9 @@
     <MauiXaml Update="AppShell.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomShellRenderers\PlayerControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Resources\Styles\DevExpressStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
@@ -158,6 +161,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\CustomViewsParts\BtmBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\SearchFilterAndSongsColViewUI.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\DetailSongPage.xaml">

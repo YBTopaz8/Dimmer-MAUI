@@ -321,7 +321,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         );
         _subsManager.Add(
             Observable.FromEventPattern<double>(h => audioService.SeekCompleted += h, h => audioService.SeekCompleted -= h)
-                .Subscribe(async evt =>
+                .Subscribe(evt =>
                 {
 
                     _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
@@ -337,13 +337,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
              .Subscribe(folderPath =>
              {
 
-
-                 FolderPaths = new ObservableCollection<string>(_settingsService.UserMusicFoldersPreference ?? Enumerable.Empty<string>());
+                 IRepository<AppStateModel> appState = IPlatformApplication.Current.Services.GetService<IRepository<AppStateModel>>();
+                 var modell = appState.GetAll().FirstOrDefault();
+                 FolderPaths = new ObservableCollection<string>(modell.UserMusicFoldersPreference ?? Enumerable.Empty<string>());
 
                  NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
 
+                 QueueOfSongsLive = NowPlayingDisplayQueue.Take(50).ToObservableCollection();
 
-
+                 IsAppScanning=false;
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
      );
 
@@ -352,12 +354,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 .Subscribe(evt =>
                 {
                     IsPlaying= evt.EventArgs.IsPlaying;
-                    CurrentPlayingSongView ??= evt.EventArgs.MediaSong;
+                    if (evt.EventArgs.MediaSong is null)
+                    {
+                        return;
+                    }
+                    CurrentPlayingSongView =evt.EventArgs.MediaSong;
                     if (IsPlaying)
                     {
 
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
-                        AudioDevices = audioService.GetAllAudioDevices().ToObservableCollection();
+                        AudioDevices = audioService.GetAllAudioDevices()?.ToObservableCollection();
+                        var ll = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems.Take(50);
+                        QueueOfSongsLive = _mapper.Map<ObservableCollection<SongModelView>>(ll);
                     }
                     else
                     {
@@ -415,7 +423,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     }
                     _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList?.Count ?? 0);
                     NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList);
-                    CurrentPlayingSongView = NowPlayingDisplayQueue.FirstOrDefault();
+                    CurrentPlayingSongView =audioService.CurrentTrackMetadata;
 
                 }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for NowPlayingDisplayQueue subscription"))
         );
@@ -470,6 +478,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     var vSong = _mapper.Map<SongModelView>(log.AppSongModel);
                     if (NowPlayingDisplayQueue.Count <1 || !NowPlayingDisplayQueue.Contains(vSong))
                     {
+                        if (NowPlayingDisplayQueue.Count>50)
+                        {
+                            IsAppScanning=false;
+                            return;
+                        }
+                        IsAppScanning=true;
                         NowPlayingDisplayQueue.Add(vSong);
                     }
 
@@ -491,7 +505,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
 
-
+    [ObservableProperty]
+    public partial bool IsAppScanning { get; set; }
 
     [RelayCommand]
     public void SetPreferredAudioDevice(AudioOutputDevice dev)
@@ -521,7 +536,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
 
-    public async Task PlaySongFromListAsync(SongModelView songToPlay, IEnumerable<SongModelView> songs)
+    public async Task PlaySongFromListAsync(SongModelView? songToPlay, IEnumerable<SongModelView> songs)
     {
         if (songToPlay == null)
         {
@@ -542,9 +557,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
 
 
-        await audioService.InitializeAsync(songToPlay);
-        audioService.Play();
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
+
 
         var songToPlayModel = songToPlay.ToModel(_mapper);
         if (songToPlayModel == null)
@@ -562,6 +575,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _logger.LogDebug("PlaySongFromList: Playing from active playlist context '{PlaylistName}'.", activePlaylistModel.PlaylistName);
             int startIndex = activePlaylistModel.SongsInPlaylist.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
             _playlistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
+            songToPlay = _playlistsMgtFlow.MultiPlayer.Next().ToModelView(_mapper);
+
         }
         else
         {
@@ -578,12 +593,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
             _playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Custom Context List");
 
+
         }
 
         if (IsShuffleActive)
         {
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
+        await audioService.InitializeAsync(songToPlay);
+        audioService.Play();
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
+
     }
 
     [RelayCommand]
@@ -676,6 +696,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         {
             return;
         }
+        if (CurrentPlayingSongView is null)
+        {
+
+            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
+
+            return;
+
+        }
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
         var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
@@ -686,12 +714,25 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
 
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayNextUser, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
+
+        if (nextSong is not null)
+        {
+
+            await audioService.InitializeAsync(nextSong.ToModelView(_mapper)!, nextSong.CoverImageBytes);
+            audioService.Play();
+        }
+        else
+        {
+
+            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
 
 
+        }
+    }
+    [ObservableProperty] public partial ObservableCollection<SongModelView> QueueOfSongsLive { get; set; }
+    public void GetPlaylistsQueue()
+    {
 
-        await audioService.InitializeAsync(CurrentPlayingSongView);
-        audioService.Play();
     }
 
     [RelayCommand]
@@ -702,10 +743,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         {
             return;
         }
+        if (CurrentPlayingSongView is null)
+        {
+
+            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
+
+            return;
+        }
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
 
-        var nextSong = _playlistsMgtFlow.MultiPlayer.Previous();
+        var previousSong = _playlistsMgtFlow.MultiPlayer.Previous();
 
         if (IsPlaying)
         {
@@ -714,11 +762,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Skipped, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
 
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlayPreviousUI, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
+
+        if (previousSong is not null)
+        {
+            await audioService.InitializeAsync(previousSong.ToModelView(_mapper)!, previousSong.CoverImageBytes);
+            audioService.Play();
+        }
+        else
+        {
+            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
 
 
-        await audioService.InitializeAsync(CurrentPlayingSongView);
-        audioService.Play();
+        }
     }
 
     [RelayCommand]
@@ -797,6 +852,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
 
+    public async Task SelectedArtistAndNavtoPage(SongModelView song)
+    {
+
+        var db = songRepo.GetById(song.Id);
+        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        if (result == "Cancel" || string.IsNullOrEmpty(result))
+            return;
+
+        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
+        DeviceStaticUtils.SelectedArtistOne = art;
+    }
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
     {
         _logger.LogTrace("SetCurrentlyPickedSongForContext called with: {SongTitle}", song?.Title ?? "None");
@@ -812,6 +878,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public void RescanSongs()
     {
         Task.Run(() => libService.ScanLibrary(null));
+
+    }
+    [RelayCommand]
+    public void LoadInSongsAndEvents()
+    {
+        Task.Run(() => libService.LoadInSongsAndEvents());
 
     }
     public void AddMusicFolderByPassingToService(string folderPath)

@@ -219,11 +219,34 @@
                             <Label FontSize="22" Text="{Binding NextLine.Text}" />
                         </VerticalStackLayout>
                         <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
-                                               VerticalOptions="Start"
+                                               Spacing="20" VerticalOptions="Start"
                                                >
                             <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" />
 
 
+
+                            <syncf:SfChip x:Name="Playlists"
+                                          Clicked="StatsSfChip_Clicked" ImageSize="40"
+                                          ImageSource="playlistminimalistic3.png" ShowIcon="True"
+                                          WidthRequest="55"
+                                          >
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <VisualState Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </syncf:SfChip>
 
                             <syncf:SfChip Clicked="StatsSfChip_Clicked" ImageSize="40"
                                           ImageSource="chart.png" ShowIcon="True"
@@ -430,9 +453,24 @@
                            VerticalOptions="Start"
                            />
 
-
+                    <Grid Grid.Row="1">
+                        <CollectionView ItemsSource="{Binding AllLines}"
+                                        SelectedItem="{Binding CurrentLine}"
+                                        SelectionMode="Single"
+                                        >
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                    <Label FontSize="{Binding NowPlayingLyricsFontSize}"
+                                           Text="{Binding Text}"
+                                           TextColor="{Binding HighlightColor}"
+                                           />
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
                     <Grid Grid.Row="1" Margin="20"
-                          ColumnDefinitions="*,auto" RowSpacing="20"
+                          ColumnDefinitions="*,auto" IsVisible="False"
+                          RowSpacing="20"
                           >
 
                         <CollectionView Grid.Column="0" ItemsSource="{Binding DimmerPlayEventList}">

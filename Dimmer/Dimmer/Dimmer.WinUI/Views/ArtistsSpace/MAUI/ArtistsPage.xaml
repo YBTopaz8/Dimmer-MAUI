@@ -55,26 +55,28 @@
                 </VerticalStackLayout>
 
 
-                <syncf:SfTabView Grid.Row="1" Background="Transparent">
+                <syncf:SfTabView Grid.Row="1" Background="Transparent"
+                                 EnableSwiping="True"
+                                 >
                     <syncf:SfTabItem BackgroundColor="Transparent" Header="AllSongs"
                                      TextColor="White"
                                      >
 
                         <syncf:SfTabItem.Content>
 
-                            <Grid RowDefinitions="*,*">
+                            <Grid RowDefinitions="100,*">
 
-                                <Grid Grid.Row="0">
+                                <Grid Grid.Row="0" BackgroundColor="Transparent">
                                     <CollectionView Header="All Albums"
                                                     ItemsSource="{Binding SelectedArtistAlbums}"
                                                     SelectionMode="Single"
                                                     >
                                         <CollectionView.ItemsLayout>
-                                            <GridItemsLayout Orientation="Horizontal" Span="9" />
+                                            <GridItemsLayout Orientation="Vertical" Span="2" />
                                         </CollectionView.ItemsLayout>
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:AlbumModelView">
-                                                <VerticalStackLayout WidthRequest="300">
+                                                <VerticalStackLayout>
                                                     <VisualStateManager.VisualStateGroups>
                                                         <VisualStateGroup x:Name="CommonStates">
                                                             <VisualState x:Name="Normal">
@@ -92,7 +94,6 @@
                                                     </VisualStateManager.VisualStateGroups>
 
                                                     <Label Text="{Binding Name}" />
-                                                    <Label Text="{Binding ReleaseYear}" />
 
                                                     <BoxView HeightRequest="1" Color="DarkSlateBlue" />
 
