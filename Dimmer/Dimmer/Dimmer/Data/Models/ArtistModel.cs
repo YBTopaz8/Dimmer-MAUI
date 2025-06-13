@@ -18,7 +18,6 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     [Backlink(nameof(SongModel.ArtistIds))]
     public IQueryable<SongModel> Songs { get; }
 
-
     [Backlink(nameof(AlbumModel.ArtistIds))]
     public IQueryable<AlbumModel> Albums { get; }
 

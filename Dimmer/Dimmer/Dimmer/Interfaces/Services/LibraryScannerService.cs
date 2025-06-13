@@ -215,9 +215,9 @@ public class LibraryScannerService : ILibraryScannerService
                                 // WHY THIS IS SAFE: This is the "air gap". We are explicitly destroying any
                                 // potential links to foreign-managed objects before adding the new song.
                                 // This prevents Realm from trying to follow a link to another realm instance.
-                                unmanagedSong.Album = null;
-                                unmanagedSong.Genre = null;
-                                unmanagedSong.ArtistIds.Clear();
+                                //unmanagedSong.Album = null;
+                                //unmanagedSong.Genre = null;
+                                //unmanagedSong.ArtistIds.Clear();
 
                                 // Now we add the clean, unlinked song. It becomes managed by THIS realm.
                                 songToPersist = realm.Add(unmanagedSong, update: true);
@@ -254,7 +254,11 @@ public class LibraryScannerService : ILibraryScannerService
                             {
                                 songToPersist.Genre = null;
                             }
-
+                            if (incomingSongData.Artist != null)
+                            {
+                                // Find the MANAGED version of the primary artist and link it.
+                                songToPersist.Artist = realm.Find<ArtistModel>(incomingSongData.Artist.Id);
+                            }
                             // (Same logic applies to the Artists list)
                             songToPersist.ArtistIds.Clear();
                             if (incomingSongData.ArtistIds != null && incomingSongData.ArtistIds.Any())
@@ -304,7 +308,7 @@ public class LibraryScannerService : ILibraryScannerService
             _state.LoadAllSongs(finalSongListFromDb.AsReadOnly());
 
             _logger.LogInformation("Global state updated with {SongCount} songs from database after scan.", finalSongListFromDb.Count);
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, folderPaths, null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, folderPaths, null, finalSongListFromDb.FirstOrDefault()));
 
 
 

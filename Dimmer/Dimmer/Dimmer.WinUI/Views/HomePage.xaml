@@ -443,71 +443,73 @@
                         </CollectionView.ItemTemplate>
                     </CollectionView>
                 </Grid>
+                <Border x:Name="StatsView"
+                        Grid.Row="1" BackgroundColor="Transparent"
+                        IsVisible="False"
+                        >
 
-                <Grid x:Name="StatsView"
-                      Grid.Row="1" BackgroundColor="Transparent"
-                      IsVisible="False" RowDefinitions="auto,*"
-                      >
-                    <Label Grid.Row="0" FontSize="28"
-                           Text="{Binding DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
-                           VerticalOptions="Start"
-                           />
+                    <Grid BackgroundColor="Transparent" RowDefinitions="auto,*">
+                        <Label Grid.Row="0" FontSize="28"
+                               Text="{Binding AllLines.Count, StringFormat='Lyrics Lines : {0}'}"
+                               VerticalOptions="Start"
+                               />
 
-                    <Grid Grid.Row="1">
-                        <CollectionView ItemsSource="{Binding AllLines}"
-                                        SelectedItem="{Binding CurrentLine}"
-                                        SelectionMode="Single"
-                                        >
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                    <Label FontSize="{Binding NowPlayingLyricsFontSize}"
-                                           Text="{Binding Text}"
-                                           TextColor="{Binding HighlightColor}"
-                                           />
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </Grid>
-                    <Grid Grid.Row="1" Margin="20"
-                          ColumnDefinitions="*,auto" IsVisible="False"
-                          RowSpacing="20"
-                          >
-
-                        <CollectionView Grid.Column="0" ItemsSource="{Binding DimmerPlayEventList}">
-
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:DimmerPlayEventView">
-                                    <HorizontalStackLayout Spacing="20">
-
-                                        <Label FontSize="17" Text="{Binding SongName}" />
-                                        <Label Text="was" />
-                                        <Label Text="{Binding PlayTypeStr}" />
-                                        <Label Text="On" />
-                                        <Label Text="{Binding EventDate, Converter={converters:DateTimeOffsetToLocalDateConverter}}" />
-                                    </HorizontalStackLayout>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-
-                        <Grid Grid.Column="1" IsEnabled="True"
-                              IsVisible="True"
+                        <Grid Grid.Row="1">
+                            <CollectionView ItemsSource="{Binding AllLines}"
+                                            SelectedItem="{Binding CurrentLine}"
+                                            SelectionMode="Single"
+                                            >
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                        <Label FontSize="{Binding NowPlayingLyricsFontSize}"
+                                               Text="{Binding Text}"
+                                               TextColor="{Binding HighlightColor}"
+                                               />
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="20"
+                              ColumnDefinitions="*,auto" IsVisible="False"
+                              RowSpacing="20"
                               >
 
-                            <CollectionView ItemsSource="{Binding TopSongsLastMonth}">
+                            <CollectionView Grid.Column="0" ItemsSource="{Binding DimmerPlayEventList}">
 
                                 <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Label Text="{Binding Count}" />
+                                    <DataTemplate x:DataType="models:DimmerPlayEventView">
+                                        <HorizontalStackLayout Spacing="20">
+
+                                            <Label FontSize="17" Text="{Binding SongName}" />
+                                            <Label Text="was" />
+                                            <Label Text="{Binding PlayTypeStr}" />
+                                            <Label Text="On" />
+                                            <Label Text="{Binding EventDate, Converter={converters:DateTimeOffsetToLocalDateConverter}}" />
+                                        </HorizontalStackLayout>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
 
+                            <Grid Grid.Column="1" IsEnabled="True"
+                                  IsVisible="True"
+                                  >
+
+                                <CollectionView ItemsSource="{Binding TopSongsLastMonth}">
+
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Label Text="{Binding Count}" />
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+
+                            </Grid>
                         </Grid>
+
+
                     </Grid>
 
-
-                </Grid>
-
+                </Border>
 
             </Grid>
 

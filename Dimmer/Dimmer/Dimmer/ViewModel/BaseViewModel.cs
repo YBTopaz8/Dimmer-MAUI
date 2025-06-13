@@ -47,13 +47,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly IDimmerAudioService audioService;
     private readonly ILibraryScannerService libService;
     [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModel> AllLines { get; set; }
+    public partial ObservableCollection<LyricPhraseModelView> AllLines { get; set; }
     [ObservableProperty]
-    public partial LyricPhraseModel? PreviousLine { get; set; }
+    public partial LyricPhraseModelView? PreviousLine { get; set; }
     [ObservableProperty]
-    public partial LyricPhraseModel? CurrentLine { get; set; }
+    public partial LyricPhraseModelView? CurrentLine { get; set; }
     [ObservableProperty]
-    public partial LyricPhraseModel? NextLine { get; set; }
+    public partial LyricPhraseModelView? NextLine { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView> DimmerPlayEventList { get; set; } = new();
 
@@ -241,6 +241,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         InitializeApp();
         await InitializeViewModelSubscriptions();
+        _stateService.LoadAllSongs(songRepo.GetAll());
     }
 
     public void InitializeApp()
@@ -852,16 +853,29 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
 
-    public async Task SelectedArtistAndNavtoPage(SongModelView song)
+    public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
+        if (song is null)
+        {
+            return false;
+        }
 
-        var db = songRepo.GetById(song.Id);
-        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
+        SongModel? db = songRepo.GetById(song.Id);
+        if (db == null)
+        {
+            return false;
+        }
+        string[] AllArtists = db.OtherArtistsName.Split(", ").ToArray();
+        _logger.LogTrace("SelectedArtistAndNavtoPage called with song: {SongTitle}", song.Title);
+        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, AllArtists);
         if (result == "Cancel" || string.IsNullOrEmpty(result))
-            return;
+            return false;
 
-        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
-        DeviceStaticUtils.SelectedArtistOne = art;
+        var art = artistRepo.GetAll().FirstOrDefault(x => x.Name==result);
+        var songss = art.Songs.ToList();
+        DeviceStaticUtils.SelectedArtistOne = art.ToModelView(_mapper);
+        _logger.LogInformation("Selected artist set to: {Artist}", art?.Name);
+        return true;
     }
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
     {
@@ -1119,9 +1133,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public void LoadStatsForSong(SongModelView? song)
     {
         //return;
-        if (song is null)
+        if (song is null && CurrentPlayingSongView is null)
         {
-            song=CurrentPlayingSongView!;
+            return;
         }
         SongEvts ??= new();
         var s = songRepo.GetById(song.Id);

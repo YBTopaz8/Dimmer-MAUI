@@ -1,6 +1,8 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using Dimmer.Interfaces.Services.Interfaces;
+
 using Microsoft.Windows.AppLifecycle;
 
 using Windows.ApplicationModel.Activation;
@@ -46,6 +48,24 @@ public partial class App : MauiWinUIApplication
 
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Debug.WriteLine($"UNOBSERVED TASK EXCEPTION: {e.Exception}");
+        var errorHandler = Services.GetService<IErrorHandler>();
+        errorHandler?.HandleError(e.Exception);
+        e.SetObserved(); // Prevent app from crashing due to unobserved exception
+    }
+
+    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        Debug.WriteLine($"GLOBAL UNHANDLED EXCEPTION: {e.ExceptionObject}");
+        var errorHandler = Services.GetService<IErrorHandler>();
+        errorHandler?.HandleError((Exception)e.ExceptionObject);
+        //e.Handled = true; // Prevent the application from crashing
     }
     // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
     private void MainInstance_Activated(object? sender, AppActivationArguments e)

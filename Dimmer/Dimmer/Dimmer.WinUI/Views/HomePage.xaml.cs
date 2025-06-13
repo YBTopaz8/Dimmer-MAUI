@@ -37,9 +37,10 @@ public partial class HomePage : ContentPage
         var send = (MenuFlyoutItem)sender;
         var song = send.BindingContext as SongModelView;
 
-        await MyViewModel.SelectedArtistAndNavtoPage(song);
-
-        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
     }
 
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)

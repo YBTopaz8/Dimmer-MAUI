@@ -134,7 +134,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
             IsNew=true,
-            //ArtistIds = [.. artists.Select(a => a.Id)],
+            //ArtistIds = artists.Select(a => a.Id).ToList(),
             Id= ObjectId.GenerateNewId()
             ,
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting
@@ -158,7 +158,6 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         _metadataService.AddSong(song);
         result.ProcessedSong = song;
-
         Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
         return result;
     }

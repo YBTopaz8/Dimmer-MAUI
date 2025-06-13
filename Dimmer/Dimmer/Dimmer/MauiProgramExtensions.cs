@@ -50,6 +50,7 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IDimmerStateService, DimmerStateService>();
+        builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
         builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();
         builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 

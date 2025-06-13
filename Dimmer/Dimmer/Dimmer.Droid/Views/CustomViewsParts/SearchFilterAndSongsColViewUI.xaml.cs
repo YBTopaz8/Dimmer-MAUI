@@ -53,7 +53,7 @@ public partial class SearchFilterAndSongsColViewUI : DXStackLayout
     string SearchParam = string.Empty;
 
     SongModelView selectedSongPopUp = new SongModelView();
-    private async void MoreIcon_Clicked(object sender, EventArgs e)
+    private void MoreIcon_Clicked(object sender, EventArgs e)
     {
         var send = (DXButton)sender;
         var paramss = send.CommandParameter as SongModelView;

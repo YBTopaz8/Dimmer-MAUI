@@ -89,7 +89,7 @@
         <dx:DXCollectionView x:Name="SongsColView"
                              AllowDragDropItems="False" AllowFixedGroupHeaders="True"
                              BackgroundColor="Transparent" ItemSpacing="5"
-                             ItemsSource="{Binding BaseVM.QueueOfSongsLive}"
+                             ItemsSource="{Binding BaseVM.NowPlayingDisplayQueue}"
                              Tap="SongsColView_Tap"
                              >
 
@@ -283,7 +283,7 @@
                                         </DataTrigger>
                                     </dx:Chip.Triggers>
                                 </dx:Chip>
-                                <dx:Chip Icon="repeat.png" TapCommand="{Binding BaseVM.RescanSongsCommand}"/>
+                                <dx:Chip Icon="repeat.png" TapCommand="{Binding BaseVM.RescanSongsCommand}" />
                             </HorizontalStackLayout>
                             <dx:DXStackLayout HorizontalOptions="Center" ItemSpacing="10"
                                               Orientation="Vertical"

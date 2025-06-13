@@ -51,6 +51,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 
     public IList<UserNoteModel> UserNotes { get; }
     public AlbumModel? Album { get; set; }
+    public ArtistModel? Artist { get; set; }
     public GenreModel? Genre { get; set; }
     public IList<ArtistModel> ArtistIds { get; }
     public IList<TagModel> Tags { get; }
