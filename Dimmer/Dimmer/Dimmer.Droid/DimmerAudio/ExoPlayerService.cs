@@ -479,7 +479,8 @@ public class ExoPlayerService : MediaSessionService
             throw new ArgumentException("Player not initialized.");
 
         }
-
+        player.Stop();
+        player.ClearMediaItems();
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)!
             .SetArtist(artist)!
@@ -488,6 +489,7 @@ public class ExoPlayerService : MediaSessionService
             .SetUserRating(new HeartRating(true))! // Ensure HeartRating class exists
             .SetUserRating(new ThumbRating(true))! // Ensure HeartRating class exists
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
+        .SetGenre(song.Genre.Name)
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         // Set user rating (favorite status)
@@ -505,9 +507,7 @@ public class ExoPlayerService : MediaSessionService
                 //Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
-        else if (!string.IsNullOrEmpty(imagePath))
-        {
-        }
+        
 
         try
         {
@@ -862,12 +862,14 @@ public class ExoPlayerService : MediaSessionService
 
                     case 9:
                         service.player!.Stop();
+                        service.player.Dispose();
                         service.RaisePlayNextEventHandler();
                         //Console.WriteLine("[SessionCallback] User pressed NEXT button.");
                         break;
 
                     case 7:
                         service.player!.Stop();
+                        service.player.Dispose();
                         service.RaisePlayPreviousEventHandler();
 
                         break;
@@ -886,7 +888,6 @@ public class ExoPlayerService : MediaSessionService
 
     }
 
-    private IPlaybackBubbleUpdateListener? _bubbleListener;
 
 
 

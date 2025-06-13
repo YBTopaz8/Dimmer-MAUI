@@ -1,6 +1,8 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using System.Collections.Concurrent;
+
 using Dimmer.Interfaces.Services.Interfaces;
 
 using Microsoft.Windows.AppLifecycle;
@@ -14,6 +16,7 @@ namespace Dimmer.WinUI;
 /// </summary>
 public partial class App : MauiWinUIApplication
 {
+    private Microsoft.UI.Xaml.Window m_window;
     /// <summary>
     /// Initializes the singleton application object.  This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -70,49 +73,94 @@ public partial class App : MauiWinUIApplication
     // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
-        // Ensure execution on the UI thread if HandleActivated interacts with UI directly
-        // or if HomePageVM expects to be called from UI thread.
-        // For MAUI, MauiDispatcher is a good way if needed.
-        // For now, assuming HandleActivated or subsequent calls handle threading.
-        HandleActivated(e);
-        // TODO : Optimize this. HandleActivated is called an unknown number of time and is slow with many songs
-        // With correct logic, it should be called once per redirection.
+        // This is guaranteed to run on the main instance.
+        // We need to bring the activation to the UI thread to be safe.
+        m_window.DispatcherQueue.TryEnqueue(() =>
+         {
+             HandleActivation(e);
+         });
     }
+
+
+    // A thread-safe collection to gather file paths from multiple, rapid activations.
+    private readonly ConcurrentQueue<string> _activatedFilePaths = new();
+
+    // A debouncer to process files in a single batch after a short delay.
+    private readonly Debouncer _fileProcessingDebouncer = new(delayMilliseconds: 300);
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
 
-        // If you intend to use _thumbnailHandler:
-        // _thumbnailHandler.InitializeThumbnailHandling();
-
-        // For the initial launch, get the activation arguments
-        // This could be a normal launch or a launch via file association
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-        HandleActivated(activatedArgs); // Just call it once.
+        HandleActivation(activatedArgs);
     }
 
-    // No need for the 'paths' field at the class level if it's only used transiently
-    // string[]? paths = Array.Empty<string>();
-
-    private void HandleActivated(AppActivationArguments args)
+    /// <summary>
+    /// A unified handler for all app activations.
+    /// It extracts file paths and queues them for batch processing.
+    /// </summary>
+    private void HandleActivation(AppActivationArguments args)
     {
-        if (args.Kind == ExtendedActivationKind.File)
+        if (args.Kind == ExtendedActivationKind.File && args.Data is IFileActivatedEventArgs fileArgs)
         {
-            if (args.Data is IFileActivatedEventArgs fileArgs)
+            // Extract valid paths from the activation arguments
+            var validPaths = fileArgs.Files
+                .Select(file => (file as StorageFile)?.Path)
+                .Where(path => !string.IsNullOrEmpty(path))
+                .ToList(); // ToList to realize the query
+
+            if (validPaths.Count!=0)
             {
-                // Extract paths. These could be null if a file object isn't a StorageFile or Path is null
-                string?[] rawPaths = [.. fileArgs.Files.Select(file => (file as StorageFile)?.Path)];
-                HandleFiles(rawPaths);
+                // Add the new paths to our central queue
+                foreach (var path in validPaths)
+                {
+                    _activatedFilePaths.Enqueue(path!);
+                }
+
+                // Trigger the debouncer. It will wait 200ms for more files.
+                // If another activation comes in within 200ms, it will reset the timer.
+                // This ensures we only process the final batch of files once.
+                _fileProcessingDebouncer.Debounce(ProcessFileBatch);
             }
         }
-        // else if (args.Kind == ExtendedActivationKind.Launch)
-        // {
-        //    // Handle normal launch if needed, e.g., open main window without any files
-        // }
-        // Handle other activation kinds if necessary
+    }
+    private void ProcessFileBatch()
+    {
+        // Drain the queue to get all file paths collected so far
+        var pathsToProcess = new List<string>();
+        while (_activatedFilePaths.TryDequeue(out var path))
+        {
+            pathsToProcess.Add(path);
+        }
+
+        if (!pathsToProcess.Any())
+        {
+            return; // Nothing to do
+        }
+
+        // IMPORTANT: Ensure this runs on the UI thread, as it will likely
+        // interact with a ViewModel that updates the UI.
+        m_window.DispatcherQueue.TryEnqueue(() =>
+        {
+            // Resolve the specific ViewModel you need
+            var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
+            if (homePageVM != null)
+            {
+                // *** THE CORE OPTIMIZATION ***
+                // Call a single method on your ViewModel to handle the entire batch.
+                // This is vastly more performant than a loop.
+                homePageVM.AddMusicFoldersByPassingToService(pathsToProcess);
+            }
+            else
+            {
+                Debug.WriteLine("Error: HomePageViewModel could not be resolved. Cannot process files.");
+            }
+        });
     }
 
-    private void HandleFiles(string?[] paths) // paths now comes as string?[]
+
+
+    private static void HandleFiles(string?[] paths) // paths now comes as string?[]
     {
         if (paths == null || paths.Length == 0)
             return;
@@ -129,6 +177,12 @@ public partial class App : MauiWinUIApplication
         var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your MyViewModel class
         if (homePageVM != null)
         {
+            foreach (var item in validPaths)
+            {
+
+                homePageVM.AddMusicFolderByPassingToService(item);
+            }
+
             // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe
             // or dispatched to the UI thread if it updates UI-bound properties directly.
             // e.g., MainThread.BeginInvokeOnMainThread(() => homePageVM.LoadLocalSongFromOutSideApp(validPaths));
@@ -260,3 +314,30 @@ public partial class App : MauiWinUIApplication
 }
 
 
+public class Debouncer
+{
+    private CancellationTokenSource? _cts;
+    private readonly int _delayMilliseconds;
+
+    public Debouncer(int delayMilliseconds = 250)
+    {
+        _delayMilliseconds = delayMilliseconds;
+    }
+
+    public void Debounce(Action action)
+    {
+        // Cancel any previously scheduled action
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+
+        // Schedule the new action after the delay
+        Task.Delay(_delayMilliseconds, _cts.Token)
+            .ContinueWith(t =>
+            {
+                if (t.IsCompletedSuccessfully)
+                {
+                    action();
+                }
+            }, TaskScheduler.Default); // Use default scheduler for the continuation
+    }
+}

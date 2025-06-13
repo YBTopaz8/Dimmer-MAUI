@@ -312,7 +312,7 @@
 
 
                                 </Grid>
-                                <customViewParts:SearchFilterAndSongsColViewUI BackgroundColor="Transparent" HeightRequest="600" />
+                                <customViewParts:BtmSheetSearchFilterAndSongsColViewUI BackgroundColor="Transparent" HeightRequest="600" />
                             </Grid>
 
                         </dx:DXExpander.Content>

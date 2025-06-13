@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utilities.Extensions;
 
 using Realms;
 
@@ -157,14 +158,12 @@ public class LibraryScannerService : ILibraryScannerService
             _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
                 newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
 
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlaySongFrommOutsideApp, newOrUpdatedSongs, newOrUpdatedSongs.FirstOrDefault().ToModelView(_mapper), newOrUpdatedSongs.FirstOrDefault()));
 
             if (!newOrUpdatedSongs.Any() && !newOrUpdatedArtists.Any() && !newOrUpdatedAlbums.Any() && !newOrUpdatedGenres.Any())
             {
                 _state.SetCurrentLogMsg(new AppLogModel { Log = "No new music data changes to persist after scan." });
                 _logger.LogInformation("No new or modified entities to save to database.");
-
-
-
             }
 
             if (newOrUpdatedArtists.Any() || newOrUpdatedAlbums.Any() || newOrUpdatedGenres.Any() || newOrUpdatedSongs.Any())

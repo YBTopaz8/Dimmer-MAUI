@@ -32,15 +32,15 @@ public class MainApplication : MauiApplication
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
     }
 
-    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         Debug.WriteLine($"UNOBSERVED TASK EXCEPTION (Android): {e.Exception}");
-        var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();
+        var errorHandler = IPlatformApplication.Current!.Services.GetService<IErrorHandler>();
         errorHandler?.HandleError(e.Exception);
         e.SetObserved();
     }
 
-    private void OnAndroidUnhandledExceptionRaiser(object? sender, RaiseThrowableEventArgs e)
+    private static void OnAndroidUnhandledExceptionRaiser(object? sender, RaiseThrowableEventArgs e)
     {
         Debug.WriteLine($"ANDROID UNHANDLED EXCEPTION: {e.Exception}");
         var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();
@@ -48,7 +48,7 @@ public class MainApplication : MauiApplication
         e.Handled = true; // Prevent the application from crashing
     }
 
-    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         Debug.WriteLine($"GLOBAL UNHANDLED EXCEPTION (Android): {e.ExceptionObject}");
         var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();

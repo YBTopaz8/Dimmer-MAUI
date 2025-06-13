@@ -131,6 +131,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var allArts = value.OtherArtistsName.Split(", ");
         var realm = realmFactory.GetRealmInstance();
         SongModel? db = realm.All<SongModel>().FirstOrDefault(x => x.Id==value.Id);
+
         if (db == null)
         {
             return;
@@ -408,6 +409,25 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                  QueueOfSongsLive = NowPlayingDisplayQueue.Take(50).ToObservableCollection();
 
                  IsAppScanning=false;
+             }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
+     );
+
+        _subsManager.Add(
+         _stateService.CurrentPlayBackState
+             .Where(psi => psi.State == DimmerPlaybackState.PlaySongFrommOutsideApp)
+             .Subscribe(async folderPath =>
+             {
+                 if (folderPath.ExtraParameter is null)
+                 {
+                     _logger.LogWarning("FolderRemoved state received with null ExtraParameter.");
+                     return;
+                 }
+                 var newSongs = (folderPath.ExtraParameter as IReadOnlyList<SongModel>);
+                 if (newSongs is null)
+                 {
+                     return;
+                 }
+                 await PlaySongFromListAsync(newSongs.FirstOrDefault().ToModelView(_mapper), _mapper.Map<List<SongModelView>>(newSongs));
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
      );
 
@@ -974,6 +994,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         _logger.LogInformation("User requested to add music folder.");
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, folderPath, null, null));
+    }
+    public void AddMusicFoldersByPassingToService(List<string> folderPath)
+    {
+        _logger.LogInformation("User requested to add music folder.");
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlaySongFrommOutsideApp, folderPath, null, null));
     }
 
     public void ViewAlbumDetails(AlbumModelView? albumView)
