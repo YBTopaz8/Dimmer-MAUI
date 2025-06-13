@@ -14,6 +14,9 @@ using Dimmer.Utilities.StatsUtils;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
+using MoreLinq;
+
+using Realms;
 
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
 
@@ -107,6 +110,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     partial void OnDeviceVolumeLevelChanged(double oldValue, double newValue)
     {
         _songsMgtFlow.RequestSetVolume(newValue);
+        _settingsService.LastVolume = newValue;
     }
 
     [ObservableProperty]
@@ -114,6 +118,60 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial SongModelView? CurrentPlayingSongView { get; set; }
+    async partial void OnCurrentPlayingSongViewChanged(SongModelView? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+        await UpdatedAllSongsDBValues(value);
+    }
+    async Task UpdatedAllSongsDBValues(SongModelView value)
+    {
+        var allArts = value.OtherArtistsName.Split(", ");
+        var realm = realmFactory.GetRealmInstance();
+        SongModel? db = realm.All<SongModel>().FirstOrDefault(x => x.Id==value.Id);
+        if (db == null)
+        {
+            return;
+        }
+        if (realmFactory is null)
+        {
+            _logger.LogError("RealmFactory service is not registered in the DI container.");
+            return;
+        }
+        if (realm is null)
+        {
+            _logger.LogError("Failed to get Realm instance from RealmFactory.");
+            return;
+        }
+
+        await realm.WriteAsync(() =>
+        {
+
+            foreach (var item in allArts)
+            {
+                if (db.ArtistIds is null ||db.ArtistIds.Count<1|| (db.ArtistIds is not null && db.ArtistIds.FirstOrDefault(x => x.Name==item) is null))
+                {
+                    var arttt = realm.All<ArtistModel>().FirstOrDefault(x => x.Name==item);
+                    if (arttt is null)
+                    {
+                        return;
+                    }
+                    db.ArtistIds!.Add(arttt);
+
+                    var AlbumHasArtist = db.Album!.ArtistIds.FirstOrDefault(x => x.Name==arttt.Name);
+
+                    if (AlbumHasArtist == null)
+                    {
+                        db.Album.ArtistIds.Add(arttt);
+                    }
+                }
+
+
+            }
+        });
+    }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> NowPlayingDisplayQueue { get; set; } = new();
 
@@ -226,8 +284,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
-    }
 
+
+        realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
+    }
+    readonly IRealmFactory realmFactory;
     [ObservableProperty]
     public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
 
@@ -300,7 +361,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     _stateService.CurrentPlaylist
 
         .Subscribe(pm => CurrentlyPlayingPlaylistContext = _mapper.Map<PlaylistModelView>(pm))
-);
+    );
         _subsManager.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.MediaKeyNextPressed += h, h => audioService.MediaKeyNextPressed -= h)
                 .Subscribe(async evt =>
@@ -418,14 +479,21 @@ public partial class BaseViewModel : ObservableObject, IDisposable
              .SubscribeOn(await MainThread.GetMainThreadSynchronizationContextAsync())
                 .Subscribe(songList =>
                 {
+                    if (songList is null)
+                    {
+                        return;
+                    }
                     if (songList.Count < 1)
                     {
                         return;
                     }
-                    _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList?.Count ?? 0);
-                    NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList);
-                    CurrentPlayingSongView =audioService.CurrentTrackMetadata;
+                    _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList.Count);
+                    NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList.Shuffle());
 
+                    QueueOfSongsLive = NowPlayingDisplayQueue.Take(50).ToObservableCollection();
+                    if (audioService.IsPlaying)
+                        return;
+                    CurrentPlayingSongView = NowPlayingDisplayQueue[0];
                 }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for NowPlayingDisplayQueue subscription"))
         );
 
@@ -777,6 +845,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
     }
 
+    partial void OnNowPlayingDisplayQueueChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
+    {
+        Debug.WriteLine(newValue.Count);
+    }
     [RelayCommand]
     public void ToggleShuffleMode()
     {
@@ -860,19 +932,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        SongModel? db = songRepo.GetById(song.Id);
-        if (db == null)
-        {
-            return false;
-        }
-        string[] AllArtists = db.OtherArtistsName.Split(", ").ToArray();
+        var allArts = song.OtherArtistsName.Split(", ");
+
+        await UpdatedAllSongsDBValues(song);
+
+
         _logger.LogTrace("SelectedArtistAndNavtoPage called with song: {SongTitle}", song.Title);
-        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, AllArtists);
+        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, allArts);
         if (result == "Cancel" || string.IsNullOrEmpty(result))
             return false;
 
         var art = artistRepo.GetAll().FirstOrDefault(x => x.Name==result);
-        var songss = art.Songs.ToList();
         DeviceStaticUtils.SelectedArtistOne = art.ToModelView(_mapper);
         _logger.LogInformation("Selected artist set to: {Artist}", art?.Name);
         return true;
@@ -942,74 +1012,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // Get all songs for this artist. This is a single, efficient query thanks to the backlink.
-        // We immediately "freeze" them and map them to ViewModels. Now they are thread-safe
-        // and detached from the live Realm instance, perfect for a ViewModel.
-        var allArtistSongs = artist.Songs
-                                   .AsEnumerable() // Move from IQueryable to IEnumerable
-                                   .DistinctBy(s => s.Title)
-                                   .Select(s => _mapper.Map<SongModelView>(s.Freeze()))
-                                   .ToList(); // Materialize the list in memory
-
-        if (!allArtistSongs.Any()) // Use MoreLINQ's replacement for .Count() > 0
-        {
-            _logger.LogInformation("Artist {ArtistName} has no songs to display.", artist.Name);
-            // We can still show the artist, just with empty lists.
-            SelectedArtist = _mapper.Map<ArtistModelView>(artist.Freeze());
-            SelectedArtistSongs = new ObservableCollection<SongModelView>();
-            SelectedArtistAlbums = new ObservableCollection<AlbumModelView>();
-            return;
-        }
-
-        // ====================================================================
-        // 2. Process Data In-Memory to Fulfill Requirements
-        // ====================================================================
-
-        // Requirement 1: Get the artist's image from their FIRST song with cover art.
-        // We use FirstOrDefault to be safe against lists where no song has cover art.
-        var artistImageBytes = allArtistSongs
-            .Select(s => s.CoverImageBytes)
-            .FirstOrDefault(bytes => bytes != null && bytes.Length > 0);
-
-        // Requirement 2: Get all unique albums and their cover images.
-        // This is the perfect use case for GroupBy!
-        var albumsWithCovers = allArtistSongs
-            .Where(s => s.Album != null) // Ensure song has an album
-            .GroupBy(s => s.Album!.Id)  // Group all songs by their Album's ID
-            .Select(albumGroup =>
-            {
-                // The "Key" of the group is the AlbumId.
-                // The group itself (albumGroup) is a collection of all songs for that album.
-
-                // Get the AlbumViewModel from the first song in the group.
-                var albumViewModel = albumGroup.First().Album;
-
-                // Find the first song IN THIS GROUP that has cover art.
-                albumViewModel.ImageBytes = albumGroup
-                    .Select(s => s.CoverImageBytes)
-                    .FirstOrDefault(bytes => bytes != null && bytes.Length > 0);
-
-                return albumViewModel;
-            })
-            .ToList();
-
-
-        // ====================================================================
-        // 3. Atomically Update the ViewModel Properties
-        // ====================================================================
-        // This ensures the UI updates smoothly all at once.
 
         SelectedArtist = _mapper.Map<ArtistModelView>(artist.Freeze());
-        SelectedArtist.ImageBytes = artistImageBytes;
+        SelectedArtist.ImageBytes = artist.Songs.First().CoverImageBytes;
 
-        SelectedArtistSongs = new ObservableCollection<SongModelView>(allArtistSongs);
-        SelectedArtistAlbums = new ObservableCollection<AlbumModelView>(albumsWithCovers);
+        SelectedArtistSongs = _mapper.Map<ObservableCollection<SongModelView>>(artist.Songs.ToArray());
+        SelectedArtistAlbums = _mapper.Map<ObservableCollection<AlbumModelView>>(artist.Albums.ToArray());
 
-        var allArtistSongsDb = artist.Songs
-                                 .AsEnumerable() // Move from IQueryable to IEnumerable
-                                 .DistinctBy(s => s.Title)
-                                 .ToList(); // Materialize the list in memory
-        var topSongs = TopStats.GetTopCompletedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10);
+
+        var topSongs = TopStats.GetTopCompletedSongs(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 10);
         foreach (var item in topSongs)
         {
             Console.WriteLine($"#{topSongs.IndexOf(item) + 1}: '{item.Song.Title}' with {item.Count} completions.");
@@ -1025,15 +1036,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var startDate = endDate.AddMonths(-1);
 
         // Get the Top 10 most completed songs in the last month
-        TopSongsLastMonth = TopStats.GetTopCompletedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
 
         // --- OTHER "TOPS" ---
 
         // Get the 5 most SKIPPED songs of all time
-        MostSkipped = TopStats.GetTopSkippedSongs(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 5);
+        MostSkipped = TopStats.GetTopSkippedSongs(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 5);
 
         // Get the 10 songs with the most TOTAL LISTENING TIME in the last month
-        MostListened = TopStats.GetTopSongsByListeningTime(allArtistSongsDb, dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
+        MostListened = TopStats.GetTopSongsByListeningTime(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
 
         _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
     }

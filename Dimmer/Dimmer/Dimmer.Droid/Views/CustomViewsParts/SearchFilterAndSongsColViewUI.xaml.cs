@@ -72,11 +72,12 @@ public partial class SearchFilterAndSongsColViewUI : DXStackLayout
     {
 
         var song = MyViewModel.BaseVM.SelectedSongForContext;
-        var result = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
-        if (result == "Cancel" || string.IsNullOrEmpty(result))
+        if (song is null)
+        {
             return;
-        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
-        DeviceStaticUtils.SelectedArtistOne = art;
+        }
+        await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
+
         await SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }

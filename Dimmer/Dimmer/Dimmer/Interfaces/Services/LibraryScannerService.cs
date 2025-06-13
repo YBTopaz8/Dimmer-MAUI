@@ -282,6 +282,7 @@ public class LibraryScannerService : ILibraryScannerService
 
 
 
+                //var song = _songRepo.GetAll().First();
 
 
 

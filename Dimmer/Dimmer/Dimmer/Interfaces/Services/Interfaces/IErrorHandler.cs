@@ -20,9 +20,9 @@ public class ErrorHandler : IErrorHandler
         LogException(ex);
         MainThread.BeginInvokeOnMainThread(async () =>
         {
-            if (Application.Current?.MainPage != null)
+            if (Application.Current?.Windows[0] != null)
             {
-                await Application.Current.MainPage.DisplayAlert("An Unexpected Error Occurred", "The application has encountered an error. Please try again. If the problem persists, please contact support.", "OK");
+                await Shell.Current.DisplayAlert("An Unexpected Error Occurred", "The application has encountered an error. Please try again. If the problem persists, please contact support.", "OK");
             }
             else
             {

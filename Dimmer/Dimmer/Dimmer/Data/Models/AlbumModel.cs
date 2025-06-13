@@ -108,14 +108,14 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// <summary>
     /// Initializes a new instance of the <see cref="AlbumModel"/> class.
     /// </summary>
-    public IList<ArtistModel> ArtistIds { get; }
+    public IList<ArtistModel> ArtistIds { get; } = null!;
 
     [Backlink(nameof(SongModel.Album))]
     public IQueryable<SongModel>? SongsInAlbum { get; }
 
-    public IList<TagModel> Tags { get; }
+    public IList<TagModel> Tags { get; } = null!;
 
-    public IList<UserNoteModel>? UserNotes { get; }
+    public IList<UserNoteModel>? UserNotes { get; } = null!;
     public AlbumModel()
     {
     }
