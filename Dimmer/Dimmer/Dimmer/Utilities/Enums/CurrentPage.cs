@@ -2,7 +2,7 @@
 
 public enum CurrentPage
 {
-    SetupPage, 
+    SetupPage,
     HomePage,
     SettingsPage,
     NowPlayingPage,
@@ -12,4 +12,12 @@ public enum CurrentPage
     AllAlbumsPage,
     SpecificAlbumPage,
     OnlineChatPage
+}
+
+public enum CollectionToUpdate
+{
+    NowPlayingCol,
+    QueueColOfXSongs,
+    ArtistAlbumSongs,
+    AlbumCovers
 }

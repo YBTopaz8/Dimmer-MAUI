@@ -126,12 +126,15 @@
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:AlbumModelView">
                                 <dx:DXStackLayout Orientation="Vertical">
-                                    <dx:DXImage HeightRequest="130" Source="{Binding Songs[0].CoverImageBytes}" />
                                     <Label FontSize="18"
                                            Text="{Binding Name}"
                                            WidthRequest="200"
                                            />
+                                    <Label Text="{Binding NumberOfTracks}" />
+
                                     <Label Text="{Binding ReleaseYear}" />
+                                    <Label Text="{Binding TotalDuration}" />
+                                    <Label Text="{Binding Description}" />
                                 </dx:DXStackLayout>
                             </DataTemplate>
                         </dx:DXCollectionView.ItemTemplate>

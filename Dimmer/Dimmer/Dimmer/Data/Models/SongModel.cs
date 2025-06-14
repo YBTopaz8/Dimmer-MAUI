@@ -1,6 +1,4 @@
-﻿using ATL;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 
@@ -49,17 +47,19 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public string? DeviceVersion { get; set; }
     public string? UserIDOnline { get; set; }
 
-    public IList<UserNoteModel> UserNotes { get; }
-    public AlbumModel? Album { get; set; }
-    public GenreModel? Genre { get; set; }
-    public IList<ArtistModel> ArtistIds { get; }
-    public IList<TagModel> Tags { get; }
+    public AlbumModel Album { get; set; }
+    public ArtistModel Artist { get; set; }
+    public GenreModel Genre { get; set; }
+    public IList<ArtistModel> ArtistIds { get; } = null!;
+    public IList<TagModel> Tags { get; } = null!;
 
-    public IList<SyncLyrics> EmbeddedSync { get; }
-    public IList<DimmerPlayEvent> PlayHistory { get; }
+    public IList<SyncLyrics> EmbeddedSync { get; } = null!;
+    public IList<DimmerPlayEvent> PlayHistory { get; } = null!;
 
-    public IList<SongModel> Playlists { get; }
     public bool IsNew { get; set; }
+    [Backlink(nameof(PlaylistModel.SongsInPlaylist))]
+    public IQueryable<PlaylistModel> Playlists { get; } = null!;
+    public IList<UserNoteModel> UserNotes { get; } = null!;
 
     public SongModel()
     {

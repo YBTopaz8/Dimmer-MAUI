@@ -1,10 +1,8 @@
 ﻿using Android.App;
-using Android.Content;
-using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Service.QuickSettings;
 using Android.Util;
-using Android.Widget;
+
 using AndroidX.Media3.Session;
 
 namespace Dimmer.DimmerAudio;
@@ -331,7 +329,7 @@ public class QuickSettingsTileService : TileService
         var vm = IPlatformApplication.Current.Services.GetService<AudioService>();
         if (vm != null)
         {
-            return vm.IsPlaying; // Use the ExoPlayer's IsPlaying property
+            //return vm.IsPlaying; // Use the ExoPlayer's IsPlaying property
         }
         Log.Warn(TAG, "IsCurrentlyPlaying() using placeholder value (false). Implement actual state check!");
         return false; // Default/placeholder

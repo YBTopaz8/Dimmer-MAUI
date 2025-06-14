@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 using Dimmer.WinUI.Utils.WinMgt;
 
 

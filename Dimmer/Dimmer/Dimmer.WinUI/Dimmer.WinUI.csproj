@@ -23,6 +23,7 @@
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 
 

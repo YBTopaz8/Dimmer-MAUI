@@ -1,11 +1,4 @@
-﻿using Android.OS;
-using Dimmer.CustomShellRenderers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Font = Microsoft.Maui.Graphics.Font;
+﻿using Font = Microsoft.Maui.Graphics.Font;
 
 namespace Dimmer.CustomShellRenderers;
 // Delegate definitions for event arguments

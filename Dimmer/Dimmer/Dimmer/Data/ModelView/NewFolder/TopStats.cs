@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Data.ModelView.NewFolder;
+﻿namespace Dimmer.Data.ModelView.NewFolder;
 /// <summary>
 /// Provides methods for generating "Top X" ranked lists from play event data.
 /// These are designed for creating leaderboards and dynamic ranked collections.

@@ -1,12 +1,4 @@
-﻿using System.Reactive.Disposables;
-
-using ATL;
-
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utils;
-
-using Parse.Infrastructure;
-using Parse.LiveQuery;
+﻿using Parse.LiveQuery;
 
 namespace Dimmer.DimmerLive;
 public class DimmerLiveStateService : IDimmerLiveStateService

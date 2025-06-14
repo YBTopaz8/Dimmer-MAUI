@@ -67,9 +67,11 @@ public class MultiPlaylistPlayer<T> : IDisposable
     public T? Next(bool randomizeSourcePlaylist = false)
     {
         var activePlaylists = _playlists.Where(p => p.Count > 0).ToList();
+
         if (activePlaylists.Count==0)
         {
             AllQueuesExhausted?.Invoke();
+
             return default;
         }
 
@@ -123,6 +125,13 @@ public class MultiPlaylistPlayer<T> : IDisposable
 
     public T? Previous(bool randomizeSourcePlaylist = false)
     {
+        var activePlaylists = _playlists.Where(p => p.Count > 0).ToList();
+
+        if (activePlaylists.Count==0)
+        {
+            AllQueuesExhausted?.Invoke();
+            return default;
+        }
         if (_lastSuccessfullyPlayedPlaylist != null)
         {
             int playlistIndexOfLastPlayed = _playlists.IndexOf(_lastSuccessfullyPlayedPlaylist);

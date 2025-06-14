@@ -1,7 +1,3 @@
-using System.Diagnostics;
-
-using AndroidX.Lifecycle;
-
 using DevExpress.Maui.Mvvm;
 
 using Dimmer.Utilities;

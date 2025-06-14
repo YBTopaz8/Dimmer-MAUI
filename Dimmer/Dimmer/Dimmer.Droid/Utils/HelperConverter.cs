@@ -1,18 +1,7 @@
-﻿using Android.Content;
-using Android.Views.Animations;
-
-using AndroidX.Annotations;
+﻿using Android.Views.Animations;
 
 using Dimmer.Utils.CustomShellUtils.Enums;
 using Dimmer.Utils.CustomShellUtils.Models;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using static System.TimeZoneInfo;
 
 namespace Dimmer.Utils;
 public static class HelperConverter

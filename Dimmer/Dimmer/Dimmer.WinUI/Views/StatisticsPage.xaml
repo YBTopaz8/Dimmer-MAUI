@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.WinUI.Views.StatisticsPage"
-             xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-             xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
-             xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-             x:DataType="vm:BaseViewModelWin"
-             x:Name="myPage"
-             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
-             Title="StatisticsPage">
+<Window x:Name="myPage"
+        x:Class="Dimmer.WinUI.Views.StatisticsPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+        xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+        xmlns:models="[models ]clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer" xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+        xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+        xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+        Title="StatisticsPage" x:DataType="vm:BaseViewModelWin"
+        >
     <Window.Page>
-        <ContentPage>
-        </ContentPage>
+        <ContentPage />
     </Window.Page>
 </Window>

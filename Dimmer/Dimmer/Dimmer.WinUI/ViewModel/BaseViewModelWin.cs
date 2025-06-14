@@ -1,6 +1,4 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
-using System.Buffers.Text;
-
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
@@ -11,11 +9,8 @@ using Dimmer.Interfaces.Services.Interfaces;
 
 // Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
 using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views.ArtistsSpace;
 
 using Microsoft.Extensions.Logging;
-
-using System.Threading.Tasks; // For ILogger
 
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 

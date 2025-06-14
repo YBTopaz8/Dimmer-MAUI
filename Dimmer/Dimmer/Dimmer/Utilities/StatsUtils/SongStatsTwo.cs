@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.StatsUtils;
+﻿namespace Dimmer.Utilities.StatsUtils;
 using Dimmer.Data.Models; // Ensure this using directive matches your project structure
-
-using MongoDB.Bson;      // For ObjectId, though direct use is minimal here
 
 using System;
 using System.Collections.Generic;

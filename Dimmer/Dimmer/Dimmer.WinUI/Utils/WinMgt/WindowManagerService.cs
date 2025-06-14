@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml;
 
 using Application = Microsoft.Maui.Controls.Application;
-using Grid = Microsoft.Maui.Controls.Grid;
 using Page = Microsoft.Maui.Controls.Page;
 using Window = Microsoft.Maui.Controls.Window;
 

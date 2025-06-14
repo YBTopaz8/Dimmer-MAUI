@@ -67,8 +67,27 @@ public partial class SongModelView : ObservableObject
     public partial string? DeviceManufacturer { get; set; }
     [ObservableProperty]
     public partial string? DeviceVersion { get; set; }
+    [ObservableProperty]
+    public partial string OtherArtistsName { get; set; }
 
-    public ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
+
+    [ObservableProperty]
+    public partial string Lyricist { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Composer { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Conductor { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Description { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string Language { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial int? DiscNumber { get; set; }
+    [ObservableProperty]
+    public partial int? DiscTotal { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
 
 
 

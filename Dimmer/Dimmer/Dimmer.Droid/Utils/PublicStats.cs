@@ -1,16 +1,8 @@
 ﻿using Android.Animation;
-using Android.Graphics;
 using Android.Views.Animations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Android.Resource;
+
 using AColor = Android.Graphics.Color;
 using Color = Android.Graphics.Color;
-using LP = Android.Views.ViewGroup.LayoutParams;
-using Orientation = Android.Widget.Orientation;
 
 namespace Dimmer.Utils;
 internal static class PublicStats

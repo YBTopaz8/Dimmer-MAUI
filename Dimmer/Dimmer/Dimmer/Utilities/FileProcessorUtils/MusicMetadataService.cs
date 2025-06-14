@@ -73,7 +73,7 @@ public class MusicMetadataService : IMusicMetadataService
             {
                 Name = name,
                 Id=ObjectId.GenerateNewId(),
-                ImagePath = initialCoverPath,
+                //ImagePath = initialCoverPath,
                 IsNew=true,
 
 

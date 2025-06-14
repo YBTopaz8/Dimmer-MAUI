@@ -1,9 +1,4 @@
-﻿using Android.Content;
-
-using Dimmer.Interfaces.Services.Interfaces;
-
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Cryptography;
 
 using Window = Microsoft.Maui.Controls.Window;
 

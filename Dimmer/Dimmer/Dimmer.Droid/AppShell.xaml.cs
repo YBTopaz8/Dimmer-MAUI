@@ -1,4 +1,3 @@
-using Dimmer.ViewModel;
 using Dimmer.Views.Stats;
 
 namespace Dimmer;
@@ -17,10 +16,14 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-        BaseViewModel vm = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+
+        MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>()!;
+        await MyViewModel.FiniInit();
 
     }
+
+    public BaseViewModelAnd MyViewModel { get; internal set; }
 }

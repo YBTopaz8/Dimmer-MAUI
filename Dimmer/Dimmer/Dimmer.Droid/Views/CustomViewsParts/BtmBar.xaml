@@ -6,8 +6,8 @@
              xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit" xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Dimmer.ViewModels" Padding="5"
-             x:DataType="vm:BaseViewModelAnd" CornerRadius="20,20,20,20"
-             HeightRequest="80"
+             x:DataType="vm:BaseViewModelAnd" CornerRadius="40,40,40,40"
+             HeightRequest="90"
              >
 
     <dx:DXBorder.Resources>
@@ -42,11 +42,11 @@
                     <StackLayout Grid.Column="0" BackgroundColor="Transparent"
                                  HorizontalOptions="Start" Orientation="Vertical"
                                  >
-                        <Label FontSize="21" LineBreakMode="TailTruncation"
+                        <Label FontSize="19" LineBreakMode="TailTruncation"
                                Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
                                TextColor="DarkSlateBlue"
                                />
-                        <Label FontAttributes="Italic" FontSize="13"
+                        <Label FontAttributes="Italic" FontSize="11"
                                LineBreakMode="WordWrap"
                                Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}"
                                />

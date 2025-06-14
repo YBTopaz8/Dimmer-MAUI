@@ -1,11 +1,20 @@
 using Android.App;
 using Android.Runtime;
+
 using AndroidX.DrawerLayout.Widget;
-using Dimmer.CustomShellRenderers;
+
 using Debug = System.Diagnostics.Debug;
 
 namespace Dimmer;
-
+#if DEBUG
+// Enable debuggable attribute in debug configuration.
+// Remove this if you don't want the app to be debuggable.
+// For release builds, ensure Debuggable(false) is set or this line is removed.
+// [Application(Debuggable = true)]
+#else
+// Disable debuggable attribute in release configuration.
+// [Application(Debuggable = false)]
+#endif
 [Application]
 public class MainApplication : MauiApplication
 {
@@ -16,9 +25,36 @@ public class MainApplication : MauiApplication
 
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
-
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += OnAndroidUnhandledExceptionRaiser;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
     }
 
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Debug.WriteLine($"UNOBSERVED TASK EXCEPTION (Android): {e.Exception}");
+        var errorHandler = IPlatformApplication.Current!.Services.GetService<IErrorHandler>();
+        errorHandler?.HandleError(e.Exception);
+        e.SetObserved();
+    }
+
+    private static void OnAndroidUnhandledExceptionRaiser(object? sender, RaiseThrowableEventArgs e)
+    {
+        Debug.WriteLine($"ANDROID UNHANDLED EXCEPTION: {e.Exception}");
+        var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();
+        errorHandler?.HandleError(e.Exception);
+        e.Handled = true; // Prevent the application from crashing
+    }
+
+    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        Debug.WriteLine($"GLOBAL UNHANDLED EXCEPTION (Android): {e.ExceptionObject}");
+        var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();
+        errorHandler?.HandleError((Exception)e.ExceptionObject);
+        // On Android, unhandled exceptions in the main thread might still cause a crash.
+        // The AndroidEnvironment.UnhandledExceptionRaiser is generally more effective for preventing crashes.
+        // However, we still log here for completeness.
+    }
 
     public static void HandleAppAction(AppAction appAction)
     {

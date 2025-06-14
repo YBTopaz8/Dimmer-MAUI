@@ -2,10 +2,9 @@
 
 
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
-using Dimmer.WinUI.Views.ArtistsSpace;
-using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 namespace Dimmer.WinUI;
 
@@ -19,7 +18,12 @@ public static class MauiProgram
             .UseUraniumUI()
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
-            .UseSharedMauiApp();
+            .UseSharedMauiApp()
+            .ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
+            });
+
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddScoped<BaseViewModelWin>();

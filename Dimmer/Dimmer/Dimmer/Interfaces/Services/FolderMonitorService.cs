@@ -3,7 +3,7 @@
 namespace Dimmer.Interfaces.Services;
 public class FolderMonitorService : IFolderMonitorService
 {
-    
+
     private readonly List<FileSystemWatcher> _watchers = [];
     private bool _disposed;
 
@@ -14,6 +14,7 @@ public class FolderMonitorService : IFolderMonitorService
 
     public void Start(IEnumerable<string> paths)
     {
+
         Stop();
         if (paths == null || !paths.Any())
             return;

@@ -1,8 +1,5 @@
 ﻿// In Dimmer.Orchestration/AutoMapperConf.cs
 
-using AutoMapper;
-
-using Dimmer.Data.Models;
 // Assuming other necessary using statements for your ViewModels etc.
 
 namespace Dimmer.Orchestration;
@@ -56,6 +53,9 @@ public static class AutoMapperConf
             cfg.CreateMap<SongModel, SongModel>()
                .ForMember(dest => dest.Album, opt => opt.Ignore())
                .ForMember(dest => dest.Genre, opt => opt.Ignore())
+               .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
+               .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
+               .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
                .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
                .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
@@ -80,6 +80,9 @@ public static class AutoMapperConf
              .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
              .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
              .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
+             .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
+             .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
+             .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
              .ForMember(dest => dest.Tags, opt => opt.Ignore())
              .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
              .ForMember(dest => dest.Playlists, opt => opt.Ignore());

@@ -1,10 +1,6 @@
 ﻿using Android.Media.Audiofx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using Object = Java.Lang.Object;
-using System.Threading.Tasks;
 
 namespace Dimmer.Utils.Interfaces;
 

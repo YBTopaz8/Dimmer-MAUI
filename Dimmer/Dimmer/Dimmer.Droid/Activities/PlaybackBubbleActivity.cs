@@ -1,7 +1,5 @@
 ﻿using Android.App;
-using Android.Content; // <-- Add if missing for Intent/ComponentName etc.
 using Android.OS;
-using Android.Widget;
 using AndroidX.AppCompat.App;
 
 // *** Correct using statement for the listener interface ***

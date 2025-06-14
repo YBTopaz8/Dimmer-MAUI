@@ -1,9 +1,6 @@
-﻿
-
+﻿using Dimmer.Utils.CustomHandlers.CollectionView;
 using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
-
-using Microsoft.Maui.Controls.Compatibility.Hosting;
 
 namespace Dimmer;
 
@@ -48,13 +45,16 @@ public static class MauiProgram
         builder.Services.AddSingleton<BaseViewModelAnd>();
         builder.Services.AddSingleton<BtmBar>();
         builder.Services.AddSingleton<NowPlayingbtmsheet>();
+        builder.Services.AddSingleton<SearchFilterAndSongsColViewUI>();
         builder.Services.AddSingleton<PlayHistoryPage>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
         .ConfigureMauiHandlers(handlers =>
         {
             handlers.AddHandler<Shell, MyShellRenderer>();
+            handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
 
         });
+        builder.Services.AddSingleton<PlayerViewModel>();
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
         return builder.Build();

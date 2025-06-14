@@ -1,5 +1,3 @@
-using AndroidX.Lifecycle;
-
 namespace Dimmer.Views.Stats;
 
 public partial class PlayHistoryPage : ContentPage
