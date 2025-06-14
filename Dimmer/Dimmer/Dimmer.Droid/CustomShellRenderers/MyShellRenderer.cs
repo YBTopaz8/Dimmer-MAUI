@@ -1,16 +1,6 @@
-﻿using Android.Content;
-
-using AndroidX.Core.View;
+﻿using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Fragment.App;
-
-using Microsoft.Maui;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.CustomShellRenderers;
 

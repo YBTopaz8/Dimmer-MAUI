@@ -1,7 +1,5 @@
 ﻿using System.Drawing.Imaging;
 
-using Dimmer.WinUI.Views.ArtistsSpace;
-
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;

@@ -1,8 +1,5 @@
 ﻿// In Dimmer.Orchestration/AutoMapperConf.cs
 
-using AutoMapper;
-
-using Dimmer.Data.Models;
 // Assuming other necessary using statements for your ViewModels etc.
 
 namespace Dimmer.Orchestration;

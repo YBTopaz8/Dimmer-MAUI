@@ -93,8 +93,6 @@
                                                         </VisualStateGroup>
                                                     </VisualStateManager.VisualStateGroups>
 
-                                                    <Image HeightRequest="40" Source="{Binding ImageBytes, Converter={converters:BytesArrayToImageSource}}" />
-
                                                     <Label Text="{Binding Name}" />
 
                                                     <BoxView HeightRequest="1" Color="DarkSlateBlue" />
@@ -151,13 +149,7 @@
                                                                                   NumberOfTapsRequired="2" Tapped="TapGestRec_Tapped"
                                                                                   />
                                                         </Grid.GestureRecognizers>
-                                                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                                            <ImageButton Aspect="AspectFit" HeightRequest="100"
-                                                                         Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
-                                                                         ToolTipProperties.Text="{Binding Title}"
-                                                                         WidthRequest="100"
-                                                                         />
-                                                        </HorizontalStackLayout>
+                                                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" />
 
                                                         <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
                                                             <VerticalStackLayout HorizontalOptions="End">

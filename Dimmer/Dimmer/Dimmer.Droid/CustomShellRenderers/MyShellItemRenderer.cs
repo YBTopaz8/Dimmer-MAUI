@@ -2,8 +2,6 @@
 
 using AndroidX.Fragment.App;
 
-using Dimmer.Utils.PageAnimations;
-
 using Google.Android.Material.BottomNavigation;
 
 using AColor = Android.Graphics.Color;

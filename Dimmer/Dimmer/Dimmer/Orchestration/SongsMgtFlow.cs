@@ -2,7 +2,6 @@
 using Dimmer.Utilities.Extensions; // For ToModel, ToModelView
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Reactive.Disposables;
-using ATL;
 using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Orchestration;

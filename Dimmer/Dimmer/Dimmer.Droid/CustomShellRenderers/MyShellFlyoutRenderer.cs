@@ -1,31 +1,4 @@
-﻿using AndroidX.DrawerLayout.Widget;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using Android.Content;
-using Android.Graphics.Drawables;
-using Android.OS;
-using Android.Views;
-using Android.Widget;
-using Google.Android.Material.BottomNavigation;
-using Google.Android.Material.BottomSheet;
-using Google.Android.Material.Navigation;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Graphics;
-using AColor = Android.Graphics.Color;
-using AView = Android.Views.View;
-using IMenu = Android.Views.IMenu;
-using LP = Android.Views.ViewGroup.LayoutParams;
-using Orientation = Android.Widget.Orientation;
-using View = Android.Views.View;
+﻿using AView = Android.Views.View;
 namespace Dimmer.CustomShellRenderers;
 public partial class MyShellFlyoutRenderer : ShellFlyoutRenderer
 {

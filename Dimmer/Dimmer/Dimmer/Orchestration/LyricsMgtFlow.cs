@@ -1,13 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 // Add other necessary using statements for your models (SongModelView, LyricPhraseModel, etc.)
 

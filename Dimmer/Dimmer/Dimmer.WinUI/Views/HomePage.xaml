@@ -226,6 +226,13 @@
 
 
 
+                            <syncf:SfChip x:Name="ScrollToSong"
+                                          Clicked="ScrollToSong_Clicked" ImageSize="40"
+                                          ImageSource="eye.png" ShowIcon="True"
+                                          WidthRequest="55"
+                                          />
+
+
                             <syncf:SfChip x:Name="RefreshData"
                                           Command="{Binding RefreshSongMetadataCommand}"
                                           ImageSize="40" ImageSource="vinyl.png"
@@ -233,8 +240,8 @@
                                           />
 
 
-                            <syncf:SfChip x:Name="Playlists"
-                                          Clicked="StatsSfChip_Clicked" ImageSize="40"
+                            <syncf:SfChip x:Name="PlaylistsChip"
+                                          Clicked="PlaylistsChip_Clicked" ImageSize="40"
                                           ImageSource="playlistminimalistic3.png" ShowIcon="True"
                                           WidthRequest="55"
                                           >
@@ -433,7 +440,20 @@
                                                 <Label FontFamily="AleySans"
                                                        Text="{Binding Title}"
                                                        VerticalOptions="Center"
-                                                       />
+                                                       >
+                                                    <Label.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCurrentPlayingHighlight}"
+                                                                     TargetType="Label" Value="True"
+                                                                     >
+                                                            <Setter Property="FontSize" Value="21" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsCurrentPlayingHighlight}"
+                                                                     TargetType="Label" Value="False"
+                                                                     >
+                                                            <Setter Property="FontSize" Value="18" />
+                                                        </DataTrigger>
+                                                    </Label.Triggers>
+                                                </Label>
                                             </HorizontalStackLayout>
 
                                             <syncf:SfEffectsView x:Name="ArtistsEffectsView"
@@ -450,6 +470,7 @@
                                                 </FlyoutBase.ContextFlyout>
                                                 <Label Grid.Column="1" HorizontalOptions="Center"
                                                        Text="{Binding ArtistName}"
+                                                       VerticalOptions="Center"
                                                        />
                                             </syncf:SfEffectsView>
 
@@ -457,15 +478,19 @@
                                                    HorizontalTextAlignment="Start" LineBreakMode="TailTruncation"
                                                    Text="{Binding AlbumName}"
                                                    ToolTipProperties.Text="{Binding AlbumName}"
+                                                   VerticalOptions="Center"
                                                    />
                                             <Label Grid.Column="3" HorizontalOptions="Center"
                                                    Text="{Binding Genre.Name}"
+                                                   VerticalOptions="Center"
                                                    />
                                             <Label Grid.Column="4" HorizontalOptions="Center"
                                                    Text="{Binding ReleaseYear}"
+                                                   VerticalOptions="Center"
                                                    />
                                             <Label Grid.Column="5" HorizontalOptions="Center"
                                                    Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                                                   VerticalOptions="Center"
                                                    />
                                         </Grid>
 
@@ -562,7 +587,7 @@
         </Grid>
 
 
-        <syncf:SfPopup x:Name="ArtistsContextMenuPopup"
+        <syncf:SfPopup x:Name="PlaylistPopup"
                        AnimationMode="SlideOnBottom" Background="Transparent"
                        BackgroundColor="Transparent" IsFullScreen="True"
                        IsOpen="False" IsVisible="False"

@@ -1,13 +1,8 @@
-﻿using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-
-using ATL;
+﻿using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
 using Dimmer.Data.ModelView.NewFolder;
-using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
@@ -16,8 +11,6 @@ using Dimmer.Utilities.StatsUtils;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MoreLinq;
-
-using Realms;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -86,8 +79,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial bool? IsAscending { get; set; }
     [ObservableProperty]
     public partial SongModelView? SelectedSongForContext { get; set; }
-    [ObservableProperty]
-    public partial SongModelView? ActivePlaylistModel { get; set; }
+
 
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
@@ -316,6 +308,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedAlbumSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedArtistSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedPlaylistSongs { get; set; }
+    [ObservableProperty] public partial ObservableCollection<PlaylistModelView>? AllPlaylistsFromDBView { get; set; }
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
     [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedArtistAlbums { get; set; }
     [ObservableProperty] public partial CollectionStatsSummary? ArtistCurrentColStats { get; private set; }
@@ -542,11 +535,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                         if (QueueOfSongsLive is not null)
                         {
 
-                        }
-                        else
-                        {
                             QueueOfSongsLive.Clear();
                         }
+                        
                         QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
 
 
@@ -1116,7 +1107,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         if (artView?.Id == null)
         {
             _logger.LogWarning("ViewArtistDetails called with a null artist view or ID.");
-            return;
+            //return;
         }
 
         // ====================================================================
@@ -1137,7 +1128,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
         SelectedArtistSongs = _mapper.Map<ObservableCollection<SongModelView>>(artist.Songs.ToArray());
-        RefreshSongsCover(SelectedArtistSongs, CollectionToUpdate.ArtistAlbumSongs);
+        //RefreshSongsCover(SelectedArtistSongs, CollectionToUpdate.ArtistAlbumSongs);
 
 
         foreach (var songg in artist.Songs)
@@ -1155,7 +1146,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
         //OnPropertyChanged(nameof(SelectedArtistAlbums));
 
-        RefreshAlbumsCover(SelectedArtistAlbums, CollectionToUpdate.AlbumCovers);
+        //RefreshAlbumsCover(SelectedArtistAlbums, CollectionToUpdate.AlbumCovers);
         //var topSongs = TopStats.GetTopCompletedSongs(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 10);
         //foreach (var item in topSongs)
         //{
@@ -1425,7 +1416,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         _logger.LogInformation("Adding NowPlayingDisplayQueue to playlist '{PlName}'.", PlName);
         var realm = realmFactory.GetRealmInstance();
-        PlaylistModel? dbPlaylist = realm.All<PlaylistModel>().FirstOrDefault(x => x.PlaylistName==PlName);
 
         // The entire logic must be inside a single transaction for atomicity and performance.
         realm.Write(() =>
@@ -1549,5 +1539,27 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _logger.LogInformation("Disposing BaseViewModel.");
             _subsManager.Dispose();
         }
+    }
+    private bool BuildIdFilter(IEnumerable<ObjectId> ids, out string queryString, out QueryArgument[] queryArgs)
+    {
+        var idList = ids.ToList();
+        if (!idList.Any())
+        {
+            queryString = string.Empty;
+            queryArgs = Array.Empty<QueryArgument>();
+            return false;
+        }
+
+        // 1. Create a list of "Id == $n" clauses, where n is the index.
+        var clauses = Enumerable.Range(0, idList.Count)
+                                .Select(i => $"Id == ${i}");
+
+        // 2. Join them with " OR " to create the full query string.
+        queryString = string.Join(" OR ", clauses);
+
+        // 3. Convert the list of ObjectIds into the required QueryArgument[] array.
+        queryArgs = idList.Select(id => (QueryArgument)id).ToArray();
+
+        return true;
     }
 }

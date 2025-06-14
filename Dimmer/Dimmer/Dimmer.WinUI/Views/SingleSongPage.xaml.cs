@@ -1,5 +1,3 @@
-using static Vanara.PInvoke.User32;
-
 namespace Dimmer.WinUI.Views;
 
 public partial class SingleSongPage : ContentPage

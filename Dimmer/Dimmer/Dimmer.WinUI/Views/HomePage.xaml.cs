@@ -1,11 +1,9 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
+using MoreLinq;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
-using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer.WinUI.Views;
 
@@ -366,8 +364,22 @@ public partial class HomePage : ContentPage
 
     private void AddToPlaylistClicked(object sender, EventArgs e)
     {
-        ArtistsContextMenuPopup.IsOpen = !ArtistsContextMenuPopup.IsOpen;
+        PlaylistPopup.IsOpen = !PlaylistPopup.IsOpen;
+        //MyViewModel.ActivePlaylistModel
+    }
 
+    private void ScrollToSong_Clicked(object sender, EventArgs e)
+    {
+        var obsCol = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        var index = obsCol.ToList();
+        var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
+
+        SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
+        //SongsColView.ScrollTo(MyViewModel.CurrentPlayingSongView, null, ScrollToPosition.Start, true);
+    }
+
+    private void PlaylistsChip_Clicked(object sender, EventArgs e)
+    {
 
     }
 }

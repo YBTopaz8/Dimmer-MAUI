@@ -5,13 +5,6 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
-using Dimmer.WinUI.Views.ArtistsSpace;
-using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
-
-using Microsoft.Maui.Controls.Handlers.Items;
-using Microsoft.Maui.Hosting;
-
-using static Vanara.PInvoke.AdvApi32;
 
 namespace Dimmer.WinUI;
 

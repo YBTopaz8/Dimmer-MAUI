@@ -3,20 +3,11 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-using Android.Views;
 
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
-using Dimmer.Interfaces.Services;
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Extensions;
-using Dimmer.Utils.PageAnimations;
 using Dimmer.ViewModel;
 
 using Microsoft.Extensions.Logging;

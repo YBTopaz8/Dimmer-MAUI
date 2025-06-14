@@ -1,12 +1,3 @@
-using System.Diagnostics;
-using System.Threading.Tasks;
-
-using Dimmer.Interfaces.Services.Interfaces;
-
-using Syncfusion.Maui.Toolkit.Carousel;
-
-using static Vanara.PInvoke.User32;
-
 namespace Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 public partial class ArtistsPage : ContentPage

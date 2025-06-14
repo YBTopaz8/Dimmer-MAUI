@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.StatsUtils.Albums;
+﻿namespace Dimmer.Utilities.StatsUtils.Albums;
 public static class AlbumStats
 {
     #region Helper Methods

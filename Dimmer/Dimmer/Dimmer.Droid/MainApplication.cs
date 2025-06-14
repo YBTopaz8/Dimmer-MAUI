@@ -3,8 +3,6 @@ using Android.Runtime;
 
 using AndroidX.DrawerLayout.Widget;
 
-using Dimmer.CustomShellRenderers;
-
 using Debug = System.Diagnostics.Debug;
 
 namespace Dimmer;

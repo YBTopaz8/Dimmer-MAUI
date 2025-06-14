@@ -1,5 +1,4 @@
-﻿using Android.Content;
-using Android.OS;
+﻿using Android.OS;
 
 namespace Dimmer.DimmerAudio;
 public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection

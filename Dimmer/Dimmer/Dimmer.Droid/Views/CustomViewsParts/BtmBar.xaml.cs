@@ -1,24 +1,10 @@
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Threading.Tasks;
-
-using Android.Graphics;
-
-using CommunityToolkit.Maui.Core.Extensions;
 
 using DevExpress.Maui.Controls;
-using DevExpress.Maui.Core;
-using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
-using DevExpress.Xpo;
 
-using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
-using Dimmer.ViewModel;
 
-using Syncfusion.Maui.Toolkit.Chips;
-
-using Color = Microsoft.Maui.Graphics.Color;
 using View = Microsoft.Maui.Controls.View;
 
 

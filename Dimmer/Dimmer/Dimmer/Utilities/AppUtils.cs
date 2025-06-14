@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace Dimmer.Utilities;
 public static class AppUtils

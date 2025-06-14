@@ -1,10 +1,7 @@
 ﻿using Android.App;
-using Android.Content;
-using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Service.QuickSettings;
 using Android.Util;
-using Android.Widget;
 
 using AndroidX.Media3.Session;
 

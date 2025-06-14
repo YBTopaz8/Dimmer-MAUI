@@ -1,6 +1,4 @@
-﻿using ATL;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 

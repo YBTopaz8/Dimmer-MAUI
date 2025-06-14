@@ -1,7 +1,5 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
 
-using Microsoft.Maui.Controls;
-
 namespace Dimmer.Interfaces.Services;
 public class FolderMonitorService : IFolderMonitorService
 {

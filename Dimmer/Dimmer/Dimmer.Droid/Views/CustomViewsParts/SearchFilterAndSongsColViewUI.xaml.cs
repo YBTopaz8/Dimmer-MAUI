@@ -1,7 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics;
-
-using AndroidX.Lifecycle;
 
 using Dimmer.Utilities;
 

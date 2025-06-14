@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using AndroidX.Interpolator.View.Animation;
-using AndroidX.Transitions;
-
-using View = Microsoft.Maui.Controls.View;
+﻿using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer.Utils.AnimsStatics;
 public static class Transition

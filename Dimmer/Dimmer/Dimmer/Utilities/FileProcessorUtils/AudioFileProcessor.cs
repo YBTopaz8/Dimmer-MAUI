@@ -1,10 +1,4 @@
-﻿using System.Diagnostics;
-
-using ATL;
-
-using Dimmer.Interfaces.Services.Interfaces;
-
-using static Dimmer.Utilities.AppUtils;
+﻿using ATL;
 
 namespace Dimmer.Utilities.FileProcessorUtils;
 

@@ -87,30 +87,30 @@
     <Grid>
 
         <dx:DXCollectionView x:Name="SongsColView"
-                             AllowDragDropItems="False" AllowFixedGroupHeaders="True"
-                             BackgroundColor="Transparent" ItemSpacing="5"
+                             Margin="10,0" AllowDragDropItems="False"
+                             AllowFixedGroupHeaders="True" BackgroundColor="Transparent"
+                             ItemSpacing="5"
                              ItemsSource="{Binding BaseVM.NowPlayingDisplayQueue}"
                              Tap="SongsColView_Tap"
                              >
 
             <dx:DXCollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
-                    <Grid BackgroundColor="Transparent" ColumnDefinitions="0.23*,*,0.35*"
+                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,0.35*"
                           HeightRequest="80" VerticalOptions="Center"
                           >
 
-                        <dx:DXBorder Grid.Column="0" BackgroundColor="Transparent"
-                                     CornerRadius="15" HeightRequest="60"
-                                     WidthRequest="60"
-                                     >
-
-                            <!--<Image Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />-->
-
-                        </dx:DXBorder>
                         <dx:DXStackLayout x:Name="TitleAndArtists"
-                                          Grid.Column="1" BackgroundColor="Transparent"
+                                          Grid.Column="0" BackgroundColor="Transparent"
                                           VerticalOptions="Center"
                                           >
+                            <Label BackgroundColor="Transparent" FontAttributes="Bold"
+                                   FontFamily="AleySans" FontSize="18"
+                                   IsVisible="{Binding IsCurrentPlayingHighlight}"
+                                   LineBreakMode="WordWrap"
+                                   Text="{Binding Title}"
+                                   TextColor="#F5F5F5" VerticalOptions="Center"
+                                   />
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
                                    FontFamily="AleySans" FontSize="18"
                                    LineBreakMode="WordWrap"
@@ -135,7 +135,7 @@
 
                         </dx:DXStackLayout>
                         <dx:DXButton x:Name="MoreIcon"
-                                     Grid.Column="2" Clicked="MoreIcon_Clicked"
+                                     Grid.Column="1" Clicked="MoreIcon_Clicked"
                                      CommandParameter="{Binding .}"
                                      HorizontalOptions="End" ShowContent="True"
                                      ShowIcon="False"

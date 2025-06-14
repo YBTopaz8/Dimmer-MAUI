@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-
-namespace Dimmer.Utilities.Extensions;
+﻿namespace Dimmer.Utilities.Extensions;
 
 public static class EnumerableExtensions
 {

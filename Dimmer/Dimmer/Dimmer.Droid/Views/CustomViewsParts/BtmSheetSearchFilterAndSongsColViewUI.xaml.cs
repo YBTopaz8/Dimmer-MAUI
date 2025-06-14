@@ -1,7 +1,5 @@
 using System.ComponentModel;
 
-using AndroidX.Lifecycle;
-
 using Dimmer.Utilities;
 
 namespace Dimmer.Views.CustomViewsParts;

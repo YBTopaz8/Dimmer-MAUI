@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using View = Android.Views.View;
+﻿using View = Android.Views.View;
 
 namespace Dimmer.Utils.AnimsStatics;
 public class ViewRegistry

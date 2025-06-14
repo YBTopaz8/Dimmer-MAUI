@@ -1,9 +1,5 @@
-﻿using System.Diagnostics;
-
-using Dimmer.Interfaces.Services.Interfaces;
+﻿using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions;
-
-using Realms;
 
 
 namespace Dimmer.Interfaces.Services;

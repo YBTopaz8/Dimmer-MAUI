@@ -1,14 +1,9 @@
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Editors;
 
-using Dimmer.Data.Models;
-using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
-using Dimmer.ViewModel;
 
 namespace Dimmer.Views.CustomViewsParts;
 

@@ -1,10 +1,11 @@
 ﻿#region Using Directives
 // Android Core
 using Android.App;
-using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+
 using AndroidX.Media3.UI;
+
 using Uri = Android.Net.Uri;
 
 // AndroidX Core & Media
@@ -15,6 +16,7 @@ using AndroidX.Media3.Session;
 
 // Java Interop
 using Java.Lang;
+
 using Object = Java.Lang.Object;
 
 // AndroidX Concurrent Futures - For CallbackToFutureAdapter
@@ -28,15 +30,16 @@ using AndroidX.Media3.Common.Text;
 using DeviceInfo = AndroidX.Media3.Common.DeviceInfo;
 using MediaMetadata = AndroidX.Media3.Common.MediaMetadata;
 using AudioAttributes = AndroidX.Media3.Common.AudioAttributes;
+
 using Android.Util;
+
 using Java.Util.Concurrent;
+
 using Android.Media;
-using Dimmer.Activities;
+
 using MediaController = AndroidX.Media3.Session.MediaController;
-using Dimmer.Interfaces.Services.Interfaces;
-using System.Threading.Tasks;
+
 using Dimmer.Utilities.Events;
-using System.Diagnostics;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -259,10 +262,14 @@ public class ExoPlayerService : MediaSessionService
     {
         base.OnCreate();
         //Console.WriteLine("[ExoPlayerService] OnCreate");
+        var audioAttributes = new AudioAttributes.Builder()!
+    .SetUsage(C.UsageMedia)! // Specify this is media playback
+    .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
+    .Build();
         try
         {
             player = new ExoPlayerBuilder(this)
-                .SetAudioAttributes(AudioAttributes.Default, true)!
+                .SetAudioAttributes(audioAttributes, true)!
                 .SetHandleAudioBecomingNoisy(true)!
                 .SetWakeMode(C.WakeModeNetwork)!
                 .SetSkipSilenceEnabled(true)!
@@ -484,10 +491,7 @@ public class ExoPlayerService : MediaSessionService
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)!
             .SetArtist(artist)!
-
             .SetAlbumTitle(album)!
-            .SetUserRating(new HeartRating(true))! // Ensure HeartRating class exists
-            .SetUserRating(new ThumbRating(true))! // Ensure HeartRating class exists
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
         .SetGenre(song.Genre.Name)
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
@@ -507,7 +511,7 @@ public class ExoPlayerService : MediaSessionService
                 //Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
-        
+
 
         try
         {

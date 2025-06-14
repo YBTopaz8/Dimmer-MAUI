@@ -2,8 +2,6 @@
 using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
 
-using Microsoft.Maui.Controls.Compatibility.Hosting;
-
 namespace Dimmer;
 
 public static class MauiProgram
