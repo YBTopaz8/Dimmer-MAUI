@@ -158,7 +158,7 @@ public class LibraryScannerService : ILibraryScannerService
             _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
                 newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlaySongFrommOutsideApp, newOrUpdatedSongs, newOrUpdatedSongs.FirstOrDefault().ToModelView(_mapper), newOrUpdatedSongs.FirstOrDefault()));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, newOrUpdatedSongs, newOrUpdatedSongs[0].ToModelView(_mapper), newOrUpdatedSongs[0]));
 
             if (!newOrUpdatedSongs.Any() && !newOrUpdatedArtists.Any() && !newOrUpdatedAlbums.Any() && !newOrUpdatedGenres.Any())
             {

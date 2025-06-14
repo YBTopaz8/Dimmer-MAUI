@@ -99,9 +99,10 @@ public partial class HomePage : ContentPage
             default:
                 break;
         }
-        var art = MyViewModel.CurrentPlayingSongView.ArtistIds.FirstOrDefault();
-        DeviceStaticUtils.SelectedArtistOne = art;
-        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -360,6 +361,13 @@ public partial class HomePage : ContentPage
     {
         Debug.WriteLine(e.NewIndexes);
         Debug.WriteLine(e.NewIndexes.GetType());
+
+    }
+
+    private void AddToPlaylistClicked(object sender, EventArgs e)
+    {
+        ArtistsContextMenuPopup.IsOpen = !ArtistsContextMenuPopup.IsOpen;
+
 
     }
 }

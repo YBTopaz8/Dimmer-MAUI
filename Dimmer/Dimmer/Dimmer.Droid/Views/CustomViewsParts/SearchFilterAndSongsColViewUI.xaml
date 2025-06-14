@@ -104,7 +104,7 @@
                                      WidthRequest="60"
                                      >
 
-                            <Image Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                            <!--<Image Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />-->
 
                         </dx:DXBorder>
                         <dx:DXStackLayout x:Name="TitleAndArtists"

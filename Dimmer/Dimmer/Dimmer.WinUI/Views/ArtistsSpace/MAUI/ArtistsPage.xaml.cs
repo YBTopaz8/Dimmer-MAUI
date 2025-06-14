@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using Dimmer.Interfaces.Services.Interfaces;
@@ -17,13 +18,18 @@ public partial class ArtistsPage : ContentPage
         //= IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
         MyViewModel=viewModel;
         BindingContext=MyViewModel;
+        this.Loaded +=ArtistsPage_Loaded;
+    }
+
+    private void ArtistsPage_Loaded(object? sender, EventArgs e)
+    {
+        Debug.WriteLine("Loaded");
     }
 
     public BaseViewModelWin MyViewModel { get; }
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        LoadArtists();
     }
     public void LoadArtists()
     {
@@ -31,14 +37,18 @@ public partial class ArtistsPage : ContentPage
         MyViewModel.ViewArtistDetails(s);
 
     }
-
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+        LoadArtists();
+    }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync("..");
     }
-    private async void PlayAll_Clicked(object sender, EventArgs e)
+    private void PlayAll_Clicked(object sender, EventArgs e)
     {
-        
+
     }
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
@@ -129,4 +139,20 @@ public partial class ArtistsPage : ContentPage
         });
     }
 
+    private void ArtistAlbums_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistSongsColView_Loaded(object sender, EventArgs e)
+    {
+
+    }
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        MyViewModel.SelectedAlbumArtists?.Clear();
+        MyViewModel.SelectedAlbumSongs?.Clear();
+        MyViewModel.SelectedArtistAlbums?.Clear();
+    }
 }

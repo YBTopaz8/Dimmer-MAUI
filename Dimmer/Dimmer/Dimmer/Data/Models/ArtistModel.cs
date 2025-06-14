@@ -22,6 +22,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     public IQueryable<AlbumModel> Albums { get; }
 
 
+
     public IList<TagModel> Tags { get; } = null!;
     public IList<UserNoteModel> UserNotes { get; } = null!;
     public ArtistModel()

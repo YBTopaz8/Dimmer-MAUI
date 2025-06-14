@@ -69,7 +69,7 @@
                                 <Grid Grid.Row="0" BackgroundColor="Transparent">
                                     <CollectionView Header="All Albums"
                                                     ItemsSource="{Binding SelectedArtistAlbums}"
-                                                    SelectionMode="Single"
+                                                    Loaded="ArtistAlbums_Loaded" SelectionMode="Single"
                                                     >
                                         <CollectionView.ItemsLayout>
                                             <GridItemsLayout Orientation="Vertical" Span="2" />
@@ -93,6 +93,8 @@
                                                         </VisualStateGroup>
                                                     </VisualStateManager.VisualStateGroups>
 
+                                                    <Image HeightRequest="40" Source="{Binding ImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+
                                                     <Label Text="{Binding Name}" />
 
                                                     <BoxView HeightRequest="1" Color="DarkSlateBlue" />
@@ -106,6 +108,7 @@
                                 <CollectionView x:Name="ArtistSongsColView"
                                                 Grid.Row="1"
                                                 ItemsSource="{Binding SelectedArtistSongs}"
+                                                Loaded="ArtistSongsColView_Loaded"
                                                 >
                                     <CollectionView.ItemsLayout>
                                         <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
@@ -148,7 +151,7 @@
                                                                                   NumberOfTapsRequired="2" Tapped="TapGestRec_Tapped"
                                                                                   />
                                                         </Grid.GestureRecognizers>
-                                                        <HorizontalStackLayout Grid.Column="0">
+                                                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
                                                             <ImageButton Aspect="AspectFit" HeightRequest="100"
                                                                          Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                                                          ToolTipProperties.Text="{Binding Title}"
@@ -156,7 +159,7 @@
                                                                          />
                                                         </HorizontalStackLayout>
 
-                                                        <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
+                                                        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
                                                             <VerticalStackLayout HorizontalOptions="End">
                                                                 <Label HorizontalTextAlignment="Justify"
                                                                        Text="{Binding Title}"
@@ -168,7 +171,7 @@
                                                                        VerticalOptions="Center"
                                                                        />
                                                             </VerticalStackLayout>
-                                                            <HorizontalStackLayout HorizontalOptions="End">
+                                                            <HorizontalStackLayout HorizontalOptions="Start">
                                                                 <ImageButton HeightRequest="60" Source="more1.png" />
                                                             </HorizontalStackLayout>
                                                         </VerticalStackLayout>

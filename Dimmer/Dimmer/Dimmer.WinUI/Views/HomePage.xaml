@@ -69,9 +69,10 @@
                                                       Tapped="CurrPlayingSongGesRec_Tapped"
                                                       />
                             </Border.GestureRecognizers>
+                            <HorizontalStackLayout>
+                                <Label FontFamily="AleySans" Text="{Binding CurrentPlayingSongView.Title}" />
 
-                            <Label FontFamily="AleySans" Text="{Binding CurrentPlayingSongView.Title}" />
-
+                            </HorizontalStackLayout>
                         </Border>
                         <Border>
                             <Border.GestureRecognizers>
@@ -225,6 +226,13 @@
 
 
 
+                            <syncf:SfChip x:Name="RefreshData"
+                                          Command="{Binding RefreshSongMetadataCommand}"
+                                          ImageSize="40" ImageSource="vinyl.png"
+                                          ShowIcon="True" WidthRequest="55"
+                                          />
+
+
                             <syncf:SfChip x:Name="Playlists"
                                           Clicked="StatsSfChip_Clicked" ImageSize="40"
                                           ImageSource="playlistminimalistic3.png" ShowIcon="True"
@@ -281,7 +289,7 @@
                       >
 
                     <Grid Grid.Row="1" ColumnDefinitions="*">
-                        <Grid ColumnDefinitions="1.1*,1.5*,*,*,*,*,10">
+                        <Grid ColumnDefinitions="1.5*,1.5*,*,*,*,*,10">
                             <Grid.Resources>
                                 <Style TargetType="Label">
                                     <Setter Property="FontSize" Value="18" />
@@ -376,7 +384,7 @@
                                     </VisualStateManager.VisualStateGroups>
                                     <syncf:SfEffectsView BackgroundColor="Transparent" TouchDownEffects="Ripple">
 
-                                        <Grid ColumnDefinitions="1.1*,1.5*,*,*,*,*,10" ColumnSpacing="20"
+                                        <Grid ColumnDefinitions="1.5*,1.5*,*,*,*,*,10" ColumnSpacing="20"
                                               RowDefinitions="80"
                                               >
 
@@ -391,9 +399,8 @@
                                                     <Setter Property="FontSize" Value="18" />
                                                 </Style>
                                             </Grid.Resources>
-                                            <Label Grid.Column="0" FontFamily="AleySans"
-                                                   Text="{Binding Title}"
-                                                   >
+                                            <HorizontalStackLayout Grid.Column="0" Spacing="10">
+
                                                 <FlyoutBase.ContextFlyout>
                                                     <MenuFlyout>
                                                         <MenuFlyoutItem x:Name="ViewSong"
@@ -403,7 +410,32 @@
                                                                         />
                                                     </MenuFlyout>
                                                 </FlyoutBase.ContextFlyout>
-                                            </Label>
+                                                <Border BackgroundColor="Transparent" Stroke="Transparent"
+                                                        StrokeShape="RoundRectangle 15"
+                                                        >
+                                                    <Border.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCurrentPlayingHighlight}"
+                                                                     TargetType="Border" Value="True"
+                                                                     >
+                                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsCurrentPlayingHighlight}"
+                                                                     TargetType="Border" Value="False"
+                                                                     >
+                                                            <Setter Property="Stroke" Value="Transparent" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                    <!--<Image HeightRequest="80"
+                                                           Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
+                                                           WidthRequest="80"
+                                                           />-->
+                                                </Border>
+                                                <Label FontFamily="AleySans"
+                                                       Text="{Binding Title}"
+                                                       VerticalOptions="Center"
+                                                       />
+                                            </HorizontalStackLayout>
+
                                             <syncf:SfEffectsView x:Name="ArtistsEffectsView"
                                                                  Grid.Column="1" BackgroundColor="Transparent"
                                                                  >
@@ -531,45 +563,42 @@
 
 
         <syncf:SfPopup x:Name="ArtistsContextMenuPopup"
-                       IsFullScreen="False" IsOpen="False"
-                       IsVisible="False"
+                       AnimationMode="SlideOnBottom" Background="Transparent"
+                       BackgroundColor="Transparent" IsFullScreen="True"
+                       IsOpen="False" IsVisible="False"
+                       ShowCloseButton="True"
                        >
-            <syncf:SfPopup.HeaderTemplate>
-                <DataTemplate>
-                    <HorizontalStackLayout>
-                        <Label Text="Artists" />
-                    </HorizontalStackLayout>
-                </DataTemplate>
-            </syncf:SfPopup.HeaderTemplate>
+
 
             <syncf:SfPopup.ContentTemplate>
                 <DataTemplate>
-                    <CollectionView ItemsSource="{Binding CurrentPlayingSongView.ArtistIds}">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:ArtistModelView">
-                                <VerticalStackLayout>
+                    <Grid BackgroundColor="Transparent">
+                        <CollectionView ItemsSource="{Binding CurrentPlayingSongView.ArtistIds}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:ArtistModelView">
+                                    <VerticalStackLayout>
 
-                                    <Label FontAttributes="Bold" FontSize="20"
-                                           HorizontalOptions="Center"
-                                           Text="{Binding Name}"
-                                           />
-                                    <Button Margin="10,0"
-                                            Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ViewArtistCommand}"
-                                            CommandParameter="{Binding .}"
-                                            HorizontalOptions="Center"
-                                            Text="{Binding Source={x:Static lang:DimmerLanguage.txt_view}, FallbackValue='View'}"
-                                            />
-                                    <Button Margin="10,0"
-                                            Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ClosePopupCommand}"
-                                            HorizontalOptions="Center"
-                                            Text="{Binding Source={x:Static lang:DimmerLanguage.txt_close}, FallbackValue='Close'}"
-                                            />
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
+                                        <Label FontAttributes="Bold" FontSize="20"
+                                               HorizontalOptions="Center"
+                                               Text="{Binding Name}"
+                                               />
+                                        <Button Margin="10,0"
+                                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ViewArtistCommand}"
+                                                CommandParameter="{Binding .}"
+                                                HorizontalOptions="Center"
+                                                Text="{Binding Source={x:Static lang:DimmerLanguage.txt_view}, FallbackValue='View'}"
+                                                />
+                                        <Button Margin="10,0"
+                                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ClosePopupCommand}"
+                                                HorizontalOptions="Center"
+                                                Text="{Binding Source={x:Static lang:DimmerLanguage.txt_close}, FallbackValue='Close'}"
+                                                />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
 
-                    </CollectionView>
-
+                        </CollectionView>
+                    </Grid>
                 </DataTemplate>
             </syncf:SfPopup.ContentTemplate>
         </syncf:SfPopup>

@@ -49,7 +49,6 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public string? DeviceVersion { get; set; }
     public string? UserIDOnline { get; set; }
 
-    public IList<UserNoteModel> UserNotes { get; } = null!;
     public AlbumModel Album { get; set; }
     public ArtistModel Artist { get; set; }
     public GenreModel Genre { get; set; }
@@ -59,8 +58,10 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public IList<SyncLyrics> EmbeddedSync { get; } = null!;
     public IList<DimmerPlayEvent> PlayHistory { get; } = null!;
 
-    public IList<SongModel> Playlists { get; } = null!;
     public bool IsNew { get; set; }
+    [Backlink(nameof(PlaylistModel.SongsInPlaylist))]
+    public IQueryable<PlaylistModel> Playlists { get; } = null!;
+    public IList<UserNoteModel> UserNotes { get; } = null!;
 
     public SongModel()
     {

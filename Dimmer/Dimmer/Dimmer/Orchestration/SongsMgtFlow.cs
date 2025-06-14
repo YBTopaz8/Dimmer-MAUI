@@ -197,8 +197,7 @@ public partial class SongsMgtFlow : IDisposable
 
                     break;
                 case DimmerPlaybackState.PausedDimmer:
-                    if (_audio.IsPlaying)
-                        _audio.Pause();
+
                     break;
                 case DimmerPlaybackState.PlayCompleted:
                     //await _audio.StopAsync();

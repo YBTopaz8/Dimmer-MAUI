@@ -25,21 +25,18 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
     public bool IsNew { get; set; }
-    public IList<SongModel>? SongsInPlaylist { get; }
+    public IList<SongModel> SongsInPlaylist { get; } = null!;
     public string? CurrentSongId { get; set; }
     public string? Description { get; set; }
     public string? CoverImagePath { get; set; }
     public string? Color { get; set; }
     public string? PlaylistType { get; set; } = "General";
 
-    public IList<PlaylistEvent>? PlaylistEvents { get; }
-    public IList<SongModel> Songs { get; }
+    public IList<PlaylistEvent> PlaylistEvents { get; } = null!;
     public string? DeviceName { get; set; }
 
     public UserModel? User { get; set; }
-    //3 PL ; general,
-    // invisible when in an artist/album
-    // custom
+
 }
 
 public partial class PlaylistEvent : EmbeddedObject

@@ -8,7 +8,8 @@ public class BytesArrayToImageSource : IValueConverter
         {
             return ImageSource.FromStream(() => new MemoryStream(bytes));
         }
-        return null;
+
+        return "musicnoteslider.png";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

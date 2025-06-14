@@ -92,14 +92,9 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
         // Try to get cover art path early to associate with album
-        PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-        byte[]? resizedCoverBytes = ImageResizer.ResizeImage(firstPicture?.PictureData);
 
         var album = _metadataService.GetOrCreateAlbum(track, albumName, string.Empty
             );
-        //album.DiscNumber = track.DiscNumber;
-        //album.DiscTotal = track.DiscTotal;
-
 
 
         // --- Genre Processing ---
@@ -117,7 +112,6 @@ public class AudioFileProcessor : IAudioFileProcessor
             OtherArtistsName= artistString,
             Genre = genre,
             Composer = track.Composer,
-            CoverImageBytes = resizedCoverBytes,
 
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
