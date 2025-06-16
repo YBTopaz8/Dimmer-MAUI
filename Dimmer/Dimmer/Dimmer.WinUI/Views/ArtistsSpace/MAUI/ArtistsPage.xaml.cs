@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 public partial class ArtistsPage : ContentPage
@@ -22,16 +24,16 @@ public partial class ArtistsPage : ContentPage
     {
         base.OnAppearing();
     }
-    public void LoadArtists()
+    public async Task LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-        MyViewModel.ViewArtistDetails(s);
+      await  MyViewModel.ViewArtistDetails(s);
 
     }
-    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-        LoadArtists();
+        await LoadArtists();
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {

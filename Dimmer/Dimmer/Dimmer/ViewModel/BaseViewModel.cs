@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
 using ATL;
 
@@ -1230,7 +1231,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
 
-    public void ViewArtistDetails(ArtistModelView? artView)
+    public async Task ViewArtistDetails(ArtistModelView? artView)
     {
 
         if (artView?.Id == null)
@@ -1278,14 +1279,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         // Get the image from the first song in the list
         var firstSong = songsByArtist[0];
         Track tt = new(firstSong.FilePath);
-        SelectedArtist.ImageBytes = tt.EmbeddedPictures.FirstOrDefault()?.PictureData
+        SelectedArtist.ImageBytes = tt.EmbeddedPictures.FirstOrDefault()?.PictureData;
 
         // Populate the song and album collections for the UI
+        await Shell.Current.DisplayAlert("Here", "I have song by artist"+songsByArtist.Count, "OK");
         foreach (var song in songsByArtist)
         {
             SelectedAlbumSongs.Add(song.ToModelView(_mapper));
         }
-
+        await Shell.Current.DisplayAlert("Here !!!", "I have album by artist"+albumsByArtist.Count, "OK");
         foreach (var album in albumsByArtist)
         {
             SelectedArtistAlbums.Add(album.ToModelView(_mapper));
