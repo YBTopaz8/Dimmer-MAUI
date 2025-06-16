@@ -104,8 +104,8 @@
                                 </Grid>
 
                                 <CollectionView x:Name="ArtistSongsColView"
-                                                Grid.Row="1"
-                                                ItemsSource="{Binding SelectedArtistSongs}"
+                                                Grid.Row="1" EmptyView="Nothin..."
+                                                ItemsSource="{Binding SelectedAlbumSongs}"
                                                 Loaded="ArtistSongsColView_Loaded"
                                                 >
                                     <CollectionView.ItemsLayout>

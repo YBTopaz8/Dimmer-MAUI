@@ -278,5 +278,8 @@ public partial class SearchFilterAndSongsColViewUI : DXStackLayout
 
     }
 
-
+    private void SongsColView_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.LoadTheCurrentColView(SongsColView);
+    }
 }

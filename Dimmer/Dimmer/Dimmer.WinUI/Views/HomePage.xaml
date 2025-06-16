@@ -212,12 +212,19 @@
                           >
                         <VerticalStackLayout Grid.Column="0">
 
-                            <Label FontSize="17" Text="{Binding PreviousLine.Text}" />
-                            <Label FontAttributes="Bold" FontSize="30"
-                                   Text="{Binding CurrentLine.Text}"
-                                   TextColor="DarkSlateBlue"
+                            <Label FontSize="15" Opacity="0.7"
+                                   Text="{Binding PreviousLine.Text}"
                                    />
-                            <Label FontSize="22" Text="{Binding NextLine.Text}" />
+                            <Border BackgroundColor="Transparent">
+                                <Label FontAttributes="Bold" FontSize="34"
+                                       Opacity="1"
+                                       Text="{Binding CurrentLine.Text}"
+                                       TextColor="DarkSlateBlue"
+                                       />
+                            </Border>
+                            <Label FontSize="20" Opacity="0.7"
+                                   Text="{Binding NextLine.Text}"
+                                   />
                         </VerticalStackLayout>
                         <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
                                                Spacing="20" VerticalOptions="Start"

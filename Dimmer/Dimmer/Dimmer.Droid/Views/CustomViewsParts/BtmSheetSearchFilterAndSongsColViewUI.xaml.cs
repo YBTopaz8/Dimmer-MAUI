@@ -13,6 +13,7 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
         InitializeComponent();
         MyViewModel=vm;
         BindingContext = vm;
+        
     }
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
@@ -278,5 +279,8 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
 
     }
 
+    private void DXStackLayout_SizeChanged(object sender, EventArgs e)
+    {
 
+    }
 }

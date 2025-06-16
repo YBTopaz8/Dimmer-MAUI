@@ -115,7 +115,6 @@ public partial class HomePage : ContentPage
                 SearchBar searchBar = (SearchBar)sender;
                 string txt = searchBar.Text;
 
-
                 _debounceTimer?.CancelAsync();
                 _debounceTimer?.Dispose();
                 _debounceTimer = new CancellationTokenSource();
@@ -375,7 +374,7 @@ public partial class HomePage : ContentPage
         var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
 
         SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
-        //SongsColView.ScrollTo(MyViewModel.CurrentPlayingSongView, null, ScrollToPosition.Start, true);
+
     }
 
     private void PlaylistsChip_Clicked(object sender, EventArgs e)

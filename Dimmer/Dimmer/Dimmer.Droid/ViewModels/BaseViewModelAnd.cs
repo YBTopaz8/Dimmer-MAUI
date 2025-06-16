@@ -222,6 +222,31 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     {
         await Shell.Current.DisplayAlert("SkipNext Clicked", "SkipNext button was clicked!", "OK");
     }
+    [ObservableProperty]
+    public partial DXCollectionView SongsColView { get; set; } // Nullable, ensure it's set from XAML
+    [RelayCommand]
+    void ScrollToSong()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            int itemHandle = SongsColView.FindItemHandle(BaseVM.CurrentPlayingSongView);
+            SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+        });
+    }
+
+    public void LoadTheCurrentColView(DXCollectionView colView)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (colView is not null)
+            {
+                SongsColView = colView;
+                // Optionally, you can also set the current item to scroll to it.
+                int itemHandle = SongsColView.FindItemHandle(BaseVM.CurrentPlayingSongView);
+                SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+            }
+        });
+    }
 
     #region INotifyPropertyChanged
     public event PropertyChangedEventHandler PropertyChanged;

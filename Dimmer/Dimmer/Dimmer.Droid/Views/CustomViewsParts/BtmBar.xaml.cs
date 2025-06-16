@@ -131,8 +131,8 @@ public partial class BtmBar : DXBorder
                             //DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
                             //int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
                             //songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-
-                            //HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                            MyViewModel.ScrollToSongCommand.Execute(null);
+                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
                         }
                         catch { }
                     }
@@ -165,8 +165,8 @@ public partial class BtmBar : DXBorder
 
     private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
     {
-        TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
-        SearchBy.Focus();
+        //TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
+        //SearchBy.Focus();
     }
     public static DXCollectionView PageColView { get; set; }
 }

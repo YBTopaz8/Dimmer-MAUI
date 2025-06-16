@@ -94,24 +94,17 @@
 
             <dx:DXCollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
-                    <Grid BackgroundColor="Transparent" ColumnDefinitions="0.23*,*,0.35*"
+                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,0.35*"
                           HeightRequest="80" VerticalOptions="Center"
                           >
 
-                        <dx:DXBorder Grid.Column="0" BackgroundColor="Transparent"
-                                     CornerRadius="15" HeightRequest="60"
-                                     WidthRequest="60"
-                                     >
 
-                            <Image Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
-
-                        </dx:DXBorder>
                         <dx:DXStackLayout x:Name="TitleAndArtists"
-                                          Grid.Column="1" BackgroundColor="Transparent"
+                                          Grid.Column="0" BackgroundColor="Transparent"
                                           VerticalOptions="Center"
                                           >
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
-                                   FontFamily="AleySans" FontSize="18"
+                                   FontFamily="AleySans" FontSize="23"
                                    LineBreakMode="WordWrap"
                                    Text="{Binding Title}"
                                    TextColor="#F5F5F5" VerticalOptions="Center"
@@ -119,7 +112,7 @@
 
                             <Label x:Name="ArtistsChip"
                                    Padding="-1" BackgroundColor="Transparent"
-                                   FontFamily="AleySans" FontSize="11"
+                                   FontFamily="AleySans" FontSize="15"
                                    HorizontalOptions="Start" LineBreakMode="WordWrap"
                                    Opacity="0.4"
                                    Text="{Binding ArtistName}"
@@ -127,14 +120,14 @@
                                    />
 
                             <Label BackgroundColor="Transparent" FontFamily="AleySans"
-                                   FontSize="11" Opacity="0.4"
+                                   FontSize="13" Opacity="0.4"
                                    Text="{Binding ReleaseYear}"
                                    VerticalOptions="Center"
                                    />
 
                         </dx:DXStackLayout>
                         <dx:DXButton x:Name="MoreIcon"
-                                     Grid.Column="2" Clicked="MoreIcon_Clicked"
+                                     Grid.Column="1" Clicked="MoreIcon_Clicked"
                                      CommandParameter="{Binding .}"
                                      HorizontalOptions="End" ShowContent="True"
                                      ShowIcon="False"
@@ -143,7 +136,7 @@
                                 <dx:DXStackLayout Orientation="Horizontal">
 
 
-                                    <Label BackgroundColor="Transparent" FontSize="12"
+                                    <Label BackgroundColor="Transparent" FontSize="16"
                                            Opacity="0.9"
                                            Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
                                            TextColor="White" VerticalOptions="Center"

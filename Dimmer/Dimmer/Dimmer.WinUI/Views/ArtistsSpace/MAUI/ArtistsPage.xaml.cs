@@ -83,7 +83,7 @@ public partial class ArtistsPage : ContentPage
             Debug.WriteLine($"Search Error: {ex}");
         }
     }
-    ObservableCollection<SongModelView> songsToDisplay = new();
+    ObservableCollection<SongModelView?>? songsToDisplay = new();
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
         if ((songsToDisplay is null || songsToDisplay.Count < 1))
@@ -137,7 +137,7 @@ public partial class ArtistsPage : ContentPage
 
     private void ArtistSongsColView_Loaded(object sender, EventArgs e)
     {
-
+     
     }
     protected override void OnDisappearing()
     {

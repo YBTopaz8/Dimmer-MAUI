@@ -91,7 +91,7 @@
                              AllowFixedGroupHeaders="True" BackgroundColor="Transparent"
                              ItemSpacing="5"
                              ItemsSource="{Binding BaseVM.NowPlayingDisplayQueue}"
-                             Tap="SongsColView_Tap"
+                             Loaded="SongsColView_Loaded" Tap="SongsColView_Tap"
                              >
 
             <dx:DXCollectionView.ItemTemplate>
@@ -105,14 +105,14 @@
                                           VerticalOptions="Center"
                                           >
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
-                                   FontFamily="AleySans" FontSize="18"
+                                   FontFamily="AleySans" FontSize="26"
                                    IsVisible="{Binding IsCurrentPlayingHighlight}"
                                    LineBreakMode="WordWrap"
                                    Text="{Binding Title}"
                                    TextColor="#F5F5F5" VerticalOptions="Center"
                                    />
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
-                                   FontFamily="AleySans" FontSize="18"
+                                   FontFamily="AleySans" FontSize="17"
                                    LineBreakMode="WordWrap"
                                    Text="{Binding Title}"
                                    TextColor="#F5F5F5" VerticalOptions="Center"
@@ -120,7 +120,7 @@
 
                             <Label x:Name="ArtistsChip"
                                    Padding="-1" BackgroundColor="Transparent"
-                                   FontFamily="AleySans" FontSize="11"
+                                   FontFamily="AleySans" FontSize="13"
                                    HorizontalOptions="Start" LineBreakMode="WordWrap"
                                    Opacity="0.4"
                                    Text="{Binding ArtistName}"

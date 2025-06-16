@@ -50,7 +50,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
             return;
         }
         await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
-       
+
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
 
         await this.AnimateFadeOutBack(600);
@@ -84,6 +84,6 @@ public partial class NowPlayingbtmsheet : BottomSheet
 
         Debug.WriteLine(this.Parent.GetType());
         BottomExpanderTwo.IsExpanded = !BottomExpanderTwo.IsExpanded;
-        this.AllowDismiss=!BottomExpanderTwo.IsExpanded;
+        this.AllowDismiss = !BottomExpanderTwo.IsExpanded;
     }
 }

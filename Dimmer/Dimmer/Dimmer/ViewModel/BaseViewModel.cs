@@ -1,4 +1,6 @@
-﻿using ATL;
+﻿using System.Diagnostics;
+
+using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
@@ -11,6 +13,8 @@ using Dimmer.Utilities.StatsUtils;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MoreLinq;
+
+using Realms;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -124,10 +128,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public void RefreshSongMetadata()
+    public void RefreshSongsMetadata()
     {
 
-        return;
         Task.Run(() =>
         {
             if (NowPlayingDisplayQueue == null || !NowPlayingDisplayQueue.Any())
@@ -180,7 +183,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             // 2. Join them with " OR "
             var artistQueryString = string.Join(" OR ", artistClauses);
             // 3. Convert the list of strings to QueryArgument[]
-            var artistQueryArgs = allArtistNames.Select(name => (QueryArgument)name).ToArray();
+            QueryArgument[]? artistQueryArgs = allArtistNames.Select(name => (QueryArgument)name).ToArray();
 
             // 4. Execute the query
             var artistsFromDb = realm.All<ArtistModel>()
@@ -188,10 +191,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                                        .ToDictionary(a => a.Name);
 
             // --- Step 4: Perform a SINGLE Write Transaction for all changes ---
+            var songsss = NowPlayingDisplayQueue.ToList();
             realm.Write(() =>
             {
                 // Now loop through the original VIEW MODELS, which is safe and fast.
-                foreach (var songViewModel in NowPlayingDisplayQueue)
+                foreach (var songViewModel in songsss)
                 {
                     // Get the managed song object from our dictionary (no DB query!)
                     if (!songsFromDb.TryGetValue(songViewModel.Id, out var songDb))
@@ -241,9 +245,130 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
             var songss = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
             NowPlayingDisplayQueue = songss;
-            RefreshSongsCover(NowPlayingDisplayQueue, CollectionToUpdate.NowPlayingCol);
+            //RefreshSongsCover(NowPlayingDisplayQueue, CollectionToUpdate.NowPlayingCol);
 
             QueueOfSongsLive =  new ObservableCollection<SongModelView>(songss);
+        });
+    }
+
+    [RelayCommand]
+    public void RefreshSongMetadata(SongModelView songViewModel) // The input is the specific song's ViewModel
+    {
+        if (songViewModel == null)
+            return;
+
+        Task.Run(() =>
+        {
+            // --- Step 1: Preliminary Checks & Get the Managed Song Object ---
+            if (realmFactory is null)
+            {
+                _logger.LogError("RealmFactory service is not registered.");
+                return;
+            }
+            var realm = realmFactory.GetRealmInstance();
+            if (realm is null)
+            {
+                _logger.LogError("Failed to get Realm instance from RealmFactory.");
+                return;
+            }
+
+            // Use Find() for the most efficient way to get a single object by its Primary Key
+            var songDb = realm.Find<SongModel>(songViewModel.Id);
+            if (songDb == null)
+            {
+                _logger.LogWarning("Song with ID {SongId} not found in DB. Cannot refresh metadata.", songViewModel.Id);
+                return;
+            }
+
+            // --- Step 2: Gather Necessary Artist Information for THIS Song ---
+            // We only care about the artists for this specific song.
+            var artistNamesToLink = songDb.OtherArtistsName
+                .Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+
+            if (!artistNamesToLink.Any())
+            {
+                _logger.LogInformation("No 'OtherArtists' found for song '{Title}'. Nothing to link.", songDb.Title);
+                return; // No work to do
+            }
+
+            // --- Step 3: Perform a SINGLE Batched Database Read for the Artists ---
+            // 1. Create a list of "Name == $n" clauses
+            var artistClauses = Enumerable.Range(0, artistNamesToLink.Count)
+                                          .Select(i => $"Name == ${i}");
+
+            // 2. Join them with " OR "
+            var artistQueryString = string.Join(" OR ", artistClauses);
+
+            // 3. Create an array of QueryArguments
+            var artistQueryArgs = artistNamesToLink.Select(name => (QueryArgument)name).ToArray();
+
+            // 4. Execute the query
+            var artistsFromDb = realm.All<ArtistModel>()
+                                       .Filter(artistQueryString, artistQueryArgs)
+                                       .ToDictionary(a => a.Name);
+
+            // --- Step 4: Perform a SINGLE Write Transaction for all changes ---
+            realm.Write(() =>
+            {
+                // It's best practice to re-find the object within the transaction
+                // to ensure you're working with the most up-to-date version.
+                var freshSongDb = realm.Find<SongModel>(songViewModel.Id);
+                if (freshSongDb == null)
+                    return; // The song was deleted in the meantime.
+
+                // Check for a valid album link
+                if (freshSongDb.Album == null)
+                {
+                    _logger.LogWarning("Song '{Title}' has no associated album, cannot update album artists.", freshSongDb.Title);
+                    return; // Can't proceed without an album
+                }
+
+                foreach (var artistName in artistNamesToLink)
+                {
+                    // Check if the artist is already linked to the SONG
+                    bool songHasArtist = freshSongDb.ArtistIds.Any(a => a.Name == artistName);
+                    if (songHasArtist)
+                    {
+                        continue; // Already there, skip.
+                    }
+
+                    // Get the managed artist object from our dictionary (no DB query!)
+                    if (artistsFromDb.TryGetValue(artistName, out var artistModel))
+                    {
+                        // It exists, so add the link to the song
+                        freshSongDb.ArtistIds.Add(artistModel);
+                        _logger.LogInformation("Linked artist '{ArtistName}' to song '{Title}'.", artistName, freshSongDb.Title);
+
+                        // Also add the link to the ALBUM if not already there
+                        bool albumHasArtist = freshSongDb.Album.ArtistIds.Any(a => a.Id == artistModel.Id);
+                        if (!albumHasArtist)
+                        {
+                            freshSongDb.Album.ArtistIds.Add(artistModel);
+                            _logger.LogInformation("Linked artist '{ArtistName}' to album '{AlbumTitle}'.", artistName, freshSongDb.Album.Name);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Artist '{ArtistName}' not found in DB. Cannot link to song '{Title}'.", artistName, freshSongDb.Title);
+                    }
+                }
+
+            });
+
+            // --- Step 5: Aftermath - UI Refresh (Important!) ---
+            // The original `songViewModel` object is NOT a live Realm object. It will not update automatically.
+            // You need to decide how to refresh it. One common way is to re-map it.
+            // This should be done back on the UI thread.
+            // For example:
+            // MainThread.BeginInvokeOnMainThread(() =>
+            // {
+            //     var updatedSong = realm.Find<SongModel>(songViewModel.Id);
+            //     // Use your mapper to update the existing view model instance
+            //     _mapper.Map(updatedSong, songViewModel);
+            // });
+
+            _logger.LogInformation("Successfully finished refreshing metadata for song ID {SongId}", songViewModel.Id);
         });
     }
 
@@ -304,10 +429,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
 
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
-    [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedAlbumSongs { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedArtistSongs { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedPlaylistSongs { get; set; }
+    [ObservableProperty] public partial ObservableCollection<AlbumModelView?>? SelectedAlbumsCol { get; set; }
+    [ObservableProperty] public partial ObservableCollection<SongModelView?>? SelectedAlbumSongs { get; set; }
+    [ObservableProperty] public partial ObservableCollection<SongModelView?>? SelectedArtistSongs { get; set; }
+    [ObservableProperty] public partial ObservableCollection<SongModelView?>? SelectedPlaylistSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<PlaylistModelView>? AllPlaylistsFromDBView { get; set; }
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
     [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedArtistAlbums { get; set; }
@@ -488,7 +613,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
                  QueueOfSongsLive = NowPlayingDisplayQueue.Take(50).ToObservableCollection();
 
-                 Task.Run(() => RefreshSongMetadata());
+                 Task.Run(() => RefreshSongsMetadata());
                  IsAppScanning=false;
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
      );
@@ -537,7 +662,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
                             QueueOfSongsLive.Clear();
                         }
-                        
+
                         QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
 
 
@@ -1040,14 +1165,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         var allArts = song.OtherArtistsName.Split(", ");
 
-
-
         _logger.LogTrace("SelectedArtistAndNavtoPage called with song: {SongTitle}", song.Title);
         var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, allArts);
         if (result == "Cancel" || string.IsNullOrEmpty(result))
             return false;
 
-        DeviceStaticUtils.SelectedArtistOne = song.ArtistIds.FirstOrDefault(x => x.Name==result);
+
+        var realm = realmFactory.GetRealmInstance();
+        var artDb = realm.All<ArtistModel>().FirstOrDefault(x => x.Name == result);
+
+        DeviceStaticUtils.SelectedArtistOne = artDb.ToModelView(_mapper);
+
+        RefreshSongMetadata(song);
         return true;
     }
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
@@ -1109,41 +1238,60 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _logger.LogWarning("ViewArtistDetails called with a null artist view or ID.");
             //return;
         }
-
+        SelectedAlbumSongs ??=new();
+        SelectedArtistAlbums ??=new();
+        SelectedAlbumSongs.Clear();
+        SelectedArtistAlbums.Clear();
         // ====================================================================
         // 1. Fetch ALL Data in a Single, Efficient Operation
         // ====================================================================
         // Get the live artist object. This should be on the correct thread (e.g., UI thread).
-        var artist = artistRepo.GetById(artView.Id);
-        if (artist == null)
+        var db = realmFactory.GetRealmInstance();
+
+        // 1. Get the artist's ID and Name from the ViewModel
+        var artistIdToFind = artView.Id;
+
+        // 2. Perform ONE query to get all songs for this artist using the best RQL
+        var songsByArtist = db.All<SongModel>()
+                              .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistIdToFind)
+                              .ToList(); // Materialize the list of songs
+
+        if (songsByArtist.Count==0)
         {
-            _logger.LogWarning("Artist with ID {ArtistId} not found in the database.", artView.Id);
+            _logger.LogWarning("No songs found for artist with ID {ArtistId}", artistIdToFind);
+            // You might still want to display the artist details even if they have no songs
+            SelectedArtist = artView;
             return;
         }
 
+        // 3. Process the results efficiently
+        // You now have all the songs. Let's get the distinct albums from these songs.
+        var albumsByArtist = songsByArtist
+            .Where(s => s.Album != null) // Make sure the song has an album
+            .Select(s => s.Album)        // Select the album object
+            .Distinct()                  // Get only the unique albums
+            .ToList();
 
-        SelectedArtist = _mapper.Map<ArtistModelView>(artist);
-        Track tt = new(artist.Songs.First().FilePath);
-        SelectedArtist.ImageBytes = ImageResizer.ResizeImage(tt.EmbeddedPictures.FirstOrDefault()?.PictureData, 900);
+        // 4. Update your ViewModels
+        SelectedArtist = artView; // We already have the artist view!
 
+        // Get the image from the first song in the list
+        var firstSong = songsByArtist[0];
+        Track tt = new(firstSong.FilePath);
+        SelectedArtist.ImageBytes = tt.EmbeddedPictures.FirstOrDefault()?.PictureData
 
-        SelectedArtistSongs = _mapper.Map<ObservableCollection<SongModelView>>(artist.Songs.ToArray());
-        //RefreshSongsCover(SelectedArtistSongs, CollectionToUpdate.ArtistAlbumSongs);
-
-
-        foreach (var songg in artist.Songs)
+        // Populate the song and album collections for the UI
+        foreach (var song in songsByArtist)
         {
-            var curAlb = songg.Album.ToModelView(_mapper);
-            SelectedArtistAlbums??=new();
-            SelectedArtistAlbums.Clear();
-            var t = SelectedArtistAlbums.FirstOrDefault(x => x.Id==curAlb.Id) is null;
-            if (t)
-            {
-
-                SelectedArtistAlbums.Add(curAlb);
-
-            }
+            SelectedAlbumSongs.Add(song.ToModelView(_mapper));
         }
+
+        foreach (var album in albumsByArtist)
+        {
+            SelectedArtistAlbums.Add(album.ToModelView(_mapper));
+        }
+
+
         //OnPropertyChanged(nameof(SelectedArtistAlbums));
 
         //RefreshAlbumsCover(SelectedArtistAlbums, CollectionToUpdate.AlbumCovers);

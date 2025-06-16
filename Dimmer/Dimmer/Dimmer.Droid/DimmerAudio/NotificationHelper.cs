@@ -328,7 +328,7 @@ public static class NotificationHelper
             intent.PutExtra(Android.Provider.Settings.ExtraAppPackage, context.PackageName);
             intent.AddFlags(ActivityFlags.NewTask);
 
-            if (intent.ResolveActivity(context.PackageManager) != null)
+            if (intent.ResolveActivity(context.PackageManager!) != null)
             {
                 context.StartActivity(intent);
                 Log.Debug("NotifHelper", "Opened App Notification Bubble Settings for user.");
@@ -348,110 +348,10 @@ public static class NotificationHelper
     {
         CreateChannel(context);
         var builder = new Notification.Builder(context, ChannelId)!
-            .SetContentTitle("Dimmer Music Player")!
-            .SetContentText("Preparing playback...")!
-            .SetSmallIcon(Resource.Drawable.exo_icon_circular_play)! // use your icon
             .SetOngoing(true)!
             .SetPriority(0)!
             .SetVisibility(NotificationVisibility.Secret)!;
 
         return builder.Build();
-    }
-    // In NotificationHelper.cs
-    public static void ShowPlaybackBubble(Context context, string trackTitle)
-    {
-        Log.Info("NotifHelper", "Attempting to show playback bubble...");
-
-        // Call CreateChannel to ensure it's up-to-date.
-        // Pass false for forceRecreate unless you have a specific strategy for it.
-        CreateChannel(context);
-
-        if (!AreBubblesSupported(context)) // Use the more robust check
-        {
-            Log.Warn("NotifHelper", "Cannot show bubble: Bubbles not supported or not enabled (AreBubblesActuallyEnabled returned false).");
-            Toast.MakeText(context, "Bubbles are disabled. Check app notification settings.", ToastLength.Long).Show();
-            // Consider guiding user:
-            // 1. If !NotificationManager.AreBubblesAllowed(): OpenBubbleSettings(context);
-            // 2. If channel != null && !channel.CanBubble(): OpenChannelSettings(context, ChannelId);
-            return;
-        }
-
-        // ... rest of your ShowPlaybackBubble logic ...
-        // Ensure PlaybackBubbleActivity.class is correct
-        var targetIntent = new Intent(context, typeof(Activities.PlaybackBubbleActivity)); // Ensure correct path
-        targetIntent.SetAction("SHOW_PLAYBACK_BUBBLE_ACTION_" + DateTime.Now.Ticks);
-        targetIntent.PutExtra("trackTitle", trackTitle);
-        // You might want this if your PlaybackBubbleActivity launchMode is not singleInstance/singleTask
-        // targetIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTask);
-
-
-        var bubbleContentPendingIntent = PendingIntent.GetActivity(
-            context,
-            BubbleNotificationId,
-            targetIntent,
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
-        );
-
-        var bubbleIcon = IconCompat.CreateWithResource(context, Resource.Drawable.exo_icon_play); // Use a suitable monochrome icon
-
-        NotificationCompat.BubbleMetadata.Builder bubbleMetadataBuilder;
-
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // API 30+
-        {
-            bubbleMetadataBuilder = new NotificationCompat.BubbleMetadata.Builder(bubbleContentPendingIntent, bubbleIcon);
-        }
-        else if (Build.VERSION.SdkInt == BuildVersionCodes.Q) // API 29
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            bubbleMetadataBuilder = new NotificationCompat.BubbleMetadata.Builder()
-                .SetIntent(bubbleContentPendingIntent)
-                .SetIcon(bubbleIcon);
-#pragma warning restore CS0618
-        }
-        else
-        {
-            Log.Error("NotifHelper", "BubbleMetadata creation attempted on unsupported OS. Should have been caught by AreBubblesActuallyEnabled.");
-            return;
-        }
-
-        NotificationCompat.BubbleMetadata bubbleMetadata = bubbleMetadataBuilder
-           .SetDesiredHeight(600)
-           .SetAutoExpandBubble(true)
-           .SetSuppressNotification(true) // Important: Hides the carrier notification
-           .Build();
-
-        var notificationBuilder = new NotificationCompat.Builder(context, ChannelId)
-           .SetContentTitle("Dimmer Active") // Minimal, as it's often suppressed
-           .SetContentText("Tap to open controls")
-           .SetSmallIcon(Resource.Drawable.exo_icon_play) // Must be a valid small icon
-           .SetPriority(NotificationCompat.PriorityDefault)
-           .SetBubbleMetadata(bubbleMetadata)
-           .SetContentIntent(bubbleContentPendingIntent) // Fallback if bubble cannot be shown
-           .SetCategory(NotificationCompat.CategoryTransport) // Media control
-           .SetOngoing(false) // The carrier can be non-ongoing if bubble is shown & carrier suppressed
-           .SetOnlyAlertOnce(true);
-
-        var notificationManager = NotificationManagerCompat.From(context);
-        try
-        {
-            // Check if the app is in foreground or has a foreground service.
-            // While user tap on QS helps, this is still a good check.
-            // ActivityManager am = (ActivityManager)context.GetSystemService(Context.ActivityService);
-            // bool isAppForeground = am.GetRunningTasks(1)?[0].TopActivity.PackageName.Equals(context.PackageName) ?? false;
-            // bool hasForegroundService = your_check_for_foreground_service_running;
-
-            // if (isAppForeground || hasForegroundService) {
-            notificationManager.Notify(BubbleNotificationId, notificationBuilder.Build());
-            Log.Info("NotifHelper", $"Bubble notification (ID {BubbleNotificationId}) posted. If all settings are correct, bubble should appear.");
-            // } else {
-            //    Log.Warn("NotifHelper", "App not in foreground and no foreground service detected. Bubble might not show.");
-            //    Toast.MakeText(context, "Open app or start playback to use bubble.", ToastLength.Short).Show();
-            // }
-        }
-        catch (Exception ex)
-        {
-            Log.Error("NotifHelper", $"EXCEPTION posting bubble notification: {ex.Message} | {ex.StackTrace}");
-            Toast.MakeText(context, "Error showing bubble.", ToastLength.Short).Show();
-        }
     }
 }

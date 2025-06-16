@@ -168,7 +168,6 @@ public class QuickSettingsTileService : TileService
                     break;
                 case 1: // Next Track
                     Log.Debug(TAG, "Dialog: Next Track selected");
-                    NotificationHelper.ShowPlaybackBubble(this, "YBbbb");
                     SendNextCommandToService(); // <<< Implement this action in your service
                     break;
                 case 2: // Open App
