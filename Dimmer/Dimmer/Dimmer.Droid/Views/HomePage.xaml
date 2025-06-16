@@ -75,12 +75,12 @@
                          FontSize="35"
                          />
         </dx:DXStackLayout>
+        <Image Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes}" />
 
         <Grid x:Name="HomeView" BackgroundColor="Transparent">
-
             <dx:DXStackLayout x:Name="SearchContentView"
-                              x:DataType="vm:BaseViewModelAnd" CornerRadius="20"
-                              IsVisible="True"
+                              x:DataType="vm:BaseViewModelAnd" BackgroundColor="Transparent"
+                              CornerRadius="20" IsVisible="True"
                               >
 
                 <dx:DXStackLayout>

@@ -313,10 +313,12 @@ public partial class HomePage : ContentPage
         {
             return;
         }
-        await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
 
-        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-
+        if (await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
+      
         //await this.AnimateFadeOutBack(600);
         //await this.CloseAsync();
     }

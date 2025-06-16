@@ -43,14 +43,14 @@
                                          >
 
 
-                        <Label FontSize="17" HorizontalOptions="Center"
-                               LineBreakMode="WordWrap"
+                        <Label FontSize="15" HorizontalOptions="Center"
+                               LineBreakMode="WordWrap" Opacity="0.7"
                                Text="{Binding BaseVM.PreviousLine.Text}"
                                />
                         <dx:DXBorder BorderColor="{Binding BaseVM.CurrentLine.HighlightColor}" BorderThickness="2">
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
                                    FontAutoScalingEnabled="True" FontFamily="AleySans"
-                                   FontSize="44" HorizontalOptions="Center"
+                                   FontSize="34" HorizontalOptions="Center"
                                    HorizontalTextAlignment="Center" LineBreakMode="WordWrap"
                                    Opacity="1"
                                    Text="{Binding BaseVM.CurrentLine.Text}"
@@ -66,8 +66,8 @@
                                 </Label.Triggers>
                             </Label>
                         </dx:DXBorder>
-                        <Label FontSize="15" HorizontalOptions="Center"
-                               LineBreakMode="WordWrap"
+                        <Label FontSize="20" HorizontalOptions="Center"
+                               LineBreakMode="WordWrap" Opacity="0.7"
                                Text="{Binding BaseVM.NextLine.Text}"
                                />
                     </VerticalStackLayout>

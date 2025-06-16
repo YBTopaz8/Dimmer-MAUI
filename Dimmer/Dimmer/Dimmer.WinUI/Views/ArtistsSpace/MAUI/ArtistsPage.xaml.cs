@@ -11,7 +11,6 @@ public partial class ArtistsPage : ContentPage
         //= IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
         MyViewModel=viewModel;
         BindingContext=MyViewModel;
-        this.Loaded +=ArtistsPage_Loaded;
     }
 
     private void ArtistsPage_Loaded(object? sender, EventArgs e)
@@ -27,7 +26,7 @@ public partial class ArtistsPage : ContentPage
     public async Task LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-      await  MyViewModel.ViewArtistDetails(s);
+        await MyViewModel.ViewArtistDetails(s);
 
     }
     protected override async void OnNavigatedTo(NavigatedToEventArgs args)
@@ -139,7 +138,7 @@ public partial class ArtistsPage : ContentPage
 
     private void ArtistSongsColView_Loaded(object sender, EventArgs e)
     {
-     
+
     }
     protected override void OnDisappearing()
     {

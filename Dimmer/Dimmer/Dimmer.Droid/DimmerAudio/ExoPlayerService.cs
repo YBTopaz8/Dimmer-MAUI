@@ -472,9 +472,9 @@ public class ExoPlayerService : MediaSessionService
     /// <param name="startPositionMs">Where to start in milliseconds.</param>
     public Task Prepare(
         string url,
-        string title,
-        string artist,
-        string album,
+        string? title,
+        string? artist,
+        string? album,
         SongModelView song,
         string? imagePath = null,
         long startPositionMs = 0)
@@ -486,14 +486,16 @@ public class ExoPlayerService : MediaSessionService
             throw new ArgumentException("Player not initialized.");
 
         }
+        var genre = song.Genre?.Name;
         player.Stop();
         player.ClearMediaItems();
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
-            .SetTitle(title)!
-            .SetArtist(artist)!
-            .SetAlbumTitle(album)!
+            .SetTitle(title)
+            .SetArtist(artist)
+            .SetAlbumTitle(album)
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
-        .SetGenre(song.Genre.Name)
+            .SetGenre(genre)
+
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         // Set user rating (favorite status)
@@ -508,7 +510,7 @@ public class ExoPlayerService : MediaSessionService
             }
             catch (System.Exception ex)
             {
-                //Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
+                Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
 
