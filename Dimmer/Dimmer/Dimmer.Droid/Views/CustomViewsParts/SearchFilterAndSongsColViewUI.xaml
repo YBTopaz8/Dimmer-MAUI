@@ -10,8 +10,7 @@
                   IsVisible="True"
                   >
 
-
-    <dx:DXStackLayout CornerRadius="20">
+    <dx:DXStackLayout>
         <dx:DXStackLayout.Resources>
             <ResourceDictionary>
                 <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />

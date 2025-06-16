@@ -247,6 +247,13 @@
                                           />
 
 
+                            <syncf:SfChip x:Name="RetroactivelyLinkArtists"
+                                          Command="{Binding RetroactivelyLinkArtistsCommand}"
+                                          ImageSize="40" ImageSource="addcircle.png"
+                                          ShowIcon="True" WidthRequest="55"
+                                          />
+
+
                             <syncf:SfChip x:Name="PlaylistsChip"
                                           Clicked="PlaylistsChip_Clicked" ImageSize="40"
                                           ImageSource="playlistminimalistic3.png" ShowIcon="True"

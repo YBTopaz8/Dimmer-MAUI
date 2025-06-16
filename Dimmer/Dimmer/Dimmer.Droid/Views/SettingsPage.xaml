@@ -155,7 +155,8 @@
                                                   ItemSpacing="10" Scale="0.9"
                                                   >
 
-                                    <dx:DXButton Command="{Binding BaseVM.RefreshSongMetadataCommand}" Content="ReloadLinks" />
+                                    <dx:DXButton Command="{Binding BaseVM.RefreshSongsMetadataCommand}" Content="ReloadLinks" />
+                                    <dx:DXButton Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}" Content="Retroactively Links" />
                                     <dx:DXButton x:Name="ScanAllBtn"
                                                  BorderColor="DarkSlateBlue" ButtonType="Outlined"
                                                  Clicked="AddNewMusicFolder_Clicked" Content="Add New Folder"

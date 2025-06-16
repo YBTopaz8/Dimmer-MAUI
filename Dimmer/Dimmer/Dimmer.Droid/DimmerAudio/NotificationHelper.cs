@@ -348,6 +348,9 @@ public static class NotificationHelper
     {
         CreateChannel(context);
         var builder = new Notification.Builder(context, ChannelId)!
+            .SetContentTitle("Dimmer Music Player")!
+            .SetContentText("Preparing playback...")!
+            .SetSmallIcon(Resource.Drawable.exo_icon_circular_play)! // use your icon
             .SetOngoing(true)!
             .SetPriority(0)!
             .SetVisibility(NotificationVisibility.Secret)!;

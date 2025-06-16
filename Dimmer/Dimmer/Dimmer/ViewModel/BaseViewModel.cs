@@ -5,6 +5,7 @@ using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.Data;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
@@ -1231,6 +1232,114 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
 
+    // Place this inside your ViewModel
+    [RelayCommand]
+    public async Task RetroactivelyLinkArtists()
+    {
+        // Inform the user that a background process is starting
+        await Shell.Current.DisplayAlert("Process Started", "Starting to link artists for all songs. This may take a moment. The app might be a bit slow.", "OK");
+
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        await Task.Run(() =>
+        {
+            // --- Step 1: Get Realm Instance ---
+            if (realmFactory is null)
+            {
+                _logger.LogError("RealmFactory is not available.");
+                return;
+            }
+            var realm = realmFactory.GetRealmInstance();
+            if (realm is null)
+            {
+                _logger.LogError("Failed to get Realm instance.");
+                return;
+            }
+
+            // --- Step 2: Find All Songs That Need Fixing ---
+            // A song needs fixing if its relationship list is empty.
+            _logger.LogInformation("Searching for songs with unlinked artists...");
+            var songsToFix = realm.All<SongModel>().Filter("ArtistIds.@count == 0").ToList();
+
+            if (songsToFix.Count==0)
+            {
+                _logger.LogInformation("No songs found that require artist linking. Database is already up-to-date!");
+                // We still want to inform the user on the main thread.
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await Shell.Current.DisplayAlert("All Done!", "No songs needed fixing. Everything is already linked correctly.", "OK");
+                });
+                return;
+            }
+
+            _logger.LogInformation("Found {SongCount} songs to process.", songsToFix.Count);
+
+            // --- Step 3: Gather ALL Unique Artist Names in ONE PASS ---
+            // This is the most efficient way to collect all the data we need upfront.
+            var allArtistNames = songsToFix
+                .Select(s => s.ArtistName) // Get primary artist names
+                .Concat(songsToFix.SelectMany(s => (s.OtherArtistsName ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries))) // Get all "other" artist names
+                .Where(name => !string.IsNullOrEmpty(name)) // Filter out any blanks
+                .Distinct() // Get only the unique names
+                .ToList();
+
+            _logger.LogInformation("Found {ArtistCount} unique artist names to look up in the database.", allArtistNames.Count);
+
+            // --- Step 4: Fetch ALL Required Artist Models in ONE BATCH Query ---
+            // Using the reliable "OR" chain pattern that you know works perfectly.
+            var artistClauses = Enumerable.Range(0, allArtistNames.Count).Select(i => $"Name == ${i}");
+            var artistQueryString = string.Join(" OR ", artistClauses);
+            var artistQueryArgs = allArtistNames.Select(name => (QueryArgument)name).ToArray();
+
+            var artistsFromDb = realm.All<ArtistModel>()
+                                       .Filter(artistQueryString, artistQueryArgs)
+                                       .ToDictionary(a => a.Name); // Dictionary for instant lookups
+
+            _logger.LogInformation("Successfully fetched {ArtistCount} matching Artist objects from the database.", artistsFromDb.Count);
+
+            // --- Step 5: Perform ONE SINGLE Write Transaction for ALL Changes ---
+            // This is the most important step for performance and data integrity.
+            _logger.LogInformation("Beginning database write transaction to link artists...");
+            realm.Write(() =>
+            {
+                foreach (var song in songsToFix)
+                {
+                    // Re-create the list of names for THIS specific song
+                    var namesForThisSong = new List<string> { song.ArtistName }
+                        .Concat((song.OtherArtistsName ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries))
+                        .Where(name => !string.IsNullOrEmpty(name))
+                        .Distinct();
+
+                    // Clear existing links just in case, though our query should prevent this.
+                    song.ArtistIds.Clear();
+
+                    foreach (var artistName in namesForThisSong)
+                    {
+                        // Look up the artist model in our pre-fetched dictionary (this is instant)
+                        if (artistsFromDb.TryGetValue(artistName, out var artistModel))
+                        {
+                            // Add the link!
+                            song.ArtistIds.Add(artistModel);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Could not find artist '{ArtistName}' in the database to link to song '{SongTitle}'.", artistName, song.Title);
+                        }
+                    }
+                }
+            });
+
+            stopwatch.Stop();
+            _logger.LogInformation("Successfully linked artists for {SongCount} songs in {ElapsedMilliseconds} ms.", songsToFix.Count, stopwatch.ElapsedMilliseconds);
+
+            // --- Step 6: Inform the User on the UI Thread ---
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.DisplayAlert("Success!", $"Successfully updated {songsToFix.Count} songs in {stopwatch.Elapsed.TotalSeconds:F2} seconds.", "Awesome!");
+            });
+        });
+    }
     public async Task ViewArtistDetails(ArtistModelView? artView)
     {
 
@@ -1282,12 +1391,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SelectedArtist.ImageBytes = tt.EmbeddedPictures.FirstOrDefault()?.PictureData;
 
         // Populate the song and album collections for the UI
-        await Shell.Current.DisplayAlert("Here", "I have song by artist"+songsByArtist.Count, "OK");
         foreach (var song in songsByArtist)
         {
             SelectedAlbumSongs.Add(song.ToModelView(_mapper));
         }
-        await Shell.Current.DisplayAlert("Here !!!", "I have album by artist"+albumsByArtist.Count, "OK");
         foreach (var album in albumsByArtist)
         {
             SelectedArtistAlbums.Add(album.ToModelView(_mapper));
