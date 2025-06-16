@@ -313,4 +313,12 @@ public partial class HomePage : ContentPage
 
         }
     }
+
+    private void IsFavChip_Clicked(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        var songToFav = send.CommandParameter as SongModelView;
+
+       songToFav.IsFavorite=  MyViewModel.ToggleRepeatIsFavorite(songToFav);
+    }
 }

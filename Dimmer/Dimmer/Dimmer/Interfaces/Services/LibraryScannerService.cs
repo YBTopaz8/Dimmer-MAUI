@@ -39,6 +39,11 @@ public class LibraryScannerService : ILibraryScannerService
         _coverArtService = new CoverArtService(_config);
     }
 
+    public async Task ReScanLibraryAsync()
+    {
+        var usrSettings = IPlatformApplication.Current.Services.GetService<ISettingsService>();
+       await ScanLibraryAsync(usrSettings.UserMusicFoldersPreference.ToList());
+    }
     public async Task<LoadSongsResult?> ScanLibraryAsync(List<string> folderPaths)
     {
         if (folderPaths == null || folderPaths.Count==0)
@@ -148,15 +153,30 @@ public class LibraryScannerService : ILibraryScannerService
                 await realm.WriteAsync(() =>
                 {
                     if (newOrUpdatedAlbums.Any())
+                    {
                         foreach (var album in newOrUpdatedAlbums)
-                            realm.Add(album, update: true);
-                    if (newOrUpdatedArtists.Any())
-                        foreach (var artist in newOrUpdatedArtists)
-                            realm.Add(artist, update: true);
-                    if (newOrUpdatedGenres.Any())
-                        foreach (var genre in newOrUpdatedGenres)
-                            realm.Add(genre, update: true);
+                        {
+                            if (!album.IsManaged || album.IsManaged && album.Realm != realm)
+                            {
 
+                                realm.Add(album, update: true);
+                            }
+                        }
+                    }
+                    if (newOrUpdatedArtists.Any())
+                    {    foreach (var artist in newOrUpdatedArtists)
+                            if (!artist.IsManaged || artist.IsManaged && artist.Realm != realm)
+                            {
+                                realm.Add(artist, update: true);
+                            }
+                    }
+                    if (newOrUpdatedGenres.Any())
+                    {       foreach (var genre in newOrUpdatedGenres)
+                            if (!genre.IsManaged || genre.IsManaged && genre.Realm != realm)
+                            {
+                                realm.Add(genre, update: true);
+                            }
+                    }
                     if (newOrUpdatedSongs.Any())
                     {
                         foreach (var song in newOrUpdatedSongs)

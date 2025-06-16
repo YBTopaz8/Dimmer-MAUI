@@ -76,6 +76,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void MediaPlayer_VolumeChanged(MediaPlayer sender, object args)
     {
+        VolumeChanged?.Invoke(sender, sender.Volume);
     }
 
     private void UnsubscribeFromPlayerEvents()
@@ -139,6 +140,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
     public event EventHandler<double>? DurationChanged;
     public event EventHandler<double>? PositionChanged; // Fired frequently
+    public event EventHandler<double>? VolumeChanged; // Fired frequently
     public event EventHandler<double>? SeekCompleted; // Fired after seek finishes
     public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed; // Raised by SMTC Next command
     public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed; // Raised by SMTC Previous command
@@ -981,6 +983,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         SeekCompleted = null;
         MediaKeyNextPressed = null;
         MediaKeyPreviousPressed = null;
+        VolumeChanged = null;
         PropertyChanged = null; // Clear this last
 
         Debug.WriteLine("[AudioService] Asynchronous disposal complete.");

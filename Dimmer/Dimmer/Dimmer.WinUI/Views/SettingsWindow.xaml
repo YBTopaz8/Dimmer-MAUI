@@ -94,10 +94,12 @@
                                                     </DataTemplate>
                                                 </CollectionView.ItemTemplate>
                                             </CollectionView>
-                                            <Button Grid.Row="1" Margin="0,340,0,0"
+                                            <VerticalStackLayout Grid.Row="1" Margin="0,340,0,0">
+                                                <Button 
                                                     Clicked="AddNewMusicFolder_Clicked" HorizontalOptions="Start"
                                                     Text="Add New Folder" VerticalOptions="End"
                                                     />
+                                            </VerticalStackLayout>
                                         </Grid>
 
                                         <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center"
@@ -325,9 +327,13 @@
                                                     </DataTemplate>
                                                 </CollectionView.ItemTemplate>
                                             </CollectionView>
-                                            <Button Grid.Row="1" Clicked="AddNewMusicFolder_Clicked"
+                                            <VerticalStackLayout Grid.Row="1">
+                                                
+                                            <Button  Clicked="AddNewMusicFolder_Clicked"
                                                     HorizontalOptions="Start" Text="Add New Folder"
                                                     />
+
+                                            </VerticalStackLayout>
                                         </Grid>
 
 

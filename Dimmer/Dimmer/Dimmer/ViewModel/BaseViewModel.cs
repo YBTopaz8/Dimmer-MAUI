@@ -79,7 +79,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public partial double CurrentTrackPositionPercentage { get; set; }
 
     [ObservableProperty]
-    public partial double DeviceVolumeLevel { get; set; } // Renamed
+    public partial double DeviceVolumeLevel { get; set; } = 0; // Renamed
 
     [ObservableProperty]
     public partial string AppTitle { get; set; }
@@ -279,6 +279,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     {
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
                     }
+                },
+                           ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
+        );
+        _subsManager.Add(
+            Observable.FromEventPattern<double>(h => audioService.VolumeChanged += h, h => audioService.VolumeChanged -= h)
+                .Subscribe(evt =>
+                {
+                    DeviceVolumeLevel=evt.EventArgs;
                 },
                            ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
         );
@@ -720,6 +728,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial SongSingleStatsSummary SingleSongStatsSumm { get; set; }
     [ObservableProperty] public partial int CurrSongCompletedTimes { get; set; }
     [ObservableProperty] public partial ObservableCollection<PlayEventGroup>? GroupedPlayEvents { get; set; } = new();
+    public async Task RescanFolders()
+    {
+        var libSc = IPlatformApplication.Current!.Services.GetService<LibraryScannerService>()!;
+
+         await libSc.ReScanLibraryAsync();
+    }
     public void LoadStats()
     {
 

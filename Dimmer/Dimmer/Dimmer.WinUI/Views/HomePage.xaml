@@ -58,6 +58,14 @@
                             </Style>
                             <Style TargetType="Border">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
+                                <Setter Property="MaximumWidthRequest" Value="350" />
+
+                            </Style>
+                            <Style TargetType="syncf:SfChip">
+                                <Setter Property="ImageSize" Value="30" />
+                                <Setter Property="ShowIcon" Value="True" />
+                                <Setter Property="WidthRequest" Value="45" />
+                                <Setter Property="StrokeThickness" Value="0" />
 
                             </Style>
                         </HorizontalStackLayout.Resources>
@@ -69,7 +77,7 @@
                                                       />
                             </Border.GestureRecognizers>
 
-                            <Label Text="{Binding CurrentPlayingSongView.Title}" />
+                            <Label ToolTipProperties.Text="{Binding CurrentPlayingSongView.Title, StringFormat='Title: {0}'}" Text="{Binding CurrentPlayingSongView.Title}" />
 
                         </Border>
                         <Border>
@@ -77,7 +85,7 @@
                                 <TapGestureRecognizer CommandParameter="Art" Tapped="CurrPlayingSongGesRec_Tapped" />
                             </Border.GestureRecognizers>
 
-                            <Label Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                            <Label ToolTipProperties.Text="{Binding CurrentPlayingSongView.Title, StringFormat='Title: {0}'}" Text="{Binding CurrentPlayingSongView.ArtistName}" />
 
                         </Border>
                         <Border>
@@ -92,6 +100,18 @@
                                       ImageSource="chart.png" ShowIcon="True"
                                       StrokeThickness="0" WidthRequest="40"
                                       />
+                        <syncf:SfChip ShowIcon="True" x:Name="IsFavChip" CommandParameter="{Binding CurrentPlayingSongView.IsFavorite}"
+                                      Clicked="IsFavChip_Clicked"
+                                      ImageSource="heartbroken.png">
+                            <syncf:SfChip.Triggers>
+                                <DataTrigger TargetType="syncf:SfChip" Value="True" Binding="{Binding CurrentPlayingSongView.IsFavorite}">
+                                    <Setter Property="ImageSource" Value="heart.png" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="syncf:SfChip" Value="False" Binding="{Binding CurrentPlayingSongView.IsFavorite}">
+                                    <Setter Property="ImageSource" Value="heartbroken.png" />
+                                </DataTrigger>
+                            </syncf:SfChip.Triggers>
+                        </syncf:SfChip>
                     </HorizontalStackLayout>
                     <Grid x:Name="SecondA"
                           Grid.Row="1" ColumnDefinitions="auto,*,auto"
@@ -317,7 +337,14 @@
                                                     <Setter Property="FontSize" Value="18" />
                                                 </Style>
                                             </Grid.Resources>
-                                            <Label Grid.Column="0" Text="{Binding Title}" />
+                                            <Label Grid.Column="0" Text="{Binding Title}" >
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsFavorite}" Value="True"
+                                                                 >
+                                                        <Setter Property="TextColor" Value="Red" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
                                             <syncf:SfEffectsView x:Name="ArtistsEffectsView"
                                                                  Grid.Column="1" BackgroundColor="Transparent"
                                                                  LongPressEffects="Scale" LongPressed="ArtistsEffectsView_LongPressed"

@@ -138,6 +138,7 @@ public interface IDimmerAudioService
     /// </summary>
     event EventHandler<PlaybackEventArgs>? ErrorOccurred;
     event EventHandler<PlaybackEventArgs> PlayStarted;
+    event EventHandler<double>? VolumeChanged;
 
     /// <summary>
     /// Disposes the asynchronous.

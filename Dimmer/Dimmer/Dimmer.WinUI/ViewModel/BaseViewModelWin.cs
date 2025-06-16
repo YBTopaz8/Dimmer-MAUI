@@ -115,7 +115,17 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     }
 
+    internal bool ToggleRepeatIsFavorite(SongModelView songsToDisplay)
+    {
+        var song = _mapper.Map<SongModel>(songsToDisplay);
 
+        song.IsFavorite = !song.IsFavorite;
+        var songdb= songRepository.AddOrUpdate(song)!;
+        songsToDisplay.IsFavorite=songdb.IsFavorite;
+
+        _stateService.SetCurrentLogMsg(new AppLogModel() { Log = $"Song: {songsToDisplay} is fav status : {songsToDisplay.IsFavorite}" });
+        return songdb.IsFavorite;
+    }
 
     [ObservableProperty]
     public partial bool IsSearching { get; set; }
