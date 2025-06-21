@@ -381,4 +381,14 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private void SongsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void AllLyricsColView_Loaded(object sender, EventArgs e)
+    {
+
+    }
 }

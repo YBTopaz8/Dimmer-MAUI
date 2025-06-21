@@ -2,7 +2,8 @@
 <ContentPage x:Class="Dimmer.WinUI.Views.SettingsCenter.SettingsPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+             
+             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" Title="Settings"
@@ -155,12 +156,12 @@
 
                                     </Grid>
 
-                                    <material:TextField Title="{Static lang:DimmerLanguage.txt_username}" Text="{Binding UserLocal.Username}" />
+                                    <!--<material:TextField Title="{Static lang:DimmerLanguage.txt_username}" Text="{Binding UserLocal.Username}" />
                                     <material:TextField Title="{Static lang:DimmerLanguage.txt_email}" Text="{Binding UserLocal.Email}" />
                                     <material:TextField Title="{Static lang:DimmerLanguage.txt_pass}"
                                                         IsPassword="True"
                                                         Text="{Binding UserLocal.Password}"
-                                                        />
+                                                        />-->
 
                                     <Button x:Name="LoginBtnFirstTime"
                                             Command="{Binding LoginUserCommand}"
@@ -186,11 +187,11 @@
                             <Label FontSize="36" HorizontalOptions="Center"
                                    Text="Dimmer Preferences"
                                    />
-                            <material:CheckBox x:Name="ShowConfiChkBx"
+                            <!--<material:CheckBox x:Name="ShowConfiChkBx"
                                                CheckChangedCommand="{Binding ToggleShowCloseConfPopUpCommand}"
                                                CommandParameter="{Binding IsChecked, Source={x:Reference ShowConfiChkBx}}"
                                                Text="Show Confirmation Message on Close"
-                                               />
+                                               />-->
                             <Button Command="{Binding DoneFirstSetupCommand}" Text="Done" />
                         </VerticalStackLayout>
                     </syncf:SfTabItem.Content>

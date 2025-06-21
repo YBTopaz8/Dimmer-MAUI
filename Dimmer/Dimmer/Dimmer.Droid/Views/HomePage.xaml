@@ -75,7 +75,7 @@
                          FontSize="35"
                          />
         </dx:DXStackLayout>
-        <Image Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes}" />
+        <Image Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes}" Opacity="0.4"/>
 
         <Grid x:Name="HomeView" BackgroundColor="Transparent">
             <dx:DXStackLayout x:Name="SearchContentView"

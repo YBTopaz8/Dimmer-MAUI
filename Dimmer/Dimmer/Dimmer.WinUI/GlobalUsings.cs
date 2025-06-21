@@ -15,7 +15,6 @@ global using Dimmer.WinUI.DimmerAudio;
 global using Dimmer.WinUI.ViewModel;
 global using Microsoft.Maui.LifecycleEvents;
 global using Microsoft.UI;
-global using UraniumUI;
 global using WinRT.Interop;
 global using CommunityToolkit.Maui.Core.Extensions;
 

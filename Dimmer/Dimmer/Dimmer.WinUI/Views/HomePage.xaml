@@ -41,7 +41,7 @@
 
 
         <Grid RowDefinitions="*,auto">
-            <Image Opacity="0.25" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+            <Image Opacity="0.15" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid x:Name="MainUI"
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >
@@ -360,7 +360,7 @@
 
                     <CollectionView x:Name="SongsColView"
                                     Grid.Row="2" EmptyView="No Songs.."
-                                    IsVisible="True"
+                                    IsVisible="True" 
                                     ItemsSource="{Binding NowPlayingDisplayQueue}"
                                     Loaded="MainSongsColView_Loaded" SelectionMode="None"
                                     >
@@ -528,14 +528,34 @@
                         <Grid Grid.Row="1">
                             <CollectionView ItemsSource="{Binding AllLines}"
                                             SelectedItem="{Binding CurrentLine}"
-                                            SelectionMode="Single"
+                                            SelectionMode="Single" x:Name="AllLyricsColView"
+                                            Loaded="AllLyricsColView_Loaded"
                                             >
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                        <Label FontSize="{Binding NowPlayingLyricsFontSize}"
-                                               Text="{Binding Text}"
-                                               TextColor="{Binding HighlightColor}"
-                                               />
+                                        <Border Padding="10">
+
+                                            <VisualStateManager.VisualStateGroups>
+                                                <VisualStateGroup x:Name="CommonStates">
+                                                    <VisualState x:Name="Normal">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="Transparent" />
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+
+                                                    <VisualState Name="PointerOver">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+                                                </VisualStateGroup>
+                                            </VisualStateManager.VisualStateGroups>
+                                            <Label FontSize="{Binding NowPlayingLyricsFontSize}"
+        Text="{Binding Text}"
+        TextColor="{Binding HighlightColor}"
+        />
+                                        </Border>
+                                       
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
