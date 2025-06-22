@@ -1,6 +1,4 @@
 ﻿using Android.App;
-using Android.Content;
-using Android.Views;
 
 namespace Dimmer.DimmerAudio; 
 [BroadcastReceiver(Exported = true)]

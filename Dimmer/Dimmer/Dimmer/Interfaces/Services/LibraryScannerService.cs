@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-
-using Dimmer.Interfaces.Services.Interfaces;
-
-using Realms;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utilities.Extensions;
 
 
 namespace Dimmer.Interfaces.Services;
@@ -157,14 +154,12 @@ public class LibraryScannerService : ILibraryScannerService
             _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
                 newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
 
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, newOrUpdatedSongs, newOrUpdatedSongs[0].ToModelView(_mapper), newOrUpdatedSongs[0]));
 
             if (!newOrUpdatedSongs.Any() && !newOrUpdatedArtists.Any() && !newOrUpdatedAlbums.Any() && !newOrUpdatedGenres.Any())
             {
                 _state.SetCurrentLogMsg(new AppLogModel { Log = "No new music data changes to persist after scan." });
                 _logger.LogInformation("No new or modified entities to save to database.");
-
-
-
             }
 
             if (newOrUpdatedArtists.Any() || newOrUpdatedAlbums.Any() || newOrUpdatedGenres.Any() || newOrUpdatedSongs.Any())
@@ -215,9 +210,9 @@ public class LibraryScannerService : ILibraryScannerService
                                 // WHY THIS IS SAFE: This is the "air gap". We are explicitly destroying any
                                 // potential links to foreign-managed objects before adding the new song.
                                 // This prevents Realm from trying to follow a link to another realm instance.
-                                unmanagedSong.Album = null;
-                                unmanagedSong.Genre = null;
-                                unmanagedSong.ArtistIds.Clear();
+                                //unmanagedSong.Album = null;
+                                //unmanagedSong.Genre = null;
+                                //unmanagedSong.ArtistIds.Clear();
 
                                 // Now we add the clean, unlinked song. It becomes managed by THIS realm.
                                 songToPersist = realm.Add(unmanagedSong, update: true);
@@ -254,7 +249,11 @@ public class LibraryScannerService : ILibraryScannerService
                             {
                                 songToPersist.Genre = null;
                             }
-
+                            if (incomingSongData.Artist != null)
+                            {
+                                // Find the MANAGED version of the primary artist and link it.
+                                songToPersist.Artist = realm.Find<ArtistModel>(incomingSongData.Artist.Id);
+                            }
                             // (Same logic applies to the Artists list)
                             songToPersist.ArtistIds.Clear();
                             if (incomingSongData.ArtistIds != null && incomingSongData.ArtistIds.Any())
@@ -278,6 +277,7 @@ public class LibraryScannerService : ILibraryScannerService
 
 
 
+                //var song = _songRepo.GetAll().First();
 
 
 
@@ -304,7 +304,7 @@ public class LibraryScannerService : ILibraryScannerService
             _state.LoadAllSongs(finalSongListFromDb.AsReadOnly());
 
             _logger.LogInformation("Global state updated with {SongCount} songs from database after scan.", finalSongListFromDb.Count);
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, folderPaths, null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, folderPaths, null, finalSongListFromDb.FirstOrDefault()));
 
 
 

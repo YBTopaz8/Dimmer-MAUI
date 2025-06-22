@@ -2,7 +2,6 @@
 using Dimmer.Utilities.Extensions; // For ToModel, ToModelView
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Reactive.Disposables;
-using ATL;
 using Dimmer.Interfaces.Services.Interfaces;
 
 namespace Dimmer.Orchestration;
@@ -197,8 +196,7 @@ public partial class SongsMgtFlow : IDisposable
 
                     break;
                 case DimmerPlaybackState.PausedDimmer:
-                    if (_audio.IsPlaying)
-                        _audio.Pause();
+
                     break;
                 case DimmerPlaybackState.PlayCompleted:
                     //await _audio.StopAsync();

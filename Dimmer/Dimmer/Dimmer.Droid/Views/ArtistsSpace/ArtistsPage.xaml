@@ -119,19 +119,17 @@
 
 
                     <dx:DXCollectionView x:Name="ArtistAlbums"
-                                         HeightRequest="210"
+                                         HeightRequest="60"
                                          ItemsSource="{Binding BaseVM.SelectedArtistAlbums}"
                                          Orientation="Horizontal"
                                          >
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:AlbumModelView">
                                 <dx:DXStackLayout Orientation="Vertical">
-                                    <dx:DXImage HeightRequest="130" Source="{Binding Songs[0].CoverImageBytes}" />
                                     <Label FontSize="18"
                                            Text="{Binding Name}"
                                            WidthRequest="200"
                                            />
-                                    <Label Text="{Binding ReleaseYear}" />
                                 </dx:DXStackLayout>
                             </DataTemplate>
                         </dx:DXCollectionView.ItemTemplate>
@@ -144,23 +142,19 @@
                                  StartIconColor="DarkSlateBlue" TextChanged="SearchBy_TextChanged"
                                  />
                     <dx:DXCollectionView x:Name="SongsColView"
-                                         ItemsSource="{Binding BaseVM.SelectedArtistSongs}"
+                                         ItemsSource="{Binding BaseVM.SelectedAlbumSongs}"
                                          Tap="SongsColView_Tap"
                                          >
 
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
-                                <Grid BackgroundColor="Transparent" ColumnDefinitions="0.23*,*,0.35*"
-                                      HeightRequest="80" VerticalOptions="Center"
+                                <Grid Margin="10,0" BackgroundColor="Transparent"
+                                      ColumnDefinitions="auto,*,0.35*" HeightRequest="80"
+                                      VerticalOptions="Center"
                                       >
                                     <dx:DXBorder Grid.Column="0" BackgroundColor="Transparent"
-                                                 CornerRadius="15" HeightRequest="60"
-                                                 WidthRequest="60"
-                                                 >
-
-                                        <Image Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
-
-                                    </dx:DXBorder>
+                                                 CornerRadius="15"
+                                                 />
                                     <dx:DXStackLayout x:Name="TitleAndArtists"
                                                       Grid.Column="1" BackgroundColor="Transparent"
                                                       VerticalOptions="Center"

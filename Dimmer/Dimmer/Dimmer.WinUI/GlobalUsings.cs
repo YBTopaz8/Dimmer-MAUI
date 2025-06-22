@@ -5,7 +5,6 @@ global using CommunityToolkit.Mvvm.ComponentModel;
 global using Dimmer.ViewModel;
 global using Dimmer.Utilities.CustomAnimations;
 global using Dimmer.WinUI.Views;
-global using Dimmer.Interfaces;
 global using Dimmer.WinUI.Utils;
 global using System.Runtime.InteropServices;
 global using Microsoft.UI.Windowing;
@@ -54,9 +53,6 @@ global using Windows.Storage.Streams;
 global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 global using Dimmer.Utilities;
 global using Dimmer.WinUI.Utils.Helpers;
-
-
-global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 global using Dimmer.WinUI.Views.SettingsCenter;
 
 global using System.Drawing;

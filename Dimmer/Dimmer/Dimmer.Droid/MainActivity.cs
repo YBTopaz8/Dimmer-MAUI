@@ -1,13 +1,8 @@
 ﻿using Android.App;
-using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
 using Android.Transitions;
-using Android.Util;
 using Android.Window;
-using AndroidX.Activity;
-using Dimmer.Interfaces.Services.Interfaces;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
@@ -66,6 +61,7 @@ public class MainActivity : MauiAppCompatActivity
     }
 
     const int REQUEST_WRITE_STORAGE = 1001;
+
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {

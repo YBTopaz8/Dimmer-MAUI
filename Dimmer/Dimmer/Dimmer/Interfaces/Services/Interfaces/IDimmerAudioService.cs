@@ -96,7 +96,7 @@ public interface IDimmerAudioService
 
 
     event EventHandler<PlaybackEventArgs>? ErrorOccurred;
-    
+
 
 
 
@@ -105,22 +105,4 @@ public interface IDimmerAudioService
     void Stop();
     List<AudioOutputDevice>? GetAllAudioDevices();
     bool SetPreferredOutputDevice(AudioOutputDevice dev);
-}
-
-public class AudioOutputDevice
-{
-
-
-
-
-
-
-    public string? Id { get; set; }
-
-
-
-
-
-
-    public string? Name { get; set; }
 }

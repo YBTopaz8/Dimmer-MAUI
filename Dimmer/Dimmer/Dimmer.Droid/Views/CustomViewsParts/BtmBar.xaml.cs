@@ -1,24 +1,10 @@
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Threading.Tasks;
-
-using Android.Graphics;
-
-using CommunityToolkit.Maui.Core.Extensions;
 
 using DevExpress.Maui.Controls;
-using DevExpress.Maui.Core;
-using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
-using DevExpress.Xpo;
 
-using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
-using Dimmer.ViewModel;
 
-using Syncfusion.Maui.Toolkit.Chips;
-
-using Color = Microsoft.Maui.Graphics.Color;
 using View = Microsoft.Maui.Controls.View;
 
 
@@ -142,10 +128,10 @@ public partial class BtmBar : DXBorder
 
                         try
                         {
-                            DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
-                            int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
-                            songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-
+                            //DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
+                            //int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+                            //songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+                            MyViewModel.ScrollToSongCommand.Execute(null);
                             HapticFeedback.Perform(HapticFeedbackType.LongPress);
                         }
                         catch { }
@@ -179,8 +165,8 @@ public partial class BtmBar : DXBorder
 
     private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
     {
-        TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
-        SearchBy.Focus();
+        //TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
+        //SearchBy.Focus();
     }
     public static DXCollectionView PageColView { get; set; }
 }

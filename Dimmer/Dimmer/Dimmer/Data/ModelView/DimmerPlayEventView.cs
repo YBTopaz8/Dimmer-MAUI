@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public class DimmerPlayEventView
 {
     public ObjectId Id { get; set; } // Or public string Id if you prefer for display

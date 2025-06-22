@@ -1,11 +1,5 @@
 using System.Threading.Tasks;
 
-using Dimmer.Interfaces.Services.Interfaces;
-
-using Syncfusion.Maui.Toolkit.Carousel;
-
-using static Vanara.PInvoke.User32;
-
 namespace Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 public partial class ArtistsPage : ContentPage
@@ -19,26 +13,34 @@ public partial class ArtistsPage : ContentPage
         BindingContext=MyViewModel;
     }
 
+    private void ArtistsPage_Loaded(object? sender, EventArgs e)
+    {
+        Debug.WriteLine("Loaded");
+    }
+
     public BaseViewModelWin MyViewModel { get; }
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        LoadArtists();
     }
-    public void LoadArtists()
+    public async Task LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-        MyViewModel.ViewArtistDetails(s);
+        await MyViewModel.ViewArtistDetails(s);
 
     }
-
+    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+        await LoadArtists();
+    }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync("..");
     }
-    private async void PlayAll_Clicked(object sender, EventArgs e)
+    private void PlayAll_Clicked(object sender, EventArgs e)
     {
-        
+
     }
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
@@ -82,7 +84,7 @@ public partial class ArtistsPage : ContentPage
             Debug.WriteLine($"Search Error: {ex}");
         }
     }
-    ObservableCollection<SongModelView> songsToDisplay = new();
+    ObservableCollection<SongModelView?>? songsToDisplay = new();
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
         if ((songsToDisplay is null || songsToDisplay.Count < 1))
@@ -129,4 +131,20 @@ public partial class ArtistsPage : ContentPage
         });
     }
 
+    private void ArtistAlbums_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistSongsColView_Loaded(object sender, EventArgs e)
+    {
+
+    }
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        MyViewModel.SelectedAlbumArtists?.Clear();
+        MyViewModel.SelectedAlbumSongs?.Clear();
+        MyViewModel.SelectedArtistAlbums?.Clear();
+    }
 }

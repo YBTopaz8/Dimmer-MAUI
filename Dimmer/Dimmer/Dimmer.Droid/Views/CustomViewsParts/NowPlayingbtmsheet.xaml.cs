@@ -1,14 +1,9 @@
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Editors;
 
-using Dimmer.Data.Models;
-using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
-using Dimmer.ViewModel;
 
 namespace Dimmer.Views.CustomViewsParts;
 
@@ -33,15 +28,19 @@ public partial class NowPlayingbtmsheet : BottomSheet
         MyViewModel.BaseVM.SeekTrackPosition(ProgressSlider.Value);
     }
 
-    private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    private async void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
+        if (e.NewValue != BottomSheetState.FullExpanded)
+        {
+            await this.AnimateFadeOutBack(600);
+        }
         //if (MyViewModel.BaseVM.IsPlaying)
         //{
         //    SongPicture.StartHeartbeat();
         //}
     }
 
-    private async void Chip_Tap(object sender, HandledEventArgs e)
+    private async void ArtistChip_Tap(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
 
@@ -50,26 +49,11 @@ public partial class NowPlayingbtmsheet : BottomSheet
         {
             return;
         }
-        var artRepo = IPlatformApplication.Current!.Services.GetService<IRepository<ArtistModel>>();
+        await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
 
-        var allArtists = artRepo.GetAll().Where(x => x.Songs.Any(s => s.Id == song.Id));
-
-        var listOfArtNames = allArtists.Select(x => x.Name).ToArray();
-
-        var result = await Shell.Current.DisplayActionSheet("Select Artist To View", "Cancel", null, listOfArtNames);
-
-        if (result is null)
-        {
-            return;
-        }
-        if (result == "Cancel" || string.IsNullOrEmpty(result))
-            return;
-
-
-        var art = song.ArtistIds?.FirstOrDefault(x => x?.Name==result);
-        DeviceStaticUtils.SelectedArtistOne = art;
-        //await SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+
+        await this.AnimateFadeOutBack(600);
         await this.CloseAsync();
     }
 
@@ -84,7 +68,22 @@ public partial class NowPlayingbtmsheet : BottomSheet
         await CloseAsync();
 
         MyViewModel.BaseVM.SelectedSongForContext = MyViewModel.BaseVM.CurrentPlayingSongView;
+        await this.AnimateFadeOutBack(600);
 
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
+    }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+        BottomExpander.IsExpanded = !BottomExpander.IsExpanded;
+
+
+    }
+    private void CloseNowPlayingQueue_Tap(object sender, HandledEventArgs e)
+    {
+
+        Debug.WriteLine(this.Parent.GetType());
+        BottomExpanderTwo.IsExpanded = !BottomExpanderTwo.IsExpanded;
+        this.AllowDismiss = !BottomExpanderTwo.IsExpanded;
     }
 }

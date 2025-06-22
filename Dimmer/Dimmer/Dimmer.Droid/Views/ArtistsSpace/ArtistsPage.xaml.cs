@@ -1,7 +1,3 @@
-using System.Diagnostics;
-
-using AndroidX.Lifecycle;
-
 using DevExpress.Maui.Mvvm;
 
 using Dimmer.Utilities;
@@ -20,14 +16,16 @@ public partial class ArtistsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        LoadArtists();
     }
-    public void LoadArtists()
+    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+        await LoadArtists();
+    }
+    public async Task LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-        MyViewModel.ViewArtistDetails(s);
-
-
+        await MyViewModel.BaseVM.ViewArtistDetails(s);
 
     }
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)

@@ -1,13 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 // Add other necessary using statements for your models (SongModelView, LyricPhraseModel, etc.)
 
@@ -24,22 +19,22 @@ public class LyricsMgtFlow : IDisposable
 
     // --- Private State ---
     // The "source of truth" list for the current song, sorted by time.
-    private IReadOnlyList<LyricPhraseModel> _lyrics = Array.Empty<LyricPhraseModel>();
+    private IReadOnlyList<LyricPhraseModelView> _lyrics = Array.Empty<LyricPhraseModelView>();
     private LyricSynchronizer? _synchronizer;
     private bool _isPlaying;
 
     // --- Reactive Subjects (The heart of our state management) ---
     // These subjects hold the current state and broadcast it to subscribers.
-    private readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _allLyricsSubject = new(Array.Empty<LyricPhraseModel>());
-    private readonly BehaviorSubject<LyricPhraseModel?> _previousLyricSubject = new(null);
-    private readonly BehaviorSubject<LyricPhraseModel?> _currentLyricSubject = new(null);
-    private readonly BehaviorSubject<LyricPhraseModel?> _nextLyricSubject = new(null);
+    private readonly BehaviorSubject<IReadOnlyList<LyricPhraseModelView>> _allLyricsSubject = new(Array.Empty<LyricPhraseModelView>());
+    private readonly BehaviorSubject<LyricPhraseModelView?> _previousLyricSubject = new(null);
+    private readonly BehaviorSubject<LyricPhraseModelView?> _currentLyricSubject = new(null);
+    private readonly BehaviorSubject<LyricPhraseModelView?> _nextLyricSubject = new(null);
 
     // --- Public Observables (The clean, read-only API for other classes) ---
-    public IObservable<IReadOnlyList<LyricPhraseModel>> AllSyncLyrics => _allLyricsSubject.AsObservable();
-    public IObservable<LyricPhraseModel?> PreviousLyric => _previousLyricSubject.AsObservable();
-    public IObservable<LyricPhraseModel?> CurrentLyric => _currentLyricSubject.AsObservable();
-    public IObservable<LyricPhraseModel?> NextLyric => _nextLyricSubject.AsObservable();
+    public IObservable<IReadOnlyList<LyricPhraseModelView>> AllSyncLyrics => _allLyricsSubject.AsObservable();
+    public IObservable<LyricPhraseModelView?> PreviousLyric => _previousLyricSubject.AsObservable();
+    public IObservable<LyricPhraseModelView?> CurrentLyric => _currentLyricSubject.AsObservable();
+    public IObservable<LyricPhraseModelView?> NextLyric => _nextLyricSubject.AsObservable();
 
     public LyricsMgtFlow(
         IDimmerStateService stateService,
@@ -83,7 +78,7 @@ public class LyricsMgtFlow : IDisposable
         // If the song is null or has no lyrics, reset everything.
         if (song == null)
         {
-            _lyrics = Array.Empty<LyricPhraseModel>();
+            _lyrics = Array.Empty<LyricPhraseModelView>();
             _synchronizer = null;
 
             // Notify subscribers that there are no lyrics.
@@ -119,7 +114,7 @@ public class LyricsMgtFlow : IDisposable
             if (lyrr is null)
             {
 
-                _lyrics = Array.Empty<LyricPhraseModel>();
+                _lyrics = Array.Empty<LyricPhraseModelView>();
                 _synchronizer = null;
 
                 // Notify subscribers that there are no lyrics.
@@ -145,7 +140,7 @@ public class LyricsMgtFlow : IDisposable
                     int ms = int.Parse(match.Groups[3].Value.PadRight(3, '0'));
                     string text = match.Groups[4].Value.Trim();
 
-                    return new LyricPhraseModel
+                    return new LyricPhraseModelView
                     {
                         TimeStampMs = (min * 60 + sec) * 1000 + ms,
                         Text = text
@@ -171,7 +166,7 @@ public class LyricsMgtFlow : IDisposable
         {
             _logger.LogError(ex, "Failed to parse lyrics for song: {SongTitle}", song.Title);
             // Ensure state is clean on failure.
-            _lyrics = Array.Empty<LyricPhraseModel>();
+            _lyrics = Array.Empty<LyricPhraseModelView>();
             _synchronizer = null;
             _allLyricsSubject.OnNext(_lyrics);
         }
@@ -218,7 +213,7 @@ public class LyricsMgtFlow : IDisposable
             return;
 
         // Find the current line based on the timestamp.
-        (int currentIndex, LyricPhraseModel? currentLine) = _synchronizer.GetCurrentLineWithIndex(position);
+        (int currentIndex, LyricPhraseModelView? currentLine) = _synchronizer.GetCurrentLineWithIndex(position);
 
         // OPTIMIZATION: Only push updates if the current line has actually changed.
         if (currentLine?.TimeStampMs == _currentLyricSubject.Value?.TimeStampMs)
@@ -227,8 +222,8 @@ public class LyricsMgtFlow : IDisposable
         }
 
         // We have a new current line, let's find its neighbors.
-        LyricPhraseModel? previousLine = null;
-        LyricPhraseModel? nextLine = null;
+        LyricPhraseModelView? previousLine = null;
+        LyricPhraseModelView? nextLine = null;
 
         if (currentIndex != -1)
         {
@@ -265,15 +260,15 @@ public class LyricsMgtFlow : IDisposable
     // This inner class is great, let's just add a method to get the index too.
     sealed class LyricSynchronizer
     {
-        private readonly IReadOnlyList<LyricPhraseModel> _lyrics;
+        private readonly IReadOnlyList<LyricPhraseModelView> _lyrics;
         private int _lastFoundIndex = -1;
 
-        public LyricSynchronizer(IReadOnlyList<LyricPhraseModel> lyrics)
+        public LyricSynchronizer(IReadOnlyList<LyricPhraseModelView> lyrics)
         {
             _lyrics = lyrics; // Assumes lyrics are already sorted.
         }
 
-        public (int Index, LyricPhraseModel? Line) GetCurrentLineWithIndex(TimeSpan position)
+        public (int Index, LyricPhraseModelView? Line) GetCurrentLineWithIndex(TimeSpan position)
         {
             if (_lyrics.Count == 0)
                 return (-1, null);

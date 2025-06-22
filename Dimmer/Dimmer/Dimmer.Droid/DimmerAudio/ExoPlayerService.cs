@@ -1,10 +1,11 @@
 ﻿#region Using Directives
 // Android Core
 using Android.App;
-using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+
 using AndroidX.Media3.UI;
+
 using Uri = Android.Net.Uri;
 
 // AndroidX Core & Media
@@ -15,6 +16,7 @@ using AndroidX.Media3.Session;
 
 // Java Interop
 using Java.Lang;
+
 using Object = Java.Lang.Object;
 
 // AndroidX Concurrent Futures - For CallbackToFutureAdapter
@@ -28,15 +30,16 @@ using AndroidX.Media3.Common.Text;
 using DeviceInfo = AndroidX.Media3.Common.DeviceInfo;
 using MediaMetadata = AndroidX.Media3.Common.MediaMetadata;
 using AudioAttributes = AndroidX.Media3.Common.AudioAttributes;
+
 using Android.Util;
+
 using Java.Util.Concurrent;
+
 using Android.Media;
-using Dimmer.Activities;
+
 using MediaController = AndroidX.Media3.Session.MediaController;
-using Dimmer.Interfaces.Services.Interfaces;
-using System.Threading.Tasks;
+
 using Dimmer.Utilities.Events;
-using System.Diagnostics;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -139,12 +142,13 @@ public class ExoPlayerService : MediaSessionService
         Buffering?.Invoke(this, EventArgs.Empty);
     }
 
-    internal void GetMaxVolumeLevel()
+    internal static void GetMaxVolumeLevel()
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
             .GetSystemService(AudioService) as AudioManager;
-
+        var ss = audioManager.GetStreamMaxVolume(Android.Media.Stream.Music);
+        Console.WriteLine($"Max Volume Level: {ss}");
     }
 
 
@@ -164,16 +168,16 @@ public class ExoPlayerService : MediaSessionService
         var we = devices.Select(d => new AudioOutputDevice
         {
             Id   = d.Id.ToString(),
-            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
-
-
+            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString(),
+            Type =d.Type.ToString(),
+            IsSource=d.IsSource
         });
         foreach (var item in we)
         {
             Console.WriteLine(item.Id);
             Console.WriteLine(item.Name);
         }
-        return we.DistinctBy(x => x.Name).ToList();
+        return we.ToList();
     }
 
     internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()
@@ -258,10 +262,14 @@ public class ExoPlayerService : MediaSessionService
     {
         base.OnCreate();
         //Console.WriteLine("[ExoPlayerService] OnCreate");
+        var audioAttributes = new AudioAttributes.Builder()!
+    .SetUsage(C.UsageMedia)! // Specify this is media playback
+    .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
+    .Build();
         try
         {
             player = new ExoPlayerBuilder(this)
-                .SetAudioAttributes(AudioAttributes.Default, true)!
+                .SetAudioAttributes(audioAttributes, true)!
                 .SetHandleAudioBecomingNoisy(true)!
                 .SetWakeMode(C.WakeModeNetwork)!
                 .SetSkipSilenceEnabled(true)!
@@ -464,9 +472,9 @@ public class ExoPlayerService : MediaSessionService
     /// <param name="startPositionMs">Where to start in milliseconds.</param>
     public Task Prepare(
         string url,
-        string title,
-        string artist,
-        string album,
+        string? title,
+        string? artist,
+        string? album,
         SongModelView song,
         string? imagePath = null,
         long startPositionMs = 0)
@@ -478,15 +486,16 @@ public class ExoPlayerService : MediaSessionService
             throw new ArgumentException("Player not initialized.");
 
         }
-
+        var genre = song.Genre?.Name;
+        player.Stop();
+        player.ClearMediaItems();
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
-            .SetTitle(title)!
-            .SetArtist(artist)!
-
-            .SetAlbumTitle(album)!
-            .SetUserRating(new HeartRating(true))! // Ensure HeartRating class exists
-            .SetUserRating(new ThumbRating(true))! // Ensure HeartRating class exists
+            .SetTitle(title)
+            .SetArtist(artist)
+            .SetAlbumTitle(album)
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
+            .SetGenre(genre)
+
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         // Set user rating (favorite status)
@@ -501,12 +510,10 @@ public class ExoPlayerService : MediaSessionService
             }
             catch (System.Exception ex)
             {
-                //Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
+                Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
-        else if (!string.IsNullOrEmpty(imagePath))
-        {
-        }
+
 
         try
         {
@@ -861,12 +868,14 @@ public class ExoPlayerService : MediaSessionService
 
                     case 9:
                         service.player!.Stop();
+                        service.player.Dispose();
                         service.RaisePlayNextEventHandler();
                         //Console.WriteLine("[SessionCallback] User pressed NEXT button.");
                         break;
 
                     case 7:
                         service.player!.Stop();
+                        service.player.Dispose();
                         service.RaisePlayPreviousEventHandler();
 
                         break;
@@ -885,7 +894,6 @@ public class ExoPlayerService : MediaSessionService
 
     }
 
-    private IPlaybackBubbleUpdateListener? _bubbleListener;
 
 
 

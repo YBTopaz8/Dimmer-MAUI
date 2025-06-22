@@ -1,8 +1,4 @@
-﻿
-using System.Threading.Tasks;// Platforms/Android/MyCustomPageTransition.cs
-using AndroidX.Fragment.App; // For Fragment, FragmentManager, FragmentTransaction
-using Microsoft.Maui.Controls.Platform.Compatibility; // For IShellPageTransition
-using Android.Animation;
+﻿using AndroidX.Fragment.App; // For Fragment, FragmentManager, FragmentTransaction
 
 namespace Dimmer.CustomShellRenderers;
 internal interface IShellPageTransition

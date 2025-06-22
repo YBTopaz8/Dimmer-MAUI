@@ -87,7 +87,7 @@ public partial class DimmerWin : Window
     private TrayIconHelper? _trayIconHelper;
     private void Minimize_Clicked(object sender, EventArgs e)
     {
-
+        return;
         IntPtr hwnd = PlatUtils.DimmerHandle;
         Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location)!;
         _trayIconHelper = new TrayIconHelper();

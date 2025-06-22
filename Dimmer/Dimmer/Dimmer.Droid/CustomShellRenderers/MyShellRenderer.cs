@@ -1,16 +1,6 @@
-﻿using Android.Content;
-
-using AndroidX.Core.View;
+﻿using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Fragment.App;
-
-using Microsoft.Maui;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.CustomShellRenderers;
 
@@ -73,7 +63,7 @@ public partial class MyShellRenderer : ShellRenderer
 
 
         if (animate)
-            transaction.SetCustomAnimations(Resource.Animation.dimmer_fade_in, Resource.Animation.dimmer_fade_out);
+            transaction.SetCustomAnimations(Resource.Animation.m3_bottom_sheet_slide_in, Resource.Animation.m3_bottom_sheet_slide_out);
 
         if (animation.AbovePage == Utils.CustomShellUtils.Enums.PageType.NextPage && animate)
         {
@@ -121,6 +111,7 @@ public partial class MyShellRenderer : ShellRenderer
 
         if (FlyoutView?.AndroidView is DrawerLayout drawerLayout)
         {
+
             _shellDrawerLayout = drawerLayout;
             // Example 1: Change the background of the entire DrawerLayout
             // This color will be visible if your page content area doesn't fill everything

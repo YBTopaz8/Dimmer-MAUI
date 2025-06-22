@@ -53,84 +53,141 @@
 
                     </VerticalStackLayout>
                 </VerticalStackLayout>
-                <CollectionView x:Name="ArtistSongsColView"
-                                Grid.Row="1"
-                                ItemsSource="{Binding SelectedArtistSongs}"
-                                >
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:SongModelView">
-
-                            <Border Padding="10" BackgroundColor="Transparent"
-                                    StrokeShape="RoundRectangle 20"
-                                    >
-                                <Border.Resources>
-                                    <Style TargetType="Label">
-                                        <Setter Property="FontSize" Value="25" />
 
 
-                                    </Style>
-                                </Border.Resources>
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup x:Name="CommonStates">
-                                        <VisualState x:Name="Normal">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor" Value="Transparent" />
-                                            </VisualState.Setters>
-                                        </VisualState>
+                <syncf:SfTabView Grid.Row="1" Background="Transparent"
+                                 EnableSwiping="True"
+                                 >
+                    <syncf:SfTabItem BackgroundColor="Transparent" Header="AllSongs"
+                                     TextColor="White"
+                                     >
 
-                                        <VisualState Name="PointerOver">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                                <syncf:SfEffectsView BackgroundColor="Transparent" TouchDownEffects="Ripple">
-                                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,*"
-                                          ColumnSpacing="10"
-                                          >
-                                        <Grid.GestureRecognizers>
-                                            <TapGestureRecognizer x:Name="TapGestRec"
-                                                                  CommandParameter="{Binding .}"
-                                                                  NumberOfTapsRequired="2" Tapped="TapGestRec_Tapped"
-                                                                  />
-                                        </Grid.GestureRecognizers>
-                                        <HorizontalStackLayout Grid.Column="0">
-                                            <ImageButton Aspect="AspectFit" HeightRequest="100"
-                                                         Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
-                                                         ToolTipProperties.Text="{Binding Title}"
-                                                         WidthRequest="100"
-                                                         />
-                                        </HorizontalStackLayout>
+                        <syncf:SfTabItem.Content>
 
-                                        <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                            <VerticalStackLayout HorizontalOptions="End">
-                                                <Label HorizontalTextAlignment="Justify"
-                                                       Text="{Binding Title}"
-                                                       VerticalOptions="Center"
-                                                       />
-                                                <Label FontSize="20" HorizontalOptions="Center"
-                                                       IsVisible="False"
-                                                       Text="{Binding AlbumName}"
-                                                       VerticalOptions="Center"
-                                                       />
-                                            </VerticalStackLayout>
-                                            <HorizontalStackLayout HorizontalOptions="End">
-                                                <ImageButton HeightRequest="60" Source="more1.png" />
-                                            </HorizontalStackLayout>
-                                        </VerticalStackLayout>
+                            <Grid RowDefinitions="100,*">
 
-                                    </Grid>
-                                </syncf:SfEffectsView>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                                <Grid Grid.Row="0" BackgroundColor="Transparent">
+                                    <CollectionView Header="All Albums"
+                                                    ItemsSource="{Binding SelectedArtistAlbums}"
+                                                    Loaded="ArtistAlbums_Loaded" SelectionMode="Single"
+                                                    >
+                                        <CollectionView.ItemsLayout>
+                                            <GridItemsLayout Orientation="Vertical" Span="2" />
+                                        </CollectionView.ItemsLayout>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:AlbumModelView">
+                                                <VerticalStackLayout>
+                                                    <VisualStateManager.VisualStateGroups>
+                                                        <VisualStateGroup x:Name="CommonStates">
+                                                            <VisualState x:Name="Normal">
+                                                                <VisualState.Setters>
+                                                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+
+                                                            <VisualState Name="PointerOver">
+                                                                <VisualState.Setters>
+                                                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                        </VisualStateGroup>
+                                                    </VisualStateManager.VisualStateGroups>
+
+                                                    <Label Text="{Binding Name}" />
+
+                                                    <BoxView HeightRequest="1" Color="DarkSlateBlue" />
+
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
+
+                                <CollectionView x:Name="ArtistSongsColView"
+                                                Grid.Row="1" EmptyView="Nothin..."
+                                                ItemsSource="{Binding SelectedAlbumSongs}"
+                                                Loaded="ArtistSongsColView_Loaded"
+                                                >
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
+                                    </CollectionView.ItemsLayout>
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:SongModelView">
+
+                                            <Border Padding="10" BackgroundColor="Transparent"
+                                                    StrokeShape="RoundRectangle 20"
+                                                    >
+                                                <Border.Resources>
+                                                    <Style TargetType="Label">
+                                                        <Setter Property="FontSize" Value="25" />
+
+
+                                                    </Style>
+                                                </Border.Resources>
+                                                <VisualStateManager.VisualStateGroups>
+                                                    <VisualStateGroup x:Name="CommonStates">
+                                                        <VisualState x:Name="Normal">
+                                                            <VisualState.Setters>
+                                                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+
+                                                        <VisualState Name="PointerOver">
+                                                            <VisualState.Setters>
+                                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                    </VisualStateGroup>
+                                                </VisualStateManager.VisualStateGroups>
+                                                <syncf:SfEffectsView BackgroundColor="Transparent" TouchDownEffects="Ripple">
+                                                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,*"
+                                                          ColumnSpacing="10"
+                                                          >
+                                                        <Grid.GestureRecognizers>
+                                                            <TapGestureRecognizer x:Name="TapGestRec"
+                                                                                  CommandParameter="{Binding .}"
+                                                                                  NumberOfTapsRequired="2" Tapped="TapGestRec_Tapped"
+                                                                                  />
+                                                        </Grid.GestureRecognizers>
+                                                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" />
+
+                                                        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
+                                                            <VerticalStackLayout HorizontalOptions="End">
+                                                                <Label HorizontalTextAlignment="Justify"
+                                                                       Text="{Binding Title}"
+                                                                       VerticalOptions="Center"
+                                                                       />
+                                                                <Label FontSize="20" HorizontalOptions="Center"
+                                                                       IsVisible="False"
+                                                                       Text="{Binding AlbumName}"
+                                                                       VerticalOptions="Center"
+                                                                       />
+                                                            </VerticalStackLayout>
+                                                            <HorizontalStackLayout HorizontalOptions="Start">
+                                                                <ImageButton HeightRequest="60" Source="more1.png" />
+                                                            </HorizontalStackLayout>
+                                                        </VerticalStackLayout>
+
+                                                    </Grid>
+                                                </syncf:SfEffectsView>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+
+
+                            </Grid>
+
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+                    <syncf:SfTabItem Header="Info" TextColor="White">
+                        <syncf:SfTabItem.Content>
+                            <Label Text="ss" />
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+                </syncf:SfTabView>
             </Grid>
-        </Grid>
 
+        </Grid>
     </Grid>
 </ContentPage>

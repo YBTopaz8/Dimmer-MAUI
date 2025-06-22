@@ -1,11 +1,9 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
+using MoreLinq;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
-using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer.WinUI.Views;
 
@@ -32,19 +30,15 @@ public partial class HomePage : ContentPage
 
     }
 
-    private static async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
+    private async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
         var song = send.BindingContext as SongModelView;
 
-
-        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, song.ArtistIds.Select(x => x.Name).ToArray());
-        if (result == "Cancel" || string.IsNullOrEmpty(result))
-            return;
-
-        var art = song.ArtistIds?.FirstOrDefault(x => x.Name==result);
-        DeviceStaticUtils.SelectedArtistOne = art;
-        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
     }
 
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
@@ -103,9 +97,10 @@ public partial class HomePage : ContentPage
             default:
                 break;
         }
-        var art = MyViewModel.CurrentPlayingSongView.ArtistIds.FirstOrDefault();
-        DeviceStaticUtils.SelectedArtistOne = art;
-        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -119,7 +114,6 @@ public partial class HomePage : ContentPage
 
                 SearchBar searchBar = (SearchBar)sender;
                 string txt = searchBar.Text;
-
 
                 _debounceTimer?.CancelAsync();
                 _debounceTimer?.Dispose();
@@ -364,6 +358,27 @@ public partial class HomePage : ContentPage
     {
         Debug.WriteLine(e.NewIndexes);
         Debug.WriteLine(e.NewIndexes.GetType());
-        
+
+    }
+
+    private void AddToPlaylistClicked(object sender, EventArgs e)
+    {
+        PlaylistPopup.IsOpen = !PlaylistPopup.IsOpen;
+        //MyViewModel.ActivePlaylistModel
+    }
+
+    private void ScrollToSong_Clicked(object sender, EventArgs e)
+    {
+        var obsCol = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        var index = obsCol.ToList();
+        var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
+
+        SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
+
+    }
+
+    private void PlaylistsChip_Clicked(object sender, EventArgs e)
+    {
+
     }
 }

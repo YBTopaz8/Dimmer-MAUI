@@ -1,8 +1,4 @@
-﻿using System.Diagnostics;
-
-using ATL;
-
-using Dimmer.Interfaces.Services.Interfaces;
+﻿using ATL;
 
 namespace Dimmer.Utilities.FileProcessorUtils;
 
@@ -90,14 +86,9 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
         // Try to get cover art path early to associate with album
-        PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-        string? coverPath = string.Empty;// await _coverArtService.SaveOrGetCoverImageAsync(filePath, firstPicture);
 
-        var album = _metadataService.GetOrCreateAlbum(track, albumName, coverPath
+        var album = _metadataService.GetOrCreateAlbum(track, albumName, string.Empty
             );
-        //album.DiscNumber = track.DiscNumber;
-        //album.DiscTotal = track.DiscTotal;
-
 
 
         // --- Genre Processing ---
@@ -115,7 +106,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             OtherArtistsName= artistString,
             Genre = genre,
             Composer = track.Composer,
-            CoverImageBytes = track.EmbeddedPictures?.FirstOrDefault(x => x.PicType==PictureInfo.PIC_TYPE.Front)?.PictureData,
+
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             TrackNumber= track.TrackNumber,
@@ -131,7 +122,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
             IsNew=true,
-            //ArtistIds = [.. artists.Select(a => a.Id)],
+            //ArtistIds = artists.Select(a => a.Id).ToList(),
             Id= ObjectId.GenerateNewId()
             ,
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting
@@ -155,7 +146,6 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         _metadataService.AddSong(song);
         result.ProcessedSong = song;
-
         Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
         return result;
     }

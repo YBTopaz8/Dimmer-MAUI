@@ -2,16 +2,12 @@
 //using System.Reactive.Linq;
 
 using System.ComponentModel;
-using System.Security.Cryptography.X509Certificates;
+using System.Runtime.CompilerServices;
 
-using Android.Views;
-
+using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
-using Dimmer.Interfaces.Services;
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Extensions;
 using Dimmer.ViewModel;
 
 using Microsoft.Extensions.Logging;
@@ -34,6 +30,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly AlbumsMgtFlow albumsMgtFlow;
     private readonly IFolderPicker folderPicker;
+    private readonly IAnimationService animService;
     private readonly PlayListMgtFlow playlistsMgtFlow;
     private readonly SongsMgtFlow songsMgtFlow;
     private readonly IDimmerStateService stateService;
@@ -59,7 +56,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
 
-    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
+    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker, IAnimationService animService,
        IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
@@ -69,6 +66,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.albumsMgtFlow=albumsMgtFlow;
         this.folderPicker=folderPicker;
+        this.animService=animService;
         audioService=_audioService;
         this.playlistsMgtFlow=playlistsMgtFlow;
         this.songsMgtFlow=songsMgtFlow;
@@ -102,6 +100,34 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         }
     }
 
+
+
+
+    [ObservableProperty] public partial Page CurrentUserPage { get; set; }
+
+    [ObservableProperty] public partial ObservableCollection<AnimationSetting>? PageAnimations { get; set; }
+    public void GetAllAnimations()
+    {
+        PageAnimations = animService.GetAvailableAnimations().ToObservableCollection();
+    }
+    public async Task SavePage(Page PageToSave, int duration, bool IsEnter)
+    {
+
+        // (Add null checks here for safety)
+
+        // STEP 3: Call our public API to save the settings.
+        // This is the key method call you were asking about!
+        // It takes the page type and the four chosen AnimationSetting objects.
+        AnimationManager.SetPageAnimations(
+            PageToSave.GetType(),
+            null,
+            null,
+            null,
+            null
+        );
+
+        await Shell.Current.DisplayAlert("Success", "Settings saved!", "OK");
+    }
     public async Task AddMusicFolderViaPickerAsync(string? selectedFolder = null)
     {
 
@@ -154,4 +180,85 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     {
         baseVM.ViewArtistDetails(s);
     }
+
+    private bool _isExpanded;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            // This is how we link the native sheet's state to our UI's appearance.
+            if (SetProperty(ref _isExpanded, value))
+            {
+                OnPropertyChanged(nameof(IsMiniPlayerVisible));
+                OnPropertyChanged(nameof(IsFullPlayerVisible));
+            }
+        }
+    }
+
+    // These properties will drive the visibility of our layouts in XAML.
+    public bool IsMiniPlayerVisible => !_isExpanded;
+    public bool IsFullPlayerVisible => _isExpanded;
+
+    // --- Communication Bridge ---
+    // This event is for the ViewModel to tell the native UI what to do.
+    public event EventHandler<bool> RequestSheetStateChange;
+
+    // Call this from your MAUI UI (e.g., a tap gesture) to expand the sheet.
+    public void TriggerExpand() => RequestSheetStateChange?.Invoke(this, true);
+
+    // Call this from your MAUI UI (e.g., a "down arrow" button) to collapse.
+    public void TriggerCollapse() => RequestSheetStateChange?.Invoke(this, false);
+
+
+    [RelayCommand]
+    void PlayClicked()
+    {
+        TriggerExpand();
+    }
+
+    [RelayCommand]
+    async Task SkipNextClicked()
+    {
+        await Shell.Current.DisplayAlert("SkipNext Clicked", "SkipNext button was clicked!", "OK");
+    }
+    [ObservableProperty]
+    public partial DXCollectionView SongsColView { get; set; } // Nullable, ensure it's set from XAML
+    [RelayCommand]
+    void ScrollToSong()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            int itemHandle = SongsColView.FindItemHandle(BaseVM.CurrentPlayingSongView);
+            SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+        });
+    }
+
+    public void LoadTheCurrentColView(DXCollectionView colView)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (colView is not null)
+            {
+                SongsColView = colView;
+                // Optionally, you can also set the current item to scroll to it.
+                int itemHandle = SongsColView.FindItemHandle(BaseVM.CurrentPlayingSongView);
+                SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+            }
+        });
+    }
+
+    #region INotifyPropertyChanged
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
+    {
+        if (EqualityComparer<T>.Default.Equals(backingStore, value))
+            return false;
+        backingStore = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
+    protected void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    #endregion
 }

@@ -1,7 +1,6 @@
 ﻿global using AutoMapper;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using DevExpress.Maui.CollectionView;
-global using Dimmer.Interfaces;
 global using Dimmer.Orchestration;
 global using Dimmer.ViewModels;
 global using System.Diagnostics;
@@ -13,7 +12,6 @@ global using Dimmer.Views;
 global using Dimmer.Data.ModelView;
 
 global using Dimmer.DimmerLive.Interfaces;
-global using MongoDB.Bson;
 
 
 
