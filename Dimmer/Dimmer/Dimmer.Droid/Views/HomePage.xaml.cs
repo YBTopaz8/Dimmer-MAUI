@@ -74,8 +74,8 @@ public partial class HomePage : ContentPage
     SongModelView selectedSongPopUp = new SongModelView();
     private void MoreIcon_Clicked(object sender, EventArgs e)
     {
-        var send = (DXButton)sender;
-        var paramss = send.CommandParameter as SongModelView;
+        var send = (Chip)sender;
+        var paramss = send.BindingContext as SongModelView;
         if (paramss is null)
         {
             return;
@@ -188,8 +188,7 @@ public partial class HomePage : ContentPage
     SortOrder internalOrder = SortOrder.Ascending;
     private bool SortIndeed()
     {
-        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
-        ;
+        ObservableCollection<SongModelView> songs = MyViewModel.BaseVM.NowPlayingDisplayQueue;
         if (songs == null || !songs.Any())
             return false;
         internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;

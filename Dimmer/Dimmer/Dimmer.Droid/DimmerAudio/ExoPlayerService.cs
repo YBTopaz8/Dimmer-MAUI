@@ -275,12 +275,13 @@ public class ExoPlayerService : MediaSessionService
                 .SetHandleAudioBecomingNoisy(true)!
                 .SetWakeMode(C.WakeModeNetwork)!
                 .SetSkipSilenceEnabled(false)!
+                //.SetSeekParameters(new SeekParameters(10,10))
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
                 
                 .Build();
 
-            player.AddListener(new PlayerEventListener(this));
+            player?.AddListener(new PlayerEventListener(this));
 
             sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
 
@@ -494,9 +495,7 @@ public class ExoPlayerService : MediaSessionService
 
         var _playlistsMgtFlow = IPlatformApplication.Current.Services.GetService<PlayListMgtFlow>();
 
-        var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
     
-
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)
             .SetArtist(artist)
@@ -519,14 +518,14 @@ public class ExoPlayerService : MediaSessionService
         }
     
 
-        MediaMetadata.Builder metadataBuilder2 = new MediaMetadata.Builder()!
-            .SetTitle(nextSong.Title)
-            .SetArtist(nextSong.OtherArtistsName)
-            .SetAlbumTitle(nextSong.AlbumName)
-            .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
-            .SetGenre(nextSong.Genre.Name)
+        //MediaMetadata.Builder metadataBuilder2 = new MediaMetadata.Builder()!
+        //    .SetTitle(nextSong.Title)
+        //    .SetArtist(nextSong.OtherArtistsName)
+        //    .SetAlbumTitle(nextSong.AlbumName)
+        //    .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
+        //    .SetGenre(nextSong.Genre.Name)
 
-            .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
+        //    .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
         {
@@ -549,11 +548,11 @@ public class ExoPlayerService : MediaSessionService
                .SetMediaMetadata(metadataBuilder!.Build())!
                .Build();
             
-            var NextMediaItem = new MediaItem.Builder()!
-               .SetMediaId(nextSong.FilePath)! // Use URL as Media ID for simplicity
-               .SetUri(Uri.Parse(nextSong.FilePath))!
-               .SetMediaMetadata(metadataBuilder2!.Build())!
-               .Build();
+            //var NextMediaItem = new MediaItem.Builder()!
+            //   .SetMediaId(nextSong.FilePath)! // Use URL as Media ID for simplicity
+            //   .SetUri(Uri.Parse(nextSong.FilePath))!
+            //   .SetMediaMetadata(metadataBuilder2!.Build())!
+            //   .Build();
 
             //IReadOnlyList<Data.Models.SongModel>? itemms = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems;
 
@@ -561,8 +560,8 @@ public class ExoPlayerService : MediaSessionService
             //player.SetMediaItems(new List<MediaItem> { currentMediaItem, NextMediaItem }, 0, startPositionMs);
             //Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={0}");
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
-
-            player.AddMediaItem(NextMediaItem);
+            player.AddMediaItem(currentMediaItem);
+            //player.AddMediaItem(NextMediaItem);
             player.Prepare();
 
             //player.Play(); // Start playback immediately
@@ -637,7 +636,7 @@ public class ExoPlayerService : MediaSessionService
             // Forward to your service or session as needed...
             if (playbackState == 4)
             {
-                if (service.player.IsPlaying)
+                if (service.player!.IsPlaying)
                 {
                     service.player.Stop(); // Stop the player if it was playing
                 }

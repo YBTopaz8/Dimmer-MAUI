@@ -391,4 +391,10 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
+    {
+        SearchSongSB.Text= ((MenuFlyoutItem)sender).CommandParameter.ToString();
+        SearchSongSB.Focus();
+    }
 }

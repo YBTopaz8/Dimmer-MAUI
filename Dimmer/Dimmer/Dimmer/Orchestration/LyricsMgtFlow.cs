@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
+using ATL;
+
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 
@@ -156,11 +158,15 @@ public class LyricsMgtFlow : IDisposable
 
             // Notify all subscribers of the new data.
             _allLyricsSubject.OnNext(_lyrics);
-
+            
             // Reset current/prev/next, they will be updated on the next position tick.
             _previousLyricSubject.OnNext(null);
             _currentLyricSubject.OnNext(null);
             _nextLyricSubject.OnNext(_lyrics.FirstOrDefault()); // Show the first line as "next".
+
+            Track songFile = new Track(song.FilePath);
+            songFile.Lyrics.ParseLRC(lyrr);
+            
         }
         catch (Exception ex)
         {
@@ -194,7 +200,7 @@ public class LyricsMgtFlow : IDisposable
                 .Where(_ => _isPlaying && _synchronizer != null)
                 // 4. (Optional but recommended) Only proceed if the position has actually changed.
                 //    This prevents processing when paused.
-                .Sample(TimeSpan.FromMilliseconds(50))
+                .Sample(TimeSpan.FromMilliseconds(0))
                 .DistinctUntilChanged()
                 .Subscribe(
                     // The 'position' here is a double (in seconds).

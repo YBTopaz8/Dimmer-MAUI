@@ -64,7 +64,6 @@ public class AudioFileProcessor : IAudioFileProcessor
         {
             result.Skipped = true;
             result.SkipReason = $"Song '{title}' with duration {track.Duration}s already exists.";
-            Debug.WriteLine(result.SkipReason);
             return result;
         }
 

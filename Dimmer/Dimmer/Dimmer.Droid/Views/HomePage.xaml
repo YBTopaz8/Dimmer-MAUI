@@ -206,14 +206,15 @@
                                                />
 
                                     </dx:DXStackLayout>
-                                    <dx:DXButton x:Name="MoreIcon"
-                                                 Grid.Column="1" Clicked="MoreIcon_Clicked"
-                                                 CommandParameter="{Binding .}"
-                                                 HorizontalOptions="End" ShowContent="True"
-                                                 ShowIcon="False"
+                                    <dx:Chip x:Name="MoreIcon" BorderColor="Transparent" PressedBackgroundColor="DarkSlateBlue"
+                                                 Grid.Column="1" Tap="MoreIcon_Clicked"
+                                                 TapCommandParameter="{Binding .}"
+                                                 HorizontalOptions="End" CornerRadius="25"
+                                                 IsIconVisible="False"
                                                  >
-                                        <dx:DXButton.Content>
-                                            <dx:DXStackLayout Orientation="Horizontal">
+                                        <dx:Chip.ContentTemplate>
+                                            <DataTemplate >
+                                            <dx:DXStackLayout Orientation="Horizontal" >
 
 
                                                 <Label BackgroundColor="Transparent" FontSize="12"
@@ -228,8 +229,9 @@
 
 
                                             </dx:DXStackLayout>
-                                        </dx:DXButton.Content>
-                                    </dx:DXButton>
+                                            </DataTemplate>
+                                        </dx:Chip.ContentTemplate>
+                                    </dx:Chip>
                                 </Grid>
                             </DataTemplate>
                         </dx:DXCollectionView.ItemTemplate>
@@ -355,7 +357,8 @@
                                                     </DataTrigger>
                                                 </dx:Chip.Triggers>
                                             </dx:Chip>
-                                            <dx:Chip Icon="repeat.png" TapCommand="{Binding BaseVM.RescanSongsCommand}" />
+                                            <dx:Chip Icon="repeat.png" TapCommand="{Binding BaseVM.RescanSongsCommand}" 
+                                                     IsIconVisible="True" BorderThickness="0" IconSize="30,30"/>
                                         </HorizontalStackLayout>
                                         <dx:DXStackLayout HorizontalOptions="Center" ItemSpacing="10"
                                                           Orientation="Vertical"

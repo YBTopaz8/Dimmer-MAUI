@@ -543,7 +543,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     {
                         return;
                     }
-                    CurrentPlayingSongView = null;
+                    CurrentPlayingSongView = new();
                     //Track trck = new Track(songView.FilePath);
                     CurrentPlayingSongView = songView;
                     //var e = trck.EmbeddedPictures.FirstOrDefault();

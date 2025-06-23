@@ -102,18 +102,18 @@
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.80" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
-    <PackageReference Include="Vanara.Core" Version="4.1.4" />
-    <PackageReference Include="Vanara.PInvoke.ComCtl32" Version="4.1.4" />
-    <PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.4" />
-    <PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.4" />
-    <PackageReference Include="Vanara.PInvoke.SpellCheckingApi" Version="4.1.4" />
-    <PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.4" />
-    <PackageReference Include="Vanara.PInvoke.User32" Version="4.1.4" />
-    <PackageReference Include="Vanara.Windows.Shell" Version="4.1.4" />
+    <PackageReference Include="Vanara.Core" Version="4.1.6" />
+    <PackageReference Include="Vanara.PInvoke.ComCtl32" Version="4.1.6" />
+    <PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.6" />
+    <PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.6" />
+    <PackageReference Include="Vanara.PInvoke.SpellCheckingApi" Version="4.1.6" />
+    <PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.6" />
+    <PackageReference Include="Vanara.PInvoke.User32" Version="4.1.6" />
+    <PackageReference Include="Vanara.Windows.Shell" Version="4.1.6" />
     <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
 
     <PackageReference Include="AlohaKit" Version="1.0.100" />

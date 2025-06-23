@@ -243,14 +243,14 @@
                             <syncf:SfChip x:Name="RefreshData"
                                           Command="{Binding RefreshSongMetadataCommand}"
                                           ImageSize="40" ImageSource="vinyl.png"
-                                          ShowIcon="True" WidthRequest="55"
-                                          />
+                                          ShowIcon="True" WidthRequest="55" Text="refresh"
+                                          IsVisible="False"/>
 
 
                             <syncf:SfChip x:Name="RetroactivelyLinkArtists"
                                           Command="{Binding RetroactivelyLinkArtistsCommand}"
-                                          ImageSize="40" ImageSource="addcircle.png"
-                                          ShowIcon="True" WidthRequest="55"
+                                          ImageSize="40" ImageSource="cloudbolt.png"
+                                          ShowIcon="True" WidthRequest="55" 
                                           />
 
 
@@ -429,6 +429,12 @@
                                                                         CommandParameter="{Binding .}"
                                                                         Text="View Song Info"
                                                                         />
+                                                        <MenuFlyoutItem x:Name="QuickSearchArtist"
+                                                                        Clicked="QuickSearchArtist_Clicked"
+                                                                        
+                                                                        CommandParameter="{Binding AlbumName}"
+                                                                        Text="Quick Search Album"
+                                                                        />
                                                     </MenuFlyout>
                                                 </FlyoutBase.ContextFlyout>
                                                 <Border BackgroundColor="Transparent" Stroke="Transparent"
@@ -493,7 +499,19 @@
                                                    Text="{Binding AlbumName}"
                                                    ToolTipProperties.Text="{Binding AlbumName}"
                                                    VerticalOptions="Center"
-                                                   />
+                                                   >
+
+                                                <FlyoutBase.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem x:Name="QuickSearchAlbum"
+                                                                        Clicked="QuickSearchAlbum_Clicked"
+                                                                        
+                                                                        CommandParameter="{Binding AlbumName}"
+                                                                        Text="Quick Search Album"
+                                                                        />
+                                                    </MenuFlyout>
+                                                </FlyoutBase.ContextFlyout>
+                                            </Label>
                                             <Label Grid.Column="3" HorizontalOptions="Center"
                                                    Text="{Binding Genre.Name}"
                                                    VerticalOptions="Center"

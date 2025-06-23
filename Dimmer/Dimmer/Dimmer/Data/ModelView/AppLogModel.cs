@@ -9,7 +9,9 @@ public class AppLogModel
     public ChatMessage? ChatMsg { get; set; }
     public ChatConversation? ChatConvo { get; set; }
     public DimmerSharedSong? SharedSong { get; set; }
-    public AppScanLogModel? AppScanLogModel { get; set; } 
+    public AppScanLogModel? AppScanLogModel { get; set; }
+    public int TotalScanFiles { get; set; }
+    public int CurrentScanFile { get; set; }
 }
 
 
