@@ -201,7 +201,7 @@ public class FolderMgtService : IFolderMgtService
         }
     }
 
-    private async void HandleFileOrFolderChanged(string fullPath) // IFolderMonitorService OnChanged provides string
+    private void HandleFileOrFolderChanged(string fullPath) // IFolderMonitorService OnChanged provides string
     {
         _logger.LogDebug("FS Event: Changed - {FullPath}", fullPath);
         if (IsRelevantAudioFile(fullPath)) // Only rescan if an audio file's metadata might have changed
@@ -213,7 +213,7 @@ public class FolderMgtService : IFolderMgtService
         }
     }
 
-    private async void HandleFileOrFolderRenamed(RenamedEventArgs e)
+    private void HandleFileOrFolderRenamed(RenamedEventArgs e)
     {
         _logger.LogDebug("FS Event: Renamed - {OldFullPath} to {NewFullPath}", e.OldFullPath, e.FullPath);
         bool oldIsAudio = IsRelevantAudioFile(e.OldName) || WasPathPreviouslyKnownAudio(e.OldFullPath);

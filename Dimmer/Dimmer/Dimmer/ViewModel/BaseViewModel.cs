@@ -1,12 +1,9 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
-
-using ATL;
+﻿using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
-using Dimmer.Data;
 using Dimmer.Data.ModelView.NewFolder;
+using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
@@ -15,8 +12,6 @@ using Dimmer.Utilities.StatsUtils;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MoreLinq;
-
-using Realms;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -29,7 +24,6 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IDisposable
 {
-
     public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService _dimmerLiveStateService;
@@ -504,7 +498,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public async Task Initialize()
     {
         InitializeApp();
-        await InitializeViewModelSubscriptions();
+        InitializeViewModelSubscriptions();
         //_stateService.LoadAllSongs(songRepo.GetAll());
     }
 
@@ -516,7 +510,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         }
     }
-    protected virtual async Task InitializeViewModelSubscriptions()
+    protected virtual void InitializeViewModelSubscriptions()
     {
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
 
@@ -1179,6 +1173,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         DeviceStaticUtils.SelectedArtistOne = artDb.ToModelView(_mapper);
 
         RefreshSongMetadata(song);
+        LoadMusicArtistServiceMethods(artDb.ToModelView(_mapper));
         return true;
     }
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
@@ -1441,39 +1436,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     partial void OnSelectedAlbumSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
     {
         //throw new NotImplementedException();
-    }
-    void RefreshAlbumsCover(IEnumerable<AlbumModelView> albums, CollectionToUpdate col)
-    {
-        return;
-        Task.Run(() =>
-        {
-
-            foreach (var item in albums)
-            {
-                item.ImageBytes= NowPlayingDisplayQueue.FirstOrDefault(s => s.Id== item.Id)?.CoverImageBytes;
-
-            }
-            switch (col)
-            {
-                case CollectionToUpdate.NowPlayingCol:
-                    //OnPropertyChanged(nameof(NowPlayingDisplayQueue));
-                    break;
-                case CollectionToUpdate.QueueColOfXSongs:
-                    OnPropertyChanged(nameof(QueueOfSongsLive));
-                    break;
-                case CollectionToUpdate.ArtistAlbumSongs:
-                    OnPropertyChanged(nameof(SelectedArtistSongs));
-                    break;
-                case CollectionToUpdate.AlbumCovers:
-                    SelectedArtistAlbums = albums.ToObservableCollection();
-                    OnPropertyChanged(nameof(SelectedArtistAlbums));
-                    break;
-                default:
-                    break;
-            }
-        });
-
-
     }
     void RefreshSongsCover(IEnumerable<SongModelView> songs, CollectionToUpdate col)
     {
@@ -1797,26 +1759,23 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _subsManager.Dispose();
         }
     }
-    private bool BuildIdFilter(IEnumerable<ObjectId> ids, out string queryString, out QueryArgument[] queryArgs)
+
+    private void LoadMusicArtistServiceMethods(ArtistModelView? artist)
     {
-        var idList = ids.ToList();
-        if (!idList.Any())
+#if RELEASE
+        return;
+#endif
+        if (artist is null)
         {
-            queryString = string.Empty;
-            queryArgs = Array.Empty<QueryArgument>();
-            return false;
+            return;
         }
+        var artId = artist.Id;
+        var musicRelationshipService = IPlatformApplication.Current?.Services.GetService<MusicRelationshipService>();
 
-        // 1. Create a list of "Id == $n" clauses, where n is the index.
-        var clauses = Enumerable.Range(0, idList.Count)
-                                .Select(i => $"Id == ${i}");
-
-        // 2. Join them with " OR " to create the full query string.
-        queryString = string.Join(" OR ", clauses);
-
-        // 3. Convert the list of ObjectIds into the required QueryArgument[] array.
-        queryArgs = idList.Select(id => (QueryArgument)id).ToArray();
-
-        return true;
+        var step1 = musicRelationshipService.GetArtistLoyaltyIndex(artId);
+        var step2 = musicRelationshipService.GetMyCoreArtists(10);
+        var step3 = musicRelationshipService.GetArtistBingeScore(artId);
+        var step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId);
+        var step5 = musicRelationshipService.GetUserArtistRelationship(artId);
     }
 }

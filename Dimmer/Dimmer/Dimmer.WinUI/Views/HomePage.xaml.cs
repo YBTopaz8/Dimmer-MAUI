@@ -235,7 +235,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrEmpty(sortProperty))
             return;
 
-        var songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        var songs = MyViewModel.NowPlayingDisplayQueue;
         if (songs == null || !songs.Any())
             return;
 
@@ -379,7 +379,7 @@ public partial class HomePage : ContentPage
 
     private void PlaylistsChip_Clicked(object sender, EventArgs e)
     {
-
+        PlaylistPopup.Show();
     }
 
     private void SongsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
@@ -396,5 +396,10 @@ public partial class HomePage : ContentPage
     {
         SearchSongSB.Text= ((MenuFlyoutItem)sender).CommandParameter.ToString();
         SearchSongSB.Focus();
+    }
+
+    private void QuickSearchArtist_Clicked(object sender, EventArgs e)
+    {
+
     }
 }

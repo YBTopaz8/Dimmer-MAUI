@@ -251,12 +251,13 @@
                                           Command="{Binding RetroactivelyLinkArtistsCommand}"
                                           ImageSize="40" ImageSource="cloudbolt.png"
                                           ShowIcon="True" WidthRequest="55" 
-                                          />
+                                         ToolTipProperties.Text="Retroactively add links" />
 
 
                             <syncf:SfChip x:Name="PlaylistsChip"
                                           Clicked="PlaylistsChip_Clicked" ImageSize="40"
                                           ImageSource="playlistminimalistic3.png" ShowIcon="True"
+                                            ToolTipProperties.Text="Playlists"
                                           WidthRequest="55"
                                           >
 

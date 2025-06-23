@@ -7,16 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.Data.RealmStaticFilters;
-internal class realmDumpy
-{
-}
+
 public class MusicStatsService
 {
     private readonly Realm _realm;
-
-    public MusicStatsService(Realm realmInstance)
+    public MusicStatsService(IRealmFactory factory)
     {
-        _realm = realmInstance;
+        _realm = factory.GetRealmInstance();
     }
 
     // A helper to make return types cleaner
