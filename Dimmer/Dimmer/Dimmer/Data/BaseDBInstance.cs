@@ -23,8 +23,8 @@ public class RealmFactory : IRealmFactory
 #if RELEASE
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
 #elif DEBUG
-
-        string filePath = Path.Combine(dbPath, "DimmerDbDebug.realm");
+        string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
+        //string filePath = Path.Combine(dbPath, "DimmerDbDebug.realm");
 #endif
         if (!File.Exists(filePath))
         {

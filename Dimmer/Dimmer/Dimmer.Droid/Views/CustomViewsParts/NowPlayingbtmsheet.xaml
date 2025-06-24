@@ -22,10 +22,6 @@
     </dx:BottomSheet.Resources>
     <Grid Margin="10,0">
 
-        <dx:DXImage IsVisible="False" Opacity="0.6"
-                    Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
-                    />
-
 
         <Grid BackgroundColor="Transparent" RowDefinitions="*,auto,auto,auto"
               RowSpacing="20"
@@ -67,7 +63,7 @@
                             </Label>
                         </dx:DXBorder>
                         <Label FontSize="20" HorizontalOptions="Center"
-                               LineBreakMode="WordWrap" Opacity="0.7"
+                               LineBreakMode="WordWrap" HorizontalTextAlignment="Justify" Opacity="0.7"
                                Text="{Binding BaseVM.NextLine.Text}"
                                />
                     </VerticalStackLayout>
@@ -276,6 +272,8 @@
                                          IconSize="60,60" IsIconVisible="True"
                                          WidthRequest="90"
                                          />
+                                <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"/>
+                                <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"/>
                             </StackLayout>
                         </dx:DXExpander.Content>
                     </dx:DXExpander>

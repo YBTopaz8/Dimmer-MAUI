@@ -1772,10 +1772,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var artId = artist.Id;
         var musicRelationshipService = IPlatformApplication.Current?.Services.GetService<MusicRelationshipService>();
 
-        var step1 = musicRelationshipService.GetArtistLoyaltyIndex(artId);
-        var step2 = musicRelationshipService.GetMyCoreArtists(10);
-        var step3 = musicRelationshipService.GetArtistBingeScore(artId);
-        var step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId);
-        var step5 = musicRelationshipService.GetUserArtistRelationship(artId);
+         ArtistLoyaltyIndex = musicRelationshipService.GetArtistLoyaltyIndex(artId);
+         MyCoreArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(musicRelationshipService.GetMyCoreArtists(10));
+        ArtistBingeScore = musicRelationshipService.GetArtistBingeScore(artId);
+        SongModelView? step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId).ToModelView(_mapper);
+        //var step5 = musicRelationshipService.GetUserArtistRelationship(artId);
     }
+    [ObservableProperty]
+    public partial double ArtistLoyaltyIndex { get; set; } 
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView> MyCoreArtists { get; set; } 
+    [ObservableProperty]
+    public partial (DateTimeOffset Date, int PlayCount) ArtistBingeScore { get; set; } 
+    [ObservableProperty]
+    public partial SongModelView SongThatHookedMeOnAnArtist { get; set; } 
 }

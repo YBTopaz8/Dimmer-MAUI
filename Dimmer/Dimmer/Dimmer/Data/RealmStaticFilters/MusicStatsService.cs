@@ -307,7 +307,7 @@ public class MusicStatsService
         var genreSongs = _realm.All<SongModel>().Filter("Genre.Name ==[c] $0", genreName);
         var genreSongIds = genreSongs.Select(s => (QueryArgument)s.Id).ToArray();
 
-        if (!genreSongIds.Any())
+        if (genreSongIds.Length==0)
             return new List<ArtistStat>();
 
         // 2. RQL: Find all events for those songs.
@@ -466,7 +466,7 @@ public class MusicStatsService
         var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId);
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
 
-        if (!artistSongIds.Any())
+        if (artistSongIds.Length==0)
             return null;
 
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds);
