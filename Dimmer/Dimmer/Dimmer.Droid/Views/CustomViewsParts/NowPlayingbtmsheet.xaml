@@ -20,30 +20,27 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse" />
         </ResourceDictionary>
     </dx:BottomSheet.Resources>
-    <Grid Margin="10,0">
-
-
+  
         <Grid BackgroundColor="Transparent" RowDefinitions="*,auto,auto,auto"
               RowSpacing="20"
-              >
+             Margin="20,0" >
 
             <dx:DXBorder x:Name="TopRowWithImage"
                          Grid.Row="0" BorderColor="DarkSlateBlue"
                          BorderThickness="0" CornerRadius="20"
                          >
-                <Grid>
-
-
-                    <VerticalStackLayout Grid.Column="0" Spacing="10"
-                                         VerticalOptions="Center"
-                                         >
-
+            <Grid>
+                    <VerticalStackLayout 
+                        Grid.Column="0" Spacing="10"
+                        VerticalOptions="Center" 
+                        ZIndex="1">
 
                         <Label FontSize="15" HorizontalOptions="Center"
-                               LineBreakMode="WordWrap" Opacity="0.7"
+                               LineBreakMode="WordWrap" Opacity="0.8"
                                Text="{Binding BaseVM.PreviousLine.Text}"
                                />
-                        <dx:DXBorder BorderColor="{Binding BaseVM.CurrentLine.HighlightColor}" BorderThickness="2">
+                        <dx:DXBorder BorderColor="{Binding BaseVM.CurrentLine.HighlightColor}" BorderThickness="2"
+                                     >
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
                                    FontAutoScalingEnabled="True" FontFamily="AleySans"
                                    FontSize="34" HorizontalOptions="Center"
@@ -68,15 +65,15 @@
                                />
                     </VerticalStackLayout>
                     <dx:DXImage x:Name="SongPicture"
-                                Aspect="AspectFill" Opacity="0.15"
+                                Aspect="AspectFill" Opacity="{Binding BaseVM.ProgressOpacity}"
                                 Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                 />
+            </Grid>
 
-                </Grid>
-            </dx:DXBorder>
+        </dx:DXBorder>
             <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
                               ItemSpacing="15"
-                              >
+                             >
                 <dx:Chip x:Name="SongTitleChip"
                          BackgroundColor="Transparent" BorderColor="Transparent"
                          BorderThickness="0.4" FontFamily="AleySans"
@@ -142,7 +139,7 @@
                 </dx:DXStackLayout>
             </dx:DXStackLayout>
             <Grid Grid.Row="2" RowDefinitions="auto,auto,auto"
-                  RowSpacing="15"
+                  RowSpacing="15" 
                   >
 
                 <Grid x:Name="ProgressAndPrev"
@@ -243,9 +240,9 @@
 
                 </Grid>
 
-                <Grid Grid.Row="2" HorizontalOptions="Center"
+                <Grid Grid.Row="2" 
                       RowDefinitions="auto,*" VerticalOptions="End"
-                      >
+                    >
                     <dx:DXStackLayout Grid.Row="0" Orientation="Horizontal">
                         <dx:DXButton Clicked="DXButton_Clicked" Icon="more1.png"
                                      IconHeight="40" IconWidth="40"
@@ -270,10 +267,12 @@
                                          BorderThickness="1" HeightRequest="90"
                                          Icon="shared.png" IconColor="DarkSlateBlue"
                                          IconSize="60,60" IsIconVisible="True"
-                                         WidthRequest="90"
+                                         
                                          />
                                 <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"/>
-                                <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"/>
+                                
+                                <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"
+                                             MaxValue="1" MinValue="0"/>
                             </StackLayout>
                         </dx:DXExpander.Content>
                     </dx:DXExpander>
@@ -285,7 +284,7 @@
                                    >
                         <dx:DXExpander.Content>
                             <Grid BackgroundColor="Transparent" RowDefinitions="*">
-                                <dx:DXImage Opacity="0.1" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                                <dx:DXImage Opacity="0.12" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                                 <Grid ColumnDefinitions="*,*" ZIndex="1">
                                     <StackLayout Grid.Column="1" BackgroundColor="Transparent"
                                                  HorizontalOptions="End" Orientation="Horizontal"
@@ -318,13 +317,11 @@
 
                 </Grid>
             </Grid>
-
-
-
-        </Grid>
-
-
+         
 
     </Grid>
+
+
+
 
 </dx:BottomSheet>

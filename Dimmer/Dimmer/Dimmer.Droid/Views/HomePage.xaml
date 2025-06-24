@@ -5,7 +5,8 @@
              xmlns:customViewParts="clr-namespace:Dimmer.Views.CustomViewsParts" xmlns:dx="http://schemas.devexpress.com/maui"
              xmlns:helper="clr-namespace:Dimmer.Utils.AnimsStatics" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit" xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit"
-             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Dimmer.ViewModels" Title="HomePage"
              x:DataType="vm:BaseViewModelAnd"
              BackgroundColor="{AppThemeBinding Light=#F5F5F5,
@@ -62,8 +63,8 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse" />
         </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid x:Name="RootLayout">
-        <dx:DXStackLayout x:Name="DetailView"
+    <Grid x:Name="RootLayout" Margin="10">
+        <dx:DXStackLayout x:Name="DetailView" 
                           BackgroundColor="Transparent" IsVisible="False"
                           >
             <dx:DXImage helper:Transition.Name="Img1" HeightRequest="300"
@@ -83,7 +84,7 @@
                               CornerRadius="20" IsVisible="True"
                               >
 
-                <dx:DXStackLayout>
+                <dx:DXStackLayout >
                     <dx:DXStackLayout.Resources>
                         <ResourceDictionary>
                             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
@@ -119,7 +120,7 @@
 
                     </dx:DXStackLayout>
                     <dx:TextEdit x:Name="SearchBy"
-                                 Margin="20,0" BorderColor="#585858"
+                                  BorderColor="#585858"
                                  CornerRadius="20" FocusedBorderColor="DarkSlateBlue"
                                  HeightRequest="55" PlaceholderColor="DarkSlateBlue"
                                  PlaceholderText="Search..." StartIcon="searchd.png"
@@ -127,6 +128,7 @@
                                  />
                     <dx:DXStackLayout BackgroundColor="Transparent" IsVisible="True"
                                       Orientation="Horizontal"
+                                      
                                       >
                         <dx:Chip x:Name="SortCategory"
                                  BackgroundColor="Transparent" BorderColor="Transparent"
@@ -159,48 +161,49 @@
                 <Grid>
 
                     <dx:DXCollectionView x:Name="SongsColView"
-                                         Margin="10,0" AllowDragDropItems="False"
+                                          AllowDragDropItems="False"
                                          AllowFixedGroupHeaders="True" BackgroundColor="Transparent"
                                          ItemSpacing="5"
                                          ItemsSource="{Binding BaseVM.NowPlayingDisplayQueue}"
                                          Loaded="SongsColView_Loaded" Tap="SongsColView_Tap"
-                                         >
+                                          >
 
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
                                 <Grid BackgroundColor="Transparent" ColumnDefinitions="*,0.35*"
-                                      HeightRequest="80" VerticalOptions="Center"
+                                      HeightRequest="130" VerticalOptions="Center"
                                       >
 
                                     <dx:DXStackLayout x:Name="TitleAndArtists"
                                                       Grid.Column="0" BackgroundColor="Transparent"
                                                       VerticalOptions="Center"
                                                       >
-                                        <Label BackgroundColor="Transparent" FontAttributes="Bold"
-                                               FontFamily="AleySans" FontSize="26"
-                                               IsVisible="{Binding IsCurrentPlayingHighlight}"
-                                               LineBreakMode="WordWrap"
-                                               Text="{Binding Title}"
-                                               TextColor="#F5F5F5" VerticalOptions="Center"
-                                               />
-                                        <Label BackgroundColor="Transparent" FontAttributes="Bold"
-                                               FontFamily="AleySans" FontSize="17"
-                                               LineBreakMode="WordWrap"
+                                   
+                                        <dx:Chip BackgroundColor="Transparent" FontAttributes="Bold" IsVisible="True"
+                                               FontFamily="AleySans" FontSize="22"
+                                               BorderThickness="0"
+                                                 
+                                                 HorizontalOptions="Start"
                                                Text="{Binding Title}"
                                                TextColor="#F5F5F5" VerticalOptions="Center"
                                                />
 
-                                        <Label x:Name="ArtistsChip"
+                                        <dx:Chip x:Name="ArtistsChip"
                                                Padding="-1" BackgroundColor="Transparent"
-                                               FontFamily="AleySans" FontSize="13"
-                                               HorizontalOptions="Start" LineBreakMode="WordWrap"
-                                               Opacity="0.4"
+                                               FontFamily="AleySans" FontSize="16"
+                                               HorizontalOptions="Start" BorderThickness="0"
+                                               Opacity="0.6"
                                                Text="{Binding ArtistName}"
                                                VerticalOptions="Center"
                                                />
 
-                                        <Label BackgroundColor="Transparent" FontFamily="AleySans"
-                                               FontSize="11" Opacity="0.4"
+                                        <dx:Chip BackgroundColor="Transparent" FontFamily="AleySans" HorizontalOptions="Start"
+                                               FontSize="13" Opacity="0.5"
+                                                 BorderThickness="0" 
+                                                  x:Name="QuickFilterYears"
+                                                 DoubleTap="QuickFilterYears_DoubleTap"
+                                                 
+                                                 UseRippleEffect="True"
                                                Text="{Binding ReleaseYear}"
                                                VerticalOptions="Center"
                                                />
@@ -210,27 +213,11 @@
                                                  Grid.Column="1" Tap="MoreIcon_Clicked"
                                                  TapCommandParameter="{Binding .}"
                                                  HorizontalOptions="End" CornerRadius="25"
-                                                 IsIconVisible="False"
-                                                 >
-                                        <dx:Chip.ContentTemplate>
-                                            <DataTemplate >
-                                            <dx:DXStackLayout Orientation="Horizontal" >
-
-
-                                                <Label BackgroundColor="Transparent" FontSize="12"
-                                                       Opacity="0.9"
-                                                       Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
-                                                       TextColor="White" VerticalOptions="Center"
-                                                       />
-                                                <dx:DXImage Rotation="90" Source="more1.png"
-                                                            TintColor="#585858" WidthRequest="35"
-                                                            />
-
-
-
-                                            </dx:DXStackLayout>
-                                            </DataTemplate>
-                                        </dx:Chip.ContentTemplate>
+                                                 IsIconVisible="False" TextColor="White"
+                                             PressedBorderColor="DarkSlateBlue" 
+                                             Padding="20"
+                                                 Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}">
+                                        
                                     </dx:Chip>
                                 </Grid>
                             </DataTemplate>
@@ -238,8 +225,8 @@
                     </dx:DXCollectionView>
                 </Grid>
                 <dx:BottomSheet x:Name="SongsMenuPopup"
-                                AllowedState="HalfExpanded" HalfExpandedRatio="0.7"
-                                HeightRequest="300"
+                                AllowedState="HalfExpanded" HalfExpandedRatio="0.5"
+                                
                                 >
                     <dx:BottomSheet.Resources>
                         <ResourceDictionary>

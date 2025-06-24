@@ -8,6 +8,7 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
+using Dimmer.Utilities.TypeConverters;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -50,6 +51,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public partial LyricPhraseModelView? PreviousLine { get; set; }
     [ObservableProperty]
     public partial LyricPhraseModelView? CurrentLine { get; set; }
+    [ObservableProperty]
+    public partial double? ProgressOpacity{ get; set; }
     [ObservableProperty]
     public partial LyricPhraseModelView? NextLine { get; set; }
     [ObservableProperty]
@@ -112,7 +115,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial SongModelView? CurrentPlayingSongView { get; set; }
-    async partial void OnCurrentPlayingSongViewChanged(SongModelView? value)
+    partial void OnCurrentPlayingSongViewChanged(SongModelView? value)
     {
         if (value is not null)
         {
@@ -495,7 +498,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
 
-    public async Task Initialize()
+    public  void Initialize()
     {
         InitializeApp();
         InitializeViewModelSubscriptions();
@@ -701,6 +704,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     CurrentTrackPositionSeconds = positionSeconds;
                     CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
+                    // now use percentageconverter to convert to percentage
+                    var percentageConverter = new PercentageInverterConverter();
+
+                    ProgressOpacity = percentageConverter.Convert(CurrentTrackPositionPercentage, typeof(double), null, CultureInfo.InvariantCulture) as double?;
+
 
                 }, ex => _logger.LogError(ex, "Error in AudioEnginePositionObservable subscription"))
         );
@@ -1335,7 +1343,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             });
         });
     }
-    public async Task ViewArtistDetails(ArtistModelView? artView)
+    public void ViewArtistDetails(ArtistModelView? artView)
     {
 
         if (artView?.Id == null)

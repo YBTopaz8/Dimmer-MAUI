@@ -23,16 +23,16 @@ public partial class ArtistsPage : ContentPage
     {
         base.OnAppearing();
     }
-    public async Task LoadArtists()
+    public void LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-        await MyViewModel.ViewArtistDetails(s);
+        MyViewModel.ViewArtistDetails(s);
 
     }
-    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-        await LoadArtists();
+        LoadArtists();
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {

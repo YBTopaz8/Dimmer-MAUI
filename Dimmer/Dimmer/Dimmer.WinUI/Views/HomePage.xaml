@@ -641,41 +641,18 @@
 
 
         <syncf:SfPopup x:Name="PlaylistPopup"
-                       AnimationMode="SlideOnBottom" Background="Transparent"
-                       BackgroundColor="Transparent" IsFullScreen="True"
+                       AnimationMode="SlideOnBottom" Background="Red"
+                       BackgroundColor="Red" IsFullScreen="False"
                        IsOpen="False" IsVisible="False"
-                       ShowCloseButton="True"
+                       ShowCloseButton="True" Margin="10"
+                       Padding="10"
                        >
 
 
             <syncf:SfPopup.ContentTemplate>
                 <DataTemplate>
-                    <Grid BackgroundColor="Transparent">
-                        <CollectionView ItemsSource="{Binding CurrentPlayingSongView.ArtistIds}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:ArtistModelView">
-                                    <VerticalStackLayout>
-
-                                        <Label FontAttributes="Bold" FontSize="20"
-                                               HorizontalOptions="Center"
-                                               Text="{Binding Name}"
-                                               />
-                                        <Button Margin="10,0"
-                                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ViewArtistCommand}"
-                                                CommandParameter="{Binding .}"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding Source={x:Static lang:DimmerLanguage.txt_view}, FallbackValue='View'}"
-                                                />
-                                        <Button Margin="10,0"
-                                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ClosePopupCommand}"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding Source={x:Static lang:DimmerLanguage.txt_close}, FallbackValue='Close'}"
-                                                />
-                                    </VerticalStackLayout>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-
-                        </CollectionView>
+                    <Grid BackgroundColor="Red">
+                        
                     </Grid>
                 </DataTemplate>
             </syncf:SfPopup.ContentTemplate>

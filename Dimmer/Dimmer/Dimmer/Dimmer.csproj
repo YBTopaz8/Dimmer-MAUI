@@ -26,6 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <MauiFont Include="Resources\Fonts\FontAwesomeRegular400.otf" Alias="FontAwesomeRegular" />
     <MauiFont Include="Resources\Fonts\FontAwesome6FreeSolid900.otf" Alias="FontAwesomeSolid" />
     <MauiFont Include="Resources\Fonts\FABrandsRegular400.otf" Alias="FontAwesomeBrands" />

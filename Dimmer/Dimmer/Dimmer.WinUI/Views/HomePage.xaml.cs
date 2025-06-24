@@ -1,7 +1,8 @@
 ﻿//using Dimmer.DimmerLive.Models;
-using System.Diagnostics;
-
 using MoreLinq;
+
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
 
@@ -150,54 +151,108 @@ public partial class HomePage : ContentPage
 
     }
     List<SongModelView> songsToDisplay = new();
-    private async Task SearchSongsAsync(string? searchText, CancellationToken token)
+
+    // At the top of your class, with other member variables
+    private static readonly Regex _searchRegex = new(
+        @"\b(t|title|ar|artist|al|album):(?:""([^""]*)""|(\S+))",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+
+    // Dictionary for mapping prefixes to property names
+    private static readonly Dictionary<string, string> _searchPrefixes = new(StringComparer.OrdinalIgnoreCase)
+{
+    { "t", "Title" }, { "title", "Title" },
+    { "ar", "ArtistName" }, { "artist", "ArtistName" },
+    { "al", "AlbumName" }, { "album", "AlbumName" }
+};
+
+
+    private async Task SearchSongsAsync(string searchText, CancellationToken token)
     {
-        if ((MyViewModel.NowPlayingDisplayQueue is null || MyViewModel.NowPlayingDisplayQueue.Count < 1))
-        {
+        if (MyViewModel.NowPlayingDisplayQueue == null)
             return;
-        }
 
-        ObservableCollection<SongModelView> songsToDisplay = new();
+        // Run the heavy lifting on a background thread.
+        List<SongModelView> filteredSongs = await Task.Run(() =>
+            PerformFiltering(searchText, token, MyViewModel.NowPlayingDisplayQueue), token);
 
-        if (string.IsNullOrEmpty(searchText))
+        // If a new search has started, abandon this old result.
+        if (token.IsCancellationRequested)
+            return;
+
+        // --- Safely update the UI on the UI Thread (for WinUI 3) ---
+        // --- THE CORRECT WAY FOR .NET MAUI ---
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-
-            songsToDisplay = [.. MyViewModel.NowPlayingDisplayQueue];
-        }
-        else
-        {
-
-            songsToDisplay= await Task.Run(() =>
-            {
-                token.ThrowIfCancellationRequested();
-
-
-                var e = MyViewModel.NowPlayingDisplayQueue!.
-                            Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                  (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                  (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
-                   .ToObservableCollection();
-
-                return e;
-            }, token);
-
-
-        }
-
-
-        Dispatcher.Dispatch(() =>
-        {
+            // A final check inside the UI thread context.
             if (token.IsCancellationRequested)
                 return;
 
-            MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
-            SongsColView.ItemsSource = songsToDisplay;
-
-
-
+            // This is now guaranteed to run safely on the main UI thread.
+            SongsColView.ItemsSource = new ObservableCollection<SongModelView>(filteredSongs);
+            MyViewModel.CurrentTotalSongsOnDisplay = filteredSongs.Count;
         });
     }
+    static List<SongModelView> PerformFiltering(string searchText, CancellationToken token, IEnumerable<SongModelView> songs)
+    {
+        var sourceList = songs;
 
+        // If search is empty, return a copy of the full list.
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            return sourceList.ToList();
+        }
+
+        var specificPredicates = new List<Func<SongModelView, bool>>();
+        var generalSearchTerms = new List<string>();
+
+        // Use our pre-compiled static Regex for parsing
+        var remainingText = _searchRegex.Replace(searchText, match =>
+        {
+            var prefix = match.Groups[1].Value;
+            var value = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+
+            if (_searchPrefixes.TryGetValue(prefix, out var propertyName))
+            {
+                Func<SongModelView, bool> predicate = propertyName switch
+                {
+                    "Title" => song => song.Title?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
+                    "ArtistName" => song => song.ArtistName?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
+                    // --- CRITICAL FIX APPLIED HERE ---
+                    "AlbumName" => song => song.AlbumName?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
+                    _ => song => false
+                };
+                specificPredicates.Add(predicate);
+            }
+            return string.Empty;
+        }).Trim();
+
+        if (!string.IsNullOrWhiteSpace(remainingText))
+        {
+            generalSearchTerms.AddRange(remainingText.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        // Filter the list using our generated rules
+        return sourceList.Where(song =>
+        {
+            token.ThrowIfCancellationRequested();
+
+            // Rule 1: Must match ALL specific filters (e.g., t: AND al:)
+            if (!specificPredicates.All(p => p(song)))
+                return false;
+
+            // Rule 2: Must match ALL general fuzzy terms
+            if (!generalSearchTerms.All(term =>
+                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (song.ArtistName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (song.AlbumName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
+            ))
+                return false;
+
+            return true; // Passed all filters
+
+        }).ToList();
+    }
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
 
