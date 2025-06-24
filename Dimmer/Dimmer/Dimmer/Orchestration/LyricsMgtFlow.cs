@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
+using ATL;
+
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 
@@ -156,11 +158,15 @@ public class LyricsMgtFlow : IDisposable
 
             // Notify all subscribers of the new data.
             _allLyricsSubject.OnNext(_lyrics);
-
+            
             // Reset current/prev/next, they will be updated on the next position tick.
             _previousLyricSubject.OnNext(null);
             _currentLyricSubject.OnNext(null);
             _nextLyricSubject.OnNext(_lyrics.FirstOrDefault()); // Show the first line as "next".
+
+            Track songFile = new Track(song.FilePath);
+            songFile.Lyrics.ParseLRC(lyrr);
+            
         }
         catch (Exception ex)
         {
@@ -188,24 +194,26 @@ public class LyricsMgtFlow : IDisposable
     private void SubscribeToPosition()
     {
         // This is the main reactive pipeline for lyric synchronization.
-        _subsManager.Add(
-            _songsMgtFlow.AudioEnginePositionObservable
-                // 3. Only process if playing and lyrics are loaded.
-                .Where(_ => _isPlaying && _synchronizer != null)
-                // 4. (Optional but recommended) Only proceed if the position has actually changed.
-                //    This prevents processing when paused.
-                .Sample(TimeSpan.FromMilliseconds(50))
-                .DistinctUntilChanged()
-                .Subscribe(
-                    // The 'position' here is a double (in seconds).
-                    positionInSeconds =>
-                    {
-                        // Convert the double to a TimeSpan before calling our update logic.
-                        UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
-                    },
-                    ex => _logger.LogError(ex, "Error in position subscription.")
-                )
-        );
+        _subsManager.Add(_songsMgtFlow.AudioEnginePositionObservable
+            // CORRECT: Only check the position 4 times per second.
+            // This is the key to fixing your CPU usage.
+            .Sample(TimeSpan.FromMilliseconds(100))
+
+            // Only process if playing and lyrics are loaded.
+            .Where(_ => _isPlaying && _synchronizer != null)
+
+            // This is now effective because we're not flooded with tiny changes.
+            .DistinctUntilChanged()
+
+            .Subscribe(
+                // The 'position' here is a double (in seconds).
+                positionInSeconds =>
+                {
+                    // Convert the double to a TimeSpan before calling our update logic.
+                    UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
+                },
+                ex => _logger.LogError(ex, "Error in position subscription.")
+            ));
     }
     private void UpdateLyricsForPosition(TimeSpan position)
     {

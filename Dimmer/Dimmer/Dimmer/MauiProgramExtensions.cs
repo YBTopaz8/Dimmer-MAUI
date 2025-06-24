@@ -1,4 +1,5 @@
-﻿using Dimmer.Interfaces.Services.Interfaces;
+﻿using Dimmer.Data.RealmStaticFilters;
+using Dimmer.Interfaces.Services.Interfaces;
 
 using SkiaSharp.Views.Maui.Controls.Hosting;
 
@@ -74,7 +75,10 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<PlayListMgtFlow>();
         builder.Services.AddSingleton<LyricsMgtFlow>();
 
-
+        builder.Services.AddTransient<MusicArtistryService>();
+        builder.Services.AddTransient<MusicRelationshipService>();
+        builder.Services.AddTransient<MusicMetadataService>();
+        builder.Services.AddTransient<MusicPowerUserService>();
 
         builder.Services.AddSingleton<BaseViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);

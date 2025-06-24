@@ -174,7 +174,7 @@ public class FolderMgtService : IFolderMgtService
             _logger.LogInformation("Relevant audio file created: {FilePath}. Triggering incremental scan of parent directory.", e.FullPath);
             // It's often better to scan the directory in case multiple files were added in quick succession
             // or if metadata relies on folder structure.
-            _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
+           await _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
         }
         else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath)) // A new subfolder inside a watched folder
         {
@@ -190,7 +190,7 @@ public class FolderMgtService : IFolderMgtService
         {
             _logger.LogInformation("Relevant audio file or known audio path deleted: {FilePath}. Triggering library refresh of parent.", e.FullPath);
             // Re-scan parent directory to update library (remove song, potentially update album/artist if they become empty)
-            Task.Run(() => _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true));
+          await  Task.Run(() => _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true));
         }
         else if (WasPathPreviouslyWatchedSubfolder(e.FullPath)) // A subfolder we might have scanned was deleted
         {
@@ -201,7 +201,7 @@ public class FolderMgtService : IFolderMgtService
         }
     }
 
-    private async void HandleFileOrFolderChanged(string fullPath) // IFolderMonitorService OnChanged provides string
+    private void HandleFileOrFolderChanged(string fullPath) // IFolderMonitorService OnChanged provides string
     {
         _logger.LogDebug("FS Event: Changed - {FullPath}", fullPath);
         if (IsRelevantAudioFile(fullPath)) // Only rescan if an audio file's metadata might have changed
@@ -213,7 +213,7 @@ public class FolderMgtService : IFolderMgtService
         }
     }
 
-    private async void HandleFileOrFolderRenamed(RenamedEventArgs e)
+    private void HandleFileOrFolderRenamed(RenamedEventArgs e)
     {
         _logger.LogDebug("FS Event: Renamed - {OldFullPath} to {NewFullPath}", e.OldFullPath, e.FullPath);
         bool oldIsAudio = IsRelevantAudioFile(e.OldName) || WasPathPreviouslyKnownAudio(e.OldFullPath);

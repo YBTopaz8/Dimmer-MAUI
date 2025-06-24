@@ -22,12 +22,12 @@ public class CoverArtService : ICoverArtService
         }
     }
 
-    private string SanitizeFileName(string fileName)
+    private static string SanitizeFileName(string fileName)
     {
         return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
     }
 
-    private string? GetExtensionFromMimeType(string? mimeType)
+    private static string? GetExtensionFromMimeType(string? mimeType)
     {
         return mimeType?.ToLowerInvariant() switch
         {
@@ -59,6 +59,31 @@ public class CoverArtService : ICoverArtService
         }
         return null;
     }
+
+
+    public async static Task<bool> SaveSongLyrics(string audioFilePath, string SyncLyrics)
+    {
+        if (string.IsNullOrEmpty(audioFilePath) || string.IsNullOrEmpty(audioFilePath))
+        {
+            return false;
+        }
+        try
+        {
+
+            string baseFileName = Path.GetFileNameWithoutExtension(audioFilePath);
+            string fileFolderPath = Path.GetPathRoot(baseFileName);
+            string sanitizedBaseFileName = SanitizeFileName(baseFileName);
+            string? extension = ".lrc";
+            string targetFilePath = Path.Combine(fileFolderPath, sanitizedBaseFileName + extension);
+            await File.WriteAllTextAsync(targetFilePath, SyncLyrics);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return false;
+        }
+;    }
 
     public async Task<string?> SaveOrGetCoverImageAsync(string audioFilePath, PictureInfo? embeddedPictureInfo)
     {

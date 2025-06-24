@@ -173,7 +173,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
             songdb: song));
         var songV = mapper.Map<SongModelView>(song);
 
-        _logger.LogInformation("Player selected: '{SongTitle}' from PIdx {PlaylistIndex}, Batch {BatchId}.",
+        _logger.LogInformation("Player selected: '{SongTitle}' from PlaylistIndex {PlaylistIndex}, Batch {BatchId}.",
             song.Title, playlistIndex, batchId);
     }
 

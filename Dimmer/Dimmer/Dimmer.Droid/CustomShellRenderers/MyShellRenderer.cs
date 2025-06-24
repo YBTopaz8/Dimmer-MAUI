@@ -1,6 +1,9 @@
 ﻿using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Fragment.App;
+using AndroidX.SavedState;
+
+using Resource = Microsoft.Maui.Resource;
 
 namespace Dimmer.CustomShellRenderers;
 
@@ -13,7 +16,8 @@ public partial class MyShellRenderer : ShellRenderer
     bool _disposed;
     protected override IShellItemRenderer CreateShellItemRenderer(ShellItem shellItem)
     {
-        return new MyShellItemRenderer(this);
+        var e = new MyShellItemRenderer(this);
+        return e;
     }
     // This constructor might be needed if MAUI calls it
     //public MyShellRenderer(Context context, IMauiContext mauiContext) : base(context)

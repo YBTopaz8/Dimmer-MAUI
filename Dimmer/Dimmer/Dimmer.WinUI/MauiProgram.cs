@@ -15,9 +15,6 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         builder
-            .UseUraniumUI()
-            .UseUraniumUIBlurs()
-            .UseUraniumUIMaterial()
             .UseSharedMauiApp()
             .ConfigureMauiHandlers(handlers =>
             {

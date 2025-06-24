@@ -17,15 +17,15 @@ public partial class ArtistsPage : ContentPage
     {
         base.OnAppearing();
     }
-    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-        await LoadArtists();
+        LoadArtists();
     }
-    public async Task LoadArtists()
+    public void LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-        await MyViewModel.BaseVM.ViewArtistDetails(s);
+        MyViewModel.BaseVM.ViewArtistDetails(s);
 
     }
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)

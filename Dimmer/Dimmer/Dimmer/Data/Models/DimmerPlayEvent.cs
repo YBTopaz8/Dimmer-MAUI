@@ -17,7 +17,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
 
     [Backlink(nameof(SongModel.PlayHistory))] // If you want to navigate from Song to its events
-    public IQueryable<SongModel>? SongsLinkingToThisEvent { get; }
+    public IQueryable<SongModel> SongsLinkingToThisEvent { get; }=null!;
 
     /// <summary>
     /// Gets or sets the song identifier.

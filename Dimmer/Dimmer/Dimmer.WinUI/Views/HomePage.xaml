@@ -41,7 +41,7 @@
 
 
         <Grid RowDefinitions="*,auto">
-            <Image Opacity="0.25" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+            <Image Opacity="0.15" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid x:Name="MainUI"
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >
@@ -243,20 +243,21 @@
                             <syncf:SfChip x:Name="RefreshData"
                                           Command="{Binding RefreshSongMetadataCommand}"
                                           ImageSize="40" ImageSource="vinyl.png"
-                                          ShowIcon="True" WidthRequest="55"
-                                          />
+                                          ShowIcon="True" WidthRequest="55" Text="refresh"
+                                          IsVisible="False"/>
 
 
                             <syncf:SfChip x:Name="RetroactivelyLinkArtists"
                                           Command="{Binding RetroactivelyLinkArtistsCommand}"
-                                          ImageSize="40" ImageSource="addcircle.png"
-                                          ShowIcon="True" WidthRequest="55"
-                                          />
+                                          ImageSize="40" ImageSource="cloudbolt.png"
+                                          ShowIcon="True" WidthRequest="55" 
+                                         ToolTipProperties.Text="Retroactively add links" />
 
 
                             <syncf:SfChip x:Name="PlaylistsChip"
                                           Clicked="PlaylistsChip_Clicked" ImageSize="40"
                                           ImageSource="playlistminimalistic3.png" ShowIcon="True"
+                                            ToolTipProperties.Text="Playlists"
                                           WidthRequest="55"
                                           >
 
@@ -360,7 +361,7 @@
 
                     <CollectionView x:Name="SongsColView"
                                     Grid.Row="2" EmptyView="No Songs.."
-                                    IsVisible="True"
+                                    IsVisible="True" 
                                     ItemsSource="{Binding NowPlayingDisplayQueue}"
                                     Loaded="MainSongsColView_Loaded" SelectionMode="None"
                                     >
@@ -429,6 +430,12 @@
                                                                         CommandParameter="{Binding .}"
                                                                         Text="View Song Info"
                                                                         />
+                                                        <MenuFlyoutItem x:Name="QuickSearchArtist"
+                                                                        Clicked="QuickSearchArtist_Clicked"
+                                                                        
+                                                                        CommandParameter="{Binding AlbumName}"
+                                                                        Text="Quick Search Album"
+                                                                        />
                                                     </MenuFlyout>
                                                 </FlyoutBase.ContextFlyout>
                                                 <Border BackgroundColor="Transparent" Stroke="Transparent"
@@ -493,7 +500,19 @@
                                                    Text="{Binding AlbumName}"
                                                    ToolTipProperties.Text="{Binding AlbumName}"
                                                    VerticalOptions="Center"
-                                                   />
+                                                   >
+
+                                                <FlyoutBase.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem x:Name="QuickSearchAlbum"
+                                                                        Clicked="QuickSearchAlbum_Clicked"
+                                                                        
+                                                                        CommandParameter="{Binding AlbumName}"
+                                                                        Text="Quick Search Album"
+                                                                        />
+                                                    </MenuFlyout>
+                                                </FlyoutBase.ContextFlyout>
+                                            </Label>
                                             <Label Grid.Column="3" HorizontalOptions="Center"
                                                    Text="{Binding Genre.Name}"
                                                    VerticalOptions="Center"
@@ -528,14 +547,34 @@
                         <Grid Grid.Row="1">
                             <CollectionView ItemsSource="{Binding AllLines}"
                                             SelectedItem="{Binding CurrentLine}"
-                                            SelectionMode="Single"
+                                            SelectionMode="Single" x:Name="AllLyricsColView"
+                                            Loaded="AllLyricsColView_Loaded"
                                             >
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                        <Label FontSize="{Binding NowPlayingLyricsFontSize}"
-                                               Text="{Binding Text}"
-                                               TextColor="{Binding HighlightColor}"
-                                               />
+                                        <Border Padding="10">
+
+                                            <VisualStateManager.VisualStateGroups>
+                                                <VisualStateGroup x:Name="CommonStates">
+                                                    <VisualState x:Name="Normal">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="Transparent" />
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+
+                                                    <VisualState Name="PointerOver">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+                                                </VisualStateGroup>
+                                            </VisualStateManager.VisualStateGroups>
+                                            <Label FontSize="{Binding NowPlayingLyricsFontSize}"
+        Text="{Binding Text}"
+        TextColor="{Binding HighlightColor}"
+        />
+                                        </Border>
+                                       
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
@@ -602,41 +641,18 @@
 
 
         <syncf:SfPopup x:Name="PlaylistPopup"
-                       AnimationMode="SlideOnBottom" Background="Transparent"
-                       BackgroundColor="Transparent" IsFullScreen="True"
+                       AnimationMode="SlideOnBottom" Background="Red"
+                       BackgroundColor="Red" IsFullScreen="False"
                        IsOpen="False" IsVisible="False"
-                       ShowCloseButton="True"
+                       ShowCloseButton="True" Margin="10"
+                       Padding="10"
                        >
 
 
             <syncf:SfPopup.ContentTemplate>
                 <DataTemplate>
-                    <Grid BackgroundColor="Transparent">
-                        <CollectionView ItemsSource="{Binding CurrentPlayingSongView.ArtistIds}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:ArtistModelView">
-                                    <VerticalStackLayout>
-
-                                        <Label FontAttributes="Bold" FontSize="20"
-                                               HorizontalOptions="Center"
-                                               Text="{Binding Name}"
-                                               />
-                                        <Button Margin="10,0"
-                                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ViewArtistCommand}"
-                                                CommandParameter="{Binding .}"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding Source={x:Static lang:DimmerLanguage.txt_view}, FallbackValue='View'}"
-                                                />
-                                        <Button Margin="10,0"
-                                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.ClosePopupCommand}"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding Source={x:Static lang:DimmerLanguage.txt_close}, FallbackValue='Close'}"
-                                                />
-                                    </VerticalStackLayout>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-
-                        </CollectionView>
+                    <Grid BackgroundColor="Red">
+                        
                     </Grid>
                 </DataTemplate>
             </syncf:SfPopup.ContentTemplate>

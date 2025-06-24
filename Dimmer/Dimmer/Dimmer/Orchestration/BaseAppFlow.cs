@@ -327,7 +327,7 @@ public class BaseAppFlow : IDisposable
         _subscriptions.Add(
             _state.CurrentPlayBackState
                 .Where(psi => psi.State == DimmerPlaybackState.FolderRemoved && psi.ExtraParameter is string)
-                .Subscribe(async folderPath =>
+                .Subscribe( folderPath =>
                 {
                     if (folderPath == null)
                         return;

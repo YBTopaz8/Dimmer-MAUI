@@ -1,11 +1,13 @@
-using System.ComponentModel;
-
 using DevExpress.Maui.Controls;
+using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
 
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.ViewModel;
+
+using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 using Color = Microsoft.Maui.Graphics.Color;
 
@@ -26,11 +28,11 @@ public partial class HomePage : ContentPage
         //NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        await MyViewModel.FiniInit();
+        MyViewModel.FiniInit();
 
         var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
 
@@ -74,14 +76,18 @@ public partial class HomePage : ContentPage
     SongModelView selectedSongPopUp = new SongModelView();
     private void MoreIcon_Clicked(object sender, EventArgs e)
     {
-        var send = (DXButton)sender;
-        var paramss = send.CommandParameter as SongModelView;
-        if (paramss is null)
+        var send = (Chip)sender;
+        if (send.BindingContext is not SongModelView paramss)
         {
             return;
         }
         selectedSongPopUp = paramss;
+
+
         MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
+
+
+
         SongsMenuPopup.Show();
 
     }
@@ -188,8 +194,7 @@ public partial class HomePage : ContentPage
     SortOrder internalOrder = SortOrder.Ascending;
     private bool SortIndeed()
     {
-        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
-        ;
+        ObservableCollection<SongModelView> songs = MyViewModel.BaseVM.NowPlayingDisplayQueue;
         if (songs == null || !songs.Any())
             return false;
         internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
@@ -245,25 +250,90 @@ public partial class HomePage : ContentPage
     }
     private void ByAll()
     {
-        if (!string.IsNullOrEmpty(SearchBy.Text))
-        {
-            if (SearchBy.Text.Length >= 1)
-            {
-                SongsColView.FilterString =
-                    $"Contains([Title], '{SearchBy.Text}') OR " +
-                    $"Contains([ArtistName], '{SearchBy.Text}') OR " +
-                    $"Contains([AlbumName], '{SearchBy.Text}')";
-            }
-            else
-            {
-                SongsColView.FilterString = string.Empty;
-            }
-        }
-        else
+        ApplyAdvancedFilter();
+
+       
+    }// At the top of your class, e.g., with your other member variables
+    private readonly Dictionary<string, string> _searchPrefixes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{
+    // Short and long prefixes for user convenience
+    { "t", "Title" },
+    { "title", "Title" },
+    { "ar", "ArtistName" },
+    { "artist", "ArtistName" },
+    { "al", "AlbumName" },
+    { "album", "AlbumName" }
+    // Add more here if you have other fields, e.g., { "g", "Genre" }
+};
+
+    private void ApplyAdvancedFilter()
+    {
+        var searchText = SearchBy.Text.Trim();
+
+        if (string.IsNullOrEmpty(searchText))
         {
             SongsColView.FilterString = string.Empty;
+            return;
         }
+
+        var specificFilters = new List<string>();
+        var generalSearchTerms = new List<string>();
+
+        // 1. Regex to find our "prefix:value" patterns.
+        // This pattern finds a prefix from our dictionary, a colon, and then either a quoted string
+        // or a single word (non-whitespace characters).
+        var prefixKeysPattern = string.Join("|", _searchPrefixes.Keys.Select(Regex.Escape));
+        var regex = new Regex($@"\b({prefixKeysPattern}):(?:""([^""]*)""|(\S+))", RegexOptions.IgnoreCase);
+
+        var remainingText = regex.Replace(searchText, match =>
+        {
+            var prefix = match.Groups[1].Value.ToLower();
+            // Value can be in group 2 (quoted) or group 3 (unquoted)
+            var value = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+
+            if (_searchPrefixes.TryGetValue(prefix, out var columnName))
+            {
+                // IMPORTANT: Sanitize value to handle single quotes in the search term itself.
+                var sanitizedValue = value.Replace("'", "''");
+                specificFilters.Add($"Contains([{columnName}], '{sanitizedValue}')");
+            }
+
+            return string.Empty; // Remove the matched part from the original string
+        }).Trim();
+
+        // 2. The 'remainingText' is now our general "fuzzy" search query.
+        // We split it into words, and every word must be found somewhere.
+        if (!string.IsNullOrEmpty(remainingText))
+        {
+            var words = remainingText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var word in words)
+            {
+                var sanitizedWord = word.Replace("'", "''");
+                // Each word must be in at least one of the main fields
+                var fuzzyFilter = $"(Contains([Title], '{sanitizedWord}') OR " +
+                                  $" Contains([ArtistName], '{sanitizedWord}') OR " +
+                                  $" Contains([AlbumName], '{sanitizedWord}'))";
+                generalSearchTerms.Add(fuzzyFilter);
+            }
+        }
+
+        // 3. Combine all filters
+        var allFilters = new List<string>();
+        if (specificFilters.Any())
+        {
+            // All specific filters must be met
+            allFilters.Add($"({string.Join(" AND ", specificFilters)})");
+        }
+        if (generalSearchTerms.Any())
+        {
+            // All general words must be found
+            allFilters.Add($"({string.Join(" AND ", generalSearchTerms)})");
+        }
+
+        // Final filter string combines specific and general searches
+        SongsColView.FilterString = string.Join(" AND ", allFilters);
     }
+
     private void ByArtist()
     {
         if (!string.IsNullOrEmpty(SearchBy.Text))
@@ -292,7 +362,7 @@ public partial class HomePage : ContentPage
 
     private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
     {
-        SongsColView.Commands.ShowDetailForm.Execute(null);
+        SongsColView.Commands.ShowFilteringUIForm.Execute(null);
     }
 
     private void DXButton_Clicked_1(object sender, EventArgs e)
@@ -484,6 +554,16 @@ public partial class HomePage : ContentPage
         //{
         //    await BtmBar.AnimateSlideUp(btmBarHeight);
         //}
+    }
+
+    private void SongsColView_LongPress_1(object sender, CollectionViewGestureEventArgs e)
+    {
+
+    }
+
+    private void QuickFilterYears_DoubleTap(object sender, HandledEventArgs e)
+    {
+        
     }
 
 }

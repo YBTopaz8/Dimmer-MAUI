@@ -91,11 +91,11 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     }
     bool isAppBooting = false;
 
-    public async Task FiniInit()
+    public void FiniInit()
     {
         if (isAppBooting)
         {
-            await baseVM.Initialize();
+            baseVM.Initialize();
             isAppBooting = false;
         }
     }

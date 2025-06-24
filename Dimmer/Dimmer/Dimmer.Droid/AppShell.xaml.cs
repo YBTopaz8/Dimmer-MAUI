@@ -16,12 +16,12 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>()!;
-        await MyViewModel.FiniInit();
+        MyViewModel.FiniInit();
 
     }
 

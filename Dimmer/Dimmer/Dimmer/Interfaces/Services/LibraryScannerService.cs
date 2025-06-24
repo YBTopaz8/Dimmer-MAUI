@@ -126,14 +126,15 @@ public class LibraryScannerService : ILibraryScannerService
                     {
                         Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
                         AppSongModel = fileProcessingResult.ProcessedSong,
-                        AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount },
+                        AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount, },
+                        TotalScanFiles=totalFiles, CurrentScanFile=processedFileCount,
                         ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
                     });
 
                 }
                 else if (fileProcessingResult.Skipped)
                 {
-                    _state.SetCurrentLogMsg(new AppLogModel { Log = $"Skipped (File: {Path.GetFileName(file)}): {fileProcessingResult.SkipReason} ({processedFileCount}/{totalFiles})" });
+                    //_state.SetCurrentLogMsg(new AppLogModel { Log = $"Skipped (File: {Path.GetFileName(file)}): {fileProcessingResult.SkipReason} ({processedFileCount}/{totalFiles})" });
                     _logger.LogDebug("Skipped file {FileName}: {Reason}", Path.GetFileName(file), fileProcessingResult.SkipReason);
                 }
                 else

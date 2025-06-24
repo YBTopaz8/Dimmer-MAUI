@@ -1,22 +1,18 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
-
-using ATL;
+﻿using ATL;
 
 using CommunityToolkit.Mvvm.Input;
 
-using Dimmer.Data;
 using Dimmer.Data.ModelView.NewFolder;
+using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
+using Dimmer.Utilities.TypeConverters;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MoreLinq;
-
-using Realms;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -29,7 +25,6 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IDisposable
 {
-
     public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService _dimmerLiveStateService;
@@ -56,6 +51,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public partial LyricPhraseModelView? PreviousLine { get; set; }
     [ObservableProperty]
     public partial LyricPhraseModelView? CurrentLine { get; set; }
+    [ObservableProperty]
+    public partial double? ProgressOpacity{ get; set; }
     [ObservableProperty]
     public partial LyricPhraseModelView? NextLine { get; set; }
     [ObservableProperty]
@@ -118,7 +115,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial SongModelView? CurrentPlayingSongView { get; set; }
-    async partial void OnCurrentPlayingSongViewChanged(SongModelView? value)
+    partial void OnCurrentPlayingSongViewChanged(SongModelView? value)
     {
         if (value is not null)
         {
@@ -501,10 +498,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
 
-    public async Task Initialize()
+    public  void Initialize()
     {
         InitializeApp();
-        await InitializeViewModelSubscriptions();
+        InitializeViewModelSubscriptions();
         //_stateService.LoadAllSongs(songRepo.GetAll());
     }
 
@@ -516,7 +513,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         }
     }
-    protected virtual async Task InitializeViewModelSubscriptions()
+    protected virtual void InitializeViewModelSubscriptions()
     {
         _logger.LogInformation("BaseViewModel: Initializing subscriptions.");
 
@@ -543,7 +540,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     {
                         return;
                     }
-                    CurrentPlayingSongView = null;
+                    CurrentPlayingSongView = new();
                     //Track trck = new Track(songView.FilePath);
                     CurrentPlayingSongView = songView;
                     //var e = trck.EmbeddedPictures.FirstOrDefault();
@@ -707,6 +704,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     CurrentTrackPositionSeconds = positionSeconds;
                     CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
+                    // now use percentageconverter to convert to percentage
+                    var percentageConverter = new PercentageInverterConverter();
+
+                    ProgressOpacity = percentageConverter.Convert(CurrentTrackPositionPercentage, typeof(double), null, CultureInfo.InvariantCulture) as double?;
+
 
                 }, ex => _logger.LogError(ex, "Error in AudioEnginePositionObservable subscription"))
         );
@@ -1179,6 +1181,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         DeviceStaticUtils.SelectedArtistOne = artDb.ToModelView(_mapper);
 
         RefreshSongMetadata(song);
+        LoadMusicArtistServiceMethods(artDb.ToModelView(_mapper));
         return true;
     }
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
@@ -1340,7 +1343,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             });
         });
     }
-    public async Task ViewArtistDetails(ArtistModelView? artView)
+    public void ViewArtistDetails(ArtistModelView? artView)
     {
 
         if (artView?.Id == null)
@@ -1441,39 +1444,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     partial void OnSelectedAlbumSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
     {
         //throw new NotImplementedException();
-    }
-    void RefreshAlbumsCover(IEnumerable<AlbumModelView> albums, CollectionToUpdate col)
-    {
-        return;
-        Task.Run(() =>
-        {
-
-            foreach (var item in albums)
-            {
-                item.ImageBytes= NowPlayingDisplayQueue.FirstOrDefault(s => s.Id== item.Id)?.CoverImageBytes;
-
-            }
-            switch (col)
-            {
-                case CollectionToUpdate.NowPlayingCol:
-                    //OnPropertyChanged(nameof(NowPlayingDisplayQueue));
-                    break;
-                case CollectionToUpdate.QueueColOfXSongs:
-                    OnPropertyChanged(nameof(QueueOfSongsLive));
-                    break;
-                case CollectionToUpdate.ArtistAlbumSongs:
-                    OnPropertyChanged(nameof(SelectedArtistSongs));
-                    break;
-                case CollectionToUpdate.AlbumCovers:
-                    SelectedArtistAlbums = albums.ToObservableCollection();
-                    OnPropertyChanged(nameof(SelectedArtistAlbums));
-                    break;
-                default:
-                    break;
-            }
-        });
-
-
     }
     void RefreshSongsCover(IEnumerable<SongModelView> songs, CollectionToUpdate col)
     {
@@ -1797,26 +1767,31 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _subsManager.Dispose();
         }
     }
-    private bool BuildIdFilter(IEnumerable<ObjectId> ids, out string queryString, out QueryArgument[] queryArgs)
+
+    private void LoadMusicArtistServiceMethods(ArtistModelView? artist)
     {
-        var idList = ids.ToList();
-        if (!idList.Any())
+#if RELEASE
+        return;
+#endif
+        if (artist is null)
         {
-            queryString = string.Empty;
-            queryArgs = Array.Empty<QueryArgument>();
-            return false;
+            return;
         }
+        var artId = artist.Id;
+        var musicRelationshipService = IPlatformApplication.Current?.Services.GetService<MusicRelationshipService>();
 
-        // 1. Create a list of "Id == $n" clauses, where n is the index.
-        var clauses = Enumerable.Range(0, idList.Count)
-                                .Select(i => $"Id == ${i}");
-
-        // 2. Join them with " OR " to create the full query string.
-        queryString = string.Join(" OR ", clauses);
-
-        // 3. Convert the list of ObjectIds into the required QueryArgument[] array.
-        queryArgs = idList.Select(id => (QueryArgument)id).ToArray();
-
-        return true;
+         ArtistLoyaltyIndex = musicRelationshipService.GetArtistLoyaltyIndex(artId);
+         MyCoreArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(musicRelationshipService.GetMyCoreArtists(10));
+        ArtistBingeScore = musicRelationshipService.GetArtistBingeScore(artId);
+        SongModelView? step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId).ToModelView(_mapper);
+        //var step5 = musicRelationshipService.GetUserArtistRelationship(artId);
     }
+    [ObservableProperty]
+    public partial double ArtistLoyaltyIndex { get; set; } 
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView> MyCoreArtists { get; set; } 
+    [ObservableProperty]
+    public partial (DateTimeOffset Date, int PlayCount) ArtistBingeScore { get; set; } 
+    [ObservableProperty]
+    public partial SongModelView SongThatHookedMeOnAnArtist { get; set; } 
 }
