@@ -39,13 +39,17 @@
                                LineBreakMode="WordWrap" Opacity="0.8"
                                Text="{Binding BaseVM.PreviousLine.Text}"
                                />
-                        <dx:DXBorder BorderColor="{Binding BaseVM.CurrentLine.HighlightColor}" BorderThickness="2"
+                        <dx:DXBorder  HorizontalOptions="Center"
+                            
+                                      CornerRadius="20"
+                                      Padding="5" 
+                                      BorderThickness="1" 
                                      >
                             <Label BackgroundColor="Transparent" FontAttributes="Bold"
                                    FontAutoScalingEnabled="True" FontFamily="AleySans"
                                    FontSize="34" HorizontalOptions="Center"
                                    HorizontalTextAlignment="Center" LineBreakMode="WordWrap"
-                                   Opacity="1"
+                                   Opacity="1" 
                                    Text="{Binding BaseVM.CurrentLine.Text}"
                                    TextColor="DarkSlateBlue"
                                    >
@@ -59,7 +63,7 @@
                                 </Label.Triggers>
                             </Label>
                         </dx:DXBorder>
-                        <Label FontSize="20" HorizontalOptions="Center"
+                        <Label FontSize="19" HorizontalOptions="Center"
                                LineBreakMode="WordWrap" HorizontalTextAlignment="Justify" Opacity="0.7"
                                Text="{Binding BaseVM.NextLine.Text}"
                                />
@@ -74,7 +78,7 @@
             <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
                               ItemSpacing="15"
                              >
-                <dx:Chip x:Name="SongTitleChip"
+                <dx:Chip x:Name="SongTitleChip" LongPress="SongTitleChip_LongPress" LongPressCommandParameter="{Binding BaseVM.CurrentPlayingSongView.AlbumName}"
                          BackgroundColor="Transparent" BorderColor="Transparent"
                          BorderThickness="0.4" FontFamily="AleySans"
                          FontSize="30" Tap="SongTitleChip_Tap"
@@ -115,7 +119,7 @@
                              BorderThickness="0.1" FontFamily="AleySans"
                              FontSize="18" Icon="heartbroken.png"
                              IsIconVisible="True" Tap="ArtistChip_Tap"
-                             TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
+                             LongPressCommand="{Binding BaseVM.ToggleFavSongCommand}"
                              >
                         <dx:Chip.Triggers>
                             <DataTrigger Binding="{Binding BaseVM.CurrentPlayingSongView.IsFavorite}"
@@ -132,9 +136,9 @@
                     </dx:Chip>
                     <dx:Chip BackgroundColor="Transparent" BorderColor="Transparent"
                              BorderThickness="0.1" FontFamily="AleySans"
-                             FontSize="12" Tap="ArtistChip_Tap"
+                             FontSize="12" 
                              TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
-                             Text="{Binding BaseVM.CurrentPlayingSongView.FileFormat}"
+                             Text="{Binding BaseVM.CurrentPlayingSongView.Genre.Name}"
                              />
                 </dx:DXStackLayout>
             </dx:DXStackLayout>
@@ -176,7 +180,7 @@
                                                               />
                             </dx:DXSlider.TooltipAppearance>
 
-                            <dx:DXSlider.TrackAppearance>
+                        <dx:DXSlider.TrackAppearance>
                                 <dx:DXSliderTrackAppearance ActiveBackgroundColor="DarkSlateBlue" BackgroundColor="#626680"
                                                             Thickness="12"
                                                             />
@@ -240,7 +244,7 @@
 
                 </Grid>
 
-                <Grid Grid.Row="2" 
+                <Grid Grid.Row="2" BackgroundColor="Transparent"
                       RowDefinitions="auto,*" VerticalOptions="End"
                     >
                     <dx:DXStackLayout Grid.Row="0" Orientation="Horizontal">
@@ -255,29 +259,33 @@
                                  />
                     </dx:DXStackLayout>
 
-
+                <Grid Grid.Row="1">
                     <dx:DXExpander x:Name="BottomExpander"
                                    Grid.Row="1" BackgroundColor="Transparent"
                                    HorizontalExpandMode="FromEndToStart" IsExpanded="False"
                                    VerticalExpandMode="FromCenter"
                                    >
                         <dx:DXExpander.Content>
-                            <StackLayout>
+                            <StackLayout HorizontalOptions="Center"
+                                         MinimumWidthRequest="400"     >
                                 <dx:Chip BackgroundColor="Transparent" BorderColor="Black"
                                          BorderThickness="1" HeightRequest="90"
                                          Icon="shared.png" IconColor="DarkSlateBlue"
                                          IconSize="60,60" IsIconVisible="True"
                                          
                                          />
-                                <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"/>
                                 
+                                <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"
+                                             />
+                                <Label Text="App Volume" HorizontalOptions="Center"/>
                                 <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"
-                                             MaxValue="1" MinValue="0"/>
+                                MinimumWidthRequest="400"             MaxValue="1" MinValue="0"
+                                             IsVisible="False"/>
                             </StackLayout>
                         </dx:DXExpander.Content>
                     </dx:DXExpander>
-
-                    <dx:DXExpander x:Name="BottomExpanderTwo"
+                </Grid>
+                <dx:DXExpander x:Name="BottomExpanderTwo"
                                    Grid.Row="1" BackgroundColor="Transparent"
                                    CornerRadius="20" HorizontalExpandMode="FromEndToStart"
                                    IsExpanded="False" VerticalExpandMode="FromStartToEnd"

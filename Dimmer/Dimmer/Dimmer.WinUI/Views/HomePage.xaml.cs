@@ -1,4 +1,6 @@
 ﻿//using Dimmer.DimmerLive.Models;
+using Dimmer.DimmerSearch;
+
 using MoreLinq;
 
 using System.Diagnostics;
@@ -152,21 +154,9 @@ public partial class HomePage : ContentPage
     }
     List<SongModelView> songsToDisplay = new();
 
-    // At the top of your class, with other member variables
     private static readonly Regex _searchRegex = new(
-        @"\b(t|title|ar|artist|al|album):(?:""([^""]*)""|(\S+))",
+        @"\b(t|title|ar|artist|al|album):(!)?(?:""([^""]*)""|(\S+))",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-
-    // Dictionary for mapping prefixes to property names
-    private static readonly Dictionary<string, string> _searchPrefixes = new(StringComparer.OrdinalIgnoreCase)
-{
-    { "t", "Title" }, { "title", "Title" },
-    { "ar", "ArtistName" }, { "artist", "ArtistName" },
-    { "al", "AlbumName" }, { "album", "AlbumName" }
-};
-
-
     private async Task SearchSongsAsync(string searchText, CancellationToken token)
     {
         if (MyViewModel.NowPlayingDisplayQueue == null)
@@ -174,7 +164,7 @@ public partial class HomePage : ContentPage
 
         // Run the heavy lifting on a background thread.
         List<SongModelView> filteredSongs = await Task.Run(() =>
-            PerformFiltering(searchText, token, MyViewModel.NowPlayingDisplayQueue), token);
+            ScoreAndSort(searchText, MyViewModel.NowPlayingDisplayQueue, token), token);
 
         // If a new search has started, abandon this old result.
         if (token.IsCancellationRequested)
@@ -193,66 +183,46 @@ public partial class HomePage : ContentPage
             MyViewModel.CurrentTotalSongsOnDisplay = filteredSongs.Count;
         });
     }
-    static List<SongModelView> PerformFiltering(string searchText, CancellationToken token, IEnumerable<SongModelView> songs)
+    private List<SongModelView> ScoreAndSort(string searchText, IEnumerable<SongModelView> sourceList, CancellationToken token)
     {
-        var sourceList = songs;
-
-        // If search is empty, return a copy of the full list.
         if (string.IsNullOrWhiteSpace(searchText))
         {
             return sourceList.ToList();
         }
 
-        var specificPredicates = new List<Func<SongModelView, bool>>();
-        var generalSearchTerms = new List<string>();
+        // 1. Parse the complex query into a simple, executable structure
+        var parsedQuery = SearchQueryParser.Parse(searchText);
 
-        // Use our pre-compiled static Regex for parsing
-        var remainingText = _searchRegex.Replace(searchText, match =>
-        {
-            var prefix = match.Groups[1].Value;
-            var value = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+        var results = new List<SearchResult>();
 
-            if (_searchPrefixes.TryGetValue(prefix, out var propertyName))
-            {
-                Func<SongModelView, bool> predicate = propertyName switch
-                {
-                    "Title" => song => song.Title?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
-                    "ArtistName" => song => song.ArtistName?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
-                    // --- CRITICAL FIX APPLIED HERE ---
-                    "AlbumName" => song => song.AlbumName?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
-                    _ => song => false
-                };
-                specificPredicates.Add(predicate);
-            }
-            return string.Empty;
-        }).Trim();
-
-        if (!string.IsNullOrWhiteSpace(remainingText))
-        {
-            generalSearchTerms.AddRange(remainingText.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        }
-
-        // Filter the list using our generated rules
-        return sourceList.Where(song =>
+        foreach (var song in sourceList)
         {
             token.ThrowIfCancellationRequested();
 
-            // Rule 1: Must match ALL specific filters (e.g., t: AND al:)
-            if (!specificPredicates.All(p => p(song)))
-                return false;
+            // 2. Filter: Check if the song meets all filter conditions
+            // Must match all positive filters AND must not match any negative filters
+            if (parsedQuery.PositiveFilters.All(p => p(song)) &&
+                !parsedQuery.NegativeFilters.Any(n => n(song)))
+            {
+                var searchResult = new SearchResult(song);
 
-            // Rule 2: Must match ALL general fuzzy terms
-            if (!generalSearchTerms.All(term =>
-                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.ArtistName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.AlbumName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
-            ))
-                return false;
+                // 3. Score: If it passes, calculate its score
+                foreach (var scorer in parsedQuery.ScoringFunctions)
+                {
+                    searchResult.Score += scorer(song);
+                }
+                results.Add(searchResult);
+            }
+        }
 
-            return true; // Passed all filters
-
-        }).ToList();
+        // 4. Sort: Order by the calculated score and return the songs
+        return results
+            .OrderByDescending(r => r.Score)
+            .Select(r => r.Song)
+            .ToList();
     }
+
+
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
 
@@ -455,6 +425,18 @@ public partial class HomePage : ContentPage
 
     private void QuickSearchArtist_Clicked(object sender, EventArgs e)
     {
+
+    }
+
+    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    {
+
+        SearchSongSB.FontSize = 28;
+    }
+
+    private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    {
+        SearchSongSB.FontSize = 17;
 
     }
 }

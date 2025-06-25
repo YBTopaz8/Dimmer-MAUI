@@ -52,7 +52,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial LyricPhraseModelView? CurrentLine { get; set; }
     [ObservableProperty]
-    public partial double? ProgressOpacity{ get; set; }
+    public partial double? ProgressOpacity { get; set; } = 0.6;
     [ObservableProperty]
     public partial LyricPhraseModelView? NextLine { get; set; }
     [ObservableProperty]
@@ -554,6 +554,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     AppTitle = songView != null
                         ? $"{songView.Title} - {songView.ArtistName} [{songView.AlbumName}] | {CurrentAppVersion}"
                         : CurrentAppVersion;
+                    DimmerPlayEventList=_mapper.Map<ObservableCollection<DimmerPlayEventView>>( dimmerPlayEventRepo.GetAll());
                     CurrentPlayingSongView.PlayEvents = DimmerPlayEventList.Where(x => x.SongId==CurrentPlayingSongView.Id).ToObservableCollection();
                 }, ex => _logger.LogError(ex, "Error in CurrentSong subscription"))
         );
@@ -706,9 +707,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
                     // now use percentageconverter to convert to percentage
                     var percentageConverter = new PercentageInverterConverter();
+                    if (CurrentTrackPositionPercentage >=0.40)
+                    {
+                        ProgressOpacity = percentageConverter.Convert(CurrentTrackPositionPercentage, typeof(double), null, CultureInfo.InvariantCulture) as double?;
 
-                    ProgressOpacity = percentageConverter.Convert(CurrentTrackPositionPercentage, typeof(double), null, CultureInfo.InvariantCulture) as double?;
 
+                    }
 
                 }, ex => _logger.LogError(ex, "Error in AudioEnginePositionObservable subscription"))
         );
@@ -811,6 +815,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial bool IsAppScanning { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSafeKeyboardAreaViewOpened { get; set; }
+
 
     [RelayCommand]
     public void SetPreferredAudioDevice(AudioOutputDevice dev)

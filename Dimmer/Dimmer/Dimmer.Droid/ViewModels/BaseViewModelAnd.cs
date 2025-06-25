@@ -54,6 +54,9 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
 
+    [ObservableProperty]
+    public partial SafeKeyboardAreaView MySafeKeyboardAreaView { get; set; }
+
 
 
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker, IAnimationService animService,

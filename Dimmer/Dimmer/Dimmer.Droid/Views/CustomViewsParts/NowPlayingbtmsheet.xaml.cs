@@ -86,4 +86,13 @@ public partial class NowPlayingbtmsheet : BottomSheet
         BottomExpanderTwo.IsExpanded = !BottomExpanderTwo.IsExpanded;
         this.AllowDismiss = !BottomExpanderTwo.IsExpanded;
     }
+
+    private void SongTitleChip_LongPress(object sender, HandledEventArgs e)
+    {
+        var parent = this.Parent.Parent as HomePage;
+        if (parent.GetType() == typeof(HomePage))
+        {
+            
+        }
+    }
 }

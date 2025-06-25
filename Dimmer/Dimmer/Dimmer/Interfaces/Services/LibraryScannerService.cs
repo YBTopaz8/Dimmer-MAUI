@@ -333,8 +333,8 @@ public class LibraryScannerService : ILibraryScannerService
         _state.LoadAllSongs(allSongs.AsReadOnly());
         _logger.LogInformation("Loaded {SongCount} songs into global state.", allSongs.Count);
 
-        var allEvents = _playEventsRepo.GetAll();
-        _state.LoadAllPlayHistory(allEvents);
+        //var allEvents = _playEventsRepo.GetAll();
+        //_state.LoadAllPlayHistory(allEvents);
     }
 
     public void RemoveDupesFromDB()
