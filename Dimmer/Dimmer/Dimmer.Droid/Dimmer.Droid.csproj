@@ -61,6 +61,7 @@
     <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.7" />
     <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.7" />
     <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.7" />
+    <PackageReference Include="FunctionZero.Maui.zBind" Version="8.1.1" />
 
     <!-- MAUI Dependencies -->
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.80" />

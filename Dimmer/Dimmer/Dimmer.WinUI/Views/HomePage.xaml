@@ -208,7 +208,7 @@
 
                     </Grid>
                     <Grid Grid.Row="2" ColumnDefinitions="*,*"
-                          IsVisible="True"
+                          IsVisible="True" x:Name="UtilitySection"
                           >
                         <VerticalStackLayout Grid.Column="0">
 
@@ -630,12 +630,15 @@
                 <HorizontalStackLayout Grid.Row="0">
                     <Label Text="Test" x:Name="TranslatedSearch" IsVisible="False"/>
                 </HorizontalStackLayout>
-                <SearchBar x:Name="SearchSongSB"
-                           Grid.Row="1" windows:SearchBar.IsSpellCheckEnabled="True"
+                <Editor x:Name="SearchSongSB"
+                       IsTextPredictionEnabled="True"
+                        HeightRequest="50"
+                        Grid.Row="1" windows:SearchBar.IsSpellCheckEnabled="True"
                            windows:VisualElement.AccessKey="F" BackgroundColor="Transparent"
                            Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
                         FontSize="17"  Focused="SearchSongSB_Focused"
-                           Unfocused="SearchSongSB_Unfocused"/>
+                           Unfocused="SearchSongSB_Unfocused"
+                         />
 
             </Grid>
 

@@ -47,8 +47,8 @@ public partial class App : MauiWinUIApplication
 
         this.InitializeComponent();
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
-        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
+        
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -65,10 +65,20 @@ public partial class App : MauiWinUIApplication
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        Debug.WriteLine($"GLOBAL UNHANDLED EXCEPTION: {e.ExceptionObject}");
+        
         var errorHandler = Services.GetService<IErrorHandler>();
         errorHandler?.HandleError((Exception)e.ExceptionObject);
-        //e.Handled = true; // Prevent the application from crashing
+        Exception ex = (Exception)e.ExceptionObject;
+
+        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+                                 $"Exception Type: {ex.GetType()}\n" +
+                                 $"Message: {ex.Message}\n" +
+                                 $"Source: {ex.Source}\n" +
+                                 $"Stack Trace: {ex.StackTrace}\n";
+
+        // ... Log to file, etc.
+        Debug.WriteLine(errorDetails);
+        LogException(ex);
     }
     // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
