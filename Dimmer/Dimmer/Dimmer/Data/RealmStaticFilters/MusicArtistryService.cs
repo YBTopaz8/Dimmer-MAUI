@@ -242,7 +242,7 @@ public class MusicArtistryService
             .Where(s => s != null)
             .ToList();
 
-        if (!allPlayedSongs.Any())
+        if (allPlayedSongs.Count==0)
             return (0, 0);
 
         var introvertScore = allPlayedSongs.Count(s => s.DurationInSeconds > 300 || !s.HasLyrics || s.Tags.Any(t => t.Name == "Ambient"));

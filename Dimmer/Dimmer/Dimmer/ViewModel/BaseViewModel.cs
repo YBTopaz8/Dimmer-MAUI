@@ -285,7 +285,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 .Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
 
-            if (!artistNamesToLink.Any())
+            if (artistNamesToLink.Count==0)
             {
                 _logger.LogInformation("No 'OtherArtists' found for song '{Title}'. Nothing to link.", songDb.Title);
                 return; // No work to do
@@ -1643,7 +1643,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void AddToPlaylist(string PlName, List<SongModelView> songsToAdd)
     {
-        if (string.IsNullOrEmpty(PlName) || songsToAdd == null || !songsToAdd.Any())
+        if (string.IsNullOrEmpty(PlName) || songsToAdd == null || songsToAdd.Count==0)
         {
             _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', NowPlayingDisplayQueue count = {Count}", PlName, songsToAdd?.Count ?? 0);
             return;
@@ -1675,7 +1675,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             // 4. Determine which new NowPlayingDisplayQueue we actually need to process
             var newSongIds = songIdsToAdd.Except(existingSongIdsInPlaylist).ToList();
 
-            if (!newSongIds.Any())
+            if (newSongIds.Count==0)
             {
                 _logger.LogInformation("All NowPlayingDisplayQueue already exist in playlist '{PlName}'.", PlName);
                 return; // Nothing to add
@@ -1718,7 +1718,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void RemoveFromPlaylist(ObjectId playlistId, List<SongModelView> songsToRemove)
     {
-        if (songsToRemove == null || !songsToRemove.Any())
+        if (songsToRemove == null || songsToRemove.Count==0)
         {
             return; // Nothing to do
         }
@@ -1743,7 +1743,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                                                 .Where(s => songIdsToRemove.Contains(s.Id))
                                                 .ToList(); // .ToList() here is safe because we are about to remove them
 
-            if (!songsToDeleteFromList.Any())
+            if (songsToDeleteFromList.Count==0)
             {
                 _logger.LogInformation("None of the specified NowPlayingDisplayQueue were found in playlist '{PlName}'.", playlist.PlaylistName);
                 return;

@@ -133,7 +133,7 @@ public partial class App : MauiWinUIApplication
             pathsToProcess.Add(path);
         }
 
-        if (!pathsToProcess.Any())
+        if (pathsToProcess.Count==0)
         {
             return; // Nothing to do
         }
@@ -168,7 +168,7 @@ public partial class App : MauiWinUIApplication
         // Filter out null or empty paths and get a List<string>
         var validPaths = paths.Where(p => !string.IsNullOrEmpty(p)).ToList<string>();
 
-        if (!validPaths.Any())
+        if (validPaths.Count==0)
             return;
 
         // It's generally safer to resolve services when needed,

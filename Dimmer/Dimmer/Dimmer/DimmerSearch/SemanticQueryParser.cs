@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Maui.Controls;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,125 +8,175 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch;
-public class SemanticQueryParser
+
+public class SemanticParser
 {
-    public event Action<QueryClause> ClauseParsed;
-
-    private static readonly Dictionary<string, (string FieldName, Type FieldType)> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
-        {
-            {"t", ("Title", typeof(string))}, {"title", ("Title", typeof(string))},
-            {"ar", ("OtherArtistsName", typeof(string))}, {"artist", ("OtherArtistsName", typeof(string))},
-            {"al", ("AlbumName", typeof(string))}, {"album", ("AlbumName", typeof(string))},
-            {"genre", ("Genre.Name", typeof(string))}, {"composer", ("Composer", typeof(string))},
-            {"lang", ("Language", typeof(string))}, {"year", ("ReleaseYear", typeof(int))},
-            {"bpm", ("BitRate", typeof(int))}, {"len", ("DurationInSeconds", typeof(double))},
-            {"rating", ("Rating", typeof(int))}, {"track", ("TrackNumber", typeof(int))},
-            {"disc", ("DiscNumber", typeof(int))}, {"lyrics", ("HasLyrics", typeof(bool))},
-            {"synced", ("HasSyncedLyrics", typeof(bool))}, {"fav", ("IsFavorite", typeof(bool))},
-        };
-
-    private static readonly Regex _searchRegex;
-
-    static SemanticQueryParser()
+    private static readonly Dictionary<string, string> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
     {
-        var keys = string.Join("|", _fieldMappings.Keys.Select(Regex.Escape));
-        _searchRegex = new Regex(
-            $@"\b({keys}):(!)?(>|<|\^|\$|~)?(?:""([^""]*)""|(\S+))",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    }
+        {"title", "Title"}, {"t", "Title"},
+        {"artist", "OtherArtistsName"}, {"ar", "OtherArtistsName"},
+        {"album", "AlbumName"}, {"al", "AlbumName"},
+        {"genre", "Genre.Name"}, {"composer", "Composer"},
+        {"lang", "Language"}, {"year", "ReleaseYear"},
+        {"bpm", "BitRate"}, {"len", "DurationInSeconds"},
+        {"rating", "Rating"}, {"track", "TrackNumber"},
+        {"disc", "DiscNumber"}, {"lyrics", "HasLyrics"},
+        {"synced", "HasSyncedLyrics"}, {"fav", "IsFavorite"}
+    };
 
+    // Add known numeric and boolean fields for smart clause creation
+    private static readonly HashSet<string> _numericFields = new() { "ReleaseYear", "BitRate", "DurationInSeconds", "Rating", "TrackNumber", "DiscNumber" };
+    private static readonly HashSet<string> _booleanFields = new() { "HasLyrics", "HasSyncedLyrics", "IsFavorite" };
     public SemanticQuery Parse(string searchText)
     {
         var query = new SemanticQuery();
 
-        var remainingText = _searchRegex.Replace(searchText, match =>
-        {
-            string prefix = match.Groups[1].Value.ToLower();
-            bool isNegated = match.Groups[2].Success;
-            string op = match.Groups[3].Success ? match.Groups[3].Value : string.Empty;
-            string value = match.Groups[4].Success ? match.Groups[4].Value : match.Groups[5].Value;
+        // 1. Tokenize the entire string once.
+        var tokenQueue = new Queue<string>(QueryTokenizer.Tokenize(searchText));
 
-            if (_fieldMappings.TryGetValue(prefix, out var mapping))
+        bool currentInclusionState = true;
+        string lastFieldName = "Title"; // Default sort field
+
+        // 2. Process tokens in a robust loop until the queue is empty.
+        while (tokenQueue.Count > 0)
+        {
+            string token = tokenQueue.Dequeue(); // Get and remove the next token
+            string lowerToken = token.ToLower();
+
+            // --- Try to process as a Top-Level Directive ---
+            if (lowerToken == "exclude")
+            { currentInclusionState = false; continue; }
+            if (lowerToken == "include")
+            { currentInclusionState = true; continue; }
+            if (lowerToken == "asc")
+            { query.SortDirectives.Add(new SortClause { FieldName = lastFieldName, Direction = SortDirection.Ascending }); continue; }
+            if (lowerToken == "desc")
+            { query.SortDirectives.Add(new SortClause { FieldName = lastFieldName, Direction = SortDirection.Descending }); continue; }
+
+            // Check for directives that require a second token.
+            if (tokenQueue.TryPeek(out string nextToken))
             {
-                var clause = CreateClause(mapping.FieldName, mapping.FieldType, prefix, isNegated, op, value);
+                if (lowerToken == "first" && int.TryParse(nextToken, out int firstCount))
+                { query.LimiterDirective = new LimiterClause { Type = LimiterType.First, Count = firstCount }; tokenQueue.Dequeue(); continue; }
+                if (lowerToken == "last" && int.TryParse(nextToken, out int lastCount))
+                { query.LimiterDirective = new LimiterClause { Type = LimiterType.Last, Count = lastCount }; tokenQueue.Dequeue(); continue; }
+                if (lowerToken == "random" && int.TryParse(nextToken, out int randomCount))
+                { query.LimiterDirective = new LimiterClause { Type = LimiterType.Random, Count = randomCount }; tokenQueue.Dequeue(); continue; }
+            }
+
+            // --- Try to process as a Prefixed Clause ---
+            var parts = token.Split(new[] { ':' }, 2);
+            if (parts.Length == 2 && _fieldMappings.TryGetValue(parts[0], out var fieldName))
+            {
+                var clause = CreateClauseFromToken(fieldName, parts[0], parts[1], currentInclusionState);
                 if (clause != null)
                 {
                     query.Clauses.Add(clause);
-                    ClauseParsed?.Invoke(clause);
+                    lastFieldName = fieldName;
                 }
+                continue; // Successfully processed, move to next token in queue.
             }
-            return string.Empty;
-        }).Trim();
 
-        if (!string.IsNullOrWhiteSpace(remainingText))
+            // --- If we reach here, it's a General Search Term ---
+            // Add it back to a list of general terms.
+            query.GeneralAndTerms.Add(token);
+        }
+
+        // --- Post-processing for "Lazy OR" on general terms ---
+        // If a single general term contains '|', split it into the OR list.
+        var generalText = string.Join(" ", query.GeneralAndTerms);
+        if (generalText.Contains('|'))
         {
-            if (remainingText.Contains('|'))
-                query.GeneralOrTerms.AddRange(remainingText.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-            else
-                query.GeneralAndTerms.AddRange(remainingText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            query.GeneralOrTerms.AddRange(generalText.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            query.GeneralAndTerms.Clear(); // Clear the AND list as it's now an OR query.
         }
 
         return query;
     }
-
-    private QueryClause CreateClause(string fieldName, Type fieldType, string keyword, bool isNegated, string op, string value)
+    /// <summary>
+    /// The factory method that intelligently creates the correct clause type
+    /// based on the field and parses the value for operators.
+    /// </summary>
+    private QueryClause CreateClauseFromToken(string fieldName, string keyword, string value, bool isInclusion)
     {
+        // Helper action to set the common properties on any created clause.
         var baseProps = new Action<QueryClause>(c => {
-            c.FieldName = fieldName;
             c.Keyword = keyword;
-            c.IsNegated = isNegated;
             c.RawValue = value;
+            c.IsInclusion = isInclusion;
         });
 
-        if (fieldType == typeof(string))
+        if (_numericFields.Contains(fieldName))
         {
-            var clause = new TextClause { Operator = TextOperator.Contains };
-            if (value.Contains('|'))
-            { clause.Operator = TextOperator.Or; clause.Values = value.Split('|').ToList(); }
-            else
-            { clause.Values.Add(value); }
+            var clause = new NumericClause { FieldName = fieldName, Operator = NumericOperator.Equals }; // Default
 
-            if (op == "^")
-                clause.Operator = TextOperator.StartsWith;
-            else if (op == "$")
-                clause.Operator = TextOperator.EndsWith;
-            else if (op == "~")
-                clause.Operator = TextOperator.Levenshtein;
+            char firstChar = value.FirstOrDefault();
+            string numericValue = value;
 
-            baseProps(clause);
-            return clause;
-        }
-        if (fieldType == typeof(int) || fieldType == typeof(double))
-        {
-            var clause = new NumericClause { Operator = NumericOperator.Equals };
-            if (op == ">")
-                clause.Operator = NumericOperator.GreaterThan;
-            else if (op == "<")
-                clause.Operator = NumericOperator.LessThan;
+            if (firstChar == '>')
+            { clause.Operator = NumericOperator.GreaterThan; numericValue = value[1..]; }
+            else if (firstChar == '<')
+            { clause.Operator = NumericOperator.LessThan; numericValue = value[1..]; }
 
-            if (value.Contains('-'))
+            if (numericValue.Contains('-'))
             {
                 clause.Operator = NumericOperator.Between;
-                var parts = value.Split('-');
+                var parts = numericValue.Split('-');
                 if (double.TryParse(parts[0], out double start))
                     clause.Value = start;
                 if (double.TryParse(parts[1], out double end))
                     clause.UpperValue = end;
             }
-            else if (double.TryParse(value, out double numValue))
+            else if (double.TryParse(numericValue, out double num))
             {
-                clause.Value = numValue;
+                clause.Value = num;
             }
 
             baseProps(clause);
             return clause;
         }
-        if (fieldType == typeof(bool))
+        else if (_booleanFields.Contains(fieldName))
         {
-            var clause = new FlagClause { TargetValue = "true|yes|1".Contains(value.ToLower()) };
+            var clause = new FlagClause
+            {
+                FieldName = fieldName,
+                TargetValue = "true|yes|1".Contains(value.ToLower())
+            };
             baseProps(clause);
             return clause;
         }
-        return null;
+        else // Default to TextClause for any other field type
+        {
+            var clause = new TextClause { FieldName = fieldName };
+            var parts = value.Split('|'); // Split by OR first
+
+            foreach (var part in parts)
+            {
+                var condition = new TextCondition();
+                string textValue = part.Trim();
+
+                if (string.IsNullOrEmpty(textValue))
+                    continue;
+
+                char firstChar = textValue.FirstOrDefault();
+
+                // Check for operators and strip them from the value
+                if (firstChar == '^')
+                { condition.Operator = TextOperator.StartsWith; textValue = textValue[1..]; }
+                else if (firstChar == '$')
+                { condition.Operator = TextOperator.EndsWith; textValue = textValue[1..]; }
+                else if (firstChar == '~')
+                { condition.Operator = TextOperator.Levenshtein; textValue = textValue[1..]; }
+                else if (firstChar == '=')
+                { condition.Operator = TextOperator.Equals; textValue = textValue[1..]; }
+                // Default operator is already Contains, so no 'else' needed
+
+                condition.Value = textValue;
+                clause.Conditions.Add(condition);
+            }
+
+            baseProps(clause);
+            return clause;
+        }
     }
 }

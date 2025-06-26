@@ -8,21 +8,26 @@ namespace Dimmer.DimmerSearch;
 public static class SemanticQueryHelpers
 {
     // --- Helper methods to get property values using Reflection ---
-    private static object GetPropValue(object src, string propName)
+    private static object? GetPropValue(object? src, string propName)
     {
         if (src == null)
             return null;
+
         if (propName.Contains('.'))
         {
-            var temp = propName.Split(new char[] { '.' }, 2);
-            return GetPropValue(GetPropValue(src, temp[0]), temp[1]);
+            var parts = propName.Split(new[] { '.' }, 2);
+            var parent = GetPropValue(src, parts[0]);
+            return GetPropValue(parent, parts[1]);
         }
         else
         {
+            // Caching PropertyInfo objects is a major performance optimization
             var prop = src.GetType().GetProperty(propName);
             return prop?.GetValue(src, null);
         }
     }
+
+    
 
     public static string GetStringProp(SongModelView song, string name) => GetPropValue(song, name) as string ?? "";
     public static double GetNumericProp(SongModelView song, string name) => Convert.ToDouble(GetPropValue(song, name) ?? 0);
@@ -57,4 +62,34 @@ public static class SemanticQueryHelpers
         }
         return d[n, m];
     }
+
+    public static IComparable? GetComparableProp(object? obj, string name)
+    {
+        if (obj == null)
+            return null;
+
+        object? propValue = GetPropValue(obj, name);
+
+        if (propValue == null)
+        {
+            // If the property is a number type, return a consistent "bottom" value.
+            // Otherwise, return an empty string. This prevents comparing numbers to strings.
+            var propInfo = obj?.GetType().GetProperty(name.Split('.')[0]); // Get top-level property
+            if (propInfo != null && (propInfo.PropertyType == typeof(int?) || propInfo.PropertyType == typeof(double?)))
+            {
+                return int.MinValue; // Or double.MinValue
+            }
+            return string.Empty;
+        }
+
+        if (propValue is IComparable comparable)
+        {
+            return comparable;
+        }
+
+        // Fallback for complex types that don't implement IComparable
+        return propValue.ToString() ?? string.Empty;
+    }
+
+
 }

@@ -33,7 +33,7 @@ public class MusicRelationshipService
             return null;
 
         var plays = song.PlayHistory.ToList();
-        if (!plays.Any())
+        if (plays.Count==0)
             return new RelationshipStat<SongModel>(song, 0, DateTimeOffset.MinValue, DateTimeOffset.MinValue);
 
         return new RelationshipStat<SongModel>(
@@ -57,7 +57,7 @@ public class MusicRelationshipService
             .Filter("DatePlayed > $0 AND SongId != nil", sinceDate)
             .ToList();
 
-        if (!recentEvents.Any())
+        if (recentEvents.Count==0)
             return new List<SongDiscovery>();
 
         // 2. In memory, group by song to find the first recent play.
@@ -71,7 +71,7 @@ public class MusicRelationshipService
             .Where(p => !_realm.All<DimmerPlayEvent>().Filter("SongId == $0 AND DatePlayed <= $1", p.SongId, sinceDate).Any())
             .ToList();
 
-        if (!actualDiscoveries.Any())
+        if (actualDiscoveries.Count==0)
             return new List<SongDiscovery>();
 
         // 4. Batch fetch the full Song objects for the confirmed discoveries.
@@ -148,7 +148,7 @@ public class MusicRelationshipService
         var query = "SongId == $0 AND DatePlayed > $1 AND DatePlayed <= $2";
         var events = _realm.All<DimmerPlayEvent>().Filter(query, songId, startDate, endDate).ToList();
 
-        if (!events.Any())
+        if (events.Count==0)
             return (0, 0, 0.0);
 
         int totalPlays = events.Count(e => e.PlayType == 0 || e.PlayType == 3);
@@ -183,7 +183,7 @@ public class MusicRelationshipService
             .Select(s => s.Id)
             .ToHashSet();
 
-        if (!artistSongIds.Any())
+        if (artistSongIds.Count==0)
             return null;
 
         // ========================================================================
@@ -241,7 +241,7 @@ public class MusicRelationshipService
             .Filter("SongId IN $0", artistSongIds)
             .ToList();
 
-        if (!plays.Any())
+        if (plays.Count==0)
             return (new RelationshipStat<ArtistModel>(artist, 0, DateTimeOffset.MinValue, DateTimeOffset.MinValue), null, null);
 
         var coreStats = new RelationshipStat<ArtistModel>(artist, plays.Count, plays.Min(p => p.DatePlayed), plays.Max(p => p.DatePlayed));
@@ -324,7 +324,7 @@ public class MusicRelationshipService
             .Select(s => s.Id)
             .ToHashSet(); // Use HashSet for O(1) lookups.
 
-        if (!artistSongIds.Any())
+        if (artistSongIds.Count==0)
             return (DateTimeOffset.MinValue, 0);
 
         // ========================================================================
@@ -350,7 +350,7 @@ public class MusicRelationshipService
         // ========================================================================
 
 
-        if (!artistEvents.Any())
+        if (artistEvents.Count==0)
             return (DateTimeOffset.MinValue, 0);
 
         // Step 4: Process the final, filtered in-memory list. This was always correct.
@@ -410,7 +410,7 @@ public class MusicRelationshipService
             .Filter("SongId IN $0", artistSongIds)
             .ToList();
 
-        if (!events.Any())
+        if (events.Count==0)
             return (0, 0, 0);
 
         // This part remains the same as it operates on the in-memory list.
@@ -434,7 +434,7 @@ public class MusicRelationshipService
                 .ToHashSet();
 
             // If the artist has no songs, their loyalty index is 0.
-            if (!artistSongIds.Any())
+            if (artistSongIds.Count==0)
                 return 0.0;
 
             // Step 2: Get the total number of play events in the entire database.
@@ -499,7 +499,7 @@ public class MusicRelationshipService
                 g => g.Select(e => e.SongId.Value).Distinct().Count()
             );
 
-        if (!uniqueSongsPlayedByArtist.Any())
+        if (uniqueSongsPlayedByArtist.Count==0)
             return null;
 
         return allArtists
@@ -524,7 +524,7 @@ public class MusicRelationshipService
             return (new RelationshipStat<AlbumModel>(album, 0, DateTimeOffset.MinValue, DateTimeOffset.MinValue), 0);
 
         var plays = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", albumSongIds).ToList();
-        if (!plays.Any())
+        if (plays.Count==0)
             return (new RelationshipStat<AlbumModel>(album, 0, DateTimeOffset.MinValue, DateTimeOffset.MinValue), 0);
 
         var coreStats = new RelationshipStat<AlbumModel>(album, plays.Count, plays.Min(p => p.DatePlayed), plays.Max(p => p.DatePlayed));
@@ -627,7 +627,7 @@ public class MusicRelationshipService
             return (0, 0, 0);
 
         var plays = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", genreSongIds).ToList();
-        if (!plays.Any())
+        if (plays.Count==0)
             return (0, 0, 0);
 
         return (
@@ -738,7 +738,7 @@ public class MusicRelationshipService
     {
         // This is inefficient (N+1 queries) but compliant with the strict rules.
         var allPlaylists = _realm.All<PlaylistModel>().ToList();
-        if (!allPlaylists.Any())
+        if (allPlaylists.Count==0)
             return null;
         return allPlaylists
             .Select(p => new { Playlist = p, PlayCount = _realm.All<DimmerPlayEvent>().Filter("ANY SongsLinkingToThisEvent.Playlists.Id == $0", p.Id).Count() })
