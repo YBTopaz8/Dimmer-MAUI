@@ -229,7 +229,8 @@
                         <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
                                                Spacing="20" VerticalOptions="Start"
                                                >
-                            <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" />
+                            <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" 
+                                   x:Name="SongsCountLabel"/>
 
 
 
@@ -490,7 +491,7 @@
 
                                                 </FlyoutBase.ContextFlyout>
                                                 <Label Grid.Column="1" HorizontalOptions="Center"
-                                                       Text="{Binding ArtistName}"
+                                                       Text="{Binding OtherArtistsName}"
                                                        VerticalOptions="Center"
                                                        />
                                             </syncf:SfEffectsView>
@@ -628,7 +629,7 @@
                   RowDefinitions="auto,*" RowSpacing="10"
                   >
                 <HorizontalStackLayout Grid.Row="0">
-                    <Label Text="Test" x:Name="TranslatedSearch" IsVisible="False"/>
+                    <Label Text="Test" x:Name="TranslatedSearch" IsVisible="True"/>
                 </HorizontalStackLayout>
                 <Editor x:Name="SearchSongSB"
                        IsTextPredictionEnabled="True"

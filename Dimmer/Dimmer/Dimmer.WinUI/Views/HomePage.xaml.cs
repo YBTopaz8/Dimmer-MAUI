@@ -108,7 +108,9 @@ public partial class HomePage : ContentPage
         _ => {
             // You can update other UI elements directly here now.
             // No need for another BeginInvokeOnMainThread.
-            // Example: CountLabel.Text = $"{_searchResults.Count} songs found";
+             
+            TranslatedSearch.Text = $"{_searchResults.Count} Songs";
+            SongsCountLabel.IsVisible=false;
         },
         ex => {
             Debug.WriteLine($"Error in DynamicData pipeline: {ex}");
@@ -563,7 +565,7 @@ public partial class HomePage : ContentPage
     {
 
      await   Task.WhenAll(SongsColView.DimmOut(),
-
+         TranslatedSearch.DimmIn(),
          SearchSongSB.AnimateHeight(150, 150, Easing.SpringOut),
          UtilitySection.AnimateFadeOutBack());
         SearchSongSB.FontSize = 28;
@@ -572,10 +574,11 @@ public partial class HomePage : ContentPage
     private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
         await Task.WhenAll( SongsColView.DimmIn(),
-     
+     TranslatedSearch.DimmOut(),
          SearchSongSB.AnimateHeight(50, 300, Easing.SpringIn),
          UtilitySection.AnimateFadeInFront());
         SearchSongSB.FontSize = 17;
+
     }
 
 
