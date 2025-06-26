@@ -108,7 +108,7 @@ public static class CustomAnimsExtensions
 
     public static async Task AnimateSlideDown(this View element, double heightToSlide)
     {
-        await element.TranslateTo(0, heightToSlide, 250, Easing.CubicInOut);
+        await element.TranslateTo(0, heightToSlide, 350, Easing.CubicInOut);
         element.HeightRequest = element.Height - heightToSlide;
     }
 

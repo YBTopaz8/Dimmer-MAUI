@@ -65,7 +65,11 @@ public static class AutoMapperConf
 
             // Self-map for any other types you might need to copy.
             cfg.CreateMap<AppStateModel, AppStateModel>();
-            cfg.CreateMap<DimmerPlayEventView, DimmerPlayEvent>().ReverseMap();
+            cfg.CreateMap<DimmerPlayEventView, DimmerPlayEvent>()
+            .ForMember(dest=>
+                dest.SongsLinkingToThisEvent,
+                opt => opt.Ignore())
+            .ReverseMap();
 
 
             // --- PART B: Updating a Managed Realm Object from a ViewModel ---

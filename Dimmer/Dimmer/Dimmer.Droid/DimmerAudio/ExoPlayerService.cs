@@ -53,6 +53,7 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
 public class ExoPlayerService : MediaSessionService
 {
+    
     // --- Components ---
     private MediaSession? mediaSession;
     private IExoPlayer? player;
@@ -263,6 +264,7 @@ public class ExoPlayerService : MediaSessionService
     public async override void OnCreate()
     {
         base.OnCreate();
+        
         //Console.WriteLine("[ExoPlayerService] OnCreate");
         var audioAttributes = new AudioAttributes.Builder()!
     .SetUsage(C.UsageMedia)! // Specify this is media playback

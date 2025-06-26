@@ -1,23 +1,282 @@
 ﻿//using Dimmer.DimmerLive.Models;
+using Dimmer.DimmerSearch;
+
+using DynamicData;
+using System.Reactive.Concurrency;
+using ReactiveUI;
+using DynamicData.Binding;
+
 using MoreLinq;
 
-using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text.RegularExpressions;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
+using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
 
 public partial class HomePage : ContentPage
 {
     public BaseViewModelWin MyViewModel { get; internal set; }
+
+    private readonly SourceList<SongModelView> _masterSongList = new();
+    private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
+    private readonly SemanticParser _parser = new();
+    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
+    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
+
+    private void LoadAllSongsIntoMasterList()
+    {
+        if (MyViewModel.NowPlayingDisplayQueue != null)
+        {
+            _masterSongList.AddRange(MyViewModel.NowPlayingDisplayQueue);
+        }
+    }
+
+    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        var query = _parser.Parse(e.NewTextValue);
+
+        // Push the new instructions into the reactive pipeline
+        _filterPredicate.OnNext(BuildMasterPredicate(query));
+        _sortComparer.OnNext(new SongModelViewComparer(query.SortDirectives));
+
+        // Optional: Update a summary label
+         //SummaryLabel.Text = query.Humanize();
+    }
+
+
+    private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
+    {
+        // 1. Get the predicate functions for all the 'include' and 'exclude' rules.
+        var inclusionPredicates = query.Clauses.Where(c => c.IsInclusion).Select(c => c.AsPredicate()).ToList();
+        var exclusionPredicates = query.Clauses.Where(c => !c.IsInclusion).Select(c => c.AsPredicate()).ToList();
+
+        // 2. Return a single function that checks a song against all the rules.
+        return song =>
+        {
+            // Rule 1: A song is valid if it meets at least one 'include' rule (or if none exist).
+            bool meetsInclusion = !inclusionPredicates.Any() || inclusionPredicates.Any(p => p(song));
+            if (!meetsInclusion)
+                return false;
+
+            // Rule 2: A song is invalid if it meets ANY of the 'exclude' rules.
+            bool meetsExclusion = exclusionPredicates.Any() && exclusionPredicates.Any(p => p(song));
+            if (meetsExclusion)
+                return false;
+
+            // Rule 3: Handle general AND terms.
+            if (query.GeneralAndTerms.Any() && !query.GeneralAndTerms.All(term =>
+                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            {
+                return false;
+            }
+
+            // Rule 4: Handle general OR terms.
+            if (query.GeneralOrTerms.Any() && !query.GeneralOrTerms.Any(term =>
+                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            {
+                return false;
+            }
+
+            return true; // Passed all checks!
+        };
+    }
+
     public HomePage(BaseViewModelWin vm)
     {
         InitializeComponent();
         BindingContext = vm;
-        MyViewModel=vm;
+        MyViewModel = vm;
 
+        // --- Keep this block. This initialization is correct. ---
+        _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
+        _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
+
+        // --- Keep this block. The Dynamic Data pipeline is the core of the new system. ---
+        _masterSongList.Connect()
+            .Throttle(TimeSpan.FromMilliseconds(400),Scheduler.Default)
+            .Filter(_filterPredicate)
+            .Sort(_sortComparer)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out _searchResults)
+              .Subscribe(
+        _ => {
+            // You can update other UI elements directly here now.
+            // No need for another BeginInvokeOnMainThread.
+            // Example: CountLabel.Text = $"{_searchResults.Count} songs found";
+        },
+        ex => {
+            Debug.WriteLine($"Error in DynamicData pipeline: {ex}");
+        }
+    );
+
+        // --- Keep these lines. They correctly wire up the UI. ---
+        SongsColView.ItemsSource = _searchResults;
+        LoadAllSongsIntoMasterList();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //// The master list of ALL songs, powered by Dynamic Data. This is our single source of truth.
+    //private readonly SourceList<SongModelView> _masterSongList = new();
+
+    //// The final, read-only collection that our UI's CollectionView binds to.
+    //// Dynamic Data will keep this collection updated automatically on the UI thread.
+    //private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
+
+    //// The single instance of our powerful semantic query parser.
+    //private readonly SemanticParser _parser = new();
+
+    //// These "subjects" are the reactive triggers for our pipeline.
+    //// We push new values into them, and the pipeline re-evaluates.
+    //private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
+    //private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
+
+
+
+    //private void LoadAllSongsIntoMasterList()
+    //{
+    //    // Replace this with your actual data loading logic (e.g., from Realm DB).
+    //    // Example:
+    //    // var songsFromDb = MyDatabaseService.GetAllSongs();
+    //    // _masterSongList.AddRange(songsFromDb);
+
+    //    // Using placeholder data from your previous example:
+    //    if (MyViewModel.NowPlayingDisplayQueue != null)
+    //    {
+    //        _masterSongList.AddRange(MyViewModel.NowPlayingDisplayQueue);
+    //    }
+    //}
+
+    //// --- 7. The Search Bar Event Handler (Clean and Simple) ---
+    //// This method is called every time the user types in the search box.
+    //private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    //{
+    //    string searchText = e.NewTextValue;
+
+    //    // 7a. Parse the user's text into a structured query object.
+    //    var query = _parser.Parse(searchText);
+
+    //    // 7b. Build the master filter function from the parsed query.
+    //    var predicate = BuildMasterPredicate(query);
+
+    //    // 7c. PUSH the new filter into the reactive pipeline. Dynamic Data does the rest.
+    //    _filterPredicate.OnNext(predicate);
+
+    //    // 7d. Build the master sort function.
+    //    var comparer = BuildMasterComparer(query);
+
+    //    // 7e. PUSH the new sort order into the pipeline.
+    //    _sortComparer.OnNext(comparer);
+
+    //    // Optional: Update a summary label on the UI instantly.
+    //    // HumanizedQueryLabel.Text = query.Humanize();
+    //}
+
+    //#region --- Predicate and Comparer Builder Methods ---
+    //private IComparer<SongModelView> BuildMasterComparer(SemanticQuery query)
+    //{
+    //    // Simply create a new instance of our custom, robust comparer.
+    //    return new SongModelViewComparer(query.SortDirectives);
+    //}
+
+    //private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
+    //{
+    //    // The top-level predicate is now built directly from the top-level query object.
+    //    // It will recursively call AsPredicate() on all its children.
+    //    return query.AsPredicate();
+    //}
+
+    //// A new helper method to create a single comparer for one field.
+    //private IComparer<SongModelView>? CreateComparerForField(string fieldName, Dimmer.DimmerSearch.SortDirection direction)
+    //{
+    //    if (direction == Dimmer.DimmerSearch.SortDirection.Ascending)
+    //    {
+    //        return SortExpressionComparer<SongModelView>.Ascending(
+    //            song => SemanticQueryHelpers.GetComparableProp(song, fieldName));
+    //    }
+    //    else
+    //    {
+    //        return SortExpressionComparer<SongModelView>.Descending(
+    //            song => SemanticQueryHelpers.GetComparableProp(song, fieldName));
+    //    }
+    //}
+
+    ///// <summary>
+    ///// Creates a compiled Func delegate for sorting using Reflection.
+    ///// Caches the compiled functions for performance.
+    ///// </summary>
+    //private static readonly Dictionary<string, Func<SongModelView, IComparable>> _sortFuncCache = new();
+
+    //#endregion
+
+    //public HomePage(BaseViewModelWin vm)
+    //{
+    //    InitializeComponent();
+    //    BindingContext = vm;
+    //    MyViewModel=vm;
+
+
+    //    // Initialize the reactive subjects with sensible defaults.
+    //    _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
+    //    _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
+
+    //    // --- 4. THE DYNAMIC DATA PIPELINE ---
+    //    // This is the heart of the reactive system. It's defined here and never touched again.
+    //    _masterSongList.Connect()
+    //        // Throttle waits for a pause in user input before processing. This prevents UI lag.
+    //        .Throttle(TimeSpan.FromMilliseconds(400))
+    //        .Filter(_filterPredicate) // Filters the list using our dynamically generated predicate.
+    //        .Sort(_sortComparer)      // Sorts the list using our dynamically generated comparer.
+    //        .ObserveOn(Scheduler.Default) // Perform the filtering/sorting on a background thread.
+    //        .Bind(out _searchResults) // Binds the final results to our read-only collection.
+    //        .Subscribe(
+    //            _ => {
+    //                // This block runs on a background thread after the collection has changed.
+    //                // We can dispatch final UI updates here if needed.
+    //                MainThread.BeginInvokeOnMainThread(() => {
+    //                    // Example: Update a label with the result count.
+    //                    // CountLabel.Text = $"{_searchResults.Count} songs found";
+    //                });
+    //            },
+    //            ex => {
+    //                // Handle any catastrophic errors in the pipeline.
+    //                Debug.WriteLine($"Error in DynamicData pipeline: {ex}");
+    //            }
+    //        );
+
+    //    // --- 5. Connect the UI to the final data source ---
+    //    SongsColView.ItemsSource = _searchResults;
+
+    //    // --- 6. Load Your Data ---
+    //    // On a real app, you might do this in an OnAppearing override.
+    //    LoadAllSongsIntoMasterList();
+    //}
 
 
     protected override void OnAppearing()
@@ -103,175 +362,13 @@ public partial class HomePage : ContentPage
             await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
         }
     }
-    private CancellationTokenSource? _debounceTimer;
+    
     private bool isOnFocusMode;
-    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
-    {
-
-        try
-        {
-            Task.Run(async () =>
-            {
-
-                SearchBar searchBar = (SearchBar)sender;
-                string txt = searchBar.Text;
-
-                _debounceTimer?.CancelAsync();
-                _debounceTimer?.Dispose();
-                _debounceTimer = new CancellationTokenSource();
-                CancellationToken token = _debounceTimer.Token;
-                int delayMilliseconds = 600;
-
-
-                try
-                {
-                    await Task.Delay(delayMilliseconds, token);
-
-                    if (token.IsCancellationRequested)
-                        return;
-                    await SearchSongsAsync(txt, token);
-
-                }
-                catch (OperationCanceledException ex)
-                {
-                    Debug.WriteLine("Search operation cancelled." +ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Search Error: {ex}");
-                }
-
-
-            });
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-
-    }
-    List<SongModelView> songsToDisplay = new();
-
-    // At the top of your class, with other member variables
-    private static readonly Regex _searchRegex = new(
-        @"\b(t|title|ar|artist|al|album):(?:""([^""]*)""|(\S+))",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-
-    // Dictionary for mapping prefixes to property names
-    private static readonly Dictionary<string, string> _searchPrefixes = new(StringComparer.OrdinalIgnoreCase)
-{
-    { "t", "Title" }, { "title", "Title" },
-    { "ar", "ArtistName" }, { "artist", "ArtistName" },
-    { "al", "AlbumName" }, { "album", "AlbumName" }
-};
-
-
-    private async Task SearchSongsAsync(string searchText, CancellationToken token)
-    {
-        if (MyViewModel.NowPlayingDisplayQueue == null)
-            return;
-
-        // Run the heavy lifting on a background thread.
-        List<SongModelView> filteredSongs = await Task.Run(() =>
-            PerformFiltering(searchText, token, MyViewModel.NowPlayingDisplayQueue), token);
-
-        // If a new search has started, abandon this old result.
-        if (token.IsCancellationRequested)
-            return;
-
-        // --- Safely update the UI on the UI Thread (for WinUI 3) ---
-        // --- THE CORRECT WAY FOR .NET MAUI ---
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            // A final check inside the UI thread context.
-            if (token.IsCancellationRequested)
-                return;
-
-            // This is now guaranteed to run safely on the main UI thread.
-            SongsColView.ItemsSource = new ObservableCollection<SongModelView>(filteredSongs);
-            MyViewModel.CurrentTotalSongsOnDisplay = filteredSongs.Count;
-        });
-    }
-    static List<SongModelView> PerformFiltering(string searchText, CancellationToken token, IEnumerable<SongModelView> songs)
-    {
-        var sourceList = songs;
-
-        // If search is empty, return a copy of the full list.
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            return sourceList.ToList();
-        }
-
-        var specificPredicates = new List<Func<SongModelView, bool>>();
-        var generalSearchTerms = new List<string>();
-
-        // Use our pre-compiled static Regex for parsing
-        var remainingText = _searchRegex.Replace(searchText, match =>
-        {
-            var prefix = match.Groups[1].Value;
-            var value = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
-
-            if (_searchPrefixes.TryGetValue(prefix, out var propertyName))
-            {
-                Func<SongModelView, bool> predicate = propertyName switch
-                {
-                    "Title" => song => song.Title?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
-                    "ArtistName" => song => song.ArtistName?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
-                    // --- CRITICAL FIX APPLIED HERE ---
-                    "AlbumName" => song => song.AlbumName?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false,
-                    _ => song => false
-                };
-                specificPredicates.Add(predicate);
-            }
-            return string.Empty;
-        }).Trim();
-
-        if (!string.IsNullOrWhiteSpace(remainingText))
-        {
-            generalSearchTerms.AddRange(remainingText.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        }
-
-        // Filter the list using our generated rules
-        return sourceList.Where(song =>
-        {
-            token.ThrowIfCancellationRequested();
-
-            // Rule 1: Must match ALL specific filters (e.g., t: AND al:)
-            if (!specificPredicates.All(p => p(song)))
-                return false;
-
-            // Rule 2: Must match ALL general fuzzy terms
-            if (!generalSearchTerms.All(term =>
-                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.ArtistName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.AlbumName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
-            ))
-                return false;
-
-            return true; // Passed all filters
-
-        }).ToList();
-    }
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
 
-    private async void Slider_DragCompleted(object sender, EventArgs e)
-    {
-        var send = (Slider)sender;
-        if (_isThrottling)
-            return;
-
-        _isThrottling = true;
-
-        MyViewModel.SeekTrackPosition(send.Value);
-
-
-        await Task.Delay(throttleDelay);
-        _isThrottling = false;
-    }
-
-
+    List<SongModelView> songsToDisplay = new();
+  
     private void ArtistsChip_Clicked(object sender, EventArgs e)
     {
 
@@ -279,9 +376,12 @@ public partial class HomePage : ContentPage
     private string _currentSortProperty = string.Empty;
     private SortOrder _currentSortOrder = SortOrder.Ascending;
 
-    private void Sort_Clicked(object sender, EventArgs e)
+    private async void Sort_Clicked(object sender, EventArgs e)
     {
 
+        await Shell.Current.DisplayAlert("Info", "Sorting is still underworks, for now user the search bar :D", "OK");
+        SearchSongSB.Focus();
+        return;
         var chip = sender as SfChip; // Or whatever your SfChip type is
         if (chip == null || chip.CommandParameter == null)
             return;
@@ -315,6 +415,7 @@ public partial class HomePage : ContentPage
         switch (sortProperty)
         {
             case "Title":
+                //SearchSongSB
                 SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, newOrder);
                 songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
                 break;
@@ -457,4 +558,40 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    {
+
+     await   Task.WhenAll(SongsColView.DimmOut(),
+
+         SearchSongSB.AnimateHeight(150, 150, Easing.SpringOut),
+         UtilitySection.AnimateFadeOutBack());
+        SearchSongSB.FontSize = 28;
+    }
+
+    private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    {
+        await Task.WhenAll( SongsColView.DimmIn(),
+     
+         SearchSongSB.AnimateHeight(50, 300, Easing.SpringIn),
+         UtilitySection.AnimateFadeInFront());
+        SearchSongSB.FontSize = 17;
+    }
+
+
+    private async void Slider_DragCompleted(object sender, EventArgs e)
+    {
+        var send = (Slider)sender;
+        if (_isThrottling)
+            return;
+
+        _isThrottling = true;
+
+        MyViewModel.SeekTrackPosition(send.Value);
+
+
+        await Task.Delay(throttleDelay);
+        _isThrottling = false;
+    }
+
 }

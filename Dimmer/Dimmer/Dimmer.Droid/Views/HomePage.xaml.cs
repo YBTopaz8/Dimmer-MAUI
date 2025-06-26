@@ -8,6 +8,7 @@ using Dimmer.ViewModel;
 
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Color = Microsoft.Maui.Graphics.Color;
 
@@ -26,6 +27,9 @@ public partial class HomePage : ContentPage
         BindingContext = vm;
         //NavChips.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings"};
         //NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
+        this.HideSoftInputOnTapped=true;
+
+        
     }
 
     protected override void OnAppearing()
@@ -253,18 +257,25 @@ public partial class HomePage : ContentPage
         ApplyAdvancedFilter();
 
        
-    }// At the top of your class, e.g., with your other member variables
-    private readonly Dictionary<string, string> _searchPrefixes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    }
+
+    // At the top of your class
+    private readonly Dictionary<string, string> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
 {
-    // Short and long prefixes for user convenience
-    { "t", "Title" },
-    { "title", "Title" },
-    { "ar", "ArtistName" },
-    { "artist", "ArtistName" },
-    { "al", "AlbumName" },
-    { "album", "AlbumName" }
-    // Add more here if you have other fields, e.g., { "g", "Genre" }
+    { "t", "Title" }, { "title", "Title" },
+    { "ar", "OtherArtistsName" }, { "artist", "OtherArtistsName" },
+    { "al", "AlbumName" }, { "album", "AlbumName" },
+    { "year", "ReleaseYear" },
+    { "bpm", "BPM" },
+    { "len", "DurationInSeconds" }, // Use the property path for sub-properties
+    { "explicit", "IsExplicit" }
+    // Add other boolean or numeric fields here
 };
+
+    // Our master regex that captures all operators and prefixes
+    private static readonly Regex _powerSearchRegex = new Regex(
+        @"\b(t|title|ar|artist|al|album|year|bpm|len|explicit):(!)?(>|<|\^|\$|~)?(?:""([^""]*)""|(\S+))",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private void ApplyAdvancedFilter()
     {
@@ -276,71 +287,124 @@ public partial class HomePage : ContentPage
             return;
         }
 
-        var specificFilters = new List<string>();
-        var generalSearchTerms = new List<string>();
+        // Generate the powerful filter string and apply it directly.
+        SongsColView.FilterString = GenerateDevExpressFilterString(searchText);
+    }
 
-        // 1. Regex to find our "prefix:value" patterns.
-        // This pattern finds a prefix from our dictionary, a colon, and then either a quoted string
-        // or a single word (non-whitespace characters).
-        var prefixKeysPattern = string.Join("|", _searchPrefixes.Keys.Select(Regex.Escape));
-        var regex = new Regex($@"\b({prefixKeysPattern}):(?:""([^""]*)""|(\S+))", RegexOptions.IgnoreCase);
+    private string GenerateDevExpressFilterString(string searchText)
+    {
+        var allFilters = new List<string>();
 
-        var remainingText = regex.Replace(searchText, match =>
+        var remainingText = _powerSearchRegex.Replace(searchText, match =>
         {
-            var prefix = match.Groups[1].Value.ToLower();
-            // Value can be in group 2 (quoted) or group 3 (unquoted)
-            var value = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+            // 1. Extract all parts from the user's input
+            string prefix = match.Groups[1].Value.ToLower();
+            bool isNegated = match.Groups[2].Success;
+            string op = match.Groups[3].Success ? match.Groups[3].Value : string.Empty;
+            string value = match.Groups[4].Success ? match.Groups[4].Value : match.Groups[5].Value;
 
-            if (_searchPrefixes.TryGetValue(prefix, out var columnName))
+            if (_fieldMappings.TryGetValue(prefix, out var fieldName))
             {
-                // IMPORTANT: Sanitize value to handle single quotes in the search term itself.
-                var sanitizedValue = value.Replace("'", "''");
-                specificFilters.Add($"Contains([{columnName}], '{sanitizedValue}')");
+                string criterion = BuildCriterion(fieldName, op, value);
+                if (!string.IsNullOrEmpty(criterion))
+                {
+                    // Add the final formatted part to our list of filters
+                    allFilters.Add(isNegated ? $"NOT ({criterion})" : criterion);
+                }
             }
-
-            return string.Empty; // Remove the matched part from the original string
+            return string.Empty; // Consume the matched part
         }).Trim();
 
-        // 2. The 'remainingText' is now our general "fuzzy" search query.
-        // We split it into words, and every word must be found somewhere.
+        // 4. Handle any leftover general text as a broad, fuzzy search
         if (!string.IsNullOrEmpty(remainingText))
         {
             var words = remainingText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var word in words)
             {
                 var sanitizedWord = word.Replace("'", "''");
-                // Each word must be in at least one of the main fields
-                var fuzzyFilter = $"(Contains([Title], '{sanitizedWord}') OR " +
-                                  $" Contains([ArtistName], '{sanitizedWord}') OR " +
-                                  $" Contains([AlbumName], '{sanitizedWord}'))";
-                generalSearchTerms.Add(fuzzyFilter);
+                var generalFilter = $"(Contains([Title], '{sanitizedWord}') OR " +
+                                    $"Contains([OtherArtistsName], '{sanitizedWord}') OR " +
+                                    $"Contains([AlbumName], '{sanitizedWord}'))";
+                allFilters.Add(generalFilter);
             }
         }
 
-        // 3. Combine all filters
-        var allFilters = new List<string>();
-        if (specificFilters.Any())
-        {
-            // All specific filters must be met
-            allFilters.Add($"({string.Join(" AND ", specificFilters)})");
-        }
-        if (generalSearchTerms.Any())
-        {
-            // All general words must be found
-            allFilters.Add($"({string.Join(" AND ", generalSearchTerms)})");
-        }
-
-        // Final filter string combines specific and general searches
-        SongsColView.FilterString = string.Join(" AND ", allFilters);
+        // 5. Join all generated conditions with AND to create the final string
+        return string.Join(" AND ", allFilters);
     }
 
+    // This helper method builds a single piece of the criteria string
+    private string BuildCriterion(string fieldName, string op, string value)
+    {
+        // IMPORTANT: Sanitize value for DevExpress by doubling single quotes
+        var sanitizedValue = value.Replace("'", "''");
+
+        // Handle Text Fields (Title, Artist, Album)
+        if (fieldName == "Title" || fieldName == "OtherArtistsName" || fieldName == "AlbumName")
+        {
+            // OR Condition: artist:drake|wizkid
+            if (sanitizedValue.Contains('|'))
+            {
+                var options = sanitizedValue.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                var orGroup = string.Join(" OR ", options.Select(opt => $"Contains([{fieldName}], '{opt}')"));
+                return $"({orGroup})";
+            }
+            // Other Text Operations
+            return op switch
+            {
+                "^" => $"StartsWith([{fieldName}], '{sanitizedValue}')",
+                "$" => $"EndsWith([{fieldName}], '{sanitizedValue}')",
+                "~" => $"Contains([{fieldName}], '{sanitizedValue}')", // Note: True fuzzy (Levenshtein) is not supported. Fallback to Contains.
+                _ => $"Contains([{fieldName}], '{sanitizedValue}')"
+            };
+        }
+
+        // Handle Numeric Fields (Year, BPM, Length)
+        if (fieldName == "ReleaseYear" || fieldName == "BPM" || fieldName == "DurationInSeconds")
+        {
+            // Range: year:2010-2020
+            if (sanitizedValue.Contains('-'))
+            {
+                var parts = sanitizedValue.Split('-');
+
+                // --- THE FIX: Validate the parts of the range ---
+                // Ensure we have exactly two parts and neither is empty.
+                if (parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+                {
+                    // Optional but recommended: Also check if they are valid numbers.
+                    // This prevents inputs like "year:abc-def".
+                    if (double.TryParse(parts[0], out _) && double.TryParse(parts[1], out _))
+                    {
+                        return $"[{fieldName}] between ({parts[0]}, {parts[1]})";
+                    }
+                }
+                // If the range is invalid/incomplete, do nothing and return an empty string.
+                return string.Empty;
+            }
+            string finalOp = string.IsNullOrEmpty(op) ? "=" : op;
+
+            // Also validate single numeric values to prevent errors
+            if (double.TryParse(sanitizedValue, out _))
+            {
+                return $"[{fieldName}] {finalOp} {sanitizedValue}";
+            }
+            return string.Empty;
+        }
+        // Handle Boolean Fields (IsExplicit)
+        if (fieldName == "IsExplicit")
+        {
+            return $"[{fieldName}] = {value.ToLower()}";
+        }
+
+        return string.Empty;
+    }
     private void ByArtist()
     {
         if (!string.IsNullOrEmpty(SearchBy.Text))
         {
             if (SearchBy.Text.Length >= 1)
             {
-                SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
+                SongsColView.FilterString = $"Contains([OtherArtistsName], '{SearchBy.Text}')";
 
             }
             else
@@ -566,6 +630,31 @@ public partial class HomePage : ContentPage
         
     }
 
+    private async void SearchBy_Focused(object sender, FocusEventArgs e)
+    {
+        //await BtmBarZone.AnimateSlideDown(80);
+    }
+
+    private async void myPageSKAV_Closed(object sender, EventArgs e)
+    {
+        //await BtmBarZone.AnimateSlideUp(80);
+
+    }
+
+    private void Sort_Clicked(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void OpenDevExpressFilter_LongPress(object sender, HandledEventArgs e)
+    {
+        SongsColView.Commands.ShowFilteringUIForm.Execute(null);
+    }
+
+    private void SongsColView_FilteringUIFormShowing(object sender, FilteringUIFormShowingEventArgs e)
+    {
+
+    }
 }
 
 

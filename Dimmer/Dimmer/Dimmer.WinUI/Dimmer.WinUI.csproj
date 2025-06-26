@@ -101,10 +101,12 @@
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+    <PackageReference Include="FunctionZero.Maui.zBind" Version="8.1.1" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.80" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="ReactiveUI.Maui" Version="20.3.1" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="Vanara.Core" Version="4.1.6" />
     <PackageReference Include="Vanara.PInvoke.ComCtl32" Version="4.1.6" />

@@ -3,12 +3,12 @@
 [Setup]
 ; Basic application information
 AppName=Dimmer
-AppVersion=1.8b-Release
+AppVersion=1.9.8-Release
 AppPublisher=Yvan Brunel
 AppPublisherURL=https://github.com/YBTopaz8/Dimmer-MAUI
 DefaultDirName={autopf}\Dimmer-MAUI
 DefaultGroupName=Dimmer-MAUI
-OutputBaseFilename=Setup_Dimmer1.8b
+OutputBaseFilename=Setup_Dimmer1.9.8
 Compression=lzma
 SolidCompression=yes
 
@@ -17,7 +17,7 @@ SolidCompression=yes
 
 [Files]
 ; Include all files from the output folder
-Source: "D:\OutputFolder\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\OutputFolde\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 ; Add a shortcut to the Start Menu

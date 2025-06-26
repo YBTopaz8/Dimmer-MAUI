@@ -16,6 +16,8 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial GenreModelView? Genre { get; set; }
     [ObservableProperty]
+    public partial string? GenreName { get; set; }
+    [ObservableProperty]
     public partial string FilePath { get; set; } = string.Empty;
     [ObservableProperty]
     public partial double DurationInSeconds { get; set; }

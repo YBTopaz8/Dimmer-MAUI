@@ -144,7 +144,10 @@
                     <dx:DXCollectionView x:Name="SongsColView"
                                          ItemsSource="{Binding BaseVM.SelectedAlbumSongs}"
                                          Tap="SongsColView_Tap"
-                                         >
+                                        >
+                        <dx:DXCollectionView.GroupDescription>
+                            <dx:GroupDescription GroupInterval="DisplayText" FieldName="AlbumName"/>
+                        </dx:DXCollectionView.GroupDescription>
 
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">

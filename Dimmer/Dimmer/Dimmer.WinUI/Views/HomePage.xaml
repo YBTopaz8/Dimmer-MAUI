@@ -208,7 +208,7 @@
 
                     </Grid>
                     <Grid Grid.Row="2" ColumnDefinitions="*,*"
-                          IsVisible="True"
+                          IsVisible="True" x:Name="UtilitySection"
                           >
                         <VerticalStackLayout Grid.Column="0">
 
@@ -625,14 +625,20 @@
 
             <Grid x:Name="SearchSection"
                   Grid.Row="1" BackgroundColor="Transparent"
-                  ColumnDefinitions="auto,*" RowSpacing="10"
+                  RowDefinitions="auto,*" RowSpacing="10"
                   >
-                <HorizontalStackLayout Grid.Column="0" />
-                <SearchBar x:Name="SearchSongSB"
-                           Grid.Column="1" windows:SearchBar.IsSpellCheckEnabled="True"
+                <HorizontalStackLayout Grid.Row="0">
+                    <Label Text="Test" x:Name="TranslatedSearch" IsVisible="False"/>
+                </HorizontalStackLayout>
+                <Editor x:Name="SearchSongSB"
+                       IsTextPredictionEnabled="True"
+                        HeightRequest="50"
+                        Grid.Row="1" windows:SearchBar.IsSpellCheckEnabled="True"
                            windows:VisualElement.AccessKey="F" BackgroundColor="Transparent"
                            Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
-                           />
+                        FontSize="17"  Focused="SearchSongSB_Focused"
+                           Unfocused="SearchSongSB_Unfocused"
+                         />
 
             </Grid>
 
@@ -641,8 +647,8 @@
 
 
         <syncf:SfPopup x:Name="PlaylistPopup"
-                       AnimationMode="SlideOnBottom" Background="Red"
-                       BackgroundColor="Red" IsFullScreen="False"
+                       AnimationMode="SlideOnBottom" Background="Transparent"
+                       BackgroundColor="Transparent" IsFullScreen="False"
                        IsOpen="False" IsVisible="False"
                        ShowCloseButton="True" Margin="10"
                        Padding="10"
@@ -651,7 +657,7 @@
 
             <syncf:SfPopup.ContentTemplate>
                 <DataTemplate>
-                    <Grid BackgroundColor="Red">
+                    <Grid BackgroundColor="Transparent">
                         
                     </Grid>
                 </DataTemplate>
