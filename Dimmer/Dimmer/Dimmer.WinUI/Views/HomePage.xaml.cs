@@ -529,7 +529,7 @@ public partial class HomePage : ContentPage
         //MyViewModel.ActivePlaylistModel
     }
 
-    private void ScrollToSong_Clicked(object sender, EventArgs e)
+    private async void ScrollToSong_Clicked(object sender, EventArgs e)
     {
         try
         {
@@ -537,7 +537,10 @@ public partial class HomePage : ContentPage
             var obsCol = SongsColView.ItemsSource as IEnumerable<SongModelView>;
             var index = obsCol.ToList();
             var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
-            
+            if (iind<0)
+            {
+                return;
+            }
             SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
 
         }
