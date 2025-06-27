@@ -83,7 +83,7 @@ public class SemanticParser
         return query;
     }
 
-    private QueryClause? CreateClauseFromToken(string fieldName, string keyword, string value, bool isInclusion)
+    private static QueryClause? CreateClauseFromToken(string fieldName, string keyword, string value, bool isInclusion)
     {
         string originalRawValue = value;
 

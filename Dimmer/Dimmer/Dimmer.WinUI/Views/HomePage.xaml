@@ -454,10 +454,10 @@
                                                             <Setter Property="Stroke" Value="Transparent" />
                                                         </DataTrigger>
                                                     </Border.Triggers>
-                                                    <!--<Image HeightRequest="80"
+                                                   <Image HeightRequest="80"
                                                            Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                                            WidthRequest="80"
-                                                           />-->
+                                                           />
                                                 </Border>
                                                 <Label FontFamily="AleySans"
                                                        Text="{Binding Title}"

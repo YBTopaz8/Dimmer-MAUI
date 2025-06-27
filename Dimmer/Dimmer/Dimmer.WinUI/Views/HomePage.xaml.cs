@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
 using System.Threading.Tasks;
+using System.Windows.Controls.Primitives;
 
 namespace Dimmer.WinUI.Views;
 
@@ -31,6 +32,15 @@ public partial class HomePage : ContentPage
     {
         if (MyViewModel.NowPlayingDisplayQueue != null)
         {
+            foreach (var song in MyViewModel.NowPlayingDisplayQueue)
+            {
+                ATL.Track track = new ATL.Track(song.FilePath);
+
+                song.CoverImageBytes = track.EmbeddedPictures.FirstOrDefault()?.PictureData;
+                //song.CoverImageBytes = track.EmbeddedPictures.FirstOrDefault().PictureHash; i have access to this too :)
+
+            }
+
             _masterSongList.AddRange(MyViewModel.NowPlayingDisplayQueue);
         }
     }
@@ -58,17 +68,17 @@ public partial class HomePage : ContentPage
         return song =>
         {
             // Rule 1: A song is valid if it meets at least one 'include' rule (or if none exist).
-            bool meetsInclusion = !inclusionPredicates.Any() || inclusionPredicates.Any(p => p(song));
+            bool meetsInclusion = inclusionPredicates.Count==0 || inclusionPredicates.Any(p => p(song));
             if (!meetsInclusion)
                 return false;
 
             // Rule 2: A song is invalid if it meets ANY of the 'exclude' rules.
-            bool meetsExclusion = exclusionPredicates.Any() && exclusionPredicates.Any(p => p(song));
+            bool meetsExclusion = exclusionPredicates.Count!=0 && exclusionPredicates.Any(p => p(song));
             if (meetsExclusion)
                 return false;
 
             // Rule 3: Handle general AND terms.
-            if (query.GeneralAndTerms.Any() && !query.GeneralAndTerms.All(term =>
+            if (query.GeneralAndTerms.Count!=0 && !query.GeneralAndTerms.All(term =>
                 (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
             {
@@ -76,7 +86,7 @@ public partial class HomePage : ContentPage
             }
 
             // Rule 4: Handle general OR terms.
-            if (query.GeneralOrTerms.Any() && !query.GeneralOrTerms.Any(term =>
+            if (query.GeneralOrTerms.Count!=0 && !query.GeneralOrTerms.Any(term =>
                 (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
             {

@@ -58,7 +58,8 @@ public class TextClause : QueryClause
     public List<TextCondition> Conditions { get; set; } = new();
     public override Func<SongModelView, bool> AsPredicate()
     {
-        Func<SongModelView, bool> positivePredicate = song => Conditions.Any(cond => {
+        bool positivePredicate(SongModelView song) => Conditions.Any(cond =>
+        {
             var songValue = SemanticQueryHelpers.GetStringProp(song, FieldName);
             return cond.Operator switch
             {
