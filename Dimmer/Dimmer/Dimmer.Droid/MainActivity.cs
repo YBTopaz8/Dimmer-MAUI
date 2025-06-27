@@ -119,7 +119,11 @@ public class MainActivity : MauiAppCompatActivity
         // 1) Start the foreground service
         _serviceIntent = new Intent(this, typeof(ExoPlayerService));
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        {
+            this.
             StartForegroundService(_serviceIntent);
+
+        }
         else
             StartService(_serviceIntent);
         _serviceConnection = new MediaPlayerServiceConnection(audioSvc);

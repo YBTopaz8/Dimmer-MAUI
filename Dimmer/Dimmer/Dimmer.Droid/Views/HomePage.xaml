@@ -8,11 +8,11 @@
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Dimmer.ViewModels" Title="HomePage"
-             x:DataType="vm:BaseViewModelAnd"
+             x:DataType="vm:BaseViewModelAnd" x:FieldModifier="Public"
              BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                                Dark=#1E1E1E}"
              Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="True"
-             >
+           >
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -73,7 +73,7 @@
                       HeightRequest="80" VerticalOptions="End"
                     x:Name="BtmBarZone"  >
 
-                    <customViewParts:BtmBar />
+                    <customViewParts:BtmBar RequestFocusOnMainView="BtmBar_RequestFocusOnMainView" />
 
                 </Grid>
                 <dx:DXStackLayout x:Name="SearchContentView"
@@ -116,7 +116,7 @@
                                          />
 
                         </dx:DXStackLayout>
-                        <dx:TextEdit x:Name="SearchBy" 
+                        <dx:TextEdit x:Name="SearchBy" x:FieldModifier="Public"
                                       BorderColor="#585858" Focused="SearchBy_Focused"
                                      CornerRadius="20" FocusedBorderColor="DarkSlateBlue"
                                      HeightRequest="55" PlaceholderColor="DarkSlateBlue"
@@ -177,13 +177,12 @@
                                                           Grid.Column="0" BackgroundColor="Transparent"
                                                           VerticalOptions="Center"
                                                           >
-                                   
                                             <dx:Chip BackgroundColor="Transparent" FontAttributes="Bold" IsVisible="True"
                                                    FontFamily="AleySans" FontSize="22"
                                                    BorderThickness="0"
                                                  
-                                                     HorizontalOptions="Start"
-                                                   Text="{Binding Title}"
+                                                     HorizontalOptions="Start" 
+                                                   Text="{Binding Title}" 
                                                    TextColor="#F5F5F5" VerticalOptions="Center"
                                                    />
 
@@ -235,7 +234,7 @@
                             </ResourceDictionary>
                         </dx:BottomSheet.Resources>
                         <Grid>
-                            <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.SelectedSongForContext.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                            <dx:DXImage Opacity="0.1" Source="{Binding BaseVM.SelectedSongForContext.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                             <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
                                 <dx:DXStackLayout.Resources>
                                     <ResourceDictionary>
@@ -300,6 +299,19 @@
                                 <dx:DXButton Clicked="ClosePopup"
                                              Command="{Binding NavigateToShareStoryPageCommand}"
                                              Content="Share" Icon="squareforward.png"
+                                             />
+                                <dx:DXToggleButton
+                                    IsChecked="{Binding BaseVM.SelectedSongForContext.IsFavorite}"
+                                    CheckedIconColor="DarkSlateBlue"
+                                    TextColor="White"
+                                    BackgroundColor="#1e1e1e" HorizontalOptions="Start"
+                                    
+                                    IconColor="White"
+                                    IconColorizationEnabled="True"
+                                    CheckedBackgroundColor="DarkSlateBlue"
+                                    Clicked="ClosePopup" CommandParameter="{Binding BaseVM.SelectedSongForContext}"
+                                             Command="{Binding BaseVM.ToggleFavSongCommand}"
+                                             Content="Love" Icon="heart.png"
                                              />
                                 <dx:DXButton Command="{Binding DeleteFileCommand}"
                                              CommandParameter="{Binding CurrentPlayingSongView}"
@@ -399,10 +411,10 @@
 
             </dx:DXDockLayout>
 
-            <dx:SafeKeyboardAreaView.KeyboardAreaContent>
+            <dx:SafeKeyboardAreaView.KeyboardAreaContent >
                 <dx:DXStackLayout x:Name="OpenedKeyboardToolbar" BackgroundColor="#1e1e1e">
-                    <dx:Chip Text="Show Full Filters"
-                            LongPress="OpenDevExpressFilter_LongPress"  x:Name="OpenDevExpressFilter"/>
+                    <dx:Chip Text="Hide Search"
+                            Tap="OpenDevExpressFilter_Tap" x:Name="OpenDevExpressFilter"/>
                 </dx:DXStackLayout>
             </dx:SafeKeyboardAreaView.KeyboardAreaContent>
         </dx:SafeKeyboardAreaView>

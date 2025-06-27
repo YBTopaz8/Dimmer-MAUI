@@ -719,7 +719,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
 
-
         _subsManager.Add(
              _stateService.AllCurrentSongs
 
@@ -735,7 +734,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     }
                     _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList.Count);
                     NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList.Shuffle());
-                    RefreshSongsCover(NowPlayingDisplayQueue, CollectionToUpdate.NowPlayingCol);
+                    RefreshSongsCover(NowPlayingDisplayQueue);
                     if (audioService.IsPlaying)
                         return;
                     CurrentPlayingSongView = NowPlayingDisplayQueue[0];
@@ -1453,23 +1452,59 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         //throw new NotImplementedException();
     }
-    void RefreshSongsCover(IEnumerable<SongModelView> songs, CollectionToUpdate col)
+
+    private void RefreshSongsCover(IEnumerable<SongModelView> songsToRefresh)
     {
-        return;
-        Task.Run(() =>
+        var OgSongs = _mapper.Map<ObservableCollection<SongModelView>>(( songRepo.GetAll()));
+        // Start the work on a background thread so the UI is never blocked.
+        _ = Task.Run(async () =>
         {
-            foreach (var item in songs)
+            const int thumbnailSize = 96; // Small thumbnail size for low memory usage
+
+            // We can process multiple songs in parallel to speed things up
+            // on multi-core CPUs, without overwhelming the system.
+            var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 4 };
+
+            foreach (var songView in songsToRefresh)
             {
-                Track Track = new(item.FilePath);
-                if (item.CoverImageBytes?.Length < 1)
+
+                // Skip songs that already have art or have no file path
+                if (songView.CoverImageBytes?.Length > 0 || string.IsNullOrEmpty(songView.FilePath))
                 {
-                    item.CoverImageBytes = ImageResizer.ResizeImage(Track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0)?.PictureData, 900);
+                    return;
                 }
+
+                try
+                {
+                    // 1. Read the original file
+                    var track = new ATL.Track(songView.FilePath);
+                    var originalImageData = track.EmbeddedPictures.FirstOrDefault()?.PictureData;
+
+                    if (originalImageData != null)
+                    {
+                        // 2. Resize it to a small thumbnail
+                        byte[] thumbnailData = AppUtils.ImageResizer.ResizeImage(originalImageData, 650, thumbnailSize);
+
+                        // 3. Update the property on the UI thread.
+                        // The [ObservableProperty] will handle notifying the UI.
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            songView.AllSelf=OgSongs;
+                            songView.CoverImageBytes = thumbnailData;
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log and continue to the next song
+                    _logger.LogError(ex, "Failed to load cover for {FilePath}", songView.FilePath);
+                }
+
+                await Task.Delay(1);
             }
-
-        });
+            });
+       
     }
-
 
     public void GetStatsGeneral()
     {
@@ -1621,21 +1656,21 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _stateService.SetCurrentSong(song);
     }
     [RelayCommand]
-    public void ToggleFavSong()
+    public void ToggleFavSong(SongModelView songModel)
     {
         if (CurrentPlayingSongView == null)
         {
             _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
             return;
         }
-        var songModel = CurrentPlayingSongView.ToModel(_mapper);
+         
         if (songModel == null)
         {
             _logger.LogWarning("ToggleFavSong: Could not map CurrentPlayingSongView to SongModel.");
             return;
         }
         songModel.IsFavorite = !songModel.IsFavorite;
-        var song = songRepo.AddOrUpdate(songModel);
+        var song = songRepo.AddOrUpdate(songModel.ToModel(_mapper));
 
         _stateService.SetCurrentSong(song);
     }

@@ -655,6 +655,18 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
+    {
+        SearchBy.Focus();
+    }
+
+    private void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
+    {
+        SearchBy.Unfocus();
+        myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
+        
+    }
 }
 
 

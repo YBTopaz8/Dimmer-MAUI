@@ -2,19 +2,21 @@
 using Dimmer.DimmerSearch;
 
 using DynamicData;
-using System.Reactive.Concurrency;
-using ReactiveUI;
 using DynamicData.Binding;
 
 using MoreLinq;
 
+using ReactiveUI;
+
+using System.DirectoryServices;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text.RegularExpressions;
-
-using SortOrder = Dimmer.Utilities.SortOrder;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
+
+using SortOrder = Dimmer.Utilities.SortOrder;
 
 namespace Dimmer.WinUI.Views;
 
@@ -32,16 +34,8 @@ public partial class HomePage : ContentPage
     {
         if (MyViewModel.NowPlayingDisplayQueue != null)
         {
-            foreach (var song in MyViewModel.NowPlayingDisplayQueue)
-            {
-                ATL.Track track = new ATL.Track(song.FilePath);
-
-                song.CoverImageBytes = track.EmbeddedPictures.FirstOrDefault()?.PictureData;
-                //song.CoverImageBytes = track.EmbeddedPictures.FirstOrDefault().PictureHash; i have access to this too :)
-
-            }
-
-            _masterSongList.AddRange(MyViewModel.NowPlayingDisplayQueue);
+                    _masterSongList.AddRange(MyViewModel.NowPlayingDisplayQueue);
+            
         }
     }
 
@@ -109,7 +103,7 @@ public partial class HomePage : ContentPage
 
         // --- Keep this block. The Dynamic Data pipeline is the core of the new system. ---
         _masterSongList.Connect()
-            .Throttle(TimeSpan.FromMilliseconds(400),Scheduler.Default)
+            .Throttle(TimeSpan.FromMilliseconds(300),Scheduler.Default)
             .Filter(_filterPredicate)
             .Sort(_sortComparer)
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -537,12 +531,20 @@ public partial class HomePage : ContentPage
 
     private void ScrollToSong_Clicked(object sender, EventArgs e)
     {
-        var obsCol = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
-        var index = obsCol.ToList();
-        var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
+        try
+        {
+            //Debug.WriteLine(SongsColView.ItemsSource.GetType());
+            var obsCol = SongsColView.ItemsSource as IEnumerable<SongModelView>;
+            var index = obsCol.ToList();
+            var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
+            
+            SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
 
-        SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
-
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private void PlaylistsChip_Clicked(object sender, EventArgs e)

@@ -359,7 +359,7 @@
                                           />
                         </Grid>
                     </Grid>
-
+       
                     <CollectionView x:Name="SongsColView"
                                     Grid.Row="2" EmptyView="No Songs.."
                                     IsVisible="True" 
@@ -533,6 +533,8 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
+                    
+                    
                 </Grid>
                 <Border x:Name="StatsView"
                         Grid.Row="1" BackgroundColor="Transparent"

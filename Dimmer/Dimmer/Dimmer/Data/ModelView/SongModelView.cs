@@ -8,6 +8,15 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string? ArtistName { get; set; }
     [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? AllSongs { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView>? AllArtists { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? AllAlbums { get; set; }
+
+    [ObservableProperty]
     public partial string? AlbumName { get; set; }
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
@@ -39,6 +48,7 @@ public partial class SongModelView : ObservableObject
     public partial bool HasSyncedLyrics { get; set; }
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
+    public ObservableCollection<SongModelView> AllSelf { get; set; }
     [ObservableProperty]
     public partial byte[]? CoverImageBytes { get; set; }
     [ObservableProperty]

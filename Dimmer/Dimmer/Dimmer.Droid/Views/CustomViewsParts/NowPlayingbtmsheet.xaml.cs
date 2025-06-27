@@ -95,4 +95,9 @@ public partial class NowPlayingbtmsheet : BottomSheet
             
         }
     }
+
+    private void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
+    {
+        this.Show();
+    }
 }
