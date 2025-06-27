@@ -39,7 +39,11 @@ public class SemanticParser
             // --- Handle Top-Level Directives ---
             if (lowerToken == "include")
             { currentIsInclusion = true; continue; }
+            if (lowerToken == "add")
+            { currentIsInclusion = true; continue; }
             if (lowerToken == "exclude")
+            { currentIsInclusion = false; continue; }
+            if (lowerToken == "remove")
             { currentIsInclusion = false; continue; }
             if (lowerToken == "asc")
             { query.SortDirectives.Add(new SortClause { FieldName = lastFieldName, Direction = SortDirection.Ascending }); continue; }
