@@ -105,7 +105,6 @@ public class AudioFileProcessor : IAudioFileProcessor
             OtherArtistsName= artistString,
             Genre = genre,
             Composer = track.Composer,
-
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             TrackNumber= track.TrackNumber,
@@ -121,7 +120,6 @@ public class AudioFileProcessor : IAudioFileProcessor
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
             IsNew=true,
-            //ArtistIds = artists.Select(a => a.Id).ToList(),
             Id= ObjectId.GenerateNewId()
             ,
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting

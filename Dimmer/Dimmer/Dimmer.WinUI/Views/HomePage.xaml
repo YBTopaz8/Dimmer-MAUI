@@ -233,6 +233,16 @@
                                    x:Name="SongsCountLabel"/>
 
 
+                            <ProgressBar x:Name="MyProgressBar" WidthRequest="80" IsVisible="False"/>
+                            <Label x:Name="MyProgressLabel" WidthRequest="180" IsVisible="False"/>
+                            <syncf:SfChip x:Name="RefreshLyrics"
+                                          Clicked="RefreshLyrics_Clicked"
+                                          ToolTipProperties.Text="Refresh Lyrics"
+                                          ImageSize="40"
+                                          ImageSource="lyrics.png" ShowIcon="True"
+                                          WidthRequest="55"
+                                          />
+
 
                             <syncf:SfChip x:Name="ScrollToSong"
                                           Clicked="ScrollToSong_Clicked" ImageSize="40"

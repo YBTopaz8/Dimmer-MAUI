@@ -16,8 +16,10 @@ public class SemanticParser
         {"lang", "Language"}, {"year", "ReleaseYear"},
         {"bpm", "BitRate"}, {"len", "DurationInSeconds"},
         {"rating", "Rating"}, {"track", "TrackNumber"},
-        {"disc", "DiscNumber"}, {"lyrics", "HasLyrics"},
-        {"synced", "HasSyncedLyrics"}, {"fav", "IsFavorite"}
+        {"disc", "DiscNumber"}, {"haslyrics", "HasLyrics"},
+        {"synced", "HasSyncedLyrics"}, {"fav", "IsFavorite"},
+        {"lyrics", "LyricsText"}, 
+        {"lyric", "LyricsText"}
     };
 
     private static readonly HashSet<string> _numericFields = new() { "ReleaseYear", "BitRate", "DurationInSeconds", "Rating", "TrackNumber", "DiscNumber" };

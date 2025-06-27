@@ -41,7 +41,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly IRepository<AlbumModel> albumRepo;
     private readonly IRepository<GenreModel> genreRepo;
     private readonly IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
-    private readonly LyricsMgtFlow _lyricsMgtFlow;
+    public readonly LyricsMgtFlow _lyricsMgtFlow;
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
     private readonly ILibraryScannerService libService;

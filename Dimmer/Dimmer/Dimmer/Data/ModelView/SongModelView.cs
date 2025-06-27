@@ -18,6 +18,9 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial string? AlbumName { get; set; }
+
+    [ObservableProperty]
+    public partial string? LyricsText { get; set; }
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
     [ObservableProperty]
@@ -101,6 +104,8 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
 
+    [ObservableProperty]
+    public partial ObservableCollection<SyncLyricsView> EmbeddedSync { get; set; } = new();
 
 
     [ObservableProperty]
@@ -136,4 +141,21 @@ public partial class UserNoteModelView : ObservableObject
     public partial int UserRating { get; set; }
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
+}
+public class SyncLyricsView
+{
+    public int TimestampMs { get; set; }
+    public string Text { get; set; }
+
+    public SyncLyricsView(int timestampMs, string text)
+    {
+        TimestampMs = timestampMs;
+        Text = text;
+    }
+    public SyncLyricsView(SyncLyrics syncLyricsDB)
+    {
+            Text= syncLyricsDB.Text;
+            TimestampMs = syncLyricsDB.TimestampMs;
+
+    }
 }

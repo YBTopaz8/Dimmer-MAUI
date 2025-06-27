@@ -130,7 +130,7 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     #region Save Lyrics
 
-    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)
+    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo lyrics)
     {
         if (string.IsNullOrEmpty(song?.FilePath) || string.IsNullOrWhiteSpace(lrcContent))
         {
@@ -153,19 +153,35 @@ public class LyricsMetadataService : ILyricsMetadataService
         // Step 2: Update the database record
         try
         {
-            var songModel = _songRepo.GetById(song.Id);
+            var dbb = IPlatformApplication.Current.Services.GetService<IRealmFactory>();
+            var realm = dbb?.GetRealmInstance();
+            var songModel = realm.Find<SongModel>(song.Id);
             if (songModel == null)
             {
                 _logger.LogWarning("Could not find song with ID {SongId} in database to save lyrics.", song.Id);
                 return false;
             }
 
-            songModel.SyncLyrics = lrcContent;
-            songModel.HasSyncedLyrics = true; // Update flags
-            songModel.HasLyrics = true;
+            realm.Write(() =>
+            {
 
-            _songRepo.AddOrUpdate(songModel);
-
+                songModel.SyncLyrics = lrcContent;
+                songModel.HasSyncedLyrics = true; // Update flags
+                songModel.HasLyrics = true;
+                songModel.EmbeddedSync.Clear();
+                foreach (var lyr in lyrics.SynchronizedLyrics)
+                {
+                    var syncLyrics = new SyncLyrics
+                    {
+                        TimestampMs = lyr.TimestampMs,
+                        Text = lyr.Text
+                    };
+                    songModel.EmbeddedSync.Add(syncLyrics);
+                }
+                realm.Add(songModel, true);
+                
+                songModel.LastDateUpdated = DateTimeOffset.UtcNow;
+            });
             // Important: Update the view model that was passed in so the UI has the latest data
             _mapper.Map(songModel, song);
 
@@ -179,6 +195,11 @@ public class LyricsMetadataService : ILyricsMetadataService
         }
 
         return true;
+    }
+
+    public Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion
