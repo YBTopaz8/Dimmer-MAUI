@@ -4,15 +4,23 @@ using CommunityToolkit.Mvvm.Input;
 
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
+using Dimmer.DimmerSearch;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.Utilities.TypeConverters;
 
+using DynamicData;
+using DynamicData.Binding;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MoreLinq;
+
+using ReactiveUI;
+
+using System.Reactive.Concurrency;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -122,6 +130,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             Track track = new(value.FilePath);
             //PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
             value.CoverImageBytes = ImageResizer.ResizeImage(track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
+            
         }
 
     }
@@ -244,6 +253,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
             var songss = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
             NowPlayingDisplayQueue = songss;
+            
             //RefreshSongsCover(NowPlayingDisplayQueue, CollectionToUpdate.NowPlayingCol);
 
             QueueOfSongsLive =  new ObservableCollection<SongModelView>(songss);
@@ -487,7 +497,104 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
+
+
+
+        // --- Keep this block. This initialization is correct. ---
+        _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
+        _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
+        ReloadReactiveSourceOfSongs();
     }
+
+
+    private void ReloadReactiveSourceOfSongs()
+    {
+
+        // --- Keep this block. The Dynamic Data pipeline is the core of the new system. ---
+        this.WhenAnyValue(x => x.NowPlayingDisplayQueue) // 1. Watch the property for changes
+       .Where(collection => collection != null)       // 2. Ignore any moment it might be null
+       .Select(collection => collection.ToObservableChangeSet()) // 3. For each new collection, get its change stream
+       .Switch()                                      // 4. Switch to the latest collection's stream
+       .Throttle(TimeSpan.FromMilliseconds(300), Scheduler.Default)
+       .Filter(_filterPredicate)
+       .Sort(_sortComparer)
+       .ObserveOn(RxApp.MainThreadScheduler)
+       .Bind(out _searchResults)
+       .Subscribe(
+           _ =>
+           {
+               TranslatedSearch.Text = $"{_searchResults.Count} Songs";
+               SongsCountLabel.IsVisible = false;
+           },
+           ex =>
+           {
+               Debug.WriteLine($"Error in DynamicData pipeline: {ex}");
+           }
+       );
+    }
+    [ObservableProperty]
+    public partial Label SongsCountLabel { get; set; }
+    [ObservableProperty]
+    public partial Label TranslatedSearch { get; set; }
+
+    private ReadOnlyObservableCollection<SongModelView> _searchResults;
+    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
+    private readonly SemanticParser _parser = new();
+    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
+    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
+
+
+
+    private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
+    {
+        // 1. Get the predicate functions for all the 'include' and 'exclude' rules.
+        var inclusionPredicates = query.Clauses.Where(c => c.IsInclusion).Select(c => c.AsPredicate()).ToList();
+        var exclusionPredicates = query.Clauses.Where(c => !c.IsInclusion).Select(c => c.AsPredicate()).ToList();
+
+        // 2. Return a single function that checks a song against all the rules.
+        return song =>
+        {
+            // Rule 1: A song is valid if it meets at least one 'include' rule (or if none exist).
+            bool meetsInclusion = inclusionPredicates.Count==0 || inclusionPredicates.Any(p => p(song));
+            if (!meetsInclusion)
+                return false;
+
+            // Rule 2: A song is invalid if it meets ANY of the 'exclude' rules.
+            bool meetsExclusion = exclusionPredicates.Count!=0 && exclusionPredicates.Any(p => p(song));
+            if (meetsExclusion)
+                return false;
+
+            // Rule 3: Handle general AND terms.
+            if (query.GeneralAndTerms.Count!=0 && !query.GeneralAndTerms.All(term =>
+                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            {
+                return false;
+            }
+
+            // Rule 4: Handle general OR terms.
+            if (query.GeneralOrTerms.Count!=0 && !query.GeneralOrTerms.Any(term =>
+                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            {
+                return false;
+            }
+
+            return true; // Passed all checks!
+        };
+    }
+    public void SearchSongSB_TextChanged(string  e)
+    {
+        var query = _parser.Parse(e);
+
+        // Push the new instructions into the reactive pipeline
+        _filterPredicate.OnNext(BuildMasterPredicate(query));
+        _sortComparer.OnNext(new SongModelViewComparer(query.SortDirectives));
+
+        // Optional: Update a summary label
+        //SummaryLabel.Text = query.Humanize();
+    }
+
     readonly IRealmFactory realmFactory;
     [ObservableProperty]
     public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
@@ -611,8 +718,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
                  NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
 
+               
                  QueueOfSongsLive = NowPlayingDisplayQueue.Take(50).ToObservableCollection();
-
+               
                  Task.Run(() => RefreshSongsMetadata());
                  IsAppScanning=false;
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
@@ -734,7 +842,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     }
                     _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList.Count);
                     NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList.Shuffle());
-                    RefreshSongsCover(NowPlayingDisplayQueue);
+                  
                     if (audioService.IsPlaying)
                         return;
                     CurrentPlayingSongView = NowPlayingDisplayQueue[0];
@@ -784,12 +892,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     var vSong = _mapper.Map<SongModelView>(log.AppSongModel);
                     if (NowPlayingDisplayQueue.Count <1 || !NowPlayingDisplayQueue.Contains(vSong))
-                    {
-                        if (NowPlayingDisplayQueue.Count>100)
-                        {
-                            IsAppScanning=false;
-                            return;
-                        }
+                    {                        
                         IsAppScanning=true;
                         NowPlayingDisplayQueue.Add(vSong);
                     }
@@ -990,15 +1093,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
     }
 
-    partial void OnCurrentPlayingSongViewChanging(SongModelView? oldValue, SongModelView? newValue)
-    {
-        if (newValue != audioService.CurrentTrackMetadata)
-        {
-            CurrentPlayingSongView =audioService.CurrentTrackMetadata;
-
-        }
-    }
-
     [RelayCommand]
     public async Task NextTrack()
     {
@@ -1016,7 +1110,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
-        var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
 
         if (audioService.IsPlaying)
         {
@@ -1025,6 +1118,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
 
 
+        var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
         if (nextSong is not null)
         {
 
@@ -1063,8 +1157,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
 
-        var previousSong = _playlistsMgtFlow.MultiPlayer.Previous();
-
         if (IsPlaying)
         {
             audioService.Stop();
@@ -1072,6 +1164,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Skipped, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
 
+
+        var previousSong = _playlistsMgtFlow.MultiPlayer.Previous();
 
         if (previousSong is not null)
         {
@@ -1489,7 +1583,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                         // The [ObservableProperty] will handle notifying the UI.
                         MainThread.BeginInvokeOnMainThread(() =>
                         {
-                            songView.AllSelf=OgSongs;
                             songView.CoverImageBytes = thumbnailData;
                         });
                     }

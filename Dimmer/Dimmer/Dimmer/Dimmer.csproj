@@ -65,6 +65,9 @@
     <PackageReference Include="morelinq" Version="4.4.0" />
 
 
+    <PackageReference Include="ReactiveUI" Version="20.3.1" />
+
+
     <PackageReference Include="SkiaSharp.Skottie" Version="3.119.0" />
 
 
