@@ -35,7 +35,9 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 # How to install on Apple Devices?
 - Sadly, I decided to stop supporting any [Apple Device At All](https://github.com/YBTopaz8/Dimmer-MAUI/discussions/158)
 
-# ScreenShots (Work in Progress...)## Authors
+# ScreenShots (Work in Progress...)
+
+## Authors
 - [Yvan Brunel](https://github.com/YBTopaz8) (Author)
 
  [My Simple Portfolio](https://flowcv.me/ybtopaz)
