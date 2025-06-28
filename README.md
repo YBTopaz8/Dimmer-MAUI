@@ -35,29 +35,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 # How to install on Apple Devices?
 - Sadly, I decided to stop supporting any [Apple Device At All](https://github.com/YBTopaz8/Dimmer-MAUI/discussions/158)
 
-# ScreenShots (Work in Progress...)
-  
-| Windows | Android| 
-| ------------- |:-------------:|
-| <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| <img src="ScreenShots/Mobile/MainUI_M.jpg" height=500> |
-| <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheetM.jpg" height=500> |
-| <img src="ScreenShots/Desktop/ArtistAlbumPage_D.png" height=500>| <img src="ScreenShots/Mobile/ArtistAlbumPage_M.png" height=500> |
-| <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| <img src="ScreenShots/Mobile/PlayListPage_M.png" height=500> |
-| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult_M.png" height=500>|
-| <img src="ScreenShots/Desktop/LyricsSearchResult2_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult2_M.png" height=500>|
-
-
-|Windows Only|
-|:-------------:|
-| <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>|
-
-|Android Only|
-|:-------------:|
- <img src="ScreenShots/Mobile/StatisPage_M.png" height=300> |
-| <img src="ScreenShots/Mobile/MainPageSongOptions.jpg" height=500> | <img src="ScreenShots/Mobile/MainUI_M2.jpg" height=500> |
-| <img src="ScreenShots/Mobile/SearchAndFilter.jpg" height=500> | <img src="ScreenShots/Mobile/MainUI_M.jpg" height=500> |
-
-## Authors
+# ScreenShots (Work in Progress...)## Authors
 - [Yvan Brunel](https://github.com/YBTopaz8) (Author)
 
  [My Simple Portfolio](https://flowcv.me/ybtopaz)
