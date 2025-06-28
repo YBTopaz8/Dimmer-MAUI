@@ -96,8 +96,17 @@ public partial class NowPlayingbtmsheet : BottomSheet
         }
     }
 
-    private void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
+    private async void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
     {
+        this.IsVisible=false;
+        
         this.Show();
+      await  Task.Delay(250);
+        this.Close();
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        UISection.Commands.ToggleExpandState.Execute(null);
     }
 }

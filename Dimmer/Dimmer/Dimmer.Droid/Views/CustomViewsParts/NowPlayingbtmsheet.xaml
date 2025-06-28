@@ -54,7 +54,7 @@
                                    TextColor="DarkSlateBlue"
                                    >
                                 <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding Commands.ToggleExpandState,Source={x:Reference UISection}}"   />
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"   />
 
                             </Label.GestureRecognizers>
                                 <Label.Triggers>

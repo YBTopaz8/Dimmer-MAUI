@@ -412,9 +412,47 @@
             </dx:DXDockLayout>
 
             <dx:SafeKeyboardAreaView.KeyboardAreaContent >
-                <dx:DXStackLayout x:Name="OpenedKeyboardToolbar" BackgroundColor="#1e1e1e">
-                    <dx:Chip Text="Hide Search"
-                            Tap="OpenDevExpressFilter_Tap" x:Name="OpenDevExpressFilter"/>
+                <dx:DXStackLayout x:Name="OpenedKeyboardToolbar" BackgroundColor="#1e1e1e" >
+
+                    <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
+                                               Spacing="20" VerticalOptions="Start"
+                                               >
+                        <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" 
+                                   x:Name="SongsCountLabel"/>
+
+
+                        <ProgressBar x:Name="MyProgressBar" WidthRequest="80" IsVisible="False"/>
+                        <Label x:Name="MyProgressLabel" WidthRequest="180" IsVisible="False"/>
+                        <syncf:SfChip x:Name="RefreshLyrics"
+                                          Clicked="RefreshLyrics_Clicked"
+                                          ToolTipProperties.Text="Refresh Lyrics"
+                                          ImageSize="40"
+                                          ImageSource="lyrics.png" ShowIcon="True"
+                                          WidthRequest="55"
+                                          />
+
+
+
+
+                        <syncf:SfChip x:Name="RefreshData"
+                                          Command="{Binding BaseVM.RefreshSongMetadataCommand}"
+                                          ImageSize="40" ImageSource="vinyl.png"
+                                          ShowIcon="True" WidthRequest="55" Text="refresh"
+                                          IsVisible="False"/>
+
+
+                        <syncf:SfChip x:Name="RetroactivelyLinkArtists"
+                                          Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}"
+                                          ImageSize="40" ImageSource="cloudbolt.png"
+                                          ShowIcon="True" WidthRequest="55" 
+                                         ToolTipProperties.Text="Retroactively add links" />
+
+
+
+                    </HorizontalStackLayout>
+
+                    <!--<dx:Chip Text="Hide Search"
+                            Tap="OpenDevExpressFilter_Tap" x:Name="OpenDevExpressFilter"/>-->
                 </dx:DXStackLayout>
             </dx:SafeKeyboardAreaView.KeyboardAreaContent>
         </dx:SafeKeyboardAreaView>

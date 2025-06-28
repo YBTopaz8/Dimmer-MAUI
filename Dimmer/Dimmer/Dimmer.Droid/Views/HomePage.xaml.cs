@@ -4,6 +4,7 @@ using DevExpress.Maui.Editors;
 
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
+using Dimmer.Utilities.FileProcessorUtils;
 using Dimmer.ViewModel;
 
 using System.ComponentModel;
@@ -179,6 +180,7 @@ public partial class HomePage : ContentPage
     SortOrder internalOrder = SortOrder.Ascending;
     private bool SortIndeed()
     {
+        return true;
         ObservableCollection<SongModelView> songs = MyViewModel.BaseVM.NowPlayingDisplayQueue;
         if (songs == null || !songs.Any())
             return false;
@@ -647,6 +649,63 @@ public partial class HomePage : ContentPage
         SearchBy.Unfocus();
         myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
         
+    }
+
+    private CancellationTokenSource _lyricsCts;
+    private bool _isLyricsProcessing = false;
+    private async void RefreshLyrics_Clicked(object sender, EventArgs e)
+    {
+        if (_isLyricsProcessing)
+        {
+            // Optionally, offer to cancel the running process
+            bool cancel = await DisplayAlert("Processing...", "Lyrics are already being processed. Cancel the current operation?", "Yes, Cancel", "No");
+            if (cancel)
+            {
+                _lyricsCts?.Cancel();
+            }
+            return;
+        }
+
+        _isLyricsProcessing = true;
+        MyProgressBar.IsVisible = true; // Show a progress bar
+        MyProgressLabel.IsVisible = true; // Show a label
+
+        // Create a new CancellationTokenSource for this operation
+        _lyricsCts = new CancellationTokenSource();
+
+        // The IProgress<T> object automatically marshals calls to the UI thread.
+        var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
+        {
+            // This code runs on the UI thread safely!
+            MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
+            MyProgressLabel.Text = $"Processing: {progress.CurrentFile}";
+        });
+
+        try
+        {
+            // Get the list of songs you want to process
+            var songsToRefresh = MyViewModel.BaseVM.SearchResults; // Or your full master list
+            var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+            // --- Call our static, background-safe method ---
+            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
+
+            await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
+        }
+        catch (OperationCanceledException)
+        {
+            await DisplayAlert("Cancelled", "The operation was cancelled.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"An unexpected error occurred: {ex.Message}", "OK");
+        }
+        finally
+        {
+            // Clean up and hide UI elements
+            _isLyricsProcessing = false;
+            MyProgressBar.IsVisible = false;
+            MyProgressLabel.IsVisible = false;
+        }
     }
 }
 
