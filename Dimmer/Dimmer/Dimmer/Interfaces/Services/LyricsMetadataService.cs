@@ -137,18 +137,7 @@ public class LyricsMetadataService : ILyricsMetadataService
             return false;
         }
 
-        // Step 1: Write to the .lrc file
-        string lrcPath = Path.ChangeExtension(song.FilePath, ".lrc");
-        try
-        {
-            await System.IO.File.WriteAllTextAsync(lrcPath, lrcContent);
-            _logger.LogInformation("Successfully saved lyrics to {LrcPath}", lrcPath);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to write .lrc file to {LrcPath}", lrcPath);
-            return false;
-        }
+
 
         // Step 2: Update the database record
         try
@@ -164,6 +153,8 @@ public class LyricsMetadataService : ILyricsMetadataService
 
             realm.Write(() =>
             {
+                if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
+                {
 
                 songModel.SyncLyrics = lrcContent;
                 songModel.HasSyncedLyrics = true; // Update flags
@@ -179,12 +170,14 @@ public class LyricsMetadataService : ILyricsMetadataService
                     songModel.EmbeddedSync.Add(syncLyrics);
                 }
                 realm.Add(songModel, true);
-                
+
                 songModel.LastDateUpdated = DateTimeOffset.UtcNow;
+
+                }
             });
             // Important: Update the view model that was passed in so the UI has the latest data
             _mapper.Map(songModel, song);
-
+            
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
         }
         catch (Exception ex)
@@ -194,7 +187,20 @@ public class LyricsMetadataService : ILyricsMetadataService
             return false;
         }
 
+
         return true;
+        string lrcPath = Path.ChangeExtension(song.FilePath, ".lrc");
+        try
+        {
+            await System.IO.File.WriteAllTextAsync(lrcPath, lrcContent);
+            _logger.LogInformation("Successfully saved lyrics to {LrcPath}", lrcPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to write .lrc file to {LrcPath}", lrcPath);
+            return false;
+        }
+
     }
 
     public Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)

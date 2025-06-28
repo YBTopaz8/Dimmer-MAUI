@@ -171,6 +171,8 @@ public partial class SongsMgtFlow : IDisposable
                     await _audio.InitializeAsync(songModelViewForCommand!, null);
 
                     _audio.Play();
+                    baseAppFlow.UpdateDatabaseWithPlayEvent(songModelViewForCommand, PlayType.Play);
+
                     break;
                 case DimmerPlaybackState.Playing:
                 case DimmerPlaybackState.Resumed:

@@ -118,7 +118,7 @@ public class LibraryScannerService : ILibraryScannerService
                     _logger.LogInformation("Scanning progress: {ProcessedCount}/{TotalCount} files.", processedFileCount, totalFiles);
                 }
 
-                var fileProcessingResult = audioFileProcessor.ProcessFile(file);
+                var fileProcessingResult = await audioFileProcessor.ProcessFile(file);
 
                 if (fileProcessingResult.Success && fileProcessingResult.ProcessedSong != null)
                 {

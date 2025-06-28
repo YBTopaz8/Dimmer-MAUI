@@ -439,10 +439,8 @@ public class BaseAppFlow : IDisposable
                     _logger.LogInformation("Added play event {EventId} to history of song {SongTitle} (within BatchUpdate)", managedPlayEvent.Id, managedSong.Title);
                 }
 
-                SongModelView? songViewForLog = songView;
-
-                string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songViewForLog, position);
-                _state.SetCurrentLogMsg(new AppLogModel { Log = userFriendlyMessage, ViewSongModel = songViewForLog });
+                string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);
+                _state.SetCurrentLogMsg(new AppLogModel { Log = userFriendlyMessage, ViewSongModel = songView });
 
 
             });
