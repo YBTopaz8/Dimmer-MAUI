@@ -44,27 +44,8 @@ public partial class HomePage : ContentPage
 
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
-        if (string.IsNullOrEmpty(SearchBy.Text))
-        {
-            ByAll();
-            return;
-        }
-        switch (SearchParam)
-        {
-            case "Title":
-                ByTitle();
-                break;
-            case "Artist":
-                ByArtist();
-                break;
-            case "":
-                ByAll();
-                break;
-            default:
-                ByAll();
-                break;
-        }
-
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(SearchBy.Text);
+       
     }
 
     private void ClosePopup(object sender, EventArgs e)

@@ -523,8 +523,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
        .Subscribe(
            _ =>
            {
-               TranslatedSearch.Text = $"{_searchResults.Count} Songs";
-               SongsCountLabel.IsVisible = false;
+               if (TranslatedSearch is not null && SongsCountLabel is not null)
+               {
+                   TranslatedSearch.Text = $"{_searchResults.Count} Songs";
+                   SongsCountLabel.IsVisible = false;
+
+               }
            },
            ex =>
            {

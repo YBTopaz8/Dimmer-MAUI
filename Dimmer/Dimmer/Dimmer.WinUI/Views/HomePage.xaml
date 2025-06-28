@@ -21,7 +21,9 @@
         <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
         <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
         <converters:VolumeConverter x:Key="VolConverter" />
-
+<ResourceDictionary>
+            
+</ResourceDictionary>
         <DataTemplate x:Key="MultiColumnsView">
             <Grid ColumnDefinitions="0.4,*,*,*,*,*,*">
                 <HorizontalStackLayout Grid.Column="0" />
@@ -35,20 +37,20 @@
         </DataTemplate>
     </ContentPage.Resources>
 
-    <Grid x:Name="MainAppGrid"
+    <Grid x:Name="MainAppGrid" 
           Margin="10" ColumnDefinitions="*"
           >
 
 
-        <Grid RowDefinitions="*,auto">
+        <Grid RowDefinitions="*,auto" >
             <Image Opacity="0.15" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
-            <Grid x:Name="MainUI"
+            <Grid x:Name="MainUI" 
                   Grid.Row="0" RowDefinitions="auto,*,auto"
                   >
-                <Grid RowDefinitions="50,70,auto">
+                <Grid RowDefinitions="50,70,auto" >
 
-                    <HorizontalStackLayout Grid.Row="0" Margin="0,10"
-                                           BackgroundColor="Transparent" HorizontalOptions="Center"
+                    <HorizontalStackLayout Grid.Row="0" Margin="0,10" 
+                                            HorizontalOptions="Center"
                                            IsVisible="True" Spacing="25"
                                            >
                         <HorizontalStackLayout.Resources>
@@ -61,7 +63,7 @@
 
                             </Style>
                         </HorizontalStackLayout.Resources>
-                        <Border BackgroundColor="Transparent" HorizontalOptions="Fill">
+                        <Border  HorizontalOptions="Fill">
 
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer x:Name="CurrPlayingSongGesRec"
@@ -317,7 +319,7 @@
 
 
                 <Grid x:Name="SongsView"
-                      Grid.Row="1" BackgroundColor="Transparent"
+                      Grid.Row="1" 
                       RowDefinitions="0.1*,0.1*,*"
                       >
 
@@ -373,13 +375,13 @@
                     <CollectionView x:Name="SongsColView"
                                     Grid.Row="2" EmptyView="No Songs.."
                                     IsVisible="True" 
-                                    ItemsSource="{Binding NowPlayingDisplayQueue}"
+                                    ItemsSource="{Binding SearchResults}"
                                     Loaded="MainSongsColView_Loaded" SelectionMode="None"
                                     >
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
-                                <Border Padding="10" BackgroundColor="Transparent"
+                                <Border Padding="10" 
                                         StrokeShape="RoundRectangle 20"
                                         >
                                     <Border.Triggers>
@@ -415,10 +417,11 @@
                                             </VisualState>
                                         </VisualStateGroup>
                                     </VisualStateManager.VisualStateGroups>
-                                    <syncf:SfEffectsView BackgroundColor="Transparent" TouchDownEffects="Ripple">
+                                    <syncf:SfEffectsView  TouchDownEffects="Ripple"
+                                                          BackgroundColor="Transparent">
 
                                         <Grid ColumnDefinitions="1.9*,1.5*,*,*,*,*,10" ColumnSpacing="20"
-                                              RowDefinitions="80"
+                                              RowDefinitions="35"
                                               >
 
                                             <Grid.GestureRecognizers>
@@ -449,7 +452,7 @@
                                                                         />
                                                     </MenuFlyout>
                                                 </FlyoutBase.ContextFlyout>
-                                                <Border BackgroundColor="Transparent" Stroke="Transparent"
+                                                <Border  Stroke="Transparent"
                                                         StrokeShape="RoundRectangle 15"
                                                         >
                                                     <Border.Triggers>
@@ -464,10 +467,7 @@
                                                             <Setter Property="Stroke" Value="Transparent" />
                                                         </DataTrigger>
                                                     </Border.Triggers>
-                                                   <Image HeightRequest="80"
-                                                           Source="{Binding CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
-                                                           WidthRequest="80"
-                                                           />
+                                                 
                                                 </Border>
                                                 <Label FontFamily="AleySans"
                                                        Text="{Binding Title}"
@@ -489,8 +489,8 @@
                                             </HorizontalStackLayout>
 
                                             <syncf:SfEffectsView x:Name="ArtistsEffectsView"
-                                                                 Grid.Column="1" BackgroundColor="Transparent"
-                                                                 >
+                                                                 Grid.Column="1" 
+                                                                 BackgroundColor="Transparent">
                                                 <FlyoutBase.ContextFlyout>
                                                     <MenuFlyout>
                                                         <MenuFlyoutItem Clicked="ArtistsEffectsView_LongPressed"
@@ -547,11 +547,11 @@
                     
                 </Grid>
                 <Border x:Name="StatsView"
-                        Grid.Row="1" BackgroundColor="Transparent"
+                        Grid.Row="1" 
                         IsVisible="False"
                         >
 
-                    <Grid BackgroundColor="Transparent" RowDefinitions="auto,*">
+                    <Grid  RowDefinitions="auto,*">
                         <Label Grid.Row="0" FontSize="28"
                                Text="{Binding AllLines.Count, StringFormat='Lyrics Lines : {0}'}"
                                VerticalOptions="Start"
@@ -637,7 +637,7 @@
             </Grid>
 
             <Grid x:Name="SearchSection"
-                  Grid.Row="1" BackgroundColor="Transparent"
+                  Grid.Row="1" 
                   RowDefinitions="auto,*" RowSpacing="10"
                   >
                 <HorizontalStackLayout Grid.Row="0">
@@ -647,7 +647,7 @@
                        IsTextPredictionEnabled="True"
                         HeightRequest="50"
                         Grid.Row="1" windows:SearchBar.IsSpellCheckEnabled="True"
-                           windows:VisualElement.AccessKey="F" BackgroundColor="Transparent"
+                           windows:VisualElement.AccessKey="F" 
                            Placeholder="Search Title, Artist, Album..." TextChanged="SearchSongSB_TextChanged"
                         FontSize="17"  Focused="SearchSongSB_Focused"
                            Unfocused="SearchSongSB_Unfocused"
@@ -661,7 +661,7 @@
 
         <syncf:SfPopup x:Name="PlaylistPopup"
                        AnimationMode="SlideOnBottom" Background="Transparent"
-                       BackgroundColor="Transparent" IsFullScreen="False"
+                        IsFullScreen="False"
                        IsOpen="False" IsVisible="False"
                        ShowCloseButton="True" Margin="10"
                        Padding="10"
@@ -670,7 +670,7 @@
 
             <syncf:SfPopup.ContentTemplate>
                 <DataTemplate>
-                    <Grid BackgroundColor="Transparent">
+                    <Grid >
                         
                     </Grid>
                 </DataTemplate>

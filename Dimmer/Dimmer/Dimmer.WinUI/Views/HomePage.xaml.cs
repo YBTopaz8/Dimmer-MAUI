@@ -25,73 +25,13 @@ namespace Dimmer.WinUI.Views;
 public partial class HomePage : ContentPage
 {
     public BaseViewModelWin MyViewModel { get; internal set; }
-
-    private readonly SourceList<SongModelView> _masterSongList = new();
-    private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
-    private readonly SemanticParser _parser = new();
-    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
-    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
-
-    private void LoadAllSongsIntoMasterList()
-    {
-        if (MyViewModel.NowPlayingDisplayQueue != null)
-        {
-                    _masterSongList.AddRange(MyViewModel.NowPlayingDisplayQueue);
-            
-        }
-    }
-
     private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var query = _parser.Parse(e.NewTextValue);
-
-        // Push the new instructions into the reactive pipeline
-        _filterPredicate.OnNext(BuildMasterPredicate(query));
-        _sortComparer.OnNext(new SongModelViewComparer(query.SortDirectives));
-
+       MyViewModel.SearchSongSB_TextChanged( e.NewTextValue);
         // Optional: Update a summary label
-         //SummaryLabel.Text = query.Humanize();
+        //SummaryLabel.Text = query.Humanize();
     }
 
-
-    private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
-    {
-        // 1. Get the predicate functions for all the 'include' and 'exclude' rules.
-        var inclusionPredicates = query.Clauses.Where(c => c.IsInclusion).Select(c => c.AsPredicate()).ToList();
-        var exclusionPredicates = query.Clauses.Where(c => !c.IsInclusion).Select(c => c.AsPredicate()).ToList();
-
-        // 2. Return a single function that checks a song against all the rules.
-        return song =>
-        {
-            // Rule 1: A song is valid if it meets at least one 'include' rule (or if none exist).
-            bool meetsInclusion = inclusionPredicates.Count==0 || inclusionPredicates.Any(p => p(song));
-            if (!meetsInclusion)
-                return false;
-
-            // Rule 2: A song is invalid if it meets ANY of the 'exclude' rules.
-            bool meetsExclusion = exclusionPredicates.Count!=0 && exclusionPredicates.Any(p => p(song));
-            if (meetsExclusion)
-                return false;
-
-            // Rule 3: Handle general AND terms.
-            if (query.GeneralAndTerms.Count!=0 && !query.GeneralAndTerms.All(term =>
-                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
-            {
-                return false;
-            }
-
-            // Rule 4: Handle general OR terms.
-            if (query.GeneralOrTerms.Count!=0 && !query.GeneralOrTerms.Any(term =>
-                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
-            {
-                return false;
-            }
-
-            return true; // Passed all checks!
-        };
-    }
 
     public HomePage(BaseViewModelWin vm)
     {
@@ -99,33 +39,12 @@ public partial class HomePage : ContentPage
         BindingContext = vm;
         MyViewModel = vm;
 
-        // --- Keep this block. This initialization is correct. ---
-        _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
-        _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
-
-        // --- Keep this block. The Dynamic Data pipeline is the core of the new system. ---
-        _masterSongList.Connect()
-            .Throttle(TimeSpan.FromMilliseconds(300),Scheduler.Default)
-            .Filter(_filterPredicate)
-            .Sort(_sortComparer)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out _searchResults)
-              .Subscribe(
-        _ => {
-            // You can update other UI elements directly here now.
-            // No need for another BeginInvokeOnMainThread.
-             
-            TranslatedSearch.Text = $"{_searchResults.Count} Songs";
-            SongsCountLabel.IsVisible=false;
-        },
-        ex => {
-            Debug.WriteLine($"Error in DynamicData pipeline: {ex}");
-        }
-    );
-
+       
         // --- Keep these lines. They correctly wire up the UI. ---
-        SongsColView.ItemsSource = _searchResults;
-        LoadAllSongsIntoMasterList();
+        
+        MyViewModel.TranslatedSearch= TranslatedSearch;
+        MyViewModel.SongsCountLabel = SongsCountLabel;
+        
     }
 
 
