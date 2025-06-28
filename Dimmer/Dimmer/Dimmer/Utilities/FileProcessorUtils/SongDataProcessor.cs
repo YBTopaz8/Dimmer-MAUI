@@ -77,7 +77,7 @@ public static class SongDataProcessor
         // --- THE CONSUMERS ---
         // We'll create a few consumer tasks to process files concurrently.
         // 2-4 is a good number for disk I/O to avoid thrashing.
-        int consumerCount = Math.Min(Environment.ProcessorCount, 2);
+        int consumerCount = Math.Min(Environment.ProcessorCount, 3);
         var consumerTasks = new List<Task>();
 
         for (int i = 0; i < consumerCount; i++)
@@ -88,11 +88,13 @@ public static class SongDataProcessor
                 {
                     try
                     {
+                       
                         // --- STEP 1: Check if processing is even needed ---
                         // If the song already has lyrics loaded in the model, we can skip it.
-                        if (song.HasLyrics || song.HasSyncedLyrics)
+                        if ( song.SyncLyrics.Length>1)
                         {
                             // We still report progress for a responsive UI.
+
                             continue; 
                         }
 
@@ -108,6 +110,7 @@ public static class SongDataProcessor
                         }
                         else
                         {
+                            //continue; // No lyrics found in metadata, skip to next song.
                             // If not found in file, use your service to search online.
                             var onlineResults = await lyricsService.SearchOnlineAsync(song);
                             fetchedLrcData = onlineResults?.FirstOrDefault()?.SyncedLyrics;
@@ -121,11 +124,8 @@ public static class SongDataProcessor
                             newLyricsInfo.ParseLRC(fetchedLrcData);
 
                             // B. Save the fetched lyrics BACK TO THE FILE'S METADATA
-                            var fileToUpdate = new Track(song.FilePath);
-                            fileToUpdate.Lyrics = newLyricsInfo;
-                            bool saved = fileToUpdate.Save(); // Persist the changes!
 
-                            await lyricsService.SaveLyricsForSongAsync(song, fetchedLrcData, newLyricsInfo);
+                            bool saved = await lyricsService.SaveLyricsForSongAsync(song, fetchedLrcData, newLyricsInfo);
                             if (saved)
                             {
                                 // C. Update the UI model on the main thread
@@ -135,11 +135,17 @@ public static class SongDataProcessor
                                     song.HasSyncedLyrics = newLyricsInfo.SynchronizedLyrics.Any();
                                     song.UnSyncLyrics = newLyricsInfo.UnsynchronizedLyrics;
                                     song.EmbeddedSync.Clear(); // Ensure it's empty before adding
+                                    song.SyncLyrics= newLyricsInfo.SynchronizedLyrics.Any() ? newLyricsInfo.SynchronizedLyrics.ToString()!: string.Empty;
                                     foreach (var phrase in newLyricsInfo.SynchronizedLyrics)
                                     {
                                         song.EmbeddedSync.Add(new SyncLyricsView(phrase.TimestampMs, phrase.Text));
                                     }
                                 });
+                                var fileToUpdate = new Track(song.FilePath);
+                                fileToUpdate.Lyrics = newLyricsInfo;
+                                fileToUpdate.Save(); // Persist the changes!
+
+
                             }
                         }
                     }

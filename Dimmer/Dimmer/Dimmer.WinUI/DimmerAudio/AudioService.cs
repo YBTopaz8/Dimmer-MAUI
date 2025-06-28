@@ -1026,7 +1026,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         try
         {
             var pc = new PolicyConfigClient() as IPolicyConfig;
-            pc.SetDefaultEndpoint(dev.Id, Role.eMultimedia);
+            pc!.SetDefaultEndpoint(dev.Id, Role.eMultimedia);
             return true;
         }
         catch

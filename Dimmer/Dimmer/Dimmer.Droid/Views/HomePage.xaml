@@ -163,7 +163,7 @@
                                               AllowDragDropItems="False"
                                              AllowFixedGroupHeaders="True" BackgroundColor="Transparent"
                                              ItemSpacing="5"
-                                             ItemsSource="{Binding BaseVM.NowPlayingDisplayQueue}"
+                                             ItemsSource="{Binding BaseVM.SearchResults}"
                                         AllowGroupCollapse="True"
                                              AllowLiveDataShaping="True" Loaded="SongsColView_Loaded" Tap="SongsColView_Tap"
                                               >

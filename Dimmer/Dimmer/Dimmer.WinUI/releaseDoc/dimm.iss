@@ -8,7 +8,7 @@ AppPublisher=Yvan Brunel
 AppPublisherURL=https://github.com/YBTopaz8/Dimmer-MAUI
 DefaultDirName={autopf}\Dimmer-MAUI
 DefaultGroupName=Dimmer-MAUI
-OutputBaseFilename=Setup_Dimmer1.9.
+OutputBaseFilename=Setup_Dimmer1.9.9
 Compression=lzma
 SolidCompression=yes
 

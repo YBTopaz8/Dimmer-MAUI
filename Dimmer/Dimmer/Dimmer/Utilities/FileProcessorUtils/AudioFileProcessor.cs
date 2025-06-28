@@ -1,5 +1,11 @@
 ﻿using ATL;
 
+using Dimmer.Data.Models;
+using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utilities.Extensions;
+
+using Realms;
+
 namespace Dimmer.Utilities.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
@@ -20,17 +26,17 @@ public class AudioFileProcessor : IAudioFileProcessor
         _config = config;
     }
 
-    public List<FileProcessingResult> ProcessFiles(IEnumerable<string> filePaths)
+    public async Task<List<FileProcessingResult>> ProcessFiles(IEnumerable<string> filePaths)
     {
         var results = new List<FileProcessingResult>();
         foreach (var path in filePaths)
         {
-            results.Add(ProcessFile(path));
+            results.Add(await ProcessFile(path));
         }
         return results;
     }
 
-    public FileProcessingResult ProcessFile(string filePath)
+    public async Task<FileProcessingResult> ProcessFile(string filePath)
     {
         var result = new FileProcessingResult();
 
@@ -140,10 +146,44 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         }
 
+        ILyricsMetadataService lyricsService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
+        IMapper _mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
 
-        _metadataService.AddSong(song);
-        result.ProcessedSong = song;
-        Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
-        return result;
+        var onlineResults = await lyricsService.SearchOnlineAsync(song.ToModelView(_mapper));
+        var fetchedLrcData = onlineResults?.FirstOrDefault()?.SyncedLyrics;
+
+
+        // --- STEP 3: If lyrics were found, process and save them ---
+        if (!string.IsNullOrWhiteSpace(fetchedLrcData))
+        {
+            // A. Parse the LRC data into ATL's structure
+            var newLyricsInfo = new LyricsInfo();
+            newLyricsInfo.ParseLRC(fetchedLrcData);
+
+            // B. Save the fetched lyrics BACK TO THE FILE'S METADATA
+
+            song.SyncLyrics = fetchedLrcData;
+            song.HasSyncedLyrics = true; // Update flags
+            song.HasLyrics = true;
+            song.EmbeddedSync.Clear();
+            foreach (var lyr in newLyricsInfo.SynchronizedLyrics)
+            {
+                var syncLyrics = new SyncLyrics
+                {
+                    TimestampMs = lyr.TimestampMs,
+                    Text = lyr.Text
+                };
+                song.EmbeddedSync.Add(syncLyrics);
+            }
+        }
+        song.LastDateUpdated = DateTimeOffset.UtcNow;
+
+
+
+            _metadataService.AddSong(song);
+            result.ProcessedSong = song;
+            Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
+            return result;
+       
     }
 }
