@@ -32,7 +32,7 @@
             <Grid>
                     <VerticalStackLayout 
                         Grid.Column="0" Spacing="10"
-                        VerticalOptions="Center" 
+                        VerticalOptions="Center" BackgroundColor="Transparent"
                         ZIndex="1">
 
                         <Label FontSize="15" HorizontalOptions="Center"
@@ -53,6 +53,10 @@
                                    Text="{Binding BaseVM.CurrentLine.Text}"
                                    TextColor="DarkSlateBlue"
                                    >
+                                <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Commands.ToggleExpandState,Source={x:Reference UISection}}"   />
+
+                            </Label.GestureRecognizers>
                                 <Label.Triggers>
                                     <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
                                                  TargetType="Label" Value="True"
@@ -69,16 +73,16 @@
                                />
                     </VerticalStackLayout>
                     <dx:DXImage x:Name="SongPicture"
-                                Aspect="AspectFill" Opacity="0.14"
+                                Aspect="AspectFill" Opacity="0.10"
                                 Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                 />
             </Grid>
 
         </dx:DXBorder>
-        <dx:DXExpander IsExpanded="False" BackgroundColor="Red">
+        <dx:DXExpander x:Name="UISection" IsExpanded="True" BackgroundColor="Transparent" Grid.Row="1">
             <dx:DXExpander.Content>
                 <dx:DXStackLayout>
-            <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
+                <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
                               ItemSpacing="15"
                              >
                 <dx:Chip x:Name="SongTitleChip" LongPress="SongTitleChip_LongPress" LongPressCommandParameter="{Binding BaseVM.CurrentPlayingSongView.AlbumName}"
@@ -145,7 +149,7 @@
                              />
                 </dx:DXStackLayout>
             </dx:DXStackLayout>
-            <Grid
+                    <Grid
                 
 Grid.Row="2" RowDefinitions="auto,auto,auto"
                   RowSpacing="15" 
