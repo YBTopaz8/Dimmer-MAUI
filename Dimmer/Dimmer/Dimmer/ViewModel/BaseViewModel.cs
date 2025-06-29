@@ -521,12 +521,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .Filter(_filterPredicate)                                   // Apply search filter
             .Sort(_sortComparer)                                        // Apply sorting
             .ToCollection()                                             // Convert from a stream of changes to a stream of full lists
-            .CombineLatest(_limiterClause, (fullList, limiter) => ApplyLimiter(fullList, limiter)); // Apply the final limiter logic
-
-        // --- Step 4: Connect the Pipeline's Output to our Final Data Controller ---
-        // This subscription takes the final, processed list from the pipeline and uses it
-        // to update our private controller list, which in turn updates the UI.
+            .CombineLatest(_limiterClause, (fullList, limiter) => ApplyLimiter(fullList, limiter)) // Apply the final limiter logic
+            .Publish()      // <-- Share the subsequent results
+            .RefCount();
+      
         finalLimitedListStream
+            .ObserveOn(Scheduler.Default) // It's often safer to do list edits off the UI thread
             .Subscribe(limitedItems =>
             {
                 _finalLimitedDataSource.Edit(innerList =>
@@ -535,19 +535,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     innerList.AddRange(limitedItems);
                 });
             })
-            .DisposeWith(Disposables); // Important: Manage the subscription's lifecycle
+            .DisposeWith(Disposables);
 
+       
         // --- Step 5: Handle the Label Count Update ---
         // This pipeline watches the final controller list and updates the label with its count.
         _finalLimitedDataSource.Connect()
-            .Count() // DynamicData operator to get the count efficiently
+            .Select(list => list.Count) // DynamicData operator to get the count efficiently
             .StartWith(0)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(count =>
             {
                 if (TranslatedSearch is not null && SongsCountLabel is not null)
                 {
-                    TranslatedSearch.Text = $"{count} Songs";
+                    TranslatedSearch.Text = $"{SearchResults.Count} Songs";
                     SongsCountLabel.IsVisible = false;
                 }
             })
