@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,22 +8,23 @@ using System.Threading.Tasks;
 namespace Dimmer.DimmerSearch;
 public class SongModelViewComparer : IComparer<SongModelView>
 {
-    private readonly List<(string FieldName, SortDirection Direction)> _sortFields;
 
-    public SongModelViewComparer(List<SortClause> sortDirectives)
+
+
+    private readonly List<SortClause> _sortDirectives;
+
+    // This dictionary will hold the random "sort key" for each song.
+    // We use a special object to ensure it's unique to this specific sort operation.
+    private readonly object _randomSortSessionKey = new();
+
+    public SongModelViewComparer(List<SortClause>? sortDirectives)
     {
-        // If no sort is specified, create a default to prevent errors.
-        if (sortDirectives == null || sortDirectives.Count == 0)
+        _sortDirectives = sortDirectives ?? new List<SortClause>();
+
+        // If there are no sort directives, default to sorting by title
+        if (_sortDirectives.Count == 0)
         {
-            _sortFields = new List<(string, SortDirection)> { ("Title", SortDirection.Ascending) };
-        }
-        else
-        {
-            _sortFields = new List<(string, SortDirection)>();
-            foreach (var directive in sortDirectives)
-            {
-                _sortFields.Add((directive.FieldName, directive.Direction));
-            }
+            _sortDirectives.Add(new SortClause { FieldName = "Title", Direction = SortDirection.Ascending });
         }
     }
 
@@ -35,22 +37,37 @@ public class SongModelViewComparer : IComparer<SongModelView>
         if (y == null)
             return 1;
 
-        foreach (var (fieldName, direction) in _sortFields)
+        // --- NEW: Special handling for Random sort ---
+        // If the primary sort is Random, we use a different logic.
+        if (_sortDirectives[0].Direction == SortDirection.Random)
         {
-            // Use our robust helper to get the values to compare
-            IComparable? valueX = SemanticQueryHelpers.GetComparableProp(x, fieldName);
-            IComparable? valueY = SemanticQueryHelpers.GetComparableProp(y, fieldName);
+            // We can't use a simple new Random().Next() because the sort algorithm
+            // needs a consistent value for each item during the sort pass.
+            // We use a trick with GetHashCode for pseudo-randomness that is stable
+            // for the lifetime of the object, but we mix it with our session key
+            // to ensure a DIFFERENT random order each time the user types "shuffle".
+            int xRandomKey = (x.GetHashCode() ^ _randomSortSessionKey.GetHashCode());
+            int yRandomKey = (y.GetHashCode() ^ _randomSortSessionKey.GetHashCode());
+            return xRandomKey.CompareTo(yRandomKey);
+        }
+        // --- End of new logic ---
 
-            int result = Comparer<IComparable>.Default.Compare(valueX, valueY);
+        // The existing logic for standard sorting
+        foreach (var directive in _sortDirectives)
+        {
+            IComparable? xValue = SemanticQueryHelpers.GetComparableProp(x, directive.FieldName);
+            IComparable? yValue = SemanticQueryHelpers.GetComparableProp(y, directive.FieldName);
 
-            if (result != 0)
+            int comparison = Comparer.Default.Compare(xValue, yValue);
+
+            if (comparison != 0)
             {
-                // If descending, invert the result
-                return direction == SortDirection.Descending ? -result : result;
+                // If descending, just flip the result
+                return directive.Direction == SortDirection.Descending ? -comparison : comparison;
             }
         }
 
-        // If all sort fields are equal, the items are considered equal in sort order
+        // If all sort criteria are equal, they are considered equal in sort order
         return 0;
     }
 }

@@ -20,7 +20,9 @@ using MoreLinq;
 
 using ReactiveUI;
 
+using System.ComponentModel;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -31,7 +33,7 @@ using static Dimmer.Utilities.StatsUtils.SongStatTwop;
 
 namespace Dimmer.ViewModel;
 
-public partial class BaseViewModel : ObservableObject, IDisposable
+public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
 {
     public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
@@ -123,6 +125,9 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial SongModelView? CurrentPlayingSongView { get; set; }
+
+    [ObservableProperty]
+    public partial string? CurrentNoteToSave { get; set; }
     partial void OnCurrentPlayingSongViewChanged(SongModelView? value)
     {
         if (value is not null)
@@ -141,7 +146,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         Task.Run(() =>
         {
-            if (NowPlayingDisplayQueue == null || !NowPlayingDisplayQueue.Any())
+            if (_songSource == null || !_songSource.Items.Any())
             {
                 return; // Nothing to process
             }
@@ -158,19 +163,19 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 _logger.LogError("Failed to get Realm instance from RealmFactory.");
                 return;
             }
-
+            
             // --- Step 2: Gather All Necessary Information in ONE PASS ---
             // Get all song IDs we need to look up.
-            var songIdsToUpdate = NowPlayingDisplayQueue.Select(s => s.Id).ToList();
+            var songIdsToUpdate = _songSource.Items.Select(s => s.Id).ToList();
 
-            // Get all UNIQUE artist names from all NowPlayingDisplayQueue in the queue.
-            var allArtistNames = NowPlayingDisplayQueue
+            // Get all UNIQUE artist names from all _songSource in the queue.
+            var allArtistNames = _songSource.Items
                 .SelectMany(s => s.OtherArtistsName.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries))
                 .Distinct()
                 .ToList();
 
             // --- Step 3: Perform a SINGLE Batched Database Read for everything ---
-            // Find all the NowPlayingDisplayQueue we need to update in ONE query. Use a Dictionary for instant lookups later.
+            // Find all the _songSource we need to update in ONE query. Use a Dictionary for instant lookups later.
 
             var songClauses = Enumerable.Range(0, songIdsToUpdate.Count)
                                      .Select(i => $"Id == ${i}");
@@ -199,7 +204,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                                        .ToDictionary(a => a.Name);
 
             // --- Step 4: Perform a SINGLE Write Transaction for all changes ---
-            var songsss = NowPlayingDisplayQueue.ToList();
+            var songsss = _songSource.Items.ToList();
             realm.Write(() =>
             {
                 // Now loop through the original VIEW MODELS, which is safe and fast.
@@ -252,9 +257,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
             var songss = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
-            NowPlayingDisplayQueue = songss;
-            
-            //RefreshSongsCover(NowPlayingDisplayQueue, CollectionToUpdate.NowPlayingCol);
+           
+            //RefreshSongsCover(_songSource, CollectionToUpdate.NowPlayingCol);
 
             QueueOfSongsLive =  new ObservableCollection<SongModelView>(songss);
         });
@@ -381,9 +385,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         });
     }
 
-    [ObservableProperty]
-    public partial ObservableCollection<SongModelView> NowPlayingDisplayQueue { get; set; } = new();
-
+    private readonly SourceList<SongModelView> _songSource = new SourceList<SongModelView>();
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? CurrentSynchronizedLyrics { get; set; }
 
@@ -499,50 +501,101 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
 
 
-
-        // --- Keep this block. This initialization is correct. ---
         _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
-        ReloadReactiveSourceOfSongs();
+        _limiterClause = new BehaviorSubject<LimiterClause?>(null);
+
+        // --- Step 2: Create the Link between the Final Data and the UI ---
+        // This is crucial: we connect our private controller list (_finalLimitedDataSource)
+        // to the public, read-only UI property (_searchResults). This binding is permanent.
+        _finalLimitedDataSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates are on the correct thread
+            .Bind(out _searchResults)
+            .Subscribe()         // Create the live-updating mirror
+            .DisposeWith(Disposables);            // Ensure the subscription is cleaned up when the ViewModel is disposed
+
+        // --- Step 3: Define the Main Data Processing Pipeline ---
+        // This pipeline takes the raw songs from _songSource, filters, sorts, and limits them.
+        var finalLimitedListStream = _songSource.Connect()
+            .Throttle(TimeSpan.FromMilliseconds(300), Scheduler.Default) // Debounce user typing
+            .Filter(_filterPredicate)                                   // Apply search filter
+            .Sort(_sortComparer)                                        // Apply sorting
+            .ToCollection()                                             // Convert from a stream of changes to a stream of full lists
+            .CombineLatest(_limiterClause, (fullList, limiter) => ApplyLimiter(fullList, limiter)); // Apply the final limiter logic
+
+        // --- Step 4: Connect the Pipeline's Output to our Final Data Controller ---
+        // This subscription takes the final, processed list from the pipeline and uses it
+        // to update our private controller list, which in turn updates the UI.
+        finalLimitedListStream
+            .Subscribe(limitedItems =>
+            {
+                _finalLimitedDataSource.Edit(innerList =>
+                {
+                    innerList.Clear();
+                    innerList.AddRange(limitedItems);
+                });
+            })
+            .DisposeWith(Disposables); // Important: Manage the subscription's lifecycle
+
+        // --- Step 5: Handle the Label Count Update ---
+        // This pipeline watches the final controller list and updates the label with its count.
+        _finalLimitedDataSource.Connect()
+            .Count() // DynamicData operator to get the count efficiently
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(count =>
+            {
+                if (TranslatedSearch is not null && SongsCountLabel is not null)
+                {
+                    TranslatedSearch.Text = $"{count} Songs";
+                    SongsCountLabel.IsVisible = false;
+                }
+            })
+            .DisposeWith(Disposables);
     }
+    private readonly ObservableAsPropertyHelper<IReadOnlyCollection<SongModelView>> _searchResultsHelper; 
+    
+    private readonly SourceList<SongModelView> _finalLimitedDataSource = new SourceList<SongModelView>();
 
+    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
-    private void ReloadReactiveSourceOfSongs()
+    private readonly ReadOnlyObservableCollection<SongModelView> _fullFilteredResults;
+    protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
+    private IReadOnlyCollection<SongModelView> ApplyLimiter(IReadOnlyCollection<SongModelView> items, LimiterClause? limiter)
     {
+        if (limiter == null)
+        {
+            return items; // No limiter, return everything.
+        }
 
-        // --- Keep this block. The Dynamic Data pipeline is the core of the new system. ---
-        this.WhenAnyValue(x => x.NowPlayingDisplayQueue) // 1. Watch the property for changes
-       .Where(collection => collection != null)       // 2. Ignore any moment it might be null
-       .Select(collection => collection.ToObservableChangeSet()) // 3. For each new collection, get its change stream
-       .Switch()                                      // 4. Switch to the latest collection's stream
-       .Throttle(TimeSpan.FromMilliseconds(300), Scheduler.Default)
-       .Filter(_filterPredicate)
-       .Sort(_sortComparer)
-       .ObserveOn(RxApp.MainThreadScheduler)
-       .Bind(out _searchResults)
-       .Subscribe(
-           _ =>
-           {
-               if (TranslatedSearch is not null && SongsCountLabel is not null)
-               {
-                   TranslatedSearch.Text = $"{_searchResults.Count} Songs";
-                   SongsCountLabel.IsVisible = false;
+        switch (limiter.Type)
+        {
+            case LimiterType.First:
+                return items.Take(limiter.Count).ToList();
 
-               }
-           },
-           ex =>
-           {
-               Debug.WriteLine($"Error in DynamicData pipeline: {ex}");
-           }
-       );
+            case LimiterType.Last:
+                // .TakeLast() is efficient on collections that support it
+                return items.TakeLast(limiter.Count).ToList();
+
+            case LimiterType.Random:
+                var random = new Random();
+                // OrderBy a new random number is a standard way to shuffle
+                return items.OrderBy(x => random.Next()).Take(limiter.Count).ToList();
+
+            default:
+                return items;
+        }
     }
+
     [ObservableProperty]
     public partial Label SongsCountLabel { get; set; }
     [ObservableProperty]
     public partial Label TranslatedSearch { get; set; }
 
     private ReadOnlyObservableCollection<SongModelView> _searchResults;
-    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
+    private readonly BehaviorSubject<LimiterClause?> _limiterClause;
+
+    //public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
     private readonly SemanticParser _parser = new();
     private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
     private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
@@ -551,42 +604,46 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
     {
-        // 1. Get the predicate functions for all the 'include' and 'exclude' rules.
-        var inclusionPredicates = query.Clauses.Where(c => c.IsInclusion).Select(c => c.AsPredicate()).ToList();
-        var exclusionPredicates = query.Clauses.Where(c => !c.IsInclusion).Select(c => c.AsPredicate()).ToList();
+        // --- Step 1: Get ALL rule functions ---
+        // No need to separate them yet. We get one function for each rule.
+        var allPredicateFunctions = query.Clauses.Select(c => c.AsPredicate()).ToList();
 
-        // 2. Return a single function that checks a song against all the rules.
+        // --- Step 2: Pre-process general search terms (from previous discussion) ---
+        var lowerAndTerms = query.GeneralAndTerms.Select(t => t.ToLowerInvariant()).ToList();
+        var lowerOrTerms = query.GeneralOrTerms.Select(t => t.ToLowerInvariant()).ToList();
+
+        // --- Step 3: Build the final master function ---
         return song =>
         {
-            // Rule 1: A song is valid if it meets at least one 'include' rule (or if none exist).
-            bool meetsInclusion = inclusionPredicates.Count==0 || inclusionPredicates.Any(p => p(song));
-            if (!meetsInclusion)
-                return false;
+            // RULE 1: The song must pass ALL specific clauses (year:, artist:, etc.)
+            // The .All() operator ensures every single rule must return true.
+            // This is the AND logic you were missing.
+            if (!allPredicateFunctions.All(predicate => predicate(song)))
+            {
+                return false; // Failed a specific rule like year:>2000 or artist:!U2
+            }
 
-            // Rule 2: A song is invalid if it meets ANY of the 'exclude' rules.
-            bool meetsExclusion = exclusionPredicates.Count!=0 && exclusionPredicates.Any(p => p(song));
-            if (meetsExclusion)
-                return false;
-
-            // Rule 3: Handle general AND terms.
-            if (query.GeneralAndTerms.Count!=0 && !query.GeneralAndTerms.All(term =>
-                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            // RULE 2: The song must contain ALL general AND terms.
+            if (lowerAndTerms.Count > 0 && !lowerAndTerms.All(term => song.SearchableText.Contains(term)))
             {
                 return false;
             }
 
-            // Rule 4: Handle general OR terms.
-            if (query.GeneralOrTerms.Count!=0 && !query.GeneralOrTerms.Any(term =>
-                (song.OtherArtistsName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (song.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            // RULE 3: The song must contain AT LEAST ONE general OR term (if any exist).
+            if (lowerOrTerms.Count > 0 && !lowerOrTerms.Any(term => song.SearchableText.Contains(term)))
             {
                 return false;
             }
 
-            return true; // Passed all checks!
+            // If it survived everything, it's a match!
+            return true;
         };
     }
+
+
+
+
+
     public void SearchSongSB_TextChanged(string  e)
     {
         var query = _parser.Parse(e);
@@ -594,6 +651,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         // Push the new instructions into the reactive pipeline
         _filterPredicate.OnNext(BuildMasterPredicate(query));
         _sortComparer.OnNext(new SongModelViewComparer(query.SortDirectives));
+        _limiterClause.OnNext(query.LimiterDirective);
 
         // Optional: Update a summary label
         //SummaryLabel.Text = query.Humanize();
@@ -618,7 +676,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public void InitializeApp()
     {
-        if (NowPlayingDisplayQueue.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
+        if (_songSource.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
         {
             var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
 
@@ -720,10 +778,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                  }
                  FolderPaths = new ObservableCollection<string>(modell.UserMusicFoldersPreference ?? Enumerable.Empty<string>());
 
-                 NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
+                 //_songSource = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
 
                
-                 QueueOfSongsLive = NowPlayingDisplayQueue.Take(50).ToObservableCollection();
+                 QueueOfSongsLive = _songSource.Items.Take(50).ToObservableCollection();
                
                  Task.Run(() => RefreshSongsMetadata());
                  IsAppScanning=false;
@@ -832,26 +890,34 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
 
         _subsManager.Add(
-             _stateService.AllCurrentSongs
+     _stateService.AllCurrentSongs
+         .Subscribe(songList =>
+         {
+             if (songList is null || songList.Count < 1)
+             {
+                 _songSource.Clear(); // If the new list is empty, clear our source.
+                 return;
+             }
 
-                .Subscribe(songList =>
-                {
-                    if (songList is null)
-                    {
-                        return;
-                    }
-                    if (songList.Count < 1)
-                    {
-                        return;
-                    }
-                    _logger.LogTrace("BaseViewModel: _stateService.AllCurrentSongs (for NowPlayingDisplayQueue) emitted count: {Count}", songList.Count);
-                    NowPlayingDisplayQueue = _mapper.Map<ObservableCollection<SongModelView>>(songList.Shuffle());
-                  
-                    if (audioService.IsPlaying)
-                        return;
-                    CurrentPlayingSongView = NowPlayingDisplayQueue[0];
-                }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for NowPlayingDisplayQueue subscription"))
-        );
+             _logger.LogTrace("BaseViewModel: Received {Count} songs. Updating SourceList.", songList.Count);
+
+             var newSongListViews = _mapper.Map<IEnumerable<SongModelView>>(songList.Shuffle());
+
+             // This is the crucial part. We "edit" the source in a single transaction.
+             // This is hyper-efficient and correctly informs the DynamicData pipeline.
+             _songSource.Edit(innerList =>
+             {
+                 innerList.Clear();
+                 innerList.AddRange(newSongListViews);
+             });
+
+             // The rest of your logic can be handled by observing the final collection
+             if (audioService.IsPlaying)
+                 return;
+             // You might need to get the first song from the final UI collection now.
+             // CurrentPlayingSongView = _searchResults?.FirstOrDefault();
+         }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for _songSource subscription"))
+ );
 
         _subsManager.Add(
              _stateService.AllPlayHistory
@@ -859,7 +925,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     _logger.LogTrace("BaseViewModel: events (for all) emitted count: {Count}", playEvents?.Count ?? 0);
                     AllPlayEvents = playEvents.ToObservableCollection();
-                }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for NowPlayingDisplayQueue subscription"))
+                }, ex => _logger.LogError(ex, "Error in AllCurrentSongs for _songSource subscription"))
         );
 
 
@@ -891,16 +957,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 if (log.ViewSongModel is null || log.AppSongModel is null)
                 {
                     return;
-                }
-                if (log.ViewSongModel is null || log.AppSongModel is not null)
-                {
-                    var vSong = _mapper.Map<SongModelView>(log.AppSongModel);
-                    if (NowPlayingDisplayQueue.Count <1 || !NowPlayingDisplayQueue.Contains(vSong))
-                    {                        
-                        IsAppScanning=true;
-                        NowPlayingDisplayQueue.Add(vSong);
-                    }
-
                 }
                 ScanningLogs ??= new ObservableCollection<AppLogModel>();
                 if (ScanningLogs.Count > 20)
@@ -1081,7 +1137,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
             _logger.LogDebug("PlaySongFromList: Playing from generic list/current display queue.");
 
-            var songListModels = NowPlayingDisplayQueue
+            var songListModels = _songSource.Items
                 .Select(svm => svm.ToModel(_mapper))
                 .Where(sm => sm != null)
                 .ToList();
@@ -1100,14 +1156,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task NextTrack()
     {
-        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        if (_songSource is null ||  _songSource?.Count <1)
         {
             return;
         }
         if (CurrentPlayingSongView is null)
         {
 
-            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
+            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
             return;
 
@@ -1132,7 +1188,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         else
         {
 
-            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
+            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
 
         }
@@ -1147,14 +1203,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public async Task PreviousTrack()
     {
 
-        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        if (_songSource is null ||  _songSource?.Count <1)
         {
             return;
         }
         if (CurrentPlayingSongView is null)
         {
 
-            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
+            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
             return;
         }
@@ -1178,20 +1234,16 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         }
         else
         {
-            await PlaySongFromListAsync(NowPlayingDisplayQueue.FirstOrDefault()!, NowPlayingDisplayQueue);
+            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
 
         }
     }
 
-    partial void OnNowPlayingDisplayQueueChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
-    {
-        Debug.WriteLine(newValue.Count);
-    }
     [RelayCommand]
     public void ToggleShuffleMode()
     {
-        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        if (_songSource is null ||  _songSource?.Count <1)
         {
             return;
         }
@@ -1219,7 +1271,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void SeekTrackPosition(double positionSeconds)
     {
-        if (NowPlayingDisplayQueue is null ||  NowPlayingDisplayQueue?.Count <1)
+        if (_songSource is null ||  _songSource?.Count <1)
         {
             return;
         }
@@ -1527,15 +1579,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         //var endDate = DateTimeOffset.UtcNow;
         //var startDate = endDate.AddMonths(-1);
 
-        //// Get the Top 10 most completed NowPlayingDisplayQueue in the last month
+        //// Get the Top 10 most completed _songSource in the last month
         //TopSongsLastMonth = TopStats.GetTopCompletedSongs(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
 
         //// --- OTHER "TOPS" ---
 
-        //// Get the 5 most SKIPPED NowPlayingDisplayQueue of all time
+        //// Get the 5 most SKIPPED _songSource of all time
         //MostSkipped = TopStats.GetTopSkippedSongs(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 5);
 
-        //// Get the 10 NowPlayingDisplayQueue with the most TOTAL LISTENING TIME in the last month
+        //// Get the 10 _songSource with the most TOTAL LISTENING TIME in the last month
         //MostListened = TopStats.GetTopSongsByListeningTime(artist.Songs.ToList(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
 
         _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
@@ -1614,15 +1666,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         var endDate = DateTimeOffset.UtcNow;
         var startDate = endDate.AddMonths(-1);
 
-        // Get the Top 10 most completed NowPlayingDisplayQueue in the last month
+        // Get the Top 10 most completed _songSource in the last month
         TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
 
         // --- OTHER "TOPS" ---
 
-        // Get the 5 most SKIPPED NowPlayingDisplayQueue of all time
+        // Get the 5 most SKIPPED _songSource of all time
         MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 5);
 
-        // Get the 10 NowPlayingDisplayQueue with the most TOTAL LISTENING TIME in the last month
+        // Get the 10 _songSource with the most TOTAL LISTENING TIME in the last month
         MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate);
     }
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
@@ -1769,7 +1821,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         songModel.IsFavorite = !songModel.IsFavorite;
         var song = songRepo.AddOrUpdate(songModel.ToModel(_mapper));
 
-        _stateService.SetCurrentSong(song);
+        //_stateService.SetCurrentSong(song);
     }
 
 
@@ -1777,11 +1829,11 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrEmpty(PlName) || songsToAdd == null || songsToAdd.Count==0)
         {
-            _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', NowPlayingDisplayQueue count = {Count}", PlName, songsToAdd?.Count ?? 0);
+            _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', _songSource count = {Count}", PlName, songsToAdd?.Count ?? 0);
             return;
         }
 
-        _logger.LogInformation("Adding NowPlayingDisplayQueue to playlist '{PlName}'.", PlName);
+        _logger.LogInformation("Adding _songSource to playlist '{PlName}'.", PlName);
         var realm = realmFactory.GetRealmInstance();
 
         // The entire logic must be inside a single transaction for atomicity and performance.
@@ -1798,18 +1850,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             // 2. Get all song IDs to add from the input DTOs
             var songIdsToAdd = songsToAdd.Select(s => s.Id).ToList();
 
-            // 3. Find which of these NowPlayingDisplayQueue are ALREADY in the playlist with ONE query.
+            // 3. Find which of these _songSource are ALREADY in the playlist with ONE query.
             var existingSongIdsInPlaylist = playlist.SongsInPlaylist
                                                     .Where(song => songIdsToAdd.Contains(song.Id))
                                                     .Select(song => song.Id)
                                                     .ToHashSet(); // Use a HashSet for fast lookups
 
-            // 4. Determine which new NowPlayingDisplayQueue we actually need to process
+            // 4. Determine which new _songSource we actually need to process
             var newSongIds = songIdsToAdd.Except(existingSongIdsInPlaylist).ToList();
 
             if (newSongIds.Count==0)
             {
-                _logger.LogInformation("All NowPlayingDisplayQueue already exist in playlist '{PlName}'.", PlName);
+                _logger.LogInformation("All _songSource already exist in playlist '{PlName}'.", PlName);
                 return; // Nothing to add
             }
 
@@ -1818,10 +1870,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                                       .Where(s => newSongIds.Contains(s.Id))
                                       .ToDictionary(s => s.Id); // Dictionary for fast lookups
 
-            // 6. Add the NowPlayingDisplayQueue to the playlist's relationship
+            // 6. Add the _songSource to the playlist's relationship
             foreach (var songDto in songsToAdd)
             {
-                // Skip NowPlayingDisplayQueue that were already in the playlist or we don't need to process
+                // Skip _songSource that were already in the playlist or we don't need to process
                 if (!newSongIds.Contains(songDto.Id))
                 {
                     continue;
@@ -1843,7 +1895,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 playlist.SongsInPlaylist.Add(songToAdd!);
             }
 
-            _logger.LogInformation("Successfully added {Count} new NowPlayingDisplayQueue to playlist '{PlName}'.", newSongIds.Count, PlName);
+            _logger.LogInformation("Successfully added {Count} new _songSource to playlist '{PlName}'.", newSongIds.Count, PlName);
         });
 
     }
@@ -1866,7 +1918,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            // 1. Get the IDs of NowPlayingDisplayQueue we need to remove
+            // 1. Get the IDs of _songSource we need to remove
             var songIdsToRemove = songsToRemove.Select(s => s.Id).ToHashSet();
 
             // 2. Find the actual song objects TO REMOVE from the playlist's live collection
@@ -1877,7 +1929,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
             if (songsToDeleteFromList.Count==0)
             {
-                _logger.LogInformation("None of the specified NowPlayingDisplayQueue were found in playlist '{PlName}'.", playlist.PlaylistName);
+                _logger.LogInformation("None of the specified _songSource were found in playlist '{PlName}'.", playlist.PlaylistName);
                 return;
             }
 
@@ -1888,24 +1940,35 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 playlist.SongsInPlaylist.Remove(song);
             }
 
-            _logger.LogInformation("Removed {Count} NowPlayingDisplayQueue from playlist '{PlName}'.", songsToDeleteFromList.Count, playlist.PlaylistName);
+            _logger.LogInformation("Removed {Count} _songSource from playlist '{PlName}'.", songsToDeleteFromList.Count, playlist.PlaylistName);
         });
 
 
     }
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+    private bool _disposed = false;
 
+    // This method is virtual so derived classes can add their own cleanup logic if needed.
     protected virtual void Dispose(bool disposing)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (disposing)
         {
-            _logger.LogInformation("Disposing BaseViewModel.");
-            _subsManager.Dispose();
+            // This single line will dispose of all subscriptions
+            // that were added using .DisposeWith(Disposables).
+            Disposables.Dispose();
         }
+
+        _disposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 
     private void LoadMusicArtistServiceMethods(ArtistModelView? artist)
@@ -1926,6 +1989,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SongModelView? step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId).ToModelView(_mapper);
         //var step5 = musicRelationshipService.GetUserArtistRelationship(artId);
     }
+
+    public void RaisePropertyChanging(System.ComponentModel.PropertyChangingEventArgs args)
+    {
+        OnPropertyChanging(args);
+    }
+
+    public void RaisePropertyChanged(PropertyChangedEventArgs args)
+    {
+        OnPropertyChanged(args);
+    }
+
     [ObservableProperty]
     public partial double ArtistLoyaltyIndex { get; set; } 
     [ObservableProperty]

@@ -275,6 +275,7 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                                    VerticalExpandMode="FromCenter"
                                    >
                         <dx:DXExpander.Content>
+                                        <dx:DXStackLayout >
                             <StackLayout HorizontalOptions="Center" Orientation="Horizontal"
                                          Spacing="10"
                                          MinimumWidthRequest="400"     >
@@ -294,11 +295,16 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                                 <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"
                                              />
                                 <Label Text="App Volume" HorizontalOptions="Center"/>
-                                <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"
-                                WidthRequest="200"             MaxValue="1" MinValue="0"
-                                             IsVisible="False"/>
+                              
                             </StackLayout>
-                        </dx:DXExpander.Content>
+                                            <dx:DXStackLayout Orientation="Horizontal" >
+                                                <dx:TextEdit LabelText="Little Note 🎶"
+                                                             
+                                                             Text="{Binding BaseVM.CurrentNoteToSave}"/>
+                                                <dx:DXButton IconHeight="40" IconWidth="40" BackgroundColor="#1e1e1e" HeightRequest="60" Icon="addcircle.png"/>
+                                            </dx:DXStackLayout>
+                                        </dx:DXStackLayout>
+                                    </dx:DXExpander.Content>
                     </dx:DXExpander>
                 </Grid>
                 <dx:DXExpander x:Name="BottomExpanderTwo"

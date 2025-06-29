@@ -317,9 +317,6 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrEmpty(sortProperty))
             return;
 
-        var songs = MyViewModel.NowPlayingDisplayQueue;
-        if (songs == null || !songs.Any())
-            return;
 
         SortOrder newOrder;
         if (_currentSortProperty == sortProperty)
@@ -338,46 +335,6 @@ public partial class HomePage : ContentPage
         _currentSortOrder = newOrder;
 
         // Optional: Update UI to show sort indicators (e.g., change chip appearance)
-
-        switch (sortProperty)
-        {
-            case "Title":
-                //SearchSongSB
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
-                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Album": // Assuming CommandParameter is "Album" for AlbumName
-                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Genre":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Duration":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Year": // Assuming CommandParameter for ReleaseYear
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "DateAdded": // Assuming CommandParameter for DateCreated
-                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, newOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            default:
-                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {sortProperty}");
-                // Reset sort state if property is unknown, or do nothing
-                _currentSortProperty = string.Empty;
-                MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
-                return;
-
-        }
 
         // Optional: Scroll to top after sorting
         // if (SongsColView.CurrentItems.Count > 0)
@@ -565,8 +522,9 @@ public partial class HomePage : ContentPage
 
         try
         {
+            MyViewModel.SearchSongSB_TextChanged(string.Empty); // Clear the search bar to refresh the list
             // Get the list of songs you want to process
-            var songsToRefresh = MyViewModel.NowPlayingDisplayQueue; // Or your full master list
+            var songsToRefresh = MyViewModel.SearchResults; // Or your full master list
             var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
             // --- Call our static, background-safe method ---
             await SongDataProcessor.ProcessLyricsAsync(songsToRefresh,lryServ, progressReporter, _lyricsCts.Token);

@@ -181,51 +181,7 @@ public partial class HomePage : ContentPage
     private bool SortIndeed()
     {
         return true;
-        ObservableCollection<SongModelView> songs = MyViewModel.BaseVM.NowPlayingDisplayQueue;
-        if (songs == null || !songs.Any())
-            return false;
-        internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
-
-        MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
-
-        switch (MyViewModel.BaseVM.CurrentSortProperty)
-        {
-            case "Title":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
-                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Album": // Assuming CommandParameter is "Album" for AlbumName
-                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Genre":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Duration":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "Year": // Assuming CommandParameter for ReleaseYear
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            case "DateAdded": // Assuming CommandParameter for DateCreated
-                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, MyViewModel.BaseVM.CurrentSortOrder);
-                songsToDisplay=SongsColView.ItemsSource as List<SongModelView> ?? new List<SongModelView>();
-                break;
-            default:
-                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.BaseVM.CurrentSortProperty}");
-                // Reset sort state if property is unknown, or do nothing
-                MyViewModel.BaseVM.CurrentSortProperty = string.Empty;
-                MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
-                break;
-
-        }
+     
         MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
 
         return true;
@@ -402,10 +358,6 @@ public partial class HomePage : ContentPage
         SortBottomSheet.Show();
     }
 
-    private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
-    {
-
-    }
 
     private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
     {
@@ -716,6 +668,26 @@ public partial class HomePage : ContentPage
         int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
         SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
+    }
+
+    private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var txt= send.Text;
+        SearchBy.Text = $"artist:{txt}";
+    }
+
+    private void QuickFilterYears_LongPress(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
+    {
+
+        var send = (Chip)sender;
+        var txt = send.Text;
+        SearchBy.Text = $"album:{txt}";
     }
 }
 
