@@ -541,6 +541,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // This pipeline watches the final controller list and updates the label with its count.
         _finalLimitedDataSource.Connect()
             .Count() // DynamicData operator to get the count efficiently
+            .StartWith(0)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(count =>
             {
@@ -602,47 +603,56 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
+
     private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
     {
-        // --- Step 1: Get ALL rule functions ---
-        // No need to separate them yet. We get one function for each rule.
-        var allPredicateFunctions = query.Clauses.Select(c => c.AsPredicate()).ToList();
+        // --- Step 1: Convert all our organized clauses into ready-to-use predicate functions ---
+        // We create a list of functions for each logical group.
+        var mainPredicates = query.MainClauses.Select(c => c.AsPredicate()).ToList();
+        var inclusionPredicates = query.InclusionClauses.Select(c => c.AsPredicate()).ToList();
+        var exclusionPredicates = query.ExclusionClauses.Select(c => c.AsPredicate()).ToList();
 
-        // --- Step 2: Pre-process general search terms (from previous discussion) ---
+        // --- Step 2: Handle general search terms (your existing logic for this is perfect) ---
         var lowerAndTerms = query.GeneralAndTerms.Select(t => t.ToLowerInvariant()).ToList();
         var lowerOrTerms = query.GeneralOrTerms.Select(t => t.ToLowerInvariant()).ToList();
 
-        // --- Step 3: Build the final master function ---
+        // --- Step 3: Build the final master function with the correct set logic ---
+        // This function will be called once for every song in your library.
         return song =>
         {
-            // RULE 1: The song must pass ALL specific clauses (year:, artist:, etc.)
-            // The .All() operator ensures every single rule must return true.
-            // This is the AND logic you were missing.
-            if (!allPredicateFunctions.All(predicate => predicate(song)))
+            // LOGIC RULE 1: PRIORITY INCLUSION
+            // If the song matches ANY of the 'INCLUDE' clauses, it's IN. We stop here and return true.
+            // This is the highest priority.
+            if (inclusionPredicates.Any(predicate => predicate(song)))
             {
-                return false; // Failed a specific rule like year:>2000 or artist:!U2
+                return true;
             }
 
-            // RULE 2: The song must contain ALL general AND terms.
-            if (lowerAndTerms.Count > 0 && !lowerAndTerms.All(term => song.SearchableText.Contains(term)))
+            // LOGIC RULE 2: THE MAIN FILTER
+            // If the song was not a priority include, it must pass the main filter to even be considered.
+            // It must pass ALL main clauses and general terms.
+            bool passesMainFilter = mainPredicates.All(predicate => predicate(song)) &&
+                                    (lowerAndTerms.Count == 0 || lowerAndTerms.All(term => song.SearchableText.Contains(term))) &&
+                                    (lowerOrTerms.Count == 0 || lowerOrTerms.Any(term => song.SearchableText.Contains(term)));
+
+            if (!passesMainFilter)
+            {
+                return false; // It failed the main filter, so it's definitely out.
+            }
+
+            // LOGIC RULE 3: EXCLUSION
+            // The song passed the main filter. Now we check if it should be removed.
+            // If it matches ANY of the 'EXCLUDE' clauses, it's OUT.
+            if (exclusionPredicates.Any(predicate => predicate(song)))
             {
                 return false;
             }
 
-            // RULE 3: The song must contain AT LEAST ONE general OR term (if any exist).
-            if (lowerOrTerms.Count > 0 && !lowerOrTerms.Any(term => song.SearchableText.Contains(term)))
-            {
-                return false;
-            }
-
-            // If it survived everything, it's a match!
+            // SURVIVAL!
+            // The song was not a priority include, but it passed the main filter AND was not excluded. It's a match!
             return true;
         };
     }
-
-
-
-
 
     public void SearchSongSB_TextChanged(string  e)
     {
