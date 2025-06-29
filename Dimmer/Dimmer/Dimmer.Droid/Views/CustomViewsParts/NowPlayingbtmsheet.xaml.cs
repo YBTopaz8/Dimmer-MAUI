@@ -98,11 +98,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
 
     private async void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
     {
-        this.IsVisible=false;
         
-        this.Show();
-      await  Task.Delay(250);
-        this.Close();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)

@@ -23,7 +23,7 @@
   
         <Grid BackgroundColor="Transparent" RowDefinitions="*,auto,auto,auto"
               RowSpacing="20"
-             Margin="20,0" >
+              >
 
             <dx:DXBorder x:Name="TopRowWithImage"
                          Grid.Row="0" BorderColor="DarkSlateBlue"
@@ -73,7 +73,7 @@
                                />
                     </VerticalStackLayout>
                     <dx:DXImage x:Name="SongPicture"
-                                Aspect="AspectFill" Opacity="0.10"
+                                Aspect="AspectFill" Opacity="0.30" BackgroundColor="Transparent"
                                 Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                 />
             </Grid>
@@ -163,7 +163,7 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                     <dx:DXButton Grid.Column="0" BackgroundColor="#343534"
                                  Command="{Binding BaseVM.PreviousTrackCommand}"
                                  HeightRequest="120" Icon="skipprevious.png"
-                                 IconColor="#f5f5f5" IconHeight="40"
+                                 IconColor="{AppThemeBinding Dark=#f5f5f5,Light=black}" IconHeight="40"
                                  IconWidth="40" Opacity="0.5"
                                  PressedBackgroundColor="DarkSlateBlue"
                                  />
@@ -243,10 +243,10 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                     </dx:DXButton>
 
                     <dx:DXButton Grid.Row="1" Grid.Column="1"
-                                 AnimationDuration="800" BackgroundColor="#343534"
+                                 AnimationDuration="800" BackgroundColor="{AppThemeBinding Dark= #343534, Light=grey}"
                                  Command="{Binding BaseVM.NextTrackCommand}"
                                  HeightRequest="120" Icon="skipnext.png"
-                                 IconColor="#f5f5f5" IconHeight="40"
+                                 IconColor="{AppThemeBinding Dark=#f5f5f5,Light=black}" IconHeight="40"
                                  IconWidth="40" Opacity="0.5"
                                  PressedBackgroundColor="DarkSlateBlue"
                                  />
@@ -275,7 +275,8 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                                    VerticalExpandMode="FromCenter"
                                    >
                         <dx:DXExpander.Content>
-                            <StackLayout HorizontalOptions="Center"
+                            <StackLayout HorizontalOptions="Center" Orientation="Horizontal"
+                                         Spacing="10"
                                          MinimumWidthRequest="400"     >
                                 <dx:Chip BackgroundColor="Transparent" BorderColor="Black"
                                          BorderThickness="1" HeightRequest="90"
@@ -283,12 +284,18 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                                          IconSize="60,60" IsIconVisible="True"
                                          
                                          />
+                                <dx:Chip BackgroundColor="Transparent" BorderColor="Black"
+                                         BorderThickness="1" HeightRequest="90" HorizontalOptions="Start"
+                                         Icon="shuffle.png" IconColor="DarkSlateBlue"
+                                         IconSize="60,60" IsIconVisible="True"
+                                         TapCommand="{Binding BaseVM.ToggleShuffleModeCommand}"
+                                         />
                                 
                                 <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"
                                              />
                                 <Label Text="App Volume" HorizontalOptions="Center"/>
                                 <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"
-                                MinimumWidthRequest="400"             MaxValue="1" MinValue="0"
+                                WidthRequest="200"             MaxValue="1" MinValue="0"
                                              IsVisible="False"/>
                             </StackLayout>
                         </dx:DXExpander.Content>
