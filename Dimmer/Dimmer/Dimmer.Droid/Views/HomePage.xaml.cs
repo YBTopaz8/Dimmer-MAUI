@@ -622,6 +622,7 @@ public partial class HomePage : ContentPage
     {
         //await BtmBarZone.AnimateSlideUp(80);
 
+        await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
     }
 
     private void Sort_Clicked(object sender, HandledEventArgs e)
@@ -639,16 +640,18 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
+    private async void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
     {
         SearchBy.Focus();
+        await OpenedKeyboardToolbar.DimmInCompletelyAndShow();
     }
 
-    private void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
+    private async void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
     {
+        //myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
         SearchBy.Unfocus();
-        myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
-        
+        await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
+
     }
 
     private CancellationTokenSource _lyricsCts;
@@ -706,6 +709,13 @@ public partial class HomePage : ContentPage
             MyProgressBar.IsVisible = false;
             MyProgressLabel.IsVisible = false;
         }
+    }
+
+    private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
+    {
+        int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+        SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+
     }
 }
 

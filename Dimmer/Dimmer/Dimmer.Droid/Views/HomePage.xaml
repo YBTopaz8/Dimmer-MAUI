@@ -64,16 +64,67 @@
         </ResourceDictionary>
     </ContentPage.Resources>
         <Grid x:Name="RootLayout" Margin="0">
-            <dx:DXImage Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" Opacity="0.09"
+            <dx:DXImage Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" 
+                        Opacity="{AppThemeBinding Light=0.5,Dark=0.25}"
                         Aspect="AspectFill"/>
 
-        <dx:SafeKeyboardAreaView x:Name="myPageSKAV" Closed="myPageSKAV_Closed" FitKeyboardAreaToContent="SizeToKeyboard">
+        <!--<dx:SafeKeyboardAreaView x:Name="myPageSKAV" 
+                                 IsVisible="True"
+                                 Closed="myPageSKAV_Closed" FitKeyboardAreaToContent="SizeToContent">-->
             <dx:DXDockLayout x:Name="HomeView" BackgroundColor="Transparent">
                 <Grid Grid.Row="0" BackgroundColor="Transparent" dx:DXDockLayout.Dock="Bottom"
                       HeightRequest="80" VerticalOptions="End"
                     x:Name="BtmBarZone"  >
+                    <dx:DXStackLayout>
 
-                    <customViewParts:BtmBar RequestFocusOnMainView="BtmBar_RequestFocusOnMainView" />
+
+                        <dx:DXStackLayout x:Name="OpenedKeyboardToolbar" 
+                                  HeightRequest="500" IsVisible="False"
+                                  BackgroundColor="{AppThemeBinding Dark= #1e1e1e }" >
+
+                            <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
+                                               Spacing="20" VerticalOptions="Start"
+                                              BackgroundColor="Transparent" >
+                                <dx:Chip Icon="eye.png" IsIconVisible="True" 
+                                 IconSize="50,50"
+                                 Tap="ScrollToCurrSong_Tap" x:Name="ScrollToCurrSong" />
+                                <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" 
+                                   x:Name="SongsCountLabel"/>
+
+
+                                <syncf:SfChip x:Name="RefreshLyrics"
+                                          Clicked="RefreshLyrics_Clicked"
+                                          ToolTipProperties.Text="Refresh Lyrics"
+                                          ImageSize="40"
+                                          ImageSource="lyrics.png" ShowIcon="True"
+                                          WidthRequest="55"
+                                          />
+
+
+
+
+                                <syncf:SfChip x:Name="RefreshData"
+                                          Command="{Binding BaseVM.RefreshSongMetadataCommand}"
+                                          ImageSize="40" ImageSource="vinyl.png"
+                                          ShowIcon="True" WidthRequest="55" Text="refresh"
+                                          IsVisible="False"/>
+
+
+                                <syncf:SfChip x:Name="RetroactivelyLinkArtists"
+                                          Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}"
+                                          ImageSize="40" ImageSource="cloudbolt.png"
+                                          ShowIcon="True" WidthRequest="55" 
+                                         ToolTipProperties.Text="Retroactively add links" />
+
+
+
+                            </HorizontalStackLayout>
+
+                            <!--<dx:Chip Text="Hide Search"
+                            Tap="OpenDevExpressFilter_Tap" x:Name="OpenDevExpressFilter"/>-->
+                        </dx:DXStackLayout>
+                        <customViewParts:BtmBar RequestFocusOnMainView="BtmBar_RequestFocusOnMainView" />
+                    </dx:DXStackLayout>
 
                 </Grid>
                 <dx:DXStackLayout x:Name="SearchContentView"
@@ -116,13 +167,16 @@
                                          />
 
                         </dx:DXStackLayout>
-                        <dx:TextEdit x:Name="SearchBy" x:FieldModifier="Public"
+                        <dx:TextEdit x:Name="SearchBy" x:FieldModifier="Public" Margin="10"
                                       BorderColor="#585858" Focused="SearchBy_Focused"
                                      CornerRadius="20" FocusedBorderColor="DarkSlateBlue"
                                      HeightRequest="55" PlaceholderColor="DarkSlateBlue"
                                      PlaceholderText="Search..." StartIcon="searchd.png"
                                      StartIconColor="DarkSlateBlue" TextChanged="SearchBy_TextChanged"
                                      />
+
+                        <Label x:Name="MyProgressLabel" WidthRequest="180" IsVisible="False"/>
+                        <ProgressBar x:Name="MyProgressBar" WidthRequest="80" IsVisible="False"/>
                         <dx:DXStackLayout BackgroundColor="Transparent" IsVisible="True"
                                           Orientation="Horizontal"
                                       
@@ -170,7 +224,7 @@
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:SongModelView">
                                     <Grid BackgroundColor="Transparent" ColumnDefinitions="*,0.35*"
-                                          HeightRequest="130" VerticalOptions="Center"
+                                          HeightRequest="100" VerticalOptions="Center"
                                           >
 
                                         <dx:DXStackLayout x:Name="TitleAndArtists"
@@ -183,14 +237,14 @@
                                                  
                                                      HorizontalOptions="Start" 
                                                    Text="{Binding Title}" 
-                                                   TextColor="#F5F5F5" VerticalOptions="Center"
+                                                   TextColor="{AppThemeBinding Dark=White, Light=black}" VerticalOptions="Center"
                                                    />
 
                                             <dx:Chip x:Name="ArtistsChip"
                                                    Padding="-1" BackgroundColor="Transparent"
                                                    FontFamily="AleySans" FontSize="16"
                                                    HorizontalOptions="Start" BorderThickness="0"
-                                                   Opacity="0.6"
+                                                   Opacity="0.6" TextColor="{AppThemeBinding Dark=White, Light=black}"
                                                    Text="{Binding ArtistName}"
                                                    VerticalOptions="Center"
                                                    />
@@ -211,7 +265,8 @@
                                                      Grid.Column="1" Tap="MoreIcon_Clicked"
                                                      TapCommandParameter="{Binding .}"
                                                      HorizontalOptions="End" CornerRadius="25"
-                                                     IsIconVisible="False" TextColor="White"
+                                                     IsIconVisible="False" 
+                                                   TextColor="{AppThemeBinding Dark=White, Light=black}"
                                                  PressedBorderColor="DarkSlateBlue" 
                                                  Padding="20"
                                                      Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}">
@@ -234,7 +289,6 @@
                             </ResourceDictionary>
                         </dx:BottomSheet.Resources>
                         <Grid>
-                            <dx:DXImage Opacity="0.1" Source="{Binding BaseVM.SelectedSongForContext.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                             <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
                                 <dx:DXStackLayout.Resources>
                                     <ResourceDictionary>
@@ -411,51 +465,10 @@
 
             </dx:DXDockLayout>
 
-            <dx:SafeKeyboardAreaView.KeyboardAreaContent >
-                <dx:DXStackLayout x:Name="OpenedKeyboardToolbar" BackgroundColor="#1e1e1e" >
-
-                    <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End"
-                                               Spacing="20" VerticalOptions="Start"
-                                               >
-                        <Label Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" 
-                                   x:Name="SongsCountLabel"/>
-
-
-                        <ProgressBar x:Name="MyProgressBar" WidthRequest="80" IsVisible="False"/>
-                        <Label x:Name="MyProgressLabel" WidthRequest="180" IsVisible="False"/>
-                        <syncf:SfChip x:Name="RefreshLyrics"
-                                          Clicked="RefreshLyrics_Clicked"
-                                          ToolTipProperties.Text="Refresh Lyrics"
-                                          ImageSize="40"
-                                          ImageSource="lyrics.png" ShowIcon="True"
-                                          WidthRequest="55"
-                                          />
-
-
-
-
-                        <syncf:SfChip x:Name="RefreshData"
-                                          Command="{Binding BaseVM.RefreshSongMetadataCommand}"
-                                          ImageSize="40" ImageSource="vinyl.png"
-                                          ShowIcon="True" WidthRequest="55" Text="refresh"
-                                          IsVisible="False"/>
-
-
-                        <syncf:SfChip x:Name="RetroactivelyLinkArtists"
-                                          Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}"
-                                          ImageSize="40" ImageSource="cloudbolt.png"
-                                          ShowIcon="True" WidthRequest="55" 
-                                         ToolTipProperties.Text="Retroactively add links" />
-
-
-
-                    </HorizontalStackLayout>
-
-                    <!--<dx:Chip Text="Hide Search"
-                            Tap="OpenDevExpressFilter_Tap" x:Name="OpenDevExpressFilter"/>-->
-                </dx:DXStackLayout>
+            <!--<dx:SafeKeyboardAreaView.KeyboardAreaContent>
+                <StackLayout HeightRequest="1"/>
             </dx:SafeKeyboardAreaView.KeyboardAreaContent>
-        </dx:SafeKeyboardAreaView>
+        </dx:SafeKeyboardAreaView>-->
             
     <customViewParts:NowPlayingbtmsheet x:Name="NowPlayingBtmSheet" />
     </Grid>
