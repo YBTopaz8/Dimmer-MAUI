@@ -14,6 +14,10 @@ public enum LimiterType { First, Last, Random }
 
 public class SemanticQuery
 {
+    public List<QueryClause> MainClauses { get; } = new();
+    public List<QueryClause> InclusionClauses { get; } = new();
+    public List<QueryClause> ExclusionClauses { get; } = new();
+
     public List<QueryClause> Clauses { get; } = new();
     public List<SortClause> SortDirectives { get; } = new();
     public LimiterClause? LimiterDirective { get; set; }
@@ -46,7 +50,6 @@ public abstract class QueryClause
     public string Keyword { get; set; }
     public string RawValue { get; set; }
     public bool IsNegated { get; set; }
-    public bool IsInclusion { get; set; }
     public abstract Func<SongModelView, bool> AsPredicate();
     public abstract string Humanize();
 }

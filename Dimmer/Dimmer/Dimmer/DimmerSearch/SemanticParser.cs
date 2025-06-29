@@ -26,13 +26,15 @@ namespace Dimmer.DimmerSearch
 
         private static readonly HashSet<string> _numericFields = new() { "ReleaseYear", "BitRate", "DurationInSeconds", "Rating", "TrackNumber", "DiscNumber" };
         private static readonly HashSet<string> _booleanFields = new() { "HasLyrics", "HasSyncedLyrics", "IsFavorite" };
+        private enum ParseState { Main, Inclusion, Exclusion }
 
         public SemanticQuery Parse(string searchText)
         {
             var query = new SemanticQuery();
             var tokenQueue = new Queue<string>(QueryTokenizer.Tokenize(searchText));
             string lastFieldName = "Title";
-            bool currentIsInclusion = true;
+            var currentState = ParseState.Main;
+
 
             while (tokenQueue.Count > 0)
             {
@@ -42,9 +44,15 @@ namespace Dimmer.DimmerSearch
 
                 // --- Handle Top-Level Directives ---
                 if (lowerToken == "include" || lowerToken == "add")
-                { currentIsInclusion = true; continue; }
+                {
+                    currentState = ParseState.Inclusion;
+                    continue; // Move to the next token, which will be part of the INCLUDE block
+                }
                 if (lowerToken == "exclude" || lowerToken == "remove")
-                { currentIsInclusion = false; continue; }
+                {
+                    currentState = ParseState.Exclusion;
+                    continue; // Move to the next token, which will be part of the EXCLUDE block
+                }
 
                 if (lowerToken == "random" || lowerToken == "shuffle")
                 {
@@ -79,10 +87,23 @@ namespace Dimmer.DimmerSearch
                 var parts = token.Split(new[] { ':' }, 2);
                 if (parts.Length == 2 && _fieldMappings.TryGetValue(parts[0], out var fieldName))
                 {
-                    var clause = CreateClauseFromToken(fieldName, parts[0], parts[1], currentIsInclusion);
+                    // NEW: Note the simplified call here. No more boolean parameter.
+                    var clause = CreateClauseFromToken(fieldName, parts[0], parts[1]);
                     if (clause != null)
                     {
-                        query.Clauses.Add(clause);
+                        // NEW: Add the created clause to the CORRECT list based on our current state.
+                        switch (currentState)
+                        {
+                            case ParseState.Main:
+                                query.MainClauses.Add(clause);
+                                break;
+                            case ParseState.Inclusion:
+                                query.InclusionClauses.Add(clause);
+                                break;
+                            case ParseState.Exclusion:
+                                query.ExclusionClauses.Add(clause);
+                                break;
+                        }
                         lastFieldName = fieldName;
                     }
                 }
@@ -103,7 +124,7 @@ namespace Dimmer.DimmerSearch
             return query;
         }
 
-        private static QueryClause? CreateClauseFromToken(string fieldName, string keyword, string value, bool isInclusion)
+        private static QueryClause? CreateClauseFromToken(string fieldName, string keyword, string value)
         {
             string originalRawValue = value;
             bool isNegated = value.StartsWith("!");
@@ -115,9 +136,8 @@ namespace Dimmer.DimmerSearch
                 c.Keyword = keyword;
                 c.RawValue = originalRawValue;
                 c.IsNegated = isNegated;
-                c.IsInclusion = isInclusion;
+                // REMOVED: c.IsInclusion = isInclusion;
             });
-
             if (_numericFields.Contains(fieldName))
             {
                 var clause = new NumericClause { Operator = NumericOperator.Equals };
