@@ -135,7 +135,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             Track track = new(value.FilePath);
             //PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
             value.CoverImageBytes = ImageResizer.ResizeImage(track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
-            
+
         }
 
     }
@@ -163,7 +163,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 _logger.LogError("Failed to get Realm instance from RealmFactory.");
                 return;
             }
-            
+
             // --- Step 2: Gather All Necessary Information in ONE PASS ---
             // Get all song IDs we need to look up.
             var songIdsToUpdate = _songSource.Items.Select(s => s.Id).ToList();
@@ -257,7 +257,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             var songss = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
-           
+
             //RefreshSongsCover(_songSource, CollectionToUpdate.NowPlayingCol);
 
             QueueOfSongsLive =  new ObservableCollection<SongModelView>(songss);
@@ -524,7 +524,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .CombineLatest(_limiterClause, (fullList, limiter) => ApplyLimiter(fullList, limiter)) // Apply the final limiter logic
             .Publish()      // <-- Share the subsequent results
             .RefCount();
-      
+
         finalLimitedListStream
             .ObserveOn(Scheduler.Default) // It's often safer to do list edits off the UI thread
             .Subscribe(limitedItems =>
@@ -537,7 +537,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             })
             .DisposeWith(Disposables);
 
-       
+
         // --- Step 5: Handle the Label Count Update ---
         // This pipeline watches the final controller list and updates the label with its count.
         _finalLimitedDataSource.Connect()
@@ -554,8 +554,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             })
             .DisposeWith(Disposables);
     }
-    private readonly ObservableAsPropertyHelper<IReadOnlyCollection<SongModelView>> _searchResultsHelper; 
-    
+    private readonly ObservableAsPropertyHelper<IReadOnlyCollection<SongModelView>> _searchResultsHelper;
+
     private readonly SourceList<SongModelView> _finalLimitedDataSource = new SourceList<SongModelView>();
 
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
@@ -605,7 +605,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-    private Func<SongModelView, bool> BuildMasterPredicate(SemanticQuery query)
+    private Func<SongModelView, bool> BuildMasterPredicate(SemanticModel query)
     {
         // --- Step 1: Convert all our organized clauses into ready-to-use predicate functions ---
         // We create a list of functions for each logical group.
@@ -655,7 +655,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         };
     }
 
-    public void SearchSongSB_TextChanged(string  e)
+    public void SearchSongSB_TextChanged(string e)
     {
         var query = _parser.Parse(e);
 
@@ -678,7 +678,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
 
-    public  void Initialize()
+    public void Initialize()
     {
         InitializeApp();
         InitializeViewModelSubscriptions();
@@ -734,7 +734,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     AppTitle = songView != null
                         ? $"{songView.Title} - {songView.ArtistName} [{songView.AlbumName}] | {CurrentAppVersion}"
                         : CurrentAppVersion;
-                    DimmerPlayEventList=_mapper.Map<ObservableCollection<DimmerPlayEventView>>( dimmerPlayEventRepo.GetAll());
+                    DimmerPlayEventList=_mapper.Map<ObservableCollection<DimmerPlayEventView>>(dimmerPlayEventRepo.GetAll());
                     CurrentPlayingSongView.PlayEvents = DimmerPlayEventList.Where(x => x.SongId==CurrentPlayingSongView.Id).ToObservableCollection();
                 }, ex => _logger.LogError(ex, "Error in CurrentSong subscription"))
         );
@@ -791,9 +791,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                  //_songSource = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
 
-               
+
                  QueueOfSongsLive = _songSource.Items.Take(50).ToObservableCollection();
-               
+
                  Task.Run(() => RefreshSongsMetadata());
                  IsAppScanning=false;
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
@@ -1616,7 +1616,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private void RefreshSongsCover(IEnumerable<SongModelView> songsToRefresh)
     {
-        var OgSongs = _mapper.Map<ObservableCollection<SongModelView>>(( songRepo.GetAll()));
+        var OgSongs = _mapper.Map<ObservableCollection<SongModelView>>((songRepo.GetAll()));
         // Start the work on a background thread so the UI is never blocked.
         _ = Task.Run(async () =>
         {
@@ -1662,8 +1662,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                 await Task.Delay(1);
             }
-            });
-       
+        });
+
     }
 
     public void GetStatsGeneral()
@@ -1823,7 +1823,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
             return;
         }
-         
+
         if (songModel == null)
         {
             _logger.LogWarning("ToggleFavSong: Could not map CurrentPlayingSongView to SongModel.");
@@ -1994,8 +1994,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var artId = artist.Id;
         var musicRelationshipService = IPlatformApplication.Current?.Services.GetService<MusicRelationshipService>();
 
-         ArtistLoyaltyIndex = musicRelationshipService.GetArtistLoyaltyIndex(artId);
-         MyCoreArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(musicRelationshipService.GetMyCoreArtists(10));
+        ArtistLoyaltyIndex = musicRelationshipService.GetArtistLoyaltyIndex(artId);
+        MyCoreArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(musicRelationshipService.GetMyCoreArtists(10));
         ArtistBingeScore = musicRelationshipService.GetArtistBingeScore(artId);
         SongModelView? step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId).ToModelView(_mapper);
         //var step5 = musicRelationshipService.GetUserArtistRelationship(artId);
@@ -2012,11 +2012,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [ObservableProperty]
-    public partial double ArtistLoyaltyIndex { get; set; } 
+    public partial double ArtistLoyaltyIndex { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<ArtistModelView> MyCoreArtists { get; set; } 
+    public partial ObservableCollection<ArtistModelView> MyCoreArtists { get; set; }
     [ObservableProperty]
-    public partial (DateTimeOffset Date, int PlayCount) ArtistBingeScore { get; set; } 
+    public partial (DateTimeOffset Date, int PlayCount) ArtistBingeScore { get; set; }
     [ObservableProperty]
-    public partial SongModelView SongThatHookedMeOnAnArtist { get; set; } 
+    public partial SongModelView SongThatHookedMeOnAnArtist { get; set; }
 }
