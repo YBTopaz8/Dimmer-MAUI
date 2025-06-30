@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
+using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
@@ -598,75 +599,59 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly BehaviorSubject<LimiterClause?> _limiterClause;
 
     //public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
-    private readonly SemanticParser _parser = new();
     private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
     private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
 
 
-
-
-    private Func<SongModelView, bool> BuildMasterPredicate(SemanticModel query)
+    public void SearchSongSB_TextChanged(string searchText)
     {
-        // --- Step 1: Convert all our organized clauses into ready-to-use predicate functions ---
-        // We create a list of functions for each logical group.
-        var mainPredicates = query.MainClauses.Select(c => c.AsPredicate()).ToList();
-        var inclusionPredicates = query.InclusionClauses.Select(c => c.AsPredicate()).ToList();
-        var exclusionPredicates = query.ExclusionClauses.Select(c => c.AsPredicate()).ToList();
-
-        // --- Step 2: Handle general search terms (your existing logic for this is perfect) ---
-        var lowerAndTerms = query.GeneralAndTerms.Select(t => t.ToLowerInvariant()).ToList();
-        var lowerOrTerms = query.GeneralOrTerms.Select(t => t.ToLowerInvariant()).ToList();
-
-        // --- Step 3: Build the final master function with the correct set logic ---
-        // This function will be called once for every song in your library.
-        return song =>
+        // Handle the case where the search box is cleared
+        if (string.IsNullOrWhiteSpace(searchText))
         {
-            // LOGIC RULE 1: PRIORITY INCLUSION
-            // If the song matches ANY of the 'INCLUDE' clauses, it's IN. We stop here and return true.
-            // This is the highest priority.
-            if (inclusionPredicates.Any(predicate => predicate(song)))
-            {
-                return true;
-            }
+            _filterPredicate.OnNext(song => true); // Show all songs
+            _sortComparer.OnNext(new SongModelViewComparer(null)); // Default sort
+            _limiterClause.OnNext(null); // No limit
+                                         // You can clear any error message label here
+            return;
+        }
 
-            // LOGIC RULE 2: THE MAIN FILTER
-            // If the song was not a priority include, it must pass the main filter to even be considered.
-            // It must pass ALL main clauses and general terms.
-            bool passesMainFilter = mainPredicates.All(predicate => predicate(song)) &&
-                                    (lowerAndTerms.Count == 0 || lowerAndTerms.All(term => song.SearchableText.Contains(term))) &&
-                                    (lowerOrTerms.Count == 0 || lowerOrTerms.Any(term => song.SearchableText.Contains(term)));
+        try
+        {
+            // 1. Create the orchestrator with the user's full query string.
+            var orchestrator = new MetaParser(searchText); // Or QueryOrchestrator if you renamed it
 
-            if (!passesMainFilter)
-            {
-                return false; // It failed the main filter, so it's definitely out.
-            }
+            // 2. Ask the orchestrator to do its job and give us the final instructions.
+            var filterPredicate = orchestrator.CreateMasterPredicate();
+            var sortComparer = orchestrator.CreateSortComparer();
+            var limiterClause = orchestrator.CreateLimiterClause();
 
-            // LOGIC RULE 3: EXCLUSION
-            // The song passed the main filter. Now we check if it should be removed.
-            // If it matches ANY of the 'EXCLUDE' clauses, it's OUT.
-            if (exclusionPredicates.Any(predicate => predicate(song)))
-            {
-                return false;
-            }
+            // 3. Push these new instructions into our reactive pipeline.
+            //    DynamicData will automatically re-filter, re-sort, and re-limit the list.
+            _filterPredicate.OnNext(filterPredicate);
+            _sortComparer.OnNext(sortComparer);
+            _limiterClause.OnNext(limiterClause);
 
-            // SURVIVAL!
-            // The song was not a priority include, but it passed the main filter AND was not excluded. It's a match!
-            return true;
-        };
+            // Clear any previous error message
+        }
+        catch (Exception ex)
+        {
+            // A syntax error occurred. We must put the pipeline into a stable,
+            // predictable "error state": empty list, default sort, no limit.
+
+            // 1. Show no results. (You already had this, which is good).
+            _filterPredicate.OnNext(song => false);
+
+            // 2. Reset the sorter to its default state.
+            _sortComparer.OnNext(new SongModelViewComparer(null));
+
+            // 3. Reset the limiter to have no effect.
+            _limiterClause.OnNext(null);
+
+            // 4. (Optional but recommended) Display the helpful error message to the user.
+            // ErrorLabel.Text = ex.Message;
+        }
     }
 
-    public void SearchSongSB_TextChanged(string e)
-    {
-        var query = _parser.Parse(e);
-
-        // Push the new instructions into the reactive pipeline
-        _filterPredicate.OnNext(BuildMasterPredicate(query));
-        _sortComparer.OnNext(new SongModelViewComparer(query.SortDirectives));
-        _limiterClause.OnNext(query.LimiterDirective);
-
-        // Optional: Update a summary label
-        //SummaryLabel.Text = query.Humanize();
-    }
 
     readonly IRealmFactory realmFactory;
     [ObservableProperty]
