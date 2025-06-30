@@ -34,7 +34,7 @@ public class ErrorHandler : IErrorHandler
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string fileName = $"Loggercrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nException Type: {ex.GetType()}\nMessage: {ex.Message}\nStackTrace: {ex.StackTrace}\n";
             if (ex.InnerException != null)
