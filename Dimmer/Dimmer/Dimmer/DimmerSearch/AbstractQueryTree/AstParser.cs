@@ -15,7 +15,15 @@ public class AstParser
     {
         _tokens = Lexer.Tokenize(filterQuery);
     }
-
+    public AstParser(List<Token> tokens)
+    {
+        // Add an EndOfFile token if it's not there, for safety
+        _tokens = tokens.ToList(); // Make a copy
+        if (!_tokens.Any() || _tokens.Last().Type != TokenType.EndOfFile)
+        {
+            _tokens.Add(new Token(TokenType.EndOfFile, "", -1));
+        }
+    }
     public IQueryNode Parse()
     {
         if (_tokens.All(t => t.Type == TokenType.EndOfFile))
@@ -83,9 +91,24 @@ public class AstParser
             return new ClauseNode(field, op, Consume(TokenType.StringLiteral).Text);
         }
 
-        if (IsValueToken(valueToken.Type))
+        if (IsValueToken(Peek().Type))
         {
-            var firstNode = new ClauseNode(field, op, Consume(valueToken.Type).Text);
+            var lowerValue = Consume(Peek().Type).Text;
+
+            // Check for a range operator
+            if (Match(TokenType.Minus))
+            {
+                if (IsValueToken(Peek().Type))
+                {
+                    var upperValue = Consume(Peek().Type).Text;
+                    // Create a single ClauseNode with both values
+                    return new ClauseNode(field, "-", lowerValue, upperValue);
+                }
+                throw new Exception($"Syntax Error: Expected an upper value for the range on field '{field}' at position '{Peek().Position}'.");
+            }
+
+            // If not a range, proceed with the original implicit AND logic
+            var firstNode = new ClauseNode(field, op, lowerValue);
             IQueryNode logicalChain = firstNode;
 
             while (IsValueToken(Peek().Type))
@@ -95,7 +118,8 @@ public class AstParser
             }
             return logicalChain;
         }
-        throw new Exception($"Syntax Error: Expected a value for field '{field}' but found '{valueToken.Text}'.");
+
+        throw new Exception($"Syntax Error: Expected a value for field '{field}' but found '{Peek().Text}'at position '{Peek().Position}'.");
     }
 
     private Token Peek(int offset = 0) => _position + offset >= _tokens.Count ? _tokens.Last() : _tokens[_position + offset];
@@ -110,12 +134,12 @@ public class AstParser
         { _position++; return true; }
         return false;
     }
-    private bool IsOperator(TokenType type) => type switch
+    private static bool IsOperator(TokenType type) => type switch
     {
         TokenType.GreaterThan or TokenType.LessThan or TokenType.GreaterThanOrEqual or
         TokenType.LessThanOrEqual or TokenType.Equals or TokenType.Tilde or
         TokenType.Caret or TokenType.Dollar => true,
         _ => false
     };
-    private bool IsValueToken(TokenType type) => type == TokenType.Identifier || type == TokenType.Number;
+    private static bool IsValueToken(TokenType type) => type == TokenType.Identifier || type == TokenType.Number;
 }
