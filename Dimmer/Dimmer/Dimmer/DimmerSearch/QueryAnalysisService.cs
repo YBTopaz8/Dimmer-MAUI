@@ -71,15 +71,15 @@ public class QueryAnalysisService
         var lastWord = query.Split(' ').LastOrDefault() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(lastWord))
-            return _fields.ToList(); // Starting a new word
+            return [.. _fields]; // Starting a new word
 
         if (lastWord.EndsWith(':'))
         {
             var field = lastWord[..^1].ToLower();
             if (field == "artist" || field == "ar")
-                return allArtistNames.Where(a => a.ToLower().StartsWith(lastWord.Split(':').Last())).Take(10).ToList();
+                return [.. allArtistNames.Where(a => a.ToLower().StartsWith(lastWord.Split(':').Last())).Take(10)];
             if (field == "album" || field == "al")
-                return allAlbumNames.Where(a => a.ToLower().StartsWith(lastWord.Split(':').Last())).Take(10).ToList();
+                return [.. allAlbumNames.Where(a => a.ToLower().StartsWith(lastWord.Split(':').Last())).Take(10)];
         }
 
         // Suggest fields that start with the current word

@@ -66,26 +66,44 @@ public class MetaParser
         var directiveTokens = new List<Token>();
 
 
-        // We are GIVEN the tokens for this part. We must not re-tokenize.
-        // Loop over the 'segmentTokens' list that was passed in.
+
         for (int i = 0; i < segmentTokens.Count; i++)
         {
             var token = segmentTokens[i];
-            if (_directiveTokens.Contains(token.Type))
+
+            // --- START OF NEW LOGIC ---
+
+            bool isSortDirective = false;
+            // A token is ONLY a sort directive if it's asc/desc AND followed by a field name.
+            if ((token.Type == TokenType.Asc || token.Type == TokenType.Desc) &&
+                (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Identifier))
             {
+                isSortDirective = true;
+                directiveTokens.Add(token);                  // Add 'asc' or 'desc'
+                directiveTokens.Add(segmentTokens[i + 1]);   // Add the field identifier
+                i++;                                         // IMPORTANT: Skip the field token
+            }
+            // Handle other non-sort directives (`first`, `last`, `random`, `shuffle`)
+            else if (_directiveTokens.Contains(token.Type) && token.Type != TokenType.Asc && token.Type != TokenType.Desc)
+            {
+                isSortDirective = true; // Still a directive, just not a sorting one we check above
                 directiveTokens.Add(token);
-                // Also grab the number that follows, if it exists
+                // Grab the number for `first`, `last`, `random`
                 if (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Number)
                 {
                     directiveTokens.Add(segmentTokens[i + 1]);
-                    i++; // Skip the number token in the next iteration
+                    i++; // Skip the number token
                 }
             }
-            else if (token.Type != TokenType.EndOfFile)
+
+            if (!isSortDirective && token.Type != TokenType.EndOfFile)
             {
+                // If it was not a valid, complete directive, it's a filter token.
                 filterTokens.Add(token);
             }
+            // --- END OF NEW LOGIC ---
         }
+
         _segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
     }
 
@@ -121,62 +139,35 @@ public class MetaParser
         var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
 
-        // "Last one wins" logic: we find the last sort instruction and build from there.
-        int lastSortInstructionIndex = -1;
-        for (int i = 0; i < allDirectives.Count; i++)
-        {
-            var type = allDirectives[i].Type;
-            if (type == TokenType.Asc || type == TokenType.Desc || type == TokenType.Shuffle || type == TokenType.Random)
-            {
-                // If we find 'random' followed by a number, it's a limiter, not a sorter. Ignore it here.
-                if (type == TokenType.Random && i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Number)
-                {
-                    continue;
-                }
-                lastSortInstructionIndex = i;
-            }
-        }
-
-        if (lastSortInstructionIndex == -1)
-        {
-            return new SongModelViewComparer(null); // No sort specified, use default.
-        }
-
-        // Check if the last sort instruction was random/shuffle
-        var lastToken = allDirectives[lastSortInstructionIndex];
-        if (lastToken.Type == TokenType.Shuffle || lastToken.Type == TokenType.Random)
-        {
-            sortDescriptions.Add(new SortDescription("Random", SortDirection.Ascending));
-            return new SongModelViewComparer(sortDescriptions);
-        }
-
-        // Otherwise, it's an asc/desc sort. Build the list of fields.
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
+
             if (token.Type == TokenType.Asc || token.Type == TokenType.Desc)
             {
-                var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
-
-                // The next token should be the field name (Identifier)
+                // Because of our new ProcessPart logic, we can be CERTAIN
+                // that the next token is the Identifier field name.
                 if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Identifier)
                 {
+                    var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
                     string fieldAlias = allDirectives[i + 1].Text;
+
+                    // Use the shared mapping to get the real property name
                     if (AstEvaluator.FieldMappings.TryGetValue(fieldAlias, out var propertyName))
                     {
                         sortDescriptions.Add(new SortDescription(propertyName, direction));
-                        i++; // Consume the field token
                     }
-                }
-                else // Default to Title if no field is specified
-                {
-                    sortDescriptions.Add(new SortDescription("Title", direction));
+                    // We don't need an 'else' because an invalid field alias
+                    // should just be ignored.
+
+                    i++; // Consume the field token so we don't process it again
                 }
             }
         }
 
         return new SongModelViewComparer(sortDescriptions);
     }
+
 
     public LimiterClause? CreateLimiterClause()
     {
@@ -186,17 +177,17 @@ public class MetaParser
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
+
+            // Case 1: Handle `first <num>` and `last <num>`
             LimiterType? limiterType = token.Type switch
             {
                 TokenType.First => LimiterType.First,
                 TokenType.Last => LimiterType.Last,
-                TokenType.Random => LimiterType.Random,
                 _ => null
             };
 
             if (limiterType.HasValue)
             {
-                // The next token MUST be a number
                 if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Number)
                 {
                     if (int.TryParse(allDirectives[i + 1].Text, out int count) && count > 0)
@@ -204,15 +195,28 @@ public class MetaParser
                         limiter = new LimiterClause(limiterType.Value, count);
                         i++; // Consume the number token
                     }
-                    else
+                }
+                // If no number, it's not a valid limiter, so we just ignore it.
+                continue;
+            }
+
+            // Case 2: Handle `shuffle` and `random`
+            if (token.Type == TokenType.Shuffle || token.Type == TokenType.Random)
+            {
+                // By default, it's a full shuffle.
+                // int.MaxValue is a sentinel to mean "take all items, but randomized".
+                int count = int.MaxValue;
+
+                // Check if it's `random <num>`
+                if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Number)
+                {
+                    if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
                     {
-                        throw new Exception($"Invalid number for '{token.Text}' directive: '{allDirectives[i + 1].Text}'.");
+                        count = parsedCount;
+                        i++; // Consume the number token
                     }
                 }
-                else
-                {
-                    throw new Exception($"The '{token.Text}' directive must be followed by a number.");
-                }
+                limiter = new LimiterClause(LimiterType.Random, count);
             }
         }
 
