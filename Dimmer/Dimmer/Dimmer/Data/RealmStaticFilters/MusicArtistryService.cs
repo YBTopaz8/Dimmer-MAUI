@@ -46,7 +46,7 @@ public class MusicArtistryService
                 results.Add(new FibonacciDiscovery(item.Artist, daysSinceStart, daysSinceStart));
             }
         }
-        return results.OrderBy(r => r.DiscoveryDay).ToList();
+        return [.. results.OrderBy(r => r.DiscoveryDay)];
     }
 
     /// <summary>
@@ -263,7 +263,7 @@ public class MusicArtistryService
     public SongModel? GetMyPersonalAnthem() { /* The song with the highest combination of play count, rating, and low skip rate */ return null; }
     public bool DoesMyListeningFollowBenfordsLaw() { /* Check if the first digit of track numbers I play follows Benford's Law distribution. Purely for fun. */ return false; }
     public string GetMyMusicalColor() { /* Conceptual: Associate genres/moods with colors (e.g., Blues=Blue, Metal=Black, Pop=Yellow) and find the dominant color in listening history */ return "Gray"; }
-    public List<SongModel> FindPalindromeSongs() { /* Songs whose title is a palindrome. e.g., "Aba" */ return _realm.All<SongModel>().ToList().Where(s => s.Title.ToLower().Replace(" ", "") == new string(s.Title.ToLower().Replace(" ", "").Reverse().ToArray())).ToList(); }
+    public List<SongModel> FindPalindromeSongs() { /* Songs whose title is a palindrome. e.g., "Aba" */ return [.. _realm.All<SongModel>().ToList().Where(s => s.Title.ToLower().Replace(" ", "") == new string([.. s.Title.ToLower().Replace(" ", "").Reverse()]))]; }
     public (double Predictability, SongModel? NextSong) GetNextSongPredictability() { /* Analyze history to see how often I play the same song after a specific other song. */ return (0.0, null); }
 
     #endregion

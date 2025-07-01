@@ -8,7 +8,7 @@ public static class AlbumStats
     /// </summary>
     private static List<SongModel> GetSongsByAlbumId(ObjectId albumId, IReadOnlyCollection<SongModel> allSongsInLibrary)
     {
-        return allSongsInLibrary.Where(s => s.Album != null && s.Album.Id == albumId).ToList();
+        return [.. allSongsInLibrary.Where(s => s.Album != null && s.Album.Id == albumId)];
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ public static class AlbumStats
             return new List<DimmerPlayEvent>();
 
         var songIds = songs.Select(s => s.Id).ToHashSet();
-        return allEvents.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value)).ToList();
+        return [.. allEvents.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value))];
     }
 
     private static bool IsPlayInitiationEventLocal(DimmerPlayEvent e)
@@ -305,38 +305,34 @@ public static class AlbumStats
         if (songsOnAlbum.Count==0)
             return data;
 
-        data.PlaysPerTrackNumber = songsOnAlbum
+        data.PlaysPerTrackNumber = [.. songsOnAlbum
             .Select(s => new LabelValue(
                 s.TrackNumber.HasValue ? $"Track {s.TrackNumber:D2}" : (s.Title ?? "Unknown"),
-                SongStats.GetPlayCount(s, allEvents)))
-            .ToList();
-        data.SkipsPerTrackNumber = songsOnAlbum
+                SongStats.GetPlayCount(s, allEvents)))];
+        data.SkipsPerTrackNumber = [.. songsOnAlbum
             .Select(s => new LabelValue(
                 s.TrackNumber.HasValue ? $"Track {s.TrackNumber:D2}" : (s.Title ?? "Unknown"),
-                SongStats.GetSkipCount(s, allEvents)))
-            .ToList();
-        data.ListeningTimePerTrackNumberMinutes = songsOnAlbum
+                SongStats.GetSkipCount(s, allEvents)))];
+        data.ListeningTimePerTrackNumberMinutes = [.. songsOnAlbum
             .Select(s => new LabelValue(
                 s.TrackNumber.HasValue ? $"Track {s.TrackNumber:D2}" : (s.Title ?? "Unknown"),
-                SongStats.GetTotalListeningTime(s, allEvents) / 60.0))
-            .ToList();
-        data.TrackDurationsMinutes = songsOnAlbum
+                SongStats.GetTotalListeningTime(s, allEvents) / 60.0))];
+        data.TrackDurationsMinutes = [.. songsOnAlbum
             .Select(s => new LabelValue(
                 s.TrackNumber.HasValue ? $"Track {s.TrackNumber:D2}" : (s.Title ?? "Unknown"),
-                s.DurationInSeconds / 60.0))
-            .ToList();
+                s.DurationInSeconds / 60.0))];
 
         var relevantAlbumEvents = GetRelevantEventsForSongs(songsOnAlbum, allEvents);
         var albumPlayInitiationEvents = relevantAlbumEvents.Where(IsPlayInitiationEventLocal).ToList();
 
-        data.PlaysPerDayOfWeekForAlbum = albumPlayInitiationEvents
+        data.PlaysPerDayOfWeekForAlbum = [.. albumPlayInitiationEvents
             .GroupBy(e => e.DatePlayed.DayOfWeek)
             .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label)).ToList();
-        data.PlaysPerHourOfDayForAlbum = albumPlayInitiationEvents
+            .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label))];
+        data.PlaysPerHourOfDayForAlbum = [.. albumPlayInitiationEvents
             .GroupBy(e => e.DatePlayed.Hour)
             .Select(g => new LabelValue($"{g.Key:D2}:00", g.Count()))
-            .OrderBy(lv => lv.Label).ToList();
+            .OrderBy(lv => lv.Label)];
 
         return data;
     }
@@ -586,14 +582,13 @@ public static class AlbumStats
         HashSet<ObjectId> artistsToConsiderIds;
         if (specificArtistsToCompare != null && specificArtistsToCompare.Count!=0)
         {
-            artistsToConsiderIds = specificArtistsToCompare.Select(a => a.Id).ToHashSet();
+            artistsToConsiderIds = [.. specificArtistsToCompare.Select(a => a.Id)];
         }
         else // Get all distinct artists from the songs on this album
         {
-            artistsToConsiderIds = songsOnThisAlbum
+            artistsToConsiderIds = [.. songsOnThisAlbum
                 .SelectMany(s => s.ArtistIds.Select(a => a.Id))
-                .Distinct()
-                .ToHashSet();
+                .Distinct()];
         }
 
         // We need the full ArtistModel objects
@@ -611,7 +606,7 @@ public static class AlbumStats
             }
         }
 
-        bundle.ArtistContributions = bundle.ArtistContributions.OrderByDescending(c => c.TotalPlaysForArtistOnThisAlbum).ThenBy(c => c.ArtistName).ToList();
+        bundle.ArtistContributions = [.. bundle.ArtistContributions.OrderByDescending(c => c.TotalPlaysForArtistOnThisAlbum).ThenBy(c => c.ArtistName)];
 
         // Populate top artist stats for the bundle
         var topTrackArtist = bundle.ArtistContributions.OrderByDescending(c => c.TotalSongsByArtistOnThisAlbum).FirstOrDefault();

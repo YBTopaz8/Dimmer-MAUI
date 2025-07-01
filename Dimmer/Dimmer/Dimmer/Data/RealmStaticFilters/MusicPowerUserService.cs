@@ -31,10 +31,9 @@ public class MusicPowerUserService
     {
         // RQL can't do this. This is a classic case for LINQ's GroupBy after fetching all songs.
         // It's an expensive operation, so it should be used sparingly.
-        return _realm.All<SongModel>().ToList()
+        return [.. _realm.All<SongModel>().ToList()
             .GroupBy(s => $"{s.Title.ToLower().Trim()}|{s.ArtistName.ToLower().Trim()}")
-            .Where(g => g.Count() > 1)
-            .ToList();
+            .Where(g => g.Count() > 1)];
     }
 
     /// <summary>
@@ -44,7 +43,7 @@ public class MusicPowerUserService
     {
         // RQL Filter: Find all events where the backlink to a song is empty.
         var query = "SongsLinkingToThisEvent.@count == 0";
-        return _realm.All<DimmerPlayEvent>().Filter(query).ToList();
+        return [.. _realm.All<DimmerPlayEvent>().Filter(query)];
     }
 
     /// <summary>
@@ -53,7 +52,7 @@ public class MusicPowerUserService
     public List<AlbumModel> GetIncompleteAlbums()
     {
         // RQL Filter: A simple check on properties.
-        return _realm.All<AlbumModel>().Filter("TrackTotal > 0 AND SongsInAlbum.@count != TrackTotal").ToList();
+        return [.. _realm.All<AlbumModel>().Filter("TrackTotal > 0 AND SongsInAlbum.@count != TrackTotal")];
     }
 
     /// <summary>
@@ -63,7 +62,7 @@ public class MusicPowerUserService
     {
         // RQL: Find songs with a rating > 0 AND no completed play events.
         var query = "Rating > 0 AND NONE PlayHistory.WasPlayCompleted == true";
-        return _realm.All<SongModel>().Filter(query).ToList();
+        return [.. _realm.All<SongModel>().Filter(query)];
     }
 
     /// <summary>
@@ -71,15 +70,15 @@ public class MusicPowerUserService
     /// </summary>
     public List<SongModel> GetSongsWithMissingFiles()
     {
-        return _realm.All<SongModel>().Filter("IsFileExists == false").ToList();
+        return [.. _realm.All<SongModel>().Filter("IsFileExists == false")];
     }
 
     // (6-10) More health checks
-    public List<AlbumModel> GetAlbumsMissingCoverArt() => _realm.All<AlbumModel>().Filter("ImagePath == nil OR ImagePath == 'musicalbum.png'").ToList();
-    public List<ArtistModel> GetArtistsWithNoSongs() => _realm.All<ArtistModel>().Filter("Songs.@count == 0").ToList();
-    public List<GenreModel> GetGenresWithNoSongs() => _realm.All<GenreModel>().Filter("Songs.@count == 0").ToList();
-    public List<SongModel> GetSongsWithNoGenre() => _realm.All<SongModel>().Filter("Genre == nil").ToList();
-    public List<SongModel> GetSongsWithLowBitrate(int maxBitrate) => _realm.All<SongModel>().Filter("BitRate > 0 AND BitRate < $0", maxBitrate).ToList();
+    public List<AlbumModel> GetAlbumsMissingCoverArt() => [.. _realm.All<AlbumModel>().Filter("ImagePath == nil OR ImagePath == 'musicalbum.png'")];
+    public List<ArtistModel> GetArtistsWithNoSongs() => [.. _realm.All<ArtistModel>().Filter("Songs.@count == 0")];
+    public List<GenreModel> GetGenresWithNoSongs() => [.. _realm.All<GenreModel>().Filter("Songs.@count == 0")];
+    public List<SongModel> GetSongsWithNoGenre() => [.. _realm.All<SongModel>().Filter("Genre == nil")];
+    public List<SongModel> GetSongsWithLowBitrate(int maxBitrate) => [.. _realm.All<SongModel>().Filter("BitRate > 0 AND BitRate < $0", maxBitrate)];
 
     #endregion
 
@@ -230,11 +229,10 @@ public class MusicPowerUserService
         var endDate = targetDate.AddDays(dayRange);
         var query = "DatePlayed > $0 AND DatePlayed < $1";
 
-        return _realm.All<DimmerPlayEvent>().Filter(query, startDate, endDate).ToList()
+        return [.. _realm.All<DimmerPlayEvent>().Filter(query, startDate, endDate).ToList()
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault())
             .Where(s => s != null)
-            .Distinct()
-            .ToList();
+            .Distinct()];
     }
 
     /// <summary>
@@ -245,7 +243,7 @@ public class MusicPowerUserService
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-daysSinceLastPlay);
         // RQL Filter for instrumental songs over a certain length
         var query = "DurationInSeconds > $0 AND HasLyrics == false AND NONE PlayHistory.DatePlayed > $1";
-        return _realm.All<SongModel>().Filter(query, minDurationSeconds, sinceDate).ToList();
+        return [.. _realm.All<SongModel>().Filter(query, minDurationSeconds, sinceDate)];
     }
 
     
@@ -255,11 +253,10 @@ public class MusicPowerUserService
     public List<SongModel> CreateSundayMorningPlaylist()
     {
         var query = "Rating >= 4 AND ANY Tags.Name IN {'Mellow', 'Acoustic', 'Chill'}";
-        return _realm.All<SongModel>().Filter(query)
+        return [.. _realm.All<SongModel>().Filter(query)
             .ToList()
             .OrderBy(s => s.PlayHistory.LastOrDefault()?.DatePlayed ?? DateTimeOffset.MinValue) // Prioritize less recently played
-            .Take(50)
-            .ToList();
+            .Take(50)];
     }
 
     // (30-38) More dynamic playlists

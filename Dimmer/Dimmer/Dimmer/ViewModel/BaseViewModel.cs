@@ -197,7 +197,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // 2. Join them with " OR "
             var artistQueryString = string.Join(" OR ", artistClauses);
             // 3. Convert the list of strings to QueryArgument[]
-            QueryArgument[]? artistQueryArgs = allArtistNames.Select(name => (QueryArgument)name).ToArray();
+            QueryArgument[]? artistQueryArgs = [.. allArtistNames.Select(name => (QueryArgument)name)];
 
             // 4. Execute the query
             var artistsFromDb = realm.All<ArtistModel>()
@@ -574,16 +574,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         switch (limiter.Type)
         {
             case LimiterType.First:
-                return items.Take(limiter.Count).ToList();
+                return [.. items.Take(limiter.Count)];
 
             case LimiterType.Last:
                 // .TakeLast() is efficient on collections that support it
-                return items.TakeLast(limiter.Count).ToList();
+                return [.. items.TakeLast(limiter.Count)];
 
             case LimiterType.Random:
                 var random = new Random();
                 // OrderBy a new random number is a standard way to shuffle
-                return items.OrderBy(x => random.Next()).Take(limiter.Count).ToList();
+                return [.. items.OrderBy(x => random.Next()).Take(limiter.Count)];
 
             default:
                 return items;
@@ -1736,7 +1736,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
            .GroupBy(e => e.PlayTypeStr ?? "Unknown")
            .Select(g => new PlayEventGroup(
                g.Key,
-               g.OrderByDescending(e => e.DatePlayed).ToList()
+               [.. g.OrderByDescending(e => e.DatePlayed)]
            ))
            .OrderBy(group => group.Name)
            .ToObservableCollection();

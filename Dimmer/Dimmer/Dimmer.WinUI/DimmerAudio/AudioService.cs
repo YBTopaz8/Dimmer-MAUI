@@ -1048,7 +1048,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                 Name = d.FriendlyName
             });
         }
-        return list.DistinctBy(x => x.Name).ToList();
+        return [.. list.DistinctBy(x => x.Name)];
     }
 
 

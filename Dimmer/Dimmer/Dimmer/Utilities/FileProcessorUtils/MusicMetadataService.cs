@@ -138,21 +138,21 @@ public class MusicMetadataService : IMusicMetadataService
 
     public IReadOnlyList<ArtistModel> GetAllArtists()
     {
-        return _artistsByName.Values.ToList();
+        return [.. _artistsByName.Values];
     }
 
     public IReadOnlyList<AlbumModel> GetAllAlbums()
     {
-        return _albumsByName.Values.ToList();
+        return [.. _albumsByName.Values];
     }
 
     public IReadOnlyList<GenreModel> GetAllGenres()
     {
-        return _genresByName.Values.ToList();
+        return [.. _genresByName.Values];
     }
 
     public IReadOnlyList<SongModel> GetAllSongs()
     {
-        return _songs.ToList();
+        return [.. _songs];
     }
 }

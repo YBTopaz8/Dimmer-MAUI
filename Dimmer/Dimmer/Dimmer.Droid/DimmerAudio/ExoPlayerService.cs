@@ -180,7 +180,7 @@ public class ExoPlayerService : MediaSessionService
             Console.WriteLine(item.Id);
             Console.WriteLine(item.Name);
         }
-        return we.ToList();
+        return [.. we];
     }
 
     internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()
@@ -194,7 +194,7 @@ public class ExoPlayerService : MediaSessionService
             .GetDevices(GetDevicesTargets.Outputs)
             ?? [];
 
-        return devices.ToList();
+        return [.. devices];
 
     }
     public bool SetPreferredDevice(AudioOutputDevice dev)

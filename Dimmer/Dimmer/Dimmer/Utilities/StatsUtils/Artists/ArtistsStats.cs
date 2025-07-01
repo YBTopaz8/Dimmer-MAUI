@@ -8,7 +8,7 @@ public static class ArtistStats
     /// </summary>
     private static List<SongModel> GetSongsByArtistId(ObjectId artistId, IReadOnlyCollection<SongModel> allSongsInLibrary)
     {
-        return allSongsInLibrary.Where(s => s.ArtistIds.Any(a => a.Id == artistId)).ToList();
+        return [.. allSongsInLibrary.Where(s => s.ArtistIds.Any(a => a.Id == artistId))];
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ public static class ArtistStats
             return new List<DimmerPlayEvent>();
 
         var songIds = songsByArtist.Select(s => s.Id).ToHashSet();
-        return allEvents.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value)).ToList();
+        return [.. allEvents.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value))];
     }
 
     /// <summary>
@@ -241,10 +241,9 @@ public static class ArtistStats
                 }
             }
         }
-        summary.TopCollaborators = collabCounts.OrderByDescending(kvp => kvp.Value)
+        summary.TopCollaborators = [.. collabCounts.OrderByDescending(kvp => kvp.Value)
                                                .Take(5)
-                                               .Select(kvp => $"{kvp.Key} ({kvp.Value} songs)")
-                                               .ToList();
+                                               .Select(kvp => $"{kvp.Key} ({kvp.Value} songs)")];
 
         var playCountsForArtistSongs = songsByArtist.Select(s => SongStats.GetPlayCount(s, allEvents)).OrderByDescending(pc => pc).ToList();
         int E_artist = 0;
@@ -320,7 +319,7 @@ public static class ArtistStats
 
         var sharedSongs = songsByArtist2.Where(s => songsByArtist1Ids.Contains(s.Id)).ToList();
         result.SharedSongsInLibraryCount = sharedSongs.Count;
-        result.SharedSongTitles = sharedSongs.Select(s => s.Title ?? "Untitled").OrderBy(t => t).ToList();
+        result.SharedSongTitles = [.. sharedSongs.Select(s => s.Title ?? "Untitled").OrderBy(t => t)];
         if (sharedSongs.Count!=0)
             result.SharedSongsTotalPlays = sharedSongs.Sum(s => SongStats.GetPlayCount(s, allEvents));
 
@@ -375,33 +374,33 @@ public static class ArtistStats
         var relevantArtistEvents = GetRelevantEventsForArtistSongs(songsByArtist, allEvents);
         var playInitiationEvents = relevantArtistEvents.Where(IsPlayInitiationEventLocal).ToList();
 
-        data.PlaysPerMonth = playInitiationEvents
+        data.PlaysPerMonth = [.. playInitiationEvents
             .GroupBy(e => new DateTime(e.DatePlayed.Year, e.DatePlayed.Month, 1))
             .Select(g => new LabelValue(g.Key.ToString("yyyy-MM"), g.Count()))
-            .OrderBy(lv => lv.Label).ToList();
-        data.PlaysPerDayOfWeek = playInitiationEvents
+            .OrderBy(lv => lv.Label)];
+        data.PlaysPerDayOfWeek = [.. playInitiationEvents
             .GroupBy(e => e.DatePlayed.DayOfWeek)
             .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label)).ToList();
-        data.PlaysPerHourOfDay = playInitiationEvents
+            .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label))];
+        data.PlaysPerHourOfDay = [.. playInitiationEvents
             .GroupBy(e => e.DatePlayed.Hour)
             .Select(g => new LabelValue($"{g.Key:D2}:00", g.Count()))
-            .OrderBy(lv => lv.Label).ToList();
-        data.SongPlayCountDistribution = songsByArtist
+            .OrderBy(lv => lv.Label)];
+        data.SongPlayCountDistribution = [.. songsByArtist
             .Select(s => SongStats.GetPlayCount(s, allEvents))
             .GroupBy(pc => pc)
             .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => int.TryParse(lv.Label, out int val) ? val : int.MaxValue).ToList();
-        data.SongSkipCountDistribution = songsByArtist
+            .OrderBy(lv => int.TryParse(lv.Label, out int val) ? val : int.MaxValue)];
+        data.SongSkipCountDistribution = [.. songsByArtist
             .Select(s => SongStats.GetSkipCount(s, allEvents))
             .GroupBy(sc => sc)
             .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => int.TryParse(lv.Label, out int val) ? val : int.MaxValue).ToList();
-        data.SongDurationDistributionMinutes = songsByArtist
+            .OrderBy(lv => int.TryParse(lv.Label, out int val) ? val : int.MaxValue)];
+        data.SongDurationDistributionMinutes = [.. songsByArtist
             .GroupBy(s => (int)(s.DurationInSeconds / 60)) // Bucket by minute
             .Select(g => new { BucketValue = g.Key, Count = g.Count() })
             .OrderBy(x => x.BucketValue)
-            .Select(x => new LabelValue($"{x.BucketValue} min", x.Count)).ToList();
+            .Select(x => new LabelValue($"{x.BucketValue} min", x.Count))];
         // Alt label: .Select(x => new LabelValue($"{x.BucketValue * 60}-{(x.BucketValue * 60) + 59}s", x.Count)).ToList();
 
 
@@ -433,7 +432,7 @@ public static class ArtistStats
         if (targetArtists == null || targetArtists.Count==0)
             return new List<ArtistSingleStatsSummary>();
 
-        return targetArtists.Select(artist => GetSingleArtistStats(artist, allSongsInLibrary, allEvents)).ToList();
+        return [.. targetArtists.Select(artist => GetSingleArtistStats(artist, allSongsInLibrary, allEvents))];
     }
 
     // Overload for selection by indices

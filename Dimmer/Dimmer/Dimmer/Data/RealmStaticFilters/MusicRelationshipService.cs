@@ -78,11 +78,10 @@ public class MusicRelationshipService
         var newSongIds = actualDiscoveries.Select(d => (QueryArgument)d.SongId).ToArray();
         var newSongs = _realm.All<SongModel>().Filter("Id IN $0", newSongIds).ToDictionary(s => s.Id);
 
-        return actualDiscoveries
+        return [.. actualDiscoveries
             .Select(d => new SongDiscovery(newSongs.GetValueOrDefault(d.SongId), d.FirstRecentPlay))
             .Where(d => d.Song != null)
-            .OrderBy(d => d.DiscoveredDate)
-            .ToList();
+            .OrderBy(d => d.DiscoveredDate)];
     }
 
     /// <summary>
@@ -165,10 +164,9 @@ public class MusicRelationshipService
         // Be generous with days to ensure all relevant data is captured.
         var discoveries = GetNewSongDiscoveries((int)(DateTimeOffset.UtcNow - startDate).TotalDays + 31);
 
-        return discoveries
+        return [.. discoveries
             .Where(d => d.DiscoveredDate.Year == year && d.DiscoveredDate.Month == month)
-            .OrderByDescending(d => d.Song.PlayHistory.Count())
-            .ToList();
+            .OrderByDescending(d => d.Song.PlayHistory.Count())];
     }
 
     // COMPLIANT: Uses supported "IN" filter. OrderBy/FirstOrDefault are supported.
@@ -214,7 +212,7 @@ public class MusicRelationshipService
     public SongModel? GetMyMostRatedSong() => _realm.All<SongModel>().ToList().OrderByDescending(s => s.Rating).FirstOrDefault();
 
     // COMPLIANT: Uses simple, supported filter string.
-    public List<SongModel> GetBuriedTreasures() { var query = "Rating >= 4 AND PlayHistory.@count < 3"; return _realm.All<SongModel>().Filter(query).ToList(); }
+    public List<SongModel> GetBuriedTreasures() { var query = "Rating >= 4 AND PlayHistory.@count < 3"; return [.. _realm.All<SongModel>().Filter(query)]; }
 
     // CONCEPTUAL: No changes needed.
     public List<SongModel> GetSongsIShareTheMost() { /* Conceptual: requires a "ShareEvent" similar to DimmerPlayEvent */ return new(); }
@@ -482,7 +480,7 @@ public class MusicRelationshipService
         if (!topArtistIds.Any())
             return new List<ArtistModel>();
 
-        return _realm.All<ArtistModel>().Filter("Id IN $0", topArtistIds).ToList();
+        return [.. _realm.All<ArtistModel>().Filter("Id IN $0", topArtistIds)];
     }
 
     // COMPLIANT: Materializes all data first, then processes. Slow but compliant.
@@ -582,7 +580,7 @@ public class MusicRelationshipService
             .ToArray();
         if (!discoveredAlbumIds.Any())
             return new List<AlbumModel>();
-        return _realm.All<AlbumModel>().Filter("Id IN $0", discoveredAlbumIds).ToList();
+        return [.. _realm.All<AlbumModel>().Filter("Id IN $0", discoveredAlbumIds)];
     }
     public AlbumModel? GetAlbumOfTheYearForUser(int year)
     {
@@ -610,7 +608,7 @@ public class MusicRelationshipService
             .ToArray();
         if (!topAlbumIds.Any())
             return new List<AlbumModel>();
-        return _realm.All<AlbumModel>().Filter("Id IN $0", topAlbumIds).ToList();
+        return [.. _realm.All<AlbumModel>().Filter("Id IN $0", topAlbumIds)];
     }
 
     #endregion
@@ -642,10 +640,9 @@ public class MusicRelationshipService
     public (int PlayCount, int UniqueArtists) GetGenreStatsBetweenDates(string genreName, DateTimeOffset startDate, DateTimeOffset endDate) { /* ... same pattern ... */ return (0, 0); }
     public List<string> GetMyNicheGenres(int maxArtistCount)
     {
-        return _realm.All<GenreModel>().ToList()
+        return [.. _realm.All<GenreModel>().ToList()
             .Where(g => g.Songs.Select(s => s.Artist.Id).Distinct().Count() <= maxArtistCount)
-            .Select(g => g.Name)
-            .ToList();
+            .Select(g => g.Name)];
     }
     public string? GetGatewayGenre() { /* ... requires materializing events from first month of listening ... */ return null; }
     public List<string> GetMyEvergreenGenres() { /* ... requires materializing multi-year history ... */ return new(); }
@@ -687,12 +684,11 @@ public class MusicRelationshipService
                 .Select(s => new SongRecommendation(s, $"Has a similar vibe ({tagsOnPlaylist.First()})", 0.6)));
         }
 
-        return recommendations
+        return [.. recommendations
             .GroupBy(r => r.Song.Id)
             .Select(g => g.First())
             .OrderByDescending(r => r.Score)
-            .Take(limit)
-            .ToList();
+            .Take(limit)];
     }
 
     // COMPLIANT: Uses supported filter, then processes in memory.
@@ -724,7 +720,7 @@ public class MusicRelationshipService
         var leastPlayedSongIds = songPlays.OrderBy(kvp => kvp.Value).Take(5).Select(kvp => (QueryArgument)kvp.Key).ToArray();
         if (!leastPlayedSongIds.Any())
             return new List<SongModel>();
-        return _realm.All<SongModel>().Filter("Id IN $0", leastPlayedSongIds).ToList();
+        return [.. _realm.All<SongModel>().Filter("Id IN $0", leastPlayedSongIds)];
     }
     public SongModel? GetPlaylistAnthem(ObjectId playlistId)
     {

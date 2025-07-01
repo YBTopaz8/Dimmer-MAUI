@@ -58,11 +58,10 @@ public static class SongStatTwop
 
     private static List<string> CoreGetPlayedDevices(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
     {
-        return songSpecificEvents.Where(e => !string.IsNullOrEmpty(e.DeviceName))
+        return [.. songSpecificEvents.Where(e => !string.IsNullOrEmpty(e.DeviceName))
                              .Select(e => e.DeviceName!)
                              .Distinct()
-                             .OrderBy(name => name) // Consistent ordering
-                             .ToList();
+                             .OrderBy(name => name)];
     }
 
     private static double CoreGetAvgPercentListened(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
@@ -113,7 +112,7 @@ public static class SongStatTwop
 
     private static IReadOnlyCollection<DimmerPlayEvent> GetEventsForSong(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        return allEvents.Where(e => e.SongId.HasValue && e.SongId.Value == song.Id).ToList();
+        return [.. allEvents.Where(e => e.SongId.HasValue && e.SongId.Value == song.Id)];
     }
 
     public static int GetPlayCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
@@ -253,11 +252,10 @@ public static class SongStatTwop
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
-        return songSpecificEvents.Where(IsPlayInitiationEvent)
+        return [.. songSpecificEvents.Where(IsPlayInitiationEvent)
                          .GroupBy(e => e.DatePlayed.Date)
                          .Select(g => new LabelValue(g.Key.ToString("yyyy-MM-dd"), g.Count()))
-                         .OrderBy(lv => lv.Label)
-                         .ToList();
+                         .OrderBy(lv => lv.Label)];
     }
 
     /// <summary>Gets the distribution of play initiations per hour of the day.</summary>
@@ -265,11 +263,10 @@ public static class SongStatTwop
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
-        return songSpecificEvents.Where(IsPlayInitiationEvent)
+        return [.. songSpecificEvents.Where(IsPlayInitiationEvent)
                          .GroupBy(e => e.DatePlayed.Hour)
                          .Select(g => new LabelValue($"{g.Key:D2}:00 - {g.Key:D2}:59", g.Count()))
-                         .OrderBy(lv => int.Parse(lv.Label.AsSpan(0, 2)))
-                         .ToList();
+                         .OrderBy(lv => int.Parse(lv.Label.AsSpan(0, 2)))];
     }
 
     /// <summary>Gets the distribution of play initiations per day of the week.</summary>
@@ -277,11 +274,10 @@ public static class SongStatTwop
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
-        return songSpecificEvents.Where(IsPlayInitiationEvent)
+        return [.. songSpecificEvents.Where(IsPlayInitiationEvent)
                          .GroupBy(e => e.DatePlayed.DayOfWeek)
                          .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-                         .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label))
-                         .ToList();
+                         .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label))];
     }
 
     /// <summary>Gets the distribution of play initiations per month.</summary>
@@ -289,23 +285,21 @@ public static class SongStatTwop
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
-        return songSpecificEvents.Where(IsPlayInitiationEvent)
+        return [.. songSpecificEvents.Where(IsPlayInitiationEvent)
                          .GroupBy(e => new { e.DatePlayed.Year, e.DatePlayed.Month })
                          .Select(g => new LabelValue(new DateTime(g.Key.Year, g.Key.Month, 1).ToString("yyyy-MM"), g.Count()))
-                         .OrderBy(lv => lv.Label)
-                         .ToList();
+                         .OrderBy(lv => lv.Label)];
     }
 
     /// <summary>Gets a list of distinct dates on which the song had play initiations.</summary>
     public static List<DateTimeOffset> GetDatesPlayed(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
     {
-        return songSpecificEvents
+        return [.. songSpecificEvents
                          .Where(IsPlayInitiationEvent)
                          .Select(e => e.DatePlayed.Date)
                          .Distinct()
                          .OrderBy(d => d)
-                         .Select(d => new DateTimeOffset(d, TimeSpan.Zero))
-                         .ToList();
+                         .Select(d => new DateTimeOffset(d, TimeSpan.Zero))];
     }
 
     /// <summary>Calculates the longest streak of consecutive days the song was played.</summary>
@@ -359,11 +353,10 @@ public static class SongStatTwop
     {
         if (songSpecificEvents.Count==0)
             return [];
-        return songSpecificEvents.GroupBy(e => e.PlayType)
+        return [.. songSpecificEvents.GroupBy(e => e.PlayType)
                          .Select(g => new LabelValue(GetPlayTypeName(g.Key), g.Count()))
                          .OrderByDescending(lv => lv.Value) // Common to sort by count
-                         .ThenBy(lv => lv.Label)
-                         .ToList();
+                         .ThenBy(lv => lv.Label)];
     }
 
     /// <summary>Counts the number of "Seeked" (PlayType 4) events.</summary>

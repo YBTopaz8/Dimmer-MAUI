@@ -30,15 +30,14 @@ public static class TopStats
         var songLookup = songs.ToDictionary(s => s.Id);
         var filteredEvents = FilterEvents(events, playType, startDate, endDate);
 
-        return filteredEvents
+        return [.. filteredEvents
             .Where(e => e.SongId.HasValue)
             .GroupBy(e => e.SongId!.Value)
             .Select(g => new { SongId = g.Key, EventCount = g.Count() })
             .OrderByDescending(x => x.EventCount)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId)) // Ensure song still exists in library
-            .Select(x => (Song: songLookup[x.SongId], Count: x.EventCount))
-            .ToList();
+            .Select(x => (Song: songLookup[x.SongId], Count: x.EventCount))];
     }
 
     /// <summary>
@@ -75,7 +74,7 @@ public static class TopStats
         // For listening time, we don't filter by a specific playType
         var filteredEvents = FilterEvents(events, null, startDate, endDate);
 
-        return filteredEvents
+        return [.. filteredEvents
             .Where(e => e.SongId.HasValue && e.DateFinished > e.DatePlayed)
             .GroupBy(e => e.SongId!.Value)
             .Select(g => new
@@ -87,8 +86,7 @@ public static class TopStats
             .OrderByDescending(x => x.Time)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId))
-            .Select(x => (Song: songLookup[x.SongId], TotalSeconds: x.Time))
-            .ToList();
+            .Select(x => (Song: songLookup[x.SongId], TotalSeconds: x.Time))];
     }
 
     #endregion
@@ -132,15 +130,14 @@ public static class TopStats
         var songLookup = songs.ToDictionary(s => s.Id);
         var filteredEvents = FilterEvents(events, playType, startDate, endDate);
 
-        return filteredEvents
+        return [.. filteredEvents
             .Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
             .Select(e => propertySelector(songLookup[e.SongId.Value])) // Get the property (e.g., ArtistName)
             .Where(name => !string.IsNullOrEmpty(name))
             .GroupBy(name => name!)
             .Select(g => (Name: g.Key, Count: g.Count()))
             .OrderByDescending(x => x.Count)
-            .Take(count)
-            .ToList();
+            .Take(count)];
     }
 
     /// <summary>

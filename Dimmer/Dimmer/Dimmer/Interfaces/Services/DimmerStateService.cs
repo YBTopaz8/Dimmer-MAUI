@@ -56,7 +56,7 @@ public partial class DimmerStateService : IDimmerStateService
                  ex => { /* Log error for _currentSong reset subscription if needed */ })
          );
         _audioService= audioService ?? throw new ArgumentNullException(nameof(audioService));
-        _allSongsInLibrary.OnNext(songRepo.GetAll(true).ToList());
+        _allSongsInLibrary.OnNext([.. songRepo.GetAll(true)]);
     }
 
     // --- Observables (Implementing IDimmerStateService) ---
