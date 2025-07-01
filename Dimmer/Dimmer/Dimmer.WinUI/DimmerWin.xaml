@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Window x:Name="myPage"
-        x:Class="Dimmer.WinUI.DimmerWin" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-        xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-        xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" x:DataType="vm:BaseViewModelWin"
-        >
+<Window
+    x:Class="Dimmer.WinUI.DimmerWin"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    x:Name="myPage"
+    x:DataType="vm:BaseViewModelWin">
 
     <Window.TitleBar>
-        <TitleBar x:Name="DimmerTitleBar"
-                  Title="Dimmer 1.9.7-v2" BackgroundColor="Transparent"
-                  >
+        <TitleBar
+            x:Name="DimmerTitleBar"
+            Title="Dimmer 1.9.9-beta"
+            BackgroundColor="Transparent">
 
             <TitleBar.Resources>
                 <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
@@ -29,17 +35,21 @@
 
                     <!--<ImageButton Clicked="Minimize_Clicked" Source="threesquares.png" />-->
 
-                    <ImageButton x:Name="StickTopImgBtn"
-                                 BackgroundColor="Black" Clicked="StickTopImgBtn_Clicked"
-                                 HeightRequest="30"
-                                 IsVisible="{Binding IsStickToTop, Converter={StaticResource BoolToInverse}}"
-                                 Source="pushpined.png" WidthRequest="30"
-                                 />
-                    <ImageButton x:Name="UnStickTopImgBtn"
-                                 Clicked="UnStickTopImgBtn_Clicked" HeightRequest="30"
-                                 IsVisible="{Binding IsStickToTop}"
-                                 Source="pin.png" WidthRequest="30"
-                                 />
+                    <ImageButton
+                        x:Name="StickTopImgBtn"
+                        BackgroundColor="Black"
+                        Clicked="StickTopImgBtn_Clicked"
+                        HeightRequest="30"
+                        IsVisible="{Binding IsStickToTop, Converter={StaticResource BoolToInverse}}"
+                        Source="pushpined.png"
+                        WidthRequest="30" />
+                    <ImageButton
+                        x:Name="UnStickTopImgBtn"
+                        Clicked="UnStickTopImgBtn_Clicked"
+                        HeightRequest="30"
+                        IsVisible="{Binding IsStickToTop}"
+                        Source="pin.png"
+                        WidthRequest="30" />
 
 
                 </HorizontalStackLayout>

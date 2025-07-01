@@ -6,68 +6,94 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch;
+
+public enum LimiterType { First, Last, Random }
+
+public class LimiterClause
+{
+    public LimiterType Type { get; set; }
+    public int Count { get; set; }
+    public LimiterClause(LimiterType type, int count)
+    {
+        Type = type;
+        Count = count;
+    }
+    public LimiterClause()
+    {
+
+    }
+}
+
+// For the Sorter
+public enum SortDirection { Ascending, Descending, Random }
+
+public class SortDescription
+{
+    public string PropertyName { get; }
+    public SortDirection Direction { get; }
+    public SortDescription(string propertyName, SortDirection direction)
+    {
+        PropertyName = propertyName;
+        Direction = direction;
+    }
+}
+
+// A full implementation of the comparer class needed by the pipeline
 public class SongModelViewComparer : IComparer<SongModelView>
 {
+    private readonly List<SortDescription> _sortDescriptions;
+    private readonly bool _isRandomSort;
+    private readonly Random _random = new();
 
-
-
-    private readonly List<SortClause> _sortDirectives;
-
-    // This dictionary will hold the random "sort key" for each song.
-    // We use a special object to ensure it's unique to this specific sort operation.
-    private readonly object _randomSortSessionKey = new();
-
-    public SongModelViewComparer(List<SortClause>? sortDirectives)
+    public SongModelViewComparer(List<SortDescription>? descriptions)
     {
-        _sortDirectives = sortDirectives ?? new List<SortClause>();
-
-        // If there are no sort directives, default to sorting by title
-        if (_sortDirectives.Count == 0)
+        _sortDescriptions = descriptions ?? new List<SortDescription>();
+        // Check if random/shuffle was the primary sort mode
+        _isRandomSort = _sortDescriptions.Any(d => d.PropertyName == "Random");
+        if (_isRandomSort)
         {
-            _sortDirectives.Add(new SortClause { FieldName = "Title", Direction = SortDirection.Ascending });
+            _sortDescriptions.Clear(); // Random sort overrides everything
         }
     }
 
     public int Compare(SongModelView? x, SongModelView? y)
     {
-        if (x == null && y == null)
+        if (x is null && y is null)
             return 0;
-        if (x == null)
+        if (x is null)
+            return 1; // Nulls go to the end
+        if (y is null)
             return -1;
-        if (y == null)
-            return 1;
 
-        // --- NEW: Special handling for Random sort ---
-        // If the primary sort is Random, we use a different logic.
-        if (_sortDirectives[0].Direction == SortDirection.Random)
+        if (_isRandomSort)
         {
-            // We can't use a simple new Random().Next() because the sort algorithm
-            // needs a consistent value for each item during the sort pass.
-            // We use a trick with GetHashCode for pseudo-randomness that is stable
-            // for the lifetime of the object, but we mix it with our session key
-            // to ensure a DIFFERENT random order each time the user types "shuffle".
-            int xRandomKey = (x.GetHashCode() ^ _randomSortSessionKey.GetHashCode());
-            int yRandomKey = (y.GetHashCode() ^ _randomSortSessionKey.GetHashCode());
-            return xRandomKey.CompareTo(yRandomKey);
+            return _random.Next(-1, 2); // A simple way to shuffle
         }
-        // --- End of new logic ---
 
-        // The existing logic for standard sorting
-        foreach (var directive in _sortDirectives)
+        foreach (var desc in _sortDescriptions)
         {
-            IComparable? xValue = SemanticQueryHelpers.GetComparableProp(x, directive.FieldName);
-            IComparable? yValue = SemanticQueryHelpers.GetComparableProp(y, directive.FieldName);
+            var propInfo = typeof(SongModelView).GetProperty(desc.PropertyName);
+            if (propInfo == null)
+                continue; // Skip if property doesn't exist
 
-            int comparison = Comparer.Default.Compare(xValue, yValue);
+            var valueX = propInfo.GetValue(x);
+            var valueY = propInfo.GetValue(y);
 
-            if (comparison != 0)
+            int result;
+            if (valueX is IComparable comparableX)
             {
-                // If descending, just flip the result
-                return directive.Direction == SortDirection.Descending ? -comparison : comparison;
+                result = comparableX.CompareTo(valueY);
+            }
+            else // Fallback to string comparison
+            {
+                result = string.Compare(valueX?.ToString(), valueY?.ToString(), StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (result != 0)
+            {
+                return desc.Direction == SortDirection.Ascending ? result : -result;
             }
         }
-
-        // If all sort criteria are equal, they are considered equal in sort order
-        return 0;
+        return 0; // They are equal according to all criteria
     }
 }

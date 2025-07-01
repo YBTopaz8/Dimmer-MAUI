@@ -3,12 +3,12 @@
 [Setup]
 ; Basic application information
 AppName=Dimmer
-AppVersion=1.9.9-Release
+AppVersion=1.9.9j-Beta
 AppPublisher=Yvan Brunel
 AppPublisherURL=https://github.com/YBTopaz8/Dimmer-MAUI
 DefaultDirName={autopf}\Dimmer-MAUI
 DefaultGroupName=Dimmer-MAUI
-OutputBaseFilename=Setup_Dimmer1.9.9
+OutputBaseFilename=Setup_Dimmer1.9.9j
 Compression=lzma
 SolidCompression=yes
 
