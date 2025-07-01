@@ -9,6 +9,7 @@ namespace Dimmer.DimmerSearch.AbstractQueryTree;
 
 public class AstEvaluator
 {
+    public static Dictionary<string, string> FieldMappings => _fieldMappings;
     private static readonly Dictionary<string, string> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
     {
         {"t", "Title"}, {"title", "Title"}, {"ar", "OtherArtistsName"}, {"artist", "OtherArtistsName"},
