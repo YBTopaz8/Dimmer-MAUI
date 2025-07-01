@@ -9,8 +9,8 @@ namespace Dimmer.DimmerSearch;
 #region --- Enums and Root Query ---
 public enum TextOperator { Contains, StartsWith, EndsWith, Equals, Or, Levenshtein, IsEmpty, IsNotEmpty }
 public enum NumericOperator { Equals, GreaterThan, LessThan, Between, GreaterThanOrEqual, LessThanOrEqual }
-public enum SortDirection { Ascending, Descending, Random }
-public enum LimiterType { First, Last, Random }
+//public enum SortDirection { Ascending, Descending, Random }
+//public enum LimiterType { First, Last, Random }
 
 public class SemanticModel
 {
@@ -139,7 +139,11 @@ public class FlagClause : QueryClause
 }
 #endregion
 
-#region --- Sorters and Limiters ---
-public class SortClause { public string FieldName { get; set; } public SortDirection Direction { get; set; } }
-public class LimiterClause { public LimiterType Type { get; set; } public int Count { get; set; } }
-#endregion
+//#region --- Sorters and Limiters ---
+public class SortClause
+{
+    public string FieldName { get; set; }
+    public SortDirection Direction { get; set; }
+}
+//public class LimiterClause { public LimiterType Type { get; set; } public int Count { get; set; } }
+//#endregion
