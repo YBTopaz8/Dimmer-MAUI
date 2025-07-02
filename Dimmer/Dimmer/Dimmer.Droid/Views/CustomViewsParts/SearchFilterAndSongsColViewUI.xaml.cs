@@ -121,7 +121,7 @@ public partial class SearchFilterAndSongsColViewUI : DXStackLayout
         SortOrder newOrder;
 
         // Toggle order if sorting by the same property again
-        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
 
 
         MyViewModel.BaseVM.CurrentSortOrder = newOrder;
@@ -163,14 +163,14 @@ public partial class SearchFilterAndSongsColViewUI : DXStackLayout
         await this.SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
-    SortOrder internalOrder = SortOrder.Ascending;
+    SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
     {
         ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
         ;
         if (songs == null || !songs.Any())
             return false;
-        internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
+        internalOrder =  internalOrder== SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
 
         MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
 
