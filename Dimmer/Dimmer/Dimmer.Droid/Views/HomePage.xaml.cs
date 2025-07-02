@@ -30,7 +30,7 @@ public partial class HomePage : ContentPage
         //NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
         this.HideSoftInputOnTapped=true;
 
-        
+
     }
 
     protected override void OnAppearing()
@@ -46,7 +46,7 @@ public partial class HomePage : ContentPage
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
         MyViewModel.BaseVM.SearchSongSB_TextChanged(SearchBy.Text);
-       
+
     }
 
     private void ClosePopup(object sender, EventArgs e)
@@ -135,7 +135,7 @@ public partial class HomePage : ContentPage
         SortOrder newOrder;
 
         // Toggle order if sorting by the same property again
-        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
 
 
         MyViewModel.BaseVM.CurrentSortOrder = newOrder;
@@ -177,11 +177,11 @@ public partial class HomePage : ContentPage
         await this.SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
-    SortOrder internalOrder = SortOrder.Ascending;
+    SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
     {
         return true;
-     
+
         MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
 
         return true;
@@ -195,7 +195,7 @@ public partial class HomePage : ContentPage
     {
         ApplyAdvancedFilter();
 
-       
+
     }
 
     // At the top of your class
@@ -387,7 +387,7 @@ public partial class HomePage : ContentPage
         {
             await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
         }
-      
+
         //await this.AnimateFadeOutBack(600);
         //await this.CloseAsync();
     }
@@ -562,7 +562,7 @@ public partial class HomePage : ContentPage
 
     private void QuickFilterYears_DoubleTap(object sender, HandledEventArgs e)
     {
-        
+
     }
 
     private async void SearchBy_Focused(object sender, FocusEventArgs e)
@@ -673,12 +673,13 @@ public partial class HomePage : ContentPage
     private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        var txt= send.Text;
+        var txt = send.Text;
         SearchBy.Text = $"artist:{txt}";
     }
 
     private void QuickFilterYears_LongPress(object sender, HandledEventArgs e)
     {
+
 
     }
 
@@ -688,6 +689,17 @@ public partial class HomePage : ContentPage
         var send = (Chip)sender;
         var txt = send.Text;
         SearchBy.Text = $"album:{txt}";
+    }
+
+    private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var param = send.TapCommandParameter as DXExpander;
+        if (param is null)
+        {
+            return;
+        }
+        param.IsExpanded =!param.IsExpanded;
     }
 }
 

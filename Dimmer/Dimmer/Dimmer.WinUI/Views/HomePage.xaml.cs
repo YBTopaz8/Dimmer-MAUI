@@ -27,7 +27,7 @@ public partial class HomePage : ContentPage
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
-       MyViewModel.SearchSongSB_TextChanged( e.NewTextValue);
+        MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
         // Optional: Update a summary label
         //SummaryLabel.Text = query.Humanize();
     }
@@ -39,12 +39,12 @@ public partial class HomePage : ContentPage
         BindingContext = vm;
         MyViewModel = vm;
 
-       
+
         // --- Keep these lines. They correctly wire up the UI. ---
-        
+
         MyViewModel.TranslatedSearch= TranslatedSearch;
         MyViewModel.SongsCountLabel = SongsCountLabel;
-        
+
     }
 
 
@@ -142,14 +142,14 @@ public partial class HomePage : ContentPage
     //// A new helper method to create a single comparer for one field.
     //private IComparer<SongModelView>? CreateComparerForField(string fieldName, Dimmer.DimmerSearch.SortDirection direction)
     //{
-    //    if (direction == Dimmer.DimmerSearch.SortDirection.Ascending)
+    //    if (direction == Dimmer.DimmerSearch.SortDirection.Asc)
     //    {
-    //        return SortExpressionComparer<SongModelView>.Ascending(
+    //        return SortExpressionComparer<SongModelView>.Asc(
     //            song => SemanticQueryHelpers.GetComparableProp(song, fieldName));
     //    }
     //    else
     //    {
-    //        return SortExpressionComparer<SongModelView>.Descending(
+    //        return SortExpressionComparer<SongModelView>.Desc(
     //            song => SemanticQueryHelpers.GetComparableProp(song, fieldName));
     //    }
     //}
@@ -267,48 +267,45 @@ public partial class HomePage : ContentPage
 
     private async void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
     {
-        var song = e.Parameter as SongModelView;
-        if (song is not null)
-        {
-            DeviceStaticUtils.SelectedSongOne = song;
-            await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
-            return;
-        }
+        //var song = e.Parameter as SongModelView;
+        //if (song is not null)
+        //{
+        //    DeviceStaticUtils.SelectedSongOne = song;
+        //    await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+        //    return;
+        //}
 
-        switch (e.Parameter)
-        {
-            case "Alb":
-                //DeviceStaticUtils.SelectedAlbumOne = song.AlbumId;
-                //await Shell.Current.GoToAsync(nameof(AlbumPage), true);
-                return;
-            default:
-                break;
-        }
-        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
-        {
-            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-        }
+        //switch (e.Parameter)
+        //{
+        //    case "Alb":
+        //        //DeviceStaticUtils.SelectedAlbumOne = song.AlbumId;
+        //        //await Shell.Current.GoToAsync(nameof(AlbumPage), true);
+        //        return;
+        //    default:
+        //        break;
+        //}
+        //if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        //{
+        //    await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        //}
     }
-    
+
     private bool isOnFocusMode;
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
 
     List<SongModelView> songsToDisplay = new();
-  
+
     private void ArtistsChip_Clicked(object sender, EventArgs e)
     {
 
     }
     private string _currentSortProperty = string.Empty;
-    private SortOrder _currentSortOrder = SortOrder.Ascending;
+    private SortOrder _currentSortOrder = SortOrder.Asc;
 
     private async void Sort_Clicked(object sender, EventArgs e)
     {
 
-        await Shell.Current.DisplayAlert("Info", "Sorting is still underworks, for now user the search bar :D", "OK");
-        SearchSongSB.Focus();
-        return;
         var chip = sender as SfChip; // Or whatever your SfChip type is
         if (chip == null || chip.CommandParameter == null)
             return;
@@ -322,18 +319,19 @@ public partial class HomePage : ContentPage
         if (_currentSortProperty == sortProperty)
         {
             // Toggle order if sorting by the same property again
-            newOrder = (_currentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+            newOrder = (_currentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
         }
         else
         {
             // Default to ascending when sorting by a new property
-            newOrder = SortOrder.Ascending;
+            newOrder = SortOrder.Asc;
         }
 
         // Update current sort state
         _currentSortProperty = sortProperty;
         _currentSortOrder = newOrder;
 
+        MyViewModel.SearchSongSB_TextChanged($"{_currentSortOrder} {_currentSortProperty}");
         // Optional: Update UI to show sort indicators (e.g., change chip appearance)
 
         // Optional: Scroll to top after sorting
@@ -454,22 +452,40 @@ public partial class HomePage : ContentPage
 
     }
 
+    private async void PointerRecog_PointerEntered(object sender, PointerEventArgs e)
+    {
+        await Task.WhenAll(SongsColView.DimmOut(),
+            TranslatedSearch.DimmIn(),
+            UtilitySection.AnimateHeight(77, 450, Easing.SpringOut)
+            );
+        //UtilitySection.AnimateFadeOutBack()
+
+    }
+
+    private async void PointerRecog_PointerExited(object sender, PointerEventArgs e)
+    {
+        await Task.WhenAll(SongsColView.DimmIn(),
+            TranslatedSearch.DimmOut(),
+            UtilitySection.AnimateHeight(0, 350, Easing.SpringOut)
+            );
+        SearchSongSB.Unfocus();
+    }
     private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
 
-     await   Task.WhenAll(SongsColView.DimmOut(),
-         TranslatedSearch.DimmIn(),
-         SearchSongSB.AnimateHeight(150, 150, Easing.SpringOut),
-         UtilitySection.AnimateFadeOutBack());
-        SearchSongSB.FontSize = 28;
+        await Task.WhenAll(SongsColView.DimmOut(),
+             AdvSearch.DimmInCompletelyAndShow(),
+            SearchSongSB.AnimateHeight(150, 650, Easing.SpringOut));
+        //UtilitySection.AnimateFadeOutBack()
     }
 
     private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
-        await Task.WhenAll( SongsColView.DimmIn(),
-     TranslatedSearch.DimmOut(),
-         SearchSongSB.AnimateHeight(50, 300, Easing.SpringIn),
-         UtilitySection.AnimateFadeInFront());
+        await Task.Delay(500);
+        await Task.WhenAll(SongsColView.DimmIn(),
+     TranslatedSearch.DimmOut(), AdvSearch.DimmOutCompletelyAndHide(),
+         SearchSongSB.AnimateHeight(50, 500, Easing.SpringIn));
+        //UtilitySection.AnimateFadeInFront()
         SearchSongSB.FontSize = 17;
 
     }
@@ -527,7 +543,7 @@ public partial class HomePage : ContentPage
             var songsToRefresh = MyViewModel.SearchResults; // Or your full master list
             var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
             // --- Call our static, background-safe method ---
-            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh,lryServ, progressReporter, _lyricsCts.Token);
+            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
 
             await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
         }
@@ -546,5 +562,11 @@ public partial class HomePage : ContentPage
             MyProgressBar.IsVisible = false;
             MyProgressLabel.IsVisible = false;
         }
+    }
+
+
+    private void Label_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+
     }
 }

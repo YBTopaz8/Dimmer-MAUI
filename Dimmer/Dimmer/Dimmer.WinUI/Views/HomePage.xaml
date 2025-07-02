@@ -55,18 +55,30 @@
             <Image
                 Grid.RowSpan="2"
                 Aspect="AspectFit"
-                Opacity="{AppThemeBinding Dark=0.15,
-                                          Light=0.25}"
+                Opacity="{AppThemeBinding Dark=0.12,
+                                          Light=0.29}"
                 Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
             <Grid
                 x:Name="MainUI"
                 Grid.Row="0"
                 Padding="10"
                 BackgroundColor="Transparent"
-                RowDefinitions="auto,*,auto">
-                <Grid BackgroundColor="Transparent" RowDefinitions="50,70,auto">
+                RowDefinitions="auto,*"
+                RowSpacing="10">
+                <Grid
+                    Grid.Row="0"
+                    BackgroundColor="Transparent"
+                    RowDefinitions="auto,auto,auto,*,auto"
+                    RowSpacing="5">
+                    <Grid.GestureRecognizers>
+                        <PointerGestureRecognizer
+                            x:Name="PointerRecog"
+                            PointerEntered="PointerRecog_PointerEntered"
+                            PointerExited="PointerRecog_PointerExited" />
+                    </Grid.GestureRecognizers>
 
                     <HorizontalStackLayout
+                        x:Name="VeryTopTitleArtAlbumChips"
                         Grid.Row="0"
                         Margin="0,10"
                         BackgroundColor="Transparent"
@@ -106,7 +118,10 @@
                         </Border>
                         <Border>
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer CommandParameter="Alb" Tapped="CurrPlayingSongGesRec_Tapped" />
+                                <TapGestureRecognizer
+                                    Buttons="Secondary"
+                                    CommandParameter="Alb"
+                                    Tapped="CurrPlayingSongGesRec_Tapped" />
                             </Border.GestureRecognizers>
 
                             <Label FontFamily="AleySans" Text="{Binding CurrentPlayingSongView.AlbumName}" />
@@ -156,6 +171,7 @@
                                         Value="true">
                                         <Setter Property="ImageSource" Value="pause.png" />
                                     </DataTrigger>
+
                                     <DataTrigger
                                         Binding="{Binding IsPlaying}"
                                         TargetType="syncf:SfChip"
@@ -262,27 +278,10 @@
                     <Grid
                         x:Name="UtilitySection"
                         Grid.Row="2"
+                        BackgroundColor="Transparent"
                         ColumnDefinitions="*,*"
-                        IsVisible="True">
-                        <VerticalStackLayout Grid.Column="0" BackgroundColor="Transparent">
-
-                            <Label
-                                FontSize="15"
-                                Opacity="0.7"
-                                Text="{Binding PreviousLine.Text}" />
-                            <Border BackgroundColor="Transparent">
-                                <Label
-                                    FontAttributes="Bold"
-                                    FontSize="34"
-                                    Opacity="1"
-                                    Text="{Binding CurrentLine.Text}"
-                                    TextColor="DarkSlateBlue" />
-                            </Border>
-                            <Label
-                                FontSize="20"
-                                Opacity="0.7"
-                                Text="{Binding NextLine.Text}" />
-                        </VerticalStackLayout>
+                        IsVisible="True"
+                        RowDefinitions="auto,*">
                         <HorizontalStackLayout
                             Grid.Column="1"
                             HorizontalOptions="End"
@@ -299,14 +298,6 @@
                                 x:Name="MyProgressLabel"
                                 IsVisible="False"
                                 WidthRequest="180" />
-                            <syncf:SfChip
-                                x:Name="RefreshLyrics"
-                                Clicked="RefreshLyrics_Clicked"
-                                ImageSize="40"
-                                ImageSource="lyrics.png"
-                                ShowIcon="True"
-                                ToolTipProperties.Text="Refresh Lyrics"
-                                WidthRequest="55" />
 
 
                             <syncf:SfChip
@@ -317,12 +308,23 @@
                                 ShowIcon="True"
                                 WidthRequest="55" />
 
+                            <syncf:SfChip
+                                x:Name="RefreshLyrics"
+                                Clicked="RefreshLyrics_Clicked"
+                                ImageSize="40"
+                                ImageSource="lyrics.png"
+                                IsEnabled="False"
+                                IsVisible="False"
+                                ShowIcon="True"
+                                ToolTipProperties.Text="Refresh Lyrics"
+                                WidthRequest="55" />
 
                             <syncf:SfChip
                                 x:Name="RefreshData"
                                 Command="{Binding RefreshSongMetadataCommand}"
                                 ImageSize="40"
                                 ImageSource="vinyl.png"
+                                IsEnabled="False"
                                 IsVisible="False"
                                 ShowIcon="True"
                                 Text="refresh"
@@ -334,6 +336,7 @@
                                 Command="{Binding RetroactivelyLinkArtistsCommand}"
                                 ImageSize="40"
                                 ImageSource="cloudbolt.png"
+                                IsVisible="False"
                                 ShowIcon="True"
                                 ToolTipProperties.Text="Retroactively add links"
                                 WidthRequest="55" />
@@ -389,16 +392,90 @@
                         </HorizontalStackLayout>
 
                     </Grid>
+                    <VerticalStackLayout
+                        x:Name="SearchSection"
+                        Grid.Row="3"
+                        BackgroundColor="Transparent"
+                        Spacing="10">
+                        <VerticalStackLayout HorizontalOptions="Center">
+                            <Label x:Name="TranslatedSearch" IsVisible="True" />
+                            <syncf:SfChip
+                                x:Name="AdvSearch"
+                                IsVisible="False"
+                                Text="Advanced Search (TQL)"
+                                ToolTipProperties.Text="Start a Topaz Query using TQL" />
+                        </VerticalStackLayout>
+                        <Editor
+                            x:Name="SearchSongSB"
+                            windows:SearchBar.IsSpellCheckEnabled="True"
+                            windows:VisualElement.AccessKey="F"
+                            Focused="SearchSongSB_Focused"
+                            FontSize="17"
+                            IsTextPredictionEnabled="True"
+                            Placeholder="Search Title, Artist, Album..."
+                            PlaceholderColor="{AppThemeBinding Dark=White,
+                                                               Light=Black}"
+                            TextChanged="SearchSongSB_TextChanged"
+                            Unfocused="SearchSongSB_Unfocused" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout
+                        x:Name="LyricsSection"
+                        Grid.Row="4"
+                        HorizontalOptions="Center"
+                        IsVisible="False">
+                        <VerticalStackLayout.Triggers>
+
+                            <DataTrigger
+                                Binding="{Binding IsPlaying}"
+                                TargetType="VerticalStackLayout"
+                                Value="true">
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+
+                            <DataTrigger
+                                Binding="{Binding IsPlaying}"
+                                TargetType="VerticalStackLayout"
+                                Value="false">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                        </VerticalStackLayout.Triggers>
+
+                        <Label
+                            FontSize="18"
+                            HorizontalTextAlignment="Center"
+                            Opacity="0.7"
+                            Text="{Binding PreviousLine.Text}" />
+                        <Grid>
+                            <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
+                            <Label
+                                Margin="10"
+                                FontAttributes="Bold"
+                                FontSize="38"
+                                Opacity="1"
+                                Text="{Binding CurrentLine.Text}"
+                                TextColor="DarkSlateBlue">
+                                <Label.Triggers />
+                            </Label>
+                        </Grid>
+                        <Label
+                            FontSize="20"
+                            HorizontalTextAlignment="Center"
+                            Opacity="0.7"
+                            Text="{Binding NextLine.Text}" />
+                    </VerticalStackLayout>
                 </Grid>
 
 
                 <Grid
                     x:Name="SongsView"
                     Grid.Row="1"
-                    RowDefinitions="0.1*,0.1*,*">
+                    RowDefinitions="0.1*,0.1*,*"
+                    VerticalOptions="Start">
 
                     <Grid Grid.Row="1" ColumnDefinitions="*">
-                        <Grid ColumnDefinitions="1.9*,1.5*,*,*,*,*,10">
+                        <Grid ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.6*">
                             <Grid.Resources>
                                 <Style TargetType="Label">
                                     <Setter Property="FontSize" Value="18" />
@@ -450,11 +527,11 @@
                             <syncf:SfChip
                                 Grid.Column="4"
                                 Clicked="Sort_Clicked"
-                                CommandParameter="Duration"
+                                CommandParameter="year"
                                 Text="Year" />
                             <syncf:SfChip
                                 Grid.Column="5"
-                                CommandParameter="Duration"
+                                CommandParameter="len"
                                 HorizontalTextAlignment="Center"
                                 Text="Duration" />
                         </Grid>
@@ -494,12 +571,10 @@
                                     </Border.Triggers>
                                     <syncf:SfEffectsView BackgroundColor="Transparent" TouchDownEffects="Ripple">
 
-                                        <Grid
-                                            ColumnDefinitions="1.9*,1.5*,*,*,*,*,10"
-                                            ColumnSpacing="20"
-                                            RowDefinitions="35">
+                                        <Grid ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.6*" ColumnSpacing="10">
 
                                             <Grid.GestureRecognizers>
+
                                                 <TapGestureRecognizer
                                                     x:Name="TapGestRec"
                                                     CommandParameter="{Binding .}"
@@ -580,16 +655,17 @@
                                                 </FlyoutBase.ContextFlyout>
                                                 <Label
                                                     Grid.Column="1"
-                                                    HorizontalOptions="Center"
+                                                    HorizontalOptions="Start"
+                                                    LineBreakMode="WordWrap"
                                                     Text="{Binding OtherArtistsName}"
                                                     VerticalOptions="Center" />
                                             </syncf:SfEffectsView>
 
                                             <Label
                                                 Grid.Column="2"
-                                                HorizontalOptions="Center"
+                                                HorizontalOptions="Start"
                                                 HorizontalTextAlignment="Start"
-                                                LineBreakMode="TailTruncation"
+                                                LineBreakMode="WordWrap"
                                                 Text="{Binding AlbumName}"
                                                 ToolTipProperties.Text="{Binding AlbumName}"
                                                 VerticalOptions="Center">
@@ -647,25 +723,27 @@
                 <Border
                     x:Name="StatsView"
                     Grid.Row="1"
+                    BackgroundColor="Transparent"
                     IsVisible="False">
 
-                    <Grid RowDefinitions="auto,*">
+                    <Grid BackgroundColor="Transparent" RowDefinitions="auto,*">
                         <Label
                             Grid.Row="0"
                             FontSize="28"
                             Text="{Binding AllLines.Count, StringFormat='Lyrics Lines : {0}'}"
                             VerticalOptions="Start" />
 
-                        <Grid Grid.Row="1">
+                        <Grid Grid.Row="1" BackgroundColor="Transparent">
                             <CollectionView
                                 x:Name="AllLyricsColView"
+                                BackgroundColor="Transparent"
                                 ItemsSource="{Binding AllLines}"
                                 Loaded="AllLyricsColView_Loaded"
                                 SelectedItem="{Binding CurrentLine}"
                                 SelectionMode="Single">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                        <Border Padding="10">
+                                        <Border Padding="10" BackgroundColor="Transparent">
                                             <Label
                                                 FontSize="{Binding NowPlayingLyricsFontSize}"
                                                 Text="{Binding Text}"
@@ -739,30 +817,6 @@
 
             </Grid>
 
-            <Grid
-                x:Name="SearchSection"
-                Grid.Row="1"
-                BackgroundColor="Transparent"
-                RowDefinitions="auto,*"
-                RowSpacing="10">
-                <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center">
-                    <Label x:Name="TranslatedSearch" IsVisible="True" />
-                </HorizontalStackLayout>
-                <Editor
-                    x:Name="SearchSongSB"
-                    Grid.Row="1"
-                    windows:SearchBar.IsSpellCheckEnabled="True"
-                    windows:VisualElement.AccessKey="F"
-                    Focused="SearchSongSB_Focused"
-                    FontSize="17"
-                    HeightRequest="50"
-                    IsTextPredictionEnabled="True"
-                    Placeholder="Search Title, Artist, Album..."
-                    PlaceholderColor="Black"
-                    TextChanged="SearchSongSB_TextChanged"
-                    Unfocused="SearchSongSB_Unfocused" />
-
-            </Grid>
 
 
         </Grid>
