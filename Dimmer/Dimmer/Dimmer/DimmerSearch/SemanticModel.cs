@@ -9,7 +9,7 @@ namespace Dimmer.DimmerSearch;
 #region --- Enums and Root Query ---
 public enum TextOperator { Contains, StartsWith, EndsWith, Equals, Or, Levenshtein, IsEmpty, IsNotEmpty }
 public enum NumericOperator { Equals, GreaterThan, LessThan, Between, GreaterThanOrEqual, LessThanOrEqual }
-//public enum SortDirection { Ascending, Descending, Random }
+//public enum SortDirection { Asc, Desc, Random }
 //public enum LimiterType { First, Last, Random }
 
 public class SemanticModel
