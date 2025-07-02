@@ -428,14 +428,14 @@
                         <VerticalStackLayout.Triggers>
 
                             <DataTrigger
-                                Binding="{Binding IsPlaying}"
+                                Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                 TargetType="VerticalStackLayout"
                                 Value="true">
                                 <Setter Property="IsVisible" Value="True" />
                             </DataTrigger>
 
                             <DataTrigger
-                                Binding="{Binding IsPlaying}"
+                                Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                 TargetType="VerticalStackLayout"
                                 Value="false">
                                 <Setter Property="IsVisible" Value="False" />
@@ -544,7 +544,8 @@
                         IsVisible="True"
                         ItemsSource="{Binding SearchResults}"
                         Loaded="MainSongsColView_Loaded"
-                        SelectionMode="None">
+                        SelectionMode="None"
+                        VerticalOptions="Start">
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
@@ -683,6 +684,7 @@
                                             <Label
                                                 Grid.Column="3"
                                                 HorizontalOptions="Center"
+                                                LineBreakMode="TailTruncation"
                                                 Text="{Binding Genre.Name}"
                                                 VerticalOptions="Center" />
                                             <Label
@@ -733,86 +735,49 @@
                             Text="{Binding AllLines.Count, StringFormat='Lyrics Lines : {0}'}"
                             VerticalOptions="Start" />
 
-                        <Grid Grid.Row="1" BackgroundColor="Transparent">
-                            <CollectionView
-                                x:Name="AllLyricsColView"
-                                BackgroundColor="Transparent"
-                                ItemsSource="{Binding AllLines}"
-                                Loaded="AllLyricsColView_Loaded"
-                                SelectedItem="{Binding CurrentLine}"
-                                SelectionChanged="AllLyricsColView_SelectionChanged"
-                                SelectionMode="Single">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                        <Border Padding="10" BackgroundColor="Transparent">
-                                            <Label
-                                                FontSize="{Binding NowPlayingLyricsFontSize}"
-                                                Text="{Binding Text}"
-                                                TextColor="{Binding HighlightColor}" />
-
-                                            <VisualStateManager.VisualStateGroups>
-                                                <VisualStateGroup x:Name="CommonStates">
-                                                    <VisualState x:Name="Normal">
-                                                        <VisualState.Setters>
-                                                            <Setter Property="BackgroundColor" Value="Transparent" />
-                                                        </VisualState.Setters>
-                                                    </VisualState>
-
-                                                    <VisualState Name="PointerOver">
-                                                        <VisualState.Setters>
-                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                                        </VisualState.Setters>
-                                                    </VisualState>
-                                                </VisualStateGroup>
-                                            </VisualStateManager.VisualStateGroups>
-                                        </Border>
-
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                        </Grid>
-                        <Grid
+                        <CollectionView
+                            x:Name="AllLyricsColView"
                             Grid.Row="1"
-                            Margin="20"
-                            ColumnDefinitions="*,auto"
-                            IsVisible="False"
-                            RowSpacing="20">
+                            SelectionChanged="AllLyricsColView_SelectionChanged_1"
+                            BackgroundColor="Transparent"
+                            ItemsSource="{Binding AllLines}"
+                            Loaded="AllLyricsColView_Loaded"
+                            SelectedItem="{Binding CurrentLine, Mode=TwoWay}"
+                            SelectionMode="Single">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                    <Border
+                                        Padding="10"
+                                        BackgroundColor="Transparent"
+                                        HorizontalOptions="Center">
+                                        <Label
+                                            FontSize="{Binding NowPlayingLyricsFontSize}"
+                                            HorizontalTextAlignment="Center"
+                                            Text="{Binding Text}"
+                                            TextColor="{Binding HighlightColor}" />
 
-                            <CollectionView Grid.Column="0" ItemsSource="{Binding DimmerPlayEventList}">
+                                        <VisualStateManager.VisualStateGroups>
+                                            <VisualStateGroup x:Name="CommonStates">
+                                                <VisualState x:Name="Normal">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
 
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:DimmerPlayEventView">
-                                        <HorizontalStackLayout Spacing="20">
+                                                <VisualState Name="PointerOver">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateManager.VisualStateGroups>
+                                    </Border>
 
-                                            <Label FontSize="17" Text="{Binding SongName}" />
-                                            <Label Text="was" />
-                                            <Label Text="{Binding PlayTypeStr}" />
-                                            <Label Text="On" />
-                                            <Label Text="{Binding EventDate, Converter={converters:DateTimeOffsetToLocalDateConverter}}" />
-                                        </HorizontalStackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-
-                            <Grid
-                                Grid.Column="1"
-                                IsEnabled="True"
-                                IsVisible="True">
-
-                                <CollectionView ItemsSource="{Binding TopSongsLastMonth}">
-
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Label Text="{Binding Count}" />
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-
-                            </Grid>
-                        </Grid>
-
-
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </Grid>
+
 
                 </Border>
 

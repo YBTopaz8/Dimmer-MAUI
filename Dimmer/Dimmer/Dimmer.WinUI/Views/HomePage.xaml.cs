@@ -5,12 +5,19 @@ using Dimmer.Utilities.FileProcessorUtils;
 
 using DynamicData;
 using DynamicData.Binding;
+using Compositor = Microsoft.UI.Composition.Compositor;
+using Visual = Microsoft.UI.Composition.Visual;
+using Microsoft.Maui.Controls.Internals;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Media;
 
 using MoreLinq;
 
 using ReactiveUI;
 
 using System.DirectoryServices;
+using System.Numerics;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -18,7 +25,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 
+using Windows.UI.Composition;
+
 using SortOrder = Dimmer.Utilities.SortOrder;
+using WinUIControls = Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
+using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
+using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunction;
 
 namespace Dimmer.WinUI.Views;
 
@@ -435,10 +448,320 @@ public partial class HomePage : ContentPage
     {
 
     }
-
+    private Compositor _compositor;
+    private Visual _scrollViewerContentVisual; // The visual we will animate for scrolling
+    private WinUIControls.ListView? _nativeListView;
     private void AllLyricsColView_Loaded(object sender, EventArgs e)
     {
+        if (AllLyricsColView.Handler?.PlatformView is WinUIControls.ListView nativeListView)
+        {
 
+            return;
+            _nativeListView = nativeListView;
+
+            var elVis = ElementCompositionPreview.GetElementVisual(nativeListView);
+            //elVis.
+            //_compositor = ElementCompositionPreview.GetElementVisual(nativeListView).Compositor;
+
+
+            //nativeListView.LayoutUpdated += OnLayoutUpdated;
+
+            _nativeListView.SelectionChanged += _nativeListView_SelectionChanged;
+
+
+            AllLyricsColView.Unloaded += (s, e) =>
+            {
+                _nativeListView.SelectionChanged -= _nativeListView_SelectionChanged;
+                //_nativeListView.ContainerContentChanging -= _nativeListView_ContainerContentChanging;
+                _nativeListView = null;
+            };
+        }
+    }
+
+    private void OnLayoutUpdated(object? sender, object e)
+    {
+        // We only need to do this once.
+        if (_scrollViewerContentVisual != null)
+        {
+            return;
+        }
+
+        if (_nativeListView != null)
+        {
+            _scrollViewer= FindVisualChild<WinUIControls.ScrollViewer>(_nativeListView);
+            if (_scrollViewer != null)
+            {
+
+                // Initialize the visual we need to animate.
+                _scrollViewerContentVisual = ElementCompositionPreview.GetElementVisual(_scrollViewer.Content as UIElement);
+
+                // CRITICAL: Immediately unsubscribe from the event to avoid performance issues.
+                _nativeListView.LayoutUpdated -= OnLayoutUpdated;
+                if (_pendingAnimationRequest.HasValue)
+                {
+                    var request = _pendingAnimationRequest.Value;
+                    _pendingAnimationRequest = null;
+                    OrchestrateCoordinatedTransition(request.deselected, request.selected);
+                }
+            }
+        }
+    }
+
+    private void PrintVisualTree(DependencyObject obj, int indent = 0)
+    {
+        string prefix = new string(' ', indent * 4);
+        System.Diagnostics.Debug.WriteLine($"{prefix}{obj.GetType().Name}");
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+        {
+            PrintVisualTree(VisualTreeHelper.GetChild(obj, i), indent + 1);
+        }
+    }
+    private object? _itemToAnimateOnLoad = null;
+    private void _nativeListView_ContainerContentChanging(WinUIControls.ListViewBase sender, WinUIControls.ContainerContentChangingEventArgs args)
+    {
+        // Check if the item being loaded is the one we're waiting to animate.
+        if (args.InRecycleQueue == false && args.Item == _itemToAnimateOnLoad)
+        {
+            // We found it! Animate the container.
+            AnimateItemSelected((WinUIControls.ListViewItem)args.ItemContainer);
+
+            // IMPORTANT: Reset the field so we don't accidentally re-animate it.
+            _itemToAnimateOnLoad = null;
+        }
+    }
+
+    private void _nativeListView_SelectionChanged(object sender, WinUIControls.SelectionChangedEventArgs e)
+    {
+        if (_isAnimatingSelection)
+            return;
+
+        if (e.RemovedItems.FirstOrDefault() is { } deselectedItem &&
+            e.AddedItems.FirstOrDefault() is { } selectedItem)
+        {
+            if (_scrollViewerContentVisual == null)
+            {
+                _pendingAnimationRequest = (deselectedItem, selectedItem);
+                return;
+            }
+
+            OrchestrateCoordinatedTransition(deselectedItem, selectedItem);
+        }
+    }
+
+    private (object deselected, object selected)? _pendingAnimationRequest;
+    private bool _isAnimatingSelection = false;
+    private void OrchestrateCoordinatedTransition(object deselectedItem, object selectedItem)
+    {
+        _isAnimatingSelection = true;
+
+        // --- PHASE 1: "Eyelid Shuts" (Fade Out) ---
+        var fadeOutAnimation = _compositor.CreateScalarKeyFrameAnimation();
+        fadeOutAnimation.InsertKeyFrame(1.0f, 0.0f);
+        fadeOutAnimation.Duration = TimeSpan.FromMilliseconds(200);
+
+        var scopeBatch = _compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+        scopeBatch.Completed += (s, a) =>
+        {
+            // --- PHASE 2: Work while invisible ---
+            // Instantly shrink the old item back to normal.
+            if (_nativeListView.ContainerFromItem(deselectedItem) is WinUIControls.ListViewItem deselectedContainer)
+            {
+                var visual = ElementCompositionPreview.GetElementVisual(deselectedContainer);
+                visual.Scale = Vector3.One;
+            }
+
+            // Perform the invisible scroll.
+            _nativeListView.ScrollIntoView(selectedItem, WinUIControls.ScrollIntoViewAlignment.Leading);
+
+            // Instantly grow the new item. It will be revealed this way.
+            if (_nativeListView.ContainerFromItem(selectedItem) is WinUIControls.ListViewItem selectedContainer)
+            {
+                AnimateItemGrow(selectedContainer);
+            }
+
+            // --- PHASE 3: "Eyelid Opens" (Fade In) ---
+            var fadeInAnimation = _compositor.CreateScalarKeyFrameAnimation();
+            fadeInAnimation.InsertKeyFrame(1.0f, 1.0f);
+            fadeInAnimation.Duration = TimeSpan.FromMilliseconds(350);
+            fadeInAnimation.DelayTime = TimeSpan.FromMilliseconds(50);
+            _listViewVisual.StartAnimation("Opacity", fadeInAnimation);
+
+            _isAnimatingSelection = false;
+        };
+
+        _listViewVisual.StartAnimation("Opacity", fadeOutAnimation);
+        scopeBatch.End();
+    }
+    private Visual _listViewVisual;
+    private void AnimateItemGrow(WinUIControls.ListViewItem item)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(item);
+
+        // The robust ExpressionAnimation to guarantee it scales from the center.
+        var centerPointExpression = _compositor.CreateExpressionAnimation("Vector3(this.Target.Size.X * 0.5, this.Target.Size.Y * 0.5, 0)");
+        visual.StartAnimation("CenterPoint", centerPointExpression);
+
+        // Instantly set the scale. We don't animate it here, we just set the final state.
+        visual.Scale = new Vector3(1.1f, 1.1f, 1.0f);
+    }
+    private WinUIControls.ScrollViewer? _scrollViewer;
+    private void CleanupPreviousAnimationState()
+    {
+        if (_scrollViewerContentVisual == null || _scrollViewer == null)
+            return;
+
+        // Stop any rogue animations that might be running.
+        _scrollViewerContentVisual.StopAnimation("Offset");
+
+        // The ScrollViewer knows the *correct* scroll position. Our visual's offset is just for animation.
+        // We calculate what the visual's offset *should* be based on the ScrollViewer's real position.
+        var correctOffset = -(float)_scrollViewer.VerticalOffset;
+
+        // If our visual's animated offset is different from the correct offset (with a small tolerance),
+        // it means the last animation was interrupted. We snap it back into place instantly.
+        if (Math.Abs(_scrollViewerContentVisual.Offset.Y - correctOffset) > 0.1f)
+        {
+            _scrollViewerContentVisual.Offset = new Vector3(0, correctOffset, 0);
+        }
+    }
+
+
+    /*    // --- STEP 1: Get the starting state ---
+        var deselectedContainer = _nativeListView.ContainerFromItem(deselectedItem) as WinUIControls.ListViewItem;
+        if (deselectedContainer == null)
+        { _isAnimatingSelection = false; return; } // Can't animate if old item is gone
+
+        var startOffset = _scrollViewerContentVisual.Offset.Y;
+
+        // --- STEP 2: The trick to find the end state ---
+        _nativeListView.ScrollIntoView(selectedItem, WinUIControls.ScrollIntoViewAlignment.Leading);
+        _nativeListView.UpdateLayout(); // Force the layout to update and create the new container
+        var selectedContainer = _nativeListView.ContainerFromItem(selectedItem) as WinUIControls.ListViewItem;
+        if (selectedContainer == null)
+        { _isAnimatingSelection = false; return; } // New item couldn't be found
+
+        // Calculate the distance we need to scroll.
+        var endOffset = startOffset - (selectedContainer.TransformToVisual(_nativeListView).TransformPoint(new Windows.Foundation.Point(0, 0)).Y);
+
+        // Instantly jump back to the start position before the user sees anything
+        _scrollViewerContentVisual.Offset = new Vector3(0, startOffset, 0);
+
+        // --- STEP 3: Create and run the synchronized animations ---
+        var scopeBatch = _compositor.CreateScopedBatch(Microsoft.UI.Composition.CompositionBatchTypes.Animation);
+        var duration = TimeSpan.FromMilliseconds(500);
+        var ease = _compositor.CreateCubicBezierEasingFunction(new Vector2(0.4f, 0.0f), new Vector2(0.2f, 1.0f));
+
+        // Animation 1: Shrink/Fade out old item
+        AnimateItem(ElementCompositionPreview.GetElementVisual(deselectedContainer), 1.0f, 0.8f, 1.0f, 0.0f, duration, ease);
+
+        // Animation 2: Grow/Fade in new item
+        AnimateItem(ElementCompositionPreview.GetElementVisual(selectedContainer), 0.8f, 1.1f, 0.0f, 1.0f, duration, ease);
+
+        // Animation 3: Animate the scroll
+        var scrollAnimation = _compositor.CreateVector3KeyFrameAnimation();
+        scrollAnimation.Duration = duration;
+        scrollAnimation.InsertKeyFrame(1.0f, new Vector3(0, endOffset, 0), ease);
+        _scrollViewerContentVisual.StartAnimation("Offset", scrollAnimation);
+
+        scopeBatch.Completed += (s, a) =>
+        {
+            // Cleanup: Reset the scroll offset and re-enable selection
+            _scrollViewerContentVisual.StopAnimation("Offset");
+            _scrollViewerContentVisual.Offset = new Vector3(0, endOffset, 0);
+            _isAnimatingSelection = false;
+        };
+        scopeBatch.End();
+    }
+    */
+    private void AnimateItem(Visual visual, float startScale, float endScale, float startOpacity, float endOpacity, TimeSpan duration, CompositionEasingFunction ease, TimeSpan delay)
+    {
+        var centerPointExpression = _compositor.CreateExpressionAnimation(
+            "Vector3(this.Target.Size.X * 0.5, this.Target.Size.Y * 0.5, 0)");
+
+        // We "start" this animation, but with no duration, it's not an animation over time.
+        // It's a rule that is now permanently active for this visual.
+        visual.StartAnimation("CenterPoint", centerPointExpression);
+        // ----------------------
+
+        visual.Opacity = startOpacity;
+
+        var scaleAnim = _compositor.CreateScalarKeyFrameAnimation();
+        scaleAnim.Duration = duration;
+        scaleAnim.DelayTime = delay;
+        scaleAnim.InsertKeyFrame(0.0f, startScale);
+        scaleAnim.InsertKeyFrame(1.0f, endScale, ease);
+
+        var opacityAnim = _compositor.CreateScalarKeyFrameAnimation();
+        opacityAnim.Duration = duration;
+        opacityAnim.DelayTime = delay;
+        // The end opacity is now correctly respected from your parameter.
+        opacityAnim.InsertKeyFrame(1.0f, endOpacity, ease);
+
+        visual.StartAnimation("Scale.X", scaleAnim);
+        visual.StartAnimation("Scale.Y", scaleAnim);
+        visual.StartAnimation("Opacity", opacityAnim);
+    }
+
+    private T? FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+        {
+            DependencyObject? child = VisualTreeHelper.GetChild(obj, i);
+            if (child != null && child is T)
+            {
+                return (T)child;
+            }
+            else
+            {
+                T? childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null)
+                    return childOfChild;
+            }
+        }
+        return null;
+    }
+
+
+    // STEP 3: The Animations
+    private void AnimateItemSelected(WinUIControls.ListViewItem item)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(item);
+        Microsoft.UI.Composition.Compositor? compositor = visual.Compositor;
+
+        // CRITICAL: Make the animation grow from the center, not the top-left.
+        visual.CenterPoint = new Vector3((float)item.ActualWidth / 2, (float)item.ActualHeight / 2, 0);
+
+        var duration = TimeSpan.FromMilliseconds(600);
+
+        // A nice springy easing function
+        var ease = compositor.CreateCubicBezierEasingFunction(new Vector2(0.2f, 1.0f), new Vector2(0.4f, 1.0f));
+
+        var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
+        scaleAnimation.InsertKeyFrame(0.0f, new Vector3(1.0f, 1.0f, 1.0f), ease); // Start at normal size
+        scaleAnimation.InsertKeyFrame(1.0f, new Vector3(1.1f, 1.1f, 1.0f), ease); // End 10% larger
+        scaleAnimation.Duration = duration;
+
+        visual.StartAnimation("Scale", scaleAnimation);
+    }
+
+    private void AnimateItemDeselected(WinUIControls.ListViewItem item)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(item);
+        var compositor = visual.Compositor;
+
+        visual.CenterPoint = new Vector3((float)item.ActualWidth / 2, (float)item.ActualHeight / 2, 0);
+
+        var duration = TimeSpan.FromMilliseconds(500);
+        var ease = compositor.CreateCubicBezierEasingFunction(new Vector2(0.8f, 0.0f), new Vector2(0.8f, 0.0f));
+
+        var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
+        // We only need to animate it back to its final state.
+        scaleAnimation.InsertKeyFrame(1.0f, new Vector3(1.0f, 1.0f, 1.0f), ease); // End at normal size
+        scaleAnimation.Duration = duration;
+        //scaleAnimation.EasingFunction = ease;
+
+        visual.StartAnimation("Scale", scaleAnimation);
     }
 
     private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
@@ -568,5 +891,20 @@ public partial class HomePage : ContentPage
     private void Label_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
 
+    }
+
+    private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void AllLyricsColView_SelectionChanged_1(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        var newItem = e.CurrentSelection;
+        if (newItem.Count > 0)
+        {
+
+            AllLyricsColView.ScrollTo(item: newItem[0], ScrollToPosition.Start, animate: true);
+        }
     }
 }
