@@ -1,6 +1,7 @@
 ﻿namespace Dimmer.Utilities;
 public enum SortOrder
 {
+   
     Ascending,
     Descending
 }

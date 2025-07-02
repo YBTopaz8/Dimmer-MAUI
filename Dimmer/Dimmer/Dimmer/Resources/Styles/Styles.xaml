@@ -19,7 +19,7 @@
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeShape" Value="RoundRectangle 5" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Surface}}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
     </Style>
 
     <Style TargetType="BoxView">
