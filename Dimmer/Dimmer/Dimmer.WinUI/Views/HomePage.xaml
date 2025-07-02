@@ -740,6 +740,7 @@
                                 ItemsSource="{Binding AllLines}"
                                 Loaded="AllLyricsColView_Loaded"
                                 SelectedItem="{Binding CurrentLine}"
+                                SelectionChanged="AllLyricsColView_SelectionChanged"
                                 SelectionMode="Single">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModelView">
