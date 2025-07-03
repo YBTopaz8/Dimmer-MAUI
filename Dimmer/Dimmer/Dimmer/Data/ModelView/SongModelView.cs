@@ -1,10 +1,6 @@
 ﻿namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
 {
-    public SongModelView()
-    {
-        PrecomputeSearchableText();
-    }
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
     [ObservableProperty]
@@ -133,10 +129,27 @@ public partial class SongModelView : ObservableObject
         sb.Append(SyncLyrics?.ToLowerInvariant()).Append(' ');
         sb.Append(Genre?.Name?.ToLowerInvariant()).Append(' '); // Example of adding more
         sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
+        sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
 
         SearchableText = sb.ToString();
-    }
+        if (string.IsNullOrEmpty(SearchableText) || string.IsNullOrWhiteSpace(SearchableText))
+        {
+            SearchableText=string.Empty;
+        }
+        else if (!string.IsNullOrEmpty(SearchableText) && !string.IsNullOrWhiteSpace(SearchableText))
+        {
 
+        }
+    }
+    public string UserNoteAggregatedText =>
+        UserNote != null && UserNote.Any()
+        ? string.Join(" ", UserNote.Select(n => n.UserMessageText))
+        : string.Empty;
+
+    public SongModelView()
+    {
+        PrecomputeSearchableText();
+    }
     public override int GetHashCode()
     {
         return HashCode.Combine(Id);

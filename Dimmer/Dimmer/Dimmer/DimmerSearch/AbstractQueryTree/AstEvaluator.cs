@@ -12,12 +12,16 @@ public class AstEvaluator
     public static Dictionary<string, string> FieldMappings => _fieldMappings;
     private static readonly Dictionary<string, string> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
     {
+        {"any", "SearchableText"},
         {"t", "Title"}, {"title", "Title"}, {"ar", "OtherArtistsName"}, {"artist", "OtherArtistsName"},
         {"al", "AlbumName"}, {"album", "AlbumName"}, {"genre", "Genre.Name"}, {"composer", "Composer"},
         {"lang", "Language"}, {"year", "ReleaseYear"}, {"bpm", "BitRate"}, {"len", "DurationInSeconds"},
         {"rating", "Rating"}, {"track", "TrackNumber"}, {"disc", "DiscNumber"}, {"haslyrics", "HasLyrics"},
         {"synced", "HasSyncedLyrics"}, {"fav", "IsFavorite"}, {"lyrics", "SyncLyrics"}, {"lyric", "SyncLyrics"},
-        {"slyrics", "EmbeddedSync"}, {"note", "UserNoteText"}, {"comment", "UserNoteText"}
+        {"slyrics", "EmbeddedSync"},
+
+
+        {"note", "UserNoteAggregatedText"}, {"comment", "UserNoteAggregatedText"}
     };
 
     private static readonly HashSet<string> _numericFields = new() { "ReleaseYear", "BitRate", "DurationInSeconds", "Rating", "TrackNumber", "DiscNumber" };
@@ -48,8 +52,15 @@ public class AstEvaluator
 
     private bool EvaluateClause(ClauseNode node, SongModelView song)
     {
+        if (node.Operator == "matchall")
+            return true;
         string propertyName = _fieldMappings.TryGetValue(node.Field, out var name) ? name : "Title";
-
+        if (propertyName == "SearchableText")
+        {
+            // For the global search field, we only support "contains".
+            // The Precomputed SearchableText is already lowercased.
+            return song.SearchableText?.Contains(node.Value.ToString() ?? "", StringComparison.Ordinal) ?? false;
+        }
         if (_numericFields.Contains(propertyName))
         {
             double songValue = SemanticQueryHelpers.GetNumericProp(song, propertyName);

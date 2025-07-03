@@ -356,7 +356,7 @@
                                                         LongPressCommandParameter="{Binding ReleaseYear}"
                                                         Opacity="0.5"
                                                         Tap="QuickFilterYears_Tap"
-                                                        TapCommandParameter="{Binding ., Source={x:Reference SongExpander}}"
+                                                        TapCommandParameter="{Binding ReleaseYear}"
                                                         Text="{Binding ReleaseYear}"
                                                         UseRippleEffect="True"
                                                         VerticalOptions="Center" />
@@ -382,7 +382,7 @@
                                                 TextColor="{AppThemeBinding Dark=White,
                                                                             Light=black}" />
                                         </Grid>
-                                        <dx:DXExpander x:Name="SongExpander" IsExpanded="True">
+                                        <dx:DXExpander x:Name="SongExpander" IsExpanded="False">
                                             <dx:DXExpander.Content>
                                                 <Label Text="More..." />
                                             </dx:DXExpander.Content>

@@ -187,6 +187,7 @@ public partial class BtmBar : DXBorder
 
     private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
     {
+        this.RequestFocusOnMainView?.Invoke(this, e);
         //TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
         //SearchBy.Focus();
     }

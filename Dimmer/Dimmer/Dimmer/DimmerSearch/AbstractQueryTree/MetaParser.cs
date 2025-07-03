@@ -20,6 +20,8 @@ public class QuerySegment
 
 public class MetaParser
 {
+
+    public IReadOnlyList<QuerySegment> GetSegments() => _segments.AsReadOnly();
     private readonly List<QuerySegment> _segments = new();
     private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
