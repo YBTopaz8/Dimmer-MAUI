@@ -51,7 +51,7 @@
         ColumnDefinitions="*">
 
 
-        <Grid BackgroundColor="Transparent" RowDefinitions="*,auto">
+        <Grid BackgroundColor="Transparent" RowDefinitions="*">
             <Image
                 Grid.RowSpan="2"
                 Aspect="AspectFit"
@@ -372,23 +372,15 @@
                                 ImageSize="40"
                                 ImageSource="chart.png"
                                 ShowIcon="True"
-                                WidthRequest="55">
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup x:Name="CommonStates">
-                                        <VisualState x:Name="Normal">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor" Value="Transparent" />
-                                            </VisualState.Setters>
-                                        </VisualState>
+                                WidthRequest="55" />
 
-                                        <VisualState Name="PointerOver">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                            </syncf:SfChip>
+                            <syncf:SfChip
+                                x:Name="AllEventsChip"
+                                Clicked="AllEvents_Clicked"
+                                ImageSize="40"
+                                ImageSource="reaction.png"
+                                ShowIcon="True"
+                                WidthRequest="55" />
                         </HorizontalStackLayout>
 
                     </Grid>
@@ -722,6 +714,7 @@
 
 
                 </Grid>
+
                 <Border
                     x:Name="StatsView"
                     Grid.Row="1"
@@ -738,11 +731,11 @@
                         <CollectionView
                             x:Name="AllLyricsColView"
                             Grid.Row="1"
-                            SelectionChanged="AllLyricsColView_SelectionChanged_1"
                             BackgroundColor="Transparent"
                             ItemsSource="{Binding AllLines}"
                             Loaded="AllLyricsColView_Loaded"
                             SelectedItem="{Binding CurrentLine, Mode=TwoWay}"
+                            SelectionChanged="AllLyricsColView_SelectionChanged_1"
                             SelectionMode="Single">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:LyricPhraseModelView">
@@ -781,6 +774,50 @@
 
                 </Border>
 
+                <Border
+                    x:Name="AllEventsBorder"
+                    Grid.Row="1"
+                    IsVisible="False">
+                    <Grid
+                        BackgroundColor="Transparent"
+                        ColumnDefinitions="*,*"
+                        RowDefinitions="*,*">
+
+                        <syncf:SfCartesianChart Grid.Row="0" Grid.Column="1">
+                            <syncf:SfCartesianChart.XAxes>
+                                <syncf:NumericalAxis />
+                            </syncf:SfCartesianChart.XAxes>
+
+                            <syncf:SfCartesianChart.YAxes>
+                                <syncf:NumericalAxis />
+                            </syncf:SfCartesianChart.YAxes>
+
+                            <syncf:BubbleSeries
+                                ItemsSource="{Binding PlayEventsForBubbleChart}"
+                                SizeValuePath="Size"
+                                XBindingPath="XValue"
+                                YBindingPath="YValue" />
+
+                        </syncf:SfCartesianChart>
+
+
+                        <CollectionView
+                            x:Name="AllEventsColView"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            ItemsSource="{Binding AllLivePlayEvents}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:DimmerPlayEventView">
+                                    <VerticalStackLayout>
+
+                                        <Label Text="{Binding SongName}" />
+                                        <Label Text="{Binding PlayTypeStr}" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </Border>
             </Grid>
 
 
@@ -806,6 +843,8 @@
                 </DataTemplate>
             </syncf:SfPopup.ContentTemplate>
         </syncf:SfPopup>
+
+
     </Grid>
 
 </ContentPage>

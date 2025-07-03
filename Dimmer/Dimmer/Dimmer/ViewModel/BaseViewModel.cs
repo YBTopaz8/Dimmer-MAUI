@@ -24,6 +24,7 @@ using ReactiveUI;
 using System.ComponentModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -506,6 +507,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
 
+        // 3. Initialize the public property, wrapping our private DynamicData list. This works perfectly.
+        //AllLivePlayEvents = new ReadOnlyObservableCollection<DimmerPlayEventView>(_allLivePlayEventsBackingList);
+
+
         // --- Step 2: Create the Link between the Final Data and the UI ---
         // This is crucial: we connect our private controller list (_finalLimitedDataSource)
         // to the public, read-only UI property (_searchResults). This binding is permanent.
@@ -554,7 +559,78 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
             })
             .DisposeWith(Disposables);
+
+
+        PlayEventsForScatterChart = new ReadOnlyObservableCollection<DimmerPlayEventView>(_scatterChartList);
+        PlayEventsByHourForBarChart = new ReadOnlyObservableCollection<InteractiveChartPoint>(_barChartList);
+        PlayEventsForBubbleChart = new ReadOnlyObservableCollection<DimmerPlayEventView>(_bubbleChartList);
+
+        SkippedSongsChart = new ReadOnlyObservableCollection<InteractiveChartPoint>(_skippedSongsList);
+        TopSkipsChartData = new ReadOnlyObservableCollection<InteractiveChartPoint>(_topSkipsList);
+        // 3. Initialize the public property, wrapping our private DynamicData list. This works perfectly.
+        AllLivePlayEvents = new ReadOnlyObservableCollection<DimmerPlayEventView>(_allLivePlayEventsBackingList);
+
+        var realm = realmFactory.GetRealmInstance();
+        var liveRealmEvents = realm.All<DimmerPlayEvent>().AsRealmCollection();
+        _realmSubscription = liveRealmEvents.SubscribeForNotifications(OnRealmPlayEventsChanged);
+        BuildRawDataChartPipelines();
+    }  // --- Private Fields ---
+    private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
+    private readonly CompositeDisposable _disposables = new();
+    private IDisposable? _realmSubscription;
+    private bool _isDisposed;
+
+    private void OnRealmPlayEventsChanged(IRealmCollection<DimmerPlayEvent> sender, ChangeSet? changes)
+    {
+        // This method does not need to change. It is correct.
+        if (changes is null)
+        {
+            var initialItems = _mapper.Map<IEnumerable<DimmerPlayEventView>>(sender);
+            _playEventSource.Edit(innerList =>
+            {
+                innerList.Clear();
+                innerList.AddRange(initialItems);
+            });
+            return;
+        }
+
+        _playEventSource.Edit(innerList =>
+        {
+            // =========================================================================
+            //  THE NEW, FOOLPROOF CODE. NO MORE .Reverse()
+            // =========================================================================
+
+            // Process deletions with a standard 'for' loop, counting backwards.
+            for (int i = changes.DeletedIndices.Length - 1; i >= 0; i--)
+            {
+                var indexToDelete = changes.DeletedIndices[i];
+                innerList.RemoveAt(indexToDelete);
+            }
+
+            // These loops were always correct.
+            foreach (var i in changes.InsertedIndices)
+            {
+                var newEventView = _mapper.Map<DimmerPlayEventView>(sender[i]);
+                innerList.Insert(i, newEventView);
+            }
+
+            foreach (var i in changes.NewModifiedIndices)
+            {
+                var updatedEventView = _mapper.Map<DimmerPlayEventView>(sender[i]);
+                innerList[i] = updatedEventView;
+            }
+        });
+
     }
+
+
+    // 1. A private, WRITABLE collection. This is what DynamicData will update.
+    private readonly ObservableCollectionExtended<DimmerPlayEventView> _allLivePlayEventsBackingList = new();
+
+    // 2. The public, READ-ONLY property for the UI. It's a wrapper around our private list.
+    public ReadOnlyObservableCollection<DimmerPlayEventView> AllLivePlayEvents { get; }
+
+    // === END OF NEW PATTERN ===
     private readonly ObservableAsPropertyHelper<IReadOnlyCollection<SongModelView>> _searchResultsHelper;
 
     private readonly SourceList<SongModelView> _finalLimitedDataSource = new SourceList<SongModelView>();
@@ -650,8 +726,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // 4. (Optional but recommended) Display the helpful error message to the user.
             // ErrorLabel.Text = ex.Message;
         }
-    }
 
+
+
+
+    }
 
     readonly IRealmFactory realmFactory;
     [ObservableProperty]
@@ -1953,6 +2032,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (disposing)
         {
+            _realmSubscription?.Dispose();
+            _playEventSource.Dispose();
             // This single line will dispose of all subscriptions
             // that were added using .DisposeWith(Disposables).
             Disposables.Dispose();
@@ -2004,4 +2085,141 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial (DateTimeOffset Date, int PlayCount) ArtistBingeScore { get; set; }
     [ObservableProperty]
     public partial SongModelView SongThatHookedMeOnAnArtist { get; set; }
+
+
+
+    public ReadOnlyObservableCollection<DimmerPlayEventView> PlayEventsByTimeChartData { get; private set; }
+    public ReadOnlyObservableCollection<InteractiveChartPoint> PlayEventsByHourChartData { get; private set; }
+    public ReadOnlyObservableCollection<DimmerPlayEventView> PlaysByDurationChartData { get; private set; }
+
+    /*
+    private void OnRealmPlayEventsChanged(IRealmCollection<DimmerPlayEvent> sender, ChangeSet? changes)
+    {
+        if (changes is null)
+        {
+            var initialItems = _mapper.Map<IEnumerable<DimmerPlayEventView>>(sender);
+            _playEventSource.Edit(innerList => { innerList.Clear(); innerList.AddRange(initialItems); });
+            return;
+        }
+        _playEventSource.Edit(innerList =>
+        {
+            for (int i = changes.DeletedIndices.Length - 1; i >= 0; i--)
+            { var indexToDelete = changes.DeletedIndices[i]; innerList.RemoveAt(indexToDelete); }
+            foreach (var i in changes.InsertedIndices)
+            { innerList.Insert(i, _mapper.Map<DimmerPlayEventView>(sender[i])); }
+            foreach (var i in changes.NewModifiedIndices)
+            { innerList[i] = _mapper.Map<DimmerPlayEventView>(sender[i]); }
+        });
+    }
+    */
+    private Dictionary<ObjectId, SongModelView> _allSongsLookup = new();
+    private void BuildRawDataChartPipelines()
+    {
+        _playEventSource.Connect()
+      .ToCollection()
+      .Select(events => events
+          // We still need the original SongModelView to get rich data,
+          // so we need a way to look it up.
+          // Let's assume you have a dictionary of all songs.
+          // (I'll show how to create this dictionary below)
+          .Where(evt => evt.PlayTypeStr == "Skipped")
+          .GroupBy(evt => evt.SongId) // Group by the reliable Song ID
+          .Select(group => new
+          {
+              SongId = group.Key,
+              SkipCount = group.Count()
+          })
+          .OrderByDescending(x => x.SkipCount)
+          .Take(10)
+          .Select(x =>
+          {
+              // Here we look up the full song object to get its details
+              if (_allSongsLookup.TryGetValue(x.SongId.Value, out var fullSong))
+              {
+                  // Create the NEW rich chart point object
+                  return new InteractiveChartPoint(fullSong.Title, x.SkipCount, fullSong);
+              }
+              return null; // Song not found, handle gracefully
+          })
+          .Where(x => x != null) // Filter out any nulls
+          .ToList())
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Subscribe(newData =>
+      {
+          _topSkipsList.Clear();
+          _topSkipsList.AddRange(newData!);
+      })
+      .DisposeWith(_disposables);
+
+
+
+        // === CHART 1: Scatter Chart ===
+        // We bind to the PRIVATE list. NO 'out' keyword. This will compile.
+        _playEventSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(_scatterChartList)
+            .Subscribe()
+            .DisposeWith(_disposables);
+
+        // === CHART 2: Bar Chart ===
+        _playEventSource.Connect()
+                  .ToCollection() // Create a stream of full lists
+                  .Select(events => events
+                      .GroupBy(evt => evt.DatePlayed.Hour)
+                      .Select(group => new InteractiveChartPoint(group.Key.ToString("00") + ":00", group.Count()))
+                      .OrderBy(dp => dp.XValue.ToString())
+                      .ToList())
+                  .ObserveOn(RxApp.MainThreadScheduler)
+                  // Use .Subscribe() to manually update the list. This is the correct
+                  // pattern to use after .ToCollection().
+                  .Subscribe(newChartData =>
+                  {
+                      _barChartList.Clear();
+                      _barChartList.AddRange(newChartData);
+                  })
+                  .DisposeWith(_disposables);
+
+
+        _playEventSource.Connect()
+    .ToCollection()
+    .Select(events => events
+        .Where(evt => evt.PlayTypeStr == "Skipped") // Filter for only "Skipped" events
+        .GroupBy(evt => evt.SongName)
+        .Select(group => new InteractiveChartPoint(group.Key, group.Count()))
+        .OrderByDescending(dp => dp.YValue)
+        .Take(10) // Show the Top 10
+        .ToList())
+    .ObserveOn(RxApp.MainThreadScheduler)
+    .Subscribe(newData =>
+    {
+        _skippedSongsList.Clear();
+        _skippedSongsList.AddRange(newData);
+    })
+    .DisposeWith(_disposables);
+
+
+
+        // === CHART 3: Bubble Chart ===
+        _playEventSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(_bubbleChartList) // Bind to the PRIVATE list.
+            .Subscribe()
+            .DisposeWith(_disposables);
+    }
+
+
+    private readonly ObservableCollectionExtended<DimmerPlayEventView> _scatterChartList = new();
+    private readonly ObservableCollectionExtended<InteractiveChartPoint> _barChartList = new();
+    private readonly ObservableCollectionExtended<DimmerPlayEventView> _bubbleChartList = new();
+    public ReadOnlyObservableCollection<InteractiveChartPoint> SkippedSongsChart { get; }
+    private readonly ObservableCollectionExtended<InteractiveChartPoint> _skippedSongsList = new();
+    // STEP 2: Create the PUBLIC, READ-ONLY properties that the UI will bind to.
+    public ReadOnlyObservableCollection<DimmerPlayEventView> PlayEventsForScatterChart { get; }
+    public ReadOnlyObservableCollection<InteractiveChartPoint> PlayEventsByHourForBarChart { get; }
+    public ReadOnlyObservableCollection<DimmerPlayEventView> PlayEventsForBubbleChart { get; }
+
+    private readonly ObservableCollectionExtended<InteractiveChartPoint> _topSkipsList = new();
+    public ReadOnlyObservableCollection<InteractiveChartPoint> TopSkipsChartData { get; }
+
+
 }

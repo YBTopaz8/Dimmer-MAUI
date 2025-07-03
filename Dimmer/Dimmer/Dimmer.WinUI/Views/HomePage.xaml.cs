@@ -907,4 +907,22 @@ public partial class HomePage : ContentPage
             AllLyricsColView.ScrollTo(item: newItem[0], ScrollToPosition.Start, animate: true);
         }
     }
+
+    private async void AllEvents_Clicked(object sender, EventArgs e)
+    {
+
+        Debug.WriteLine(AllEventsColView.ItemsSource);
+        if (!AllEventsBorder.IsVisible)
+        {
+            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), StatsView.AnimateFadeOutBack(400), SongsColView.AnimateFadeOutBack(400));
+
+        }
+        else
+        {
+
+
+        }
+
+
+    }
 }

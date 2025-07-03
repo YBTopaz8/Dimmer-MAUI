@@ -11,12 +11,6 @@ public partial class SongModelView : ObservableObject
     public partial string? Title { get; set; }
     [ObservableProperty]
     public partial string? ArtistName { get; set; }
- 
-    [ObservableProperty]
-    public partial ObservableCollection<ArtistModelView>? AllArtists { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<AlbumModelView>? AllAlbums { get; set; }
 
     [ObservableProperty]
     public partial string? AlbumName { get; set; }
@@ -51,7 +45,7 @@ public partial class SongModelView : ObservableObject
     public partial bool HasSyncedLyrics { get; set; }
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
-    
+
     [ObservableProperty]
     public partial byte[]? CoverImageBytes { get; set; }
     [ObservableProperty]
@@ -129,7 +123,7 @@ public partial class SongModelView : ObservableObject
     // This method is called after the object is created and its properties are set.
     public void PrecomputeSearchableText()
     {
-        var allNotes=UserNote?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
+        var allNotes = UserNote?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
 
         var sb = new StringBuilder();
         sb.Append(Title?.ToLowerInvariant()).Append(' ');
@@ -176,8 +170,8 @@ public class SyncLyricsView
     }
     public SyncLyricsView(SyncLyrics syncLyricsDB)
     {
-            Text= syncLyricsDB.Text;
-            TimestampMs = syncLyricsDB.TimestampMs;
+        Text= syncLyricsDB.Text;
+        TimestampMs = syncLyricsDB.TimestampMs;
 
     }
 }
