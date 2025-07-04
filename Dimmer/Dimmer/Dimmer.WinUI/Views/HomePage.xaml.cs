@@ -929,13 +929,18 @@ public partial class HomePage : ContentPage
 
     private void MiddleClickGest_PointerReleased(object sender, PointerEventArgs e)
     {
+        var send = (Label)sender;
+        var gestRec = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        var field = gestRec.PointerEnteredCommandParameter as string;
+        var valuee = gestRec.PointerReleasedCommandParameter as string;
+
+
         Microsoft.UI.Input.PointerDeviceType ee = e.PlatformArgs.PointerRoutedEventArgs.Pointer.PointerDeviceType;
         Windows.System.VirtualKeyModifiers ewe = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
-        var ewae = e.PlatformArgs.PointerRoutedEventArgs.OriginalSource;
-        var qewe = e.PlatformArgs.PointerRoutedEventArgs.Pointer;
+
         if (ewe==Windows.System.VirtualKeyModifiers.Control && ee==Microsoft.UI.Input.PointerDeviceType.Mouse)
         {
-            MyViewModel.SearchSongSB_TextChanged($"genre:)
+            StaticMethods.SetQuotedSearch(field, valuee);
         }
     }
 

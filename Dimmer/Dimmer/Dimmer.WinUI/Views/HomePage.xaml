@@ -615,6 +615,14 @@
                                                 FontFamily="AleySans"
                                                 Text="{Binding Title}"
                                                 VerticalOptions="Center">
+                                                <Label.GestureRecognizers>
+                                                    <PointerGestureRecognizer
+                                                        
+                                                        PointerEnteredCommandParameter="title"
+                                                        PointerReleased="MiddleClickGest_PointerReleased"
+                                                        PointerReleasedCommandParameter="{Binding Title}" />
+                                                </Label.GestureRecognizers>
+
                                                 <Label.Triggers>
                                                     <DataTrigger
                                                         Binding="{Binding IsCurrentPlayingHighlight}"
@@ -650,7 +658,15 @@
                                                 HorizontalOptions="Start"
                                                 LineBreakMode="WordWrap"
                                                 Text="{Binding OtherArtistsName}"
-                                                VerticalOptions="Center" />
+                                                VerticalOptions="Center">
+                                                <Label.GestureRecognizers>
+                                                    <PointerGestureRecognizer
+                                                        
+                                                        PointerEnteredCommandParameter="artist"
+                                                        PointerReleased="MiddleClickGest_PointerReleased"
+                                                        PointerReleasedCommandParameter="{Binding ArtistName}" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </syncf:SfEffectsView>
 
                                         <syncf:SfEffectsView
@@ -665,6 +681,13 @@
                                             Text="{Binding AlbumName}"
                                             ToolTipProperties.Text="{Binding AlbumName}"
                                             VerticalOptions="Center">
+                                            <Label.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    
+                                                    PointerEnteredCommandParameter="album"
+                                                    PointerReleased="MiddleClickGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="{Binding AlbumName}" />
+                                            </Label.GestureRecognizers>
 
                                             <FlyoutBase.ContextFlyout>
                                                 <MenuFlyout>
@@ -683,7 +706,11 @@
                                             Text="{Binding Genre.Name}"
                                             VerticalOptions="Center">
                                             <Label.GestureRecognizers>
-                                                <PointerGestureRecognizer x:Name="MiddleClickGest" PointerReleased="MiddleClickGest_PointerReleased" />
+                                                <PointerGestureRecognizer
+                                                    
+                                                    PointerEnteredCommandParameter="Genre"
+                                                    PointerReleased="MiddleClickGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="{Binding Genre.Name}" />
                                             </Label.GestureRecognizers>
                                         </Label>
                                         <Label
@@ -691,6 +718,7 @@
                                             HorizontalOptions="Center"
                                             Text="{Binding ReleaseYear}"
                                             VerticalOptions="Center" />
+
                                         <Label
                                             Grid.Column="5"
                                             HorizontalOptions="Center"
