@@ -27,7 +27,16 @@ public class AstParser
     public IQueryNode Parse()
     {
         if (_tokens.All(t => t.Type == TokenType.EndOfFile))
-            return new ClauseNode("Title", "contains", "");
+        {
+            // An empty ClauseNode can be treated as "match all" by the evaluator.
+            // Or create a new dedicated "MatchAllNode" if you prefer more clarity.
+            // For now, this is a simple way to represent it. A clause with no value.
+            return new ClauseNode("any", "matchall", "");
+        }
+
+
+        //if (_tokens.All(t => t.Type == TokenType.EndOfFile))
+        //    return new ClauseNode("Title", "contains", "");
         var result = ParseExpression();
         if (!IsAtEnd())
             throw new Exception($"Syntax error: Unexpected token '{Peek().Text}' at position {Peek().Position}.");

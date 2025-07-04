@@ -799,7 +799,7 @@
                             </syncf:SfCartesianChart.YAxes>
 
                             <syncf:BubbleSeries
-                                ItemsSource="{Binding PlayEventsForBubbleChart}"
+                                ItemsSource="{Binding PlayEventsForScatterChart}"
                                 SizeValuePath="Size"
                                 XBindingPath="XValue"
                                 YBindingPath="YValue" />

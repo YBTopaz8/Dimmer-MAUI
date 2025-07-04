@@ -41,6 +41,8 @@ public class SortDescription
 // A full implementation of the comparer class needed by the pipeline
 public class SongModelViewComparer : IComparer<SongModelView>
 {
+
+    public IReadOnlyList<SortDescription> SortDescriptions => _sortDescriptions;
     private readonly List<SortDescription> _sortDescriptions;
 
     // The constructor is now much simpler.

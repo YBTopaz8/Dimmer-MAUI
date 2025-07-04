@@ -2,6 +2,7 @@ using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
 
+using Dimmer.DimmerSearch;
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.Utilities.FileProcessorUtils;
@@ -124,8 +125,23 @@ public partial class HomePage : ContentPage
             return;
 
         string sortProperty = chip.CommandParameter.ToString();
-        if (string.IsNullOrEmpty(sortProperty))
+        bool flowControl = SortSongs(sortProperty);
+        if (!flowControl)
+        {
             return;
+        }
+
+        // Optional: Scroll to top after sorting
+        // if (SongsColView.CurrentItems.Count > 0)
+        // {
+        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
+        // }
+    }
+
+    private bool SortSongs(string sortProperty)
+    {
+        if (string.IsNullOrEmpty(sortProperty))
+            return false;
 
 
         // Update current sort state
@@ -144,14 +160,10 @@ public partial class HomePage : ContentPage
         bool flowControl = SortIndeed();
         if (!flowControl)
         {
-            return;
+            return false;
         }
 
-        // Optional: Scroll to top after sorting
-        // if (SongsColView.CurrentItems.Count > 0)
-        // {
-        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
-        // }
+        return true;
     }
 
     private void AddToPlaylist_Clicked(object sender, EventArgs e)
@@ -190,167 +202,7 @@ public partial class HomePage : ContentPage
     {
         SortIndeed();
     }
-    private void ByAll()
-    {
-        ApplyAdvancedFilter();
 
-
-    }
-
-    // At the top of your class
-    private readonly Dictionary<string, string> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
-{
-    { "t", "Title" }, { "title", "Title" },
-    { "ar", "OtherArtistsName" }, { "artist", "OtherArtistsName" },
-    { "al", "AlbumName" }, { "album", "AlbumName" },
-    { "year", "ReleaseYear" },
-    { "bpm", "BPM" },
-    { "len", "DurationInSeconds" }, // Use the property path for sub-properties
-    { "explicit", "IsExplicit" }
-    // Add other boolean or numeric fields here
-};
-
-    // Our master regex that captures all operators and prefixes
-    private static readonly Regex _powerSearchRegex = new Regex(
-        @"\b(t|title|ar|artist|al|album|year|bpm|len|explicit):(!)?(>|<|\^|\$|~)?(?:""([^""]*)""|(\S+))",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-    private void ApplyAdvancedFilter()
-    {
-        var searchText = SearchBy.Text.Trim();
-
-        if (string.IsNullOrEmpty(searchText))
-        {
-            SongsColView.FilterString = string.Empty;
-            return;
-        }
-
-        // Generate the powerful filter string and apply it directly.
-        SongsColView.FilterString = GenerateDevExpressFilterString(searchText);
-    }
-
-    private string GenerateDevExpressFilterString(string searchText)
-    {
-        var allFilters = new List<string>();
-
-        var remainingText = _powerSearchRegex.Replace(searchText, match =>
-        {
-            // 1. Extract all parts from the user's input
-            string prefix = match.Groups[1].Value.ToLower();
-            bool isNegated = match.Groups[2].Success;
-            string op = match.Groups[3].Success ? match.Groups[3].Value : string.Empty;
-            string value = match.Groups[4].Success ? match.Groups[4].Value : match.Groups[5].Value;
-
-            if (_fieldMappings.TryGetValue(prefix, out var fieldName))
-            {
-                string criterion = BuildCriterion(fieldName, op, value);
-                if (!string.IsNullOrEmpty(criterion))
-                {
-                    // Add the final formatted part to our list of filters
-                    allFilters.Add(isNegated ? $"NOT ({criterion})" : criterion);
-                }
-            }
-            return string.Empty; // Consume the matched part
-        }).Trim();
-
-        // 4. Handle any leftover general text as a broad, fuzzy search
-        if (!string.IsNullOrEmpty(remainingText))
-        {
-            var words = remainingText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var word in words)
-            {
-                var sanitizedWord = word.Replace("'", "''");
-                var generalFilter = $"(Contains([Title], '{sanitizedWord}') OR " +
-                                    $"Contains([OtherArtistsName], '{sanitizedWord}') OR " +
-                                    $"Contains([AlbumName], '{sanitizedWord}'))";
-                allFilters.Add(generalFilter);
-            }
-        }
-
-        // 5. Join all generated conditions with AND to create the final string
-        return string.Join(" AND ", allFilters);
-    }
-
-    // This helper method builds a single piece of the criteria string
-    private string BuildCriterion(string fieldName, string op, string value)
-    {
-        // IMPORTANT: Sanitize value for DevExpress by doubling single quotes
-        var sanitizedValue = value.Replace("'", "''");
-
-        // Handle Text Fields (Title, Artist, Album)
-        if (fieldName == "Title" || fieldName == "OtherArtistsName" || fieldName == "AlbumName")
-        {
-            // OR Condition: artist:drake|wizkid
-            if (sanitizedValue.Contains('|'))
-            {
-                var options = sanitizedValue.Split('|', StringSplitOptions.RemoveEmptyEntries);
-                var orGroup = string.Join(" OR ", options.Select(opt => $"Contains([{fieldName}], '{opt}')"));
-                return $"({orGroup})";
-            }
-            // Other Text Operations
-            return op switch
-            {
-                "^" => $"StartsWith([{fieldName}], '{sanitizedValue}')",
-                "$" => $"EndsWith([{fieldName}], '{sanitizedValue}')",
-                "~" => $"Contains([{fieldName}], '{sanitizedValue}')", // Note: True fuzzy (Levenshtein) is not supported. Fallback to Contains.
-                _ => $"Contains([{fieldName}], '{sanitizedValue}')"
-            };
-        }
-
-        // Handle Numeric Fields (Year, BPM, Length)
-        if (fieldName == "ReleaseYear" || fieldName == "BPM" || fieldName == "DurationInSeconds")
-        {
-            // Range: year:2010-2020
-            if (sanitizedValue.Contains('-'))
-            {
-                var parts = sanitizedValue.Split('-');
-
-                // --- THE FIX: Validate the parts of the range ---
-                // Ensure we have exactly two parts and neither is empty.
-                if (parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
-                {
-                    // Optional but recommended: Also check if they are valid numbers.
-                    // This prevents inputs like "year:abc-def".
-                    if (double.TryParse(parts[0], out _) && double.TryParse(parts[1], out _))
-                    {
-                        return $"[{fieldName}] between ({parts[0]}, {parts[1]})";
-                    }
-                }
-                // If the range is invalid/incomplete, do nothing and return an empty string.
-                return string.Empty;
-            }
-            string finalOp = string.IsNullOrEmpty(op) ? "=" : op;
-
-            // Also validate single numeric values to prevent errors
-            if (double.TryParse(sanitizedValue, out _))
-            {
-                return $"[{fieldName}] {finalOp} {sanitizedValue}";
-            }
-            return string.Empty;
-        }
-        // Handle Boolean Fields (IsExplicit)
-        if (fieldName == "IsExplicit")
-        {
-            return $"[{fieldName}] = {value.ToLower()}";
-        }
-
-        return string.Empty;
-    }
-    private void ByArtist()
-    {
-        if (!string.IsNullOrEmpty(SearchBy.Text))
-        {
-            if (SearchBy.Text.Length >= 1)
-            {
-                SongsColView.FilterString = $"Contains([OtherArtistsName], '{SearchBy.Text}')";
-
-            }
-            else
-            {
-                SongsColView.FilterString = string.Empty;
-            }
-        }
-    }
 
     private void Sort_Clicked(object sender, EventArgs e)
     {
@@ -593,8 +445,17 @@ public partial class HomePage : ContentPage
 
     private async void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
     {
-        SearchBy.Focus();
-        await OpenedKeyboardToolbar.DimmInCompletelyAndShow();
+        if (!TopBeforeColView.IsExpanded)
+        {
+            TopBeforeColView.IsExpanded= !TopBeforeColView.IsExpanded;
+
+            SearchBy.Focus();
+            await OpenedKeyboardToolbar.DimmInCompletelyAndShow();
+        }
+        else
+        {
+            TopBeforeColView.IsExpanded=false;
+        }
     }
 
     private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
@@ -674,37 +535,30 @@ public partial class HomePage : ContentPage
         SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
     }
-
     private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        var txt = send.Text;
-        SearchBy.Text = $"artist:{txt}";
-    }
-
-    private void QuickFilterYears_LongPress(object sender, HandledEventArgs e)
-    {
-
-
+        StaticMethods.SetQuotedSearch("artist", send.Text);
     }
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
     {
+        var send = (Chip)sender;
+        StaticMethods.SetQuotedSearch("album", send.Text);
+    }
+
+    // The "Years" methods remain unchanged.
+    private void QuickFilterYears_LongPress(object sender, HandledEventArgs e)
+    {
 
         var send = (Chip)sender;
-        var txt = send.Text;
-        SearchBy.Text = $"album:{txt}";
+
+        StaticMethods.SetQuotedSearch("year", send.Text);
     }
+
 
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
     {
-        var send = (Chip)sender;
-        var param = send.TapCommandParameter as DXExpander;
-        if (param is null)
-        {
-            return;
-        }
-        param.IsExpanded =!param.IsExpanded;
     }
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {

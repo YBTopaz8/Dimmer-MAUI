@@ -17,6 +17,7 @@
     CornerRadius="20"
     HeightRequest="90">
 
+
     <dx:DXBorder.Resources>
 
         <ResourceDictionary>
