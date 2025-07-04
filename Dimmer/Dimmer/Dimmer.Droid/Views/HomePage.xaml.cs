@@ -52,7 +52,7 @@ public partial class HomePage : ContentPage
     private void ClosePopup(object sender, EventArgs e)
     {
 
-        SongsMenuPopup.Close();
+        //SongsMenuPopup.Close();
     }
 
 
@@ -74,7 +74,7 @@ public partial class HomePage : ContentPage
 
 
 
-        SongsMenuPopup.Show();
+        //SongsMenuPopup.Show();
 
     }
 
@@ -89,7 +89,7 @@ public partial class HomePage : ContentPage
         }
         await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
 
-        await SongsMenuPopup.CloseAsync();
+        //await SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
@@ -174,7 +174,6 @@ public partial class HomePage : ContentPage
     }
     private async void DXButton_Clicked_3(object sender, EventArgs e)
     {
-        await this.SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
     SortOrder internalOrder = SortOrder.Asc;
@@ -355,7 +354,7 @@ public partial class HomePage : ContentPage
 
     private void Sort_Clicked(object sender, EventArgs e)
     {
-        SortBottomSheet.Show();
+        //SortBottomSheet.Show();
     }
 
 
@@ -598,6 +597,12 @@ public partial class HomePage : ContentPage
         await OpenedKeyboardToolbar.DimmInCompletelyAndShow();
     }
 
+    private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
+    {
+        UISection.IsExpanded=!UISection.IsExpanded;
+        MainViewExpander.IsExpanded = !UISection.IsExpanded;
+    }
+
     private async void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
     {
         //myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
@@ -700,6 +705,52 @@ public partial class HomePage : ContentPage
             return;
         }
         param.IsExpanded =!param.IsExpanded;
+    }
+    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        var send = (DXSlider)sender;
+
+
+        //MyViewModel.BaseVM.SeekTrackPosition(ProgressSlider.Value);
+    }
+
+
+
+    private void NowPlayingBtmSheet_Unloaded(object sender, EventArgs e)
+    {
+        //SongPicture.StopHeartbeat();
+
+    }
+
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+        //BottomExpander.IsExpanded = !BottomExpander.IsExpanded;
+
+
+    }
+    private void SongTitleChip_LongPress(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var txt = send.LongPressCommandParameter as string;
+        txt = $"album:{txt}";
+
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(txt);
+    }
+
+    private async void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        //UISection.Commands.ToggleExpandState.Execute(null);
+    }
+
+    private void BtmBar_RequestFocusNowPlayingUI_1(object sender, EventArgs e)
+    {
+
     }
 }
 

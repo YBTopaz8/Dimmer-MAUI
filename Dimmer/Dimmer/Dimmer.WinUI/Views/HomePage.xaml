@@ -562,136 +562,142 @@
 
                                         </DataTrigger>
                                     </Border.Triggers>
-                                    <syncf:SfEffectsView BackgroundColor="Transparent" TouchDownEffects="Ripple">
 
-                                        <Grid ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.6*" ColumnSpacing="10">
+                                    <Grid ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.6*" ColumnSpacing="10">
 
-                                            <Grid.GestureRecognizers>
+                                        <Grid.GestureRecognizers>
 
-                                                <TapGestureRecognizer
-                                                    x:Name="TapGestRec"
-                                                    CommandParameter="{Binding .}"
-                                                    NumberOfTapsRequired="2"
-                                                    Tapped="TapGestRec_Tapped" />
-                                            </Grid.GestureRecognizers>
-                                            <Grid.Resources>
-                                                <Style TargetType="Label">
-                                                    <Setter Property="FontSize" Value="18" />
-                                                </Style>
-                                            </Grid.Resources>
-                                            <HorizontalStackLayout Grid.Column="0" Spacing="10">
+                                            <TapGestureRecognizer
+                                                x:Name="TapGestRec"
+                                                CommandParameter="{Binding .}"
+                                                NumberOfTapsRequired="2"
+                                                Tapped="TapGestRec_Tapped" />
+                                        </Grid.GestureRecognizers>
+                                        <Grid.Resources>
+                                            <Style TargetType="Label">
+                                                <Setter Property="FontSize" Value="18" />
+                                            </Style>
+                                        </Grid.Resources>
+                                        <HorizontalStackLayout Grid.Column="0" Spacing="10">
 
-                                                <FlyoutBase.ContextFlyout>
-                                                    <MenuFlyout>
-                                                        <MenuFlyoutItem
-                                                            x:Name="ViewSong"
-                                                            Clicked="ViewSong_Clicked"
-                                                            CommandParameter="{Binding .}"
-                                                            Text="View Song Info" />
-                                                        <MenuFlyoutItem
-                                                            x:Name="QuickSearchArtist"
-                                                            Clicked="QuickSearchArtist_Clicked"
-                                                            CommandParameter="{Binding AlbumName}"
-                                                            Text="Quick Search Album" />
-                                                    </MenuFlyout>
-                                                </FlyoutBase.ContextFlyout>
-                                                <Border Stroke="Transparent" StrokeShape="RoundRectangle 15">
-                                                    <Border.Triggers>
-                                                        <DataTrigger
-                                                            Binding="{Binding IsCurrentPlayingHighlight}"
-                                                            TargetType="Border"
-                                                            Value="True">
-                                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
-                                                        </DataTrigger>
-                                                        <DataTrigger
-                                                            Binding="{Binding IsCurrentPlayingHighlight}"
-                                                            TargetType="Border"
-                                                            Value="False">
-                                                            <Setter Property="Stroke" Value="Transparent" />
-                                                        </DataTrigger>
-                                                    </Border.Triggers>
+                                            <FlyoutBase.ContextFlyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem
+                                                        x:Name="ViewSong"
+                                                        Clicked="ViewSong_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Text="View Song Info" />
+                                                    <MenuFlyoutItem
+                                                        x:Name="QuickSearchArtist"
+                                                        Clicked="QuickSearchArtist_Clicked"
+                                                        CommandParameter="{Binding AlbumName}"
+                                                        Text="Quick Search Album" />
+                                                </MenuFlyout>
+                                            </FlyoutBase.ContextFlyout>
+                                            <Border Stroke="Transparent" StrokeShape="RoundRectangle 15">
+                                                <Border.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding IsCurrentPlayingHighlight}"
+                                                        TargetType="Border"
+                                                        Value="True">
+                                                        <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding IsCurrentPlayingHighlight}"
+                                                        TargetType="Border"
+                                                        Value="False">
+                                                        <Setter Property="Stroke" Value="Transparent" />
+                                                    </DataTrigger>
+                                                </Border.Triggers>
 
-                                                </Border>
-                                                <Label
-                                                    FontFamily="AleySans"
-                                                    Text="{Binding Title}"
-                                                    VerticalOptions="Center">
-                                                    <Label.Triggers>
-                                                        <DataTrigger
-                                                            Binding="{Binding IsCurrentPlayingHighlight}"
-                                                            TargetType="Label"
-                                                            Value="True">
-                                                            <Setter Property="FontSize" Value="21" />
-                                                        </DataTrigger>
-                                                        <DataTrigger
-                                                            Binding="{Binding IsCurrentPlayingHighlight}"
-                                                            TargetType="Label"
-                                                            Value="False">
-                                                            <Setter Property="FontSize" Value="18" />
-                                                        </DataTrigger>
-                                                    </Label.Triggers>
-                                                </Label>
-                                            </HorizontalStackLayout>
-
-                                            <syncf:SfEffectsView
-                                                x:Name="ArtistsEffectsView"
-                                                Grid.Column="1"
-                                                BackgroundColor="Transparent">
-                                                <FlyoutBase.ContextFlyout>
-                                                    <MenuFlyout>
-                                                        <MenuFlyoutItem
-                                                            Clicked="ArtistsEffectsView_LongPressed"
-                                                            CommandParameter="{Binding .}"
-                                                            Text="{Binding ArtistName, StringFormat='View Artists : {0}'}" />
-                                                    </MenuFlyout>
-
-                                                </FlyoutBase.ContextFlyout>
-                                                <Label
-                                                    Grid.Column="1"
-                                                    HorizontalOptions="Start"
-                                                    LineBreakMode="WordWrap"
-                                                    Text="{Binding OtherArtistsName}"
-                                                    VerticalOptions="Center" />
-                                            </syncf:SfEffectsView>
-
+                                            </Border>
                                             <Label
-                                                Grid.Column="2"
-                                                HorizontalOptions="Start"
-                                                HorizontalTextAlignment="Start"
-                                                LineBreakMode="WordWrap"
-                                                Text="{Binding AlbumName}"
-                                                ToolTipProperties.Text="{Binding AlbumName}"
+                                                FontFamily="AleySans"
+                                                Text="{Binding Title}"
                                                 VerticalOptions="Center">
-
-                                                <FlyoutBase.ContextFlyout>
-                                                    <MenuFlyout>
-                                                        <MenuFlyoutItem
-                                                            x:Name="QuickSearchAlbum"
-                                                            Clicked="QuickSearchAlbum_Clicked"
-                                                            CommandParameter="{Binding AlbumName}"
-                                                            Text="Quick Search Album" />
-                                                    </MenuFlyout>
-                                                </FlyoutBase.ContextFlyout>
+                                                <Label.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding IsCurrentPlayingHighlight}"
+                                                        TargetType="Label"
+                                                        Value="True">
+                                                        <Setter Property="FontSize" Value="21" />
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding IsCurrentPlayingHighlight}"
+                                                        TargetType="Label"
+                                                        Value="False">
+                                                        <Setter Property="FontSize" Value="18" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
                                             </Label>
-                                            <Label
-                                                Grid.Column="3"
-                                                HorizontalOptions="Center"
-                                                LineBreakMode="TailTruncation"
-                                                Text="{Binding Genre.Name}"
-                                                VerticalOptions="Center" />
-                                            <Label
-                                                Grid.Column="4"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding ReleaseYear}"
-                                                VerticalOptions="Center" />
-                                            <Label
-                                                Grid.Column="5"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
-                                                VerticalOptions="Center" />
-                                        </Grid>
+                                        </HorizontalStackLayout>
 
-                                    </syncf:SfEffectsView>
+                                        <syncf:SfEffectsView
+                                            x:Name="ArtistsEffectsView"
+                                            Grid.Column="1"
+                                            BackgroundColor="Transparent">
+                                            <FlyoutBase.ContextFlyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem
+                                                        Clicked="ArtistsEffectsView_LongPressed"
+                                                        CommandParameter="{Binding .}"
+                                                        Text="{Binding ArtistName, StringFormat='View Artists : {0}'}" />
+                                                </MenuFlyout>
+
+                                            </FlyoutBase.ContextFlyout>
+                                            <Label
+                                                Grid.Column="1"
+                                                HorizontalOptions="Start"
+                                                LineBreakMode="WordWrap"
+                                                Text="{Binding OtherArtistsName}"
+                                                VerticalOptions="Center" />
+                                        </syncf:SfEffectsView>
+
+                                        <syncf:SfEffectsView
+                                            x:Name="ArtistSfEffectsView"
+                                            TouchUp="ArtistSfEffectsView_TouchUp"
+                                            TouchUpCommandParameter="{Binding AlbumName}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            HorizontalOptions="Start"
+                                            HorizontalTextAlignment="Start"
+                                            LineBreakMode="WordWrap"
+                                            Text="{Binding AlbumName}"
+                                            ToolTipProperties.Text="{Binding AlbumName}"
+                                            VerticalOptions="Center">
+
+                                            <FlyoutBase.ContextFlyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem
+                                                        x:Name="QuickSearchAlbum"
+                                                        Clicked="QuickSearchAlbum_Clicked"
+                                                        CommandParameter="{Binding AlbumName}"
+                                                        Text="Quick Search Album" />
+                                                </MenuFlyout>
+                                            </FlyoutBase.ContextFlyout>
+                                        </Label>
+                                        <Label
+                                            Grid.Column="3"
+                                            HorizontalOptions="Center"
+                                            LineBreakMode="TailTruncation"
+                                            Text="{Binding Genre.Name}"
+                                            VerticalOptions="Center">
+                                            <Label.GestureRecognizers>
+                                                <PointerGestureRecognizer x:Name="MiddleClickGest" PointerReleased="MiddleClickGest_PointerReleased" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                        <Label
+                                            Grid.Column="4"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding ReleaseYear}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Column="5"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
                                             <VisualState x:Name="Normal">

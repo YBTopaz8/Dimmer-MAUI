@@ -22,7 +22,7 @@ public partial class BtmBar : DXBorder
     }
     public event EventHandler RequestFocusOnMainView;
 
-    
+
     public BaseViewModelAnd MyViewModel { get; set; }
 
 
@@ -162,10 +162,11 @@ public partial class BtmBar : DXBorder
                     {
                         try
                         {
+                            RequestFocusNowPlayingUI?.Invoke(this, EventArgs.Empty);
                             btmBarHeight=this.Height;
 
-                            BottomSheet bottomSheet = this.Parent.FindByName<BottomSheet>("NowPlayingBtmSheet");
-                            bottomSheet.Show();
+                            //BottomSheet bottomSheet = this.Parent.FindByName<BottomSheet>("NowPlayingBtmSheet");
+                            //bottomSheet.Show();
 
                         }
                         catch { }
@@ -191,4 +192,5 @@ public partial class BtmBar : DXBorder
         //SearchBy.Focus();
     }
     public static DXCollectionView PageColView { get; set; }
+    public event EventHandler RequestFocusNowPlayingUI;
 }

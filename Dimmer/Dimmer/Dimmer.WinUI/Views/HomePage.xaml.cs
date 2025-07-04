@@ -777,7 +777,8 @@ public partial class HomePage : ContentPage
 
     private async void PointerRecog_PointerEntered(object sender, PointerEventArgs e)
     {
-        await Task.WhenAll(SongsColView.DimmOut(),
+        SearchSongSB.Focus();
+        await Task.WhenAll(
             TranslatedSearch.DimmIn(),
             UtilitySection.AnimateHeight(77, 450, Easing.SpringOut)
             );
@@ -923,6 +924,23 @@ public partial class HomePage : ContentPage
 
         }
 
+
+    }
+
+    private void MiddleClickGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+        Microsoft.UI.Input.PointerDeviceType ee = e.PlatformArgs.PointerRoutedEventArgs.Pointer.PointerDeviceType;
+        Windows.System.VirtualKeyModifiers ewe = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+        var ewae = e.PlatformArgs.PointerRoutedEventArgs.OriginalSource;
+        var qewe = e.PlatformArgs.PointerRoutedEventArgs.Pointer;
+        if (ewe==Windows.System.VirtualKeyModifiers.Control && ee==Microsoft.UI.Input.PointerDeviceType.Mouse)
+        {
+            MyViewModel.SearchSongSB_TextChanged($"genre:)
+        }
+    }
+
+    private void ArtistSfEffectsView_TouchUp(object sender, EventArgs e)
+    {
 
     }
 }
