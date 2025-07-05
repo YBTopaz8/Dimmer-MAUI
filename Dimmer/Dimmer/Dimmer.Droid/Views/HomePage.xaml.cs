@@ -6,6 +6,7 @@ using Dimmer.DimmerSearch;
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.Utilities.FileProcessorUtils;
+using Dimmer.Utilities.ViewsUtils;
 using Dimmer.ViewModel;
 
 using System.ComponentModel;
@@ -538,13 +539,15 @@ public partial class HomePage : ContentPage
     private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        StaticMethods.SetQuotedSearch("artist", send.Text);
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(
+        StaticMethods.SetQuotedSearch("artist", send.Text));
     }
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        StaticMethods.SetQuotedSearch("album", send.Text);
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(
+        StaticMethods.SetQuotedSearch("album", send.Text));
     }
 
     // The "Years" methods remain unchanged.
@@ -552,8 +555,7 @@ public partial class HomePage : ContentPage
     {
 
         var send = (Chip)sender;
-
-        StaticMethods.SetQuotedSearch("year", send.Text);
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("year", send.Text));
     }
 
 
@@ -604,6 +606,15 @@ public partial class HomePage : ContentPage
 
     private void BtmBar_RequestFocusNowPlayingUI_1(object sender, EventArgs e)
     {
+
+    }
+
+    private void DXCollectionView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
+    {
+
+
+        //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.BaseVM.cur);
+        //bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
 
     }
 }

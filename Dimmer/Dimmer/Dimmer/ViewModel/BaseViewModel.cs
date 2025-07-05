@@ -11,6 +11,7 @@ using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.Utilities.TypeConverters;
+using Dimmer.Utilities.ViewsUtils;
 
 using DynamicData;
 using DynamicData.Binding;
@@ -25,6 +26,7 @@ using System.ComponentModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
@@ -580,6 +582,28 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private IDisposable? _realmSubscription;
     private bool _isDisposed;
 
+    [ObservableProperty]
+    public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
+
+    // 2. Add a command to switch the view
+    [RelayCommand]
+    private async Task ToggleSongView()
+    {
+
+        if (!IsPlaying)
+        {
+            Random nn = new Random();
+            var song = SearchResults[nn.Next(0, 8)];
+            await PlaySongFromListAsync(song, SearchResults);
+
+        }
+
+        {
+            await PlayPauseToggleAsync();
+        }
+    }
+
+
     private void OnRealmPlayEventsChanged(IRealmCollection<DimmerPlayEvent> sender, ChangeSet? changes)
     {
         // This method does not need to change. It is correct.
@@ -902,11 +926,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
                         AudioDevices = audioService.GetAllAudioDevices()?.ToObservableCollection();
                         var ll = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems.Take(50);
-                        if (QueueOfSongsLive is not null)
-                        {
-
-                            QueueOfSongsLive.Clear();
-                        }
+                        QueueOfSongsLive?.Clear();
 
                         QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
 

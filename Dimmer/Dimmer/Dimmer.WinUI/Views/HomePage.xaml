@@ -615,14 +615,6 @@
                                                 FontFamily="AleySans"
                                                 Text="{Binding Title}"
                                                 VerticalOptions="Center">
-                                                <Label.GestureRecognizers>
-                                                    <PointerGestureRecognizer
-                                                        
-                                                        PointerEnteredCommandParameter="title"
-                                                        PointerReleased="MiddleClickGest_PointerReleased"
-                                                        PointerReleasedCommandParameter="{Binding Title}" />
-                                                </Label.GestureRecognizers>
-
                                                 <Label.Triggers>
                                                     <DataTrigger
                                                         Binding="{Binding IsCurrentPlayingHighlight}"
@@ -658,15 +650,7 @@
                                                 HorizontalOptions="Start"
                                                 LineBreakMode="WordWrap"
                                                 Text="{Binding OtherArtistsName}"
-                                                VerticalOptions="Center">
-                                                <Label.GestureRecognizers>
-                                                    <PointerGestureRecognizer
-                                                        
-                                                        PointerEnteredCommandParameter="artist"
-                                                        PointerReleased="MiddleClickGest_PointerReleased"
-                                                        PointerReleasedCommandParameter="{Binding ArtistName}" />
-                                                </Label.GestureRecognizers>
-                                            </Label>
+                                                VerticalOptions="Center" />
                                         </syncf:SfEffectsView>
 
                                         <syncf:SfEffectsView
@@ -681,13 +665,6 @@
                                             Text="{Binding AlbumName}"
                                             ToolTipProperties.Text="{Binding AlbumName}"
                                             VerticalOptions="Center">
-                                            <Label.GestureRecognizers>
-                                                <PointerGestureRecognizer
-                                                    
-                                                    PointerEnteredCommandParameter="album"
-                                                    PointerReleased="MiddleClickGest_PointerReleased"
-                                                    PointerReleasedCommandParameter="{Binding AlbumName}" />
-                                            </Label.GestureRecognizers>
 
                                             <FlyoutBase.ContextFlyout>
                                                 <MenuFlyout>
@@ -706,11 +683,7 @@
                                             Text="{Binding Genre.Name}"
                                             VerticalOptions="Center">
                                             <Label.GestureRecognizers>
-                                                <PointerGestureRecognizer
-                                                    
-                                                    PointerEnteredCommandParameter="Genre"
-                                                    PointerReleased="MiddleClickGest_PointerReleased"
-                                                    PointerReleasedCommandParameter="{Binding Genre.Name}" />
+                                                <PointerGestureRecognizer x:Name="MiddleClickGest" PointerReleased="MiddleClickGest_PointerReleased" />
                                             </Label.GestureRecognizers>
                                         </Label>
                                         <Label
@@ -718,7 +691,6 @@
                                             HorizontalOptions="Center"
                                             Text="{Binding ReleaseYear}"
                                             VerticalOptions="Center" />
-
                                         <Label
                                             Grid.Column="5"
                                             HorizontalOptions="Center"
@@ -817,23 +789,6 @@
                         ColumnDefinitions="*,*"
                         RowDefinitions="*,*">
 
-                        <syncf:SfCartesianChart Grid.Row="0" Grid.Column="1">
-                            <syncf:SfCartesianChart.XAxes>
-                                <syncf:NumericalAxis />
-                            </syncf:SfCartesianChart.XAxes>
-
-                            <syncf:SfCartesianChart.YAxes>
-                                <syncf:NumericalAxis />
-                            </syncf:SfCartesianChart.YAxes>
-
-                            <syncf:BubbleSeries
-                                ItemsSource="{Binding PlayEventsForScatterChart}"
-                                SizeValuePath="Size"
-                                XBindingPath="XValue"
-                                YBindingPath="YValue" />
-
-                        </syncf:SfCartesianChart>
-
 
                         <CollectionView
                             x:Name="AllEventsColView"
@@ -857,26 +812,6 @@
 
 
         </Grid>
-
-
-        <syncf:SfPopup
-            x:Name="PlaylistPopup"
-            Margin="10"
-            Padding="10"
-            AnimationMode="SlideOnBottom"
-            Background="Transparent"
-            IsFullScreen="False"
-            IsOpen="False"
-            IsVisible="False"
-            ShowCloseButton="True">
-
-
-            <syncf:SfPopup.ContentTemplate>
-                <DataTemplate>
-                    <Grid />
-                </DataTemplate>
-            </syncf:SfPopup.ContentTemplate>
-        </syncf:SfPopup>
 
 
     </Grid>
