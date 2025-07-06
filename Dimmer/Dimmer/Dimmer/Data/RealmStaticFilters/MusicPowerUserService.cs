@@ -11,7 +11,7 @@ namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicPowerUserService
 {
-    private readonly Realm _realm;
+    private Realm _realm;
 
     public MusicPowerUserService(IRealmFactory factory)
     {
@@ -29,6 +29,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<IGrouping<string, SongModel>> GetPotentialDuplicateSongs()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // RQL can't do this. This is a classic case for LINQ's GroupBy after fetching all songs.
         // It's an expensive operation, so it should be used sparingly.
         return [.. _realm.All<SongModel>().ToList()
@@ -41,6 +43,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<DimmerPlayEvent> GetOrphanedPlayEvents()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // RQL Filter: Find all events where the backlink to a song is empty.
         var query = "SongsLinkingToThisEvent.@count == 0";
         return [.. _realm.All<DimmerPlayEvent>().Filter(query)];
@@ -51,6 +55,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<AlbumModel> GetIncompleteAlbums()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // RQL Filter: A simple check on properties.
         return [.. _realm.All<AlbumModel>().Filter("TrackTotal > 0 AND SongsInAlbum.@count != TrackTotal")];
     }
@@ -60,6 +66,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<SongModel> GetRatedButUnfinishedSongs()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // RQL: Find songs with a rating > 0 AND no completed play events.
         var query = "Rating > 0 AND NONE PlayHistory.WasPlayCompleted == true";
         return [.. _realm.All<SongModel>().Filter(query)];
@@ -70,11 +78,19 @@ public class MusicPowerUserService
     /// </summary>
     public List<SongModel> GetSongsWithMissingFiles()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         return [.. _realm.All<SongModel>().Filter("IsFileExists == false")];
     }
 
     // (6-10) More health checks
-    public List<AlbumModel> GetAlbumsMissingCoverArt() => [.. _realm.All<AlbumModel>().Filter("ImagePath == nil OR ImagePath == 'musicalbum.png'")];
+    public List<AlbumModel> GetAlbumsMissingCoverArt()
+    {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
+        return [.. _realm.All<AlbumModel>().Filter("ImagePath == nil OR ImagePath == 'musicalbum.png'")];
+    }
+
     public List<ArtistModel> GetArtistsWithNoSongs() => [.. _realm.All<ArtistModel>().Filter("Songs.@count == 0")];
     public List<GenreModel> GetGenresWithNoSongs() => [.. _realm.All<GenreModel>().Filter("Songs.@count == 0")];
     public List<SongModel> GetSongsWithNoGenre() => [.. _realm.All<SongModel>().Filter("Genre == nil")];
@@ -89,6 +105,8 @@ public class MusicPowerUserService
     /// </summary>
     public double GetSkipToCompletionRatio()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // RQL can get the two counts separately.
         double skipCount = _realm.All<DimmerPlayEvent>().Filter("PlayType == 5").Count();
         double completeCount = _realm.All<DimmerPlayEvent>().Filter("WasPlayCompleted == true").Count();
@@ -101,6 +119,8 @@ public class MusicPowerUserService
     /// </summary>
     public string GetPrimaryListeningDecade()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var allEvents = _realm.All<DimmerPlayEvent>();
 
         if (!allEvents.Any())
@@ -123,6 +143,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<(ArtistModel Artist, SongModel HitSong, double DominancePercentage)> GetUserOneHitWonders(double dominanceThreshold = 0.8)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var results = new List<(ArtistModel, SongModel, double)>();
         var allArtistEvents = _realm.All<DimmerPlayEvent>().ToList()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
@@ -156,6 +178,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<ArtistModel> GetAbandonedArtists(int maxPlays, int daysSinceFirstPlay)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var artistsToConsider = _realm.All<DimmerPlayEvent>().ToList()
             .GroupBy(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist)
             .Where(g => g.Key != null && g.Count() <= maxPlays)
@@ -184,6 +208,8 @@ public class MusicPowerUserService
     /// </summary>
     public double GetAdventurousnessScore(int days)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0").ToList();
         if (recentEvents.Count == 0)
@@ -196,7 +222,8 @@ public class MusicPowerUserService
             .ToHashSet();
 
         int newArtistPlays = recentEvents
-            .Count(e => {
+            .Count(e =>
+            {
                 var artistId = e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist?.Id;
                 return artistId.HasValue && !priorPlayedArtistIds.Contains(artistId.Value);
             });
@@ -225,6 +252,8 @@ public class MusicPowerUserService
     /// </summary>
     public List<SongModel> CreateTimeCapsulePlaylist(DateTimeOffset targetDate, int dayRange)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var startDate = targetDate.AddDays(-dayRange);
         var endDate = targetDate.AddDays(dayRange);
         var query = "DatePlayed > $0 AND DatePlayed < $1";
@@ -246,12 +275,14 @@ public class MusicPowerUserService
         return [.. _realm.All<SongModel>().Filter(query, minDurationSeconds, sinceDate)];
     }
 
-    
+
     /// <summary>
     /// Q: "Create a 'Sunday Morning' playlist: mellow songs with a high personal rating."
     /// </summary>
     public List<SongModel> CreateSundayMorningPlaylist()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var query = "Rating >= 4 AND ANY Tags.Name IN {'Mellow', 'Acoustic', 'Chill'}";
         return [.. _realm.All<SongModel>().Filter(query)
             .ToList()
@@ -279,6 +310,8 @@ public class MusicPowerUserService
     /// </summary>
     public SongModel? GetLongestCompletedSong()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var completedEvents = _realm.All<DimmerPlayEvent>().Filter("WasPlayCompleted == true").ToList();
         return completedEvents
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault())
@@ -292,8 +325,11 @@ public class MusicPowerUserService
     /// </summary>
     public (ArtistModel? Artist, int GenreCount) GetMostDiverseArtist()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var artistAndGenreCount = _realm.All<ArtistModel>().ToList()
-            .Select(a => new {
+            .Select(a => new
+            {
                 Artist = a,
                 GenreCount = a.Songs.Select(s => s.Genre.Name).Where(n => n != null).Distinct().Count()
             })
@@ -314,6 +350,8 @@ public class MusicPowerUserService
     public AlbumModel? GetAlbumWithMostDrasticRatingChange() { /* LINQ: Find album with highest standard deviation in song ratings */ return null; }
     public (SongModel? Song, int SeekCount) GetMostSeekedSong()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var seekEvents = _realm.All<DimmerPlayEvent>().Filter("PlayType == 4").ToList(); // 4: Seeked
         var mostSeeked = seekEvents
             .GroupBy(e => e.SongsLinkingToThisEvent.FirstOrDefault())

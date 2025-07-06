@@ -94,17 +94,99 @@
             FitKeyboardAreaToContent="SizeToContent"
             IsVisible="True">
             <dx:DXDockLayout x:Name="HomeView" BackgroundColor="Transparent">
+
                 <Grid
-                    x:Name="BtmBarZone"
                     Grid.Row="0"
                     dx:DXDockLayout.Dock="Bottom"
                     BackgroundColor="Transparent"
-                    VerticalOptions="End">
-                    <dx:DXStackLayout>
+                    ColumnDefinitions="*">
+
+                    <dx:DXExpander
+                        x:Name="BtmBarZone"
+                        Grid.Column="0"
+                        BackgroundColor="Transparent"
+                        IsExpanded="True"
+                        VerticalOptions="End">
+
+                        <Grid BackgroundColor="Transparent" VerticalOptions="End">
+                            <dx:DXStackLayout>
 
 
-                        <customViewParts:BtmBar RequestFocusNowPlayingUI="BtmBar_RequestFocusNowPlayingUI" RequestFocusOnMainView="BtmBar_RequestFocusOnMainView" />
-                    </dx:DXStackLayout>
+                                <customViewParts:BtmBar
+                                    RequestFocusNowPlayingUI="BtmBar_RequestFocusNowPlayingUI"
+                                    RequestFocusOnMainView="BtmBar_RequestFocusOnMainView"
+                                    ScrollToStart="BtmBar_ScrollToStart"
+                                    ToggleAdvanceFilters="BtmBar_ToggleAdvanceFilters" />
+                                <dx:DXStackLayout
+                                    x:Name="BelowBtmBar"
+                                    Padding="10"
+                                    IsVisible="False"
+                                    ItemSpacing="5">
+
+                                    <dx:DXStackLayout
+                                        x:Name="AdvfilterSection"
+                                        Padding="10"
+                                        HorizontalOptions="Center"
+                                        ItemSpacing="5"
+                                        Orientation="Horizontal">
+                                        <dx:Chip BorderColor="DarkSlateBlue" Text="Advanced Filters" />
+                                        <dx:Chip
+                                            x:Name="am"
+                                            BorderThickness="0"
+                                            DoubleTap="am_DoubleTap"
+                                            Icon="more1.png"
+                                            IconSize="40,40"
+                                            IsIconVisible="True" />
+                                        <dx:Chip
+                                            x:Name="ClearSearch"
+                                            BorderThickness="0"
+                                            Icon="delete.png"
+                                            IconColor="DarkSlateBlue"
+                                            IconSize="40,40"
+                                            IsIconVisible="True"
+                                            LongPress="ClearSearch_LongPress" />
+                                    </dx:DXStackLayout>
+                                    <dx:DXExpander x:Name="SearchSection" IsExpanded="True">
+                                        <dx:DXExpander.Content>
+                                            <dx:DXStackLayout
+                                                x:Name="SearchFilters"
+                                                HorizontalOptions="Center"
+                                                ItemSpacing="10"
+                                                Orientation="Horizontal">
+                                                <dx:Chip
+                                                    x:Name="AddSearchFilter"
+                                                    Tap="AddSearchFilter_Tap"
+                                                    TapCommandParameter="t:"
+                                                    Text="title" />
+                                                <dx:Chip
+                                                    Tap="AddSearchFilter_Tap"
+                                                    TapCommandParameter="ar:"
+                                                    Text="artist" />
+                                                <dx:Chip
+                                                    Tap="AddSearchFilter_Tap"
+                                                    TapCommandParameter="al:"
+                                                    Text="album" />
+                                                <dx:Chip
+                                                    Tap="AddSearchFilter_Tap"
+                                                    TapCommandParameter="genre:"
+                                                    Text="genre" />
+                                                <dx:Chip
+                                                    Tap="AddSearchFilter_Tap"
+                                                    TapCommandParameter="len:"
+                                                    Text="duration" />
+
+
+                                            </dx:DXStackLayout>
+                                        </dx:DXExpander.Content>
+                                    </dx:DXExpander>
+
+                                </dx:DXStackLayout>
+                            </dx:DXStackLayout>
+
+                        </Grid>
+
+
+                    </dx:DXExpander>
 
                 </Grid>
                 <!--<dx:DXScrollView x:Name="MainPageScrollView">-->
@@ -189,7 +271,7 @@
                                             FontFamily="AleySans"
                                             FontSize="30"
                                             LongPress="SongTitleChip_LongPress"
-                                            LongPressCommandParameter="{Binding BaseVM.CurrentPlayingSongView.AlbumName}"
+                                            LongPressCommandParameter="{Binding BaseVM.CurrentPlayingSongView.ArtistName}"
                                             Tap="SongTitleChip_Tap">
                                             <dx:Chip.ContentTemplate>
                                                 <DataTemplate>
@@ -597,7 +679,6 @@
                                     CornerRadius="20"
                                     Focused="SearchBy_Focused"
                                     FocusedBorderColor="DarkSlateBlue"
-                                    HeightRequest="55"
                                     PlaceholderColor="DarkSlateBlue"
                                     PlaceholderText="Search..."
                                     StartIcon="searchd.png"

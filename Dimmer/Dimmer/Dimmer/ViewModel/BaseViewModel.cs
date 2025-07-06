@@ -2,6 +2,7 @@
 
 using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.Charts;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
@@ -22,12 +23,15 @@ using MoreLinq;
 
 using ReactiveUI;
 
+using Realms;
+
 using System.ComponentModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
+using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 using static Dimmer.Utilities.AppUtils;
 using static Dimmer.Utilities.StatsUtils.SongStatTwop;
 
@@ -56,6 +60,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly IRepository<GenreModel> genreRepo;
     private readonly IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
     public readonly LyricsMgtFlow _lyricsMgtFlow;
+    private readonly MusicRelationshipService musicRelationshipService;
+    private readonly MusicArtistryService musicArtistryService;
+    private readonly MusicStatsService musicStatsService;
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
     private readonly ILibraryScannerService libService;
@@ -471,6 +478,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        ISettingsService settingsService,
        SubscriptionManager subsManager,
        LyricsMgtFlow lyricsMgtFlow,
+
        IFolderMgtService folderMgtService,
        IRepository<SongModel> songRepo,
        IRepository<ArtistModel> artistRepo,
@@ -576,6 +584,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var liveRealmEvents = realm.All<DimmerPlayEvent>().AsRealmCollection();
         _realmSubscription = liveRealmEvents.SubscribeForNotifications(OnRealmPlayEventsChanged);
         BuildRawDataChartPipelines();
+
+
+
+        this.musicRelationshipService=new(realmFactory);
+        this.musicArtistryService=new(realmFactory);
+
+        this.musicStatsService=new(realmFactory);
     }  // --- Private Fields ---
     private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
     private readonly CompositeDisposable _disposables = new();
@@ -585,67 +600,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
 
-    // 2. Add a command to switch the view
-    [RelayCommand]
-    private async Task ToggleSongView()
-    {
-
-        if (!IsPlaying)
-        {
-            Random nn = new Random();
-            var song = SearchResults[nn.Next(0, 8)];
-            await PlaySongFromListAsync(song, SearchResults);
-
-        }
-
-        {
-            await PlayPauseToggleAsync();
-        }
-    }
-
-
-    private void OnRealmPlayEventsChanged(IRealmCollection<DimmerPlayEvent> sender, ChangeSet? changes)
-    {
-        // This method does not need to change. It is correct.
-        if (changes is null)
-        {
-            var initialItems = _mapper.Map<IEnumerable<DimmerPlayEventView>>(sender);
-            _playEventSource.Edit(innerList =>
-            {
-                innerList.Clear();
-                innerList.AddRange(initialItems);
-            });
-            return;
-        }
-
-        _playEventSource.Edit(innerList =>
-        {
-            // =========================================================================
-            //  THE NEW, FOOLPROOF CODE. NO MORE .Reverse()
-            // =========================================================================
-
-            // Process deletions with a standard 'for' loop, counting backwards.
-            for (int i = changes.DeletedIndices.Length - 1; i >= 0; i--)
-            {
-                var indexToDelete = changes.DeletedIndices[i];
-                innerList.RemoveAt(indexToDelete);
-            }
-
-            // These loops were always correct.
-            foreach (var i in changes.InsertedIndices)
-            {
-                var newEventView = _mapper.Map<DimmerPlayEventView>(sender[i]);
-                innerList.Insert(i, newEventView);
-            }
-
-            foreach (var i in changes.NewModifiedIndices)
-            {
-                var updatedEventView = _mapper.Map<DimmerPlayEventView>(sender[i]);
-                innerList[i] = updatedEventView;
-            }
-        });
-
-    }
 
 
     // 1. A private, WRITABLE collection. This is what DynamicData will update.
@@ -752,11 +706,85 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
 
-
+        WireUpLiveStats();
 
     }
 
+    private void OnRealmPlayEventsChanged(IRealmCollection<DimmerPlayEvent> sender, ChangeSet? changes)
+    {
+        // This method does not need to change. It is correct.
+        if (changes is null)
+        {
+            var initialItems = _mapper.Map<IEnumerable<DimmerPlayEventView>>(sender);
+            _playEventSource.Edit(innerList =>
+            {
+                innerList.Clear();
+                innerList.AddRange(initialItems);
+            });
+            return;
+        }
+
+        _playEventSource.Edit(innerList =>
+        {
+
+            for (int i = changes.DeletedIndices.Length - 1; i >= 0; i--)
+            {
+                var indexToDelete = changes.DeletedIndices[i];
+                innerList.RemoveAt(indexToDelete);
+            }
+
+            // These loops were always correct.
+            foreach (var i in changes.InsertedIndices)
+            {
+                var newEventView = _mapper.Map<DimmerPlayEventView>(sender[i]);
+                innerList.Insert(i, newEventView);
+            }
+
+            foreach (var i in changes.NewModifiedIndices)
+            {
+                var updatedEventView = _mapper.Map<DimmerPlayEventView>(sender[i]);
+                innerList[i] = updatedEventView;
+            }
+        });
+
+    }
+    private void WireUpLiveStats()
+    {
+        // --- Live Skip-to-Completion Ratio ---
+        _playEventSource.Connect()
+            // Optional: Don't recalculate on every single event.
+            // This is good for performance if events come in fast.
+            .Throttle(TimeSpan.FromSeconds(1), RxApp.MainThreadScheduler)
+            // This gives us a stream of the *entire current list* whenever a change happens.
+            .ToCollection()
+            // Move the heavy calculation off the UI thread.
+            .ObserveOn(TaskPoolScheduler.Default)
+             .Select(allEvents =>
+             {
+                 // Logic from MusicStatsService.GetAllTimeTopArtist()
+                 if (!allEvents.Any())
+                     return null;
+
+                 // Note: We need to adapt this slightly since we have ViewModels
+                 return allEvents
+                     .Where(e => !string.IsNullOrEmpty(e.SongName)) // A simple check
+
+                     .GroupBy(e => e.SongName) // Simplified grouping for this example
+                     .Select(g => new ArtistStat(new ArtistModel { Name = g.Key }, g.Count())) // Simplified
+                     .OrderByDescending(a => a.PlayCount)
+                     .FirstOrDefault();
+             })
+        .ObserveOn(RxApp.MainThreadScheduler)
+        .Subscribe(artistStat => AllTimeTopArtist = artistStat)
+            // IMPORTANT: Ensure this subscription is cleaned up when the ViewModel is disposed.
+            .DisposeWith(Disposables); // Assuming you have `protected CompositeDisposable Disposables`
+    }
+
     readonly IRealmFactory realmFactory;
+    [ObservableProperty]
+    public partial double SkipToCompletionRatio { get; set; }
+    [ObservableProperty]
+    public partial ArtistStat AllTimeTopArtist { get; set; }
     [ObservableProperty]
     public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
 
@@ -930,7 +958,63 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                         QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
 
+                        var realm = realmFactory.GetRealmInstance();
 
+                        int plays = SongStatisticsService.GetPlayCount(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
+                        int skips = SongStatisticsService.GetSkipCount(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
+                        double completionRate = SongStatisticsService.GetCompletionRate(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
+                        Console.WriteLine($"Song has been played {plays} times and skipped {skips} times.");
+                        Console.WriteLine($"Completion Rate: {completionRate:F2}%");
+
+                        // Get data for a chart (e.g., to pass to a charting library like ScottPlot, LiveCharts, etc.)
+                        List<DataPoint<DateTime, int>> dailyPlays = SongStatisticsService.GetPlaysOverTimeHistogram(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
+                        // Now 'dailyPlays' can be used to populate a bar or line chart.
+
+                        // --- Get global stats ---
+                        List<SongAggregate> top5Songs = SongStatisticsService.GetTopNMostPlayedSongs(realm, 5);
+                        Console.WriteLine("\nTop 5 Most Played Songs:");
+                        foreach (var item in top5Songs)
+                        {
+                            Console.WriteLine($"- {item.Song.Title} by {item.Song.ArtistName} ({item.Count} plays)");
+                        }
+
+                        // Get data for a "peak listening time" chart
+                        List<DataPoint<int, int>> hourlyPlays = SongStatisticsService.GetPlayCountsByHourOfDay(realmFactory.GetRealmInstance());
+                        // 'hourlyPlays' is now ready to be plotted as a bar chart with 24 bars.
+
+                        // Get a sophisticated score for a song
+                        double popScore = SongStatisticsService.GetPopularityScore(realm, CurrentPlayingSongView.Id);
+                        Console.WriteLine($"Song popularity score: {popScore:F2}");
+
+                        // Find your most "love it or hate it" tracks
+                        var divisiveSongs = SongStatisticsService.GetMostDivisiveSongs(realm, 5);
+                        Console.WriteLine("\nMost Divisive Songs:");
+                        foreach (var item in divisiveSongs)
+                        {
+                            Console.WriteLine($"- {item.X.Title}: {item.Y.Plays} plays, {item.Y.Skips} skips");
+                        }
+
+                        // Get data for a heatmap chart
+                        var heatmapData = SongStatisticsService.GetListeningActivityHeatmap(realm);
+                        // This data is ready to be bound to a UI control that can render a 7x24 grid.
+                        Console.WriteLine($"\nFound {heatmapData.Count} heatmap points.");
+
+                        // Discover which genres you tend to skip
+                        var genreRates = SongStatisticsService.GetGenreSkipRates(realm);
+                        Console.WriteLine("\nGenre Skip Rates:");
+                        foreach (var item in genreRates)
+                        {
+                            Console.WriteLine($"- {item.X}: {item.Y:F2}% skip rate");
+                        }
+
+                        // Find beloved songs you've neglected
+                        //var forgotten = SongStatisticsService.GetForgottenFavorites(realm, 6); // Not played in 6 months
+                        //Console.WriteLine("\nForgotten Favorites to Revisit:");
+                        //foreach (var song in forgotten)
+                        //{
+                        //    Console.WriteLine($"- {song.Title} by {song.ArtistName}");
+                        //}
+                        //LoadMusicArtistServiceMethods(ar);
                     }
                     else
                     {
@@ -1433,7 +1517,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         DeviceStaticUtils.SelectedArtistOne = artDb.ToModelView(_mapper);
 
         RefreshSongMetadata(song);
-        LoadMusicArtistServiceMethods(artDb.ToModelView(_mapper));
         return true;
     }
     public void SetCurrentlyPickedSongForContext(SongModelView? song)
@@ -2078,8 +2161,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         var artId = artist.Id;
-        var musicRelationshipService = IPlatformApplication.Current?.Services.GetService<MusicRelationshipService>();
+        var first = musicArtistryService.GetPrimeNumberSongs();
+        var snd = musicArtistryService.GetParetoPrincipleCheck();
+        var thrd = musicArtistryService.GetNextSongPredictability();
+        var fth = musicArtistryService.FindHiddenConceptAlbum();
+        var fth2 = musicArtistryService.GetGoldenRatioTrackOnFavoriteAlbum();
 
+        var ss = musicStatsService.GetAllTimeMostPlayedSong();
+        var sss = musicStatsService.GetAllTimeTopAlbum();
+        var ssss = musicStatsService.GetAllTimeTopArtist();
+        var topnar = musicStatsService.GetAllTimeTopNArtists(8);
+        var topalb = musicStatsService.GetArtistRankByPlayCount(ssss.Artist.Id);
+        var ssa = musicStatsService.GetTotalListeningHours();
+        var sss2 = musicStatsService.GetTotalUniqueArtistsPlayed();
+        var eqe = musicStatsService.GetTotalUniqueSongsPlayed();
         ArtistLoyaltyIndex = musicRelationshipService.GetArtistLoyaltyIndex(artId);
         MyCoreArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(musicRelationshipService.GetMyCoreArtists(10));
         ArtistBingeScore = musicRelationshipService.GetArtistBingeScore(artId);

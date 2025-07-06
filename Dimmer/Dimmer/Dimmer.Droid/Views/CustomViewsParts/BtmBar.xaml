@@ -70,7 +70,8 @@
                     <dx:Chip
                         x:Name="DurationAndSearchChip"
                         Grid.Column="1"
-                        BorderThickness="0"
+                        BorderThickness="0" DoubleTap="DurationAndSearchChip_DoubleTap"
+                        Tap="DurationAndSearchChip_Tap"
                         LongPress="DurationAndSearchChip_LongPress">
                         <dx:Chip.ContentTemplate>
                             <DataTemplate>

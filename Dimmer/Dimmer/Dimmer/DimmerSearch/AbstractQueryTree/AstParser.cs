@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -87,8 +88,17 @@ public class AstParser
 
         string op = "contains"; // Default operator for user-friendliness
         if (IsOperator(Peek().Type))
+        {
             op = Consume(Peek().Type).Text;
-
+        }
+        else
+        {
+            //// NEW: Check if the field requires an explicit operator
+            //if (FieldRegistry.IsNumeric(field) && Peek().Type != TokenType.Number)
+            //{ // You'd need a FieldRegistry
+            //    throw new Exception($"Field '{field}' requires an operator (e.g., ':', '>', '<').");
+            //}
+        }
         return ParseValueExpression(field, op);
     }
 

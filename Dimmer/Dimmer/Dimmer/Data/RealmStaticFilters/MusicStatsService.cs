@@ -10,7 +10,7 @@ namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicStatsService
 {
-    private readonly Realm _realm;
+    private Realm _realm;
     public MusicStatsService(IRealmFactory factory)
     {
         _realm = factory.GetRealmInstance();
@@ -30,6 +30,8 @@ public class MusicStatsService
     /// </summary>
     public SongStat? GetMostPlayedSongInLastNDays(int days)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         // 1. RQL Filter: Get all recent 'Play' or 'Completed' events.
         var recentEvents = _realm.All<DimmerPlayEvent>()
@@ -52,6 +54,8 @@ public class MusicStatsService
     /// </summary>
     public ArtistStat? GetTopArtistInLastNDays(int days)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", sinceDate);
 
@@ -262,7 +266,7 @@ public class MusicStatsService
     {
         // This follows the same 3-step pattern as the method above.
         var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId);
-        var artistSongIds = artistSongs.Select(s => (QueryArgument) s.Id).ToArray();
+        var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
         if (artistSongIds.Length==0)
             return null;
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds);

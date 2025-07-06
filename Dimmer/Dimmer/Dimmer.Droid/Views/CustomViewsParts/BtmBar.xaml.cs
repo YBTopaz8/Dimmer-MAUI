@@ -188,10 +188,22 @@ public partial class BtmBar : DXBorder
 
     private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
     {
-        this.RequestFocusOnMainView?.Invoke(this, e);
+        this.ScrollToStart?.Invoke(this, e);
         //TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
         //SearchBy.Focus();
     }
     public static DXCollectionView PageColView { get; set; }
     public event EventHandler RequestFocusNowPlayingUI;
+    public event EventHandler ScrollToStart;
+    public event EventHandler ToggleAdvanceFilters;
+
+    private void DurationAndSearchChip_DoubleTap(object sender, HandledEventArgs e)
+    {
+        ScrollToStart?.Invoke(this, e);
+    }
+
+    private void DurationAndSearchChip_Tap(object sender, HandledEventArgs e)
+    {
+        ToggleAdvanceFilters?.Invoke(this, e);
+    }
 }

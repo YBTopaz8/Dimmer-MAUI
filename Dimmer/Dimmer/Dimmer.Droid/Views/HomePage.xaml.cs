@@ -540,14 +540,14 @@ public partial class HomePage : ContentPage
     {
         var send = (Chip)sender;
         MyViewModel.BaseVM.SearchSongSB_TextChanged(
-        StaticMethods.SetQuotedSearch("artist", send.Text));
+        StaticMethods.SetQuotedSearch("artist", SearchBy.Text));
     }
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
         MyViewModel.BaseVM.SearchSongSB_TextChanged(
-        StaticMethods.SetQuotedSearch("album", send.Text));
+        StaticMethods.SetQuotedSearch("album", SearchBy.Text));
     }
 
     // The "Years" methods remain unchanged.
@@ -555,21 +555,31 @@ public partial class HomePage : ContentPage
     {
 
         var send = (Chip)sender;
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("year", send.Text));
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("year", SearchBy.Text));
     }
 
 
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
     {
     }
-    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    private bool _isThrottling = false;
+    private readonly int throttleDelay = 300; // Time in milliseconds
+    private async void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {
         var send = (DXSlider)sender;
 
 
-        //MyViewModel.BaseVM.SeekTrackPosition(ProgressSlider.Value);
-    }
+        if (_isThrottling)
+            return;
 
+        _isThrottling = true;
+
+        MyViewModel.BaseVM.SeekTrackPosition(send.Value);
+
+
+        await Task.Delay(throttleDelay);
+        _isThrottling = false;
+    }
 
 
     private void NowPlayingBtmSheet_Unloaded(object sender, EventArgs e)
@@ -611,11 +621,56 @@ public partial class HomePage : ContentPage
 
     private void DXCollectionView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
+        DXCollectionView send = sender as DXCollectionView;
+        var sel = send.SelectedItem;
 
+        var ind = send.FindItemHandle(sel);
+        send.ScrollTo(ind,DXScrollToPosition.Start);
 
         //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.BaseVM.cur);
         //bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
 
+    }
+
+    private void ClearSearch_LongPress(object sender, HandledEventArgs e)
+    {
+        SearchBy.Text=string.Empty;
+    }
+
+    private void AddSearchFilter_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var paramss = send.TapCommandParameter as string;
+        SearchBy.Text=SearchBy.Text + " " +paramss;
+    }
+
+    private void BtmBar_ScrollToStart(object sender, EventArgs e)
+    {
+
+        int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+        SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+    }
+
+    private async void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
+    {
+        if (BelowBtmBar.IsVisible)
+        {
+            await BelowBtmBar.DimmOutCompletelyAndHide();
+        }
+        else
+        {
+            await BelowBtmBar.DimmInCompletelyAndShow();
+        }
+    }
+
+    private void BtmBar_ScrollToStart_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void am_DoubleTap(object sender, HandledEventArgs e)
+    {
+        await BelowBtmBar.DimmOutCompletelyAndHide();
     }
 }
 

@@ -338,9 +338,8 @@ public partial class HomePage : ContentPage
         SearchSongSB.Focus();
         await Task.WhenAll(
             TranslatedSearch.DimmIn(),
-            UtilitySection.AnimateHeight(77, 450, Easing.SpringOut)
-            ,
-             UtilitySection.AnimateFadeOutBack());
+            UtilitySection.DimmInCompletelyAndShow()
+            );
 
 
     }
@@ -349,7 +348,9 @@ public partial class HomePage : ContentPage
     {
         await Task.WhenAll(SongsColView.DimmIn(),
             TranslatedSearch.DimmOut(),
-            UtilitySection.AnimateHeight(0, 350, Easing.SpringOut)
+             AdvSearch.DimmInCompletelyAndShow(),
+            UtilitySection.DimmOutCompletelyAndHide
+            ()
             );
         SearchSongSB.Unfocus();
     }
@@ -357,7 +358,7 @@ public partial class HomePage : ContentPage
     {
 
         await Task.WhenAll(SongsColView.DimmOut(),
-             AdvSearch.DimmInCompletelyAndShow(), UtilitySection.AnimateFadeOutBack(),
+             AdvSearch.DimmInCompletelyAndShow(),
             SearchSongSB.AnimateHeight(150, 650, Easing.SpringOut));
 
     }
@@ -366,7 +367,7 @@ public partial class HomePage : ContentPage
     {
         await Task.Delay(500);
         await Task.WhenAll(SongsColView.DimmIn(),
-     TranslatedSearch.DimmOut(), AdvSearch.DimmOutCompletelyAndHide(), UtilitySection.AnimateFadeInFront(),
+     TranslatedSearch.DimmOut(), AdvSearch.DimmOutCompletelyAndHide(), UtilitySection.DimmOutCompletelyAndHide(),
          SearchSongSB.AnimateHeight(50, 500, Easing.SpringIn));
 
         SearchSongSB.FontSize = 17;
@@ -393,6 +394,14 @@ public partial class HomePage : ContentPage
     private bool _isLyricsProcessing = false;
     private async void RefreshLyrics_Clicked(object sender, EventArgs e)
     {
+        var res = await DisplayAlert("Refresh Lyrics", "This will process all songs in the library to update lyrics. Do you want to continue?", "Yes", "No");
+
+        if (!res)
+        {
+            return; // User cancelled the operation
+        }
+
+
         if (_isLyricsProcessing)
         {
             bool cancel = await DisplayAlert("Processing...", "Lyrics are already being processed. Cancel the current operation?", "Yes, Cancel", "No");

@@ -120,6 +120,7 @@ public class MainActivity : MauiAppCompatActivity
         _serviceIntent = new Intent(this, typeof(ExoPlayerService));
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {
+
             this.
             StartForegroundService(_serviceIntent);
 
@@ -134,85 +135,6 @@ public class MainActivity : MauiAppCompatActivity
         return;
 
 
-
-        //        // Android Native Unhandled Exception Handler (Java/Kotlin layer)
-        //        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
-        //        {
-        //            System.Diagnostics.Debug.WriteLine($"******** AndroidEnvironment.UnhandledExceptionRaiser: {args.Exception} ********");
-        //            LogUnhandledException("AndroidEnvironment_Unhandled", args.Exception);
-        //            args.Handled = true; // Try to prevent immediate termination for logging, may not always work
-        //        };
-
-        //        // .NET Unhandled Exceptions (also in MauiProgram.cs for broader coverage)
-        //        AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
-        //            System.Diagnostics.Debug.WriteLine($"******** AppDomain.CurrentDomain.UnhandledException (MainActivity): {args.ExceptionObject} ********");
-        //            LogUnhandledException("AppDomain_Unhandled_MainActivity", (Exception)args.ExceptionObject);
-        //        };
-
-        //        TaskScheduler.UnobservedTaskException += (sender, args) => {
-        //            System.Diagnostics.Debug.WriteLine($"******** TaskScheduler.UnobservedTaskException (MainActivity): {args.Exception} ********");
-        //            LogUnhandledException("TaskScheduler_Unobserved_MainActivity", args.Exception);
-        //            args.SetObserved();
-        //        };
-
-        //        Android.Util.Log.Debug("MainActivity", $"Running in package: {PackageName}");
-        //        // --- STORAGE PERMISSION / MANAGER CHECK ---
-        //        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
-        //        {
-        //            // API 30+ use isExternalStorageManager
-        //            bool hasManageAll = Android.OS.Environment.IsExternalStorageManager;
-        //            Android.Util.Log.Debug("MainActivity", $"MANAGE_EXTERNAL_STORAGE granted? {hasManageAll}");
-        //            if (!hasManageAll)
-        //            {
-        //                // fire intent to ask user to grant MANAGE_EXTERNAL_STORAGE
-        //                var uri = Android.Provider.Settings.ActionManageAllFilesAccessPermission;
-        //                var intent = new Android.Content.Intent(uri);
-        //                StartActivity(intent);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // API <30 fallback to WRITE_EXTERNAL_STORAGE
-        //            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.WriteExternalStorage)
-        //                    != Permission.Granted)
-        //            {
-        //                ActivityCompat.RequestPermissions(
-        //                    this,
-        //                    new[] { Manifest.Permission.WriteExternalStorage },
-        //                    REQUEST_WRITE_STORAGE);
-        //            }
-        //            else
-        //            {
-        //                Android.Util.Log.Debug("MainActivity", "WRITE_EXTERNAL_STORAGE already granted");
-        //            }
-        //        }
-
-        //        if (DeviceInfo.Idiom == DeviceIdiom.Watch)
-        //        {
-        //            return;
-        //        }
-        //        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
-        //        {
-        //            if (!Android.OS.Environment.IsExternalStorageManager)
-        //            {
-        //                Intent intent = new Intent();
-        //                intent.SetAction(Settings.ActionManageAppAllFilesAccessPermission);
-        //                Android.Net.Uri uri = Android.Net.Uri.FromParts("package", PackageName!, null)!;
-        //                intent.SetData(uri);
-        //                StartActivity(intent);
-        //            }
-        //        }
-        //        //Win
-        //        // Ensure Window is not null before accessing it
-        //        if (Window != null)
-        //        {
-
-
-
-
-
-        //        // Optional: Handle intent if app was launched FROM CLOSED by the action
-        //         Platform.OnNewIntent(Intent); // Call this here *too* if needed for cold start actions
     }
 
     private void SetStatusBarColor()
@@ -225,41 +147,14 @@ public class MainActivity : MauiAppCompatActivity
 #elif DEBUG
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-
+        Window.SetUiOptions(UiOptions.SplitActionBarWhenNarrow); // Split action bar for narrow screens
+        var ss = Resource.Drawable.atom;
+        Window.SetIcon(ss); // Set the app icon
         //Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
         // Tells the Window to draw under the status bar
 
 
 #endif
-    }
-    private static void LogUnhandledException(string source, Exception ex)
-    {
-        if (ex == null)
-            return;
-        // For Android, FileSystem.AppDataDirectory should work,
-        // but you can also use Android.App.Application.Context.GetExternalFilesDir(null).AbsolutePath
-        string appDataDir = FileSystem.AppDataDirectory;
-        string errorLogPath = Path.Combine(appDataDir, "error_log_android.txt");
-        try
-        {
-            string errorMessage = $"[{DateTime.Now}] Unhandled Exception from {source}:\n{ex.GetType().FullName}: {ex.Message}\nStack Trace:\n{ex.StackTrace}\n";
-            if (ex.InnerException != null)
-            {
-                errorMessage += $"\nInner Exception:\n{ex.InnerException.GetType().FullName}: {ex.InnerException.Message}\nStack Trace:\n{ex.InnerException.StackTrace}\n";
-            }
-            File.AppendAllText(errorLogPath, errorMessage + "\n-----------------------------------\n");
-            System.Diagnostics.Debug.WriteLine($"Logged to: {errorLogPath}");
-
-            // If you want to display an alert (requires UI thread)
-            // MainThread.BeginInvokeOnMainThread(() =>
-            // {
-            //    App.Current.MainPage.DisplayAlert("Crash Report", $"Error in {source}:\n{ex.Message}", "OK");
-            // });
-        }
-        catch (Exception logEx)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to write to error log: {logEx.Message}");
-        }
     }
 
     protected override void OnDestroy()

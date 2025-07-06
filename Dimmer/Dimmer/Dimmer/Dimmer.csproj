@@ -26,6 +26,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+    <EmbeddedResource Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+    <MauiCss Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+    <MauiXaml Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+    <None Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
   </ItemGroup>
 
