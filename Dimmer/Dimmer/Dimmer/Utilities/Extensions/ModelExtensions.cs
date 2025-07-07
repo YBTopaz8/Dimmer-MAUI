@@ -16,6 +16,14 @@ public static class ModelToViewExtensions
         return mapper.Map<SongModelView>(model);
     }
 
+    public static SongModelView? ToModelView(this SongModel? model)
+    {
+        IMapper mapper = IPlatformApplication.Current.Services.GetService<IMapper>();
+        if (model == null || mapper == null)
+            return null;
+        return mapper.Map<SongModelView>(model);
+    }
+
     public static ArtistModelView? ToModelView(this ArtistModel? model, IMapper mapper)
     {
         if (model == null || mapper == null)

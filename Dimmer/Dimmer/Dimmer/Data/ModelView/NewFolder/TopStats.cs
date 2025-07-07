@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.ModelView.NewFolder;
+﻿using Dimmer.Utilities.Extensions;
+
+namespace Dimmer.Data.ModelView.NewFolder;
 /// <summary>
 /// Provides methods for generating "Top X" ranked lists from play event data.
 /// These are designed for creating leaderboards and dynamic ranked collections.
@@ -23,7 +25,7 @@ public static class TopStats
     /// <param name="startDate">Optional start date to filter events.</param>
     /// <param name="endDate">Optional end date to filter events.</param>
     /// <returns>A ranked list of songs and their corresponding event counts.</returns>
-    public static List<(SongModel Song, int Count)> GetTopSongsByEventType(
+    public static List<DimmerStats> GetTopSongsByEventType(
         IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> events, int count, int playType,
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
@@ -37,14 +39,14 @@ public static class TopStats
             .OrderByDescending(x => x.EventCount)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId)) // Ensure song still exists in library
-            .Select(x => (Song: songLookup[x.SongId], Count: x.EventCount))];
+            .Select(x => (new DimmerStats(){Song=songLookup[x.SongId].ToModelView(),Count=x.EventCount }))];
     }
 
     /// <summary>
     /// Gets the top artists ranked by a specific event type.
     /// </summary>
     /// <returns>A ranked list of artist names and their corresponding event counts.</returns>
-    public static List<(string Name, int Count)> GetTopArtistsByEventType(
+    public static List<DimmerStats> GetTopArtistsByEventType(
         IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> events, int count, int playType,
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
@@ -55,7 +57,7 @@ public static class TopStats
     /// Gets the top albums ranked by a specific event type.
     /// </summary>
     /// <returns>A ranked list of album names and their corresponding event counts.</returns>
-    public static List<(string Name, int Count)> GetTopAlbumsByEventType(
+    public static List<DimmerStats> GetTopAlbumsByEventType(
         IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> events, int count, int playType,
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
@@ -66,7 +68,7 @@ public static class TopStats
     /// Gets the top songs ranked by total listening time.
     /// </summary>
     /// <returns>A ranked list of songs and their total listening time in seconds.</returns>
-    public static List<(SongModel Song, double TotalSeconds)> GetTopSongsByListeningTime(
+    public static List<DimmerStats> GetTopSongsByListeningTime(
         IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> events, int count,
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
@@ -86,7 +88,7 @@ public static class TopStats
             .OrderByDescending(x => x.Time)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId))
-            .Select(x => (Song: songLookup[x.SongId], TotalSeconds: x.Time))];
+            .Select(x => (new DimmerStats (){Song= songLookup[x.SongId].ToModelView(), TotalSecondsNumeric=x.Time }))];
     }
 
     #endregion
@@ -96,24 +98,24 @@ public static class TopStats
     // These wrap the core methods for easier use.
 
     // --- Based on COMPLETED PLAYS (Your Primary Use Case) ---
-    public static List<(SongModel Song, int Count)> GetTopCompletedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
+    public static List<DimmerStats> GetTopCompletedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopSongsByEventType(s, e, count, PlayType_Completed, start, end);
 
-    public static List<(string Name, int Count)> GetTopCompletedArtists(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
+    public static List<DimmerStats> GetTopCompletedArtists(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopArtistsByEventType(s, e, count, PlayType_Completed, start, end);
 
-    public static List<(string Name, int Count)> GetTopCompletedAlbums(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
+    public static List<DimmerStats> GetTopCompletedAlbums(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopAlbumsByEventType(s, e, count, PlayType_Completed, start, end);
 
     // --- Based on SKIPS ---
-    public static List<(SongModel Song, int Count)> GetTopSkippedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
+    public static List<DimmerStats> GetTopSkippedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopSongsByEventType(s, e, count, PlayType_Skipped, start, end);
 
-    public static List<(string Name, int Count)> GetTopSkippedArtists(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
+    public static List<DimmerStats> GetTopSkippedArtists(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopArtistsByEventType(s, e, count, PlayType_Skipped, start, end);
 
     // --- Based on SEEKS ---
-    public static List<(SongModel Song, int Count)> GetTopSeekedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
+    public static List<DimmerStats> GetTopSeekedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopSongsByEventType(s, e, count, PlayType_Seeked, start, end);
 
     #endregion
@@ -121,21 +123,21 @@ public static class TopStats
     #region --- Private Helpers ---
 
     /// <summary>
-    /// A generic helper to rank by a string property of SongModel (e.g., ArtistName, AlbumName).
+    /// A generic helper to rank by a string property of SongModelView (e.g., ArtistName, AlbumName).
     /// </summary>
-    private static List<(string Name, int Count)> GetTopRankedByProperty(
+    private static List<DimmerStats> GetTopRankedByProperty(
         IReadOnlyCollection<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> events, int count, int playType,
-        Func<SongModel, string?> propertySelector, DateTimeOffset? startDate, DateTimeOffset? endDate)
+        Func<SongModelView, string?> propertySelector, DateTimeOffset? startDate, DateTimeOffset? endDate)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         var filteredEvents = FilterEvents(events, playType, startDate, endDate);
 
         return [.. filteredEvents
             .Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
-            .Select(e => propertySelector(songLookup[e.SongId.Value])) // Get the property (e.g., ArtistName)
+            .Select(e => propertySelector(songLookup[e.SongId.Value].ToModelView())) // Get the property (e.g., ArtistName)
             .Where(name => !string.IsNullOrEmpty(name))
             .GroupBy(name => name!)
-            .Select(g => (Name: g.Key, Count: g.Count()))
+            .Select(g =>( new DimmerStats(){Name= g.Key, Count= g.Count() }))
             .OrderByDescending(x => x.Count)
             .Take(count)];
     }

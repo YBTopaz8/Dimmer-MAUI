@@ -24,7 +24,7 @@ using System.Reactive.Subjects;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
-
+using System.Windows.Forms;
 using Windows.UI.Composition;
 
 using SortOrder = Dimmer.Utilities.SortOrder;
@@ -32,6 +32,8 @@ using WinUIControls = Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
 using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunction;
+using Syncfusion.Maui.Toolkit.Charts;
+using Label = Microsoft.Maui.Controls.Label;
 
 namespace Dimmer.WinUI.Views;
 
@@ -55,8 +57,8 @@ public partial class HomePage : ContentPage
 
         // --- Keep these lines. They correctly wire up the UI. ---
 
-        //MyViewModel.TranslatedSearch= TranslatedSearch;
-        //MyViewModel.SongsCountLabel = SongsCountLabel;
+        MyViewModel.TranslatedSearch= TranslatedSearch;
+        MyViewModel.SongsCountLabel = SongsCountLabel;
 
     }
 
@@ -234,23 +236,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void StatsSfChip_Clicked(object sender, EventArgs e)
-    {
-        if (SongsView.IsVisible)
-        {
-            MyViewModel.LoadStatsApp();
-
-            await Task.WhenAll(SongsView.AnimateFadeOutBack(400), StatsView.AnimateFadeInFront(300));
-
-
-        }
-        else
-        {
-            await Task.WhenAll(SongsView.AnimateFadeInFront(300), StatsView.AnimateFadeOutBack(400));
-
-
-        }
-    }
 
     private static async void ViewSong_Clicked(object sender, EventArgs e)
     {
@@ -348,8 +333,8 @@ public partial class HomePage : ContentPage
     {
         await Task.WhenAll(SongsColView.DimmIn(),
             TranslatedSearch.DimmOut(),
-             AdvSearch.DimmInCompletelyAndShow(),
-            UtilitySection.DimmOutCompletelyAndHide
+             AdvSearch.DimmOutCompletelyAndHide(),
+            UtilitySection.DimmInCompletelyAndShow
             ()
             );
         SearchSongSB.Unfocus();
@@ -359,18 +344,16 @@ public partial class HomePage : ContentPage
 
         await Task.WhenAll(SongsColView.DimmOut(),
              AdvSearch.DimmInCompletelyAndShow(),
-            SearchSongSB.AnimateHeight(150, 650, Easing.SpringOut));
+            SearchSongSB.AnimateHeight(65, 350, Easing.SpringOut));
 
     }
 
     private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
-        await Task.Delay(500);
-        await Task.WhenAll(SongsColView.DimmIn(),
-     TranslatedSearch.DimmOut(), AdvSearch.DimmOutCompletelyAndHide(), UtilitySection.DimmOutCompletelyAndHide(),
-         SearchSongSB.AnimateHeight(50, 500, Easing.SpringIn));
+        await Task.WhenAll(
+         SearchSongSB.AnimateHeight(30, 500, Easing.SpringIn));
 
-        SearchSongSB.FontSize = 17;
+        SearchSongSB.FontSize = 16;
 
     }
 
@@ -476,19 +459,19 @@ public partial class HomePage : ContentPage
 
     private async void AllEvents_Clicked(object sender, EventArgs e)
     {
-
-        Debug.WriteLine(AllEventsColView.ItemsSource);
         if (!AllEventsBorder.IsVisible)
         {
-            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), StatsView.AnimateFadeOutBack(400), SongsColView.AnimateFadeOutBack(400));
+            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsView.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
 
         }
         else
         {
+            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SongsView.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
 
 
         }
 
+        MyViewModel.LoadStatsApp();
 
     }
 
@@ -515,6 +498,81 @@ public partial class HomePage : ContentPage
     }
 
     private void ResetChip_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void DataPointSelectionBehavior_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangingEventArgs e)
+    {
+        var ee = e.NewIndexes;
+        var old = e.OldIndexes;
+
+        var pie = sender as PieSeries;
+        if (e.NewIndexes is null || e.NewIndexes.Count<1)
+        {
+            return;
+
+        }
+        var indexx = e.NewIndexes[0];
+        var itemm = pie.ItemsSource as ObservableCollection<DimmerStats>;
+        if (itemm is null)
+        {
+            return;
+        }
+        var songg = itemm[indexx];
+        if (songg is null)
+        {
+            return;
+        }
+        if (songg.Song is null)
+        {
+            return;
+        }
+        var sss = MyViewModel.SearchResults.First(x => x.Id==songg.Song.Id);
+
+        MyViewModel.SelectedSong=sss;
+        ColViewOfTopSongs.SelectedItem=       songg;
+        Debug.WriteLine($"Selected Song: {songg.Song.Title}, Played {songg.Count} times.");
+
+        //var actSong=((PieSeries)sender)
+        Debug.WriteLine(ee);
+        Debug.WriteLine(old);
+
+    }
+
+    private async void returnHome_Clicked(object sender, EventArgs e)
+    {
+
+        if (!AllEventsBorder.IsVisible)
+        {
+            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), MainUI.AnimateFadeOutBack(400));
+
+        }
+        else
+        {
+            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), MainUI.AnimateFadeInFront(400));
+
+
+        }
+
+    }
+
+    private void savee_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void LyricsChip_Clicked(object sender, EventArgs e)
+    {
+        await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsView.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
+    }
+
+    private void ArtistsEffectsView_LongPressed_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistsEffectsView_TouchDown(object sender, EventArgs e)
     {
 
     }
