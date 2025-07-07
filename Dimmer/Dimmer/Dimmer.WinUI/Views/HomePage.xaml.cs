@@ -466,7 +466,7 @@ public partial class HomePage : ContentPage
         }
         else
         {
-            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SongsView.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
+            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SearchSection.AnimateFadeInFront(400), SongsView.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
 
 
         }

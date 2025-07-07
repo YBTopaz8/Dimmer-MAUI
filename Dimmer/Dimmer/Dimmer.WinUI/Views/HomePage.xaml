@@ -704,7 +704,6 @@
                                         <syncf:SfEffectsView
                                             x:Name="ArtistsEffectsView"
                                             Grid.Column="1"
-
                                             BackgroundColor="Transparent"
                                             TouchDown="ArtistsEffectsView_TouchDown">
                                             <FlyoutBase.ContextFlyout>

@@ -536,7 +536,7 @@ public partial class HomePage : ContentPage
         SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
     }
-    private async Task ArtistsChip_LongPress(object sender, HandledEventArgs e)
+    private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
         string inputString = send.LongPressCommandParameter as string;
@@ -557,7 +557,7 @@ public partial class HomePage : ContentPage
         }
         var ss = StaticMethods.SetQuotedSearch("artist", res);
 
-        SearchBy.Text =ss ;
+        SearchBy.Text =ss;
     }
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
@@ -701,7 +701,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async Task Settings_Tap(object sender, HandledEventArgs e)
+    private async void Settings_Tap(object sender, HandledEventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
