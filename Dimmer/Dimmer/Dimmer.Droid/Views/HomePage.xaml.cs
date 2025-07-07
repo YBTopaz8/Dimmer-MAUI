@@ -294,7 +294,7 @@ public partial class HomePage : ContentPage
 
 
     /*
-   
+
 
     private static void CurrentlyPlayingSection_ChipLongPress(object sender, System.ComponentModel.HandledEventArgs e)
     {
@@ -313,7 +313,7 @@ public partial class HomePage : ContentPage
         bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
 
     }
-  
+
 
     private void ShowMoreBtn_Clicked(object sender, EventArgs e)
     {
@@ -536,18 +536,35 @@ public partial class HomePage : ContentPage
         SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
     }
-    private void ArtistsChip_LongPress(object sender, HandledEventArgs e)
+    private async Task ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(
-        StaticMethods.SetQuotedSearch("artist", SearchBy.Text));
+        string inputString = send.LongPressCommandParameter as string;
+
+        char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+        var namesList = inputString
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+            .Select(name => name.Trim())                           // Trim whitespace from each name
+            .ToArray();                                             // Convert to a List
+
+
+        var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
+
+        if (string.IsNullOrEmpty(res))
+        {
+            return;
+        }
+        var ss = StaticMethods.SetQuotedSearch("artist", res);
+
+        SearchBy.Text =ss ;
     }
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(
-        StaticMethods.SetQuotedSearch("album", SearchBy.Text));
+        SearchBy.Text=
+        StaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
     }
 
     // The "Years" methods remain unchanged.
@@ -555,7 +572,8 @@ public partial class HomePage : ContentPage
     {
 
         var send = (Chip)sender;
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("year", SearchBy.Text));
+        SearchBy.Text=
+        StaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
     }
 
 
@@ -625,7 +643,7 @@ public partial class HomePage : ContentPage
         var sel = send.SelectedItem;
 
         var ind = send.FindItemHandle(sel);
-        send.ScrollTo(ind,DXScrollToPosition.Start);
+        send.ScrollTo(ind, DXScrollToPosition.Start);
 
         //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.BaseVM.cur);
         //bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
@@ -671,6 +689,21 @@ public partial class HomePage : ContentPage
     private async void am_DoubleTap(object sender, HandledEventArgs e)
     {
         await BelowBtmBar.DimmOutCompletelyAndHide();
+    }
+
+    private void PingGest_PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+    {
+
+    }
+
+    private void SongTitleChip_DoubleTap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private async Task Settings_Tap(object sender, HandledEventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 }
 
@@ -766,7 +799,7 @@ private void CurrQueueColView_Tap(object sender, CollectionViewGestureEventArgs 
     //}
     //MyViewModel.PlaySong(e.Item as SongModelView);
     // use your NEW playlist queue logic to pass this value btw, no need to fetch this sublist, as it's done.
-    //you can even dump to the audio player queue and play from there. 
+    //you can even dump to the audio player queue and play from there.
     //and let the app just listen to the queue changes and update the UI accordingly.
 }
 

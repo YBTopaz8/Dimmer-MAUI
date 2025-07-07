@@ -1474,10 +1474,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void ToggleShuffleMode()
     {
-        if (_songSource is null ||  _songSource?.Count <1)
-        {
-            return;
-        }
         bool newShuffleState = !IsShuffleActive;
 
         if (newShuffleState)
