@@ -8,7 +8,7 @@
                 xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:vm="clr-namespace:Dimmer.ViewModels"
                 x:DataType="vm:BaseViewModelAnd" AllowDismiss="True"
                 AllowedState="FullExpanded" CornerRadius="0"
-                HalfExpandedRatio="1" ShowGrabber="False"
+                HalfExpandedRatio="1" ShowGrabber="False" Loaded="NowPlayingBtmSheet_Loaded"
                 StateChanged="NowPlayingBtmSheet_StateChanged" Unloaded="NowPlayingBtmSheet_Unloaded"
                 >
     <dx:BottomSheet.Resources>
@@ -23,7 +23,7 @@
   
         <Grid BackgroundColor="Transparent" RowDefinitions="*,auto,auto,auto"
               RowSpacing="20"
-             Margin="20,0" >
+              >
 
             <dx:DXBorder x:Name="TopRowWithImage"
                          Grid.Row="0" BorderColor="DarkSlateBlue"
@@ -32,7 +32,7 @@
             <Grid>
                     <VerticalStackLayout 
                         Grid.Column="0" Spacing="10"
-                        VerticalOptions="Center" 
+                        VerticalOptions="Center" BackgroundColor="Transparent"
                         ZIndex="1">
 
                         <Label FontSize="15" HorizontalOptions="Center"
@@ -53,6 +53,10 @@
                                    Text="{Binding BaseVM.CurrentLine.Text}"
                                    TextColor="DarkSlateBlue"
                                    >
+                                <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"   />
+
+                            </Label.GestureRecognizers>
                                 <Label.Triggers>
                                     <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
                                                  TargetType="Label" Value="True"
@@ -69,13 +73,16 @@
                                />
                     </VerticalStackLayout>
                     <dx:DXImage x:Name="SongPicture"
-                                Aspect="AspectFill" Opacity="0.14"
+                                Aspect="AspectFill" Opacity="0.30" BackgroundColor="Transparent"
                                 Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                 />
             </Grid>
 
         </dx:DXBorder>
-            <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
+        <dx:DXExpander x:Name="UISection" IsExpanded="True" BackgroundColor="Transparent" Grid.Row="1">
+            <dx:DXExpander.Content>
+                <dx:DXStackLayout>
+                <dx:DXStackLayout Grid.Row="1" Margin="0,0,0,0"
                               ItemSpacing="15"
                              >
                 <dx:Chip x:Name="SongTitleChip" LongPress="SongTitleChip_LongPress" LongPressCommandParameter="{Binding BaseVM.CurrentPlayingSongView.AlbumName}"
@@ -142,7 +149,9 @@
                              />
                 </dx:DXStackLayout>
             </dx:DXStackLayout>
-            <Grid Grid.Row="2" RowDefinitions="auto,auto,auto"
+                    <Grid
+                
+Grid.Row="2" RowDefinitions="auto,auto,auto"
                   RowSpacing="15" 
                   >
 
@@ -154,7 +163,7 @@
                     <dx:DXButton Grid.Column="0" BackgroundColor="#343534"
                                  Command="{Binding BaseVM.PreviousTrackCommand}"
                                  HeightRequest="120" Icon="skipprevious.png"
-                                 IconColor="#f5f5f5" IconHeight="40"
+                                 IconColor="{AppThemeBinding Dark=#f5f5f5,Light=black}" IconHeight="40"
                                  IconWidth="40" Opacity="0.5"
                                  PressedBackgroundColor="DarkSlateBlue"
                                  />
@@ -234,10 +243,10 @@
                     </dx:DXButton>
 
                     <dx:DXButton Grid.Row="1" Grid.Column="1"
-                                 AnimationDuration="800" BackgroundColor="#343534"
+                                 AnimationDuration="800" BackgroundColor="{AppThemeBinding Dark= #343534, Light=grey}"
                                  Command="{Binding BaseVM.NextTrackCommand}"
                                  HeightRequest="120" Icon="skipnext.png"
-                                 IconColor="#f5f5f5" IconHeight="40"
+                                 IconColor="{AppThemeBinding Dark=#f5f5f5,Light=black}" IconHeight="40"
                                  IconWidth="40" Opacity="0.5"
                                  PressedBackgroundColor="DarkSlateBlue"
                                  />
@@ -266,7 +275,9 @@
                                    VerticalExpandMode="FromCenter"
                                    >
                         <dx:DXExpander.Content>
-                            <StackLayout HorizontalOptions="Center"
+                                        <dx:DXStackLayout >
+                            <StackLayout HorizontalOptions="Center" Orientation="Horizontal"
+                                         Spacing="10"
                                          MinimumWidthRequest="400"     >
                                 <dx:Chip BackgroundColor="Transparent" BorderColor="Black"
                                          BorderThickness="1" HeightRequest="90"
@@ -274,15 +285,26 @@
                                          IconSize="60,60" IsIconVisible="True"
                                          
                                          />
+                                <dx:Chip BackgroundColor="Transparent" BorderColor="Black"
+                                         BorderThickness="1" HeightRequest="90" HorizontalOptions="Start"
+                                         Icon="shuffle.png" IconColor="DarkSlateBlue"
+                                         IconSize="60,60" IsIconVisible="True"
+                                         TapCommand="{Binding BaseVM.ToggleShuffleModeCommand}"
+                                         />
                                 
                                 <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"
                                              />
                                 <Label Text="App Volume" HorizontalOptions="Center"/>
-                                <dx:DXSlider Value="{Binding Opacity,Source={x:Reference SongPicture}}"
-                                MinimumWidthRequest="400"             MaxValue="1" MinValue="0"
-                                             IsVisible="False"/>
+                              
                             </StackLayout>
-                        </dx:DXExpander.Content>
+                                            <dx:DXStackLayout Orientation="Horizontal" >
+                                                <dx:TextEdit LabelText="Little Note 🎶"
+                                                             
+                                                             Text="{Binding BaseVM.CurrentNoteToSave}"/>
+                                                <dx:DXButton IconHeight="40" IconWidth="40" BackgroundColor="#1e1e1e" HeightRequest="60" Icon="addcircle.png"/>
+                                            </dx:DXStackLayout>
+                                        </dx:DXStackLayout>
+                                    </dx:DXExpander.Content>
                     </dx:DXExpander>
                 </Grid>
                 <dx:DXExpander x:Name="BottomExpanderTwo"
@@ -325,7 +347,10 @@
 
                 </Grid>
             </Grid>
-         
+
+                </dx:DXStackLayout>
+            </dx:DXExpander.Content>
+        </dx:DXExpander>
 
     </Grid>
 

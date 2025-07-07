@@ -1026,7 +1026,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         try
         {
             var pc = new PolicyConfigClient() as IPolicyConfig;
-            pc.SetDefaultEndpoint(dev.Id, Role.eMultimedia);
+            pc!.SetDefaultEndpoint(dev.Id, Role.eMultimedia);
             return true;
         }
         catch
@@ -1048,7 +1048,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                 Name = d.FriendlyName
             });
         }
-        return list.DistinctBy(x => x.Name).ToList();
+        return [.. list.DistinctBy(x => x.Name)];
     }
 
 

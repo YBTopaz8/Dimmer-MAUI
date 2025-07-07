@@ -61,7 +61,7 @@
                         <Style TargetType="syncf:SfChip" />
                     </ResourceDictionary>
                 </HorizontalStackLayout.Resources>
-                <syncf:SfChip x:Name="ToggleFav"
+                <syncf:SfChip x:Name="ToggleFav" CommandParameter="{Binding SelectedSongOnPage}"
                               Clicked="ToggleFav_Clicked" ImageSize="40"
                               ImageSource="heartbroken.png" WidthRequest="60"
                               >

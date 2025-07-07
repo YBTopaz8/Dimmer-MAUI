@@ -95,4 +95,14 @@ public partial class NowPlayingbtmsheet : BottomSheet
             
         }
     }
+
+    private async void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        UISection.Commands.ToggleExpandState.Execute(null);
+    }
 }

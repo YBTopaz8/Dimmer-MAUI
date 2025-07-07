@@ -1,4 +1,7 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces;
+﻿
+using ATL;
+
+namespace Dimmer.Interfaces.Services.Interfaces;
 public interface ILyricsMetadataService
 {
     /// <summary>
@@ -27,6 +30,7 @@ public interface ILyricsMetadataService
     /// <param name="lrcContent">The full string content of the .lrc file.</param>
     /// <returns>A boolean indicating if the save operation was successful.</returns>
     Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent);
+    Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo lyrics);
 }
 
 /// <summary>

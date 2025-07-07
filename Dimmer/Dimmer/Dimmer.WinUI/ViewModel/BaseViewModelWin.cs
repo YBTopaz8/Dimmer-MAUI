@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
+using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Interfaces.Services.Interfaces;
 
 
@@ -37,32 +38,26 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly ILogger<BaseViewModelWin> logger;
     private readonly IWindowManagerService winMgrService;
 
-    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker,
-        IWindowManagerService windowManager,
-       IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
-IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelWin> logger, IWindowManagerService windMgr) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepository, artistRepository, albumRepository, genreRepository, logger)
+    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IWindowManagerService windMgr, IDimmerLiveStateService dimmerLiveStateService,
+        IDimmerAudioService _audioService, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow,
+        IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepo, artistRepo, albumModel, genreModel, logger)
     {
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.albumsMgtFlow=albumsMgtFlow;
-        this.folderPicker=folderPicker;
-        this.windowManager=windowManager;
         audioService=_audioService;
         this.playlistsMgtFlow=playlistsMgtFlow;
         this.songsMgtFlow=songsMgtFlow;
         this.stateService=stateService;
         this.settingsService=settingsService;
         this.subsManager=subsManager;
-        this.songRepository=songRepository;
-        this.artistRepository=artistRepository;
-        this.albumRepository=albumRepository;
-        this.genreRepository=genreRepository;
         this.lyricsMgtFlow=lyricsMgtFlow;
         this.folderMgtService=folderMgtService;
-        this.logger=logger;
         this.winMgrService=windMgr;
     }
+
 
     [ObservableProperty]
     public partial int MediaBarGridRowPosition { get; set; }

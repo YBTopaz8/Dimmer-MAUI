@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Realms;
+
+using System;
 using System.Linq;
 
 namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicArtistryService
 {
-    private readonly Realm _realm;
+    private Realm _realm;
     private static readonly double GoldenRatio = 1.61803398875;
 
     public MusicArtistryService(IRealmFactory factory)
@@ -24,6 +26,7 @@ public class MusicArtistryService
     /// </summary>
     public List<FibonacciDiscovery> GetFibonacciArtists()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
         var firstEverPlay = _realm.All<DimmerPlayEvent>().OrderBy(p => p.DatePlayed).FirstOrDefault();
         if (firstEverPlay == null)
             return new List<FibonacciDiscovery>();
@@ -46,7 +49,7 @@ public class MusicArtistryService
                 results.Add(new FibonacciDiscovery(item.Artist, daysSinceStart, daysSinceStart));
             }
         }
-        return results.OrderBy(r => r.DiscoveryDay).ToList();
+        return [.. results.OrderBy(r => r.DiscoveryDay)];
     }
 
     /// <summary>
@@ -56,6 +59,8 @@ public class MusicArtistryService
     /// </summary>
     public GoldenRatioTrack? GetGoldenRatioTrackOnFavoriteAlbum()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // 1. Find the most played album
         var topAlbum = _realm.All<DimmerPlayEvent>().ToList()
             .Where(p => p.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
@@ -90,6 +95,8 @@ public class MusicArtistryService
     /// </summary>
     public (bool FollowsPowerLaw, double PlayPercentage, double ArtistPercentage) GetParetoPrincipleCheck()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var artistPlayCounts = _realm.All<DimmerPlayEvent>().ToList()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist)
@@ -114,6 +121,8 @@ public class MusicArtistryService
     /// </summary>
     public Dictionary<SongModel, int> GetPrimeNumberSongs()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var primeNumbers = new HashSet<int> { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53 }; // etc.
         return _realm.All<SongModel>().ToList()
             .Select(s => new { Song = s, Plays = s.PlayHistory.Count })
@@ -131,6 +140,8 @@ public class MusicArtistryService
     /// </summary>
     public List<ArtistModel> GetMusicalTrinity()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var superGenres = new Dictionary<string, HashSet<string>>
         {
             { "Rock/Alternative", new HashSet<string> { "Rock", "Alternative", "Indie", "Metal", "Punk" } },
@@ -181,6 +192,8 @@ public class MusicArtistryService
     /// </summary>
     public List<(SongModel Song1, SongModel Song2, int Pairings)> GetPerfectPairings(TimeSpan maxTimeBetween)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var plays = _realm.All<DimmerPlayEvent>().OrderBy(p => p.DatePlayed).ToList();
         var pairings = new Dictionary<(ObjectId, ObjectId), int>();
 
@@ -223,6 +236,8 @@ public class MusicArtistryService
     /// </summary>
     public double GetCenterOfGravityYear()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var yearPlays = _realm.All<DimmerPlayEvent>().ToList()
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.ReleaseYear)
             .Where(y => y.HasValue)
@@ -237,6 +252,8 @@ public class MusicArtistryService
     /// </summary>
     public (double IntrovertScore, double ExtrovertScore) GetIntrovertExtrovertScore()
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var allPlayedSongs = _realm.All<DimmerPlayEvent>().ToList()
             .Select(p => p.SongsLinkingToThisEvent.FirstOrDefault())
             .Where(s => s != null)
@@ -263,7 +280,7 @@ public class MusicArtistryService
     public SongModel? GetMyPersonalAnthem() { /* The song with the highest combination of play count, rating, and low skip rate */ return null; }
     public bool DoesMyListeningFollowBenfordsLaw() { /* Check if the first digit of track numbers I play follows Benford's Law distribution. Purely for fun. */ return false; }
     public string GetMyMusicalColor() { /* Conceptual: Associate genres/moods with colors (e.g., Blues=Blue, Metal=Black, Pop=Yellow) and find the dominant color in listening history */ return "Gray"; }
-    public List<SongModel> FindPalindromeSongs() { /* Songs whose title is a palindrome. e.g., "Aba" */ return _realm.All<SongModel>().ToList().Where(s => s.Title.ToLower().Replace(" ", "") == new string(s.Title.ToLower().Replace(" ", "").Reverse().ToArray())).ToList(); }
+    public List<SongModel> FindPalindromeSongs() { /* Songs whose title is a palindrome. e.g., "Aba" */ return [.. _realm.All<SongModel>().ToList().Where(s => s.Title.ToLower().Replace(" ", "") == new string([.. s.Title.ToLower().Replace(" ", "").Reverse()]))]; }
     public (double Predictability, SongModel? NextSong) GetNextSongPredictability() { /* Analyze history to see how often I play the same song after a specific other song. */ return (0.0, null); }
 
     #endregion

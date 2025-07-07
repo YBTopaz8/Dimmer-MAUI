@@ -187,7 +187,7 @@ public class AlbumsMgtFlow : IDisposable
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            _queriedAlbums.OnNext(_albumRepo.GetAll().ToList()); // Or Array.Empty if that's preferred for empty query
+            _queriedAlbums.OnNext([.. _albumRepo.GetAll()]); // Or Array.Empty if that's preferred for empty query
             return;
         }
 

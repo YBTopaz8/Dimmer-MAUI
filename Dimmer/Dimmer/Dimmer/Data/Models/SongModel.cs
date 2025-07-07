@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.Models;
+﻿using MongoDB.Bson.Serialization.Attributes;
+
+namespace Dimmer.Data.Models;
 public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 
@@ -61,6 +63,26 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public IQueryable<PlaylistModel> Playlists { get; } = null!;
     public IList<UserNoteModel> UserNotes { get; } = null!;
 
+    [BsonIgnore]
+    public string LyricsText
+    {
+        get
+        {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(UnSyncLyrics))
+            {
+                sb.AppendLine(UnSyncLyrics);
+            }
+            if (EmbeddedSync != null && EmbeddedSync.Any())
+            {
+                foreach (var line in EmbeddedSync)
+                {
+                    sb.AppendLine(line.Text);
+                }
+            }
+            return sb.ToString();
+        }
+    }
     public SongModel()
     {
 

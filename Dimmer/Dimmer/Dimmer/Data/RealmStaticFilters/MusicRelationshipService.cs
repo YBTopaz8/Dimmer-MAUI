@@ -8,11 +8,10 @@ namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicRelationshipService
 {
-    private readonly Realm _realm;
+    private Realm _realm;
 
     public MusicRelationshipService(IRealmFactory factory)
     {
-        _realm = factory.GetRealmInstance();
     }
     // Common record types for clean returns
     public record RelationshipStat<T>(T Item, int PlayCount, DateTimeOffset FirstPlayed, DateTimeOffset LastPlayed);
@@ -28,6 +27,8 @@ public class MusicRelationshipService
     // COMPLIANT: Min/Max are called on a materialized list.
     public RelationshipStat<SongModel>? GetUserSongRelationship(ObjectId songId)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var song = _realm.Find<SongModel>(songId);
         if (song == null)
             return null;
@@ -50,6 +51,8 @@ public class MusicRelationshipService
     // REWRITTEN FOR COMPLIANCE: Avoids in-memory .Contains on a Realm-backed query.
     public List<SongDiscovery> GetNewSongDiscoveries(int days)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
 
         // 1. Get all recent play events and materialize them.
@@ -78,11 +81,10 @@ public class MusicRelationshipService
         var newSongIds = actualDiscoveries.Select(d => (QueryArgument)d.SongId).ToArray();
         var newSongs = _realm.All<SongModel>().Filter("Id IN $0", newSongIds).ToDictionary(s => s.Id);
 
-        return actualDiscoveries
+        return [.. actualDiscoveries
             .Select(d => new SongDiscovery(newSongs.GetValueOrDefault(d.SongId), d.FirstRecentPlay))
             .Where(d => d.Song != null)
-            .OrderBy(d => d.DiscoveredDate)
-            .ToList();
+            .OrderBy(d => d.DiscoveredDate)];
     }
 
     /// <summary>
@@ -91,6 +93,8 @@ public class MusicRelationshipService
     // COMPLIANT: All logic is on a materialized list.
     public List<TrendStat> GetSongWeeklyTrend(ObjectId songId)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var trends = new List<TrendStat>();
         var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).ToList();
 
@@ -118,6 +122,8 @@ public class MusicRelationshipService
     // COMPLIANT: All logic is on a materialized list.
     public List<TrendStat> GetSongMonthlyTrend(ObjectId songId)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var trends = new List<TrendStat>();
         var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).ToList();
 
@@ -145,6 +151,8 @@ public class MusicRelationshipService
     // COMPLIANT: All logic is on a materialized list.
     public (int PlayCount, int Skips, double CompletionRate) GetSongStatsBetweenDates(ObjectId songId, DateTimeOffset startDate, DateTimeOffset endDate)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var query = "SongId == $0 AND DatePlayed > $1 AND DatePlayed <= $2";
         var events = _realm.All<DimmerPlayEvent>().Filter(query, songId, startDate, endDate).ToList();
 
@@ -161,19 +169,22 @@ public class MusicRelationshipService
     // COMPLIANT: Reuses compliant logic and processes results in memory.
     public List<SongDiscovery> GetTopDiscoveriesOfMonth(int year, int month)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
         // Be generous with days to ensure all relevant data is captured.
         var discoveries = GetNewSongDiscoveries((int)(DateTimeOffset.UtcNow - startDate).TotalDays + 31);
 
-        return discoveries
+        return [.. discoveries
             .Where(d => d.DiscoveredDate.Year == year && d.DiscoveredDate.Month == month)
-            .OrderByDescending(d => d.Song.PlayHistory.Count())
-            .ToList();
+            .OrderByDescending(d => d.Song.PlayHistory.Count())];
     }
 
     // COMPLIANT: Uses supported "IN" filter. OrderBy/FirstOrDefault are supported.
     public SongModel? GetSongThatHookedMeOnAnArtist(ObjectId artistId)
     {
+        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+
         // Step 1: Get the list of song IDs for the artist.
         // A HashSet is used for fast O(1) in-memory lookups, which is more
         // efficient for the filtering we are about to do.
@@ -214,7 +225,7 @@ public class MusicRelationshipService
     public SongModel? GetMyMostRatedSong() => _realm.All<SongModel>().ToList().OrderByDescending(s => s.Rating).FirstOrDefault();
 
     // COMPLIANT: Uses simple, supported filter string.
-    public List<SongModel> GetBuriedTreasures() { var query = "Rating >= 4 AND PlayHistory.@count < 3"; return _realm.All<SongModel>().Filter(query).ToList(); }
+    public List<SongModel> GetBuriedTreasures() { var query = "Rating >= 4 AND PlayHistory.@count < 3"; return [.. _realm.All<SongModel>().Filter(query)]; }
 
     // CONCEPTUAL: No changes needed.
     public List<SongModel> GetSongsIShareTheMost() { /* Conceptual: requires a "ShareEvent" similar to DimmerPlayEvent */ return new(); }
@@ -319,7 +330,7 @@ public class MusicRelationshipService
         // Use a HashSet for fast in-memory lookups.
         var artistSongIds = _realm.All<SongModel>()
             .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
-            
+
             .ToArray()
             .Select(s => s.Id)
             .ToHashSet(); // Use HashSet for O(1) lookups.
@@ -423,47 +434,47 @@ public class MusicRelationshipService
     public double GetArtistLoyaltyIndex(ObjectId artistId)
     {
         // Wrap the entire operation in a 'using' block for safety.
-       
-            // Step 1: Get the set of all song IDs associated with this artist.
-            // This is a query we know works from other methods.
-            // A HashSet is used for fast, O(1) in-memory lookups.
-            var artistSongIds = _realm.All<SongModel>()
-                .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
-                .ToArray()
-                .Select(s => s.Id)
-                .ToHashSet();
 
-            // If the artist has no songs, their loyalty index is 0.
-            if (artistSongIds.Count==0)
-                return 0.0;
+        // Step 1: Get the set of all song IDs associated with this artist.
+        // This is a query we know works from other methods.
+        // A HashSet is used for fast, O(1) in-memory lookups.
+        var artistSongIds = _realm.All<SongModel>()
+            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .ToArray()
+            .Select(s => s.Id)
+            .ToHashSet();
 
-            // Step 2: Get the total number of play events in the entire database.
-            // This is a simple, supported query.
-            var totalPlays = _realm.All<DimmerPlayEvent>().Count();
+        // If the artist has no songs, their loyalty index is 0.
+        if (artistSongIds.Count==0)
+            return 0.0;
 
-            if (totalPlays == 0)
-                return 0.0;
+        // Step 2: Get the total number of play events in the entire database.
+        // This is a simple, supported query.
+        var totalPlays = _realm.All<DimmerPlayEvent>().Count();
 
-            // ========================================================================
-            // THE BRUTE-FORCE WORKAROUND
-            // ========================================================================
-            //
-            // Step 3: Fetch ALL play events into memory to calculate the artist's plays.
-            // This is inefficient but avoids the complex backlink query that would likely crash.
-            //
-            var allEventsInMemory = _realm.All<DimmerPlayEvent>().ToList();
+        if (totalPlays == 0)
+            return 0.0;
 
-            //
-            // Step 4: Count the matching plays using standard, in-memory C# LINQ.
-            //
-            int artistPlays = allEventsInMemory
-                .Count(e => e.SongId.HasValue && artistSongIds.Contains(e.SongId.Value));
-            // ========================================================================
+        // ========================================================================
+        // THE BRUTE-FORCE WORKAROUND
+        // ========================================================================
+        //
+        // Step 3: Fetch ALL play events into memory to calculate the artist's plays.
+        // This is inefficient but avoids the complex backlink query that would likely crash.
+        //
+        var allEventsInMemory = _realm.All<DimmerPlayEvent>().ToList();
 
-            // Step 5: Calculate and return the loyalty index.
-            return (double)artistPlays / totalPlays;
-        }
-    
+        //
+        // Step 4: Count the matching plays using standard, in-memory C# LINQ.
+        //
+        int artistPlays = allEventsInMemory
+            .Count(e => e.SongId.HasValue && artistSongIds.Contains(e.SongId.Value));
+        // ========================================================================
+
+        // Step 5: Calculate and return the loyalty index.
+        return (double)artistPlays / totalPlays;
+    }
+
 
     // COMPLIANT: Materializes first, then groups/orders in memory.
     public List<ArtistModel> GetMyCoreArtists(int topN)
@@ -482,7 +493,7 @@ public class MusicRelationshipService
         if (!topArtistIds.Any())
             return new List<ArtistModel>();
 
-        return _realm.All<ArtistModel>().Filter("Id IN $0", topArtistIds).ToList();
+        return [.. _realm.All<ArtistModel>().Filter("Id IN $0", topArtistIds)];
     }
 
     // COMPLIANT: Materializes all data first, then processes. Slow but compliant.
@@ -582,7 +593,7 @@ public class MusicRelationshipService
             .ToArray();
         if (!discoveredAlbumIds.Any())
             return new List<AlbumModel>();
-        return _realm.All<AlbumModel>().Filter("Id IN $0", discoveredAlbumIds).ToList();
+        return [.. _realm.All<AlbumModel>().Filter("Id IN $0", discoveredAlbumIds)];
     }
     public AlbumModel? GetAlbumOfTheYearForUser(int year)
     {
@@ -610,7 +621,7 @@ public class MusicRelationshipService
             .ToArray();
         if (!topAlbumIds.Any())
             return new List<AlbumModel>();
-        return _realm.All<AlbumModel>().Filter("Id IN $0", topAlbumIds).ToList();
+        return [.. _realm.All<AlbumModel>().Filter("Id IN $0", topAlbumIds)];
     }
 
     #endregion
@@ -642,10 +653,9 @@ public class MusicRelationshipService
     public (int PlayCount, int UniqueArtists) GetGenreStatsBetweenDates(string genreName, DateTimeOffset startDate, DateTimeOffset endDate) { /* ... same pattern ... */ return (0, 0); }
     public List<string> GetMyNicheGenres(int maxArtistCount)
     {
-        return _realm.All<GenreModel>().ToList()
+        return [.. _realm.All<GenreModel>().ToList()
             .Where(g => g.Songs.Select(s => s.Artist.Id).Distinct().Count() <= maxArtistCount)
-            .Select(g => g.Name)
-            .ToList();
+            .Select(g => g.Name)];
     }
     public string? GetGatewayGenre() { /* ... requires materializing events from first month of listening ... */ return null; }
     public List<string> GetMyEvergreenGenres() { /* ... requires materializing multi-year history ... */ return new(); }
@@ -687,12 +697,11 @@ public class MusicRelationshipService
                 .Select(s => new SongRecommendation(s, $"Has a similar vibe ({tagsOnPlaylist.First()})", 0.6)));
         }
 
-        return recommendations
+        return [.. recommendations
             .GroupBy(r => r.Song.Id)
             .Select(g => g.First())
             .OrderByDescending(r => r.Score)
-            .Take(limit)
-            .ToList();
+            .Take(limit)];
     }
 
     // COMPLIANT: Uses supported filter, then processes in memory.
@@ -724,7 +733,7 @@ public class MusicRelationshipService
         var leastPlayedSongIds = songPlays.OrderBy(kvp => kvp.Value).Take(5).Select(kvp => (QueryArgument)kvp.Key).ToArray();
         if (!leastPlayedSongIds.Any())
             return new List<SongModel>();
-        return _realm.All<SongModel>().Filter("Id IN $0", leastPlayedSongIds).ToList();
+        return [.. _realm.All<SongModel>().Filter("Id IN $0", leastPlayedSongIds)];
     }
     public SongModel? GetPlaylistAnthem(ObjectId playlistId)
     {

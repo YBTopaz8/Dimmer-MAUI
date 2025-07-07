@@ -88,6 +88,8 @@ public partial class SingleSongPage : ContentPage
 
     private void ToggleFav_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.ToggleFavSong();
+        var send =(SfChip)sender;
+        var song = send.CommandParameter as SongModelView;
+        MyViewModel.ToggleFavSong(song);
     }
 }

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 
 using DevExpress.Maui.Controls;
+using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
 
 using Dimmer.Utilities.CustomAnimations;
@@ -19,6 +20,8 @@ public partial class BtmBar : DXBorder
         this.BindingContext =vm;
         this.MyViewModel =vm;
     }
+    public event EventHandler RequestFocusOnMainView;
+
 
     public BaseViewModelAnd MyViewModel { get; set; }
 
@@ -128,10 +131,29 @@ public partial class BtmBar : DXBorder
 
                         try
                         {
+                            //var parent = this.GetParents(null, true);
+                            //var parentplt = this.GetPlatformParents();
+                            //var ee = this.GetChildrenInTree(true);
+                            //foreach (var item in parent)
+                            //{
+                            //    Debug.WriteLine( item.GetType());
+                            //}
+                            //foreach (var item in parentplt)
+                            //{
+                            //    Debug.WriteLine( item.GetType());
+                            //}
+
+                            //foreach (var item in ee)
+                            //{
+                            //    Debug.WriteLine( item.GetType());
+                            //}
+
                             //DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
                             //int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
                             //songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-                            MyViewModel.ScrollToSongCommand.Execute(null);
+                            //MyViewModel.ScrollToSongCommand.Execute(null);
+
+                            RequestFocusOnMainView?.Invoke(this, EventArgs.Empty);
                             HapticFeedback.Perform(HapticFeedbackType.LongPress);
                         }
                         catch { }
@@ -140,10 +162,11 @@ public partial class BtmBar : DXBorder
                     {
                         try
                         {
+                            RequestFocusNowPlayingUI?.Invoke(this, EventArgs.Empty);
                             btmBarHeight=this.Height;
 
-                            BottomSheet bottomSheet = this.Parent.FindByName<BottomSheet>("NowPlayingBtmSheet");
-                            bottomSheet.Show();
+                            //BottomSheet bottomSheet = this.Parent.FindByName<BottomSheet>("NowPlayingBtmSheet");
+                            //bottomSheet.Show();
 
                         }
                         catch { }
@@ -165,8 +188,22 @@ public partial class BtmBar : DXBorder
 
     private void DurationAndSearchChip_LongPress(object sender, HandledEventArgs e)
     {
+        this.ScrollToStart?.Invoke(this, e);
         //TextEdit SearchBy = this.Parent.FindByName<TextEdit>("SearchBy");
         //SearchBy.Focus();
     }
     public static DXCollectionView PageColView { get; set; }
+    public event EventHandler RequestFocusNowPlayingUI;
+    public event EventHandler ScrollToStart;
+    public event EventHandler ToggleAdvanceFilters;
+
+    private void DurationAndSearchChip_DoubleTap(object sender, HandledEventArgs e)
+    {
+        ScrollToStart?.Invoke(this, e);
+    }
+
+    private void DurationAndSearchChip_Tap(object sender, HandledEventArgs e)
+    {
+        ToggleAdvanceFilters?.Invoke(this, e);
+    }
 }

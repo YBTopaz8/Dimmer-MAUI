@@ -358,7 +358,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         }
 
         var newQueue = new QueueManager<SongModel>();
-        newQueue.Initialize(playlist.SongsInPlaylist.ToList());
+        newQueue.Initialize([.. playlist.SongsInPlaylist]);
         if (shuffleIt)
             newQueue.ShuffleQueueInPlace();
 

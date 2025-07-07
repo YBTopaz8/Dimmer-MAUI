@@ -102,7 +102,7 @@ public class MainApplication : MauiApplication
             }
 
             // Use a date-specific file name.
-            string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
 
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";

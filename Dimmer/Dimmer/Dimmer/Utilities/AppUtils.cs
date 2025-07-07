@@ -119,7 +119,7 @@ public static class AppUtils
         /// <param name="maxDimension">The maximum width or height of the new image.</param>
         /// <param name="quality">The quality of the output JPEG, from 0 to 100.</param>
         /// <returns>A byte array of the resized JPEG image, or null if the input was invalid.</returns>
-        public static byte[]? ResizeImage(byte[]? originalImageData, int maxDimension = 1100, int quality = 95)
+        public static byte[]? ResizeImage(byte[]? originalImageData, int maxDimension = 1400, int quality = 95)
         {
             try
             {

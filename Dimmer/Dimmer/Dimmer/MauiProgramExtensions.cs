@@ -75,10 +75,10 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<PlayListMgtFlow>();
         builder.Services.AddSingleton<LyricsMgtFlow>();
 
-        builder.Services.AddTransient<MusicArtistryService>();
-        builder.Services.AddTransient<MusicRelationshipService>();
-        builder.Services.AddTransient<MusicMetadataService>();
-        builder.Services.AddTransient<MusicPowerUserService>();
+        builder.Services.AddSingleton<MusicArtistryService>();
+        builder.Services.AddSingleton<MusicRelationshipService>();
+        builder.Services.AddSingleton<MusicMetadataService>();
+        builder.Services.AddSingleton<MusicPowerUserService>();
 
         builder.Services.AddSingleton<BaseViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);

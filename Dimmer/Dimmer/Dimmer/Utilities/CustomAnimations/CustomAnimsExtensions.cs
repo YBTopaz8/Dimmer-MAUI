@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Controls.Shapes;
+﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace Dimmer.Utilities.CustomAnimations;
 
@@ -27,7 +28,7 @@ public static class CustomAnimsExtensions
     {
         await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
     }
-    public static async Task DimmOutCompletelyAndHide(this View element, double duration = 350)
+    public static async Task DimmOutCompletelyAndHide(this View element, double duration = 550)
     {
         await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
         element.IsVisible=false;
@@ -37,9 +38,10 @@ public static class CustomAnimsExtensions
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
 
     }
-    public static async Task DimmInCompletelyAndShow(this View element, double duration = 350)
+    public static async Task DimmInCompletelyAndShow(this View element, double duration = 550)
     {
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+
         element.IsVisible=true;
 
     }
@@ -73,8 +75,18 @@ public static class CustomAnimsExtensions
             element.FadeTo(1.0, (uint)duration, Easing.CubicInOut)
         );
     }
-
-
+    public static Task AnimateScaleHeightBackZero(this VisualElement element, double startScale, double endScale = 0, uint duration = 250, Easing easing = null)
+    {
+        element.AnchorY = 0; // Anchor at the top to scale downwards
+        element.ScaleY = startScale;
+        return element.ScaleYTo(endScale, duration, easing);
+    }
+    public static Task AnimateScaleHeightOnePointFive(this VisualElement element, double startScale = 0, double endScale = 1.5, uint duration = 450, Easing easing = null)
+    {
+        element.AnchorY = 0; // Anchor at the top to scale downwards
+        element.ScaleY = startScale;
+        return element.ScaleYTo(endScale, duration, easing);
+    }
     public static async Task AnimateFocusModePointerExited(this View element, double duration = 250, double endOpacity = 0.7, double endScale = 0.7)
     {
 

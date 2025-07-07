@@ -158,14 +158,14 @@ public partial class ArtistsPage : ContentPage
 
         });
     }
-    SortOrder internalOrder = SortOrder.Ascending;
+    SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
     {
         ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
         ;
         if (songs == null || !songs.Any())
             return false;
-        internalOrder =  internalOrder== SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
+        internalOrder =  internalOrder== SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
 
         MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
 
@@ -232,7 +232,7 @@ public partial class ArtistsPage : ContentPage
         SortOrder newOrder;
 
         // Toggle order if sorting by the same property again
-        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Ascending) ? SortOrder.Descending : SortOrder.Ascending;
+        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
 
 
         MyViewModel.BaseVM.CurrentSortOrder = newOrder;

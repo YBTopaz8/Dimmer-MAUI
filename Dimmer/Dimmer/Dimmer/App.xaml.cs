@@ -8,7 +8,7 @@ namespace Dimmer;
 
 public partial class App : Application
 {
-    
+
     public App()
     {
         InitializeComponent();
@@ -25,12 +25,12 @@ public partial class App : Application
         //    ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
         //}
     }
-   //public partial void AddPlatformResources()
-   // {
-   //     // Provide a platform-specific implementation here.
-   //     // For example, you can add platform-specific resources or configurations.
-   //     // If no specific implementation is needed, leave this method empty.
-   // }
+    //public partial void AddPlatformResources()
+    // {
+    //     // Provide a platform-specific implementation here.
+    //     // For example, you can add platform-specific resources or configurations.
+    //     // If no specific implementation is needed, leave this method empty.
+    // }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
@@ -41,6 +41,14 @@ public partial class App : Application
     private static readonly object _logLock = new();
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
+        var ex = e.Exception;
+        if (ex.Message.Contains("Operation is not valid due to the current state of the object.")
+            && ex.StackTrace?.Contains("WinRT.ExceptionHelpers") == true)
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +
                               $"Message: {e.Exception.Message}\n" +
@@ -58,9 +66,9 @@ public partial class App : Application
         Debug.WriteLine(errorDetails);
 
         // Log to file
-          LogException(e.Exception);
+        LogException(e.Exception);
 
-     
+
     }
 
     public static void LogException(Exception ex)
@@ -77,7 +85,7 @@ public partial class App : Application
             }
 
             // Use a date-specific file name.
-            string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string fileName = $"MAUIcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
 
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";

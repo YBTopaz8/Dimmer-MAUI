@@ -7,13 +7,17 @@ using System.Text;
 namespace Dimmer.DimmerSearch;
 
 #region --- Enums and Root Query ---
-public enum TextOperator { Contains, StartsWith, EndsWith, Equals, Or, Levenshtein }
-public enum NumericOperator { Equals, GreaterThan, LessThan, Between }
-public enum SortDirection { Ascending, Descending }
-public enum LimiterType { First, Last, Random }
+public enum TextOperator { Contains, StartsWith, EndsWith, Equals, Or, Levenshtein, IsEmpty, IsNotEmpty }
+public enum NumericOperator { Equals, GreaterThan, LessThan, Between, GreaterThanOrEqual, LessThanOrEqual }
+//public enum SortDirection { Asc, Desc, Random }
+//public enum LimiterType { First, Last, Random }
 
-public class SemanticQuery
+public class SemanticModel
 {
+    public List<QueryClause> MainClauses { get; } = new();
+    public List<QueryClause> InclusionClauses { get; } = new();
+    public List<QueryClause> ExclusionClauses { get; } = new();
+
     public List<QueryClause> Clauses { get; } = new();
     public List<SortClause> SortDirectives { get; } = new();
     public LimiterClause? LimiterDirective { get; set; }
@@ -40,13 +44,39 @@ public class SemanticQuery
 #endregion
 
 #region --- Clauses ---
+public enum LogicalOperator { And, Or }
+
+// NEW CLASS: Represents a logical group of other clauses, like (a AND b)
+public class GroupClause : QueryClause
+{
+    public List<QueryClause> Clauses { get; } = new();
+    public LogicalOperator Operator { get; set; } = LogicalOperator.And;
+
+    public override Func<SongModelView, bool> AsPredicate()
+    {
+        var predicates = Clauses.Select(c => c.AsPredicate()).ToList();
+        if (!predicates.Any())
+            return s => true;
+
+        Func<SongModelView, bool> positivePredicate = Operator switch
+        {
+            LogicalOperator.Or => song => predicates.Any(p => p(song)),
+            _ => song => predicates.All(p => p(song)) // Default to AND
+        };
+
+        // Note: IsNegated applied to a group is powerful (De Morgan's laws!)
+        // e.g., !(a AND b) is the same as (!a OR !b)
+        return IsNegated ? (s => !positivePredicate(s)) : positivePredicate;
+    }
+
+    public override string Humanize() => $"({string.Join($" {Operator.ToString().ToUpper()} ", Clauses.Select(c => c.Humanize()))})";
+}
 public abstract class QueryClause
 {
     public string FieldName { get; set; }
     public string Keyword { get; set; }
     public string RawValue { get; set; }
     public bool IsNegated { get; set; }
-    public bool IsInclusion { get; set; }
     public abstract Func<SongModelView, bool> AsPredicate();
     public abstract string Humanize();
 }
@@ -58,14 +88,17 @@ public class TextClause : QueryClause
     public List<TextCondition> Conditions { get; set; } = new();
     public override Func<SongModelView, bool> AsPredicate()
     {
-        Func<SongModelView, bool> positivePredicate = song => Conditions.Any(cond => {
+        bool positivePredicate(SongModelView song) => Conditions.Any(cond =>
+        {
             var songValue = SemanticQueryHelpers.GetStringProp(song, FieldName);
             return cond.Operator switch
             {
                 TextOperator.StartsWith => songValue.StartsWith(cond.Value, StringComparison.OrdinalIgnoreCase),
                 TextOperator.EndsWith => songValue.EndsWith(cond.Value, StringComparison.OrdinalIgnoreCase),
                 TextOperator.Equals => songValue.Equals(cond.Value, StringComparison.OrdinalIgnoreCase),
-                _ => songValue.Contains(cond.Value, StringComparison.OrdinalIgnoreCase)
+                TextOperator.IsEmpty => string.IsNullOrEmpty(songValue), // NEW
+                TextOperator.IsNotEmpty => !string.IsNullOrEmpty(songValue), // NEW
+                _ => songValue.Contains(cond.Value, StringComparison.OrdinalIgnoreCase) // Contains is default
             };
         });
         return IsNegated ? (s => !positivePredicate(s)) : positivePredicate;
@@ -106,7 +139,11 @@ public class FlagClause : QueryClause
 }
 #endregion
 
-#region --- Sorters and Limiters ---
-public class SortClause { public string FieldName { get; set; } public SortDirection Direction { get; set; } }
-public class LimiterClause { public LimiterType Type { get; set; } public int Count { get; set; } }
-#endregion
+//#region --- Sorters and Limiters ---
+public class SortClause
+{
+    public string FieldName { get; set; }
+    public SortDirection Direction { get; set; }
+}
+//public class LimiterClause { public LimiterType Type { get; set; } public int Count { get; set; } }
+//#endregion

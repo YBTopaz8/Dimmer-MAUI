@@ -45,7 +45,7 @@ public partial class AndroidAnimationService : IAnimationService
             });
         }
 
-        _availableAnimations = animations.OrderBy(a => a.DisplayName).ToList();
+        _availableAnimations = [.. animations.OrderBy(a => a.DisplayName)];
         return _availableAnimations;
     }
 

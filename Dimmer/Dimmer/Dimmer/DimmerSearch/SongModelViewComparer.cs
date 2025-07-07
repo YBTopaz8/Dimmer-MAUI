@@ -1,56 +1,92 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch;
+
+public enum LimiterType { First, Last, Random }
+
+public class LimiterClause
+{
+    public LimiterType Type { get; set; }
+    public int Count { get; set; }
+    public LimiterClause(LimiterType type, int count)
+    {
+        Type = type;
+        Count = count;
+    }
+    public LimiterClause()
+    {
+
+    }
+}
+
+// For the Sorter
+public enum SortDirection { Ascending, Descending, Random }
+
+public class SortDescription
+{
+    public string PropertyName { get; }
+    public SortDirection Direction { get; }
+    public SortDescription(string propertyName, SortDirection direction)
+    {
+        PropertyName = propertyName;
+        Direction = direction;
+    }
+}
+
+// A full implementation of the comparer class needed by the pipeline
 public class SongModelViewComparer : IComparer<SongModelView>
 {
-    private readonly List<(string FieldName, SortDirection Direction)> _sortFields;
 
-    public SongModelViewComparer(List<SortClause> sortDirectives)
+    public IReadOnlyList<SortDescription> SortDescriptions => _sortDescriptions;
+    private readonly List<SortDescription> _sortDescriptions;
+
+    // The constructor is now much simpler.
+    public SongModelViewComparer(List<SortDescription>? descriptions)
     {
-        // If no sort is specified, create a default to prevent errors.
-        if (sortDirectives == null || sortDirectives.Count == 0)
-        {
-            _sortFields = new List<(string, SortDirection)> { ("Title", SortDirection.Ascending) };
-        }
-        else
-        {
-            _sortFields = new List<(string, SortDirection)>();
-            foreach (var directive in sortDirectives)
-            {
-                _sortFields.Add((directive.FieldName, directive.Direction));
-            }
-        }
+        _sortDescriptions = descriptions ?? new List<SortDescription>();
     }
 
     public int Compare(SongModelView? x, SongModelView? y)
     {
-        if (x == null && y == null)
+        if (x is null && y is null)
             return 0;
-        if (x == null)
-            return -1;
-        if (y == null)
+        if (x is null)
             return 1;
+        if (y is null)
+            return -1;
 
-        foreach (var (fieldName, direction) in _sortFields)
+        // The random logic is GONE. This is the only part left.
+        foreach (var desc in _sortDescriptions)
         {
-            // Use our robust helper to get the values to compare
-            IComparable? valueX = SemanticQueryHelpers.GetComparableProp(x, fieldName);
-            IComparable? valueY = SemanticQueryHelpers.GetComparableProp(y, fieldName);
+            // Use AstEvaluator's public mapping to find the real property name
+            // Note: Make sure FieldMappings is public static in AstEvaluator
+            var propInfo = typeof(SongModelView).GetProperty(desc.PropertyName);
+            if (propInfo == null)
+                continue;
 
-            int result = Comparer<IComparable>.Default.Compare(valueX, valueY);
+            var valueX = propInfo.GetValue(x);
+            var valueY = propInfo.GetValue(y);
+
+            int result;
+            if (valueX is IComparable comparableX)
+            {
+                result = comparableX.CompareTo(valueY);
+            }
+            else
+            {
+                result = string.Compare(valueX?.ToString(), valueY?.ToString(), StringComparison.OrdinalIgnoreCase);
+            }
 
             if (result != 0)
             {
-                // If descending, invert the result
-                return direction == SortDirection.Descending ? -result : result;
+                return desc.Direction == SortDirection.Ascending ? result : -result;
             }
         }
-
-        // If all sort fields are equal, the items are considered equal in sort order
         return 0;
     }
 }

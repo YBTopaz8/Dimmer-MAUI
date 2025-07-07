@@ -130,14 +130,65 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     #region Save Lyrics
 
-    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)
+    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo lyrics)
     {
         if (string.IsNullOrEmpty(song?.FilePath) || string.IsNullOrWhiteSpace(lrcContent))
         {
             return false;
         }
 
-        // Step 1: Write to the .lrc file
+
+
+        // Step 2: Update the database record
+        try
+        {
+            var dbb = IPlatformApplication.Current.Services.GetService<IRealmFactory>();
+            var realm = dbb?.GetRealmInstance();
+            var songModel = realm.Find<SongModel>(song.Id);
+            if (songModel == null)
+            {
+                _logger.LogWarning("Could not find song with ID {SongId} in database to save lyrics.", song.Id);
+                return false;
+            }
+
+            realm.Write(() =>
+            {
+                if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
+                {
+
+                songModel.SyncLyrics = lrcContent;
+                songModel.HasSyncedLyrics = true; // Update flags
+                songModel.HasLyrics = true;
+                songModel.EmbeddedSync.Clear();
+                foreach (var lyr in lyrics.SynchronizedLyrics)
+                {
+                    var syncLyrics = new SyncLyrics
+                    {
+                        TimestampMs = lyr.TimestampMs,
+                        Text = lyr.Text
+                    };
+                    songModel.EmbeddedSync.Add(syncLyrics);
+                }
+                realm.Add(songModel, true);
+
+                songModel.LastDateUpdated = DateTimeOffset.UtcNow;
+
+                }
+            });
+            // Important: Update the view model that was passed in so the UI has the latest data
+            _mapper.Map(songModel, song);
+            
+            _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update song in database with new lyrics for {SongTitle}", song.Title);
+            // We could consider deleting the .lrc file here for consistency, but for now we'll leave it.
+            return false;
+        }
+
+
+        return true;
         string lrcPath = Path.ChangeExtension(song.FilePath, ".lrc");
         try
         {
@@ -150,35 +201,11 @@ public class LyricsMetadataService : ILyricsMetadataService
             return false;
         }
 
-        // Step 2: Update the database record
-        try
-        {
-            var songModel = _songRepo.GetById(song.Id);
-            if (songModel == null)
-            {
-                _logger.LogWarning("Could not find song with ID {SongId} in database to save lyrics.", song.Id);
-                return false;
-            }
+    }
 
-            songModel.SyncLyrics = lrcContent;
-            songModel.HasSyncedLyrics = true; // Update flags
-            songModel.HasLyrics = true;
-
-            _songRepo.AddOrUpdate(songModel);
-
-            // Important: Update the view model that was passed in so the UI has the latest data
-            _mapper.Map(songModel, song);
-
-            _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to update song in database with new lyrics for {SongTitle}", song.Title);
-            // We could consider deleting the .lrc file here for consistency, but for now we'll leave it.
-            return false;
-        }
-
-        return true;
+    public Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion

@@ -1,8 +1,9 @@
 ﻿namespace Dimmer.Utilities;
 public enum SortOrder
 {
-    Ascending,
-    Descending
+
+    Asc,
+    Desc
 }
 
 public static class CollectionSortHelper
@@ -11,13 +12,13 @@ public static class CollectionSortHelper
     public static ObservableCollection<SongModelView> Sort<SongModelView, TKey>(
         ObservableCollection<SongModelView> collection,
         Func<SongModelView, TKey> keySelector,
-        SortOrder order = SortOrder.Ascending) where TKey : IComparable
+        SortOrder order = SortOrder.Asc) where TKey : IComparable
     {
         if (collection == null || !collection.Any())
             return Enumerable.Empty<SongModelView>().ToObservableCollection();
 
 
-        if (order == SortOrder.Ascending)
+        if (order == SortOrder.Asc)
         {
             return collection.DistinctBy(keySelector).OrderBy(keySelector).ToObservableCollection();
         }
@@ -56,41 +57,41 @@ public static class CollectionSortHelper
     }
 
     // Specific sorters for SongModelView (convenience methods)
-    public static ObservableCollection<SongModelView> SortByTitle(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByTitle(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         return Sort(songs, song => song.Title ?? string.Empty, order);
     }
 
-    public static ObservableCollection<SongModelView> SortByArtistName(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByArtistName(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         return Sort(songs, song => song.ArtistName ?? string.Empty, order);
     }
 
-    public static ObservableCollection<SongModelView> SortByAlbumName(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByAlbumName(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         return Sort(songs, song => song.AlbumName ?? string.Empty, order);
     }
 
-    public static ObservableCollection<SongModelView> SortByGenre(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByGenre(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         // Assuming GenreModelView has a Name property and is comparable
         // If Genre can be null, handle that.
         return Sort(songs, song => song.Genre?.Name ?? string.Empty, order);
     }
 
-    public static ObservableCollection<SongModelView> SortByDuration(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByDuration(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         return Sort(songs, song => song.DurationInSeconds, order);
     }
 
-    public static ObservableCollection<SongModelView> SortByReleaseYear(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByReleaseYear(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         // Handle null ReleaseYear by sorting them to the beginning or end.
         // Here, nulls will typically sort before non-nulls in ascending.
         return Sort(songs, song => song.ReleaseYear ?? int.MinValue, order); // Or int.MaxValue for descending to put them last
     }
 
-    public static ObservableCollection<SongModelView> SortByDateAdded(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Ascending)
+    public static ObservableCollection<SongModelView> SortByDateAdded(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)
     {
         // Handle null DateCreated similarly
         return Sort(songs, song => song.DateCreated ?? DateTimeOffset.MinValue, order);

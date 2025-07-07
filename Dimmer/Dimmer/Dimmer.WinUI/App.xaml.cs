@@ -48,7 +48,7 @@ public partial class App : MauiWinUIApplication
         this.InitializeComponent();
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
 
-        
+
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -65,20 +65,27 @@ public partial class App : MauiWinUIApplication
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        
+        var ex = e.ExceptionObject as Exception;
+        if (ex.Message.Contains("Operation is not valid due to the current state of the object.")
+            && ex.StackTrace?.Contains("WinRT.ExceptionHelpers") == true)
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
         var errorHandler = Services.GetService<IErrorHandler>();
         errorHandler?.HandleError((Exception)e.ExceptionObject);
-        Exception ex = (Exception)e.ExceptionObject;
+        Exception exx = (Exception)e.ExceptionObject;
 
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
-                                 $"Exception Type: {ex.GetType()}\n" +
-                                 $"Message: {ex.Message}\n" +
-                                 $"Source: {ex.Source}\n" +
-                                 $"Stack Trace: {ex.StackTrace}\n";
+                                 $"Exception Type: {exx.GetType()}\n" +
+                                 $"Message: {exx.Message}\n" +
+                                 $"Source: {exx.Source}\n" +
+                                 $"Stack Trace: {exx.StackTrace}\n";
 
         // ... Log to file, etc.
         Debug.WriteLine(errorDetails);
-        LogException(ex);
+        LogException(exx);
     }
     // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
@@ -244,7 +251,7 @@ public partial class App : MauiWinUIApplication
             }
 
             // Use a date-specific file name.
-            string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string fileName = $"WinUIcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
 
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";

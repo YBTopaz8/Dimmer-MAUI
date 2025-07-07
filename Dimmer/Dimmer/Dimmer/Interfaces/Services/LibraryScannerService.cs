@@ -62,7 +62,7 @@ public class LibraryScannerService : ILibraryScannerService
                 if (eState is not null)
                 {
 
-                    folderPaths = eState.UserMusicFoldersPreference.ToList();
+                    folderPaths = [.. eState.UserMusicFoldersPreference];
                 }
 
             }
@@ -118,7 +118,7 @@ public class LibraryScannerService : ILibraryScannerService
                     _logger.LogInformation("Scanning progress: {ProcessedCount}/{TotalCount} files.", processedFileCount, totalFiles);
                 }
 
-                var fileProcessingResult = audioFileProcessor.ProcessFile(file);
+                var fileProcessingResult = await audioFileProcessor.ProcessFile(file);
 
                 if (fileProcessingResult.Success && fileProcessingResult.ProcessedSong != null)
                 {
@@ -147,10 +147,10 @@ public class LibraryScannerService : ILibraryScannerService
             _logger.LogInformation("File processing complete. Consolidating metadata changes.");
 
 
-            IReadOnlyList<SongModel> newOrUpdatedSongs = currentScanMetadataService.GetAllSongs().Where(s => s.IsNew).ToList();
-            IReadOnlyList<ArtistModel> newOrUpdatedArtists = currentScanMetadataService.GetAllArtists().Where(a => a.IsNew).ToList();
-            IReadOnlyList<AlbumModel> newOrUpdatedAlbums = currentScanMetadataService.GetAllAlbums().Where(a => a.IsNew).ToList();
-            IReadOnlyList<GenreModel> newOrUpdatedGenres = currentScanMetadataService.GetAllGenres().Where(g => g.IsNew).ToList();
+            IReadOnlyList<SongModel> newOrUpdatedSongs = [.. currentScanMetadataService.GetAllSongs().Where(s => s.IsNew)];
+            IReadOnlyList<ArtistModel> newOrUpdatedArtists = [.. currentScanMetadataService.GetAllArtists().Where(a => a.IsNew)];
+            IReadOnlyList<AlbumModel> newOrUpdatedAlbums = [.. currentScanMetadataService.GetAllAlbums().Where(a => a.IsNew)];
+            IReadOnlyList<GenreModel> newOrUpdatedGenres = [.. currentScanMetadataService.GetAllGenres().Where(g => g.IsNew)];
 
             _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
                 newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
@@ -312,10 +312,10 @@ public class LibraryScannerService : ILibraryScannerService
 
             return new LoadSongsResult
             {
-                Artists = newOrUpdatedArtists.ToList(),
-                Albums = newOrUpdatedAlbums.ToList(),
-                Songs = newOrUpdatedSongs.ToList(),
-                Genres = newOrUpdatedGenres.ToList()
+                Artists = [.. newOrUpdatedArtists],
+                Albums = [.. newOrUpdatedAlbums],
+                Songs = [.. newOrUpdatedSongs],
+                Genres = [.. newOrUpdatedGenres]
             };
         }
         catch (Exception ex)

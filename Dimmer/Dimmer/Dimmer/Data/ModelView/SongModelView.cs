@@ -7,8 +7,10 @@ public partial class SongModelView : ObservableObject
     public partial string? Title { get; set; }
     [ObservableProperty]
     public partial string? ArtistName { get; set; }
+
     [ObservableProperty]
     public partial string? AlbumName { get; set; }
+
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
     [ObservableProperty]
@@ -39,6 +41,7 @@ public partial class SongModelView : ObservableObject
     public partial bool HasSyncedLyrics { get; set; }
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
+
     [ObservableProperty]
     public partial byte[]? CoverImageBytes { get; set; }
     [ObservableProperty]
@@ -87,10 +90,14 @@ public partial class SongModelView : ObservableObject
     public partial int? DiscNumber { get; set; }
     [ObservableProperty]
     public partial int? DiscTotal { get; set; }
+    [ObservableProperty]
+    public partial int? UserIDOnline { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
 
+    [ObservableProperty]
+    public partial ObservableCollection<SyncLyricsView> EmbeddedSync { get; set; } = new();
 
 
     [ObservableProperty]
@@ -106,6 +113,43 @@ public partial class SongModelView : ObservableObject
         return false;
     }
 
+    [ObservableProperty]
+    public partial string SearchableText { get; private set; }
+
+    // This method is called after the object is created and its properties are set.
+    public void PrecomputeSearchableText()
+    {
+        var allNotes = UserNote?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
+
+        var sb = new StringBuilder();
+        sb.Append(Title?.ToLowerInvariant()).Append(' ');
+        sb.Append(OtherArtistsName?.ToLowerInvariant()).Append(' ');
+        sb.Append(AlbumName?.ToLowerInvariant()).Append(' ');
+        sb.Append(UnSyncLyrics?.ToLowerInvariant()).Append(' ');
+        sb.Append(SyncLyrics?.ToLowerInvariant()).Append(' ');
+        sb.Append(Genre?.Name?.ToLowerInvariant()).Append(' '); // Example of adding more
+        sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
+        sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
+
+        SearchableText = sb.ToString();
+        if (string.IsNullOrEmpty(SearchableText) || string.IsNullOrWhiteSpace(SearchableText))
+        {
+            SearchableText=string.Empty;
+        }
+        else if (!string.IsNullOrEmpty(SearchableText) && !string.IsNullOrWhiteSpace(SearchableText))
+        {
+
+        }
+    }
+    public string UserNoteAggregatedText =>
+        UserNote != null && UserNote.Any()
+        ? string.Join(" ", UserNote.Select(n => n.UserMessageText))
+        : string.Empty;
+
+    public SongModelView()
+    {
+        PrecomputeSearchableText();
+    }
     public override int GetHashCode()
     {
         return HashCode.Combine(Id);
@@ -126,4 +170,21 @@ public partial class UserNoteModelView : ObservableObject
     public partial int UserRating { get; set; }
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
+}
+public class SyncLyricsView
+{
+    public int TimestampMs { get; set; }
+    public string Text { get; set; }
+
+    public SyncLyricsView(int timestampMs, string text)
+    {
+        TimestampMs = timestampMs;
+        Text = text;
+    }
+    public SyncLyricsView(SyncLyrics syncLyricsDB)
+    {
+        Text= syncLyricsDB.Text;
+        TimestampMs = syncLyricsDB.TimestampMs;
+
+    }
 }
