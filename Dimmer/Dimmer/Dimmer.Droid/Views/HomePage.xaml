@@ -880,7 +880,7 @@
                                                         FontSize="22"
                                                         HorizontalOptions="Start"
                                                         Icon="musicnotess.png"
-                                                        IsIconVisible="True"
+                                                        IsIconVisible="{Binding HasSyncedLyrics}"
                                                         IsVisible="True"
                                                         PressedTextColor="DarkSlateBlue"
                                                         Text="{Binding Title}"

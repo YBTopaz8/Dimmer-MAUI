@@ -253,7 +253,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public double Balance
     {
         get => _balance;
-        set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet        
+        set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet
     }
 
     public SongModelView? CurrentTrackMetadata => _currentTrackMetadata;
@@ -869,7 +869,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void RaiseIsPlayingChanged()
     {
-        // Use current state to construct the event args        
+        // Use current state to construct the event args
         DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
 
         var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  eventType };
@@ -1013,11 +1013,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
-    public void InitializePlaylist(IEnumerable<SongModelView> songModels)
-    {
-        //throw new NotImplementedException();
-    }
-
     readonly MMDeviceEnumerator _enum = new MMDeviceEnumerator();
 
 
@@ -1050,6 +1045,20 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
         return [.. list.DistinctBy(x => x.Name)];
     }
+
+    public void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels)
+    {
+        try
+        {
+
+            Task.Run(async () => await InitializeAsync(songModelView, null));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
 
 
     // COM interop to call IPolicyConfig.SetDefaultEndpoint

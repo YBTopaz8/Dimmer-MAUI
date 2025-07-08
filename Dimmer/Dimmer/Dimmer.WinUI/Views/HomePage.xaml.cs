@@ -1,7 +1,6 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using Dimmer.DimmerSearch;
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.FileProcessorUtils;
 
 using DynamicData;
 using DynamicData.Binding;
@@ -34,6 +33,7 @@ using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
 using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunction;
 using Syncfusion.Maui.Toolkit.Charts;
 using Label = Microsoft.Maui.Controls.Label;
+using Dimmer.DimmerLive;
 
 namespace Dimmer.WinUI.Views;
 
@@ -80,6 +80,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
     }
 
 
@@ -103,40 +104,10 @@ public partial class HomePage : ContentPage
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        await MyViewModel.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
     }
 
-    private void SkipPrev_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void PlayPauseBtn_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void SkipNext_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void OpenSongStats_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void OpenArtistWindow_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void OpenAlbumWindow_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private async void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
+    private void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
     {
         //var song = e.Parameter as SongModelView;
         //if (song is not null)
@@ -174,7 +145,7 @@ public partial class HomePage : ContentPage
     private string _currentSortProperty = string.Empty;
     private SortOrder _currentSortOrder = SortOrder.Asc;
 
-    private async void Sort_Clicked(object sender, EventArgs e)
+    private void Sort_Clicked(object sender, EventArgs e)
     {
 
         var chip = sender as SfChip; // Or whatever your SfChip type is
@@ -344,7 +315,7 @@ public partial class HomePage : ContentPage
 
         await Task.WhenAll(SongsColView.DimmOut(),
              AdvSearch.DimmInCompletelyAndShow(),
-            SearchSongSB.AnimateHeight(65, 350, Easing.SpringOut));
+            SearchSongSB.AnimateHeight(65, 650, Easing.SpringOut));
 
     }
 
@@ -574,6 +545,46 @@ public partial class HomePage : ContentPage
 
     private void ArtistsEffectsView_TouchDown(object sender, EventArgs e)
     {
+
+    }
+
+    private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+        if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
+        {
+            return;
+        }
+        var send = (SfEffectsView)sender;
+        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        if (gest is null)
+        {
+            return;
+        }
+        var field = gest.PointerReleasedCommandParameter as string;
+        var val = gest.PointerPressedCommandParameter as string;
+        if (field is "artist")
+        {
+            char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+            var namesList = val
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+                .Select(name => name.Trim())                           // Trim whitespace from each name
+                .ToArray();                                             // Convert to a List
+
+
+            var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
+
+            if (string.IsNullOrEmpty(res))
+            {
+                return;
+            }
+            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", res);
+
+            return;
+        }
+
+        SearchSongSB.Text = StaticMethods.SetQuotedSearch(field, val);
 
     }
 }

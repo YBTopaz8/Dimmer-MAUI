@@ -49,6 +49,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged; // Maps roughly to StatusChanged/PlayingChanged
     public event EventHandler<PlaybackEventArgs>? IsPlayingChanged;
     public event EventHandler<PlaybackEventArgs>? PlayEnded; // Triggered by OnStatusChanged(Ended)
+    public event EventHandler<PlaybackEventArgs>? PlaylistEnded; // Triggered by OnStatusChanged(Ended)
     public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed; // Can be triggered manually or via service events if implemented
     public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed;     // Can be triggered manually or via service events if implemented
     public event EventHandler<double>? PositionChanged; // Maps to OnPositionChanged (ms to s)
@@ -122,19 +123,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Console.WriteLine($"[AudioService] InitializeAsync called for: {songModel?.Title}. Ready for PREPARE_PLAY command.");
         return Task.CompletedTask;
     }
-    public Task InitializeAsync(SongModelView song, IEnumerable<SongModelView> songsToPlay)
-    {
-        _currentSongModel = song;
 
-        Service?.PreparePlaylist(song, songsToPlay);
-
-        // The actual preparation and playback is triggered by sending a command
-        // to the ExoPlayerService, usually from the UI layer after connecting.
-        // This method might just store context.
-        // Alternatively, it could prepare the command bundle here.
-        Console.WriteLine($"[AudioService] InitializeAsync called for: {song?.Title}. Ready for PREPARE_PLAY command.");
-        return Task.CompletedTask;
-    }
 
     public void Play()
     {
@@ -224,11 +213,19 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // SubscribeAsync to events coming *from* the ExoPlayerService
 
         Service.PlayingEnded += OnPlayEnded;
+        Service.PlayListEnded += Service_PlayListEnded;
         Service.PlayingChanged += Service_PlayingChanged;
         Service.PositionChanged += OnPositionChanged;
         Service.PlayNextPressed += Service_PlayNextPressed;
         Service.PlayPreviousPressed += Service_PlayPreviousPressed;
 
+    }
+
+    private void Service_PlayListEnded(object sender, PlaybackEventArgs e)
+    {
+        BaseAppFlow _baseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>()!;
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(e.MediaSong, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), 0);
+        PlaylistEnded?.Invoke(this, e);
     }
 
     private void OnPlayEnded(object sender, PlaybackEventArgs e)

@@ -200,12 +200,13 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         {
             case DimmerPlaybackState.PlayCompleted: // Song ended, play next
 
-                var ee = _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);
-                _state.SetCurrentState(new(DimmerPlaybackState.PlaylistPlay, null, mapper.Map<SongModelView>(ee), ee)); // Update state with next song
+                var nextSong = _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);
+                _state.SetCurrentState(new(DimmerPlaybackState.PlaylistPlay, null, mapper.Map<SongModelView>(nextSong), nextSong)); // Update state with next song
 
                 break;
-            case DimmerPlaybackState.PlayNextUser:
-
+            case DimmerPlaybackState.PlaylistExhaused:
+                //_state.SetCurrentState(new(DimmerPlaybackState.PlaylistPlay, null, mapper.Map<SongModelView>(nextSong), nextSong)); // Update state with next song
+                break;
             case DimmerPlaybackState.PlayNextUI:
 
                 var e = _multiPlayer.Next(randomizeSourcePlaylist: currentShuffleState);

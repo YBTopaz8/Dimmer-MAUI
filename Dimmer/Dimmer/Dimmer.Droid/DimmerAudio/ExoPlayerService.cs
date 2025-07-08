@@ -90,6 +90,7 @@ public class ExoPlayerService : MediaSessionService
 
     public event PlayingChangedEventHandler? PlayingChanged;
     public event PlayingChangedEventHandler? PlayingEnded;
+    public event PlayingChangedEventHandler? PlayListEnded;
     public event PositionChangedEventHandler? PositionChanged;
     public event SeekCompletedEventHandler? SeekCompleted;
     public event PlayNextEventHandler? PlayNextPressed; // Triggered by MediaKeyNextPressed
@@ -247,20 +248,20 @@ public class ExoPlayerService : MediaSessionService
 
     }
 
-    internal void RaisePlayNextEventHandler()
+    internal void RaisePlayNextEventHandler(bool isUseMyPlaylist)
     {
 
-        var eventArgs = new PlaybackEventArgs(CurrentSongItem) { EventType=DimmerPlaybackState.PlayNextUser };
+        var eventArgs = new PlaybackEventArgs(CurrentSongItem) { EventType=DimmerPlaybackState.PlayNextUser, IsUseMyPlaylist = isUseMyPlaylist };
 
         PlayNextPressed?.Invoke(this, eventArgs);
 
     }
 
-    internal void RaisePlayPreviousEventHandler()
+    internal void RaisePlayPreviousEventHandler(bool isUseMyPlaylist)
     {
 
 
-        var eventArgs = new PlaybackEventArgs(CurrentSongItem) { EventType=DimmerPlaybackState.PlayPreviousUser };
+        var eventArgs = new PlaybackEventArgs(CurrentSongItem) { EventType = DimmerPlaybackState.PlayPreviousUser, IsUseMyPlaylist = isUseMyPlaylist };
         PlayPreviousPressed?.Invoke(this, eventArgs);
 
     }
@@ -500,7 +501,6 @@ public class ExoPlayerService : MediaSessionService
         player.Stop();
         player.ClearMediaItems();
 
-        var _playlistsMgtFlow = IPlatformApplication.Current.Services.GetService<PlayListMgtFlow>();
 
 
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
@@ -569,7 +569,6 @@ public class ExoPlayerService : MediaSessionService
         player.Stop();
         player.ClearMediaItems();
 
-        var _playlistsMgtFlow = IPlatformApplication.Current.Services.GetService<PlayListMgtFlow>();
         try
         {
             foreach (var item in songs)
@@ -631,8 +630,10 @@ public class ExoPlayerService : MediaSessionService
                   .SetUri(Uri.Parse(songToPlay.FilePath))!
                   .SetMediaMetadata(metadataBuilderMain!.Build())!
                   .Build();
-
-            player.SetMediaItem(songToPlayMain, p1: 0);
+            player.PauseAtEndOfMediaItems=true;
+            //player.SetMediaItem(songToPlayMain, p1: 0);
+            Console.WriteLine(player.MediaItemCount);
+            Console.WriteLine(player.PauseAtEndOfMediaItems);
             player.Prepare();
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
@@ -775,7 +776,12 @@ public class ExoPlayerService : MediaSessionService
                 {
                     service.player.Stop(); // Stop the player if it was playing
                 }
+                if (!service.player.HasNextWindow)
+                {
 
+                    service.PlayListEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlaylistExhaused });
+                    return;
+                }
                 service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
 
             }
@@ -965,14 +971,14 @@ public class ExoPlayerService : MediaSessionService
                     //    break;
 
                     case 9:
-                        service.player!.Stop();
-                        service.RaisePlayNextEventHandler();
+                        service.player!.SeekToNextMediaItem();
+                        service.RaisePlayNextEventHandler(false);
                         //Console.WriteLine("[SessionCallback] User pressed NEXT button.");
                         break;
 
                     case 7:
-                        service.player!.Stop();
-                        service.RaisePlayPreviousEventHandler();
+                        service.player!.SeekToPreviousMediaItem();
+                        service.RaisePlayPreviousEventHandler(false);
 
                         break;
 

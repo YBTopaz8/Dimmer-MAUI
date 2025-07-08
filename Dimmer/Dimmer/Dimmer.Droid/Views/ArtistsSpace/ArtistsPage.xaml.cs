@@ -31,7 +31,7 @@ public partial class ArtistsPage : ContentPage
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        await MyViewModel.BaseVM.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
@@ -47,7 +47,7 @@ public partial class ArtistsPage : ContentPage
         var song = send.BindingContext as SongModelView;
         var ee = SongsColView.ItemsSource as IEnumerable<SongModelView>;
         songsToDisplay =ee.ToObservableCollection();
-        await MyViewModel.BaseVM.PlaySongFromListAsync(song, ee);
+        await MyViewModel.BaseVM.PlaySongFromList(song, ee);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;

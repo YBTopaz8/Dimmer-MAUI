@@ -318,7 +318,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-            QueueOfSongsLive =  new ObservableCollection<SongModelView>(songss);
+
         });
     }
 
@@ -498,10 +498,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
 
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
-    [ObservableProperty] public partial ObservableCollection<AlbumModelView?>? SelectedAlbumsCol { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView?>? SelectedAlbumSongs { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView?>? SelectedArtistSongs { get; set; }
-    [ObservableProperty] public partial ObservableCollection<SongModelView?>? SelectedPlaylistSongs { get; set; }
     [ObservableProperty] public partial ObservableCollection<PlaylistModelView>? AllPlaylistsFromDBView { get; set; }
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
     [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedArtistAlbums { get; set; }
@@ -719,6 +715,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
 
+            QueryBeforePlay=searchText;
             var orchestrator = new MetaParser(searchText);
 
 
@@ -916,7 +913,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 .Subscribe(async evt =>
                 {
 
-                    await NextTrack();
+                    await NextTrack(evt.EventArgs.IsUseMyPlaylist);
                     _logger.LogInformation($"Next song is {evt.EventArgs.MediaSong}");
                 },
                            ex => _logger.LogError(ex, "Error in play next subscription."))
@@ -925,7 +922,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.MediaKeyPreviousPressed += h, h => audioService.MediaKeyPreviousPressed -= h)
                 .Subscribe(async evt =>
                 {
-                    await PreviousTrack();
+                    await PreviousTrack(evt.EventArgs.IsUseMyPlaylist);
                     _logger.LogInformation($"Previous song is {evt.EventArgs.MediaSong}");
                 },
                            ex => _logger.LogError(ex, "Error in play next subscription."))
@@ -959,7 +956,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-                 QueueOfSongsLive = _songSource.Items.Take(50).ToObservableCollection();
+
 
                  Task.Run(() => RefreshSongsMetadata());
                  IsAppScanning=false;
@@ -981,8 +978,56 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                  {
                      return;
                  }
-                 await PlaySongFromListAsync(newSongs.FirstOrDefault().ToModelView(_mapper), _mapper.Map<List<SongModelView>>(newSongs));
+                 PlaySongFromList(newSongs.FirstOrDefault().ToModelView(_mapper), _mapper.Map<List<SongModelView>>(newSongs));
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
+     );
+
+        _subsManager.Add(
+         _stateService.CurrentPlayBackState
+             .Where(psi => psi.State == DimmerPlaybackState.PlaylistExhaused)
+            .Subscribe(stateInfo => // Renamed 'folderPath' to 'stateInfo' for clarity
+            {
+                // It's good practice to re-run the search to ensure SearchResults is up-to-date.
+                // Assuming this method is async, we should await it.
+                SearchSongSB_TextChanged(QueryBeforePlay);
+
+                var lastPlayedSong = stateInfo.SongView;
+                int currentIndex = SearchResults.IndexOf(lastPlayedSong);
+
+                // --- IMPORTANT: Handle the case where the song isn't found ---
+                if (currentIndex == -1)
+                {
+                    _logger.LogWarning("Last played song was not found in the current search results. Cannot fetch next chunk.");
+                    return; // Stop processing
+                }
+
+                // --- The Fix: Use Skip() and Take() ---
+                // 1. Skip all items up to and including the current one (currentIndex + 1).
+                // 2. Take the next 8 items from the remaining list.
+                var newChunk = SearchResults.Skip(currentIndex + 1).Take(8);
+
+                // Now 'newChunk' is a List<SongModelView> containing the next 8 songs.
+                // You can add these to your playback queue.
+
+                if (newChunk.Any())
+                {
+                    _logger.LogInformation("Playlist exhausted. Adding next {Count} songs to the queue.");
+                    audioService.InitializePlaylist(newChunk.First(), newChunk);
+                    audioService.Play();
+
+                    _baseAppFlow.UpdateDatabaseWithPlayEvent(newChunk.First(), StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
+
+                    // Your logic to add these songs to the playback queue would go here.
+                    // e.g., _playbackService.Enqueue(newChunk);
+
+                    SearchSongSB_TextChanged(string.Empty);
+                }
+                else
+                {
+                    _logger.LogInformation("Playlist exhausted and no more songs found in search results.");
+                    // Handle the end of all results (e.g., show a message to the user).
+                }
+            }, ex => _logger.LogError(ex, "Error processing PlaylistExhausted state."))
      );
 
         _subsManager.Add(
@@ -994,19 +1039,23 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     {
                         return;
                     }
-                    CurrentPlayingSongView =evt.EventArgs.MediaSong;
                     if (IsPlaying)
                     {
-                        Track track = new(CurrentPlayingSongView.FilePath);
-                        PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-                        CurrentPlayingSongView.CoverImageBytes = ImageResizer.ResizeImage(firstPicture?.PictureData);
+                        CurrentPlayingSongView ??=evt.EventArgs.MediaSong;
+                        if (CurrentPlayingSongView.CoverImageBytes is null)
+                        {
+                            Track track = new(CurrentPlayingSongView.FilePath);
+                            PictureInfo? firstPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
+                            CurrentPlayingSongView.CoverImageBytes = ImageResizer.ResizeImage(firstPicture?.PictureData);
 
+
+                        }
 
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
                         AudioDevices = audioService.GetAllAudioDevices()?.ToObservableCollection();
                         var ll = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems.Take(50);
-                        QueueOfSongsLive?.Clear();
-                        QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
+
+
 
                     }
                     else
@@ -1159,8 +1208,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         audioService.SetPreferredOutputDevice(dev);
     }
+    [ObservableProperty]
+    public partial string QueryBeforePlay { get; set; }
 
-    public async Task PlaySongFromListAsync(SongModelView? songToPlay, IEnumerable<SongModelView> songs)
+    [RelayCommand]
+    public void QuicklyPulloutQueue()
+    {
+        SearchSongSB_TextChanged(QueryBeforePlay);
+    }
+
+    public void PlaySongFromList(SongModelView? songToPlay, IEnumerable<SongModelView> songs)
     {
         if (songToPlay == null)
         {
@@ -1225,11 +1282,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
 
-        var rr = _mapper.Map<IEnumerable<SongModelView>>(_playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems);
-        audioService.InitializePlaylist(songToPlay!, rr);
+        audioService.InitializePlaylist(songToPlay!, songs.Take(8));
         audioService.Play();
         _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
-
+        //QueryBeforePlay=SearchSongSB_TextChanged
     }
 
     [RelayCommand]
@@ -1308,7 +1364,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public async Task NextTrack()
+    public async Task NextTrack(bool IsUseMyPlaylist)
     {
         if (_songSource is null ||  _songSource?.Count <1)
         {
@@ -1317,7 +1373,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (CurrentPlayingSongView is null)
         {
 
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
+            PlaySongFromList(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
             return;
 
@@ -1330,7 +1386,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             audioService.Stop();
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
-
+        if (!IsUseMyPlaylist)
+        {
+            return;
+        }
 
         var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
         if (nextSong is not null)
@@ -1343,19 +1402,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         else
         {
 
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
+            PlaySongFromList(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
 
         }
     }
-    [ObservableProperty] public partial ObservableCollection<SongModelView> QueueOfSongsLive { get; set; }
     public void GetPlaylistsQueue()
     {
 
     }
 
     [RelayCommand]
-    public async Task PreviousTrack()
+    public async Task PreviousTrack(bool IsUseMyPlaylist)
     {
 
         if (_songSource is null ||  _songSource?.Count <1)
@@ -1365,7 +1423,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (CurrentPlayingSongView is null)
         {
 
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
+            PlaySongFromList(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
             return;
         }
@@ -1379,7 +1437,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Skipped, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
 
-
+        if (!IsUseMyPlaylist)
+        {
+            return;
+        }
         var previousSong = _playlistsMgtFlow.MultiPlayer.Previous();
 
         if (previousSong is not null)
@@ -1390,7 +1451,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         else
         {
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
+            PlaySongFromList(_songSource.Items.FirstOrDefault()!, _songSource.Items);
 
 
         }
@@ -1526,18 +1587,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlaySongFrommOutsideApp, folderPath, null, null));
     }
 
-    public void ViewAlbumDetails(AlbumModelView? albumView)
+    public void ViewAlbumDetails(AlbumModelView albumView)
     {
-        var albumDb = albumRepo.GetById(albumView.Id);
 
-        if (albumDb == null)
-        {
-            _logger.LogWarning("ViewArtistDetails: Album not found in repository for ID: {ArtistId}", albumView?.Id);
-            return;
-        }
-
-        SelectedAlbum = _mapper.Map<AlbumModelView>(albumDb);
-        SelectedAlbumSongs = new ObservableCollection<SongModelView>(albumDb.SongsInAlbum.Select(s => _mapper.Map<SongModelView>(s)));
+        SelectedAlbum =albumView;
+        SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", albumView.Name));
 
 
     }
@@ -1659,9 +1713,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogWarning("ViewArtistDetails called with a null artist view or ID.");
 
         }
-        SelectedAlbumSongs ??=new();
+
         SelectedArtistAlbums ??=new();
-        SelectedAlbumSongs.Clear();
+
         SelectedArtistAlbums.Clear();
 
 
@@ -1704,7 +1758,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         foreach (var song in songsByArtist)
         {
-            SelectedAlbumSongs.Add(song.ToModelView(_mapper));
+
         }
         foreach (var album in albumsByArtist)
         {
@@ -1743,14 +1797,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
 
-
-    }
-    partial void OnSelectedArtistSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
-    {
-
-    }
-    partial void OnSelectedAlbumSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
-    {
 
     }
 

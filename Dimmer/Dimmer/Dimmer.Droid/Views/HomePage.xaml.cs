@@ -2,10 +2,10 @@ using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
 
+using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
 using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
-using Dimmer.Utilities.FileProcessorUtils;
 using Dimmer.Utilities.ViewsUtils;
 using Dimmer.ViewModel;
 
@@ -98,7 +98,7 @@ public partial class HomePage : ContentPage
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.BaseVM.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
         //DetailView.IsVisible=true;
@@ -417,7 +417,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void SearchBy_Focused(object sender, FocusEventArgs e)
+    private void SearchBy_Focused(object sender, FocusEventArgs e)
     {
         //await BtmBarZone.AnimateSlideDown(80);
     }
@@ -622,7 +622,7 @@ public partial class HomePage : ContentPage
         MyViewModel.BaseVM.SearchSongSB_TextChanged(txt);
     }
 
-    private async void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
+    private void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
     {
 
     }

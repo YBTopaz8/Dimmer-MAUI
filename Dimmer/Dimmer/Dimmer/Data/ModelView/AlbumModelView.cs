@@ -2,7 +2,7 @@
 public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? Name { get; set; }
+    public partial string Name { get; set; }
     //[ObservableProperty]
     //public partial ObservableCollection<SongModelView>? Songs{ get; set; }
     [ObservableProperty]

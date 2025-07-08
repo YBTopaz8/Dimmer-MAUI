@@ -23,11 +23,11 @@ public class MainApplication : MauiApplication
     {
         Console.WriteLine("Dimmer Android :D");
 
-        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+        //AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
-        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += OnAndroidUnhandledExceptionRaiser;
-        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        //AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        //Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += OnAndroidUnhandledExceptionRaiser;
+        //TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
     }
 
     private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

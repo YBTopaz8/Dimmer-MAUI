@@ -209,14 +209,12 @@
                             <syncf:SfChip
                                 x:Name="SkipPrev"
                                 Background="Transparent"
-                                Clicked="SkipPrev_Clicked"
                                 Command="{Binding PreviousTrackCommand}"
                                 ImageSource="skipprevious.png"
                                 StyleClass="MediaBtnChip" />
                             <syncf:SfChip
                                 x:Name="PlayPauseBtn"
                                 Background="Transparent"
-                                Clicked="PlayPauseBtn_Clicked"
                                 Command="{Binding PlayPauseToggleCommand}"
                                 ImageSource="play.png"
                                 StyleClass="MediaBtnChip">
@@ -239,7 +237,6 @@
                             <syncf:SfChip
                                 x:Name="SkipNext"
                                 Background="Transparent"
-                                Clicked="SkipNext_Clicked"
                                 Command="{Binding NextTrackCommand}"
                                 ImageSource="skipnext.png"
                                 StyleClass="MediaBtnChip" />
@@ -410,6 +407,7 @@
                                     <VisualStateGroup x:Name="CommonStates">
                                         <VisualState x:Name="Normal">
                                             <VisualState.Setters>
+
                                                 <Setter Property="BackgroundColor" Value="Transparent" />
                                             </VisualState.Setters>
                                         </VisualState>
@@ -446,10 +444,9 @@
                         Grid.Row="3"
                         BackgroundColor="Transparent"
                         Spacing="10">
-                        <VerticalStackLayout HorizontalOptions="Center">
+                        <VerticalStackLayout x:Name="AdvSearch" HorizontalOptions="Center">
                             <Label x:Name="TranslatedSearch" IsVisible="True" />
                             <syncf:SfChip
-                                x:Name="AdvSearch"
                                 IsVisible="False"
                                 Text="Advanced Search (TQL)"
                                 ToolTipProperties.Text="Start a Topaz Query using TQL" />
@@ -608,27 +605,6 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
                                 <Border Padding="10" StrokeShape="RoundRectangle 20">
-                                    <Border.Triggers>
-
-                                        <DataTrigger
-                                            Binding="{Binding IsPlaying}"
-                                            TargetType="Border"
-                                            Value="true">
-                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
-                                            <Setter Property="StrokeThickness" Value="1" />
-
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding IsPlaying}"
-                                            TargetType="Border"
-                                            Value="false">
-                                            <Setter Property="Stroke" Value="Transparent" />
-                                            <Setter Property="StrokeThickness" Value="0" />
-
-                                        </DataTrigger>
-                                    </Border.Triggers>
-
                                     <Grid
                                         ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*,0.7*"
                                         ColumnSpacing="10"
@@ -649,6 +625,12 @@
                                         </Grid.Resources>
                                         <HorizontalStackLayout Grid.Column="0" Spacing="10">
 
+                                            <HorizontalStackLayout.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding Title}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="title" />
+                                            </HorizontalStackLayout.GestureRecognizers>
                                             <FlyoutBase.ContextFlyout>
                                                 <MenuFlyout>
                                                     <MenuFlyoutItem
@@ -663,23 +645,6 @@
                                                         Text="Quick Search Album" />
                                                 </MenuFlyout>
                                             </FlyoutBase.ContextFlyout>
-                                            <Border Stroke="Transparent" StrokeShape="RoundRectangle 15">
-                                                <Border.Triggers>
-                                                    <DataTrigger
-                                                        Binding="{Binding IsCurrentPlayingHighlight}"
-                                                        TargetType="Border"
-                                                        Value="True">
-                                                        <Setter Property="Stroke" Value="DarkSlateBlue" />
-                                                    </DataTrigger>
-                                                    <DataTrigger
-                                                        Binding="{Binding IsCurrentPlayingHighlight}"
-                                                        TargetType="Border"
-                                                        Value="False">
-                                                        <Setter Property="Stroke" Value="Transparent" />
-                                                    </DataTrigger>
-                                                </Border.Triggers>
-
-                                            </Border>
                                             <Label
                                                 FontFamily="AleySans"
                                                 Text="{Binding Title}"
@@ -690,6 +655,7 @@
                                                         TargetType="Label"
                                                         Value="True">
                                                         <Setter Property="FontSize" Value="21" />
+                                                        <Setter Property="TextColor" Value="DarkSlateBlue" />
                                                     </DataTrigger>
                                                     <DataTrigger
                                                         Binding="{Binding IsCurrentPlayingHighlight}"
@@ -704,17 +670,14 @@
                                         <syncf:SfEffectsView
                                             x:Name="ArtistsEffectsView"
                                             Grid.Column="1"
-                                            BackgroundColor="Transparent"
-                                            TouchDown="ArtistsEffectsView_TouchDown">
-                                            <FlyoutBase.ContextFlyout>
-                                                <MenuFlyout>
-                                                    <MenuFlyoutItem
-                                                        Clicked="ArtistsEffectsView_LongPressed"
-                                                        CommandParameter="{Binding .}"
-                                                        Text="{Binding ArtistName, StringFormat='View Artists : {0}'}" />
-                                                </MenuFlyout>
+                                            BackgroundColor="Transparent">
+                                            <syncf:SfEffectsView.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding OtherArtistsName}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="artist" />
+                                            </syncf:SfEffectsView.GestureRecognizers>
 
-                                            </FlyoutBase.ContextFlyout>
                                             <Label
                                                 Grid.Column="1"
                                                 HorizontalOptions="Start"
@@ -723,59 +686,76 @@
                                                 VerticalOptions="Center" />
                                         </syncf:SfEffectsView>
 
-                                        <syncf:SfEffectsView
-                                            x:Name="ArtistSfEffectsView"
-                                            Grid.Column="3"
-                                            TouchUp="ArtistSfEffectsView_TouchUp"
-                                            TouchUpCommandParameter="{Binding AlbumName}">
+                                        <syncf:SfEffectsView x:Name="ArtistSfEffectsView" Grid.Column="3">
 
+                                            <syncf:SfEffectsView.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding Genre.Name}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="genre" />
+                                            </syncf:SfEffectsView.GestureRecognizers>
                                             <Label
                                                 HorizontalOptions="Center"
                                                 LineBreakMode="TailTruncation"
                                                 Text="{Binding Genre.Name}"
-                                                VerticalOptions="Center">
-                                                <Label.GestureRecognizers>
-                                                    <PointerGestureRecognizer x:Name="MiddleClickGest" PointerReleased="MiddleClickGest_PointerReleased" />
-                                                </Label.GestureRecognizers>
-                                            </Label>
+                                                VerticalOptions="Center" />
                                         </syncf:SfEffectsView>
-                                        <syncf:SfEffectsView
-                                            Grid.Column="2"
-                                            IsVisible="True"
-                                            TouchUp="ArtistSfEffectsView_TouchUp"
-                                            TouchUpCommandParameter="{Binding AlbumName}">
+
+
+                                        <syncf:SfEffectsView Grid.Column="2">
+                                            <syncf:SfEffectsView.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding AlbumName}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="album" />
+                                            </syncf:SfEffectsView.GestureRecognizers>
                                             <Label
                                                 LineBreakMode="TailTruncation"
                                                 Text="{Binding AlbumName}"
                                                 ToolTipProperties.Text="{Binding AlbumName}"
-                                                VerticalOptions="Center">
-
-                                                <FlyoutBase.ContextFlyout>
-                                                    <MenuFlyout>
-                                                        <MenuFlyoutItem
-                                                            x:Name="QuickSearchAlbum"
-                                                            Clicked="QuickSearchAlbum_Clicked"
-                                                            CommandParameter="{Binding AlbumName}"
-                                                            Text="Quick Search Album" />
-                                                    </MenuFlyout>
-                                                </FlyoutBase.ContextFlyout>
-                                            </Label>
+                                                VerticalOptions="Center" />
                                         </syncf:SfEffectsView>
-                                        <Label
-                                            Grid.Column="4"
-                                            HorizontalOptions="Center"
-                                            Text="{Binding ReleaseYear}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            Grid.Column="5"
-                                            HorizontalOptions="Center"
-                                            Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            Grid.Column="6"
-                                            HorizontalOptions="Center"
-                                            Text="{Binding TrackNumber}"
-                                            VerticalOptions="Center" />
+
+                                        <syncf:SfEffectsView Grid.Column="4">
+                                            <syncf:SfEffectsView.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding Genre.Name}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="genre" />
+                                            </syncf:SfEffectsView.GestureRecognizers>
+                                            <Label
+                                                HorizontalOptions="Center"
+                                                Text="{Binding ReleaseYear}"
+                                                VerticalOptions="Center" />
+
+                                        </syncf:SfEffectsView>
+                                        <syncf:SfEffectsView Grid.Column="5">
+
+                                            <Label
+                                                HorizontalOptions="Center"
+                                                Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                                                VerticalOptions="Center" />
+                                            <syncf:SfEffectsView.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding DurationInSeconds}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="len" />
+                                            </syncf:SfEffectsView.GestureRecognizers>
+
+                                        </syncf:SfEffectsView>
+                                        <syncf:SfEffectsView Grid.Column="6">
+                                            <syncf:SfEffectsView.GestureRecognizers>
+                                                <PointerGestureRecognizer
+                                                    PointerPressedCommandParameter="{Binding TrackNumber}"
+                                                    PointerReleased="QuickFilterGest_PointerReleased"
+                                                    PointerReleasedCommandParameter="track" />
+                                            </syncf:SfEffectsView.GestureRecognizers>
+                                            <Label
+                                                Grid.Column="6"
+                                                HorizontalOptions="Center"
+                                                Text="{Binding TrackNumber}"
+                                                VerticalOptions="Center" />
+                                        </syncf:SfEffectsView>
                                     </Grid>
 
                                     <VisualStateManager.VisualStateGroups>

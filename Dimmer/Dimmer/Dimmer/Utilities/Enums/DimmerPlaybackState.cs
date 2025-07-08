@@ -23,6 +23,7 @@ public enum DimmerPlaybackState
     Buffering,
     Seeked,
     DoneScanningData,
+    PlaylistExhaused,
     PlayCompleted,
     PlayPreviousUI,
     PlayPreviousUser,

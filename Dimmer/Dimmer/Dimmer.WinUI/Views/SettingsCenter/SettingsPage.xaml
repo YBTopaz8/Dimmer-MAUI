@@ -1,55 +1,71 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="Dimmer.WinUI.Views.SettingsCenter.SettingsPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
-             
-             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-             xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-             xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" Title="Settings"
-             x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
-             >
+<ContentPage
+    x:Class="Dimmer.WinUI.Views.SettingsCenter.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    Title="Settings"
+    x:DataType="vm:BaseViewModelWin"
+    Shell.NavBarIsVisible="False">
     <Grid IsVisible="True">
         <Grid IsVisible="False">
             <Grid.Triggers>
-                <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
-                             TargetType="Grid" Value="False"
-                             >
+                <DataTrigger
+                    Binding="{Binding UserLocal.UserHasAccount}"
+                    TargetType="Grid"
+                    Value="False">
                     <Setter Property="IsVisible" Value="True" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
-                             TargetType="Grid" Value="True"
-                             >
+                <DataTrigger
+                    Binding="{Binding UserLocal.UserHasAccount}"
+                    TargetType="Grid"
+                    Value="True">
                     <Setter Property="IsVisible" Value="False" />
                 </DataTrigger>
             </Grid.Triggers>
 
-            <syncf:SfTabView x:Name="FirstTimeTabView"
-                             EnableSwiping="True" IsVisible="True"
-                             SelectionChanged="FirstTimeTabView_SelectionChanged" TabBarHeight="0"
-                             >
+            <syncf:SfTabView
+                x:Name="FirstTimeTabView"
+                EnableSwiping="True"
+                IsVisible="True"
+                SelectionChanged="FirstTimeTabView_SelectionChanged"
+                TabBarHeight="0">
 
                 <syncf:SfTabItem>
                     <syncf:SfTabItem.Content>
                         <Grid Margin="30,30" RowDefinitions="auto,auto,0.4*">
                             <VerticalStackLayout Grid.Row="0">
-                                <Label FontSize="36" HorizontalOptions="Center"
-                                       Text="Welcome To Dimmer" VerticalOptions="Start"
-                                       />
+                                <Label
+                                    FontSize="36"
+                                    HorizontalOptions="Center"
+                                    Text="Welcome To Dimmer"
+                                    VerticalOptions="Start" />
                             </VerticalStackLayout>
-                            <Grid Grid.Row="1" BackgroundColor="Transparent"
-                                  RowDefinitions="*,0.2*" VerticalOptions="Start"
-                                  >
+                            <Grid
+                                Grid.Row="1"
+                                BackgroundColor="Transparent"
+                                RowDefinitions="*,0.2*"
+                                VerticalOptions="Start">
 
-                                <CollectionView x:Name="ListOfFoldersFirstSetup"
-                                                Grid.Row="0" Header="List of Folders"
-                                                ItemsSource="{Binding FolderPaths}"
-                                                >
+                                <CollectionView
+                                    x:Name="ListOfFoldersFirstSetup"
+                                    Grid.Row="0"
+                                    Header="List of Folders"
+                                    ItemsSource="{Binding FolderPaths}">
                                     <CollectionView.EmptyView>
                                         <VerticalStackLayout>
-                                            <Label Margin="0,40,0,0" FontAttributes="Italic"
-                                                   Text="No Folders In Preferences.."
-                                                   />
+                                            <Label
+                                                Margin="0,40,0,0"
+                                                FontAttributes="Italic"
+                                                Text="No Folders In Preferences.." />
                                         </VerticalStackLayout>
                                     </CollectionView.EmptyView>
                                     <CollectionView.ItemTemplate>
@@ -59,40 +75,47 @@
                                                 <Label Grid.Column="0" Text="{Binding .}" />
 
                                                 <HorizontalStackLayout Grid.Column="1">
-                                                    <ImageButton x:Name="ChangeFolder"
-                                                                 Clicked="ChangeFolder_Clicked"
-                                                                 CommandParameter="{Binding .}"
-                                                                 Source="foldera.png"
-                                                                 />
+                                                    <ImageButton
+                                                        x:Name="ChangeFolder"
+                                                        Clicked="ChangeFolder_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Source="foldera.png" />
 
-                                                    <ImageButton x:Name="DeleteBtn"
-                                                                 Clicked="DeleteBtn_Clicked"
-                                                                 CommandParameter="{Binding .}"
-                                                                 Source="delete.png"
-                                                                 />
+                                                    <ImageButton
+                                                        x:Name="DeleteBtn"
+                                                        Clicked="DeleteBtn_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Source="delete.png" />
 
                                                 </HorizontalStackLayout>
                                             </Grid>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
-                                <Button Grid.Row="1" Margin="0,340,0,0"
-                                        Clicked="AddNewMusicFolder_Clicked" HorizontalOptions="Start"
-                                        Text="Add New Folder" VerticalOptions="End"
-                                        />
+                                <Button
+                                    Grid.Row="1"
+                                    Margin="0,340,0,0"
+                                    Clicked="AddNewMusicFolder_Clicked"
+                                    HorizontalOptions="Start"
+                                    Text="Add New Folder"
+                                    VerticalOptions="End" />
                             </Grid>
 
-                            <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center"
-                                                   Spacing="30" VerticalOptions="End"
-                                                   >
-                                <Button x:Name="PreviousBtn"
-                                        Clicked="NavBtnClicked_Clicked" CommandParameter="0"
-                                        Text="Previous"
-                                        />
-                                <Button x:Name="NextBtn"
-                                        Clicked="NavBtnClicked_Clicked" CommandParameter="1"
-                                        Text="Next"
-                                        />
+                            <HorizontalStackLayout
+                                Grid.Row="2"
+                                HorizontalOptions="Center"
+                                Spacing="30"
+                                VerticalOptions="End">
+                                <Button
+                                    x:Name="PreviousBtn"
+                                    Clicked="NavBtnClicked_Clicked"
+                                    CommandParameter="0"
+                                    Text="Previous" />
+                                <Button
+                                    x:Name="NextBtn"
+                                    Clicked="NavBtnClicked_Clicked"
+                                    CommandParameter="1"
+                                    Text="Next" />
                             </HorizontalStackLayout>
                         </Grid>
 
@@ -108,49 +131,59 @@
                                     <syncf:SfEffectsView x:Name="UpdateProfileImageBtn" TouchDownCommand="{Binding PickNewProfileImageCommand}" />
                                     <Border StrokeShape="RoundRectangle 210">
 
-                                        <Image HeightRequest="450"
-                                               Source="{Binding UserLocal.UserProfileImage}"
-                                               WidthRequest="450"
-                                               />
+                                        <Image
+                                            HeightRequest="450"
+                                            Source="{Binding UserLocal.UserProfileImage}"
+                                            WidthRequest="450" />
 
                                     </Border>
-                                    <Label FontSize="30" HorizontalOptions="Center"
-                                           Text="{Binding UserLocal.Username, StringFormat='Welcome back {0}'}"
-                                           />
+                                    <Label
+                                        FontSize="30"
+                                        HorizontalOptions="Center"
+                                        Text="{Binding UserLocal.Username, StringFormat='Welcome back {0}'}" />
 
-                                    <Button Clicked="NavBtnClicked_Clicked" CommandParameter="1"
-                                            FontSize="30" HorizontalOptions="Center"
-                                            Text="Next" WidthRequest="150"
-                                            />
+                                    <Button
+                                        Clicked="NavBtnClicked_Clicked"
+                                        CommandParameter="1"
+                                        FontSize="30"
+                                        HorizontalOptions="Center"
+                                        Text="Next"
+                                        WidthRequest="150" />
                                 </VerticalStackLayout>
                             </Border>
-                            <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 30"
-                                    VerticalOptions="Center"
-                                    >
+                            <Border
+                                HorizontalOptions="Center"
+                                StrokeShape="RoundRectangle 30"
+                                VerticalOptions="Center">
                                 <Border.Triggers>
-                                    <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
-                                                 TargetType="Border" Value="False"
-                                                 >
+                                    <DataTrigger
+                                        Binding="{Binding UserLocal.UserHasAccount}"
+                                        TargetType="Border"
+                                        Value="False">
                                         <Setter Property="IsVisible" Value="False" />
                                     </DataTrigger>
-                                    <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
-                                                 TargetType="Border" Value="True"
-                                                 >
+                                    <DataTrigger
+                                        Binding="{Binding UserLocal.UserHasAccount}"
+                                        TargetType="Border"
+                                        Value="True">
                                         <Setter Property="IsVisible" Value="True" />
                                     </DataTrigger>
                                 </Border.Triggers>
-                                <VerticalStackLayout Margin="30" HeightRequest="600"
-                                                     Spacing="15" WidthRequest="500"
-                                                     >
+                                <VerticalStackLayout
+                                    Margin="30"
+                                    HeightRequest="600"
+                                    Spacing="15"
+                                    WidthRequest="500">
 
                                     <Grid>
                                         <Image HeightRequest="100">
                                             <Image.Source>
-                                                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="user"
-                                                                 Size="190"
-                                                                 Color="{AppThemeBinding Dark=DarkSlateBlue,
-                                                                                         Light=pink}"
-                                                                 />
+                                                <FontImageSource
+                                                    FontFamily="FontAwesomeSolid"
+                                                    Glyph="user"
+                                                    Size="190"
+                                                    Color="{AppThemeBinding Dark=DarkSlateBlue,
+                                                                            Light=pink}" />
                                             </Image.Source>
                                         </Image>
 
@@ -163,18 +196,18 @@
                                                         Text="{Binding UserLocal.Password}"
                                                         />-->
 
-                                    <Button x:Name="LoginBtnFirstTime"
-                                            Command="{Binding LoginUserCommand}"
-                                            Text="{Static lang:DimmerLanguage.txt_login}"
-                                            />
-                                    <Button x:Name="SignUpUserBtnFirstTime"
-                                            Command="{Binding SignUpUserCommand}"
-                                            Text="{Static lang:DimmerLanguage.txt_signup}"
-                                            />
-                                    <Button x:Name="ForgottenPassFirstTime"
-                                            Command="{Binding ForgottenPasswordCommand}"
-                                            Text="{Static lang:DimmerLanguage.txt_forgottenpass}"
-                                            />
+                                    <Button
+                                        x:Name="LoginBtnFirstTime"
+                                        Command="{Binding LoginUserCommand}"
+                                        Text="{Static lang:DimmerLanguage.txt_login}" />
+                                    <Button
+                                        x:Name="SignUpUserBtnFirstTime"
+                                        Command="{Binding SignUpUserCommand}"
+                                        Text="{Static lang:DimmerLanguage.txt_signup}" />
+                                    <Button
+                                        x:Name="ForgottenPassFirstTime"
+                                        Command="{Binding ForgottenPasswordCommand}"
+                                        Text="{Static lang:DimmerLanguage.txt_forgottenpass}" />
                                 </VerticalStackLayout>
                             </Border>
                         </Grid>
@@ -184,9 +217,10 @@
                 <syncf:SfTabItem>
                     <syncf:SfTabItem.Content>
                         <VerticalStackLayout Margin="20,20">
-                            <Label FontSize="36" HorizontalOptions="Center"
-                                   Text="Dimmer Preferences"
-                                   />
+                            <Label
+                                FontSize="36"
+                                HorizontalOptions="Center"
+                                Text="Dimmer Preferences" />
                             <!--<material:CheckBox x:Name="ShowConfiChkBx"
                                                CheckChangedCommand="{Binding ToggleShowCloseConfPopUpCommand}"
                                                CommandParameter="{Binding IsChecked, Source={x:Reference ShowConfiChkBx}}"
@@ -202,26 +236,31 @@
 
         <Grid ColumnDefinitions="0.45*,*" IsVisible="False">
             <Grid.Triggers>
-                <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
-                             TargetType="Grid" Value="False"
-                             >
+                <DataTrigger
+                    Binding="{Binding UserLocal.UserHasAccount}"
+                    TargetType="Grid"
+                    Value="False">
                     <Setter Property="IsVisible" Value="False" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding UserLocal.UserHasAccount}"
-                             TargetType="Grid" Value="True"
-                             >
+                <DataTrigger
+                    Binding="{Binding UserLocal.UserHasAccount}"
+                    TargetType="Grid"
+                    Value="True">
                     <Setter Property="IsVisible" Value="True" />
                 </DataTrigger>
             </Grid.Triggers>
 
             <Grid Grid.Column="0" Margin="10">
                 <Grid RowDefinitions="*,0.6*">
-                    <syncf:SfChipGroup x:Name="SettingsNavChips"
-                                       Grid.Row="0" ChipClicked="SettingsNavChips_ChipClicked"
-                                       ChipTextColor="White" ChipType="Choice"
-                                       SelectedItem="" SelectionChanged="SettingsNavChips_SelectionChanged"
-                                       VerticalOptions="Start"
-                                       >
+                    <syncf:SfChipGroup
+                        x:Name="SettingsNavChips"
+                        Grid.Row="0"
+                        ChipClicked="SettingsNavChips_ChipClicked"
+                        ChipTextColor="White"
+                        ChipType="Choice"
+                        SelectedItem=""
+                        SelectionChanged="SettingsNavChips_SelectionChanged"
+                        VerticalOptions="Start">
                         <syncf:SfChipGroup.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="syncf:SfChip">
@@ -232,21 +271,26 @@
                         <syncf:SfChipGroup.ChipLayout>
                             <VerticalStackLayout Spacing="10" VerticalOptions="Center" />
                         </syncf:SfChipGroup.ChipLayout>
-                        <syncf:SfChip FontSize="20" ShowIcon="True"
-                                      Text="Back"
-                                      />
-                        <syncf:SfChip CommandParameter="3" FontSize="20"
-                                      Text="Online"
-                                      />
-                        <syncf:SfChip CommandParameter="0" FontSize="20"
-                                      Text="About Dimmer"
-                                      />
-                        <syncf:SfChip CommandParameter="1" FontSize="20"
-                                      Text="Music Library"
-                                      />
-                        <syncf:SfChip CommandParameter="2" FontSize="18"
-                                      Text="App Preferences"
-                                      />
+                        <syncf:SfChip
+                            FontSize="20"
+                            ShowIcon="True"
+                            Text="Back" />
+                        <syncf:SfChip
+                            CommandParameter="3"
+                            FontSize="20"
+                            Text="Online" />
+                        <syncf:SfChip
+                            CommandParameter="0"
+                            FontSize="20"
+                            Text="About Dimmer" />
+                        <syncf:SfChip
+                            CommandParameter="1"
+                            FontSize="20"
+                            Text="Music Library" />
+                        <syncf:SfChip
+                            CommandParameter="2"
+                            FontSize="18"
+                            Text="App Preferences" />
                     </syncf:SfChipGroup>
 
                     <Grid Grid.Row="1">
@@ -258,30 +302,35 @@
                     </Grid>
                 </Grid>
             </Grid>
-            <syncf:SfTabView x:Name="GettingStartedTabView"
-                             Grid.Column="1" EnableSwiping="False"
-                             SelectedIndex="{Binding SettingsPageIndex}"
-                             TabBarHeight="0"
-                             >
+            <syncf:SfTabView
+                x:Name="GettingStartedTabView"
+                Grid.Column="1"
+                EnableSwiping="True"
+                SelectedIndex="{Binding SettingsPageIndex}"
+                TabBarHeight="0">
 
                 <syncf:SfTabItem Header="{Static lang:DimmerLanguage.txt_folder}">
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="Auto,*">
-                            <Label Grid.Row="0" FontAttributes="Bold"
-                                   FontSize="34" Text="Music Folders"
-                                   />
-                            <Grid Grid.Row="1" RowDefinitions="*,0.4*">
+                            <Label
+                                Grid.Row="0"
+                                FontAttributes="Bold"
+                                FontSize="34"
+                                Text="Music Folders" />
+                            <Grid Grid.Row="1" RowDefinitions="*,*,0.4*">
 
-                                <CollectionView x:Name="ListOfFolders"
-                                                Grid.Row="0" Header="List of Folders"
-                                                ItemsSource="{Binding FolderPaths}"
-                                                MaximumWidthRequest="250"
-                                                >
+                                <CollectionView
+                                    x:Name="ListOfFolders"
+                                    Grid.Row="0"
+                                    Header="List of Folders"
+                                    ItemsSource="{Binding FolderPaths}"
+                                    MaximumWidthRequest="250">
                                     <CollectionView.EmptyView>
                                         <VerticalStackLayout>
-                                            <Label Margin="0,40,0,0" FontAttributes="Italic"
-                                                   Text="No Folders In Preferences.."
-                                                   />
+                                            <Label
+                                                Margin="0,40,0,0"
+                                                FontAttributes="Italic"
+                                                Text="No Folders In Preferences.." />
                                         </VerticalStackLayout>
                                     </CollectionView.EmptyView>
                                     <CollectionView.ItemTemplate>
@@ -291,35 +340,61 @@
                                                 <Label Grid.Column="0" Text="{Binding .}" />
 
                                                 <HorizontalStackLayout Grid.Column="1" Spacing="25">
-                                                    <ImageButton x:Name="ChangeFolder"
-                                                                 Clicked="ChangeFolder_Clicked"
-                                                                 CommandParameter="{Binding .}"
-                                                                 Source="foldera.png"
-                                                                 />
+                                                    <ImageButton
+                                                        x:Name="ChangeFolder"
+                                                        Clicked="ChangeFolder_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Source="foldera.png" />
 
-                                                    <ImageButton x:Name="DeleteBtn"
-                                                                 Clicked="DeleteBtn_Clicked"
-                                                                 CommandParameter="{Binding .}"
-                                                                 Source="delete.png"
-                                                                 />
+                                                    <ImageButton
+                                                        x:Name="DeleteBtn"
+                                                        Clicked="DeleteBtn_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Source="delete.png" />
 
                                                 </HorizontalStackLayout>
                                             </Grid>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
-                                <VerticalStackLayout Grid.Row="1" BackgroundColor="Transparent"
-                                                     Spacing="10"
-                                                     >
 
-                                    <Button Clicked="AddNewMusicFolder_Clicked" HorizontalOptions="Start"
-                                            Text="Add New Folder"
-                                            />
-                                    <Button x:Name="ReScanAllBtn"
-                                            BorderColor="DarkSlateBlue"
-                                            Command="{Binding RescanSongsCommand}"
-                                            Text="Rescan folders"
-                                            />
+                                <Border Grid.Row="1">
+                                    <VerticalStackLayout>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <Label Grid.Column="0" Text="Resync Lyrics" />
+
+                                            <VerticalStackLayout Grid.Column="1">
+                                                <ProgressBar
+                                                    x:Name="MyProgressBar"
+                                                    Progress="2"
+                                                    ProgressColor="Red" />
+                                                <Label
+                                                    x:Name="MyProgressLabel"
+                                                    Text="2"
+                                                    TextColor="{AppThemeBinding Dark=white,
+                                                                                Light=black}" />
+                                                <Button
+                                                    x:Name="RefreshLyrics"
+                                                    Clicked="RefreshLyrics_Clicked"
+                                                    Text="Resync" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <VerticalStackLayout
+                                    Grid.Row="2"
+                                    BackgroundColor="Transparent"
+                                    Spacing="10">
+
+                                    <Button
+                                        Clicked="AddNewMusicFolder_Clicked"
+                                        HorizontalOptions="Start"
+                                        Text="Add New Folder" />
+                                    <Button
+                                        x:Name="ReScanAllBtn"
+                                        BorderColor="DarkSlateBlue"
+                                        Command="{Binding RescanSongsCommand}"
+                                        Text="Rescan folders" />
 
                                 </VerticalStackLayout>
                             </Grid>
