@@ -31,7 +31,7 @@ public partial class ArtistsPage : ContentPage
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.BaseVM.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.BaseVM.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
@@ -39,7 +39,7 @@ public partial class ArtistsPage : ContentPage
     }
     private async void PlayAll_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.BaseVM.PlaySongFromListAsync(MyViewModel.BaseVM.SelectedArtistSongs.FirstOrDefault(), MyViewModel.BaseVM.SelectedArtistSongs);
+        MyViewModel.BaseVM.PlaySongFromList(MyViewModel.BaseVM.SearchResults.FirstOrDefault(), MyViewModel.BaseVM.SearchResults);
     }
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
@@ -47,7 +47,7 @@ public partial class ArtistsPage : ContentPage
         var song = send.BindingContext as SongModelView;
         var ee = SongsColView.ItemsSource as IEnumerable<SongModelView>;
         songsToDisplay =ee.ToObservableCollection();
-        await MyViewModel.BaseVM.PlaySongFromList(song, ee);
+        MyViewModel.BaseVM.PlaySongFromList(song, ee);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -107,56 +107,7 @@ public partial class ArtistsPage : ContentPage
     ObservableCollection<SongModelView> songsToDisplay = new();
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
-        var songs = SongsColView.ItemsSource as IEnumerable<SongModelView>;
 
-        Debug.WriteLine(songs is null);
-        if (songs is null)
-        {
-            return;
-        }
-        songsToDisplay ??= songs.ToObservableCollection();
-        if ((songsToDisplay is null || songsToDisplay.Count < 1))
-        {
-            return;
-        }
-
-        if (string.IsNullOrEmpty(searchText))
-        {
-
-            songsToDisplay = [.. MyViewModel.BaseVM.SelectedArtistSongs];
-        }
-        else
-        {
-
-            songsToDisplay= await Task.Run(() =>
-            {
-                token.ThrowIfCancellationRequested();
-
-
-                var e = MyViewModel.BaseVM.SelectedArtistSongs!.
-                            Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                  (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                  (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
-                   .ToObservableCollection();
-
-                return e;
-            }, token);
-
-
-        }
-
-
-        Dispatcher.Dispatch(() =>
-        {
-            if (token.IsCancellationRequested)
-                return;
-
-            MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
-            SongsColView.ItemsSource = songsToDisplay;
-
-
-
-        });
     }
     SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()

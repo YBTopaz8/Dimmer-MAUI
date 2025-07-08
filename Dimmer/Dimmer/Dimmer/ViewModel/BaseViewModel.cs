@@ -910,19 +910,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     );
         _subsManager.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.MediaKeyNextPressed += h, h => audioService.MediaKeyNextPressed -= h)
-                .Subscribe(async evt =>
+                .Subscribe(evt =>
                 {
 
-                    await NextTrack(evt.EventArgs.IsUseMyPlaylist);
+                    NextTrack(evt.EventArgs.IsUseMyPlaylist);
                     _logger.LogInformation($"Next song is {evt.EventArgs.MediaSong}");
                 },
                            ex => _logger.LogError(ex, "Error in play next subscription."))
         );
         _subsManager.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.MediaKeyPreviousPressed += h, h => audioService.MediaKeyPreviousPressed -= h)
-                .Subscribe(async evt =>
+                .Subscribe(evt =>
                 {
-                    await PreviousTrack(evt.EventArgs.IsUseMyPlaylist);
+                    PreviousTrack(evt.EventArgs.IsUseMyPlaylist);
                     _logger.LogInformation($"Previous song is {evt.EventArgs.MediaSong}");
                 },
                            ex => _logger.LogError(ex, "Error in play next subscription."))
@@ -1364,7 +1364,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public async Task NextTrack(bool IsUseMyPlaylist)
+    public void NextTrack(bool IsUseMyPlaylist)
     {
         if (_songSource is null ||  _songSource?.Count <1)
         {
@@ -1413,7 +1413,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public async Task PreviousTrack(bool IsUseMyPlaylist)
+    public void PreviousTrack(bool IsUseMyPlaylist)
     {
 
         if (_songSource is null ||  _songSource?.Count <1)
