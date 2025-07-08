@@ -160,7 +160,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
     }
 
     // --- Handlers for MultiPlaylistPlayer Events ---
-    private void OnPlayerItemSelected(int playlistIndex, SongModel song, int batchId)
+    private void OnPlayerItemSelected(int playlistIndex, SongModel song, int batchId, bool isPrevOrNext)
     {
         var _baseAppFlow = IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
 
@@ -330,7 +330,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
         if (newQueue.Current != null)
         {
             // This will trigger OnPlayerItemSelected, which updates global state
-            OnPlayerItemSelected(0, newQueue.Current, newQueue.CurrentBatchId); // Manually invoke for the first item
+            OnPlayerItemSelected(0, newQueue.Current, newQueue.CurrentBatchId, false); // Manually invoke for the first item
         }
         else if (songList.Count!=0) // Should not happen if Initialize works
         {
@@ -373,12 +373,12 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
 
         if (startPlayingFromIt && newQueue.Current != null)
         {
-            OnPlayerItemSelected(newPlaylistIndex, newQueue.Current, newQueue.CurrentBatchId);
+            OnPlayerItemSelected(newPlaylistIndex, newQueue.Current, newQueue.CurrentBatchId, false);
         }
         // If this is the very first queue added to an empty player, start playing from it.
         else if (_multiPlayer.Playlists.Count == 1 && _multiPlayer.TotalCount > 0 && _currentTrackFromPlayer == null && newQueue.Current != null)
         {
-            OnPlayerItemSelected(newPlaylistIndex, newQueue.Current, newQueue.CurrentBatchId);
+            OnPlayerItemSelected(newPlaylistIndex, newQueue.Current, newQueue.CurrentBatchId, false);
         }
     }
 
@@ -411,7 +411,7 @@ public class PlayListMgtFlow : IDisposable  // BaseAppFlow provides CurrentlyPla
                     _multiPlayer.Playlists[_lastActivePlaylistIndexInPlayer].Current != null)
                 {
                     var qm = _multiPlayer.Playlists[_lastActivePlaylistIndexInPlayer];
-                    OnPlayerItemSelected(_lastActivePlaylistIndexInPlayer, qm.Current!, qm.CurrentBatchId);
+                    OnPlayerItemSelected(_lastActivePlaylistIndexInPlayer, qm.Current!, qm.CurrentBatchId, false);
                 }
                 else
                 {
