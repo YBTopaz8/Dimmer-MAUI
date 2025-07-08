@@ -4,6 +4,10 @@ public partial class DimmerStats : ObservableObject
     [ObservableProperty]
     public partial SongModelView Song { get; set; }
     [ObservableProperty]
+    public partial ArtistModelView? SongArtist { get; set; }
+    [ObservableProperty]
+    public partial AlbumModelView? SongAlbum { get; set; }
+    [ObservableProperty]
     public partial int? Count { get; set; }
     [ObservableProperty]
     public partial int NumberOfTracks { get; set; }

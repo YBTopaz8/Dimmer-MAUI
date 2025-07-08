@@ -20,7 +20,7 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty] public partial byte[]? ImageBytes { get; set; }
 
     [Backlink(nameof(SongModel.Album))]
-    public IQueryable<SongModel> Songs { get; }
+    public IQueryable<SongModel> Songs { get; } = null!;
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }
     public string? DeviceFormFactor { get; set; }

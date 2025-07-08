@@ -4,12 +4,12 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
     [ObservableProperty]
-    public partial string? Title { get; set; }
+    public partial string Title { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string? ArtistName { get; set; }
+    public partial string ArtistName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string? AlbumName { get; set; }
+    public partial string AlbumName { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
@@ -18,7 +18,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial GenreModelView? Genre { get; set; }
     [ObservableProperty]
-    public partial string? GenreName { get; set; }
+    public partial string GenreName { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string FilePath { get; set; } = string.Empty;
     [ObservableProperty]
@@ -180,6 +180,10 @@ public class SyncLyricsView
     {
         TimestampMs = timestampMs;
         Text = text;
+    }
+    public SyncLyricsView()
+    {
+
     }
     public SyncLyricsView(SyncLyrics syncLyricsDB)
     {
