@@ -10,7 +10,7 @@ public class MultiPlaylistPlayer<T> : IDisposable
     private int _lastSuccessfullyPlayedPlaylistGlobalIndex = -1; // Index of the above
 
     // Event for when a new item is selected for playback
-    public event Action<int, T, int>? ItemSelectedForPlayback; // playlistIndex, item, batchId (from QM)
+    public event Action<int, T, int, bool>? ItemSelectedForPlayback; // playlistIndex, item, batchId (from QM)
 
     // Event for when a batch is enqueued by an individual QueueManager
     public event Action<int, int, IReadOnlyList<T>>? BatchEnqueuedByQueueManager; // playlistIndex, batchId, batch
@@ -114,7 +114,7 @@ public class MultiPlaylistPlayer<T> : IDisposable
         {
             _lastSuccessfullyPlayedPlaylist = selectedPlaylist;
             _lastSuccessfullyPlayedPlaylistGlobalIndex = selectedPlaylistGlobalIndex;
-            ItemSelectedForPlayback?.Invoke(selectedPlaylistGlobalIndex, item, selectedPlaylist.CurrentBatchId);
+            ItemSelectedForPlayback?.Invoke(selectedPlaylistGlobalIndex, item, selectedPlaylist.CurrentBatchId, true);
         }
         else if (!activePlaylists.Any(p => p.Count > 0)) // Check if ALL are now empty
         {
@@ -145,12 +145,22 @@ public class MultiPlaylistPlayer<T> : IDisposable
             T? item = _lastSuccessfullyPlayedPlaylist.Previous();
             if (item != null)
             {
-                ItemSelectedForPlayback?.Invoke(playlistIndexOfLastPlayed, item, _lastSuccessfullyPlayedPlaylist.CurrentBatchId);
+                ItemSelectedForPlayback?.Invoke(playlistIndexOfLastPlayed, item, _lastSuccessfullyPlayedPlaylist.CurrentBatchId, true);
                 return item;
             }
         }
         // Fallback: if no last played, or its Previous() was null, try Next.
         return Next(randomizeSourcePlaylist);
+    }
+
+    public T? PeekPrevious(bool randomizeSourcePlaylist = false)
+    {
+        return _lastSuccessfullyPlayedPlaylist.PeekPrevious();
+    }
+
+    public T? PeekNext(bool randomizeSourcePlaylist = false)
+    {
+        return _lastSuccessfullyPlayedPlaylist.PeekNext();
     }
     public void RemovePlaylistAt(int index)
     {

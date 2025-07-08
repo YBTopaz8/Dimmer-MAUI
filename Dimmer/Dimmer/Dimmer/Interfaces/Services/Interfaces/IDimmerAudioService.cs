@@ -16,46 +16,14 @@ public interface IDimmerAudioService
 
 
 
-    void InitializePlaylist(IEnumerable<SongModelView> songModels);
-
-
-
-
-
+    void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels);
 
 
     bool IsPlaying { get; }
 
-
-
-
-
-
-
-
-
-
     double CurrentPosition { get; }
 
-
-
-
-
-
-
-
-
-
     double Duration { get; }
-
-
-
-
-
-
-
-
-
 
     double Volume { get; set; }
     SongModelView? CurrentTrackMetadata { get; }

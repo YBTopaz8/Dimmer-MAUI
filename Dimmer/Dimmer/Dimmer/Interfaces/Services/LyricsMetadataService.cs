@@ -9,18 +9,15 @@ namespace Dimmer.Interfaces.Services;
 public class LyricsMetadataService : ILyricsMetadataService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IRepository<SongModel> _songRepo;
     private readonly IMapper _mapper; // To map between SongModel and SongModelView
     private readonly ILogger<LyricsMetadataService> _logger;
 
     public LyricsMetadataService(
         IHttpClientFactory httpClientFactory,
-        IRepository<SongModel> songRepo,
         IMapper mapper,
         ILogger<LyricsMetadataService> logger)
     {
         _httpClientFactory = httpClientFactory;
-        _songRepo = songRepo;
         _mapper = mapper;
         _logger = logger;
     }
@@ -111,6 +108,16 @@ public class LyricsMetadataService : ILyricsMetadataService
 
         try
         {
+            var ress = await client.GetAsync(requestUri);
+            if (!ress.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("LrcLib search request failed with status code {StatusCode} for {TrackName}", ress.StatusCode, trackName);
+                return Enumerable.Empty<LrcLibSearchResult>();
+            }
+            // Deserialize the response into an array of LrcLibSearchResult
+            var con = await ress.Content.ReadAsStringAsync();
+
+            Debug.WriteLine(con);
             var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
             return results ?? Enumerable.Empty<LrcLibSearchResult>();
         }
@@ -156,28 +163,28 @@ public class LyricsMetadataService : ILyricsMetadataService
                 if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
                 {
 
-                songModel.SyncLyrics = lrcContent;
-                songModel.HasSyncedLyrics = true; // Update flags
-                songModel.HasLyrics = true;
-                songModel.EmbeddedSync.Clear();
-                foreach (var lyr in lyrics.SynchronizedLyrics)
-                {
-                    var syncLyrics = new SyncLyrics
+                    songModel.SyncLyrics = lrcContent;
+                    songModel.HasSyncedLyrics = true; // Update flags
+                    songModel.HasLyrics = true;
+                    songModel.EmbeddedSync.Clear();
+                    foreach (var lyr in lyrics.SynchronizedLyrics)
                     {
-                        TimestampMs = lyr.TimestampMs,
-                        Text = lyr.Text
-                    };
-                    songModel.EmbeddedSync.Add(syncLyrics);
-                }
-                realm.Add(songModel, true);
+                        var syncLyrics = new SyncLyrics
+                        {
+                            TimestampMs = lyr.TimestampMs,
+                            Text = lyr.Text
+                        };
+                        songModel.EmbeddedSync.Add(syncLyrics);
+                    }
+                    realm.Add(songModel, true);
 
-                songModel.LastDateUpdated = DateTimeOffset.UtcNow;
+                    songModel.LastDateUpdated = DateTimeOffset.UtcNow;
 
                 }
             });
             // Important: Update the view model that was passed in so the UI has the latest data
             _mapper.Map(songModel, song);
-            
+
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
         }
         catch (Exception ex)
