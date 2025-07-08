@@ -77,7 +77,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
 
         List<string> rawArtistNames = AudioFileUtils.ExtractArtistNames(track.Artist, track.AlbumArtist);
-        List<ArtistModel> artists = new();
+        List<ArtistModelView> artists = new();
         foreach (var item in rawArtistNames)
         {
             var art = _metadataService.GetOrCreateArtist(track, item);
@@ -101,7 +101,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         var genre = _metadataService.GetOrCreateGenre(track, genreName);
 
         // --- Song Model Creation ---
-        var song = new SongModel
+        var song = new SongModelView
         {
             FilePath = filePath,
             Title = title,
@@ -125,7 +125,6 @@ public class AudioFileProcessor : IAudioFileProcessor
             UnSyncLyrics = track.Lyrics?.UnsynchronizedLyrics,
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
-            IsNew=true,
             Id= ObjectId.GenerateNewId()
             ,
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting
@@ -141,7 +140,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             // Basic to string, real app might parse into a structured format or just store raw
             foreach (var item in track.Lyrics.SynchronizedLyrics)
             {
-                song.EmbeddedSync.Add(new SyncLyrics(item.TimestampMs, item.Text));
+                song.EmbeddedSync.Add(new SyncLyricsView(item.TimestampMs, item.Text));
             }
 
         }
@@ -149,7 +148,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         ILyricsMetadataService lyricsService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
         IMapper _mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
 
-        var onlineResults = await lyricsService.SearchOnlineAsync(song.ToModelView(_mapper));
+        var onlineResults = await lyricsService.SearchOnlineAsync(song);
         var fetchedLrcData = onlineResults?.FirstOrDefault()?.SyncedLyrics;
 
 
@@ -168,7 +167,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             song.EmbeddedSync.Clear();
             foreach (var lyr in newLyricsInfo.SynchronizedLyrics)
             {
-                var syncLyrics = new SyncLyrics
+                var syncLyrics = new SyncLyricsView
                 {
                     TimestampMs = lyr.TimestampMs,
                     Text = lyr.Text
@@ -180,10 +179,10 @@ public class AudioFileProcessor : IAudioFileProcessor
 
 
 
-            _metadataService.AddSong(song);
-            result.ProcessedSong = song;
-            Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
-            return result;
-       
+        _metadataService.AddSong(song);
+        result.ProcessedSong = song;
+        Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
+        return result;
+
     }
 }
