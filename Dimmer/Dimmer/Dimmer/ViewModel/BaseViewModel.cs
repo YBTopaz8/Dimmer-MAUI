@@ -469,7 +469,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
-    private BaseAppFlow? _baseAppFlow;
+    private readonly BaseAppFlow _baseAppFlow;
     public const string CurrentAppVersion = "Dimmer v1.9";
 
 
@@ -536,7 +536,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
-
+        _baseAppFlow= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>() ?? throw new ArgumentNullException(nameof(BaseAppFlow));
         _albumsMgtFlow = albumsMgtFlow;
         _playlistsMgtFlow = playlistsMgtFlow;
         _songsMgtFlow = songsMgtFlow;
@@ -935,7 +935,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 .Subscribe(evt =>
                 {
 
-                    _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
                     _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), evt.EventArgs);
                     _logger.LogInformation($"Seeked to ");
                 },
@@ -1007,65 +1006,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         AudioDevices = audioService.GetAllAudioDevices()?.ToObservableCollection();
                         var ll = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems.Take(50);
                         QueueOfSongsLive?.Clear();
-
                         QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
-
-                        var realm = realmFactory.GetRealmInstance();
-
-                        int plays = SongStatisticsService.GetPlayCount(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-                        int skips = SongStatisticsService.GetSkipCount(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-                        double completionRate = SongStatisticsService.GetCompletionRate(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-                        Console.WriteLine($"Song has been played {plays} times and skipped {skips} times.");
-                        Console.WriteLine($"Completion Rate: {completionRate:F2}%");
-
-
-                        List<DataPoint<DateTime, int>> dailyPlays = SongStatisticsService.GetPlaysOverTimeHistogram(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-
-
-
-                        List<SongAggregate> top5Songs = SongStatisticsService.GetTopNMostPlayedSongs(realm, 5);
-                        Console.WriteLine("\nTop 5 Most Played Songs:");
-                        foreach (var item in top5Songs)
-                        {
-                            Console.WriteLine($"- {item.Song.Title} by {item.Song.ArtistName} ({item.Count} plays)");
-                        }
-
-
-                        List<DataPoint<int, int>> hourlyPlays = SongStatisticsService.GetPlayCountsByHourOfDay(realmFactory.GetRealmInstance());
-
-
-
-                        double popScore = SongStatisticsService.GetPopularityScore(realm, CurrentPlayingSongView.Id);
-                        Console.WriteLine($"Song popularity score: {popScore:F2}");
-
-
-                        var divisiveSongs = SongStatisticsService.GetMostDivisiveSongs(realm, 5);
-                        Console.WriteLine("\nMost Divisive Songs:");
-                        foreach (var item in divisiveSongs)
-                        {
-                            Console.WriteLine($"- {item.X.Title}: {item.Y.Plays} plays, {item.Y.Skips} skips");
-                        }
-
-
-                        var heatmapData = SongStatisticsService.GetListeningActivityHeatmap(realm);
-
-                        Console.WriteLine($"\nFound {heatmapData.Count} heatmap points.");
-
-
-                        var genreRates = SongStatisticsService.GetGenreSkipRates(realm);
-                        Console.WriteLine("\nGenre Skip Rates:");
-                        foreach (var item in genreRates)
-                        {
-                            Console.WriteLine($"- {item.X}: {item.Y:F2}% skip rate");
-                        }
-
-
-
-
-
-
-
-
 
                     }
                     else
@@ -1218,27 +1159,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         audioService.SetPreferredOutputDevice(dev);
     }
-    public void RequestPlayGenericList(IEnumerable<SongModelView> songs, SongModelView? startWithSong, string listName = "Custom List")
-    {
-        if (songs == null || !songs.Any())
-        {
-            _logger.LogWarning("RequestPlayGenericList: Provided song list is empty.");
-            return;
-        }
-        var songModels = songs.Select(svm => svm.ToModel(_mapper)).Where(sm => sm != null).ToList()!;
-        int startIndex = 0;
-        if (startWithSong != null)
-        {
-            var startWithModel = startWithSong.ToModel(_mapper);
-            if (startWithModel != null)
-            {
-                startIndex = songModels.FindIndex(s => s.Id == startWithModel.Id);
-                if (startIndex < 0)
-                    startIndex = 0;
-            }
-        }
-        _playlistsMgtFlow.PlayGenericSongList(songModels, startIndex, listName);
-    }
 
     public async Task PlaySongFromListAsync(SongModelView? songToPlay, IEnumerable<SongModelView> songs)
     {
@@ -1248,7 +1168,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
 
 
         _logger.LogInformation("PlaySongFromList: Requesting to play '{SongTitle}'.", songToPlay.Title);
@@ -1304,7 +1224,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
-        await audioService.InitializeAsync(songToPlay);
+
+        var rr = _mapper.Map<IEnumerable<SongModelView>>(_playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems);
+        audioService.InitializePlaylist(songToPlay!, rr);
         audioService.Play();
         _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
 
@@ -1313,7 +1235,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task PlayPauseToggleAsync()
     {
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
 
         _logger.LogDebug("PlayPauseToggleAsync called. Current IsPlaying state: {IsPlayingState}", IsPlaying);
         SongModelView? currentSongVm = CurrentPlayingSongView;
@@ -1340,6 +1262,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 await audioService.InitializeAsync(CurrentPlayingSongView);
             }
+
             audioService.Play();
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
         }
@@ -1399,7 +1322,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
 
         }
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
 
 
         if (audioService.IsPlaying)
@@ -1413,7 +1336,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (nextSong is not null)
         {
 
-            await audioService.InitializeAsync(nextSong.ToModelView(_mapper)!, nextSong.CoverImageBytes);
+            var rr = _mapper.Map<IEnumerable<SongModelView>>(_playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems);
+            audioService.InitializePlaylist(nextSong.ToModelView(_mapper)!, rr);
             audioService.Play();
         }
         else
@@ -1445,7 +1369,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             return;
         }
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
 
 
         if (IsPlaying)
@@ -1460,7 +1384,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (previousSong is not null)
         {
-            await audioService.InitializeAsync(previousSong.ToModelView(_mapper)!, previousSong.CoverImageBytes);
+            var rr = _mapper.Map<IEnumerable<SongModelView>>(_playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems);
+            audioService.InitializePlaylist(previousSong.ToModelView(_mapper)!, rr);
             audioService.Play();
         }
         else
