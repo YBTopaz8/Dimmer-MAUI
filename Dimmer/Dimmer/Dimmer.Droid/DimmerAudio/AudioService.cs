@@ -1,10 +1,10 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-using AndroidX.Media3.Common;
+﻿using AndroidX.Media3.Common;
 
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.StatsUtils;
+
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Dimmer.DimmerAudio;
 
@@ -91,8 +91,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // --- Methods mapping to Service Commands/Player Actions ---
 
-    public void InitializePlaylist(IEnumerable<SongModelView> songModel)
+    public void InitializePlaylist(SongModelView song, IEnumerable<SongModelView> songModels)
     {
+        _currentSongModel = song;
+
+        Service?.PreparePlaylist(song, songModels);
 
     }
 
@@ -117,6 +120,19 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // This method might just store context.
         // Alternatively, it could prepare the command bundle here.
         Console.WriteLine($"[AudioService] InitializeAsync called for: {songModel?.Title}. Ready for PREPARE_PLAY command.");
+        return Task.CompletedTask;
+    }
+    public Task InitializeAsync(SongModelView song, IEnumerable<SongModelView> songsToPlay)
+    {
+        _currentSongModel = song;
+
+        Service?.PreparePlaylist(song, songsToPlay);
+
+        // The actual preparation and playback is triggered by sending a command
+        // to the ExoPlayerService, usually from the UI layer after connecting.
+        // This method might just store context.
+        // Alternatively, it could prepare the command bundle here.
+        Console.WriteLine($"[AudioService] InitializeAsync called for: {song?.Title}. Ready for PREPARE_PLAY command.");
         return Task.CompletedTask;
     }
 

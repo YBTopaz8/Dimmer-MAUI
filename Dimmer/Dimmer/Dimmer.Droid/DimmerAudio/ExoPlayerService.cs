@@ -43,6 +43,11 @@ using Dimmer.Utilities.Events;
 using Dimmer.ViewModel;
 using Dimmer.Orchestration;
 
+using static Android.Icu.Text.CaseMap;
+using static Android.Provider.MediaStore.Audio;
+
+using Java.Net;
+
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
@@ -53,7 +58,7 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
 public class ExoPlayerService : MediaSessionService
 {
-    
+
     // --- Components ---
     private MediaSession? mediaSession;
     private IExoPlayer? player;
@@ -264,7 +269,7 @@ public class ExoPlayerService : MediaSessionService
     public async override void OnCreate()
     {
         base.OnCreate();
-        
+
         //Console.WriteLine("[ExoPlayerService] OnCreate");
         var audioAttributes = new AudioAttributes.Builder()!
     .SetUsage(C.UsageMedia)! // Specify this is media playback
@@ -280,7 +285,7 @@ public class ExoPlayerService : MediaSessionService
                 //.SetSeekParameters(new SeekParameters(10,10))
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
-                
+
                 .Build();
 
             player?.AddListener(new PlayerEventListener(this));
@@ -497,7 +502,7 @@ public class ExoPlayerService : MediaSessionService
 
         var _playlistsMgtFlow = IPlatformApplication.Current.Services.GetService<PlayListMgtFlow>();
 
-    
+
         MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)
             .SetArtist(artist)
@@ -518,17 +523,6 @@ public class ExoPlayerService : MediaSessionService
                 Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
-    
-
-        //MediaMetadata.Builder metadataBuilder2 = new MediaMetadata.Builder()!
-        //    .SetTitle(nextSong.Title)
-        //    .SetArtist(nextSong.OtherArtistsName)
-        //    .SetAlbumTitle(nextSong.AlbumName)
-        //    .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
-        //    .SetGenre(nextSong.Genre.Name)
-
-        //    .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
-
         if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
         {
             try
@@ -549,26 +543,11 @@ public class ExoPlayerService : MediaSessionService
                .SetUri(Uri.Parse(url))!
                .SetMediaMetadata(metadataBuilder!.Build())!
                .Build();
-            
-            //var NextMediaItem = new MediaItem.Builder()!
-            //   .SetMediaId(nextSong.FilePath)! // Use URL as Media ID for simplicity
-            //   .SetUri(Uri.Parse(nextSong.FilePath))!
-            //   .SetMediaMetadata(metadataBuilder2!.Build())!
-            //   .Build();
-
-            //IReadOnlyList<Data.Models.SongModel>? itemms = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems;
 
 
-            //player.SetMediaItems(new List<MediaItem> { currentMediaItem, NextMediaItem }, 0, startPositionMs);
-            //Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={0}");
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
             player.AddMediaItem(currentMediaItem);
-            //player.AddMediaItem(NextMediaItem);
             player.Prepare();
-
-            //player.Play(); // Start playback immediately
-
-            //Console.WriteLine("[ExoPlayerService] Player Prepare() called.");
 
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
@@ -576,6 +555,89 @@ public class ExoPlayerService : MediaSessionService
 
         return Task.CompletedTask;
     }
+    public void PreparePlaylist(
+        SongModelView songToPlay,
+        IEnumerable<SongModelView> songs,
+        string? imagePath = null)
+    {
+        if (player is null)
+        {
+
+            throw new ArgumentException("Player not initialized.");
+
+        }
+        player.Stop();
+        player.ClearMediaItems();
+
+        var _playlistsMgtFlow = IPlatformApplication.Current.Services.GetService<PlayListMgtFlow>();
+        try
+        {
+            foreach (var item in songs)
+            {
+
+
+                MediaMetadata.Builder? metadataBuilder = new MediaMetadata.Builder()
+                    .SetTitle(item.Title)
+                    .SetArtist(item.OtherArtistsName)
+                    .SetAlbumTitle(item.AlbumName)
+                    .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
+                    .SetGenre(item.GenreName)
+
+                    .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
+
+                if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
+                {
+                    try
+                    {
+                        metadataBuilder.SetArtworkUri(Uri.FromFile(new Java.IO.File(imagePath)));
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
+                    }
+                }
+                if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
+                {
+                    try
+                    {
+                        metadataBuilder.SetArtworkUri(Uri.FromFile(new Java.IO.File(imagePath)));
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
+                    }
+                }
+
+                var itemm = new MediaItem.Builder()!
+                      .SetMediaId(item.Id.ToString())! // Use URL as Media ID for simplicity
+                      .SetUri(Uri.Parse(item.FilePath))!
+                      .SetMediaMetadata(metadataBuilder!.Build())!
+                      .Build();
+
+                player.AddMediaItem(itemm);
+
+
+            }
+            MediaMetadata.Builder metadataBuilderMain = new MediaMetadata.Builder()!
+              .SetTitle(songToPlay.Title)
+              .SetArtist(songToPlay.OtherArtistsName)
+              .SetAlbumTitle(songToPlay.AlbumName)
+              .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
+              .SetGenre(songToPlay.GenreName)
+                 .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
+
+            var songToPlayMain = new MediaItem.Builder()!
+                  .SetMediaId(songToPlay.Id.ToString())! // Use URL as Media ID for simplicity
+                  .SetUri(Uri.Parse(songToPlay.FilePath))!
+                  .SetMediaMetadata(metadataBuilderMain!.Build())!
+                  .Build();
+
+            player.SetMediaItem(songToPlayMain, p1: 0);
+            player.Prepare();
+        }
+        catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
+    }
+
 
     // --- Player Event Listener ---
     sealed class PlayerEventListener : Object, IPlayerListener // Use specific IPlayer.Listener
@@ -642,7 +704,7 @@ public class ExoPlayerService : MediaSessionService
                 {
                     service.player.Stop(); // Stop the player if it was playing
                 }
-                service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
+                //service.PlayingEnded?.Invoke(this, new PlaybackEventArgs(service.CurrentSongItem) { EventType = DimmerPlaybackState.PlayCompleted });
                 //service.RaiseStatusChanged(DimmerPlaybackState.PlayCompleted); // Use your service method to raise events
             }
         }
