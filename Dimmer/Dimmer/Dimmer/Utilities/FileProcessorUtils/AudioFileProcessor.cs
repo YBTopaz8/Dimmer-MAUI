@@ -110,6 +110,8 @@ public class AudioFileProcessor : IAudioFileProcessor
             ArtistName= string.IsNullOrEmpty(track.AlbumArtist) ? track.Artist : track.AlbumArtist,
             OtherArtistsName= artistString,
             Genre = genre,
+            GenreName=track.Genre,
+            BPM = track.BPM,
             Composer = track.Composer,
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
@@ -131,11 +133,16 @@ public class AudioFileProcessor : IAudioFileProcessor
         };
         foreach (var id in artists)
         {
-            song.ArtistIds.Add(id);
+            if (song.ArtistIds is null)
+            {
+                song.ArtistIds =new();
+
+                song.ArtistIds.Add(id);
+            }
         }
 
 
-        if (song.HasSyncedLyrics && track.Lyrics?.SynchronizedLyrics != null)
+        if (song.HasSyncedLyrics)
         {
             // Basic to string, real app might parse into a structured format or just store raw
             foreach (var item in track.Lyrics.SynchronizedLyrics)
@@ -144,41 +151,45 @@ public class AudioFileProcessor : IAudioFileProcessor
             }
 
         }
+        else
 
-        ILyricsMetadataService lyricsService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
-        IMapper _mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
-
-        var onlineResults = await lyricsService.SearchOnlineAsync(song);
-        var fetchedLrcData = onlineResults?.FirstOrDefault()?.SyncedLyrics;
-
-
-        // --- STEP 3: If lyrics were found, process and save them ---
-        if (!string.IsNullOrWhiteSpace(fetchedLrcData))
         {
-            // A. Parse the LRC data into ATL's structure
-            var newLyricsInfo = new LyricsInfo();
-            newLyricsInfo.ParseLRC(fetchedLrcData);
+            /*
+                        ILyricsMetadataService lyricsService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
+                        IMapper _mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
 
-            // B. Save the fetched lyrics BACK TO THE FILE'S METADATA
+                        var onlineResults = await lyricsService.SearchOnlineAsync(song);
+                        var fetchedLrcData = onlineResults?.FirstOrDefault()?.SyncedLyrics;
 
-            song.SyncLyrics = fetchedLrcData;
-            song.HasSyncedLyrics = true; // Update flags
-            song.HasLyrics = true;
-            song.EmbeddedSync.Clear();
-            foreach (var lyr in newLyricsInfo.SynchronizedLyrics)
-            {
-                var syncLyrics = new SyncLyricsView
-                {
-                    TimestampMs = lyr.TimestampMs,
-                    Text = lyr.Text
-                };
-                song.EmbeddedSync.Add(syncLyrics);
-            }
+
+                        // --- STEP 3: If lyrics were found, process and save them ---
+                        if (!string.IsNullOrWhiteSpace(fetchedLrcData))
+                        {
+                            // A. Parse the LRC data into ATL's structure
+                            var newLyricsInfo = new LyricsInfo();
+                            newLyricsInfo.ParseLRC(fetchedLrcData);
+
+                            // B. Save the fetched lyrics BACK TO THE FILE'S METADATA
+
+                            song.SyncLyrics = fetchedLrcData;
+                            song.HasSyncedLyrics = true; // Update flags
+                            song.HasLyrics = true;
+                            song.EmbeddedSync.Clear();
+                            foreach (var lyr in newLyricsInfo.SynchronizedLyrics)
+                            {
+                                var syncLyrics = new SyncLyricsView
+                                {
+                                    TimestampMs = lyr.TimestampMs,
+                                    Text = lyr.Text
+                                };
+                                song.EmbeddedSync.Add(syncLyrics);
+                            }
+                        }
+
+                        */
         }
+
         song.LastDateUpdated = DateTimeOffset.UtcNow;
-
-
-
         _metadataService.AddSong(song);
         result.ProcessedSong = song;
         Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");

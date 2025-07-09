@@ -293,31 +293,31 @@
                             Text="App Preferences" />
                     </syncf:SfChipGroup>
 
-                    <Grid Grid.Row="1">
-                        <HorizontalStackLayout>
-                            <Label Text="{Binding LatestAppLog.Log}" />
-                            <Label Text="{Binding LatestAppLog.ViewSongModel.Title}" />
-
-                        </HorizontalStackLayout>
-                    </Grid>
+                    <Grid Grid.Row="1" />
                 </Grid>
             </Grid>
             <syncf:SfTabView
                 x:Name="GettingStartedTabView"
                 Grid.Column="1"
-                EnableSwiping="True"
+                EnableSwiping="False"
                 SelectedIndex="{Binding SettingsPageIndex}"
                 TabBarHeight="0">
 
                 <syncf:SfTabItem Header="{Static lang:DimmerLanguage.txt_folder}">
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="Auto,*">
-                            <Label
-                                Grid.Row="0"
-                                FontAttributes="Bold"
-                                FontSize="34"
-                                Text="Music Folders" />
-                            <Grid Grid.Row="1" RowDefinitions="*,*,0.4*">
+                            <VerticalStackLayout Grid.Row="0">
+                                <Label
+                                    Grid.Row="0"
+                                    FontAttributes="Bold"
+                                    FontSize="34"
+                                    Text="{Binding LatestAppLog.Log}" />
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="34"
+                                    Text="Music Folders" />
+                            </VerticalStackLayout>
+                            <Grid Grid.Row="1" RowDefinitions="*,0.4*">
 
                                 <CollectionView
                                     x:Name="ListOfFolders"
@@ -357,32 +357,8 @@
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
-
-                                <Border Grid.Row="1">
-                                    <VerticalStackLayout>
-                                        <Grid ColumnDefinitions="*,*">
-                                            <Label Grid.Column="0" Text="Resync Lyrics" />
-
-                                            <VerticalStackLayout Grid.Column="1">
-                                                <ProgressBar
-                                                    x:Name="MyProgressBar"
-                                                    Progress="2"
-                                                    ProgressColor="Red" />
-                                                <Label
-                                                    x:Name="MyProgressLabel"
-                                                    Text="2"
-                                                    TextColor="{AppThemeBinding Dark=white,
-                                                                                Light=black}" />
-                                                <Button
-                                                    x:Name="RefreshLyrics"
-                                                    Clicked="RefreshLyrics_Clicked"
-                                                    Text="Resync" />
-                                            </VerticalStackLayout>
-                                        </Grid>
-                                    </VerticalStackLayout>
-                                </Border>
                                 <VerticalStackLayout
-                                    Grid.Row="2"
+                                    Grid.Row="1"
                                     BackgroundColor="Transparent"
                                     Spacing="10">
 

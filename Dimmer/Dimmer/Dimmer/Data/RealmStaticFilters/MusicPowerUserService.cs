@@ -241,7 +241,7 @@ public class MusicPowerUserService
     public string GetDayOfWeekWithMostListens() { /* LINQ: Group events by DayOfWeek and count */ return ""; }
     public List<SongModel> GetSongsYouPutOnRepeat() { /* RQL + LINQ: Find events for the same song within a short time window */ return new(); }
     public List<AlbumModel> GetAlbumsYouListenToInOrder() { /* Complex LINQ: Analyze play history for sequential track numbers from the same album */ return new(); }
-    public List<ArtistModel> GetMostFeaturedArtist() { /* RQL + LINQ: Group songs by ArtistIds list and count */ return new(); }
+    public List<ArtistModel> GetMostFeaturedArtist() { /* RQL + LINQ: Group songs by ArtistToSong list and count */ return new(); }
 
     #endregion
 
@@ -295,7 +295,7 @@ public class MusicPowerUserService
     public List<SongModel> CreateDeepCutPlaylist(ObjectId artistId) { /* An artist's least-played songs */ return new(); }
     public List<SongModel> CreateSoundtrackOfMyYearPlaylist(int year) { /* Your most played songs from a specific year */ return new(); }
     public List<SongModel> CreateThrowbackPlaylist(int startYear, int endYear) { /* Popular songs from a specific era in your listening history */ return new(); }
-    public List<SongModel> CreateCollaborationsPlaylist() { /* Songs where ArtistIds list is not empty */ return new(); }
+    public List<SongModel> CreateCollaborationsPlaylist() { /* Songs where ArtistToSong list is not empty */ return new(); }
     public List<SongModel> CreateHighRatedAndUnheardPlaylist() { /* Songs with Rating >= 4 and PlayHistory.@count == 0 */ return new(); }
     public List<SongModel> CreateForgottenFavoritesPlaylist() { /* Songs with high play count but not played in last 6 months */ return new(); }
     public List<SongModel> CreateGlobalTopHitsPlaylist() { /* This would require external data, but you could simulate it by finding the most played songs across all users if you had a 'UserID' field */ return new(); }

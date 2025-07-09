@@ -22,7 +22,6 @@ public partial class SingleSongPage : ContentPage
     {
         base.OnAppearing();
         MyViewModel.SelectedSongOnPage= DeviceStaticUtils.SelectedSongOne;
-        MyViewModel.LoadStatsForSong(MyViewModel.SelectedSongOnPage!);
 
     }
 
@@ -88,7 +87,7 @@ public partial class SingleSongPage : ContentPage
 
     private void ToggleFav_Clicked(object sender, EventArgs e)
     {
-        var send =(SfChip)sender;
+        var send = (SfChip)sender;
         var song = send.CommandParameter as SongModelView;
         MyViewModel.ToggleFavSong(song);
     }

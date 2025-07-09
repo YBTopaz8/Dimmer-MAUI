@@ -46,9 +46,8 @@ public partial class ArtistsPage : ContentPage
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        var ee = ArtistSongsColView.ItemsSource as IEnumerable<SongModelView>;
-        songsToDisplay = ee.ToObservableCollection();
-        MyViewModel.PlaySongFromList(song, ee);
+
+        await MyViewModel.PlaySongFromListAsync(song, MyViewModel.CurrentQuery);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;

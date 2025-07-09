@@ -10,6 +10,8 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty]
     public partial int? ReleaseYear { get; set; }
     [ObservableProperty]
+    public partial bool IsNew { get; set; }
+    [ObservableProperty]
     public partial int NumberOfTracks { get; set; }
     [ObservableProperty]
     public partial string? TotalDuration { get; set; }

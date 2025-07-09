@@ -4,12 +4,24 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
     [ObservableProperty]
-    public partial string Title { get; set; } = string.Empty;
+    public partial string Title { get; set; }
+
+    [ObservableProperty]
+
+    public partial string TitleDurationKey { get; set; }
+
+
+    public void SetTitleAndDuration(string title, double duration)
+    {
+        Title = title;
+        DurationInSeconds = duration;
+        TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
+    }
     [ObservableProperty]
     public partial string ArtistName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string AlbumName { get; set; } = string.Empty;
+    public partial string? AlbumName { get; set; }
 
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
@@ -78,6 +90,9 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial string Lyricist { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial int BPM { get; set; }
     [ObservableProperty]
     public partial string Composer { get; set; } = string.Empty;
     [ObservableProperty]

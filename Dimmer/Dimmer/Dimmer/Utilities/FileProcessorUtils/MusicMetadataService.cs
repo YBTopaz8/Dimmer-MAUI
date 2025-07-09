@@ -72,8 +72,8 @@ public class MusicMetadataService : IMusicMetadataService
             album = new AlbumModelView
             {
                 Name = name,
-                Id = ObjectId.GenerateNewId(),
-                ImagePath = initialCoverPath,
+                Id=ObjectId.GenerateNewId(),
+                //ImagePath = initialCoverPath,
 
 
             };
@@ -115,23 +115,15 @@ public class MusicMetadataService : IMusicMetadataService
 
     public bool DoesSongExist(string title, int durationInSeconds)
     {
-
-        if (_songs == null)
-        {
-
-            System.Diagnostics.Debug.WriteLine("Error: _songs collection is null in DoesSongExist.");
+        if (string.IsNullOrWhiteSpace(title))
             return false;
-        }
 
-        title??=string.Empty;
+        // Create the key exactly as the model would.
+        string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
 
-        bool exists = _songs.Any(s =>
-            s != null &&
-            s.Title != null &&
-            s.Title.Equals(title, System.StringComparison.OrdinalIgnoreCase) &&
-            s.DurationInSeconds == durationInSeconds);
-
-        return exists;
+        // This check is now extremely fast because TitleDurationKey is indexed.
+        // We are checking against the in-memory list of songs processed *so far in this scan*.
+        return _songs.Any(s => s.TitleDurationKey == keyToCheck);
     }
 
     public IReadOnlyList<ArtistModelView> GetAllArtists()

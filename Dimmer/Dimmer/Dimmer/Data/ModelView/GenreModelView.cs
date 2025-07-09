@@ -7,5 +7,7 @@ public partial class GenreModelView : ObservableObject
     public partial string Name { get; set; }
     [ObservableProperty]
     public partial bool IsCurrentlySelected { get; set; }
+    [ObservableProperty]
+    public partial bool IsNew { get; set; }
 
 }

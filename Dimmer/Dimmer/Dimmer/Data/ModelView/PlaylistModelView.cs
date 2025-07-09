@@ -10,40 +10,42 @@ public partial class PlaylistModelView : ObservableObject
     /// <value>
     /// The date created.
     /// </value>
-    
+
     [ObservableProperty]
     public partial string DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
 
-    
+    [ObservableProperty]
+    public partial bool IsNew { get; set; }
+
     [ObservableProperty]
     public partial ObservableCollection<SongModel>? SongInPlaylist { get; set; }
-    
+
     [ObservableProperty]
     public partial SongModel? CurrentSong { get; set; }
-    
+
     [ObservableProperty]
     public partial string? Description { get; set; }
-    
+
     [ObservableProperty]
     public partial string? CoverImagePath { get; set; }
-    
+
     [ObservableProperty]
     public partial string? Color { get; set; }
-    
+
     [ObservableProperty]
     public partial string? PlaylistType { get; set; } = "General";
 
-    
+
     [ObservableProperty]
     public partial ObservableCollection<PlaylistEventView>? PlaylistEvents { get; set; }
-    
-    [ObservableProperty]
-    public partial string? DeviceName { get; set; } 
 
-    
+    [ObservableProperty]
+    public partial string? DeviceName { get; set; }
+
+
     [ObservableProperty]
     public partial UserModel? User { get; set; }
-    
+
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
 }

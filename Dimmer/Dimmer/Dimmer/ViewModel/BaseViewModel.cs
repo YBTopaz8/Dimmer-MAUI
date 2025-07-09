@@ -287,7 +287,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     foreach (var artistName in artistNamesForThisSong)
                     {
 
-                        var songHasArtist = songDb.ArtistIds.FirstOrDefault(a => a.Name == artistName);
+                        var songHasArtist = songDb.ArtistToSong.FirstOrDefault(a => a.Name == artistName);
                         if (songHasArtist is not null)
                         {
                             continue;
@@ -297,7 +297,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         if (artistsFromDb.TryGetValue(artistName, out var artistModel))
                         {
 
-                            songDb.ArtistIds.Add(artistModel);
+                            songDb.ArtistToSong.Add(artistModel);
 
 
                             if (songDb.Album.ArtistIds != null && songDb.Album.ArtistIds.FirstOrDefault(a => a.Id == artistModel.Id) is null)
@@ -398,7 +398,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 foreach (var artistName in artistNamesToLink)
                 {
 
-                    bool songHasArtist = freshSongDb.ArtistIds.Any(a => a.Name == artistName);
+                    bool songHasArtist = freshSongDb.ArtistToSong.Any(a => a.Name == artistName);
                     if (songHasArtist)
                     {
                         continue;
@@ -408,7 +408,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     if (artistsFromDb.TryGetValue(artistName, out var artistModel))
                     {
 
-                        freshSongDb.ArtistIds.Add(artistModel);
+                        freshSongDb.ArtistToSong.Add(artistModel);
                         _logger.LogInformation("Linked artist '{ArtistName}' to song '{Title}'.", artistName, freshSongDb.Title);
 
 
@@ -552,7 +552,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
 
+        _songsMgtFlow ??= IPlatformApplication.Current!.Services.GetService<SongsMgtFlow>()!;
+        AudioEnginePositionObservable = Observable.FromEventPattern<double>(
+                                             h => audioService.PositionChanged += h,
+                                             h => audioService.PositionChanged -= h)
+                                         .Select(evt => evt.EventArgs)
+                                         .StartWith(audioService.CurrentPosition)
+                                         .Replay(1).RefCount();
 
+
+        _baseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>();
+
+
+
+
+        folderMonitorService = IPlatformApplication.Current!.Services.GetService<IFolderMonitorService>()!;
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
 
         var realm = realmFactory.GetRealmInstance();
@@ -1625,7 +1639,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             _logger.LogInformation("Searching for songs with unlinked artists...");
-            var songsToFix = realm.All<SongModel>().Filter("ArtistIds.@count == 0").ToList();
+            var songsToFix = realm.All<SongModel>().Filter("ArtistToSong.@count == 0").ToList();
 
             if (songsToFix.Count==0)
             {
@@ -1677,7 +1691,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         .Distinct();
 
 
-                    song.ArtistIds.Clear();
+                    song.ArtistToSong.Clear();
 
                     foreach (var artistName in namesForThisSong)
                     {
@@ -1685,7 +1699,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         if (artistsFromDb.TryGetValue(artistName, out var artistModel))
                         {
 
-                            song.ArtistIds.Add(artistModel);
+                            song.ArtistToSong.Add(artistModel);
                         }
                         else
                         {
@@ -1728,7 +1742,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         var songsByArtist = db.All<SongModel>()
-                              .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistIdToFind)
+                              .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistIdToFind)
                               .ToList();
 
         if (songsByArtist.Count==0)

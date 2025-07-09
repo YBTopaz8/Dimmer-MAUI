@@ -79,22 +79,22 @@ public class AlbumsMgtFlow : IDisposable
         var artistIds = artists.Select(ar => ar.Id).ToList();
 
         // Step 2: Find songs by these artist IDs.
-        // If SongModel.ArtistIds is IList<ObjectId>:
+        // If SongModel.ArtistToSong is IList<ObjectId>:
         // This requires iterating through artistIds or fetching all songs and filtering in memory.
         // Realm LINQ does not directly support `artistIds.Contains(s.PrimaryArtistId)` or similar for sub-queries.
         // Let's fetch songs that have *any* of these artists.
 
         // Strategy: Fetch all songs, then filter in memory if SongModel.Artists is IList<ArtistModel>
-        // If SongModel.ArtistIds is IList<ObjectId>, we can do better with multiple OR queries if needed,
+        // If SongModel.ArtistToSong is IList<ObjectId>, we can do better with multiple OR queries if needed,
         // or fetch all and filter.
-        // For simplicity here, assuming SongModel.ArtistIds is a list of ObjectId that represent artist PKs.
+        // For simplicity here, assuming SongModel.ArtistToSong is a list of ObjectId that represent artist PKs.
 
         var allSongs = _songRepo.GetAll(); // Potentially large, use with caution.
                                            // A better model or more complex querying strategy might be needed for performance.
 
         // In-memory filtering
         var songsByArtists = allSongs
-            .Where(s => s.ArtistIds != null && s.ArtistIds.Any(songArtistId => artistIds.Contains(songArtistId.Id)))
+            .Where(s => s.ArtistToSong != null && s.ArtistToSong.Any(songArtistId => artistIds.Contains(songArtistId.Id)))
             .ToList();
 
         if (songsByArtists.Count==0)
@@ -122,12 +122,12 @@ public class AlbumsMgtFlow : IDisposable
     }
     public void GetAlbumsByArtistId(ObjectId artistId) // Changed parameter to ObjectId for directness
     {
-        // This LINQ query should be translatable by Realm if ArtistIds is a list of primitives (ObjectId)
+        // This LINQ query should be translatable by Realm if ArtistToSong is a list of primitives (ObjectId)
         // and Realm supports .Any() on primitive lists with an equality check.
         // This is a common pattern that Realm *often* supports.
         List<SongModel> songsOfArtist;
 
-        songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(id => id.Id == artistId));
+        songsOfArtist = _songRepo.Query(s => s.ArtistToSong.Any(id => id.Id == artistId));
 
 
         if (songsOfArtist.Count==0)
@@ -160,7 +160,7 @@ public class AlbumsMgtFlow : IDisposable
 
 
         // Assuming you can get songs for an artist efficiently:
-        var songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(a => a.Id == artist.Id));
+        var songsOfArtist = _songRepo.Query(s => s.ArtistToSong.Any(a => a.Id == artist.Id));
         var albums = songsOfArtist.Select(s => s.Album)
                                   .Where(al => al != null)
                                   .DistinctBy(al => al!.Id)

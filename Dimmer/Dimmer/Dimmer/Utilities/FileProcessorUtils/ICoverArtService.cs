@@ -42,7 +42,7 @@ public class CoverArtService : ICoverArtService
 
     public string? GetExistingCoverImageAsync(string audioFilePath)
     {
-        
+
         if (string.IsNullOrWhiteSpace(audioFilePath))
             return null;
 

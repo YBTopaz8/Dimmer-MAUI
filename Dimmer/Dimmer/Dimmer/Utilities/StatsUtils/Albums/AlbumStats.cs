@@ -140,7 +140,7 @@ public static class AlbumStats
             return summary;
 
         summary.PrimaryArtistNames = songsOnAlbum
-            .SelectMany(s => s.ArtistIds.Select(a => a.Name))
+            .SelectMany(s => s.ArtistToSong.Select(a => a.Name))
             .Where(name => !string.IsNullOrEmpty(name))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(name => name)
@@ -250,8 +250,8 @@ public static class AlbumStats
                                     .OrderByDescending(g => g.Count())
                                     .FirstOrDefault()?.Key ?? "N/A";
         summary.TotalRawPlayEventsForAlbumSongs = relevantEventsForAlbum.Count;
-        summary.NumberOfCollaborativeTracksOnAlbum = songsOnAlbum.Count(s => s.ArtistIds.Count > 1);
-        summary.NumberOfSoloArtistTracksOnAlbum = songsOnAlbum.Count(s => s.ArtistIds.Count == 1);
+        summary.NumberOfCollaborativeTracksOnAlbum = songsOnAlbum.Count(s => s.ArtistToSong.Count > 1);
+        summary.NumberOfSoloArtistTracksOnAlbum = songsOnAlbum.Count(s => s.ArtistToSong.Count == 1);
 
         var validDateCreatedSongs = songsOnAlbum.Where(s => s.DateCreated.HasValue).ToList();
         if (validDateCreatedSongs.Count!=0)
@@ -426,7 +426,7 @@ public static class AlbumStats
         // Get all songs by this artist that are ALSO on this album
         var songsByArtistOnThisAlbum = allSongsInLibrary
             .Where(s => s.Album != null && s.Album.Id == targetAlbum.Id &&
-                        s.ArtistIds.Any(a => a.Id == targetArtist.Id))
+                        s.ArtistToSong.Any(a => a.Id == targetArtist.Id))
             .ToList();
 
         var summary = new ArtistAlbumContributionStatsSummary
@@ -516,8 +516,8 @@ public static class AlbumStats
                 break;
         summary.ArtistEddingtonNumberOnThisAlbum = E_artist_album;
 
-        summary.ArtistSoloTracksOnThisAlbum = songsByArtistOnThisAlbum.Count(s => s.ArtistIds.Count == 1 && s.ArtistIds.First().Id == targetArtist.Id);
-        summary.ArtistCollabTracksOnThisAlbum = songsByArtistOnThisAlbum.Count(s => s.ArtistIds.Count > 1 && s.ArtistIds.Any(a => a.Id == targetArtist.Id));
+        summary.ArtistSoloTracksOnThisAlbum = songsByArtistOnThisAlbum.Count(s => s.ArtistToSong.Count == 1 && s.ArtistToSong.First().Id == targetArtist.Id);
+        summary.ArtistCollabTracksOnThisAlbum = songsByArtistOnThisAlbum.Count(s => s.ArtistToSong.Count > 1 && s.ArtistToSong.Any(a => a.Id == targetArtist.Id));
 
         return summary;
     }
@@ -525,17 +525,17 @@ public static class AlbumStats
     // Overload for selection from a song
     public static ArtistAlbumContributionStatsSummary GetArtistAlbumContributionStats(
         SongModel sourceSong, // Song from which to get album and artist
-        int artistIndexInSourceSong, // Index of artist in sourceSong.ArtistIds
+        int artistIndexInSourceSong, // Index of artist in sourceSong.ArtistToSong
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents,
         AlbumSingleStatsSummary? albumOverallStats = null)
     {
-        if (sourceSong?.Album == null || sourceSong.ArtistIds == null ||
-            artistIndexInSourceSong < 0 || artistIndexInSourceSong >= sourceSong.ArtistIds.Count)
+        if (sourceSong?.Album == null || sourceSong.ArtistToSong == null ||
+            artistIndexInSourceSong < 0 || artistIndexInSourceSong >= sourceSong.ArtistToSong.Count)
         {
             return new ArtistAlbumContributionStatsSummary { ArtistName = "Error: Invalid source song or artist index." };
         }
-        ArtistModel targetArtist = sourceSong.ArtistIds[artistIndexInSourceSong];
+        ArtistModel targetArtist = sourceSong.ArtistToSong[artistIndexInSourceSong];
         AlbumModel targetAlbum = sourceSong.Album;
         return GetArtistAlbumContributionStats(targetArtist, targetAlbum, allSongsInLibrary, allEvents, albumOverallStats);
     }
@@ -587,12 +587,12 @@ public static class AlbumStats
         else // Get all distinct artists from the songs on this album
         {
             artistsToConsiderIds = [.. songsOnThisAlbum
-                .SelectMany(s => s.ArtistIds.Select(a => a.Id))
+                .SelectMany(s => s.ArtistToSong.Select(a => a.Id))
                 .Distinct()];
         }
 
         // We need the full ArtistModel objects
-        var allArtistModelsInLibrary = allSongsInLibrary.SelectMany(s => s.ArtistIds).DistinctBy(a => a.Id).ToDictionary(a => a.Id);
+        var allArtistModelsInLibrary = allSongsInLibrary.SelectMany(s => s.ArtistToSong).DistinctBy(a => a.Id).ToDictionary(a => a.Id);
 
         foreach (var artistId in artistsToConsiderIds)
         {

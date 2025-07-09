@@ -8,6 +8,8 @@ public partial class LyricPhraseModelView : ObservableObject
     [ObservableProperty]
     public partial double Opacity { get; set; } = 0.3;
     [ObservableProperty]
+    public partial bool IsNew { get; set; }
+    [ObservableProperty]
     public partial string? TimeStampText { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? Text { get; set; } = string.Empty;
@@ -41,7 +43,7 @@ public partial class LyricPhraseModelView : ObservableObject
     public partial bool IsLyricSynced { get; set; }
 
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
-    public LyricPhraseModelView( LyricsInfo.LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
+    public LyricPhraseModelView(LyricsInfo.LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
     {
 
         if (phrase != null)

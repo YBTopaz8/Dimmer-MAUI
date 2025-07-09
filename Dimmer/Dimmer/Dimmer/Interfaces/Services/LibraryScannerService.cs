@@ -90,11 +90,13 @@ public class LibraryScannerService : ILibraryScannerService
             var existingGenres = _mapper.Map<List<GenreModelView>>(realm.All<GenreModel>().ToList());
             var existingSongs = _mapper.Map<List<SongModelView>>(realm.All<SongModel>().ToList());
 
-            // FIX #1: Create unmanaged copies to prevent cross-thread exceptions.
-            var unmanagedArtists = existingArtists.ConvertAll(a => new ArtistModelView { Id = a.Id, Name = a.Name });
-            var unmanagedAlbums = existingAlbums.ConvertAll(a => new AlbumModelView { Id = a.Id, Name = a.Name, ImagePath = a.ImagePath });
-            var unmanagedGenres = existingGenres.ConvertAll(g => new GenreModelView { Id = g.Id, Name = g.Name });
-            var unmanagedSongs = existingSongs.ConvertAll(s => new SongModelView { Title = s.Title, DurationInSeconds = s.DurationInSeconds });
+            _logger.LogDebug("Loading existing metadata from database...");
+            var existingArtists = _mapper.Map<List<ArtistModelView>>(realm.All<ArtistModel>().ToList());
+            var existingAlbums = _mapper.Map<List<AlbumModelView>>(realm.All<AlbumModel>().ToList());
+            var existingGenres = _mapper.Map<List<GenreModelView>>(realm.All<GenreModel>().ToList());
+            var existingSongs = _mapper.Map<List<SongModelView>>(realm.All<SongModel>().ToList());
+            _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
+                existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
 
             currentScanMetadataService.LoadExistingData(unmanagedArtists, unmanagedAlbums, unmanagedGenres, unmanagedSongs);
 
@@ -116,10 +118,8 @@ public class LibraryScannerService : ILibraryScannerService
                 {
                     _state.SetCurrentLogMsg(new AppLogModel
                     {
-                        Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} by {Environment.NewLine} {fileProcessingResult.ProcessedSong.OtherArtistsName} " +
-                        $"" +
-                        $"({processedFileCount}/{totalFiles})",
-                        AppScanLogModel = new AppScanLogModel { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount },
+                        Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
+                        AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount, },
                         TotalScanFiles = totalFiles,
                         CurrentScanFile = processedFileCount,
                         ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
@@ -142,65 +142,118 @@ public class LibraryScannerService : ILibraryScannerService
             IReadOnlyList<AlbumModel> newOrUpdatedAlbums = _mapper.Map<IReadOnlyList<AlbumModel>>(currentScanMetadataService.GetAllAlbums());
             IReadOnlyList<GenreModel> newOrUpdatedGenres = _mapper.Map<IReadOnlyList<GenreModel>>(currentScanMetadataService.GetAllGenres());
 
-            _logger.LogInformation("Found {SongCount} new songs, {ArtistCount} new artists, {AlbumCount} new albums, {GenreCount} new genres to persist.",
+            IReadOnlyList<SongModelView> newOrUpdatedSongs = currentScanMetadataService.GetAllSongs().Where(s => s.IsNew).ToList();
+            IReadOnlyList<ArtistModelView> newOrUpdatedArtists = currentScanMetadataService.GetAllArtists().Where(a => a.IsNew).ToList();
+            IReadOnlyList<AlbumModelView> newOrUpdatedAlbums = currentScanMetadataService.GetAllAlbums().Where(a => a.IsNew).ToList();
+            IReadOnlyList<GenreModelView> newOrUpdatedGenres = currentScanMetadataService.GetAllGenres().Where(g => g.IsNew).ToList();
+
+            _logger.LogInformation("Found {SongCount} new/updated songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
                 newOrUpdatedSongs.Count, newOrUpdatedArtists.Count, newOrUpdatedAlbums.Count, newOrUpdatedGenres.Count);
 
-            if (newOrUpdatedSongs.Any())
-            {
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, newOrUpdatedSongs, newOrUpdatedSongs[0].ToModelView(_mapper), newOrUpdatedSongs[0]));
-            }
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, newOrUpdatedSongs, newOrUpdatedSongs[0], null));
+
 
             if (newOrUpdatedArtists.Any() || newOrUpdatedAlbums.Any() || newOrUpdatedGenres.Any() || newOrUpdatedSongs.Any())
             {
                 _logger.LogInformation("Persisting metadata changes to database...");
 
-                await realm.WriteAsync(() =>
+                // STEP 1: Map all new VIEW objects to new MODEL objects OUTSIDE the transaction.
+                var artistModelsToUpsert = _mapper.Map<List<ArtistModel>>(newOrUpdatedArtists);
+                var albumModelsToUpsert = _mapper.Map<List<AlbumModel>>(newOrUpdatedAlbums);
+                var genreModelsToUpsert = _mapper.Map<List<GenreModel>>(newOrUpdatedGenres);
+                var songModelsToUpsert = _mapper.Map<List<SongModel>>(newOrUpdatedSongs);
+
+                // This is a dictionary to easily find the MODEL version of a song later.
+                var songModelDict = songModelsToUpsert.ToDictionary(s => s.Id);
+
+                using (var realmb = _realmFactory.GetRealmInstance())
                 {
-                    foreach (var artist in newOrUpdatedArtists)
-                        realm.Add(artist, update: true);
-                    foreach (var album in newOrUpdatedAlbums)
-                        realm.Add(album, update: true);
-                    foreach (var genre in newOrUpdatedGenres)
-                        realm.Add(genre, update: true);
-                    foreach (var song in newOrUpdatedSongs)
-                        realm.Add(song, update: true);
-                }).ConfigureAwait(false);
+                    await realmb.WriteAsync(() =>
+                    {
+                        // STEP 2: Upsert all "parent" entities first (Artists, Albums, Genres).
+                        // This is simple and clean. 'Add' with 'update:true' is an upsert.
+                        foreach (var artist in artistModelsToUpsert)
+                            realmb.Add(artist, update: true);
+                        foreach (var album in albumModelsToUpsert)
+                            realmb.Add(album, update: true);
+                        foreach (var genre in genreModelsToUpsert)
+                            realmb.Add(genre, update: true);
+
+                        // STEP 3: Process the songs and link their relationships.
+                        foreach (var incomingSongView in newOrUpdatedSongs)
+                        {
+                            // Get the corresponding SongModel we created earlier.
+                            if (!songModelDict.TryGetValue(incomingSongView.Id, out var songToPersist))
+                            {
+                                continue; // Should not happen, but a good safeguard.
+                            }
+
+                            // We are now working with a pure, unmanaged SongModel.
+                            // Now, find the MANAGED versions of its relationships within THIS realmb.
+
+                            // Link Album
+                            if (incomingSongView.Album?.Id != null)
+                            {
+                                songToPersist.Album = realmb.Find<AlbumModel>(incomingSongView.Album.Id);
+                            }
+
+                            // Link Genre
+                            if (incomingSongView.Genre?.Id != null)
+                            {
+                                songToPersist.Genre = realmb.Find<GenreModel>(incomingSongView.Genre.Id);
+                            }
+
+                            // Link Artists
+                            songToPersist.ArtistToSong.Clear();
+                            if (incomingSongView.ArtistIds != null)
+                            {
+                                foreach (var artistView in incomingSongView.ArtistIds)
+                                {
+                                    var managedArtist = realmb.Find<ArtistModel>(artistView.Id);
+                                    if (managedArtist != null)
+                                    {
+                                        songToPersist.ArtistToSong.Add(managedArtist);
+                                    }
+                                }
+                            }
+
+                            // Finally, upsert the fully-linked song model.
+                            realmb.Add(songToPersist, update: true);
+                        }
+                    });
+                }
 
                 _logger.LogInformation("Metadata changes persisted.");
-
-                await realm.WriteAsync(() =>
-                {
-                    var curState = realm.All<AppStateModel>().First();
-                    var distinctFolders = curState.UserMusicFoldersPreference.Union(folderPaths).Distinct();
-                    curState.UserMusicFoldersPreference.Clear();
-                    foreach (var item in distinctFolders)
-                    {
-                        curState.UserMusicFoldersPreference.Add(item);
-                    }
-                });
             }
             else
             {
-                _logger.LogInformation("No new or modified entities to save to database.");
+                _logger.LogInformation("No new music data changes to persist after scan.");
             }
 
-            var finalSongListFromDb = _songRepo.GetAll(false).ToList();
-            _state.LoadAllSongs(finalSongListFromDb.AsReadOnly());
-
-            _logger.LogInformation("Global state updated with {SongCount} songs from database after scan.", finalSongListFromDb.Count);
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, folderPaths, null, finalSongListFromDb.FirstOrDefault()));
-
-            return new LoadSongsResult
+            // --- Update App State (Your code is good here, but needs a fresh Realm instance) ---
+            using (var realmm = _realmFactory.GetRealmInstance())
             {
-                Artists = newOrUpdatedArtists.ToList(),
-                Albums = newOrUpdatedAlbums.ToList(),
-                Songs = newOrUpdatedSongs.ToList(),
-                Genres = newOrUpdatedGenres.ToList()
-            };
+                await realmm.WriteAsync(() =>
+                {
+                    var appState = realm.All<AppStateModel>().FirstOrDefault();
+                    if (appState != null)
+                    {
+                        var distinctFolders = appState.UserMusicFoldersPreference.Union(folderPaths).Distinct().ToList();
+                        appState.UserMusicFoldersPreference.Clear();
+                        foreach (var folder in distinctFolders)
+                        {
+                            appState.UserMusicFoldersPreference.Add(folder);
+                        }
+                    }
+                });
+            }
+
+
+            return new LoadSongsResult { /* ... */ };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred during the library scan: {Message}", ex.Message);
+            _logger.LogError(ex, "An unhandled exception occurred during ScanLibrary.");
             return null;
         }
     }

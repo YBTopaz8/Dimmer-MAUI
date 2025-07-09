@@ -189,7 +189,7 @@ public class MusicRelationshipService
         // A HashSet is used for fast O(1) in-memory lookups, which is more
         // efficient for the filtering we are about to do.
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => s.Id)
             .ToHashSet();
@@ -295,7 +295,7 @@ public class MusicRelationshipService
     public List<TrendStat> GetArtistWeeklyTrend(ObjectId artistId)
     {
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => (QueryArgument)s.Id)
             .ToArray();
@@ -329,7 +329,7 @@ public class MusicRelationshipService
         // Step 1: Get the list of song IDs. This part works.
         // Use a HashSet for fast in-memory lookups.
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
 
             .ToArray()
             .Select(s => s.Id)
@@ -379,7 +379,7 @@ public class MusicRelationshipService
     public List<TrendStat> GetArtistMonthlyTrend(ObjectId artistId)
     {
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => (QueryArgument)s.Id)
             .ToArray();
@@ -405,7 +405,7 @@ public class MusicRelationshipService
     // COMPLIANT: Uses supported "IN" filter.
     public (int PlayCount, int SongsPlayed, int AlbumsPlayed) GetArtistStatsBetweenDates(ObjectId artistId, DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId).ToArray();
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId).ToArray();
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
 
         if (!artistSongIds.Any())
@@ -439,7 +439,7 @@ public class MusicRelationshipService
         // This is a query we know works from other methods.
         // A HashSet is used for fast, O(1) in-memory lookups.
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => s.Id)
             .ToHashSet();

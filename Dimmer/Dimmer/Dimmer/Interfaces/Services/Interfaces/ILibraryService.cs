@@ -2,10 +2,10 @@
 
 public class LoadSongsResult // Define this class (or similar) if needed
 {
-    public IReadOnlyList<SongModel> Songs { get; set; } = Array.Empty<SongModel>();
-    public IReadOnlyList<ArtistModel> Artists { get; set; } = Array.Empty<ArtistModel>();
-    public IReadOnlyList<AlbumModel> Albums { get; set; } = Array.Empty<AlbumModel>();
-    public IReadOnlyList<GenreModel> Genres { get; set; } = Array.Empty<GenreModel>();
+    public IReadOnlyList<SongModelView> Songs { get; set; } = Array.Empty<SongModelView>();
+    public IReadOnlyList<ArtistModelView> Artists { get; set; } = Array.Empty<ArtistModelView>();
+    public IReadOnlyList<AlbumModelView> Albums { get; set; } = Array.Empty<AlbumModelView>();
+    public IReadOnlyList<GenreModelView> Genres { get; set; } = Array.Empty<GenreModelView>();
     public int FilesProcessed { get; set; }
     public int FilesSkipped { get; set; }
     public int NewSongsAdded { get; set; }
