@@ -60,8 +60,7 @@ public static class AutoMapperConf
                .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
                .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
                .ForMember(dest => dest.Tags, opt => opt.Ignore())
-               .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
-               .ForMember(dest => dest.Playlists, opt => opt.Ignore());
+               .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore());
 
             // Self-map for any other types you might need to copy.
             cfg.CreateMap<AppStateModel, AppStateModel>();
@@ -88,8 +87,7 @@ public static class AutoMapperConf
              .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
              .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
              .ForMember(dest => dest.Tags, opt => opt.Ignore())
-             .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
-             .ForMember(dest => dest.Playlists, opt => opt.Ignore());
+             .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore());
         });
 
         // This is your best friend. It will throw a detailed exception at startup

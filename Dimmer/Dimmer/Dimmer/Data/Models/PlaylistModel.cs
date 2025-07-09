@@ -1,44 +1,47 @@
 ﻿namespace Dimmer.Data.Models;
 public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
 {
-    /// <summary>
-    /// Gets or sets the local device identifier.
-    /// </summary>
-    /// <value>
-    /// The local device identifier.
-    /// </value>
     [PrimaryKey]
-    public ObjectId Id { get; set; }
+    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+
+    public string PlaylistName { get; set; } = "New Playlist";
+    public string? Description { get; set; }
+
     /// <summary>
-    /// Gets or sets the name of the playlist.
+    /// A flag to determine if the playlist is dynamic (query-based) or a manual collection of songs.
     /// </summary>
-    /// <value>
-    /// The name of the playlist.
-    /// </value>
-    public string PlaylistName { get; set; } = "Unknown Playlist";
+    public bool IsSmartPlaylist { get; set; }
+
     /// <summary>
-    /// Gets or sets the date created.
+    /// For Smart Playlists (IsSmartPlaylist = true).
+    /// The full query string that defines the content of this playlist.
+    /// Example: "artist:tool include genre:metal exclude year:<2000"
     /// </summary>
-    /// <value>
-    /// The date created.
-    /// </value>
+    public string? QueryText { get; set; }
+
+    /// <summary>
+    /// For Manual Playlists (IsSmartPlaylist = false).
+    /// A list of song ObjectIds that the user has manually added.
+    /// </summary>
+    public IList<ObjectId> ManualSongIds { get; }
+
+    // --- Optional Metadata ---
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
-    public bool IsNew { get; set; }
-    public IList<SongModel> SongsInPlaylist { get; } = null!;
-    public string? CurrentSongId { get; set; }
-    public string? Description { get; set; }
+    /// <summary>
+    /// Path to a custom cover image for the playlist. If null, UI can generate one.
+    /// </summary>
     public string? CoverImagePath { get; set; }
-    public string? Color { get; set; }
-    public string? PlaylistType { get; set; } = "General";
 
-    public IList<PlaylistEvent> PlaylistEvents { get; } = null!;
-    public string? DeviceName { get; set; }
-
+    /// <summary>
+    /// The user who created this playlist.
+    /// </summary>
     public UserModel? User { get; set; }
 
+    // --- Ignored Properties (Not in Database) ---
+    [Ignored]
+    public bool IsNew { get; set; }
 }
-
 public partial class PlaylistEvent : EmbeddedObject
 {
     // Save the enum value as an int in Realm.

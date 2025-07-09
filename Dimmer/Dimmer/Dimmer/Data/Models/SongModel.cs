@@ -59,8 +59,6 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public IList<DimmerPlayEvent> PlayHistory { get; } = null!;
 
     public bool IsNew { get; set; }
-    [Backlink(nameof(PlaylistModel.SongsInPlaylist))]
-    public IQueryable<PlaylistModel> Playlists { get; } = null!;
     public IList<UserNoteModel> UserNotes { get; } = null!;
 
     [BsonIgnore]

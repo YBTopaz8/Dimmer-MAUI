@@ -99,11 +99,11 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        await MyViewModel.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        await MyViewModel.PlaySongFromListAsync(song, SearchSongSB.Text);
     }
 
     private void SkipPrev_Clicked(object sender, EventArgs e)

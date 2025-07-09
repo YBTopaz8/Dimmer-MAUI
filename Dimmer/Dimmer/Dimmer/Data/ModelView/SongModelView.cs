@@ -78,6 +78,9 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial string Lyricist { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial int BPM { get; set; }
     [ObservableProperty]
     public partial string Composer { get; set; } = string.Empty;
     [ObservableProperty]

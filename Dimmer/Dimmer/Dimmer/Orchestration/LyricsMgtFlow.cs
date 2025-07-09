@@ -24,6 +24,7 @@ public class LyricsMgtFlow : IDisposable
     private IReadOnlyList<LyricPhraseModelView> _lyrics = Array.Empty<LyricPhraseModelView>();
     private LyricSynchronizer? _synchronizer;
     private bool _isPlaying;
+    private SongsMgtFlow _songsMgtFlow;
 
     // --- Reactive Subjects (The heart of our state management) ---
     // These subjects hold the current state and broadcast it to subscribers.
@@ -44,7 +45,6 @@ public class LyricsMgtFlow : IDisposable
         ILogger<LyricsMgtFlow> logger,
         SubscriptionManager subsManager,
         ILyricsMetadataService lyricsMetadataService
-        , SongsMgtFlow songsMgtFlow
     // ... other dependencies are no longer needed here if they aren't directly used
     )
     {
@@ -53,7 +53,6 @@ public class LyricsMgtFlow : IDisposable
         _subsManager = subsManager;
         this.lyricsMetadataService=lyricsMetadataService;
         _logger = logger ?? NullLogger<LyricsMgtFlow>.Instance;
-        _songsMgtFlow=songsMgtFlow;
         // 1. When the song changes, load its lyrics.
         _subsManager.Add(_stateService.CurrentSong
             .DistinctUntilChanged()
@@ -158,7 +157,7 @@ public class LyricsMgtFlow : IDisposable
 
             // Notify all subscribers of the new data.
             _allLyricsSubject.OnNext(_lyrics);
-            
+
             // Reset current/prev/next, they will be updated on the next position tick.
             _previousLyricSubject.OnNext(null);
             _currentLyricSubject.OnNext(null);
@@ -166,7 +165,7 @@ public class LyricsMgtFlow : IDisposable
 
             Track songFile = new Track(song.FilePath);
             songFile.Lyrics.ParseLRC(lyrr);
-            
+
         }
         catch (Exception ex)
         {
@@ -253,7 +252,6 @@ public class LyricsMgtFlow : IDisposable
         _nextLyricSubject.OnNext(nextLine);
     }
 
-    private readonly SongsMgtFlow _songsMgtFlow;
     public void Dispose()
     {
         _subsManager.Dispose();

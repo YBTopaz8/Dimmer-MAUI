@@ -281,7 +281,7 @@ public class AlbumsMgtFlow : IDisposable
                 NumberOfTracks = int.Parse(parts[3]),
                 TotalDuration = TimeSpan.FromSeconds(double.Parse(parts[4])).ToString()
             };
-            _albumRepo.AddOrUpdate(album);
+            _albumRepo.Upsert(album);
         }
     }
     public new void Dispose()

@@ -9,6 +9,7 @@ using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.DimmerSearch.AbstractQueryTree.NL;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Orchestration;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
@@ -34,7 +35,6 @@ using System.Threading.Tasks;
 
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 using static Dimmer.Utilities.AppUtils;
-using static Dimmer.Utilities.StatsUtils.SongStatTwop;
 
 
 
@@ -48,15 +48,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService _dimmerLiveStateService;
     private readonly AlbumsMgtFlow _albumsMgtFlow;
-    private readonly PlayListMgtFlow _playlistsMgtFlow;
-    private readonly SongsMgtFlow _songsMgtFlow;
     protected readonly IDimmerStateService _stateService;
     protected readonly ISettingsService _settingsService;
     protected readonly SubscriptionManager _subsManager;
     protected readonly IFolderMgtService _folderMgtService;
     private readonly IRepository<SongModel> songRepo;
     private readonly IRepository<ArtistModel> artistRepo;
-    private readonly IRepository<PlaylistModel> playlistRepo;
+    private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<AlbumModel> albumRepo;
     private readonly IRepository<GenreModel> genreRepo;
     private readonly IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
@@ -131,7 +129,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _songsMgtFlow.RequestSetVolume(newValue);
         _settingsService.LastVolume = newValue;
     }
-
+    private SongsMgtFlow _songsMgtFlow;
     [ObservableProperty]
     public partial string AppTitle { get; set; }
 
@@ -314,11 +312,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             });
 
 
-            var songss = _mapper.Map<ObservableCollection<SongModelView>>(songRepo.GetAll(true));
-
-
-
-            QueueOfSongsLive =  new ObservableCollection<SongModelView>(songss);
         });
     }
 
@@ -469,7 +462,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
-    private BaseAppFlow? _baseAppFlow;
+    private readonly BaseAppFlow _baseAppFlow;
     public const string CurrentAppVersion = "Dimmer v1.9";
 
 
@@ -512,15 +505,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-
+    readonly IFolderMonitorService folderMonitorService;
     public BaseViewModel(
        IMapper mapper,
        IAppInitializerService appInitializerService,
        IDimmerLiveStateService dimmerLiveStateService,
        IDimmerAudioService _audioService,
        AlbumsMgtFlow albumsMgtFlow,
-       PlayListMgtFlow playlistsMgtFlow,
-       SongsMgtFlow songsMgtFlow,
        IDimmerStateService stateService,
        ISettingsService settingsService,
        SubscriptionManager subsManager,
@@ -538,8 +529,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _dimmerLiveStateService = dimmerLiveStateService;
 
         _albumsMgtFlow = albumsMgtFlow;
-        _playlistsMgtFlow = playlistsMgtFlow;
-        _songsMgtFlow = songsMgtFlow;
         _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _subsManager = subsManager ?? new SubscriptionManager();
@@ -553,10 +542,24 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         audioService= _audioService;
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
-        playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
+        _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
 
 
+        AudioEnginePositionObservable = Observable.FromEventPattern<double>(
+                                             h => audioService.PositionChanged += h,
+                                             h => audioService.PositionChanged -= h)
+                                         .Select(evt => evt.EventArgs)
+                                         .StartWith(audioService.CurrentPosition)
+                                         .Replay(1).RefCount();
+
+
+        _baseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>();
+
+
+
+
+        folderMonitorService = IPlatformApplication.Current!.Services.GetService<IFolderMonitorService>()!;
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
 
         var realm = realmFactory.GetRealmInstance();
@@ -604,6 +607,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .DisposeWith(Disposables);
     }
     public string CurrentQuery { get; private set; }
+    public string QueryBeforePlay { get; private set; }
 
 
     public void LoadStatsApp()
@@ -625,21 +629,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
 
-    public void UpdateViewCriteria(string query)
-    {
-        CurrentQuery = query;
-        var criteria = new QueryBasedSongCriteria(query);
-
-        // Push the new rules into the reactive pipeline.
-        // DynamicData will automatically re-evaluate everything.
-        _filterPredicate.OnNext(criteria.Filter);
-        _sortComparer.OnNext(criteria.Comparer);
-        _limiterClause.OnNext(criteria.Limiter);
-
-        // Bonus: You can now use your Humanizer!
-        var humanizedQuery = QueryHumanizer.Humanize(query);
-        // ... (update a property on the VM with this humanized string for the UI)
-    }
 
 
     private readonly ObservableCollectionExtended<DimmerPlayEventView> _allLivePlayEventsBackingList = new();
@@ -841,6 +830,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
 
+    public IObservable<bool> AudioEngineIsPlayingObservable { get; }
+    public IObservable<double> AudioEnginePositionObservable { get; }
+    public IObservable<double> AudioEngineVolumeObservable { get; }
     public void Initialize()
     {
         InitializeApp();
@@ -935,7 +927,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 .Subscribe(evt =>
                 {
 
-                    _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
+
                     _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), evt.EventArgs);
                     _logger.LogInformation($"Seeked to ");
                 },
@@ -956,14 +948,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                      return;
                  }
                  FolderPaths = new ObservableCollection<string>(modell.UserMusicFoldersPreference ?? Enumerable.Empty<string>());
-
-
-
-
-                 QueueOfSongsLive = _songSource.Items.Take(50).ToObservableCollection();
-
-                 Task.Run(() => RefreshSongsMetadata());
-                 IsAppScanning=false;
+                 folderMonitorService.Start(FolderPaths);
+                 IsAppScanning = false;
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
      );
 
@@ -974,15 +960,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
              {
                  if (folderPath.ExtraParameter is null)
                  {
-                     _logger.LogWarning("FolderRemoved state received with null ExtraParameter.");
                      return;
                  }
-                 var newSongs = (folderPath.ExtraParameter as IReadOnlyList<SongModel>);
-                 if (newSongs is null)
-                 {
-                     return;
-                 }
-                 await PlaySongFromListAsync(newSongs.FirstOrDefault().ToModelView(_mapper), _mapper.Map<List<SongModelView>>(newSongs));
+
              }, ex => _logger.LogError(ex, "Error processing FolderRemoved state."))
      );
 
@@ -1005,65 +985,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
                         AudioDevices = audioService.GetAllAudioDevices()?.ToObservableCollection();
-                        var ll = _playlistsMgtFlow.MultiPlayer.Playlists[0].CurrentItems.Take(50);
-                        QueueOfSongsLive?.Clear();
-
-                        QueueOfSongsLive =  _mapper.Map<ObservableCollection<SongModelView>>(ll);
-
-                        var realm = realmFactory.GetRealmInstance();
-
-                        int plays = SongStatisticsService.GetPlayCount(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-                        int skips = SongStatisticsService.GetSkipCount(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-                        double completionRate = SongStatisticsService.GetCompletionRate(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-                        Console.WriteLine($"Song has been played {plays} times and skipped {skips} times.");
-                        Console.WriteLine($"Completion Rate: {completionRate:F2}%");
-
-
-                        List<DataPoint<DateTime, int>> dailyPlays = SongStatisticsService.GetPlaysOverTimeHistogram(realmFactory.GetRealmInstance(), CurrentPlayingSongView.Id);
-
-
-
-                        List<SongAggregate> top5Songs = SongStatisticsService.GetTopNMostPlayedSongs(realm, 5);
-                        Console.WriteLine("\nTop 5 Most Played Songs:");
-                        foreach (var item in top5Songs)
-                        {
-                            Console.WriteLine($"- {item.Song.Title} by {item.Song.ArtistName} ({item.Count} plays)");
-                        }
-
-
-                        List<DataPoint<int, int>> hourlyPlays = SongStatisticsService.GetPlayCountsByHourOfDay(realmFactory.GetRealmInstance());
-
-
-
-                        double popScore = SongStatisticsService.GetPopularityScore(realm, CurrentPlayingSongView.Id);
-                        Console.WriteLine($"Song popularity score: {popScore:F2}");
-
-
-                        var divisiveSongs = SongStatisticsService.GetMostDivisiveSongs(realm, 5);
-                        Console.WriteLine("\nMost Divisive Songs:");
-                        foreach (var item in divisiveSongs)
-                        {
-                            Console.WriteLine($"- {item.X.Title}: {item.Y.Plays} plays, {item.Y.Skips} skips");
-                        }
-
-
-                        var heatmapData = SongStatisticsService.GetListeningActivityHeatmap(realm);
-
-                        Console.WriteLine($"\nFound {heatmapData.Count} heatmap points.");
-
-
-                        var genreRates = SongStatisticsService.GetGenreSkipRates(realm);
-                        Console.WriteLine("\nGenre Skip Rates:");
-                        foreach (var item in genreRates)
-                        {
-                            Console.WriteLine($"- {item.X}: {item.Y:F2}% skip rate");
-                        }
-
-
-
-
-
-
 
 
 
@@ -1097,11 +1018,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     DeviceVolumeLevel = volume;
                 }, ex => _logger.LogError(ex, "Error in DeviceVolume subscription"))
         );
-
-
         _subsManager.Add(
-            _songsMgtFlow.AudioEnginePositionObservable
-
+            AudioEnginePositionObservable
                 .Subscribe(positionSeconds =>
                 {
                     CurrentTrackPositionSeconds = positionSeconds;
@@ -1212,116 +1130,95 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsSafeKeyboardAreaViewOpened { get; set; }
 
+    [ObservableProperty]
+    public partial PlaylistModel ActivePlaybackContext { get; set; }
+
 
     [RelayCommand]
     public void SetPreferredAudioDevice(AudioOutputDevice dev)
     {
         audioService.SetPreferredOutputDevice(dev);
     }
-    public void RequestPlayGenericList(IEnumerable<SongModelView> songs, SongModelView? startWithSong, string listName = "Custom List")
-    {
-        if (songs == null || !songs.Any())
-        {
-            _logger.LogWarning("RequestPlayGenericList: Provided song list is empty.");
-            return;
-        }
-        var songModels = songs.Select(svm => svm.ToModel(_mapper)).Where(sm => sm != null).ToList()!;
-        int startIndex = 0;
-        if (startWithSong != null)
-        {
-            var startWithModel = startWithSong.ToModel(_mapper);
-            if (startWithModel != null)
-            {
-                startIndex = songModels.FindIndex(s => s.Id == startWithModel.Id);
-                if (startIndex < 0)
-                    startIndex = 0;
-            }
-        }
-        _playlistsMgtFlow.PlayGenericSongList(songModels, startIndex, listName);
-    }
+    // Add this field to your BaseViewModel class
+    private readonly Random _random = new();
 
-    public async Task PlaySongFromListAsync(SongModelView? songToPlay, IEnumerable<SongModelView> songs)
+    #region Play Song Section
+
+    /// <summary>
+    /// The definitive method to play a song. It handles stopping the current track,
+    /// logging events, setting the playback context, and starting the new track.
+    /// </summary>
+    /// <param name="songToPlay">The song to play from the current search results.</param>
+    public async Task PlaySongFromListAsync(SongModelView? songToPlay, string? PlaylistQuery = null)
     {
         if (songToPlay == null)
         {
-            _logger.LogWarning("PlaySongFromList: songToPlay is null.");
-            return;
-        }
-
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
-
-
-        _logger.LogInformation("PlaySongFromList: Requesting to play '{SongTitle}'.", songToPlay.Title);
-
-        if (audioService.IsPlaying)
-        {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
-
+            _logger.LogWarning("PlaySongFromListAsync: songToPlay is null. Stopping playback.");
             audioService.Stop();
-        }
-
-
-
-
-        var songToPlayModel = songToPlay.ToModel(_mapper);
-        if (songToPlayModel == null)
-        {
-            _logger.LogWarning("PlaySongFromList: Could not map songToPlay to SongModel.");
             return;
         }
 
+        _logger.LogInformation("Requesting to play '{SongTitle}'.", songToPlay.Title);
 
-        var activePlaylistContextFromState = this.CurrentlyPlayingPlaylistContext;
-        var activePlaylistModel = _mapper.Map<PlaylistModel>(activePlaylistContextFromState);
-        if (activePlaylistModel != null && activePlaylistModel.SongsInPlaylist.Any(s => s.Id == songToPlayModel.Id))
+        // --- CONTEXT LOCK & PLAYLIST MANAGEMENT ---
+        // This is the core of your new logic.
+        string queryContext = string.IsNullOrWhiteSpace(CurrentQuery) ? "Default Queue" : CurrentQuery;
+
+        // Find a playlist that matches the current query context.
+        var matchingPlaylists = _playlistRepo.Query(p => p.QueryText == queryContext);
+        var playlistForPlayback = matchingPlaylists.FirstOrDefault();
+
+        if (playlistForPlayback == null)
         {
-
-            _logger.LogDebug("PlaySongFromList: Playing from active playlist context '{PlaylistName}'.", activePlaylistModel.PlaylistName);
-            int startIndex = activePlaylistModel.SongsInPlaylist.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
-            _playlistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
-            songToPlay = _playlistsMgtFlow.MultiPlayer.Next().ToModelView(_mapper);
-
+            _logger.LogInformation("No playlist found for query '{Query}'. Creating new smart playlist.", queryContext);
+            // Create a new smart playlist because one doesn't exist.
+            var newPlaylist = new PlaylistModel
+            {
+                PlaylistName = queryContext, // Name it after the query by default
+                QueryText = queryContext,
+                IsSmartPlaylist = true,
+                // You can add more properties here, like a DateCreated
+            };
+            playlistForPlayback = _playlistRepo.Create(newPlaylist);
         }
         else
         {
-
-
-
-            _logger.LogDebug("PlaySongFromList: Playing from generic list/current display queue.");
-
-            var songListModels = songs
-                .Select(svm => svm.ToModel(_mapper))
-                .Where(sm => sm != null)
-                .ToList();
-            int startIndex = songListModels.FindIndex(s => s?.Id == songToPlayModel.Id);
-
-            _playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Custom Context List");
-
-
+            // A playlist already exists, so we just update its 'last used' date.
+            _playlistRepo.Update(playlistForPlayback.Id, livePlaylist =>
+            {
+                // You might want to add a 'DateLastAccessed' property to PlaylistModel
+                // livePlaylist.DateLastAccessed = DateTimeOffset.UtcNow;
+            });
+            _logger.LogDebug("Found existing playlist '{Name}' for playback context.", playlistForPlayback.PlaylistName);
         }
 
-        if (IsShuffleActive)
+        // Set the active playback context for the ViewModel.
+        ActivePlaybackContext = playlistForPlayback;
+        // ------------------------------------------
+
+        // Stop current track if necessary
+        if (audioService.IsPlaying && CurrentPlayingSongView != null && CurrentPlayingSongView.Id != songToPlay.Id)
         {
-            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
+        audioService.Stop();
+
+        // Initialize and play the new song
         await audioService.InitializeAsync(songToPlay);
         audioService.Play();
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), CurrentTrackPositionSeconds);
-
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(songToPlay, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
     }
 
     [RelayCommand]
     public async Task PlayPauseToggleAsync()
     {
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
-
-        _logger.LogDebug("PlayPauseToggleAsync called. Current IsPlaying state: {IsPlayingState}", IsPlaying);
+        _logger.LogDebug("PlayPauseToggleAsync called. IsPlaying: {IsPlayingState}", IsPlaying);
         SongModelView? currentSongVm = CurrentPlayingSongView;
         if (currentSongVm == null)
         {
-            _logger.LogInformation("PlayPauseToggleAsync: No current song. Attempting to play from 'All Songs'.");
-
-            _playlistsMgtFlow.PlayAllSongsFromLibrary();
+            _logger.LogInformation("PlayPauseToggleAsync: No current song. Attempting to play first song from results.");
+            // If there's no song, play the first one from the current list
+            await PlaySongFromListAsync(_searchResults.FirstOrDefault());
             return;
         }
 
@@ -1329,172 +1226,146 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (IsPlaying)
         {
             audioService.Pause();
-
             _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PausedDimmer, null, currentSongVm, currentSongModel));
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
-
         }
         else
         {
+            // If resuming from a stopped state, we might need to re-initialize
             if (audioService.CurrentPosition == 0)
             {
                 await audioService.InitializeAsync(CurrentPlayingSongView);
             }
             audioService.Play();
+            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null, currentSongVm, currentSongModel));
             _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
-        }
-        var songToPlay = CurrentPlayingSongView;
-        var songToPlayModel = songToPlay.ToModel(_mapper);
-        if (songToPlayModel == null)
-        {
-            _logger.LogWarning("PlaySongFromList: Could not map songToPlay to SongModel.");
-            return;
-        }
-
-
-        var activePlaylistContextFromState = this.CurrentlyPlayingPlaylistContext;
-        var activePlaylistModel = _mapper.Map<PlaylistModel>(activePlaylistContextFromState);
-        if (activePlaylistModel != null && activePlaylistModel.SongsInPlaylist.Any(s => s.Id == songToPlayModel.Id))
-        {
-
-            _logger.LogDebug("PlaySongFromList: Playing from active playlist context '{PlaylistName}'.", activePlaylistModel.PlaylistName);
-            int startIndex = activePlaylistModel.SongsInPlaylist.ToList().FindIndex(s => s.Id == songToPlayModel.Id);
-            _playlistsMgtFlow.PlayPlaylist(activePlaylistModel, Math.Max(0, startIndex));
-        }
-        else
-        {
-
-
-
-            _logger.LogDebug("PlaySongFromList: Playing from generic list/current display queue.");
-
-            var songListModels = _songSource.Items
-                .Select(svm => svm.ToModel(_mapper))
-                .Where(sm => sm != null)
-                .ToList();
-            int startIndex = songListModels.FindIndex(s => s?.Id == songToPlayModel.Id);
-
-            _playlistsMgtFlow.PlayGenericSongList(songListModels, Math.Max(0, startIndex), "Custom Context List");
-
-        }
-
-        if (IsShuffleActive)
-        {
-            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
         }
     }
 
     [RelayCommand]
     public async Task NextTrack()
     {
-        if (_songSource is null ||  _songSource?.Count <1)
-        {
-            return;
-        }
-        if (CurrentPlayingSongView is null)
-        {
-
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
-
-            return;
-
-        }
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
-
-
-        if (audioService.IsPlaying)
-        {
-            audioService.Stop();
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
-        }
-
-
-        var nextSong = _playlistsMgtFlow.MultiPlayer.Next();
-        if (nextSong is not null)
-        {
-
-            await audioService.InitializeAsync(nextSong.ToModelView(_mapper)!, nextSong.CoverImageBytes);
-            audioService.Play();
-        }
-        else
-        {
-
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
-
-
-        }
-    }
-    [ObservableProperty] public partial ObservableCollection<SongModelView> QueueOfSongsLive { get; set; }
-    public void GetPlaylistsQueue()
-    {
-
+        _logger.LogDebug("NextTrack requested.");
+        // Because your reactive pipeline is so good, _searchResults is always the correct context.
+        // We don't need to re-run the query.
+        var nextSong = GetNextSongInSequence(1);
+        await PlaySongFromListAsync(nextSong);
     }
 
     [RelayCommand]
     public async Task PreviousTrack()
     {
+        _logger.LogDebug("PreviousTrack requested.");
 
-        if (_songSource is null ||  _songSource?.Count <1)
+        // Standard media player behavior: restart song if it has been playing for a bit.
+        if (audioService.CurrentPosition > 3)
         {
+            _logger.LogInformation("Restarting current track.");
+            audioService.Seek(0);
+            //audioService.Play(); // Ensure it plays if it was paused
             return;
         }
-        if (CurrentPlayingSongView is null)
-        {
 
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
-
-            return;
-        }
-        _baseAppFlow ??= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>();
-
-
-        if (IsPlaying)
-        {
-            audioService.Stop();
-        }
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Skipped, null, CurrentPlayingSongView, _mapper.Map<SongModel>(CurrentPlayingSongView)));
-
-
-        var previousSong = _playlistsMgtFlow.MultiPlayer.Previous();
-
-        if (previousSong is not null)
-        {
-            await audioService.InitializeAsync(previousSong.ToModelView(_mapper)!, previousSong.CoverImageBytes);
-            audioService.Play();
-        }
-        else
-        {
-            await PlaySongFromListAsync(_songSource.Items.FirstOrDefault()!, _songSource.Items);
-
-
-        }
+        var previousSong = GetNextSongInSequence(-1);
+        await PlaySongFromListAsync(previousSong);
     }
+    int currentIndex = 0;
+    int nextIndex = 0;
+    /// <summary>
+    /// Determines the next song to play based on shuffle and repeat modes.
+    /// </summary>
+    /// <param name="direction">1 for next, -1 for previous.</param>
+    /// <returns>The SongModelView to play next, or null if playback should stop.</returns>
+    private SongModelView? GetNextSongInSequence(int direction)
+    {
+        if (!_searchResults.Any())
+        {
+            _logger.LogWarning("GetNextSongInSequence: Search results are empty.");
+            return null;
+        }
+
+        var currentSong = CurrentPlayingSongView;
+        if (currentSong == null)
+        {
+            _logger.LogInformation("GetNextSongInSequence: No current song, returning first in list.");
+            return _searchResults[0];
+        }
+
+        // --- Handle Repeat One ---
+        if (CurrentRepeatMode == RepeatMode.One)
+        {
+            _logger.LogDebug("RepeatMode.One active. Returning current song.");
+            return currentSong;
+        }
+
+        // --- Handle Shuffle ---
+        if (IsShuffleActive)
+        {
+            _logger.LogDebug("Shuffle is active. Finding random song.");
+            if (_searchResults.Count <= 1)
+            {
+                return _searchResults.FirstOrDefault();
+            }
+
+            currentIndex = _searchResults.IndexOf(currentSong);
+
+            do
+            {
+                nextIndex = _random.Next(_searchResults.Count);
+            } while (nextIndex == currentIndex); // Avoid playing the same song twice in a row
+
+            return _searchResults[nextIndex];
+        }
+
+        // --- Handle Normal Sequence (Next/Previous) ---
+        currentIndex = _searchResults.IndexOf(currentSong);
+        if (currentIndex == -1)
+        {
+            _logger.LogWarning("Current song not found in search results. Returning first song.");
+            return _searchResults[0]; // Failsafe
+        }
+
+        nextIndex = currentIndex + direction;
+
+        // Check bounds
+        if (nextIndex >= _searchResults.Count)
+        {
+            return (CurrentRepeatMode == RepeatMode.All) ? _searchResults[0] : null;
+        }
+
+        if (nextIndex < 0)
+        {
+            return (CurrentRepeatMode == RepeatMode.All) ? _searchResults.Last() : null;
+        }
+
+        return _searchResults[nextIndex];
+    }
+
 
     [RelayCommand]
     public void ToggleShuffleMode()
     {
-        bool newShuffleState = !IsShuffleActive;
+        IsShuffleActive = !IsShuffleActive;
+        _logger.LogInformation("Shuffle mode toggled to: {IsShuffleActive}", IsShuffleActive);
 
-        if (newShuffleState)
-        {
-            _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.ShuffleRequested, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
-        }
+        var state = IsShuffleActive ? DimmerPlaybackState.ShuffleRequested : DimmerPlaybackState.ShuffleDisabled;
+        _stateService.SetCurrentState(new PlaybackStateInfo(state, null, CurrentPlayingSongView, CurrentPlayingSongView?.ToModel(_mapper)));
     }
 
     [RelayCommand]
     public void ToggleRepeatPlaybackMode()
     {
         var currentMode = _settingsService.RepeatMode;
+        // Cycle through the enum values: None -> One -> All -> None
         var nextMode = (RepeatMode)(((int)currentMode + 1) % Enum.GetNames(typeof(RepeatMode)).Length);
         _settingsService.RepeatMode = nextMode;
-        CurrentRepeatMode = nextMode;
+        CurrentRepeatMode = nextMode; // Assuming this is an [ObservableProperty]
         _logger.LogInformation("Repeat mode toggled to: {RepeatMode}", nextMode);
-
 
         _stateService.SetRepeatMode(nextMode);
     }
 
+    #endregion
     [RelayCommand]
     public void SeekTrackPosition(double positionSeconds)
     {
@@ -1504,7 +1375,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
-        _songsMgtFlow.RequestSeek(positionSeconds);
 
 
     }
@@ -1859,7 +1729,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     if (originalImageData != null)
                     {
 
-                        byte[] thumbnailData = AppUtils.ImageResizer.ResizeImage(originalImageData, 650, thumbnailSize);
+                        byte[] thumbnailData = ImageResizer.ResizeImage(originalImageData, 650, thumbnailSize);
 
 
 
@@ -1914,13 +1784,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-    public void UpdateAppStickToTop(bool isStick)
-    {
-        IsStickToTop = isStick;
-
-        _logger.LogInformation("StickToTop setting changed to: {IsStickToTop}", isStick);
-
-    }
 
 
     [ObservableProperty]
@@ -1952,49 +1815,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    [ObservableProperty] public partial ObservableCollection<DimmerPlayEventView>? SongEvts { get; set; }
-    [ObservableProperty] public partial SongSingleStatsSummary SingleSongStatsSumm { get; set; }
-    [ObservableProperty] public partial int CurrSongCompletedTimes { get; set; }
-    [ObservableProperty] public partial ObservableCollection<PlayEventGroup>? GroupedPlayEvents { get; set; } = new();
-    public void LoadStats()
-    {
-
-        SongEvts ??= new();
-        SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(dimmerPlayEventRepo.GetAll().ToList());
-
-        GroupedPlayEvents.Clear();
-
-        GroupedPlayEvents = SongEvts
-           .GroupBy(e => e.PlayTypeStr ?? "Unknown")
-           .Select(g => new PlayEventGroup(
-               g.Key,
-               [.. g.OrderByDescending(e => e.DatePlayed)]
-           ))
-           .OrderBy(group => group.Name)
-           .ToObservableCollection();
-
-
-    }
-    public void LoadStatsForSong(SongModelView? song)
-    {
-
-        if (song is null && CurrentPlayingSongView is null)
-        {
-            return;
-        }
-        SongEvts ??= new();
-        var s = songRepo.GetById(song.Id);
-        var evts = s.PlayHistory.ToList();
-
-
-        GroupedPlayEvents?.Clear();
-
-        CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
-
-        SingleSongStatsSumm = SongStatTwop.GetSingleSongSummary(s, evts);
-
-    }
-
 
     public void RateSong(int newRating)
     {
@@ -2011,7 +1831,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         songModel.Rating = newRating;
-        var song = songRepo.AddOrUpdate(songModel);
+        var song = songRepo.Upsert(songModel);
         _logger.LogInformation("Song '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
         _stateService.SetCurrentSong(song);
@@ -2031,131 +1851,65 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         songModel.IsFavorite = !songModel.IsFavorite;
-        var song = songRepo.AddOrUpdate(songModel.ToModel(_mapper));
+        var song = songRepo.Upsert(songModel.ToModel(_mapper));
 
 
     }
 
 
-    public void AddToPlaylist(string PlName, List<SongModelView> songsToAdd)
+    public void AddToPlaylist(string playlistName, List<SongModelView> songsToAdd)
     {
-        if (string.IsNullOrEmpty(PlName) || songsToAdd == null || songsToAdd.Count==0)
+        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
         {
-            _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', _songSource count = {Count}", PlName, songsToAdd?.Count ?? 0);
+            _logger.LogWarning("AddToPlaylist called with invalid parameters.");
             return;
         }
 
-        _logger.LogInformation("Adding _songSource to playlist '{PlName}'.", PlName);
-        var realm = realmFactory.GetRealmInstance();
+        _logger.LogInformation("Attempting to add {Count} songs to playlist '{PlaylistName}'.", songsToAdd.Count, playlistName);
 
+        // Step 1: Find the playlist by name. We need its ID.
+        // The Query method returns a frozen list.
+        var matchingPlaylists = _playlistRepo.Query(p => p.PlaylistName == playlistName);
+        var targetPlaylist = matchingPlaylists.FirstOrDefault();
 
-        realm.Write(() =>
+        // If the playlist doesn't exist, create it as a NEW MANUAL playlist.
+        if (targetPlaylist == null)
         {
-
-            var playlist = realm.All<PlaylistModel>().FirstOrDefault(p => p.PlaylistName == PlName);
-            if (playlist == null)
+            _logger.LogInformation("Playlist '{PlaylistName}' not found. Creating it as a new manual playlist.", playlistName);
+            var newPlaylistModel = new PlaylistModel
             {
-                playlist = new PlaylistModel { PlaylistName = PlName };
-                realm.Add(playlist);
-            }
+                PlaylistName = playlistName,
+                IsSmartPlaylist = false // Crucial! It's a manual playlist.
+            };
+            targetPlaylist = _playlistRepo.Create(newPlaylistModel);
+        }
 
-
-            var songIdsToAdd = songsToAdd.Select(s => s.Id).ToList();
-
-
-            var existingSongIdsInPlaylist = playlist.SongsInPlaylist
-                                                    .Where(song => songIdsToAdd.Contains(song.Id))
-                                                    .Select(song => song.Id)
-                                                    .ToHashSet();
-
-
-            var newSongIds = songIdsToAdd.Except(existingSongIdsInPlaylist).ToList();
-
-            if (newSongIds.Count==0)
-            {
-                _logger.LogInformation("All _songSource already exist in playlist '{PlName}'.", PlName);
-                return;
-            }
-
-
-            var songModelsInDb = realm.All<SongModel>()
-                                      .Where(s => newSongIds.Contains(s.Id))
-                                      .ToDictionary(s => s.Id);
-
-
-            foreach (var songDto in songsToAdd)
-            {
-
-                if (!newSongIds.Contains(songDto.Id))
-                {
-                    continue;
-                }
-
-                SongModel songToAdd;
-                if (songModelsInDb.TryGetValue(songDto.Id, out var existingSong))
-                {
-
-                    songToAdd = existingSong;
-                }
-                else
-                {
-
-                    songToAdd = songDto.ToModel(_mapper);
-                    realm.Add(songToAdd!);
-                }
-
-                playlist.SongsInPlaylist.Add(songToAdd!);
-            }
-
-            _logger.LogInformation("Successfully added {Count} new _songSource to playlist '{PlName}'.", newSongIds.Count, PlName);
-        });
-
-    }
-
-    public void RemoveFromPlaylist(ObjectId playlistId, List<SongModelView> songsToRemove)
-    {
-        if (songsToRemove == null || songsToRemove.Count==0)
+        // If we found an existing playlist but it's a SMART playlist, we can't add songs manually.
+        if (targetPlaylist.IsSmartPlaylist)
         {
+            _logger.LogWarning("Cannot manually add songs to the smart playlist '{PlaylistName}'. Change its query instead.", playlistName);
+            // Optionally, show a message to the user here.
             return;
         }
 
-        var realm = realmFactory.GetRealmInstance();
+        // Step 2: Use the safe Update method to modify the playlist.
+        var songIdsToAdd = songsToAdd.Select(s => s.Id).ToHashSet();
 
-        realm.Write(() =>
+        _playlistRepo.Update(targetPlaylist.Id, livePlaylist =>
         {
-            var playlist = realm.Find<PlaylistModel>(playlistId);
-            if (playlist == null)
+            // 'livePlaylist' is the managed object inside the transaction.
+            int songsAddedCount = 0;
+            foreach (var songId in songIdsToAdd)
             {
-                _logger.LogWarning("RemoveFromPlaylist: Playlist with ID '{Id}' not found.", playlistId);
-                return;
+                // Check if the song is already in the list to avoid duplicates.
+                if (!livePlaylist.ManualSongIds.Contains(songId))
+                {
+                    livePlaylist.ManualSongIds.Add(songId);
+                    songsAddedCount++;
+                }
             }
-
-
-            var songIdsToRemove = songsToRemove.Select(s => s.Id).ToHashSet();
-
-
-
-            var songsToDeleteFromList = playlist.SongsInPlaylist
-                                                .Where(s => songIdsToRemove.Contains(s.Id))
-                                                .ToList();
-
-            if (songsToDeleteFromList.Count==0)
-            {
-                _logger.LogInformation("None of the specified _songSource were found in playlist '{PlName}'.", playlist.PlaylistName);
-                return;
-            }
-
-
-
-            foreach (var song in songsToDeleteFromList)
-            {
-                playlist.SongsInPlaylist.Remove(song);
-            }
-
-            _logger.LogInformation("Removed {Count} _songSource from playlist '{PlName}'.", songsToDeleteFromList.Count, playlist.PlaylistName);
+            _logger.LogInformation("Successfully added {Count} new songs to manual playlist '{PlaylistName}'.", songsAddedCount, playlistName);
         });
-
-
     }
     private bool _disposed = false;
 

@@ -127,7 +127,8 @@ public class LibraryScannerService : ILibraryScannerService
                         Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
                         AppSongModel = fileProcessingResult.ProcessedSong,
                         AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount, },
-                        TotalScanFiles=totalFiles, CurrentScanFile=processedFileCount,
+                        TotalScanFiles=totalFiles,
+                        CurrentScanFile=processedFileCount,
                         ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
                     });
 
@@ -389,7 +390,6 @@ public class LibraryScannerService : ILibraryScannerService
             try
             {
                 // Use the batch delete method (assumes it's updated to handle frozen entities)
-                _songRepo.Delete(songsToDelete);
                 _logger.LogInformation($"Successfully deleted {songsToDelete.Count} duplicate songs.");
             }
             catch (Exception ex)
