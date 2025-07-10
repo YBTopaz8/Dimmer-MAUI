@@ -49,10 +49,10 @@ public partial class LyricPhraseModelView : ObservableObject
         if (phrase != null)
         {
 
-            TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromMilliseconds(phrase.TimestampMs));
-            TimeStampMs = phrase.TimestampMs;
+            TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromMilliseconds(phrase.TimestampEnd));
+            TimeStampMs = phrase.TimestampEnd;
             Text = phrase.Text;
-            DurationMs = (nextPhraseTimestampMs ?? phrase.TimestampMs) - phrase.TimestampMs;
+            DurationMs = (nextPhraseTimestampMs ?? phrase.TimestampEnd) - phrase.TimestampEnd;
 
             if (!nextPhraseTimestampMs.HasValue)
             {

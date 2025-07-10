@@ -1047,7 +1047,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     {
                         return;
                     }
-                    if (!IsPlaying && CurrentPlayingSongView.Id==evt.EventArgs.MediaSong.Id)
+                    if (IsPlaying && CurrentPlayingSongView.Id==evt.EventArgs.MediaSong.Id)
                     {
                         _baseAppFlow.UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
                     }
@@ -1079,7 +1079,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         _baseAppFlow.UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
 
                     }
-                    if (IsPlaying && audioService.CurrentPosition > 0)
+                    if (!IsPlaying && audioService.CurrentPosition > 0)
                     {
                         _baseAppFlow.UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
                     }
@@ -1111,7 +1111,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         _subsManager.Add(
-            _songsMgtFlow.AudioEnginePositionObservable
+            AudioEnginePositionObservable
 
                 .Subscribe(positionSeconds =>
                 {

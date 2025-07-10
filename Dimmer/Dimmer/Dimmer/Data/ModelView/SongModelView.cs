@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿using static ATL.LyricsInfo;
+
+namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
@@ -59,7 +61,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string CoverImagePath { get; set; } = "musicnoteslider.png";
     [ObservableProperty]
-    public partial string UnSyncLyrics { get; set; } = string.Empty;
+    public partial string? UnSyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
@@ -192,7 +194,36 @@ public class SyncLyricsView
 {
     public int TimestampMs { get; set; }
     public string Text { get; set; }
+    /// <summary>
+    /// Start timestamp of the phrase, in milliseconds
+    /// </summary>
+    public int TimestampStart { get; }
+    /// <summary>
+    /// End timestamp of the phrase, in milliseconds
+    /// </summary>
+    public int TimestampEnd { get; set; }
+    /// <summary>
+    /// Text
+    /// </summary>
+    public List<LyricsPhrase> Beats { get; }
 
+
+    public bool IsLyricSynced { get; set; }
+
+    // Constructor that accepts a LyricsInfo.LyricsPhrase object
+    public SyncLyricsView(LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
+    {
+
+        if (phrase != null)
+        {
+
+            TimestampStart = phrase.TimestampStart;
+            TimestampEnd = phrase.TimestampEnd;
+            Text = phrase.Text;
+
+
+        }
+    }
     public SyncLyricsView(int timestampMs, string text)
     {
         TimestampMs = timestampMs;

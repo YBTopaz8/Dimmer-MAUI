@@ -104,10 +104,10 @@ public static class SongDataProcessor
 
                          // First, try to get from local file metadata using ATL (our original fast path)
                          var track = new Track(song.FilePath);
-                         if (!string.IsNullOrWhiteSpace(track.Lyrics?.UnsynchronizedLyrics) || (track.Lyrics?.SynchronizedLyrics?.Any() ?? false))
+                         if (!string.IsNullOrWhiteSpace(track.Lyrics?.First().UnsynchronizedLyrics) || (track.Lyrics?.First().SynchronizedLyrics?.Any() ?? false))
                          {
                              // If found, format it into LRC data string.
-                             fetchedLrcData = track.Lyrics.FormatSynchToLRC();
+                             fetchedLrcData = track.Lyrics.First().FormatSynch();
                          }
                          else
                          {
@@ -122,7 +122,7 @@ public static class SongDataProcessor
                          {
                              // A. Parse the LRC data into ATL's structure
                              var newLyricsInfo = new LyricsInfo();
-                             newLyricsInfo.ParseLRC(fetchedLrcData);
+                             newLyricsInfo.Parse(fetchedLrcData);
 
                              // B. Save the fetched lyrics BACK TO THE FILE'S METADATA
 
@@ -139,11 +139,11 @@ public static class SongDataProcessor
                                      song.SyncLyrics= newLyricsInfo.SynchronizedLyrics.Any() ? newLyricsInfo.SynchronizedLyrics.ToString()! : string.Empty;
                                      foreach (var phrase in newLyricsInfo.SynchronizedLyrics)
                                      {
-                                         song.EmbeddedSync.Add(new SyncLyricsView(phrase.TimestampMs, phrase.Text));
+                                         song.EmbeddedSync.Add(new SyncLyricsView(phrase));
                                      }
                                  });
                                  var fileToUpdate = new Track(song.FilePath);
-                                 fileToUpdate.Lyrics = newLyricsInfo;
+                                 fileToUpdate.Lyrics.Add(newLyricsInfo);
                                  fileToUpdate.Save(); // Persist the changes!
 
 

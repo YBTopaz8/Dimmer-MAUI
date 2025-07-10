@@ -169,8 +169,8 @@ public class LyricsMgtFlow : IDisposable
             _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
 
             Track songFile = new Track(song.FilePath);
-            songFile.Lyrics.ParseLRC(lyrr);
-            
+            songFile.Lyrics[0].Parse(lyrr);
+
         }
         catch (Exception ex)
         {

@@ -8,6 +8,7 @@ public static class AutoMapperConf
 {
     public static IMapper ConfigureAutoMapper()
     {
+
         var config = new MapperConfiguration(cfg =>
         {
             // =====================================================================

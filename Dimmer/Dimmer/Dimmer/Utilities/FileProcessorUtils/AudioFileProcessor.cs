@@ -123,9 +123,9 @@ public class AudioFileProcessor : IAudioFileProcessor
             DiscTotal = track.DiscTotal,
             Description= track.Description ?? string.Empty,
             Language = track.Language ?? string.Empty,
-            HasLyrics = !string.IsNullOrWhiteSpace(track.Lyrics?.UnsynchronizedLyrics),
-            UnSyncLyrics = track.Lyrics?.UnsynchronizedLyrics,
-            HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
+            HasLyrics = !string.IsNullOrWhiteSpace(track.Lyrics?[0].UnsynchronizedLyrics),
+            UnSyncLyrics = track.Lyrics?[0].UnsynchronizedLyrics,
+            HasSyncedLyrics = track.Lyrics?[0].SynchronizedLyrics?.Any() ?? false,
             Conductor= track.Conductor ?? string.Empty,
             Id= ObjectId.GenerateNewId()
             ,
@@ -145,9 +145,9 @@ public class AudioFileProcessor : IAudioFileProcessor
         if (song.HasSyncedLyrics)
         {
             // Basic to string, real app might parse into a structured format or just store raw
-            foreach (var item in track.Lyrics.SynchronizedLyrics)
+            foreach (var item in track.Lyrics[0].SynchronizedLyrics)
             {
-                song.EmbeddedSync.Add(new SyncLyricsView(item.TimestampMs, item.Text));
+                song.EmbeddedSync.Add(new SyncLyricsView(item));
             }
 
         }

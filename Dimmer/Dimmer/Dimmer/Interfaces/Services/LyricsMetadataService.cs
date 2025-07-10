@@ -57,8 +57,8 @@ public class LyricsMetadataService : ILyricsMetadataService
         {
             var tagFile = new Track(songPath);
 
-            tagFile.Lyrics.SynchronizedLyrics?.ToString(); // Ensure the lyrics are loaded
-                                                           // TagLib-Sharp stores synchronized lyrics in the USLT frame's "Description" field.
+            tagFile.Lyrics[0].SynchronizedLyrics?.ToString(); // Ensure the lyrics are loaded
+                                                              // TagLib-Sharp stores synchronized lyrics in the USLT frame's "Description" field.
 
 
         }
@@ -171,7 +171,7 @@ public class LyricsMetadataService : ILyricsMetadataService
                     {
                         var syncLyrics = new SyncLyrics
                         {
-                            TimestampMs = lyr.TimestampMs,
+                            TimestampMs = lyr.TimestampEnd,
                             Text = lyr.Text
                         };
                         songModel.EmbeddedSync.Add(syncLyrics);

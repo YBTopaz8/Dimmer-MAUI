@@ -54,7 +54,7 @@
 
   <ItemGroup>
     <!-- Dimmer Dependencies -->
-    <PackageReference Include="AutoMapper" Version="15.0.0" />
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.8" />
     <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.8" />
     <PackageReference Include="DevExpress.Maui.Core" Version="24.2.8" />
