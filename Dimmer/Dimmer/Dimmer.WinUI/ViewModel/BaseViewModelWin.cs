@@ -24,7 +24,6 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IFolderPicker folderPicker;
     private readonly IWindowManagerService windowManager;
     private readonly IDimmerAudioService audioService;
-    private readonly PlayListMgtFlow playlistsMgtFlow;
     private readonly SongsMgtFlow songsMgtFlow;
     private readonly IDimmerStateService stateService;
     private readonly ISettingsService settingsService;
@@ -39,16 +38,15 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IWindowManagerService winMgrService;
 
     public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IWindowManagerService windMgr, IDimmerLiveStateService dimmerLiveStateService,
-        IDimmerAudioService _audioService, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow,
+        IDimmerAudioService _audioService, AlbumsMgtFlow albumsMgtFlow, SongsMgtFlow songsMgtFlow,
         IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow,
-        IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepo, artistRepo, albumModel, genreModel, logger)
+        IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, _audioService, albumsMgtFlow, songsMgtFlow, stateService, settingsService, subsManager, lyricsMgtFlow, folderMgtService, songRepo, artistRepo, albumModel, genreModel, logger)
     {
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.albumsMgtFlow=albumsMgtFlow;
         audioService=_audioService;
-        this.playlistsMgtFlow=playlistsMgtFlow;
         this.songsMgtFlow=songsMgtFlow;
         this.stateService=stateService;
         this.settingsService=settingsService;

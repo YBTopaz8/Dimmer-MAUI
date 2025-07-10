@@ -31,7 +31,6 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     private readonly AlbumsMgtFlow albumsMgtFlow;
     private readonly IFolderPicker folderPicker;
     private readonly IAnimationService animService;
-    private readonly PlayListMgtFlow playlistsMgtFlow;
     private readonly SongsMgtFlow songsMgtFlow;
     private readonly IDimmerStateService stateService;
     private readonly ISettingsService settingsService;
@@ -60,7 +59,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker, IAnimationService animService,
-       IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
+       IDimmerAudioService _audioService, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
         baseVM = baseViewModel; // Store the BaseViewModel reference if needed
@@ -71,7 +70,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.folderPicker=folderPicker;
         this.animService=animService;
         audioService=_audioService;
-        this.playlistsMgtFlow=playlistsMgtFlow;
         this.songsMgtFlow=songsMgtFlow;
         this.stateService=stateService;
         this.settingsService=settingsService;
@@ -86,7 +84,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
         // mapper and stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
-        this.playlistsMgtFlow=playlistsMgtFlow;
 
 
         isAppBooting=true;

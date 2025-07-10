@@ -100,11 +100,11 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        MyViewModel.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.PlaySong(song);
     }
 
     private void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)

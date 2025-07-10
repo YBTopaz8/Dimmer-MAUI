@@ -93,8 +93,12 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 
     // This is a "setter" method that should ALWAYS be used to set the title or duration
     // to ensure the key is updated correctly.
-    public void SetTitleAndDuration(string title, double duration)
+    public void SetTitleAndDuration(string? title, double duration)
     {
+        if (title is null)
+        {
+            return;
+        }
         Title = title;
         DurationInSeconds = duration;
         TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";

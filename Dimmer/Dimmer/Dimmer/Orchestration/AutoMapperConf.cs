@@ -61,7 +61,7 @@ public static class AutoMapperConf
                .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
                .ForMember(dest => dest.Tags, opt => opt.Ignore())
                .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
-               .ForMember(dest => dest.Playlists, opt => opt.Ignore());
+               ;
 
             // Self-map for any other types you might need to copy.
             cfg.CreateMap<AppStateModel, AppStateModel>();

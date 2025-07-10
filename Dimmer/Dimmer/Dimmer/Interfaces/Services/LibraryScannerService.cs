@@ -90,15 +90,10 @@ public class LibraryScannerService : ILibraryScannerService
             var existingGenres = _mapper.Map<List<GenreModelView>>(realm.All<GenreModel>().ToList());
             var existingSongs = _mapper.Map<List<SongModelView>>(realm.All<SongModel>().ToList());
 
-            _logger.LogDebug("Loading existing metadata from database...");
-            var existingArtists = _mapper.Map<List<ArtistModelView>>(realm.All<ArtistModel>().ToList());
-            var existingAlbums = _mapper.Map<List<AlbumModelView>>(realm.All<AlbumModel>().ToList());
-            var existingGenres = _mapper.Map<List<GenreModelView>>(realm.All<GenreModel>().ToList());
-            var existingSongs = _mapper.Map<List<SongModelView>>(realm.All<SongModel>().ToList());
             _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
                 existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
 
-            currentScanMetadataService.LoadExistingData(unmanagedArtists, unmanagedAlbums, unmanagedGenres, unmanagedSongs);
+            currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
 
             int totalFiles = allFiles.Count;
             int processedFileCount = 0;
@@ -137,10 +132,6 @@ public class LibraryScannerService : ILibraryScannerService
             }
             _logger.LogInformation("File processing complete. Consolidating metadata changes.");
 
-            IReadOnlyList<SongModel> newOrUpdatedSongs = _mapper.Map<IReadOnlyList<SongModel>>(currentScanMetadataService.GetAllSongs());
-            IReadOnlyList<ArtistModel> newOrUpdatedArtists = _mapper.Map<IReadOnlyList<ArtistModel>>(currentScanMetadataService.GetAllArtists());
-            IReadOnlyList<AlbumModel> newOrUpdatedAlbums = _mapper.Map<IReadOnlyList<AlbumModel>>(currentScanMetadataService.GetAllAlbums());
-            IReadOnlyList<GenreModel> newOrUpdatedGenres = _mapper.Map<IReadOnlyList<GenreModel>>(currentScanMetadataService.GetAllGenres());
 
             IReadOnlyList<SongModelView> newOrUpdatedSongs = currentScanMetadataService.GetAllSongs().Where(s => s.IsNew).ToList();
             IReadOnlyList<ArtistModelView> newOrUpdatedArtists = currentScanMetadataService.GetAllArtists().Where(a => a.IsNew).ToList();
@@ -205,9 +196,9 @@ public class LibraryScannerService : ILibraryScannerService
 
                             // Link Artists
                             songToPersist.ArtistToSong.Clear();
-                            if (incomingSongView.ArtistIds != null)
+                            if (incomingSongView.ArtistToSong != null)
                             {
-                                foreach (var artistView in incomingSongView.ArtistIds)
+                                foreach (var artistView in incomingSongView.ArtistToSong)
                                 {
                                     var managedArtist = realmb.Find<ArtistModel>(artistView.Id);
                                     if (managedArtist != null)

@@ -42,12 +42,12 @@ public partial class ArtistsPage : ContentPage
     {
 
     }
-    private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
 
-        await MyViewModel.PlaySongFromListAsync(song, MyViewModel.CurrentQuery);
+        MyViewModel.PlaySong(song);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;

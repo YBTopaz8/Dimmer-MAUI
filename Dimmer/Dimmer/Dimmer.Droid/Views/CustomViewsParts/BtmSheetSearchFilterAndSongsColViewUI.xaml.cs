@@ -80,10 +80,10 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
-    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        MyViewModel.BaseVM.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.BaseVM.PlaySong(song);
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
         //DetailView.IsVisible=true;

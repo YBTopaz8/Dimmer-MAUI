@@ -327,7 +327,7 @@ public class BaseAppFlow : IDisposable
         _subscriptions.Add(
             _state.CurrentPlayBackState
                 .Where(psi => psi.State == DimmerPlaybackState.FolderRemoved && psi.ExtraParameter is string)
-                .Subscribe( folderPath =>
+                .Subscribe(folderPath =>
                 {
                     if (folderPath == null)
                         return;
@@ -373,6 +373,10 @@ public class BaseAppFlow : IDisposable
 
     public void UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType? type, double? position = null)
     {
+        if (type ==PlayType.Pause)
+        {
+
+        }
         if (type is null)
         {
             return;
@@ -388,11 +392,6 @@ public class BaseAppFlow : IDisposable
                 songObjectId = songView.Id;
             }
 
-            if ((songObjectId == null || songObjectId == default(ObjectId)) && type < PlayType.LogEvent)
-            {
-                _logger.LogError("UpdateDatabaseWithPlayEvent: SongView for PlayType {PlayType} has no valid ObjectId. Event not linked to song history.", type);
-
-            }
         }
 
         try

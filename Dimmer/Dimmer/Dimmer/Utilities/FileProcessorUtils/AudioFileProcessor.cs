@@ -133,11 +133,11 @@ public class AudioFileProcessor : IAudioFileProcessor
         };
         foreach (var id in artists)
         {
-            if (song.ArtistIds is null)
+            if (song.ArtistToSong is null)
             {
-                song.ArtistIds =new();
+                song.ArtistToSong =new();
 
-                song.ArtistIds.Add(id);
+                song.ArtistToSong.Add(id);
             }
         }
 

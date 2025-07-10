@@ -28,26 +28,24 @@ public partial class ArtistsPage : ContentPage
         MyViewModel.BaseVM.ViewArtistDetails(s);
 
     }
-    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        MyViewModel.BaseVM.PlaySongFromList(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.BaseVM.PlaySong(song);
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync("..");
     }
-    private async void PlayAll_Clicked(object sender, EventArgs e)
+    private void PlayAll_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.BaseVM.PlaySongFromList(MyViewModel.BaseVM.SearchResults.FirstOrDefault(), MyViewModel.BaseVM.SearchResults);
+        MyViewModel.BaseVM.PlaySong(MyViewModel.BaseVM.SearchResults.FirstOrDefault());
     }
-    private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        var ee = SongsColView.ItemsSource as IEnumerable<SongModelView>;
-        songsToDisplay =ee.ToObservableCollection();
-        MyViewModel.BaseVM.PlaySongFromList(song, ee);
+        MyViewModel.BaseVM.PlaySong(song);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -71,7 +69,7 @@ public partial class ArtistsPage : ContentPage
 
             if (token.IsCancellationRequested)
                 return;
-            await SearchSongsAsync(txt, token);
+            SearchSongsAsync(txt, token);
 
         }
         catch (OperationCanceledException ex)
@@ -105,7 +103,7 @@ public partial class ArtistsPage : ContentPage
     }
 
     ObservableCollection<SongModelView> songsToDisplay = new();
-    private async Task SearchSongsAsync(string? searchText, CancellationToken token)
+    private void SearchSongsAsync(string? searchText, CancellationToken token)
     {
 
     }

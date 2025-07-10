@@ -16,6 +16,8 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// The name of the playlist.
     /// </value>
     public string PlaylistName { get; set; } = "Unknown Playlist";
+    public string QueryText { get; set; } = string.Empty;
+    public bool IsSmartPlaylist { get; set; }
     /// <summary>
     /// Gets or sets the date created.
     /// </summary>

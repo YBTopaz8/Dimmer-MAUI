@@ -85,8 +85,8 @@ public partial class SettingsPage : ContentPage
         }
 
         _isLyricsProcessing = true;
-        MyProgressBar.IsVisible = true; // Show a progress bar
-        MyProgressLabel.IsVisible = true; // Show a label
+        //MyProgressBar.IsVisible = true; // Show a progress bar
+        //MyProgressLabel.IsVisible = true; // Show a label
 
 
 
@@ -96,8 +96,8 @@ public partial class SettingsPage : ContentPage
 
         var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
         {
-            MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
-            MyProgressLabel.Text = $"Processing: {progress.CurrentFile}";
+            //MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
+            //MyProgressLabel.Text = $"Processing: {progress.CurrentFile}";
         });
 
         try
@@ -120,8 +120,8 @@ public partial class SettingsPage : ContentPage
         finally
         {
             _isLyricsProcessing = false;
-            MyProgressBar.IsVisible = false;
-            MyProgressLabel.IsVisible = false;
+            //MyProgressBar.IsVisible = false;
+            //MyProgressLabel.IsVisible = false;
         }
     }
 

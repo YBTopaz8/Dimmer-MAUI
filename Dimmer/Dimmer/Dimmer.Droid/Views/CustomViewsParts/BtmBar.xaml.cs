@@ -26,12 +26,12 @@ public partial class BtmBar : DXBorder
     public BaseViewModelAnd MyViewModel { get; set; }
 
 
-    private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
+    private void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
         //DXBorder send = (DXBorder)sender;
 
 
-        await MyViewModel.BaseVM.PlayPauseToggleAsync();
+        MyViewModel.BaseVM.PlayPauseToggle();
 
     }
 
@@ -81,7 +81,7 @@ public partial class BtmBar : DXBorder
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.BaseVM.NextTrack(true);
+                                MyViewModel.BaseVM.NextTrack();
 
                                 Task<bool> bounceTask = this.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -90,7 +90,7 @@ public partial class BtmBar : DXBorder
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                MyViewModel.BaseVM.PreviousTrack(true);
+                                MyViewModel.BaseVM.PreviousTrack();
 
                                 Task<bool> bounceTask = this.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -114,7 +114,7 @@ public partial class BtmBar : DXBorder
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            MyViewModel.BaseVM.PreviousTrack(true);
+                            MyViewModel.BaseVM.PreviousTrack();
                             Debug.WriteLine("Swiped left");
                             Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
                             Task t2 = Task.Delay(500);

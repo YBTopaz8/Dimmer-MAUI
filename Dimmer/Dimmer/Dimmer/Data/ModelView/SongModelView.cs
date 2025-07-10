@@ -26,7 +26,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<ArtistModelView?> ArtistIds { get; set; }
+    public partial ObservableCollection<ArtistModelView?> ArtistToSong { get; set; }
     [ObservableProperty]
     public partial GenreModelView? Genre { get; set; }
     [ObservableProperty]
@@ -92,7 +92,7 @@ public partial class SongModelView : ObservableObject
     public partial string Lyricist { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial int BPM { get; set; }
+    public partial float? BPM { get; set; }
     [ObservableProperty]
     public partial string Composer { get; set; } = string.Empty;
     [ObservableProperty]
@@ -107,6 +107,8 @@ public partial class SongModelView : ObservableObject
     public partial int? DiscTotal { get; set; }
     [ObservableProperty]
     public partial int? UserIDOnline { get; set; }
+    [ObservableProperty]
+    public partial bool IsNew { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
