@@ -848,6 +848,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
             return;
         }
+        var isAtEnd = Math.Abs(CurrentTrackDurationSeconds - CurrentTrackPositionSeconds) < 0.5; // Within 0.5s of the end
+        if (isAtEnd && CurrentTrackDurationSeconds > 0)
+        {
+            _logger.LogTrace("Ignoring Paused event at the end of the track, waiting for Completed event.");
+            return; // Do not log the pause
+        }
 
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
@@ -973,6 +979,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void NextTrack()
     {
+        // Log the skip event for the CURRENT song BEFORE we find the next one.
+        if (IsPlaying && CurrentPlayingSongView != null)
+        {
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+        }
         var nextIndex = GetNextIndexInQueue(1);
         StartAudioForSongAtIndex(nextIndex);
     }
@@ -986,7 +997,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             audioService.Seek(0);
             return;
         }
-
+        if (IsPlaying && CurrentPlayingSongView != null)
+        {
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+        }
         var prevIndex = GetNextIndexInQueue(-1);
         StartAudioForSongAtIndex(prevIndex);
     }
@@ -1010,10 +1024,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void StartAudioForSongAtIndex(int index)
     {
         // If a song was playing and we're actively changing it (not just ending), log it as skipped.
-        if (IsPlaying && CurrentPlayingSongView != null && _playbackQueueIndex != -1 && _playbackQueueIndex != index)
-        {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
-        }
+
 
         _playbackQueueIndex = index;
 
