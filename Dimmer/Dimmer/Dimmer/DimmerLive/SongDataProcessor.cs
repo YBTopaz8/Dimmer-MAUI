@@ -27,7 +27,7 @@ public class LyricsProcessingProgress
 {
     public int ProcessedCount { get; set; }
     public int TotalCount { get; set; }
-    public string CurrentFile { get; set; }
+    public string? CurrentFile { get; set; }
 }
 
 public static class SongDataProcessor

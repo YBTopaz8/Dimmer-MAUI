@@ -1,55 +1,39 @@
-﻿using Android.OS;
+﻿using Android.Content;
+using Android.OS;
 
 namespace Dimmer.DimmerAudio;
+
+/// <summary>
+/// Connects the native Android ExoPlayerService to the cross-platform singleton AudioService proxy.
+/// Its only job is to find the proxy and pass the service binder to it.
+/// </summary>
 public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
 {
-    readonly IAudioActivity _activity;
-    public MediaPlayerServiceConnection(IAudioActivity act) => _activity = act;
-    public ExoPlayerServiceBinder? Binder => _binder;
-    private ExoPlayerServiceBinder? _binder;
-    private bool _isConnected = false;
+    public MediaPlayerServiceConnection() { }
 
     public void OnServiceConnected(ComponentName? name, IBinder? service)
     {
-        Console.WriteLine("[MediaPlayerServiceConnection] onServiceConnected");
-        if (_isConnected)
+        // Step 1: Check if the connection provided a valid binder.
+        if (service is not ExoPlayerServiceBinder binder)
+        {
             return;
-        if (service is ExoPlayerServiceBinder b)
-        {
-            _binder = b;
-            _isConnected = true;
-            _activity.Binder = b;
-            var svc = b.Service;
-            svc.PlaybackStateChanged   += _activity.OnStatusChanged;
-            svc.SeekCompleted += _activity.OnSeekCompleted;
-            //svc.IsPlayingChanged += _activity.OnIsPlayingChanged;
-            svc.PositionChanged += _activity.OnPositionChanged;
         }
-    }
-    public void OnServiceDisconnected(ComponentName? name)
-    {
-        Console.WriteLine($"[MediaPlayerServiceConnection] Service Disconnected: {name?.ClassName}");
-        // Clean up: Unsubscribe from events
-        if (_isConnected && _binder?.Service != null)
-        {
-            var svc = _binder.Service;
-            svc.PlaybackStateChanged   -= _activity.OnStatusChanged;
-            svc.SeekCompleted  -= _activity.OnSeekCompleted;
-            svc.PositionChanged -= _activity.OnPositionChanged;
-        }
-        _activity.Binder = null;
-        _binder = null;
-        _isConnected = false;
+
+        // Step 2: Get the application-wide singleton instance of our AudioService proxy.
+        // We need the concrete class to call the 'SetBinder' method.
+        var audioServiceProxy = IPlatformApplication.Current?.Services.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
+
+        // Step 3: Activate the proxy by giving it the binder.
+        // The proxy's internal logic will then handle subscribing to all necessary events.
+        audioServiceProxy?.SetBinder(binder);
     }
 
-    /// <summary>
-    /// Helper to manually disconnect and clean up listeners if needed before unbinding.
-    /// </summary>
-    public void Disconnect()
+    public void OnServiceDisconnected(ComponentName? name)
     {
-        if (_isConnected && _binder?.Service != null)
-        {
-            OnServiceDisconnected(null); // Simulate disconnect for cleanup
-        }
+        // When the OS unexpectedly kills the service, we must deactivate the proxy.
+        var audioServiceProxy = IPlatformApplication.Current?.Services.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
+
+        // Setting the binder to null will cause the proxy to unsubscribe from the old service's events.
+        audioServiceProxy?.SetBinder(null);
     }
 }

@@ -193,7 +193,7 @@ public partial class UserNoteModelView : ObservableObject
 public class SyncLyricsView
 {
     public int TimestampMs { get; set; }
-    public string Text { get; set; }
+    public string? Text { get; set; }
     /// <summary>
     /// Start timestamp of the phrase, in milliseconds
     /// </summary>
@@ -205,7 +205,7 @@ public class SyncLyricsView
     /// <summary>
     /// Text
     /// </summary>
-    public List<LyricsPhrase> Beats { get; }
+    public List<LyricsPhrase>? Beats { get; }
 
 
     public bool IsLyricSynced { get; set; }
@@ -220,7 +220,6 @@ public class SyncLyricsView
             TimestampStart = phrase.TimestampStart;
             TimestampEnd = phrase.TimestampEnd;
             Text = phrase.Text;
-
 
         }
     }

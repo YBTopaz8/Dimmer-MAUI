@@ -476,7 +476,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        IMapper mapper,
        IAppInitializerService appInitializerService,
        IDimmerLiveStateService dimmerLiveStateService,
-       IDimmerAudioService audioService,
+       IDimmerAudioService audioServ,
        AlbumsMgtFlow albumsMgtFlow,
        SongsMgtFlow songsMgtFlow,
        IDimmerStateService stateService,
@@ -507,18 +507,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.genreRepo=genreModel;
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
-        audioService= audioService;
+        this.audioService= audioServ;
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
-
         _songsMgtFlow ??= IPlatformApplication.Current!.Services.GetService<SongsMgtFlow>()!;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
-                                             h => audioService.PositionChanged += h,
-                                             h => audioService.PositionChanged -= h)
+                                             h => audioServ.PositionChanged += h,
+                                             h => audioServ.PositionChanged -= h)
                                          .Select(evt => evt.EventArgs)
-                                         .StartWith(audioService.CurrentPosition)
+                                         .StartWith(audioServ.CurrentPosition)
                                          .Replay(1).RefCount();
 
         CurrentPlayingSongView=new();
@@ -832,18 +831,36 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private void OnPlaybackStarted(PlaybackEventArgs args)
     {
+        if (args.MediaSong is null)
+        {
+            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
+            return;
+        }
+
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
     }
 
     private void OnPlaybackPaused(PlaybackEventArgs args)
     {
+        if (args.MediaSong is null)
+        {
+            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
+            return;
+        }
+
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
     }
 
     private void OnPlaybackResumed(PlaybackEventArgs args)
     {
+        if (args.MediaSong is null)
+        {
+            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
+            return;
+        }
+
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
     }
@@ -863,6 +880,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private void OnSeekCompleted(double newPosition)
     {
+
         _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), newPosition);
     }
@@ -977,7 +995,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     //public void SeekTrackPosition(double positionSeconds)
     //{
     //    _logger.LogDebug("UI requesting seek to: {PositionSeconds}s", positionSeconds);
-    //    audioService.Seek(positionSeconds);
+    //    audioServ.Seek(positionSeconds);
     //}
 
     // ToggleShuffleMode, ToggleRepeatPlaybackMode, etc. remain largely the same
@@ -1021,7 +1039,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // This is the full sequence: stop old, init new, play new.
         audioService.Stop();
         audioService.InitializeAsync(songToPlay);
-        audioService.Play();
     }
 
     /// <summary>

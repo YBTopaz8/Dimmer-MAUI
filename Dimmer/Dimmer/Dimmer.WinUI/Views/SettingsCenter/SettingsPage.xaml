@@ -198,11 +198,9 @@
 
                                     <Button
                                         x:Name="LoginBtnFirstTime"
-                                        Command="{Binding LoginUserCommand}"
                                         Text="{Static lang:DimmerLanguage.txt_login}" />
                                     <Button
                                         x:Name="SignUpUserBtnFirstTime"
-                                        Command="{Binding SignUpUserCommand}"
                                         Text="{Static lang:DimmerLanguage.txt_signup}" />
                                     <Button
                                         x:Name="ForgottenPassFirstTime"
@@ -226,7 +224,7 @@
                                                CommandParameter="{Binding IsChecked, Source={x:Reference ShowConfiChkBx}}"
                                                Text="Show Confirmation Message on Close"
                                                />-->
-                            <Button Command="{Binding DoneFirstSetupCommand}" Text="Done" />
+                            <Button  Text="Done" />
                         </VerticalStackLayout>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>

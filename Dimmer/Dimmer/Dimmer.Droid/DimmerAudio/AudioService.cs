@@ -1,4 +1,4 @@
-﻿using AndroidX.Media3.Common; // Assuming this is needed for IPlayer
+﻿using AndroidX.Media3.Common;
 
 using Dimmer.Utilities.Events;
 
@@ -7,11 +7,6 @@ using System.Runtime.CompilerServices;
 
 namespace Dimmer.DimmerAudio;
 
-/// <summary>
-/// A clean, "dumb" proxy implementation of the IDimmerAudioService.
-/// Its only job is to pass commands to the native ExoPlayerService
-/// and report events from it without adding business logic.
-/// </summary>
 public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable
 {
     private ExoPlayerServiceBinder? _binder;
@@ -89,6 +84,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _currentSongModel = songModel;
         // Tell the native service to prepare the track.
         Service?.Prepare(songModel.FilePath, songModel.Title, songModel.ArtistName, songModel.AlbumName, songModel);
+        Play();
         return Task.CompletedTask;
     }
 

@@ -335,6 +335,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                     // Player will go to Opening state.
                     Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened/MediaFailed.", songModel.Title);
                     success = true; // Assume success for now; MediaFailed will correct this
+
+                    Play();
                 }
                 else
                 {
@@ -347,9 +349,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             {
                 Debug.WriteLine("[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {SongTitle}.", songModel.Title);
                 // 'success' remains false. If _initializationCts was newCts, this means this *current* init was cancelled.
-            }
-            catch (Exception ex)
-            {
             }
             finally
             {
