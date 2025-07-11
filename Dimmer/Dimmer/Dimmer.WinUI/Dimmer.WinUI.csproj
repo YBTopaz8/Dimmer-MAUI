@@ -102,7 +102,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
     <PackageReference Include="FunctionZero.Maui.zBind" Version="8.1.1" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />

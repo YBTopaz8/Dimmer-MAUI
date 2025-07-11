@@ -64,8 +64,8 @@
     <PackageReference Include="FunctionZero.Maui.zBind" Version="8.1.1" />
 
     <!-- MAUI Dependencies -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.81" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.82" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
     <PackageReference Include="Xamarin.AndroidX.Palette" Version="1.0.0.33" />
     <!--<PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.35" />

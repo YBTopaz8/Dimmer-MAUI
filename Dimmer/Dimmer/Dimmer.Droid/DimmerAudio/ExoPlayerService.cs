@@ -607,6 +607,30 @@ public class ExoPlayerService : MediaSessionService
             //Console.WriteLine("New Volume "+volume);
         }
 
+        public void OnMediaItemTransition(MediaItem? mediaItem, int reason)
+        {
+            // This is vital for playlists. When a song finishes and the next one starts automatically...
+            if (reason == 1 && mediaItem != null)
+            {
+                // ...you need to update the service's context.
+                // This requires a way to look up the full SongModelView from the ID.
+                // For now, a placeholder shows the concept:
+
+                // Find the full song details from a repository or a cached list
+                // SongModelView newSongContext = MySongRepository.GetById(mediaItem.MediaId);
+                // service.CurrentSongContext = newSongContext;
+
+                System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
+            }
+        }
+        public void OnPlayerError(PlaybackException? error)
+        {
+            // It's crucial to have this method to handle errors.
+            // At a minimum, you should log it.
+            System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] PLAYER ERROR: {error.Message}");
+            // You could also raise a service event here to notify the UI.
+        }
+
     } // End PlayerEventListener
 
 
@@ -711,9 +735,40 @@ public class ExoPlayerService : MediaSessionService
 
 
     }
+    public void PreparePlaylist(SongModelView songToPlay, IEnumerable<SongModelView> songs)
+    {
+        if (player is null)
+            return;
 
+        // Set the initial context to the song that should start playing.
+        CurrentSongContext = songToPlay;
 
+        // Convert all your SongModelViews into ExoPlayer MediaItems
+        var mediaItems = songs.Select(s =>
+        {
+            var metadata = new MediaMetadata.Builder()
+                .SetTitle(s.Title)
+                .SetArtist(s.ArtistName)
+                .Build(); // Add more metadata as needed
 
+            return new MediaItem.Builder()
+                .SetMediaId(s.Id.ToString()) // Use a unique ID
+                .SetUri(Uri.Parse(s.FilePath))
+                .SetMediaMetadata(metadata)
+                .Build();
+        }).ToList();
+
+        // Find the index of the song we want to start with
+        int startIndex = songs.ToList().FindIndex(s => s.Id == songToPlay.Id);
+        if (startIndex == -1)
+        {
+            startIndex = 0; // Default to the start if not found
+        }
+
+        // Give the entire playlist to the player and tell it where to start.
+        player.SetMediaItems(mediaItems, startIndex, C.TimeUnset);
+        player.Prepare();
+    }
 
 } // End ExoPlayerService class
 
