@@ -39,9 +39,9 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
 
-        MyViewModel.FiniInit();
+        //MyViewModel.FiniInit();
 
-        var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+        //var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
 
     }
 

@@ -20,11 +20,9 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
             _isConnected = true;
             _activity.Binder = b;
             var svc = b.Service;
-            svc.StatusChanged   += _activity.OnStatusChanged;
-            svc.Buffering       += _activity.OnBuffering;
-            svc.CoverReloaded   += _activity.OnCoverReloaded;
+            svc.PlaybackStateChanged   += _activity.OnStatusChanged;
             svc.SeekCompleted += _activity.OnSeekCompleted;
-            svc.PlayingChanged  += _activity.OnStatusChanged;
+            //svc.IsPlayingChanged += _activity.OnIsPlayingChanged;
             svc.PositionChanged += _activity.OnPositionChanged;
         }
     }
@@ -35,11 +33,8 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
         if (_isConnected && _binder?.Service != null)
         {
             var svc = _binder.Service;
-            svc.StatusChanged   -= _activity.OnStatusChanged;
-            svc.Buffering       -= _activity.OnBuffering;
-            svc.CoverReloaded   -= _activity.OnCoverReloaded;
+            svc.PlaybackStateChanged   -= _activity.OnStatusChanged;
             svc.SeekCompleted  -= _activity.OnSeekCompleted;
-            svc.PlayingChanged  -= _activity.OnStatusChanged;
             svc.PositionChanged -= _activity.OnPositionChanged;
         }
         _activity.Binder = null;

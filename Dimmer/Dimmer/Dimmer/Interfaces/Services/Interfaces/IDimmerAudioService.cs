@@ -13,9 +13,6 @@ public interface IDimmerAudioService
 
     Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage = null);
 
-
-
-
     void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels);
 
 

@@ -61,6 +61,7 @@ public interface IAudioActivity
     /// <param name="position">Current playback position in seconds.</param>
     void OnPositionChanged(object sender, long position);
     void OnSeekCompleted(object sender, double position);
+    void OnIsPlayingChanged(object sender, bool isPlaying);
 }
 
 
