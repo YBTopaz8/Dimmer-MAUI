@@ -378,7 +378,39 @@
                                                 IconHeight="40"
                                                 IconWidth="40"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="DarkSlateBlue" />
+                                                PressedBackgroundColor="DarkSlateBlue"
+                                                ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='{0}'}">
+                                                <dx:DXButton.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="0">
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="1">
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="2">
+                                                        <Setter Property="BackgroundColor" Value="Orange" />
+
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="3">
+                                                        <Setter Property="BackgroundColor" Value="DarkBlue" />
+
+                                                    </DataTrigger>
+                                                </dx:DXButton.Triggers>
+                                            </dx:DXButton>
 
                                             <dx:DXButton
                                                 Grid.Column="1"
