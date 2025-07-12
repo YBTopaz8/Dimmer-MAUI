@@ -7,7 +7,6 @@ public class MusicMetadataService : IMusicMetadataService
     private readonly Dictionary<string, ArtistModelView> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AlbumModelView> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, GenreModelView> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly List<SongModelView> _songs = new();
 
 
     public List<ArtistModelView> NewArtists { get; } = new();
@@ -46,9 +45,15 @@ public class MusicMetadataService : IMusicMetadataService
                 _genresByName.TryAdd(genre.Name, genre);
             }
         }
-        _songs.AddRange(existingSongs);
+        foreach (var song in existingSongs)
+        {
+            _existingSongKeys.Add(song.TitleDurationKey);
+        }
+        _processedSongsInThisScan.AddRange(existingSongs);
     }
+    private readonly List<SongModelView> _processedSongsInThisScan = new();
 
+    private readonly HashSet<string> _existingSongKeys = new();
 
     public ArtistModelView GetOrCreateArtist(Track track, string name)
     {
@@ -110,21 +115,31 @@ public class MusicMetadataService : IMusicMetadataService
 
     public void AddSong(SongModelView song)
     {
-        _songs.Add(song);
+        _processedSongsInThisScan.Add(song);
     }
 
-    public bool DoesSongExist(string title, int durationInSeconds)
+
+    // Add a way to track updates
+    private readonly HashSet<ObjectId> _updatedEntityIds = new();
+    public bool DoesSongExist(string title, double durationInSeconds)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            return false;
-
-        // Create the key exactly as the model would.
+        // We now check against the set of keys from songs that existed BEFORE the scan started.
         string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
-
-        // This check is now extremely fast because TitleDurationKey is indexed.
-        // We are checking against the in-memory list of songs processed *so far in this scan*.
-        return _songs.Any(s => s.TitleDurationKey == keyToCheck);
+        return _existingSongKeys.Contains(keyToCheck);
     }
+    public bool DoesSongExist(string title, int durationInSeconds, out SongModelView? existingSong)
+    {
+        string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
+        existingSong = _processedSongsInThisScan.FirstOrDefault(s => s.TitleDurationKey == keyToCheck);
+        return existingSong != null;
+    }
+
+    // Method to mark an entity as updated
+    public void MarkAsUpdated(SongModelView song)
+    {
+        _updatedEntityIds.Add(song.Id);
+    }
+
 
     public IReadOnlyList<ArtistModelView> GetAllArtists()
     {
@@ -141,8 +156,8 @@ public class MusicMetadataService : IMusicMetadataService
         return [.. _genresByName.Values];
     }
 
-    public IReadOnlyList<SongModelView> GetAllSongs()
+    public IReadOnlyList<SongModelView> GetProcessedSongs()
     {
-        return [.. _songs];
+        return [.. _processedSongsInThisScan];
     }
 }

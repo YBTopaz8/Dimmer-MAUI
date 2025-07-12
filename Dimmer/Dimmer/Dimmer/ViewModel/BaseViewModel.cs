@@ -82,7 +82,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.audioService= audioServ;
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
-        playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
+        _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
                                              h => audioServ.PositionChanged += h,
@@ -248,7 +248,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         audioService.Volume = newVolume; // Update audio service volume
 
     }
-    private SongsMgtFlow _songsMgtFlow;
     [ObservableProperty]
     public partial string AppTitle { get; set; }
 
@@ -586,7 +585,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-    public IObservable<double> AudioEnginePositionObservable { get; }
 
 
     public string CurrentQuery { get; private set; }
@@ -784,7 +782,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
         UpdateSongSpecificUi(CurrentPlayingSongView);
     }
     private void UpdateSongSpecificUi(SongModelView? song)
@@ -867,15 +865,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 if (song.CoverImagePath != finalImagePath)
                 {
                     song.CoverImagePath= finalImagePath;
-                    songRepo.BatchUpdate(realm =>
-                     {
-                         var songToUpdate = realm.Find<SongModel>(song.Id);
-                         if (songToUpdate != null)
-                         {
-                             songToUpdate.CoverImagePath= finalImagePath;
-                             _logger.LogInformation("Updated song {SongId} in DB with new cover art path: {ImagePath}", song.Id, finalImagePath);
-                         }
-                     });
+                    var realm = realmFactory.GetRealmInstance();
+                    if (realm is null)
+                    {
+                        _logger.LogError("Failed to get Realm instance from RealmFactory.");
+                        return;
+                    }
+                    // Update the song in the database with the new cover image path.
+                    realm.Write(() =>
+                    {
+                        var songToUpdate = realm.Find<SongModel>(song.Id);
+                        if (songToUpdate != null)
+                        {
+                            songToUpdate.CoverImagePath = finalImagePath;
+                        }
+                    });
                 }
             }
             catch (Exception ex)
@@ -910,7 +914,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     if (finalCoverImagePath != null && song.CoverImagePath != finalCoverImagePath)
                     {
                         song.CoverImagePath = finalCoverImagePath;
-                        songRepo.BatchUpdate(realm =>
+                        var realm = realmFactory.GetRealmInstance();
+                        if (realm is null)
+                        {
+                            _logger.LogError("Failed to get Realm instance from RealmFactory.");
+                            return;
+                        }
+                        // Update the song in the database with the new cover image path.
+                        realm.Write(() =>
                         {
                             var songToUpdate = realm.Find<SongModel>(song.Id);
                             if (songToUpdate != null)
@@ -944,7 +955,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
     }
 
     private void OnPlaybackResumed(PlaybackEventArgs args)
@@ -956,7 +967,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
     }
 
     private void OnPlaybackEnded()
@@ -966,7 +977,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             // Only log as 'Completed' if it played to the end naturally.
             // 'Skipped' is handled in the StartAudioForSongAtIndex method.
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), CurrentTrackDurationSeconds);
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), CurrentTrackDurationSeconds);
         }
         // Automatically play the next song in the queue.
         NextTrack();
@@ -976,7 +987,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
 
         _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), newPosition);
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), newPosition);
     }
 
     private void OnPositionChanged(double positionSeconds)
@@ -1079,7 +1090,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (IsPlaying && CurrentPlayingSongView != null)
         {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
         var nextIndex = GetNextIndexInQueue(1);
         StartAudioForSongAtIndex(nextIndex);
@@ -1095,7 +1106,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         if (IsPlaying && CurrentPlayingSongView != null)
         {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
         var prevIndex = GetNextIndexInQueue(-1);
         StartAudioForSongAtIndex(prevIndex);
@@ -1219,7 +1230,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // We use 'Add' here because it's a new session playlist each time.
         // If you wanted to have a single, overwriting "Last Session" playlist,
         // you would find it by a fixed ID first and then use AddOrUpdate.
-        playlistRepo.AddOrUpdate(contextPlaylist);
+        _playlistRepo.Create(contextPlaylist);
 
         _logger.LogInformation("Saved playback context with query: \"{query}\"", query);
     }
@@ -1514,7 +1525,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly Random _random = new();
 
 
-    #endregion
     [RelayCommand]
     public void SeekTrackPosition(double positionSeconds)
     {
@@ -1522,7 +1532,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
         audioService.Seek(positionSeconds);
-        //_baseAppFlow.UpdateDatabaseWithPlayEvent(CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
+        //_baseAppFlow.UpdateDatabaseWithPlayEvent( realmFactory,CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
 
         // If you want to log this as a play event, you can do so here.
 
@@ -1821,17 +1831,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var endDate = DateTimeOffset.UtcNow;
         var startDate = endDate.AddMonths(-1);
 
-        TopSkippedArtists = TopStats.GetTopSkippedArtists(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 20).ToObservableCollection();
-        TopSongsByEventType = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 20, 3).ToObservableCollection();
-        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 20, startDate, endDate).ToObservableCollection();
+        TopSkippedArtists = TopStats.GetTopSkippedArtists(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50).ToObservableCollection();
+        TopSongsByEventType = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50, 3).ToObservableCollection();
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50, startDate, endDate).ToObservableCollection();
 
 
 
 
-        MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 20).ToObservableCollection();
+        MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50).ToObservableCollection();
 
 
-        MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 10, startDate, endDate).ToObservableCollection();
+        MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50, startDate, endDate).ToObservableCollection();
     }
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
@@ -1923,7 +1933,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public void AddToPlaylist(string playlistName, List<SongModelView> songsToAdd)
     {
-        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
+        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || songsToAdd.Count==0)
         {
             _logger.LogWarning("AddToPlaylist called with invalid parameters.");
             return;
@@ -1966,9 +1976,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             foreach (var songId in songIdsToAdd)
             {
                 // Check if the song is already in the list to avoid duplicates.
-                if (!livePlaylist.ManualSongIds.Contains(songId))
+                if (!livePlaylist.SongsIdsInPlaylist.Contains(songId))
                 {
-                    livePlaylist.ManualSongIds.Add(songId);
+                    livePlaylist.SongsIdsInPlaylist.Add(songId);
                     songsAddedCount++;
                 }
             }
@@ -2210,7 +2220,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // This is where your complex logic will go. For now, we'll implement
         // the "AllTimeTopArtist" calculation you already had.
 
-        if (!allPlayEvents.Any())
+        if (allPlayEvents.Count==0)
         {
             return null; // No events, no stats.
         }

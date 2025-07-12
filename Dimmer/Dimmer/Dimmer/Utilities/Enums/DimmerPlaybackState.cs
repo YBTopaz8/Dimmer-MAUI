@@ -44,5 +44,4 @@ public enum DimmerPlaybackState
     FolderScanStarted,
     FolderWatchStarted,
     PlaySongFrommOutsideApp,
-    ShuffleDisabled
 }

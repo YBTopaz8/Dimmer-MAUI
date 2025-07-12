@@ -101,13 +101,10 @@ public class AudioFileProcessor : IAudioFileProcessor
             title = Path.GetFileNameWithoutExtension(filePath); // Final fallback
         }
 
-        // --- Duplicate Check ---
-        if (_metadataService.DoesSongExist(title, track.Duration))
-        {
-            result.Skipped = true;
-            result.SkipReason = $"Song '{title}' with duration {track.Duration}s already exists.";
-            return result;
-        }
+
+
+        // --- IT'S A NEW SONG! Proceed with creation. ---
+        Debug.WriteLine($"Song '{title}' is new. Creating new entry.");
 
         // --- Artist Processing ---
 
@@ -178,7 +175,6 @@ public class AudioFileProcessor : IAudioFileProcessor
 
 
             song.LastDateUpdated = DateTimeOffset.UtcNow;
-            _metadataService.AddSong(song);
             result.ProcessedSong = song;
             Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
 
@@ -196,6 +192,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
 
             }
+            _metadataService.AddSong(song);
         }
         catch (Exception ex)
         {

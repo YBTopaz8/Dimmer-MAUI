@@ -20,23 +20,20 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The name of the playlist.
     /// </value>
-    public string PlaylistName { get; set; } = "Unknown Playlist";
     public string QueryText { get; set; } = string.Empty;
-    public bool IsSmartPlaylist { get; set; }
     /// <summary>
     /// For Manual Playlists (IsSmartPlaylist = false).
     /// A list of song ObjectIds that the user has manually added.
     /// </summary>
-    public IList<ObjectId> ManualSongIds { get; }
+    public IList<ObjectId> ManualSongIds { get; } = null!;
 
     // --- Optional Metadata ---
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
-    public bool IsNew { get; set; }
     public IList<SongModel> SongsInPlaylist { get; } = null!;
     public IList<ObjectId> SongsIdsInPlaylist { get; } = null!;
     public string? CurrentSongId { get; set; }
-    public string? Description { get; set; }
+
     public string? CoverImagePath { get; set; }
 
     /// <summary>

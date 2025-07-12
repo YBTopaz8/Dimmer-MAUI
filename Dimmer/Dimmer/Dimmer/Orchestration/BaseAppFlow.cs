@@ -167,14 +167,6 @@ public class BaseAppFlow : IDisposable
 
 
 
-    public void LogSeekEvent(SongModelView? song, double seekedToPositionSeconds)
-    {
-        if (song == null)
-        { _logger.LogWarning("LogSeekEvent called with null song."); return; }
-        UpdateDatabaseWithPlayEvent(song, PlayType.Seeked, seekedToPositionSeconds);
-        _logger.LogInformation("Seek event logged for {SongTitle} to {Position}s", song.Title, seekedToPositionSeconds);
-    }
-
     public void LogApplicationEvent(PlayType playType, SongModelView? songContext = null, string? eventDetails = null, double? position = null)
     {
         if (playType < PlayType.LogEvent && songContext == null)
@@ -193,7 +185,7 @@ public class BaseAppFlow : IDisposable
 
 
     }
-    public void UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType? type, double? position = null)
+    public void UpdateDatabaseWithPlayEvent(IRealmFactory realmFactory, SongModelView? songView, PlayType? type, double? position = null)
     {
         if (type ==PlayType.Pause)
         {
@@ -236,32 +228,24 @@ public class BaseAppFlow : IDisposable
                 WasPlayCompleted = type == PlayType.Completed,
             };
             // Use the IRepository<DimmerPlayEvent> to create it.
-            var savedPlayEvent = _playEventRepo.Create(playEvent);
 
-            // Step 2: Now, update the SongModel to link to the new event.
-            // This uses the super-safe Update(id, action) method.
-            bool wasSongUpdated = _songRepo.Update(songView.Id, liveSong =>
+
+            var realm = realmFactory.GetRealmInstance();
+            realm.Write(() =>
             {
-                // 'liveSong' is the managed object, safe to modify here.
-                liveSong.PlayHistory.Add(savedPlayEvent);
+                var pl = realm.Add(playEvent, true);
 
-                //// If the song was completed, we can also update its play count, etc.
-                //if (type == PlayType.Completed)
-                //{
-                //    liveSong.PlayCount++;
-                //    liveSong.LastPlayed = DateTimeOffset.UtcNow;
-                //}
+                var song = realm.Find<SongModel>(songView.Id);
+                var evt = realm.Find<DimmerPlayEvent>(pl.Id);
+                if (song is null || evt is null)
+                {
+                    return;
+                }
+                song.PlayHistory.Add(evt);
+
             });
 
-            if (wasSongUpdated)
-            {
-                _logger.LogInformation("Added play event {EventId} to history of song {SongTitle}", savedPlayEvent.Id, songView.Title);
-            }
-            else
-            {
-                // This can happen if the song was deleted between the time the view was loaded and now.
-                _logger.LogWarning("Could not find song with ID {SongId} to add play event history.", songView.Id);
-            }
+            _logger.LogInformation("Added play event {EventId} to history of song {SongTitle}", playEvent.Id, songView.Title);
 
             // Step 3: Update the UI state.
             string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);

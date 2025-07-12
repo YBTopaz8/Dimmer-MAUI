@@ -3,6 +3,7 @@
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
+using Dimmer.Utilities.StatsUtils;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -119,33 +120,62 @@ public class LyricsMgtFlow : IDisposable
                 return;
             }
 
-            // --- Step 3: Map the parsed ATL phrases to our UI-friendly ViewModel phrases ---
+
+            var lines = lrcContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             var phrases = new List<LyricPhraseModelView>();
-            for (int i = 0; i < lyricsInfo.SynchronizedLyrics.Count; i++)
+
+            foreach (var line in lines)
             {
-                var currentAtlPhrase = lyricsInfo.SynchronizedLyrics[i];
+                int closingBracketIndex = line.IndexOf(']');
+                if (line.StartsWith('[') && closingBracketIndex > -1)
+                {
+                    string timecodeStr = line.Substring(0, closingBracketIndex + 1);
+                    string text = line.Substring(closingBracketIndex + 1).Trim();
 
-                // Get the timestamp of the *next* phrase to calculate the duration of the current one.
-                int? nextTimestamp = (i + 1 < lyricsInfo.SynchronizedLyrics.Count)
-                    ? lyricsInfo.SynchronizedLyrics[i + 1].TimestampStart // Use Start time of next line
-                    : null;
+                    // Use OUR utility class, which we can trust and maintain.
+                    int timestampMs = LyricsParser.DecodeTimecodeToMs(timecodeStr);
 
-                // Use your new constructor that takes the ATL phrase directly.
-                phrases.Add(new LyricPhraseModelView(currentAtlPhrase, nextTimestamp));
+                    if (timestampMs >= 0 && !string.IsNullOrWhiteSpace(text))
+                    {
+                        phrases.Add(new LyricPhraseModelView
+                        {
+                            TimestampStart = timestampMs, // We only have one timestamp from LRC
+                            Text = text,
+                            IsLyricSynced = true
+                        });
+                    }
+                }
             }
 
-            _lyrics = phrases;
+            if (phrases.Count == 0)
+            {
+                _logger.LogInformation("Content for {SongTitle} was not a valid synchronized format.", song.Title);
+                ClearLyrics();
+                return;
+            }
+
+            // Sort by timestamp just in case the LRC file is out of order.
+            _lyrics = phrases.OrderBy(p => p.TimestampStart).ToList();
+
+            // Calculate durations now that the list is sorted.
+            for (int i = 0; i < _lyrics.Count; i++)
+            {
+                int? nextTimestamp = (i + 1 < _lyrics.Count)
+                    ? _lyrics[i + 1].TimestampStart
+                    : null;
+
+                // If there's a next line, duration is the gap. Otherwise, guess a duration.
+                _lyrics[i].DurationMs = (nextTimestamp ?? (_lyrics[i].TimestampStart + 2000)) - _lyrics[i].TimestampStart;
+            }
+
             _synchronizer = new LyricSynchronizer(_lyrics);
 
-            // --- Step 4: Update the UI and save back to DB if needed ---
             _allLyricsSubject.OnNext(_lyrics);
             ResetCurrentLyricDisplay();
 
-            // If we found lyrics but they weren't in the DB, save them now.
-            if (string.IsNullOrEmpty(song.SyncLyrics) && !string.IsNullOrEmpty(lrcContent))
+            if (!string.IsNullOrEmpty(song.SyncLyrics) && song.SyncLyrics !="")
             {
-                _logger.LogInformation("Found new lyrics for {SongTitle}, saving to database.", song.Title);
-                await _lyricsMetadataService.SaveLyricsForSongAsync(song, lrcContent, lyricsInfo);
+                await _lyricsMetadataService.SaveLyricsForSongAsync(song, lrcContent, lyricsInfo); // We don't have the LyricsInfo object anymore, pass null
             }
         }
         catch (Exception ex)

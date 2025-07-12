@@ -100,7 +100,7 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;

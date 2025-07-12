@@ -94,7 +94,7 @@ public static class ImageResizer
     public static SKColor GetDominantColor(byte[]? imageData, SKColor? defaultColor = null)
     {
         var palette = GetVibrantPalette(imageData, 1);
-        return palette.Any() ? palette.First() : (defaultColor ?? SKColors.Gray);
+        return palette.Count!=0 ? palette.First() : (defaultColor ?? SKColors.Gray);
     }
 
     /// <summary>

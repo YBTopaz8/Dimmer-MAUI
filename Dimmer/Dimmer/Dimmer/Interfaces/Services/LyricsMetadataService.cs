@@ -142,12 +142,13 @@ public class LyricsMetadataService : ILyricsMetadataService
         }
 
 
-
         // Step 2: Update the database record
         try
         {
             var dbb = IPlatformApplication.Current.Services.GetService<IRealmFactory>();
             var realm = dbb?.GetRealmInstance();
+            if (realm == null)
+            { return false; }
             var songModel = realm.Find<SongModel>(song.Id);
             if (songModel == null)
             {
@@ -164,6 +165,14 @@ public class LyricsMetadataService : ILyricsMetadataService
                     songModel.HasSyncedLyrics = true; // Update flags
                     songModel.HasLyrics = true;
                     songModel.EmbeddedSync.Clear();
+                    if (lyrics is null)
+                    {
+
+                        // A. Parse the LRC data into ATL's structure
+                        var newLyricsInfo = new LyricsInfo();
+                        newLyricsInfo.Parse(lrcContent);
+                        lyrics=newLyricsInfo;
+                    }
                     foreach (var lyr in lyrics.SynchronizedLyrics)
                     {
                         var syncLyrics = new SyncLyrics
@@ -207,10 +216,6 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     }
 
-    public Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)
-    {
-        throw new NotImplementedException();
-    }
 
     #endregion
 }

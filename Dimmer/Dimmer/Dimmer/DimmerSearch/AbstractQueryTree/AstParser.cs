@@ -20,7 +20,7 @@ public class AstParser
     {
         // Add an EndOfFile token if it's not there, for safety
         _tokens = [.. tokens]; // Make a copy
-        if (!_tokens.Any() || _tokens.Last().Type != TokenType.EndOfFile)
+        if (_tokens.Count==0 || _tokens.Last().Type != TokenType.EndOfFile)
         {
             _tokens.Add(new Token(TokenType.EndOfFile, "", -1));
         }
