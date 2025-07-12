@@ -494,7 +494,7 @@ public class ExoPlayerService : MediaSessionService
 
 
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
-            player.AddMediaItem(currentMediaItem);
+            //player.AddMediaItem(currentMediaItem);
             player.Prepare();
             player.Play();
         }

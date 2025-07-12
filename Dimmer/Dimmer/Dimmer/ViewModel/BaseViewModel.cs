@@ -8,6 +8,7 @@ using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
@@ -1471,8 +1472,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .Where(s => s.State == DimmerPlaybackState.FolderScanCompleted)
             .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
 
+        _subsManager.Add(_stateService.LatestDeviceLog
+            .Where(s => s.Log is not null)
+            .Subscribe(OnSongAdded, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
+
         // PlaylistExhausted is now handled by the PlaybackEnded event from the audio service, making this obsolete.
     }
+
+    private void OnSongAdded(AppLogModel model)
+    {
+        LatestAppLog=model;
+        LatestScanningLog = model.Log;
+    }
+
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
     private int _playbackQueueIndex = -1;
     private IReadOnlyList<ObjectId> _playbackQueue = new List<ObjectId>();
@@ -1595,6 +1607,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void AddMusicFolderByPassingToService(string folderPath)
     {
         _logger.LogInformation("User requested to add music folder.");
+        _folderMgtService.AddFolderToWatchListAndScan(folderPath);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, folderPath, null, null));
     }
     public void AddMusicFoldersByPassingToService(List<string> folderPath)
@@ -1931,6 +1944,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void ToggleFavSong(SongModelView songModel)
     {
+
+
         if (CurrentPlayingSongView == null)
         {
             _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");

@@ -107,7 +107,7 @@ public class LibraryScannerService : ILibraryScannerService
                     _logger.LogInformation("Scanning progress: {ProcessedCount}/{TotalCount} files.", processedFileCount, totalFiles);
                 }
 
-                var fileProcessingResult = await audioFileProcessor.ProcessFile(file);
+                var fileProcessingResult = audioFileProcessor.ProcessFile(file);
 
                 if (fileProcessingResult.Success && fileProcessingResult.ProcessedSong != null)
                 {
@@ -196,7 +196,7 @@ public class LibraryScannerService : ILibraryScannerService
 
                             // Link Artists
                             songToPersist.ArtistToSong.Clear();
-                            if (incomingSongView.ArtistToSong != null)
+                            if (incomingSongView.ArtistToSong != null && incomingSongView.ArtistToSong.Count>0)
                             {
                                 foreach (var artistView in incomingSongView.ArtistToSong)
                                 {
@@ -206,8 +206,14 @@ public class LibraryScannerService : ILibraryScannerService
                                         songToPersist.ArtistToSong.Add(managedArtist);
                                     }
                                 }
+                                songToPersist.Artist = songToPersist.ArtistToSong[0];
                             }
 
+                            songToPersist.IsNew=false;
+                            songToPersist.DeviceModel=DeviceInfo.Current.Model.ToString();
+                            songToPersist.DeviceManufacturer=DeviceInfo.Current.Platform.ToString();
+                            songToPersist.DeviceVersion=DeviceInfo.Current.VersionString;
+                            songToPersist.DeviceFormFactor=DeviceInfo.Current.Idiom.ToString();
                             // Finally, upsert the fully-linked song model.
                             realmb.Add(songToPersist, update: true);
                         }
@@ -332,9 +338,9 @@ public class LibraryScannerService : ILibraryScannerService
         _state.LoadAllSongs(freshSongs.AsReadOnly());
         _logger.LogInformation($"Loaded {freshSongs.Count} songs into global state.");
     }
-    public Task<LoadSongsResult>? ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
+    public async Task<LoadSongsResult?> ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));
-        return Task.Run(() => ScanLibrary(pathsToScan));
+        return await ScanLibrary(pathsToScan);
     }
 }

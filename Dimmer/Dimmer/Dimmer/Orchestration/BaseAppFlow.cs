@@ -75,7 +75,7 @@ public class BaseAppFlow : IDisposable
         _logger = logger ?? NullLogger<BaseAppFlow>.Instance;
 
 
-        //InitializeFolderEventReactions();
+        InitializeFolderEventReactions();
 
         _logger.LogInformation("BaseAppFlow (Coordinator & Logger) initialized.");
     }
@@ -86,22 +86,7 @@ public class BaseAppFlow : IDisposable
 
     private void InitializeFolderEventReactions()
     {
-        //_subscriptions.Add(
-        //    _stateService.CurrentPlayBackState
-        //        .Where(psi => psi.State == DimmerPlaybackState.FolderAdded)
-        //        .Select(psi => psi.ExtraParameter as string)
-        //        .Subscribe(async folderPath =>
-        //        {
-        //            if (folderPath == null)
-        //                return;
-        //            _logger.LogInformation("BaseAppFlow: Detected FolderAdded state for {Path}. Triggering folder preference update and scan.", folderPath);
-
-
-
-        //            await _libraryScannerService.ScanLibrary(new List<string> { folderPath });
-
-        //        }, ex => _logger.LogError(ex, "Error processing FolderAdded state."))
-        //);
+        return;
         _subscriptions.Add(
             _state.CurrentPlayBackState
             .Where(psi => psi.State == DimmerPlaybackState.FolderAdded)

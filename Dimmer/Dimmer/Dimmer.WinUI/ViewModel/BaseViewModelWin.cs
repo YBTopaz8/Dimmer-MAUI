@@ -13,6 +13,7 @@ using Dimmer.Utilities.FileProcessorUtils;
 using Dimmer.WinUI.Utils.WinMgt;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 
@@ -35,7 +36,9 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly ILogger<BaseViewModelWin> logger;
     private readonly IWindowManagerService winMgrService;
 
-    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, artistRepo, albumModel, genreModel, logger)
+    public BaseViewModelWin(IMapper mapper,
+        IFolderPicker _fPicker,
+        ILogger<BaseViewModelWin> _logger, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, artistRepo, albumModel, genreModel, logger)
     {
 
         this.mapper=mapper;
@@ -46,6 +49,8 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         this.subsManager=subsManager;
         this.lyricsMgtFlow=lyricsMgtFlow;
         this.folderMgtService=folderMgtService;
+        this.logger = _logger ?? NullLogger<BaseViewModelWin>.Instance;
+        folderPicker = _fPicker;
     }
 
     [ObservableProperty]
