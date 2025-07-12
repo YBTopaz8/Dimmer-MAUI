@@ -114,7 +114,7 @@ public static class PlatUtils
         ShowWindow(windowHandle, SW_HIDE);
         //System.Windows.SystemCommands.MinimizeWindow(win);
     }
-    public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter appPresenter)
+    public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter? appPresenter)
     {
         try
         {

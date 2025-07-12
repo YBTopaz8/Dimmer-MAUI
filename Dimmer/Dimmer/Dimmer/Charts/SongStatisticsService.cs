@@ -150,7 +150,7 @@ public static class SongStatisticsService
             .Where(e => e.PlayType == (int)PlayEventType.Skipped || e.PlayType == (int)PlayEventType.Completed)
             .ToList();
 
-        if (relevantEvents == null || !relevantEvents.Any())
+        if (relevantEvents == null || relevantEvents.Count==0)
             return 0;
 
         return relevantEvents.Average(e => e.PositionInSeconds);
@@ -403,7 +403,7 @@ public static class SongStatisticsService
         foreach (var genre in genres)
         {
             var songsInGenre = genre.Songs.ToList();
-            if (!songsInGenre.Any())
+            if (songsInGenre.Count==0)
                 continue;
 
             int totalPlays = songsInGenre.Sum(s => s.PlayHistory.Count(e => e.PlayType == (int)PlayEventType.Play));
@@ -447,7 +447,7 @@ public static class SongStatisticsService
             return 0;
 
         var skipEvents = song.PlayHistory.Where(e => e.PlayType == (int)PlayEventType.Skipped).ToList();
-        if (!skipEvents.Any())
+        if (skipEvents.Count==0)
             return 0; // Or 100, depending on how you want to interpret "no skips"
 
         return skipEvents.Average(e => e.PositionInSeconds / song.DurationInSeconds * 100.0);

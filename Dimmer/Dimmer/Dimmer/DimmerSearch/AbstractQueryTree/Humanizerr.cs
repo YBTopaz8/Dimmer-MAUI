@@ -42,7 +42,7 @@ public static class QueryHumanizer
 
             var sb = new StringBuilder("Showing songs ");
 
-            if (mainFilters.Any(s => s.FilterTokens.Any()))
+            if (mainFilters.Any(s => s.FilterTokens.Count!=0))
             {
                 sb.Append("where ");
                 var mainClauses = mainFilters.Select(s => HumanizeSegment(s.FilterTokens)).Where(s => !string.IsNullOrEmpty(s));
@@ -53,7 +53,7 @@ public static class QueryHumanizer
                 sb.Append("from the entire library");
             }
 
-            if (excludeFilters.Any(s => s.FilterTokens.Any()))
+            if (excludeFilters.Any(s => s.FilterTokens.Count!=0))
             {
                 sb.Append(", excluding those where ");
                 var excludeClauses = excludeFilters.Select(s => HumanizeSegment(s.FilterTokens)).Where(s => !string.IsNullOrEmpty(s));
@@ -96,7 +96,7 @@ public static class QueryHumanizer
 
     private static string HumanizeSegment(List<Token> tokens)
     {
-        if (!tokens.Any())
+        if (tokens.Count==0)
             return "";
 
         // This is a simplified humanizer. A full one would build a phrase tree.

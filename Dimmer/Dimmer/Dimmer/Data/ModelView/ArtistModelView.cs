@@ -14,6 +14,8 @@ public partial class ArtistModelView : ObservableObject
     public partial bool IsCurrentlySelected { get; set; }
     [ObservableProperty]
     public partial bool IsVisible { get; set; }
+    [ObservableProperty]
+    public partial bool IsNew { get; set; }
 
 
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;

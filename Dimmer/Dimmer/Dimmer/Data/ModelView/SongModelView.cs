@@ -1,12 +1,26 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿using static ATL.LyricsInfo;
+
+namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
     [ObservableProperty]
-    public partial string? Title { get; set; }
+    public partial string Title { get; set; }
+
     [ObservableProperty]
-    public partial string? ArtistName { get; set; }
+
+    public partial string TitleDurationKey { get; set; }
+
+
+    public void SetTitleAndDuration(string title, double duration)
+    {
+        Title = title;
+        DurationInSeconds = duration;
+        TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
+    }
+    [ObservableProperty]
+    public partial string ArtistName { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial string? AlbumName { get; set; }
@@ -14,11 +28,11 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial AlbumModelView? Album { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<ArtistModelView?> ArtistIds { get; set; }
+    public partial ObservableCollection<ArtistModelView?> ArtistToSong { get; set; }
     [ObservableProperty]
     public partial GenreModelView? Genre { get; set; }
     [ObservableProperty]
-    public partial string? GenreName { get; set; }
+    public partial string GenreName { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string FilePath { get; set; } = string.Empty;
     [ObservableProperty]
@@ -47,7 +61,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string CoverImagePath { get; set; } = "musicnoteslider.png";
     [ObservableProperty]
-    public partial string UnSyncLyrics { get; set; } = string.Empty;
+    public partial string? UnSyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
@@ -78,6 +92,9 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial string Lyricist { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial float? BPM { get; set; }
     [ObservableProperty]
     public partial string Composer { get; set; } = string.Empty;
     [ObservableProperty]
@@ -92,6 +109,8 @@ public partial class SongModelView : ObservableObject
     public partial int? DiscTotal { get; set; }
     [ObservableProperty]
     public partial int? UserIDOnline { get; set; }
+    [ObservableProperty]
+    public partial bool IsNew { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
@@ -174,12 +193,44 @@ public partial class UserNoteModelView : ObservableObject
 public class SyncLyricsView
 {
     public int TimestampMs { get; set; }
-    public string Text { get; set; }
+    public string? Text { get; set; }
+    /// <summary>
+    /// Start timestamp of the phrase, in milliseconds
+    /// </summary>
+    public int TimestampStart { get; }
+    /// <summary>
+    /// End timestamp of the phrase, in milliseconds
+    /// </summary>
+    public int TimestampEnd { get; set; }
+    /// <summary>
+    /// Text
+    /// </summary>
+    public List<LyricsPhrase>? Beats { get; }
 
+
+    public bool IsLyricSynced { get; set; }
+
+    // Constructor that accepts a LyricsInfo.LyricsPhrase object
+    public SyncLyricsView(LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
+    {
+
+        if (phrase != null)
+        {
+
+            TimestampStart = phrase.TimestampStart;
+            TimestampEnd = phrase.TimestampEnd;
+            Text = phrase.Text;
+
+        }
+    }
     public SyncLyricsView(int timestampMs, string text)
     {
         TimestampMs = timestampMs;
         Text = text;
+    }
+    public SyncLyricsView()
+    {
+
     }
     public SyncLyricsView(SyncLyrics syncLyricsDB)
     {

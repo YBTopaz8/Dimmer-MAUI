@@ -23,6 +23,7 @@ public enum DimmerPlaybackState
     Buffering,
     Seeked,
     DoneScanningData,
+    PlaylistExhaused,
     PlayCompleted,
     PlayPreviousUI,
     PlayPreviousUser,
@@ -33,7 +34,8 @@ public enum DimmerPlaybackState
     RepeatAll,
     RepeatPlaylist,
     MoveToNextSongInQueue,
-    ShuffleRequested,
+    ShuffleEnabled,
+    ShuffleDisabled,
     FolderAdded,
     FolderRemoved,
     FileChanged,
@@ -41,5 +43,5 @@ public enum DimmerPlaybackState
     FolderScanCompleted,
     FolderScanStarted,
     FolderWatchStarted,
-    PlaySongFrommOutsideApp
+    PlaySongFrommOutsideApp,
 }

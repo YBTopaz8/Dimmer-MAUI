@@ -75,18 +75,20 @@ public partial class DimmerWin : Window
     {
         StickTopImgBtn.IsVisible = false;
         UnStickTopImgBtn.IsVisible = true;
-
+        PlatUtils.ToggleWindowAlwaysOnTop(true, PlatUtils.AppWinPresenter);
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
         StickTopImgBtn.IsVisible = true;
         UnStickTopImgBtn.IsVisible = false;
+        PlatUtils.ToggleWindowAlwaysOnTop(false, PlatUtils.AppWinPresenter);
     }
 
     private TrayIconHelper? _trayIconHelper;
     private void Minimize_Clicked(object sender, EventArgs e)
     {
+        //PlatUtils.ToggleFullScreenMode(true, PlatUtils.AppWinPresenter);
         return;
         IntPtr hwnd = PlatUtils.DimmerHandle;
         Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location)!;

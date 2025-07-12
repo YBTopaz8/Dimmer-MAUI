@@ -114,7 +114,7 @@ public class MetaParser
         var predicates = _segments.Select(seg =>
         {
             // This part is now correct because QuerySegment holds tokens.
-            if (!seg.FilterTokens.Any())
+            if (seg.FilterTokens.Count==0)
                 return (seg.SegmentType, (Func<SongModelView, bool>)null);
 
             var ast = new AstParser(seg.FilterTokens).Parse(); // Uses the new AstParser constructor
@@ -127,11 +127,11 @@ public class MetaParser
 
         return song =>
         {
-            bool isIncluded = !mainIncludes.Any() || mainIncludes.Any(p => p(song));
+            bool isIncluded = mainIncludes.Count==0 || mainIncludes.Any(p => p(song));
             if (!isIncluded)
                 return false;
 
-            bool isExcluded = excludes.Any() && excludes.Any(p => p(song));
+            bool isExcluded = excludes.Count!=0 && excludes.Any(p => p(song));
             return !isExcluded;
         };
     }

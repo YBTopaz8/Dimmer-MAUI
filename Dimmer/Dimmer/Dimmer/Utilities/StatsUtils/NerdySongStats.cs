@@ -474,7 +474,7 @@ public static class NerdySongStats
     // 18. Is the number of distinct artists a prime number?
     public static bool IsArtistCountPrime(SongModel song)
     {
-        int artistCount = song.ArtistIds?.Count ?? 0;
+        int artistCount = song.ArtistToSong?.Count ?? 0;
         if (artistCount <= 1)
             return false;
         for (int i = 2; i * i <= artistCount; i++)

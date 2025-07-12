@@ -79,13 +79,11 @@ public partial class SearchFilterAndSongsColViewUI : DXStackLayout
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
-    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
-        //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
-        //HomeView.IsVisible=false;
-        //DetailView.IsVisible=true;
+        MyViewModel.BaseVM.PlaySong(song);
+
 
     }
     private void ByTitle()

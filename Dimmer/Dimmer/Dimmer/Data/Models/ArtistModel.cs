@@ -15,7 +15,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     public string? DeviceModel { get; set; }
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
-    [Backlink(nameof(SongModel.ArtistIds))]
+    [Backlink(nameof(SongModel.ArtistToSong))]
     public IQueryable<SongModel> Songs { get; }
 
     [Backlink(nameof(AlbumModel.ArtistIds))]

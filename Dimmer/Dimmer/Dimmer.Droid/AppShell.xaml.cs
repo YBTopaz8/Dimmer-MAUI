@@ -20,8 +20,6 @@ public partial class AppShell : Shell
     {
         base.OnAppearing();
 
-        MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>()!;
-        MyViewModel.FiniInit();
 
     }
 

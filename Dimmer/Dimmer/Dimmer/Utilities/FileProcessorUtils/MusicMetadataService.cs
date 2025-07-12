@@ -4,25 +4,24 @@ namespace Dimmer.Utilities.FileProcessorUtils;
 
 public class MusicMetadataService : IMusicMetadataService
 {
-    private readonly Dictionary<string, ArtistModel> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, AlbumModel> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, GenreModel> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly List<SongModel> _songs = new();
+    private readonly Dictionary<string, ArtistModelView> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AlbumModelView> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, GenreModelView> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
 
 
-    public List<ArtistModel> NewArtists { get; } = new();
-    public List<AlbumModel> NewAlbums { get; } = new();
-    public List<GenreModel> NewGenres { get; } = new();
+    public List<ArtistModelView> NewArtists { get; } = new();
+    public List<AlbumModelView> NewAlbums { get; } = new();
+    public List<GenreModelView> NewGenres { get; } = new();
 
 
     public MusicMetadataService() { }
 
 
     public void LoadExistingData(
-        IEnumerable<ArtistModel> existingArtists,
-        IEnumerable<AlbumModel> existingAlbums,
-        IEnumerable<GenreModel> existingGenres,
-        IEnumerable<SongModel> existingSongs)
+        IEnumerable<ArtistModelView> existingArtists,
+        IEnumerable<AlbumModelView> existingAlbums,
+        IEnumerable<GenreModelView> existingGenres,
+        IEnumerable<SongModelView> existingSongs)
     {
         foreach (var artist in existingArtists)
         {
@@ -46,16 +45,22 @@ public class MusicMetadataService : IMusicMetadataService
                 _genresByName.TryAdd(genre.Name, genre);
             }
         }
-        _songs.AddRange(existingSongs);
+        foreach (var song in existingSongs)
+        {
+            _existingSongKeys.Add(song.TitleDurationKey);
+        }
+        _processedSongsInThisScan.AddRange(existingSongs);
     }
+    private readonly List<SongModelView> _processedSongsInThisScan = new();
 
+    private readonly HashSet<string> _existingSongKeys = new();
 
-    public ArtistModel GetOrCreateArtist(Track track, string name)
+    public ArtistModelView GetOrCreateArtist(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
         if (!_artistsByName.TryGetValue(name, out var artist))
         {
-            artist = new ArtistModel { Name = name, Id=ObjectId.GenerateNewId(), IsNew=true };
+            artist = new ArtistModelView { Name = name, Id=ObjectId.GenerateNewId() };
             _artistsByName[name] = artist;
             NewArtists.Add(artist);
         }
@@ -64,17 +69,16 @@ public class MusicMetadataService : IMusicMetadataService
         return artist;
     }
 
-    public AlbumModel GetOrCreateAlbum(Track track, string name, string? initialCoverPath = null)
+    public AlbumModelView GetOrCreateAlbum(Track track, string name, string? initialCoverPath = null)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Album" : name.Trim();
         if (!_albumsByName.TryGetValue(name, out var album))
         {
-            album = new AlbumModel
+            album = new AlbumModelView
             {
                 Name = name,
                 Id=ObjectId.GenerateNewId(),
                 //ImagePath = initialCoverPath,
-                IsNew=true,
 
 
             };
@@ -92,16 +96,15 @@ public class MusicMetadataService : IMusicMetadataService
         return album;
     }
 
-    public GenreModel GetOrCreateGenre(Track track, string name)
+    public GenreModelView GetOrCreateGenre(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Genre" : name.Trim();
         if (!_genresByName.TryGetValue(name, out var genre))
         {
-            genre = new GenreModel
+            genre = new GenreModelView
             {
                 Id=ObjectId.GenerateNewId(),
                 Name = name,
-                IsNew = true,
 
             };
             _genresByName[name] = genre;
@@ -110,49 +113,51 @@ public class MusicMetadataService : IMusicMetadataService
         return genre;
     }
 
-    public void AddSong(SongModel song)
+    public void AddSong(SongModelView song)
     {
-        _songs.Add(song);
+        _processedSongsInThisScan.Add(song);
     }
 
-    public bool DoesSongExist(string title, int durationInSeconds)
+
+    // Add a way to track updates
+    private readonly HashSet<ObjectId> _updatedEntityIds = new();
+    public bool DoesSongExist(string title, double durationInSeconds)
     {
-
-        if (_songs == null)
-        {
-
-            System.Diagnostics.Debug.WriteLine("Error: _songs collection is null in DoesSongExist.");
-            return false;
-        }
-
-        title??=string.Empty;
-
-        bool exists = _songs.Any(s =>
-            s != null &&
-            s.Title != null &&
-            s.Title.Equals(title, System.StringComparison.OrdinalIgnoreCase) &&
-            s.DurationInSeconds == durationInSeconds);
-
-        return exists;
+        // We now check against the set of keys from songs that existed BEFORE the scan started.
+        string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
+        return _existingSongKeys.Contains(keyToCheck);
+    }
+    public bool DoesSongExist(string title, int durationInSeconds, out SongModelView? existingSong)
+    {
+        string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
+        existingSong = _processedSongsInThisScan.FirstOrDefault(s => s.TitleDurationKey == keyToCheck);
+        return existingSong != null;
     }
 
-    public IReadOnlyList<ArtistModel> GetAllArtists()
+    // Method to mark an entity as updated
+    public void MarkAsUpdated(SongModelView song)
+    {
+        _updatedEntityIds.Add(song.Id);
+    }
+
+
+    public IReadOnlyList<ArtistModelView> GetAllArtists()
     {
         return [.. _artistsByName.Values];
     }
 
-    public IReadOnlyList<AlbumModel> GetAllAlbums()
+    public IReadOnlyList<AlbumModelView> GetAllAlbums()
     {
         return [.. _albumsByName.Values];
     }
 
-    public IReadOnlyList<GenreModel> GetAllGenres()
+    public IReadOnlyList<GenreModelView> GetAllGenres()
     {
         return [.. _genresByName.Values];
     }
 
-    public IReadOnlyList<SongModel> GetAllSongs()
+    public IReadOnlyList<SongModelView> GetProcessedSongs()
     {
-        return [.. _songs];
+        return [.. _processedSongsInThisScan];
     }
 }

@@ -42,13 +42,12 @@ public partial class ArtistsPage : ContentPage
     {
 
     }
-    private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        var ee = ArtistSongsColView.ItemsSource as IEnumerable<SongModelView>;
-        songsToDisplay =ee.ToObservableCollection();
-        await MyViewModel.PlaySongFromListAsync(song, ee);
+
+        MyViewModel.PlaySong(song);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -72,7 +71,7 @@ public partial class ArtistsPage : ContentPage
 
             if (token.IsCancellationRequested)
                 return;
-            await SearchSongsAsync(txt, token);
+            //await SearchSongsAsync(txt, token);
 
         }
         catch (OperationCanceledException ex)
@@ -85,51 +84,6 @@ public partial class ArtistsPage : ContentPage
         }
     }
     ObservableCollection<SongModelView?>? songsToDisplay = new();
-    private async Task SearchSongsAsync(string? searchText, CancellationToken token)
-    {
-        if ((songsToDisplay is null || songsToDisplay.Count < 1))
-        {
-            return;
-        }
-
-        if (string.IsNullOrEmpty(searchText))
-        {
-
-            songsToDisplay = [.. MyViewModel.SelectedArtistSongs];
-        }
-        else
-        {
-
-            songsToDisplay= await Task.Run(() =>
-            {
-                token.ThrowIfCancellationRequested();
-
-
-                var e = MyViewModel.SelectedArtistSongs!.
-                            Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                  (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                                  (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
-                   .ToObservableCollection();
-
-                return e;
-            }, token);
-
-
-        }
-
-
-        Dispatcher.Dispatch(() =>
-        {
-            if (token.IsCancellationRequested)
-                return;
-
-            MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
-            ArtistSongsColView.ItemsSource = songsToDisplay;
-
-
-
-        });
-    }
 
     private void ArtistAlbums_Loaded(object sender, EventArgs e)
     {
@@ -144,7 +98,6 @@ public partial class ArtistsPage : ContentPage
     {
         base.OnDisappearing();
         MyViewModel.SelectedAlbumArtists?.Clear();
-        MyViewModel.SelectedAlbumSongs?.Clear();
         MyViewModel.SelectedArtistAlbums?.Clear();
     }
 }

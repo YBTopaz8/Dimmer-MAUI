@@ -7,7 +7,7 @@ using System.Linq;
 
 
 
-public static class SongStatTwop
+public static class SongStatTwo
 {
     #region Core Logic Methods (taking pre-filtered songSpecificEvents)
 

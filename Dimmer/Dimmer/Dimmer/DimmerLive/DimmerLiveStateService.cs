@@ -737,7 +737,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         public void SaveUserLocally(UserModelView user)
         {
             var usr = mapper.Map<UserModel>(user);
-            _userRepo.AddOrUpdate(usr);
+            _userRepo.Upsert(usr);
         }
 
         public async Task SignUpUserAsync(UserModelView user)
@@ -877,7 +877,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                     await SecureStorage.SetAsync("Email", UserOnline.Email);
 
                     UserLocalDB.SessionToken = UserOnline.SessionToken;
-                    _userRepo.AddOrUpdate(UserLocalDB);
+                    _userRepo.Upsert(UserLocalDB);
                     var tcs = new TaskCompletionSource<bool>();
 
                     MainThread.BeginInvokeOnMainThread(async () =>

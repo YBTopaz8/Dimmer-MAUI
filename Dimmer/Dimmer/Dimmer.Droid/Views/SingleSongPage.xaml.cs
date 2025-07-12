@@ -13,6 +13,6 @@ public partial class SingleSongPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.BaseVM.LoadStatsForSong(MyViewModel.BaseVM.SelectedSongForContext!);
+        //MyViewModel.BaseVM.LoadStatsForSong(MyViewModel.BaseVM.SelectedSongForContext!);
     }
 }

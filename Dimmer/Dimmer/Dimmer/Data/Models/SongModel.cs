@@ -52,15 +52,14 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public AlbumModel Album { get; set; }
     public ArtistModel Artist { get; set; }
     public GenreModel Genre { get; set; }
-    public IList<ArtistModel> ArtistIds { get; } = null!;
+    public IList<ArtistModel> ArtistToSong { get; } = null!;
     public IList<TagModel> Tags { get; } = null!;
 
     public IList<SyncLyrics> EmbeddedSync { get; } = null!;
     public IList<DimmerPlayEvent> PlayHistory { get; } = null!;
 
     public bool IsNew { get; set; }
-    [Backlink(nameof(PlaylistModel.SongsInPlaylist))]
-    public IQueryable<PlaylistModel> Playlists { get; } = null!;
+    public float? BPM { get; set; }
     public IList<UserNoteModel> UserNotes { get; } = null!;
 
     [BsonIgnore]
@@ -82,6 +81,27 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
             }
             return sb.ToString();
         }
+    }
+
+    /// <summary>
+    /// A computed, indexed property to enforce uniqueness based on Title and Duration.
+    /// This acts as our "composite primary key" for business logic.
+    /// </summary>
+    [Indexed]
+    public string TitleDurationKey { get; private set; }
+
+
+    // This is a "setter" method that should ALWAYS be used to set the title or duration
+    // to ensure the key is updated correctly.
+    public void SetTitleAndDuration(string? title, double duration)
+    {
+        if (title is null)
+        {
+            return;
+        }
+        Title = title;
+        DurationInSeconds = duration;
+        TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
     }
     public SongModel()
     {

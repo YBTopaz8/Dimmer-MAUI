@@ -42,7 +42,7 @@ public partial class AppInitializerService : IAppInitializerService
             if (currentUserInstance == null)
             {
                 currentUserInstance = new UserModel { UserName = "Default User" /* other defaults */ };
-                currentUserInstance = _userRepo.AddOrUpdate(currentUserInstance);
+                currentUserInstance = _userRepo.Upsert(currentUserInstance);
                 _logger.LogInformation("No existing user. Created default user.");
             }
             _state.SetCurrentUser(_mapper.Map<UserModelView>(currentUserInstance));

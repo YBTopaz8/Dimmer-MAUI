@@ -28,11 +28,8 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     // private readonly SubscriptionManager _subsLocal = new(); // Use _subsManager from base
     private readonly IMapper mapper;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
-    private readonly AlbumsMgtFlow albumsMgtFlow;
     private readonly IFolderPicker folderPicker;
     private readonly IAnimationService animService;
-    private readonly PlayListMgtFlow playlistsMgtFlow;
-    private readonly SongsMgtFlow songsMgtFlow;
     private readonly IDimmerStateService stateService;
     private readonly ISettingsService settingsService;
     private readonly SubscriptionManager subsManager;
@@ -59,20 +56,17 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
 
-    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, IFolderPicker folderPicker, IAnimationService animService,
-       IDimmerAudioService _audioService, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
+    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, IFolderPicker folderPicker, IAnimationService animService,
+       IDimmerAudioService _audioService, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
         baseVM = baseViewModel; // Store the BaseViewModel reference if needed
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
         this.dimmerLiveStateService=dimmerLiveStateService;
-        this.albumsMgtFlow=albumsMgtFlow;
         this.folderPicker=folderPicker;
         this.animService=animService;
         audioService=_audioService;
-        this.playlistsMgtFlow=playlistsMgtFlow;
-        this.songsMgtFlow=songsMgtFlow;
         this.stateService=stateService;
         this.settingsService=settingsService;
         this.subsManager=subsManager;
@@ -86,7 +80,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
         // mapper and stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
-        this.playlistsMgtFlow=playlistsMgtFlow;
 
 
         isAppBooting=true;
@@ -98,7 +91,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     {
         if (isAppBooting)
         {
-            baseVM.Initialize();
             isAppBooting = false;
         }
     }
@@ -172,11 +164,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
             // TODO: Show message to user explaining why permission is needed.
         }
 
-    }
-
-    public void Dispose()
-    {
-        ((IDisposable)songsMgtFlow).Dispose();
     }
 
     internal void ViewArtistDetails(ArtistModelView? s)
@@ -263,5 +250,10 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     }
     protected void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 }

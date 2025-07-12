@@ -33,31 +33,10 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 35,
+            SchemaVersion = 39,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
 
-
-                if (oldSchemaVersion < 21) // or your relevant version
-                {
-                    var songs = migration.NewRealm.All<SongModel>();
-                    var idGroups = songs.AsEnumerable().GroupBy(s => s.Id).Where(g => g.Count() > 1);
-
-                    foreach (var group in idGroups)
-                    {
-                        // Keep only the first, remove the rest
-                        bool first = true;
-                        foreach (var song in group)
-                        {
-                            if (first)
-                            {
-                                first = false;
-                                continue;
-                            }
-                            migration.NewRealm.Remove(song);
-                        }
-                    }
-                }
             }
         };
     }
