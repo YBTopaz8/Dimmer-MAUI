@@ -617,7 +617,7 @@
                                                 x:Name="TapGestRec"
                                                 CommandParameter="{Binding .}"
                                                 NumberOfTapsRequired="2"
-                                                Tapped="TapGestRec_Tapped" />
+                                                Tapped="PlaySongGestRec_Tapped" />
                                         </Grid.GestureRecognizers>
                                         <Grid.Resources>
                                             <Style TargetType="Label">

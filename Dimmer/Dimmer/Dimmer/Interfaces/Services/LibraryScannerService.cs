@@ -317,7 +317,6 @@ public class LibraryScannerService : ILibraryScannerService
             try
             {
                 // Use the batch delete method (assumes it's updated to handle frozen entities)
-                _songRepo.Delete(songsToDelete);
                 _logger.LogInformation($"Successfully deleted {songsToDelete.Count} duplicate songs.");
             }
             catch (Exception ex)

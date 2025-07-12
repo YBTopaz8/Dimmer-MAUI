@@ -10,6 +10,7 @@ using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.DimmerSearch.AbstractQueryTree.NL;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Orchestration;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
@@ -37,7 +38,6 @@ using System.Threading.Tasks;
 
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 using static Dimmer.Utilities.AppUtils;
-using static Dimmer.Utilities.StatsUtils.SongStatTwop;
 
 
 
@@ -169,7 +169,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     protected readonly IFolderMgtService _folderMgtService;
     private readonly IRepository<SongModel> songRepo;
     private readonly IRepository<ArtistModel> artistRepo;
-    private readonly IRepository<PlaylistModel> playlistRepo;
+    private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<AlbumModel> albumRepo;
     private readonly IFolderMonitorService folderMonitorService;
     private readonly IRepository<GenreModel> genreRepo;
@@ -248,7 +248,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         audioService.Volume = newVolume; // Update audio service volume
 
     }
-
+    private SongsMgtFlow _songsMgtFlow;
     [ObservableProperty]
     public partial string AppTitle { get; set; }
 
@@ -590,6 +590,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     public string CurrentQuery { get; private set; }
+    public string QueryBeforePlay { get; private set; }
 
 
     public void LoadStatsApp()
@@ -750,6 +751,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
 
+    public IObservable<bool> AudioEngineIsPlayingObservable { get; }
+    public IObservable<double> AudioEnginePositionObservable { get; }
+    public IObservable<double> AudioEngineVolumeObservable { get; }
     public void Initialize()
     {
         InitializeApp();
@@ -1054,6 +1058,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SavePlaybackContext(CurrentPlaybackQuery);
         StartAudioForSongAtIndex(startIndex);
     }
+
 
     [RelayCommand]
     public void PlayPauseToggle()
@@ -1498,6 +1503,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial bool IsSafeKeyboardAreaViewOpened { get; set; }
 
 
+
     [RelayCommand]
     public void SetPreferredAudioDevice(AudioOutputDevice dev)
     {
@@ -1508,6 +1514,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly Random _random = new();
 
 
+    #endregion
     [RelayCommand]
     public void SeekTrackPosition(double positionSeconds)
     {
@@ -1839,13 +1846,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-    public void UpdateAppStickToTop(bool isStick)
-    {
-        IsStickToTop = isStick;
-
-        _logger.LogInformation("StickToTop setting changed to: {IsStickToTop}", isStick);
-
-    }
 
 
     [ObservableProperty]
@@ -1877,49 +1877,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    [ObservableProperty] public partial ObservableCollection<DimmerPlayEventView>? SongEvts { get; set; }
-    [ObservableProperty] public partial SongSingleStatsSummary SingleSongStatsSumm { get; set; }
-    [ObservableProperty] public partial int CurrSongCompletedTimes { get; set; }
-    [ObservableProperty] public partial ObservableCollection<PlayEventGroup>? GroupedPlayEvents { get; set; } = new();
-    public void LoadStats()
-    {
-
-        SongEvts ??= new();
-        SongEvts= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(dimmerPlayEventRepo.GetAll().ToList());
-
-        GroupedPlayEvents.Clear();
-
-        GroupedPlayEvents = SongEvts
-           .GroupBy(e => e.PlayTypeStr ?? "Unknown")
-           .Select(g => new PlayEventGroup(
-               g.Key,
-               [.. g.OrderByDescending(e => e.DatePlayed)]
-           ))
-           .OrderBy(group => group.Name)
-           .ToObservableCollection();
-
-
-    }
-    public void LoadStatsForSong(SongModelView? song)
-    {
-
-        if (song is null && CurrentPlayingSongView is null)
-        {
-            return;
-        }
-        SongEvts ??= new();
-        var s = songRepo.GetById(song.Id);
-        var evts = s.PlayHistory.ToList();
-
-
-        GroupedPlayEvents?.Clear();
-
-        CurrSongCompletedTimes = SongStats.GetCompletedPlayCount(s, evts);
-
-        SingleSongStatsSumm = SongStatTwop.GetSingleSongSummary(s, evts);
-
-    }
-
 
     public void RateSong(int newRating)
     {
@@ -1936,7 +1893,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         songModel.Rating = newRating;
-        var song = songRepo.AddOrUpdate(songModel);
+        var song = songRepo.Upsert(songModel);
         _logger.LogInformation("Song '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
         _stateService.SetCurrentSong(song);
@@ -1958,131 +1915,65 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         songModel.IsFavorite = !songModel.IsFavorite;
-        var song = songRepo.AddOrUpdate(songModel.ToModel(_mapper));
+        var song = songRepo.Upsert(songModel.ToModel(_mapper));
 
 
     }
 
 
-    public void AddToPlaylist(string PlName, List<SongModelView> songsToAdd)
+    public void AddToPlaylist(string playlistName, List<SongModelView> songsToAdd)
     {
-        if (string.IsNullOrEmpty(PlName) || songsToAdd == null || songsToAdd.Count==0)
+        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
         {
-            _logger.LogWarning("AddToPlaylist called with invalid parameters: PlName = '{PlName}', _songSource count = {Count}", PlName, songsToAdd?.Count ?? 0);
+            _logger.LogWarning("AddToPlaylist called with invalid parameters.");
             return;
         }
 
-        _logger.LogInformation("Adding _songSource to playlist '{PlName}'.", PlName);
-        var realm = realmFactory.GetRealmInstance();
+        _logger.LogInformation("Attempting to add {Count} songs to playlist '{PlaylistName}'.", songsToAdd.Count, playlistName);
 
+        // Step 1: Find the playlist by name. We need its ID.
+        // The Query method returns a frozen list.
+        var matchingPlaylists = _playlistRepo.Query(p => p.PlaylistName == playlistName);
+        var targetPlaylist = matchingPlaylists.FirstOrDefault();
 
-        realm.Write(() =>
+        // If the playlist doesn't exist, create it as a NEW MANUAL playlist.
+        if (targetPlaylist == null)
         {
-
-            var playlist = realm.All<PlaylistModel>().FirstOrDefault(p => p.PlaylistName == PlName);
-            if (playlist == null)
+            _logger.LogInformation("Playlist '{PlaylistName}' not found. Creating it as a new manual playlist.", playlistName);
+            var newPlaylistModel = new PlaylistModel
             {
-                playlist = new PlaylistModel { PlaylistName = PlName };
-                realm.Add(playlist);
-            }
+                PlaylistName = playlistName,
+                IsSmartPlaylist = false // Crucial! It's a manual playlist.
+            };
+            targetPlaylist = _playlistRepo.Create(newPlaylistModel);
+        }
 
-
-            var songIdsToAdd = songsToAdd.Select(s => s.Id).ToList();
-
-
-            var existingSongIdsInPlaylist = playlist.SongsInPlaylist
-                                                    .Where(song => songIdsToAdd.Contains(song.Id))
-                                                    .Select(song => song.Id)
-                                                    .ToHashSet();
-
-
-            var newSongIds = songIdsToAdd.Except(existingSongIdsInPlaylist).ToList();
-
-            if (newSongIds.Count==0)
-            {
-                _logger.LogInformation("All _songSource already exist in playlist '{PlName}'.", PlName);
-                return;
-            }
-
-
-            var songModelsInDb = realm.All<SongModel>()
-                                      .Where(s => newSongIds.Contains(s.Id))
-                                      .ToDictionary(s => s.Id);
-
-
-            foreach (var songDto in songsToAdd)
-            {
-
-                if (!newSongIds.Contains(songDto.Id))
-                {
-                    continue;
-                }
-
-                SongModel songToAdd;
-                if (songModelsInDb.TryGetValue(songDto.Id, out var existingSong))
-                {
-
-                    songToAdd = existingSong;
-                }
-                else
-                {
-
-                    songToAdd = songDto.ToModel(_mapper);
-                    realm.Add(songToAdd!);
-                }
-
-                playlist.SongsInPlaylist.Add(songToAdd!);
-            }
-
-            _logger.LogInformation("Successfully added {Count} new _songSource to playlist '{PlName}'.", newSongIds.Count, PlName);
-        });
-
-    }
-
-    public void RemoveFromPlaylist(ObjectId playlistId, List<SongModelView> songsToRemove)
-    {
-        if (songsToRemove == null || songsToRemove.Count==0)
+        // If we found an existing playlist but it's a SMART playlist, we can't add songs manually.
+        if (targetPlaylist.IsSmartPlaylist)
         {
+            _logger.LogWarning("Cannot manually add songs to the smart playlist '{PlaylistName}'. Change its query instead.", playlistName);
+            // Optionally, show a message to the user here.
             return;
         }
 
-        var realm = realmFactory.GetRealmInstance();
+        // Step 2: Use the safe Update method to modify the playlist.
+        var songIdsToAdd = songsToAdd.Select(s => s.Id).ToHashSet();
 
-        realm.Write(() =>
+        _playlistRepo.Update(targetPlaylist.Id, livePlaylist =>
         {
-            var playlist = realm.Find<PlaylistModel>(playlistId);
-            if (playlist == null)
+            // 'livePlaylist' is the managed object inside the transaction.
+            int songsAddedCount = 0;
+            foreach (var songId in songIdsToAdd)
             {
-                _logger.LogWarning("RemoveFromPlaylist: Playlist with ID '{Id}' not found.", playlistId);
-                return;
+                // Check if the song is already in the list to avoid duplicates.
+                if (!livePlaylist.ManualSongIds.Contains(songId))
+                {
+                    livePlaylist.ManualSongIds.Add(songId);
+                    songsAddedCount++;
+                }
             }
-
-
-            var songIdsToRemove = songsToRemove.Select(s => s.Id).ToHashSet();
-
-
-
-            var songsToDeleteFromList = playlist.SongsInPlaylist
-                                                .Where(s => songIdsToRemove.Contains(s.Id))
-                                                .ToList();
-
-            if (songsToDeleteFromList.Count==0)
-            {
-                _logger.LogInformation("None of the specified _songSource were found in playlist '{PlName}'.", playlist.PlaylistName);
-                return;
-            }
-
-
-
-            foreach (var song in songsToDeleteFromList)
-            {
-                playlist.SongsInPlaylist.Remove(song);
-            }
-
-            _logger.LogInformation("Removed {Count} _songSource from playlist '{PlName}'.", songsToDeleteFromList.Count, playlist.PlaylistName);
+            _logger.LogInformation("Successfully added {Count} new songs to manual playlist '{PlaylistName}'.", songsAddedCount, playlistName);
         });
-
-
     }
     private bool _disposed = false;
 

@@ -1,19 +1,19 @@
 ﻿// --- START OF FILE FolderMgtService.cs ---
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Reactive.Disposables; // For CompositeDisposable
+using System.Reactive.Disposables;
 // Add other necessary using statements
 using Dimmer.Interfaces.Services.Interfaces;
 
-namespace Dimmer.Interfaces.Services; // Or your preferred namespace for service implementations
+namespace Dimmer.Interfaces.Services;
 
 public class FolderMgtService : IFolderMgtService
 {
-    private readonly IDimmerStateService _state; // For signaling UI or other non-scan-triggering events
+    private readonly IDimmerStateService _state;
     private readonly ISettingsService _settingsService;
     private readonly IFolderMonitorService _folderMonitor;
-    private readonly ILibraryScannerService _libraryScanner; // <<< NEW DEPENDENCY
-    private readonly ILogger<FolderMgtService> _logger;   // <<< NEW DEPENDENCY
-    private readonly ProcessingConfig _config; // To know supported audio extensions
+    private readonly ILibraryScannerService _libraryScanner;
+    private readonly ILogger<FolderMgtService> _logger;
+    private readonly ProcessingConfig _config;
 
     private readonly BehaviorSubject<IReadOnlyList<FolderModel>> _allFoldersBehaviorSubject = new(Array.Empty<FolderModel>());
     private readonly CompositeDisposable _monitorSubscriptions = new();
@@ -25,8 +25,8 @@ public class FolderMgtService : IFolderMgtService
         IDimmerStateService state,
         ISettingsService settingsService,
         IFolderMonitorService folderMonitor,
-        ILibraryScannerService libraryScanner, // Injected
-        ILogger<FolderMgtService> logger)     // Injected
+        ILibraryScannerService libraryScanner,
+        ILogger<FolderMgtService> logger)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -35,8 +35,8 @@ public class FolderMgtService : IFolderMgtService
         _config =  new ProcessingConfig();
         _logger = logger ?? NullLogger<FolderMgtService>.Instance;
 
-        // No automatic subscriptions to _folderMonitor here.
-        // StartWatchingConfiguredFolders will set them up.
+
+
     }
 
     public IObservable<IReadOnlyList<FolderModel>> AllWatchedFolders => _allFoldersBehaviorSubject.AsObservable();
@@ -45,7 +45,7 @@ public class FolderMgtService : IFolderMgtService
     {
         if (_isCurrentlyWatching)
         {
-            StopWatching(); // Stop existing watchers before starting new ones
+            StopWatching();
         }
 
         var foldersToWatchPaths = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
@@ -61,21 +61,21 @@ public class FolderMgtService : IFolderMgtService
         var folderModels = foldersToWatchPaths.Select(p => new FolderModel { Path = p }).ToList();
         _allFoldersBehaviorSubject.OnNext(folderModels.AsReadOnly());
 
-        // Unsubscribe from previous monitor events if any
+
         _monitorSubscriptions.Clear();
 
-        // Subscribe to folder monitor events
-        // Assuming IFolderMonitorService events are standard .NET events
-        // If they are IObservables, use .Subscribe().DisposeWith(_monitorSubscriptions)
+
+
+
         _folderMonitor.OnCreated += HandleFileOrFolderCreated;
         ;
         _folderMonitor.OnDeleted += HandleFileOrFolderDeleted;
-        _folderMonitor.OnChanged += HandleFileOrFolderChanged; // Note: Changed takes string
+        _folderMonitor.OnChanged += HandleFileOrFolderChanged;
         _folderMonitor.OnRenamed += HandleFileOrFolderRenamed;
 
         _folderMonitor.Start(foldersToWatchPaths);
         _isCurrentlyWatching = true;
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderWatchStarted, null, null, null)); // Signal watch has started
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderWatchStarted, null, null, null));
     }
 
 
@@ -92,7 +92,7 @@ public class FolderMgtService : IFolderMgtService
         _folderMonitor.OnChanged -= HandleFileOrFolderChanged;
         _folderMonitor.OnRenamed -= HandleFileOrFolderRenamed;
 
-        _monitorSubscriptions.Clear(); // If events were IObservables added to it
+        _monitorSubscriptions.Clear();
         _isCurrentlyWatching = false;
     }
 
@@ -112,13 +112,13 @@ public class FolderMgtService : IFolderMgtService
         if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
         {
 
-            StartWatchingConfiguredFolders();     // Refresh watchers with the new list
-            _settingsService.AddMusicFolder(path); // Persist to settings
+            StartWatchingConfiguredFolders();
+            _settingsService.AddMusicFolder(path);
         }
 
         _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
 
-        // Signal to the app that a folder preference was added (UI might react)
+
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));
 
         _logger.LogInformation("Triggering scan for newly added folder: {Path}", path);
@@ -130,19 +130,19 @@ public class FolderMgtService : IFolderMgtService
         if (string.IsNullOrWhiteSpace(path))
             return;
 
-        bool removed = _settingsService.RemoveMusicFolder(path); // Persist to settings
+        bool removed = _settingsService.RemoveMusicFolder(path);
         if (removed)
         {
             _logger.LogInformation("Removed folder from watch list and settings: {Path}", path);
-            StartWatchingConfiguredFolders(); // Refresh watchers
+            StartWatchingConfiguredFolders();
 
-            // Signal to the app that a folder preference was removed
+
             _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, path, null, null));
 
-            // After removing a folder, trigger a full re-scan of *remaining* folders
-            // to ensure library consistency (songs from removed folder are gone from DB/state).
-            // ILibraryScannerService would need a way to know which songs to remove, or it
-            // re-evaluates based on the current set of watched folders.
+
+
+
+
             _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
             var remainingFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
             Task.Run(async () => await _libraryScanner.ScanLibrary(remainingFolders));
@@ -156,60 +156,60 @@ public class FolderMgtService : IFolderMgtService
     public void ClearAllWatchedFoldersAndRescanAsync()
     {
         _logger.LogInformation("Clearing all watched folders and settings.");
-        _settingsService.ClearAllFolders(); // Persist
-        StartWatchingConfiguredFolders();   // Will stop monitoring as list is empty
+        _settingsService.ClearAllFolders();
+        StartWatchingConfiguredFolders();
 
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));
 
         _logger.LogInformation("Triggering library scan with empty folder list (to clear library).");
-        _libraryScanner.ScanLibrary(new List<string>()); // Scan with empty list
+        _libraryScanner.ScanLibrary(new List<string>());
     }
 
-    // --- FileSystemWatcher Event Handlers ---
+
     private async void HandleFileOrFolderCreated(FileSystemEventArgs e)
     {
         _logger.LogDebug("FS Event: Created - {FullPath}", e.FullPath);
-        if (IsRelevantAudioFile(e.FullPath)) // Check if it's an audio file we care about
+        if (IsRelevantAudioFile(e.FullPath))
         {
             _logger.LogInformation("Relevant audio file created: {FilePath}. Triggering incremental scan of parent directory.", e.FullPath);
             // It's often better to scan the directory in case multiple files were added in quick succession
             // or if metadata relies on folder structure.
             await _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
         }
-        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath)) // A new subfolder inside a watched folder
+        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath))
         {
             _logger.LogInformation("New directory created within watched scope: {FolderPath}. Triggering incremental scan.", e.FullPath);
-            _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true); // Scan the new folder
+            _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true);
         }
     }
 
     private async void HandleFileOrFolderDeleted(FileSystemEventArgs e)
     {
         _logger.LogDebug("FS Event: Deleted - {FullPath}", e.FullPath);
-        if (IsRelevantAudioFile(e.Name) || WasPathPreviouslyKnownAudio(e.FullPath)) // Check by extension or if we knew it was audio
+        if (IsRelevantAudioFile(e.Name) || WasPathPreviouslyKnownAudio(e.FullPath))
         {
             _logger.LogInformation("Relevant audio file or known audio path deleted: {FilePath}. Triggering library refresh of parent.", e.FullPath);
             // Re-scan parent directory to update library (remove song, potentially update album/artist if they become empty)
             await Task.Run(() => _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true));
         }
-        else if (WasPathPreviouslyWatchedSubfolder(e.FullPath)) // A subfolder we might have scanned was deleted
+        else if (WasPathPreviouslyWatchedSubfolder(e.FullPath))
         {
             _logger.LogInformation("Watched sub-directory deleted: {FolderPath}. Triggering full library refresh.", e.FullPath);
-            // Simplest is to rescan all configured folders.
+
             var currentFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
             _libraryScanner.ScanLibrary(currentFolders);
         }
     }
 
-    private void HandleFileOrFolderChanged(string fullPath) // IFolderMonitorService OnChanged provides string
+    private void HandleFileOrFolderChanged(string fullPath)
     {
         _logger.LogDebug("FS Event: Changed - {FullPath}", fullPath);
-        if (IsRelevantAudioFile(fullPath)) // Only rescan if an audio file's metadata might have changed
+        if (IsRelevantAudioFile(fullPath))
         {
             _logger.LogInformation("Relevant audio file changed: {FilePath}. Triggering incremental scan of parent directory.", fullPath);
             _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(fullPath)! }, isIncremental: true);
-            // Optionally, set a more specific state if UI needs to react to just a file change
-            // _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FileChanged, fullPath, null, null));
+
+
         }
     }
 
@@ -217,9 +217,9 @@ public class FolderMgtService : IFolderMgtService
     {
         _logger.LogDebug("FS Event: Renamed - {OldFullPath} to {NewFullPath}", e.OldFullPath, e.FullPath);
         bool oldIsAudio = IsRelevantAudioFile(e.OldName) || WasPathPreviouslyKnownAudio(e.OldFullPath);
-        bool newIsAudio = IsRelevantAudioFile(e.Name); // Name is new name
+        bool newIsAudio = IsRelevantAudioFile(e.Name);
 
-        if (oldIsAudio || newIsAudio) // If either old or new path relates to audio files
+        if (oldIsAudio || newIsAudio)
         {
             _logger.LogInformation("Relevant audio file/folder renamed: {OldPath} -> {NewPath}. Triggering scan of relevant directories.", e.OldFullPath, e.FullPath);
             var pathsToScan = new List<string>();
@@ -230,22 +230,22 @@ public class FolderMgtService : IFolderMgtService
 
             _libraryScanner.ScanSpecificPaths([.. pathsToScan.Distinct()], isIncremental: true);
         }
-        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath) || WasPathPreviouslyWatchedSubfolder(e.OldFullPath)) // A subfolder was renamed
+        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath) || WasPathPreviouslyWatchedSubfolder(e.OldFullPath))
         {
             _logger.LogInformation("Directory renamed within watched scope. Old: {OldPath}, New: {NewPath}. Triggering scan.", e.OldFullPath, e.FullPath);
             var pathsToScan = new List<string>();
             if (Path.GetDirectoryName(e.OldFullPath) != null)
-                pathsToScan.Add(Path.GetDirectoryName(e.OldFullPath)!); // Scan old parent
-            pathsToScan.Add(e.FullPath); // Scan new path itself
+                pathsToScan.Add(Path.GetDirectoryName(e.OldFullPath)!);
+            pathsToScan.Add(e.FullPath);
             if (Path.GetDirectoryName(e.FullPath) != null && Path.GetDirectoryName(e.FullPath) != e.FullPath)
-                pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!); // Scan new parent
+                pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!);
 
 
             _libraryScanner.ScanSpecificPaths([.. pathsToScan.Distinct()], isIncremental: true);
         }
     }
 
-    // Helper methods (conceptual)
+
     private bool IsRelevantAudioFile(string? fileNameOrPath)
     {
         if (string.IsNullOrEmpty(fileNameOrPath))
@@ -264,7 +264,7 @@ public class FolderMgtService : IFolderMgtService
     private bool WasPathPreviouslyWatchedSubfolder(string fullPath) {/* TODO: Check against known subfolders if needed */ return false; }
 
 
-    // --- Disposal ---
+
     public void Dispose()
     {
         Dispose(true);
@@ -278,11 +278,11 @@ public class FolderMgtService : IFolderMgtService
         if (disposing)
         {
             _logger.LogInformation("Disposing FolderManagementService.");
-            StopWatching(); // This also clears _monitorSubscriptions if they were .NET events
-            _monitorSubscriptions.Dispose(); // Explicitly dispose CompositeDisposable
+            StopWatching();
+            _monitorSubscriptions.Dispose();
             _allFoldersBehaviorSubject.Dispose();
-            // _folderMonitor is managed by DI if registered as IDisposable, or needs manual disposal here if created by this class.
-            // Your provided FolderMonitorService implements IDisposable.
+
+
             (_folderMonitor as IDisposable)?.Dispose();
         }
         _disposed = true;
