@@ -28,6 +28,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
 
     public bool IsNew { get; set; }
     public IList<SongModel> SongsInPlaylist { get; } = null!;
+    public IList<ObjectId> SongsIdsInPlaylist { get; } = null!;
     public string? CurrentSongId { get; set; }
     public string? Description { get; set; }
     public string? CoverImagePath { get; set; }

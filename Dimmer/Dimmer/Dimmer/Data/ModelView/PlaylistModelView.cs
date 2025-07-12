@@ -21,6 +21,9 @@ public partial class PlaylistModelView : ObservableObject
     public partial ObservableCollection<SongModel>? SongInPlaylist { get; set; }
 
     [ObservableProperty]
+    public partial ObservableCollection<ObjectId>? SongsIdsInPlaylist { get; set; }
+
+    [ObservableProperty]
     public partial SongModel? CurrentSong { get; set; }
 
     [ObservableProperty]

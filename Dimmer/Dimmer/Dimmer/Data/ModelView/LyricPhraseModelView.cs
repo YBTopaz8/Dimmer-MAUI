@@ -38,7 +38,11 @@ public partial class LyricPhraseModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsVisible { get; set; } = true;
 
-
+    /// <summary>
+    /// Start timestamp of the phrase, in milliseconds
+    /// </summary>
+    [ObservableProperty]
+    public partial int TimestampStart { get; set; }
     [ObservableProperty]
     public partial bool IsLyricSynced { get; set; }
 
@@ -48,9 +52,10 @@ public partial class LyricPhraseModelView : ObservableObject
 
         if (phrase != null)
         {
-
+            TimestampStart = phrase.TimestampStart;
             TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromMilliseconds(phrase.TimestampEnd));
             TimeStampMs = phrase.TimestampEnd;
+
             Text = phrase.Text;
             DurationMs = (nextPhraseTimestampMs ?? phrase.TimestampEnd) - phrase.TimestampEnd;
 
