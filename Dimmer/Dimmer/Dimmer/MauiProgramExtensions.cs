@@ -60,6 +60,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
         builder.Services.AddSingleton<ILibraryScannerService, LibraryScannerService>();
         builder.Services.AddSingleton<IAppInitializerService, AppInitializerService>();
+        builder.Services.AddSingleton<ICoverArtService, CoverArtService>();
 
 
         builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
@@ -70,8 +71,6 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(mapper);
 
         builder.Services.AddSingleton<BaseAppFlow>();
-        builder.Services.AddSingleton<SongsMgtFlow>();
-        builder.Services.AddSingleton<AlbumsMgtFlow>();
         builder.Services.AddSingleton<LyricsMgtFlow>();
 
         builder.Services.AddSingleton<MusicArtistryService>();

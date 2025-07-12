@@ -33,6 +33,7 @@ public partial class HomePage : ContentPage
         this.HideSoftInputOnTapped=true;
 
 
+        MyViewModel.BaseVM.Initialize();
     }
 
     protected override void OnAppearing()

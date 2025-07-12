@@ -84,7 +84,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _currentSongModel = songModel;
         // Tell the native service to prepare the track.
         Service?.Prepare(songModel.FilePath, songModel.Title, songModel.ArtistName, songModel.AlbumName, songModel);
-        Play();
+
         return Task.CompletedTask;
     }
 

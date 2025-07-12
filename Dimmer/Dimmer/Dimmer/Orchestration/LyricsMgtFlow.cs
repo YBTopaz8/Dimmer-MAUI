@@ -1,11 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using ATL;
 
-using ATL;
-
+using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
 
 using Microsoft.Extensions.Logging.Abstractions;
+
+using System.Text.RegularExpressions;
 
 
 namespace Dimmer.Orchestration;
@@ -16,14 +17,13 @@ public class LyricsMgtFlow : IDisposable
     private readonly IDimmerStateService _stateService;
     private readonly IDimmerAudioService _audioService;
     private readonly SubscriptionManager _subsManager;
-    private readonly ILyricsMetadataService lyricsMetadataService;
+    private readonly ILyricsMetadataService _lyricsMetadataService;
     private readonly ILogger<LyricsMgtFlow> _logger;
 
 
 
     private IReadOnlyList<LyricPhraseModelView> _lyrics = Array.Empty<LyricPhraseModelView>();
     private LyricSynchronizer? _synchronizer;
-    private bool _isPlaying;
 
 
 
@@ -50,24 +50,33 @@ public class LyricsMgtFlow : IDisposable
         _stateService = stateService;
         _audioService = audioService;
         _subsManager = subsManager;
-        this.lyricsMetadataService=lyricsMetadataService;
+        _lyricsMetadataService = lyricsMetadataService;
         _logger = logger ?? NullLogger<LyricsMgtFlow>.Instance;
 
-        _subsManager.Add(_stateService.CurrentSong
-            .DistinctUntilChanged()
-            .Subscribe(
-                async song => await LoadLyricsForSong(song),
-                ex => _logger.LogError(ex, "Error processing new song for lyrics.")
-            ));
-
-
         _subsManager.Add(
-           Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.IsPlayingChanged += h, h => _audioService.IsPlayingChanged -= h)
-               .Select(evt => evt.EventArgs.IsPlaying)
-               .Subscribe(
-                   isPlaying => _isPlaying = isPlaying,
-                   ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription.")
-               ));
+     Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.PlaybackStateChanged += h, h => _audioService.PlaybackStateChanged -= h)
+         .Select(evt => evt.EventArgs)
+         // We only care about the 'Playing' state, which signals a new track has begun.
+         .Where(args => args.EventType == DimmerPlaybackState.Playing)
+         // Get the song from the event arguments.
+         .Select(args => args.MediaSong)
+         // Ensure we don't re-process if the same song event fires twice.
+         .DistinctUntilChanged(song => song?.Id)
+         .Subscribe(
+             async song => await ProcessSongForLyrics(song),
+             ex => _logger.LogError(ex, "Error processing new song for lyrics from audio service event.")
+         ));
+
+        // ALSO, add a subscription to the Stop event to clear lyrics.
+        _subsManager.Add(
+            Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.PlayEnded += h, h => _audioService.PlayEnded -= h)
+                // A simple stop/end should clear the lyrics.
+                .Subscribe(
+                    _ => ClearLyrics(),
+                    ex => _logger.LogError(ex, "Error clearing lyrics on PlayEnded.")
+                ));
+
+
 
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
                                              h => audioService.PositionChanged += h,
@@ -79,171 +88,161 @@ public class LyricsMgtFlow : IDisposable
     }
 
     public IObservable<double> AudioEnginePositionObservable { get; }
-    private async Task LoadLyricsForSong(SongModelView? song)
-    {
 
+    private async Task ProcessSongForLyrics(SongModelView? song)
+    {
         if (song == null)
         {
-            _lyrics = Array.Empty<LyricPhraseModelView>();
-            _synchronizer = null;
-
-
-            _allLyricsSubject.OnNext(_lyrics);
-            _previousLyricSubject.OnNext(null);
-            _currentLyricSubject.OnNext(null);
-            _nextLyricSubject.OnNext(null);
+            ClearLyrics();
             return;
         }
 
         try
         {
-            bool hasSync = !string.IsNullOrEmpty(song.SyncLyrics);
-
-            string? lyrr = string.Empty;
-            if (!hasSync)
+            // --- Step 1: Get raw LRC content from the best available source ---
+            string? lrcContent = await GetLyricsContentAsync(song);
+            if (string.IsNullOrWhiteSpace(lrcContent))
             {
-                string? local = await lyricsMetadataService.GetLocalLyricsAsync(song);
-                if (string.IsNullOrEmpty(local))
-                {
-                    var online = await lyricsMetadataService.SearchOnlineAsync(song);
-                    lyrr = online.FirstOrDefault()?.SyncedLyrics;
-                }
-                else
-                {
-                    lyrr= local;
-                }
-            }
-            else
-            {
-                lyrr= song.SyncLyrics!;
-            }
-            if (lyrr is null)
-            {
-
-                _lyrics = Array.Empty<LyricPhraseModelView>();
-                _synchronizer = null;
-
-
-                _allLyricsSubject.OnNext(_lyrics);
-                _previousLyricSubject.OnNext(null);
-                _currentLyricSubject.OnNext(null);
-                _nextLyricSubject.OnNext(null);
+                _logger.LogInformation("No lyrics content found for {SongTitle}", song.Title);
+                ClearLyrics();
                 return;
-
-
             }
 
-            var lines = lyrr
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(l =>
-                {
-                    var match = Regex.Match(l, @"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
-                    if (!match.Success)
-                        return null;
+            // --- Step 2: Use ATL to parse the content. This is the key change. ---
+            var lyricsInfo = new LyricsInfo();
+            lyricsInfo.Parse(lrcContent); // ATL does all the parsing work for us!
 
-                    int min = int.Parse(match.Groups[1].Value);
-                    int sec = int.Parse(match.Groups[2].Value);
-                    int ms = int.Parse(match.Groups[3].Value.PadRight(3, '0'));
-                    string text = match.Groups[4].Value.Trim();
+            if (lyricsInfo.SynchronizedLyrics.Count == 0)
+            {
+                _logger.LogInformation("Lyrics content for {SongTitle} was not synchronized.", song.Title);
+                ClearLyrics();
+                return;
+            }
 
-                    return new LyricPhraseModelView
-                    {
-                        TimeStampMs = (min * 60 + sec) * 1000 + ms,
-                        Text = text
-                    };
-                })
-                .Where(x => x != null)
-                .OrderBy(x => x!.TimeStampMs)
-                .ToList()!;
+            // --- Step 3: Map the parsed ATL phrases to our UI-friendly ViewModel phrases ---
+            var phrases = new List<LyricPhraseModelView>();
+            for (int i = 0; i < lyricsInfo.SynchronizedLyrics.Count; i++)
+            {
+                var currentAtlPhrase = lyricsInfo.SynchronizedLyrics[i];
 
+                // Get the timestamp of the *next* phrase to calculate the duration of the current one.
+                int? nextTimestamp = (i + 1 < lyricsInfo.SynchronizedLyrics.Count)
+                    ? lyricsInfo.SynchronizedLyrics[i + 1].TimestampStart // Use Start time of next line
+                    : null;
 
-            _lyrics = lines;
+                // Use your new constructor that takes the ATL phrase directly.
+                phrases.Add(new LyricPhraseModelView(currentAtlPhrase, nextTimestamp));
+            }
+
+            _lyrics = phrases;
             _synchronizer = new LyricSynchronizer(_lyrics);
 
-
+            // --- Step 4: Update the UI and save back to DB if needed ---
             _allLyricsSubject.OnNext(_lyrics);
+            ResetCurrentLyricDisplay();
 
-
-            _previousLyricSubject.OnNext(null);
-            _currentLyricSubject.OnNext(null);
-            _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
-
-            Track songFile = new Track(song.FilePath);
-            songFile.Lyrics[0].Parse(lyrr);
-
+            // If we found lyrics but they weren't in the DB, save them now.
+            if (string.IsNullOrEmpty(song.SyncLyrics) && !string.IsNullOrEmpty(lrcContent))
+            {
+                _logger.LogInformation("Found new lyrics for {SongTitle}, saving to database.", song.Title);
+                await _lyricsMetadataService.SaveLyricsForSongAsync(song, lrcContent, lyricsInfo);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse lyrics for song: {SongTitle}", song.Title);
-
-            _lyrics = Array.Empty<LyricPhraseModelView>();
-            _synchronizer = null;
-            _allLyricsSubject.OnNext(_lyrics);
+            _logger.LogError(ex, "Failed to process lyrics for song: {SongTitle}", song.Title);
+            ClearLyrics();
         }
     }
-    private void SubscribeToPosition()
+
+    private void ResetCurrentLyricDisplay()
     {
-
-        _subsManager.Add(
-            AudioEnginePositionObservable
-
-            .Sample(TimeSpan.FromMilliseconds(100))
-
-
-            .Where(_ => _isPlaying && _synchronizer != null)
-
-
-            .DistinctUntilChanged()
-
-            .Subscribe(
-
-                positionInSeconds =>
-                {
-
-                    UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
-                },
-                ex => _logger.LogError(ex, "Error in position subscription.")
-            ));
+        _previousLyricSubject.OnNext(null);
+        _currentLyricSubject.OnNext(null);
+        _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
     }
+    private async Task<string?> GetLyricsContentAsync(SongModelView song)
+    {
+        // Follows the hierarchy: DB -> Local Files -> Online
+        if (!string.IsNullOrEmpty(song.SyncLyrics))
+        {
+            _logger.LogTrace("Using lyrics from database for {SongTitle}", song.Title);
+            return song.SyncLyrics;
+        }
+
+        var localLyrics = await _lyricsMetadataService.GetLocalLyricsAsync(song);
+        if (!string.IsNullOrEmpty(localLyrics))
+        {
+            return localLyrics;
+        }
+
+        _logger.LogTrace("No local lyrics for {SongTitle}, searching online.", song.Title);
+        var onlineResults = await _lyricsMetadataService.SearchOnlineAsync(song);
+        return onlineResults?.FirstOrDefault()?.SyncedLyrics;
+    }
+
     private void UpdateLyricsForPosition(TimeSpan position)
     {
         if (_synchronizer == null)
             return;
 
-
         (int currentIndex, LyricPhraseModelView? currentLine) = _synchronizer.GetCurrentLineWithIndex(position);
 
-
-        if (currentLine?.TimeStampMs == _currentLyricSubject.Value?.TimeStampMs)
-        {
+        // No need to update if the line hasn't changed.
+        if (currentLine?.TimestampStart == _currentLyricSubject.Value?.TimestampStart)
             return;
-        }
 
-
-        LyricPhraseModelView? previousLine = null;
-        LyricPhraseModelView? nextLine = null;
-
-        if (currentIndex != -1)
-        {
-
-            if (currentIndex > 0)
-            {
-                previousLine = _lyrics[currentIndex - 1];
-            }
-
-            if (currentIndex < _lyrics.Count - 1)
-            {
-                nextLine = _lyrics[currentIndex + 1];
-            }
-        }
-
-
-        _previousLyricSubject.OnNext(previousLine);
+        // Update all three subjects at once.
         _currentLyricSubject.OnNext(currentLine);
-        _nextLyricSubject.OnNext(nextLine);
+        _previousLyricSubject.OnNext(currentIndex > 0 ? _lyrics[currentIndex - 1] : null);
+        _nextLyricSubject.OnNext(currentIndex != -1 && currentIndex + 1 < _lyrics.Count ? _lyrics[currentIndex + 1] : null);
     }
 
-    private readonly SongsMgtFlow _songsMgtFlow;
+    private void ClearLyrics()
+    {
+        _lyrics = Array.Empty<LyricPhraseModelView>();
+        _synchronizer = null;
+        _allLyricsSubject.OnNext(_lyrics);
+        ResetCurrentLyrics();
+    }
+
+    private void ResetCurrentLyrics()
+    {
+        _previousLyricSubject.OnNext(null);
+        _currentLyricSubject.OnNext(null);
+        _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
+    }
+
+    private void SubscribeToPosition()
+    {
+        // Stream 1: A stream that tells us if we are currently playing or not.
+        // We start with the current value and get subsequent changes.
+        var isPlayingStream = Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.IsPlayingChanged += h, h => _audioService.IsPlayingChanged -= h)
+            .Select(evt => evt.EventArgs.IsPlaying)
+            .StartWith(_audioService.IsPlaying); // IMPORTANT: Get the initial state
+
+        // Stream 2: Our existing stream of position updates.
+        var positionStream = AudioEnginePositionObservable;
+
+        _subsManager.Add(
+            // Combine the two streams.
+            // We only care about the position WHEN the isPlayingStream's latest value is 'true'.
+            positionStream
+                .WithLatestFrom(isPlayingStream, (position, isPlaying) => new { position, isPlaying }) // Combine into an anonymous object
+                .Where(x => x.isPlaying && _synchronizer != null) // Now we filter based on the combined data
+                .Select(x => x.position) // We only need the position from here on
+                .Sample(TimeSpan.FromMilliseconds(100))
+                .DistinctUntilChanged()
+                .Subscribe(
+                    positionInSeconds =>
+                    {
+                        UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
+                    },
+                    ex => _logger.LogError(ex, "Error in position subscription.")
+                )
+        );
+    }
+
     public void Dispose()
     {
         _subsManager.Dispose();
@@ -254,15 +253,13 @@ public class LyricsMgtFlow : IDisposable
         _currentLyricSubject.OnCompleted();
         _nextLyricSubject.OnCompleted();
     }
-
-
-    sealed class LyricSynchronizer
+    private sealed class LyricSynchronizer
     {
         private readonly IReadOnlyList<LyricPhraseModelView> _lyrics;
-        private int _lastFoundIndex = -1;
 
         public LyricSynchronizer(IReadOnlyList<LyricPhraseModelView> lyrics)
         {
+            // The list is already sorted from the creation process
             _lyrics = lyrics;
         }
 
@@ -271,47 +268,19 @@ public class LyricsMgtFlow : IDisposable
             if (_lyrics.Count == 0)
                 return (-1, null);
 
-            double posMs = position.TotalMilliseconds;
+            int posMs = (int)position.TotalMilliseconds;
 
-
-            int searchIndex = _lastFoundIndex;
-            if (searchIndex < 0)
-                searchIndex = 0;
-
-
-            if (searchIndex < _lyrics.Count && posMs < _lyrics[searchIndex].TimeStampMs)
-            {
-                searchIndex = BinarySearchForPreviousIndex(posMs);
-            }
-
-
-            while (searchIndex + 1 < _lyrics.Count && _lyrics[searchIndex + 1].TimeStampMs <= posMs)
-            {
-                searchIndex++;
-            }
-
-            _lastFoundIndex = searchIndex;
-
-            if (searchIndex >= 0 && searchIndex < _lyrics.Count)
-            {
-                return (searchIndex, _lyrics[searchIndex]);
-            }
-
-            return (-1, null);
-        }
-
-        private int BinarySearchForPreviousIndex(double posMs)
-        {
+            // Binary search is the most efficient way to find the current line
             int low = 0;
             int high = _lyrics.Count - 1;
-            int result = -1;
+            int resultIndex = -1;
 
             while (low <= high)
             {
                 int mid = low + (high - low) / 2;
-                if (_lyrics[mid].TimeStampMs <= posMs)
+                if (_lyrics[mid].TimestampStart <= posMs)
                 {
-                    result = mid;
+                    resultIndex = mid;
                     low = mid + 1;
                 }
                 else
@@ -319,7 +288,13 @@ public class LyricsMgtFlow : IDisposable
                     high = mid - 1;
                 }
             }
-            return result;
+
+            if (resultIndex != -1)
+            {
+                return (resultIndex, _lyrics[resultIndex]);
+            }
+
+            return (-1, null); // Position is before the first lyric
         }
     }
 }

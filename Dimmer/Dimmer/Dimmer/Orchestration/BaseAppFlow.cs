@@ -37,7 +37,6 @@ public class BaseAppFlow : IDisposable
     private bool _disposed;
 
 
-    public SongModelView? CurrentSongSnapshot { get; private set; }
     public UserModel? CurrentUserInstance { get; private set; }
     public AppStateModelView? AppStateSnapshot { get; private set; }
     private readonly IDimmerAudioService audioService;
@@ -75,174 +74,14 @@ public class BaseAppFlow : IDisposable
         _libraryScannerService = libraryScannerService ?? throw new ArgumentNullException(nameof(libraryScannerService));
         _logger = logger ?? NullLogger<BaseAppFlow>.Instance;
 
-        _subscriptions.Add(
-           _state.CurrentSong
-               .Subscribe(songView =>
-               {
-                   CurrentSongSnapshot = songView;
-                   _logger.LogTrace("BaseAppFlow: CurrentSongSnapshot updated to: {SongTitle}", CurrentSongSnapshot?.Title ?? "None");
-               }, ex => _logger.LogError(ex, "Error subscribing to CurrentSong for snapshot."))
-        );
-        _subscriptions.Add(
-           _state.CurrentUser
-               .Subscribe(userView =>
-               {
-                   CurrentUserInstance = userView.ToModel(_mapper);
-                   _logger.LogTrace("BaseAppFlow: CurrentUserInstance updated to: {UserName}", CurrentUserInstance?.UserName ?? "None");
-               }, ex => _logger.LogError(ex, "Error subscribing to CurrentUser for snapshot."))
-        );
-        _subscriptions.Add(
-          _state.ApplicationSettingsState
-              .Subscribe(appStateView =>
-              {
-                  AppStateSnapshot = appStateView;
-                  _logger.LogTrace("BaseAppFlow: AppStateSnapshot updated.");
-              }, ex => _logger.LogError(ex, "Error subscribing to ApplicationSettingsState for snapshot."))
-       );
 
-        _subscriptions.Add(
-        Observable.FromEventPattern<PlaybackEventArgs>(h => audioService.PlayEnded += h, h => audioService.PlayEnded -= h)
-            .Subscribe(evt =>
-            {
-                UpdateDatabaseWithPlayEvent(evt.EventArgs.MediaSong, PlayType.Completed, 0);
-            },
-                       ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription."))
-    );
-
-
-
-        InitializeFolderEventReactions();
+        //InitializeFolderEventReactions();
 
         _logger.LogInformation("BaseAppFlow (Coordinator & Logger) initialized.");
     }
 
 
     private PlaybackStateInfo? _previousPlaybackStateForLogging;
-
-
-
-    private void LogPlaybackTransition(PlaybackStateInfo currentPsi)
-    {
-        var previousPsi = _previousPlaybackStateForLogging;
-        _previousPlaybackStateForLogging = currentPsi;
-
-        SongModelView? songForEvent = currentPsi.SongView ?? _mapper.Map<SongModelView>(currentPsi.Songdb);
-        if (songForEvent == null && (currentPsi.State != DimmerPlaybackState.PlayCompleted && currentPsi.State != DimmerPlaybackState.Opening))
-        {
-            songForEvent = CurrentSongSnapshot;
-        }
-
-        if (previousPsi == null)
-        {
-            if (currentPsi.State == DimmerPlaybackState.Playing && songForEvent != null)
-            {
-                //UpdateDatabaseWithPlayEvent(songForEvent, PlayType.Play, currentPsi.ContextSongPositionSeconds);
-            }
-            return;
-        }
-
-
-        PlayType? playTypeToLog = DeterminePlayType(previousPsi, currentPsi, songForEvent);
-        double? positionForLog = (playTypeToLog == PlayType.Seeked || playTypeToLog == PlayType.Pause) ? currentPsi.ContextSongPositionSeconds : null;
-
-        if (playTypeToLog.HasValue)
-        {
-            SongModelView? songToLogWithPlayType = songForEvent;
-            if (playTypeToLog == PlayType.Skipped || playTypeToLog == PlayType.Completed)
-            {
-                songToLogWithPlayType = previousPsi.SongView ?? _mapper.Map<SongModelView>(previousPsi.Songdb);
-                positionForLog = previousPsi.ContextSongPositionSeconds;
-            }
-
-            if (songToLogWithPlayType != null || playTypeToLog >= PlayType.LogEvent)
-            {
-                //UpdateDatabaseWithPlayEvent(songToLogWithPlayType, playTypeToLog.Value, positionForLog);
-            }
-            else
-            {
-                _logger.LogWarning("Could not determine song context for PlayType {PlayType}. Prev: {PState} ({PSong}), Curr: {CState} ({CSong})",
-                   playTypeToLog, previousPsi.State, previousPsi.SongView?.Title ?? "N/A", currentPsi.State, songForEvent?.Title ?? "N/A");
-            }
-        }
-    }
-    private PlayType? DeterminePlayType(PlaybackStateInfo prev, PlaybackStateInfo curr, SongModelView? songForCurrPsi)
-    {
-        var prevSongId = prev.SongView?.Id ?? prev.Songdb?.Id;
-        var currSongId = songForCurrPsi?.Id;
-
-
-        if (curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed)
-        {
-            if ((prev.State == DimmerPlaybackState.PausedDimmer || prev.State == DimmerPlaybackState.PausedUser) && prevSongId == currSongId)
-                return PlayType.Resume;
-            if (prev.State != DimmerPlaybackState.Playing || prevSongId != currSongId)
-                return PlayType.Play;
-        }
-
-        else if (curr.State == DimmerPlaybackState.PausedDimmer || curr.State == DimmerPlaybackState.PausedUser)
-        {
-            if ((prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed) && prevSongId == currSongId)
-                return PlayType.Pause;
-        }
-
-        else if (curr.State == DimmerPlaybackState.PlayCompleted)
-        {
-
-
-            if ((prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed) && prevSongId == currSongId)
-                return PlayType.Completed;
-        }
-
-        bool isPrevPlayingOrResumed = prev.State == DimmerPlaybackState.Playing || prev.State == DimmerPlaybackState.Resumed;
-        bool isCurrNextCommand = curr.State == DimmerPlaybackState.PlayNextUI || curr.State == DimmerPlaybackState.PlayNextUser;
-        bool isCurrPrevCommand = curr.State == DimmerPlaybackState.PlayPreviousUI || curr.State == DimmerPlaybackState.PlayPreviousUser;
-
-
-        if (isPrevPlayingOrResumed && (isCurrNextCommand || isCurrPrevCommand))
-        {
-
-
-
-            if (prevSongId != null)
-            {
-
-                var songInCommandContext = curr.SongView ?? _mapper.Map<SongModelView>(curr.Songdb);
-                if (songInCommandContext == null || songInCommandContext.Id != prevSongId)
-                {
-                    return PlayType.Skipped;
-                }
-            }
-        }
-
-
-        if ((curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed) &&
-            isCurrPrevCommand &&
-            prevSongId != currSongId &&
-            currSongId != null)
-        {
-            return PlayType.Previous;
-        }
-
-        if (prev.State == DimmerPlaybackState.Playing &&
-            (curr.State == DimmerPlaybackState.Playing || curr.State == DimmerPlaybackState.Resumed) &&
-            prevSongId == currSongId &&
-
-            curr.ContextSongPositionSeconds.HasValue && curr.ContextSongPositionSeconds.Value < 3.0 &&
-            prev.ContextSongPositionSeconds.HasValue && prev.ContextSongPositionSeconds.Value >= 3.0)
-        {
-            return PlayType.Restarted;
-        }
-
-        if (curr.ExtraParameter is PlayType explicitPlayType && explicitPlayType >= PlayType.LogEvent)
-        {
-            return explicitPlayType;
-        }
-
-        _logger.LogTrace("No specific PlayType determined for transition from {PreviousState} (Song: {PreviousSong}) to {CurrentState} (Song: {CurrentSong})",
-            prev.State, prev.SongView?.Title ?? prev.Songdb?.Title ?? "N/A",
-            curr.State, songForCurrPsi?.Title ?? "N/A");
-        return null;
-    }
 
 
     private void InitializeFolderEventReactions()

@@ -280,6 +280,7 @@
                             </syncf:SfChip>
                             <syncf:SfChip
                                 Background="Transparent"
+                                Command="{Binding ToggleRepeatModeCommand}"
                                 ImageSource="repeat.png"
                                 StyleClass="MediaBtnChip">
                                 <syncf:SfChip.Triggers>

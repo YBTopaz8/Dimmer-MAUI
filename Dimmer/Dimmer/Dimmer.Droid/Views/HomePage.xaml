@@ -370,7 +370,7 @@
                                             <dx:DXButton
                                                 Grid.Column="0"
                                                 BackgroundColor="#343534"
-                                                Command="{Binding BaseVM.ToggleRepeatPlaybackModeCommand}"
+                                                Command="{Binding BaseVM.ToggleRepeatModeCommand}"
                                                 HeightRequest="120"
                                                 Icon="repeat.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,

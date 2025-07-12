@@ -26,12 +26,10 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     public async Task<string?> GetLocalLyricsAsync(SongModelView song)
     {
-        if (string.IsNullOrEmpty(song?.FilePath) || !System.IO.File.Exists(song.FilePath))
-        {
+        if (string.IsNullOrEmpty(song?.FilePath) || !File.Exists(song.FilePath))
             return null;
-        }
 
-        // Strategy 1: Check for embedded lyrics first.
+        // Priority 1: Embedded Lyrics
         string? embeddedLyrics = GetEmbeddedLyrics(song.FilePath);
         if (!string.IsNullOrEmpty(embeddedLyrics))
         {
@@ -39,7 +37,7 @@ public class LyricsMetadataService : ILyricsMetadataService
             return embeddedLyrics;
         }
 
-        // Strategy 2: Check for an external .lrc file.
+        // Priority 2: External .lrc file
         string? lrcFileLyrics = await GetExternalLrcFileAsync(song.FilePath);
         if (!string.IsNullOrEmpty(lrcFileLyrics))
         {
@@ -47,20 +45,19 @@ public class LyricsMetadataService : ILyricsMetadataService
             return lrcFileLyrics;
         }
 
-        _logger.LogInformation("No local lyrics found for {SongTitle}", song.Title);
         return null;
     }
-
     private string? GetEmbeddedLyrics(string songPath)
     {
         try
         {
             var tagFile = new Track(songPath);
-
-            tagFile.Lyrics[0].SynchronizedLyrics?.ToString(); // Ensure the lyrics are loaded
-                                                              // TagLib-Sharp stores synchronized lyrics in the USLT frame's "Description" field.
-
-
+            // ATL is smart. If lyrics exist, it will populate them.
+            // We just need to check if the text is there.
+            if (tagFile.Lyrics != null && tagFile.Lyrics.Count > 0 && !string.IsNullOrWhiteSpace(tagFile.Lyrics[0].UnsynchronizedLyrics))
+            {
+                return tagFile.Lyrics[0].UnsynchronizedLyrics;
+            }
         }
         catch (Exception ex)
         {
