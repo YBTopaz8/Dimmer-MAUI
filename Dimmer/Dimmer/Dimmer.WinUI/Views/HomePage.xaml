@@ -282,7 +282,8 @@
                                 Background="Transparent"
                                 Command="{Binding ToggleRepeatModeCommand}"
                                 ImageSource="repeat.png"
-                                StyleClass="MediaBtnChip">
+                                StyleClass="MediaBtnChip"
+                                ToolTipProperties.Text="{Binding CurrentRepeatMode,StringFormat='{0}'}}">
                                 <syncf:SfChip.Triggers>
                                     <DataTrigger
                                         Binding="{Binding CurrentRepeatMode}"
@@ -451,7 +452,16 @@
                                 IsVisible="False"
                                 Text="Advanced Search (TQL)"
                                 ToolTipProperties.Text="Start a Topaz Query using TQL" />
-                            <HorizontalStackLayout>
+                            <Label FontSize="19" Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query : {0}'}" />
+                            <HorizontalStackLayout Spacing="10">
+                                <Button
+                                    Command="{Binding SmolHoldCommand}"
+                                    Text="Smol Hold"
+                                    WidthRequest="100" />
+                                <Button
+                                    Command="{Binding BigHoldCommand}"
+                                    Text="Big Hold"
+                                    WidthRequest="100" />
                                 <Button Command="{Binding ResetSearchCommand}" Text="Reset" />
 
                             </HorizontalStackLayout>
