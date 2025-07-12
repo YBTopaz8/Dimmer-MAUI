@@ -193,7 +193,7 @@ public class LibraryScannerService : ILibraryScannerService
                                     songToPersist.Genre=gnr;
                                 }
                             }
-                            if (newSongView.ArtistToSong != null)
+                            if (newSongView.ArtistToSong != null && newSongView.ArtistToSong.Count>0)
                             {
                                 foreach (var artistView in newSongView.ArtistToSong)
                                 {
