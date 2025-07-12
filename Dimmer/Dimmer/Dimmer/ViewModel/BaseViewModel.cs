@@ -638,6 +638,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [RelayCommand]
+    public void SmolHold()
+    {
+        SearchSongSB_TextChanged("Len:<=2:00");
+    }
+
+    [RelayCommand]
+    public void BigHold()
+    {
+        SearchSongSB_TextChanged("Len:<=3:00");
+    }
+
+    [RelayCommand]
     public void ResetSearch()
     {
         _filterPredicate.OnNext(song => true);
@@ -675,7 +687,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _sortComparer.OnNext(sortComparer);
             _limiterClause.OnNext(limiterClause);
 
-
+            CurrentPlaybackQuery=searchText;
         }
         catch (Exception ex)
         {
