@@ -26,17 +26,17 @@ public class SemanticModel
     public string Humanize()
     {
         var parts = new List<string>();
-        if (Clauses.Any())
+        if (Clauses.Count!=0)
             parts.AddRange(Clauses.Select(c => c.Humanize()));
-        if (GeneralOrTerms.Any())
+        if (GeneralOrTerms.Count!=0)
             parts.Add($"text contains any of: '{string.Join("', '", GeneralOrTerms)}'");
-        if (GeneralAndTerms.Any())
+        if (GeneralAndTerms.Count!=0)
             parts.Add($"text contains all of: '{string.Join("', '", GeneralAndTerms)}'");
-        if (!parts.Any() && !SortDirectives.Any() && LimiterDirective == null)
+        if (parts.Count==0 && SortDirectives.Count==0 && LimiterDirective == null)
             return "Searching for everything...";
 
         var sb = new StringBuilder("Find songs where " + string.Join(" AND ", parts));
-        if (SortDirectives.Any())
+        if (SortDirectives.Count!=0)
         { /* ... */ } // Humanize logic for sort/limit
         return sb.ToString();
     }
@@ -55,7 +55,7 @@ public class GroupClause : QueryClause
     public override Func<SongModelView, bool> AsPredicate()
     {
         var predicates = Clauses.Select(c => c.AsPredicate()).ToList();
-        if (!predicates.Any())
+        if (predicates.Count==0)
             return s => true;
 
         Func<SongModelView, bool> positivePredicate = Operator switch

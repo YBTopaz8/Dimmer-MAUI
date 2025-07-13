@@ -2,13 +2,15 @@
 public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? Name { get; set; }
+    public partial string Name { get; set; }
     //[ObservableProperty]
     //public partial ObservableCollection<SongModelView>? Songs{ get; set; }
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
     [ObservableProperty]
     public partial int? ReleaseYear { get; set; }
+    [ObservableProperty]
+    public partial bool IsNew { get; set; }
     [ObservableProperty]
     public partial int NumberOfTracks { get; set; }
     [ObservableProperty]
@@ -20,7 +22,7 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty] public partial byte[]? ImageBytes { get; set; }
 
     [Backlink(nameof(SongModel.Album))]
-    public IQueryable<SongModel> Songs { get; }
+    public IQueryable<SongModel> Songs { get; } = null!;
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }
     public string? DeviceFormFactor { get; set; }

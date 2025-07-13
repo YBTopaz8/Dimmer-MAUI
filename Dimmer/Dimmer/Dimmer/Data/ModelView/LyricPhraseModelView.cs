@@ -8,6 +8,8 @@ public partial class LyricPhraseModelView : ObservableObject
     [ObservableProperty]
     public partial double Opacity { get; set; } = 0.3;
     [ObservableProperty]
+    public partial bool IsNew { get; set; }
+    [ObservableProperty]
     public partial string? TimeStampText { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? Text { get; set; } = string.Empty;
@@ -36,21 +38,26 @@ public partial class LyricPhraseModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsVisible { get; set; } = true;
 
-
+    /// <summary>
+    /// Start timestamp of the phrase, in milliseconds
+    /// </summary>
+    [ObservableProperty]
+    public partial int TimestampStart { get; set; }
     [ObservableProperty]
     public partial bool IsLyricSynced { get; set; }
 
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
-    public LyricPhraseModelView( LyricsInfo.LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
+    public LyricPhraseModelView(LyricsInfo.LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
     {
 
         if (phrase != null)
         {
+            TimestampStart = phrase.TimestampStart;
+            TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromMilliseconds(phrase.TimestampEnd));
+            TimeStampMs = phrase.TimestampEnd;
 
-            TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromMilliseconds(phrase.TimestampMs));
-            TimeStampMs = phrase.TimestampMs;
             Text = phrase.Text;
-            DurationMs = (nextPhraseTimestampMs ?? phrase.TimestampMs) - phrase.TimestampMs;
+            DurationMs = (nextPhraseTimestampMs ?? phrase.TimestampEnd) - phrase.TimestampEnd;
 
             if (!nextPhraseTimestampMs.HasValue)
             {

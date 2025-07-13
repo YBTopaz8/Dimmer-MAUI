@@ -7,7 +7,7 @@ namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
 [IntentFilter(new[] { Intent.ActionSend, Intent.ActionSendMultiple }, // Handle single and multiple files/items
-                Categories = new[] { Intent.CategoryDefault }, // for implicit intents                                           
+                Categories = new[] { Intent.CategoryDefault }, // for implicit intents
                 DataMimeType = "audio/*")]
 
 [IntentFilter(new[] { Intent.ActionView },
@@ -112,9 +112,9 @@ public class MainActivity : MauiAppCompatActivity
 
         SetupBackNavigation();
 
-        IAudioActivity? audioSvc = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>()
-         as IAudioActivity
-         ?? throw new InvalidOperationException("AudioService missing");
+        // 2. Create the service connection and give it the proxy instance.
+        _serviceConnection = new MediaPlayerServiceConnection();
+
 
         // 1) Start the foreground service
         _serviceIntent = new Intent(this, typeof(ExoPlayerService));
@@ -127,7 +127,7 @@ public class MainActivity : MauiAppCompatActivity
         }
         else
             StartService(_serviceIntent);
-        _serviceConnection = new MediaPlayerServiceConnection(audioSvc);
+        //_serviceConnection = new MediaPlayerServiceConnection(audioSvc);
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
 
         SetStatusBarColor();
@@ -162,7 +162,7 @@ public class MainActivity : MauiAppCompatActivity
         if (_serviceConnection != null)
         {
             UnbindService(_serviceConnection);
-            _serviceConnection.Disconnect();
+            //_serviceConnection.OnServiceDisconnected(App);
         }
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu && _onBackInvokedCallback != null && _isBackCallbackRegistered)
         {

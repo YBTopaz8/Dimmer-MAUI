@@ -12,6 +12,11 @@ public class CoverArtService : ICoverArtService
     private readonly ProcessingConfig _config;
     private static readonly string[] _supportedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" }; // Add more if needed
 
+    public CoverArtService()
+    {
+
+        _config = new ProcessingConfig();
+    }
     public CoverArtService(ProcessingConfig config)
     {
         _config = config;
@@ -42,7 +47,7 @@ public class CoverArtService : ICoverArtService
 
     public string? GetExistingCoverImageAsync(string audioFilePath)
     {
-        
+
         if (string.IsNullOrWhiteSpace(audioFilePath))
             return null;
 
@@ -83,7 +88,8 @@ public class CoverArtService : ICoverArtService
             Debug.WriteLine(ex.Message);
             return false;
         }
-;    }
+;
+    }
 
     public async Task<string?> SaveOrGetCoverImageAsync(string audioFilePath, PictureInfo? embeddedPictureInfo)
     {

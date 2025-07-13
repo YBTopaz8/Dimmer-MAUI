@@ -8,6 +8,7 @@ public static class AutoMapperConf
 {
     public static IMapper ConfigureAutoMapper()
     {
+
         var config = new MapperConfiguration(cfg =>
         {
             // =====================================================================
@@ -56,12 +57,12 @@ public static class AutoMapperConf
                .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
-               .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
+               .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
                .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
                .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
                .ForMember(dest => dest.Tags, opt => opt.Ignore())
                .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
-               .ForMember(dest => dest.Playlists, opt => opt.Ignore());
+               ;
 
             // Self-map for any other types you might need to copy.
             cfg.CreateMap<AppStateModel, AppStateModel>();
@@ -81,15 +82,17 @@ public static class AutoMapperConf
              //.ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.Album, opt => opt.Ignore())
              .ForMember(dest => dest.Genre, opt => opt.Ignore())
-             .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
+             .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
              .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
              .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
              .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
              .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
              .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
              .ForMember(dest => dest.Tags, opt => opt.Ignore())
+
              .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
-             .ForMember(dest => dest.Playlists, opt => opt.Ignore());
+            .AfterMap((src, dest) => dest.SetTitleAndDuration(src.Title, src.DurationInSeconds));
+
         });
 
         // This is your best friend. It will throw a detailed exception at startup
@@ -135,7 +138,7 @@ public static class AutoMapperConf
 //                .ForMember(dest => dest.Album, opt => opt.Ignore())
 //                .ForMember(dest => dest.Artist, opt => opt.Ignore())
 //                .ForMember(dest => dest.Genre, opt => opt.Ignore())
-//                .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
+//                .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
 //                .ForMember(dest => dest.Tags, opt => opt.Ignore())
 //                .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
 //                .ForMember(dest => dest.Playlists, opt => opt.Ignore())
@@ -156,7 +159,7 @@ public static class AutoMapperConf
 //                .PreserveReferences();
 
 //            cfg.CreateMap<SongModel, SongModelView>()
-//                .ForMember(dest => dest.ArtistIds, opt => opt.MapFrom(src => src.ArtistIds))
+//                .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
 //                //.ForMember(dest => dest.Album, opt => opt.MapFrom(src => src.Album))
 //                //.ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre))
 //                //.ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre != null ? src.Genre.Name : "Unknown"))
@@ -224,7 +227,7 @@ public static class AutoMapperConf
 
 //            cfg.CreateMap<AlbumModelView, AlbumModel>()
 //                .ForMember(dest => dest.Id, opt => opt.Ignore())
-//                .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
+//                .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
 //                .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore())
 //                .ForMember(dest => dest.Tags, opt => opt.Ignore())
 //                .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
@@ -264,7 +267,7 @@ public static class AutoMapperConf
 //            // For creating thread-safe copies. Ignore all relationships and backlinks.
 
 //            cfg.CreateMap<AlbumModel, AlbumModel>()
-//                .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
+//                .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
 //                .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore())
 //                .ForMember(dest => dest.Tags, opt => opt.Ignore())
 //                .ForMember(dest => dest.UserNotes, opt => opt.Ignore());
@@ -283,7 +286,7 @@ public static class AutoMapperConf
 //               .ForMember(dest => dest.Album, opt => opt.Ignore())
 //               .ForMember(dest => dest.Artist, opt => opt.Ignore())
 //               .ForMember(dest => dest.Genre, opt => opt.Ignore())
-//               .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())
+//               .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
 //               .ForMember(dest => dest.Tags, opt => opt.Ignore())
 //               .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
 //               .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())

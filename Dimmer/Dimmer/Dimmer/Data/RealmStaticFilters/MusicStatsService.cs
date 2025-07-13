@@ -241,7 +241,7 @@ public class MusicStatsService
     public SongStat? GetMostPopularSongByArtist(ObjectId artistId)
     {
         // 1. RQL: Find all songs by this artist first.
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId);
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId);
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
 
         if (artistSongIds.Length==0)
@@ -265,7 +265,7 @@ public class MusicStatsService
     public AlbumStat? GetMostPlayedAlbumByArtist(ObjectId artistId)
     {
         // This follows the same 3-step pattern as the method above.
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId);
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId);
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
         if (artistSongIds.Length==0)
             return null;
@@ -285,7 +285,7 @@ public class MusicStatsService
     public List<SongStat> GetArtistDeepCuts(ObjectId artistId)
     {
         // Same as most popular, just order ascending.
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId).ToList();
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId).ToList();
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds).ToList();
 
@@ -459,7 +459,7 @@ public class MusicStatsService
 
     private string? GetTopGenreForArtist(ObjectId artistId)
     {
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId);
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId);
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
 
         if (artistSongIds.Length==0)
@@ -591,7 +591,7 @@ Generated csharp
 public IQueryable<AlbumModel> GetAlbumsByArtistName(string artistName)
 {
     // ANY checks if any object in the collection meets the criteria.
-    return realm.All<AlbumModel>().Filter("ANY ArtistIds.Name ==[c] $0", artistName);
+    return realm.All<AlbumModel>().Filter("ANY ArtistToSong.Name ==[c] $0", artistName);
 }
 IGNORE_WHEN_COPYING_START
 content_copy
@@ -696,8 +696,8 @@ Get Songs That Feature a Specific Artist(but not as the main artist)
 Generated csharp
 public IQueryable<SongModel> GetSongsFeaturingArtist(ObjectId mainArtistId, ObjectId featuredArtistId)
 {
-    // Query the ArtistIds list for the featured artist, excluding songs by the main one.
-    return realm.All<SongModel>().Filter("Artist.Id != $0 AND ANY ArtistIds.Id == $1", mainArtistId, featuredArtistId);
+    // Query the ArtistToSong list for the featured artist, excluding songs by the main one.
+    return realm.All<SongModel>().Filter("Artist.Id != $0 AND ANY ArtistToSong.Id == $1", mainArtistId, featuredArtistId);
 }
 IGNORE_WHEN_COPYING_START
 content_copy
@@ -931,7 +931,7 @@ public List<ArtistModel> GetAllArtistsInAlbumBySongId(ObjectId songId)
         {
             allArtists.Add(albumSong.Artist.Id, albumSong.Artist);
         }
-        foreach (var featuredArtist in albumSong.ArtistIds)
+        foreach (var featuredArtist in albumSong.ArtistToSong)
         {
             if (!allArtists.ContainsKey(featuredArtist.Id))
             {
@@ -954,7 +954,7 @@ Generated csharp
 public List<ArtistModel> GetArtistCollaborators(ObjectId artistId)
 {
     // Step 1: Use RQL to find all songs where the artist is either the main or a featured artist.
-    var artistSongs = realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId);
+    var artistSongs = realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId);
 
     // Step 2: Process results in C# to find all other artists on those tracks.
     var collaborators = new Dictionary<ObjectId, ArtistModel>();
@@ -966,7 +966,7 @@ public List<ArtistModel> GetArtistCollaborators(ObjectId artistId)
             collaborators.Add(song.Artist.Id, song.Artist);
         }
         // Add all featured artists who aren't the one we're searching for
-        foreach (var featured in song.ArtistIds)
+        foreach (var featured in song.ArtistToSong)
         {
             if (featured.Id != artistId && !collaborators.ContainsKey(featured.Id))
             {
@@ -1016,7 +1016,7 @@ Generated csharp
 public IQueryable<SongModel> GetGuestAppearanceSongs(ObjectId guestArtistId, ObjectId primaryArtistId)
 {
     // Find songs by the guest artist that appear on an album where the primary artist is listed.
-    return realm.All<SongModel>().Filter("Artist.Id == $0 AND ANY Album.ArtistIds.Id == $1", guestArtistId, primaryArtistId);
+    return realm.All<SongModel>().Filter("Artist.Id == $0 AND ANY Album.ArtistToSong.Id == $1", guestArtistId, primaryArtistId);
 }
 IGNORE_WHEN_COPYING_START
 content_copy
@@ -1038,7 +1038,7 @@ GetAlbumsByTag: ANY Tags.Name ==[c] $0
 
 GetArtistsByTag: ANY Tags.Name ==[c] $0
 
-GetSongsByMultipleArtists(List<ObjectId> artistIds): Artist.Id IN $0 OR ANY ArtistIds IN $0
+GetSongsByMultipleArtists(List<ObjectId> artistIds): Artist.Id IN $0 OR ANY ArtistToSong IN $0
 
 GetSongsUpdatedInDateRange: LastDateUpdated > $0 AND LastDateUpdated < $1
 

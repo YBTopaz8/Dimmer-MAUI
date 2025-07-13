@@ -13,7 +13,7 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
         InitializeComponent();
         MyViewModel=vm;
         BindingContext = vm;
-        
+
     }
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
@@ -80,10 +80,10 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
-    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        await MyViewModel.BaseVM.PlaySongFromListAsync(song, SongsColView.ItemsSource as IEnumerable<SongModelView>);
+        MyViewModel.BaseVM.PlaySong(song);
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
         //DetailView.IsVisible=true;

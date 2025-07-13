@@ -8,7 +8,7 @@ public static class ArtistStats
     /// </summary>
     private static List<SongModel> GetSongsByArtistId(ObjectId artistId, IReadOnlyCollection<SongModel> allSongsInLibrary)
     {
-        return [.. allSongsInLibrary.Where(s => s.ArtistIds.Any(a => a.Id == artistId))];
+        return [.. allSongsInLibrary.Where(s => s.ArtistToSong.Any(a => a.Id == artistId))];
     }
 
     /// <summary>
@@ -227,12 +227,12 @@ public static class ArtistStats
         if (shortestSong != null)
         { summary.ShortestSongDurationSec = shortestSong.DurationInSeconds; summary.ShortestSongTitle = shortestSong.Title; }
 
-        summary.SongsAsSoloArtist = songsByArtist.Count(s => s.ArtistIds.Count == 1); // Assuming current artist is the one.
-        summary.SongsAsCollaborator = songsByArtist.Count(s => s.ArtistIds.Count > 1);
+        summary.SongsAsSoloArtist = songsByArtist.Count(s => s.ArtistToSong.Count == 1); // Assuming current artist is the one.
+        summary.SongsAsCollaborator = songsByArtist.Count(s => s.ArtistToSong.Count > 1);
         var collabCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var song in songsByArtist.Where(s => s.ArtistIds.Count > 1))
+        foreach (var song in songsByArtist.Where(s => s.ArtistToSong.Count > 1))
         {
-            foreach (var artist in song.ArtistIds)
+            foreach (var artist in song.ArtistToSong)
             {
                 if (artist.Id != targetArtist.Id && !string.IsNullOrEmpty(artist.Name))
                 {
@@ -277,10 +277,10 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (sourceSongForArtistSelection?.ArtistIds == null || artistIndexInSourceSong < 0 || artistIndexInSourceSong >= sourceSongForArtistSelection.ArtistIds.Count)
+        if (sourceSongForArtistSelection?.ArtistToSong == null || artistIndexInSourceSong < 0 || artistIndexInSourceSong >= sourceSongForArtistSelection.ArtistToSong.Count)
             return new ArtistSingleStatsSummary { ArtistName = "Error: Invalid artist selection criteria." };
 
-        ArtistModel targetArtist = sourceSongForArtistSelection.ArtistIds[artistIndexInSourceSong];
+        ArtistModel targetArtist = sourceSongForArtistSelection.ArtistToSong[artistIndexInSourceSong];
         return GetSingleArtistStats(targetArtist, allSongsInLibrary, allEvents);
     }
 
@@ -332,13 +332,13 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (sourceSong?.ArtistIds == null ||
-            artist1Index < 0 || artist1Index >= sourceSong.ArtistIds.Count ||
-            artist2Index < 0 || artist2Index >= sourceSong.ArtistIds.Count)
+        if (sourceSong?.ArtistToSong == null ||
+            artist1Index < 0 || artist1Index >= sourceSong.ArtistToSong.Count ||
+            artist2Index < 0 || artist2Index >= sourceSong.ArtistToSong.Count)
             return new ArtistComparisonResult { /* Error state */ };
 
-        ArtistModel art1 = sourceSong.ArtistIds[artist1Index];
-        ArtistModel art2 = sourceSong.ArtistIds[artist2Index];
+        ArtistModel art1 = sourceSong.ArtistToSong[artist1Index];
+        ArtistModel art2 = sourceSong.ArtistToSong[artist2Index];
         return CompareTwoArtists(art1, art2, allSongsInLibrary, allEvents);
     }
 
@@ -413,10 +413,10 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (sourceSong?.ArtistIds == null || artistIndex < 0 || artistIndex >= sourceSong.ArtistIds.Count)
+        if (sourceSong?.ArtistToSong == null || artistIndex < 0 || artistIndex >= sourceSong.ArtistToSong.Count)
             return new ArtistPlottableData { ArtistName = "Error: Invalid artist selection criteria." };
 
-        ArtistModel targetArtist = sourceSong.ArtistIds[artistIndex];
+        ArtistModel targetArtist = sourceSong.ArtistToSong[artistIndex];
         return GetSingleArtistPlottableData(targetArtist, allSongsInLibrary, allEvents);
     }
 
@@ -441,14 +441,14 @@ public static class ArtistStats
         IReadOnlyCollection<SongModel> allSongsInLibrary,
         IReadOnlyCollection<DimmerPlayEvent> allEvents)
     {
-        if (sourceSong?.ArtistIds == null || artistIndices == null || artistIndices.Count==0)
+        if (sourceSong?.ArtistToSong == null || artistIndices == null || artistIndices.Count==0)
             return new List<ArtistSingleStatsSummary>();
 
         var artistsToQuery = new List<ArtistModel>();
         foreach (int index in artistIndices.Distinct()) // Distinct to avoid duplicates
         {
-            if (index >= 0 && index < sourceSong.ArtistIds.Count)
-                artistsToQuery.Add(sourceSong.ArtistIds[index]);
+            if (index >= 0 && index < sourceSong.ArtistToSong.Count)
+                artistsToQuery.Add(sourceSong.ArtistToSong[index]);
         }
         return GetMultipleArtistStats(artistsToQuery, allSongsInLibrary, allEvents);
     }

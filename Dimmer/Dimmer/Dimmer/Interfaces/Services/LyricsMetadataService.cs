@@ -9,18 +9,15 @@ namespace Dimmer.Interfaces.Services;
 public class LyricsMetadataService : ILyricsMetadataService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IRepository<SongModel> _songRepo;
     private readonly IMapper _mapper; // To map between SongModel and SongModelView
     private readonly ILogger<LyricsMetadataService> _logger;
 
     public LyricsMetadataService(
         IHttpClientFactory httpClientFactory,
-        IRepository<SongModel> songRepo,
         IMapper mapper,
         ILogger<LyricsMetadataService> logger)
     {
         _httpClientFactory = httpClientFactory;
-        _songRepo = songRepo;
         _mapper = mapper;
         _logger = logger;
     }
@@ -29,12 +26,10 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     public async Task<string?> GetLocalLyricsAsync(SongModelView song)
     {
-        if (string.IsNullOrEmpty(song?.FilePath) || !System.IO.File.Exists(song.FilePath))
-        {
+        if (string.IsNullOrEmpty(song?.FilePath) || !File.Exists(song.FilePath))
             return null;
-        }
 
-        // Strategy 1: Check for embedded lyrics first.
+        // Priority 1: Embedded Lyrics
         string? embeddedLyrics = GetEmbeddedLyrics(song.FilePath);
         if (!string.IsNullOrEmpty(embeddedLyrics))
         {
@@ -42,7 +37,7 @@ public class LyricsMetadataService : ILyricsMetadataService
             return embeddedLyrics;
         }
 
-        // Strategy 2: Check for an external .lrc file.
+        // Priority 2: External .lrc file
         string? lrcFileLyrics = await GetExternalLrcFileAsync(song.FilePath);
         if (!string.IsNullOrEmpty(lrcFileLyrics))
         {
@@ -50,20 +45,19 @@ public class LyricsMetadataService : ILyricsMetadataService
             return lrcFileLyrics;
         }
 
-        _logger.LogInformation("No local lyrics found for {SongTitle}", song.Title);
         return null;
     }
-
     private string? GetEmbeddedLyrics(string songPath)
     {
         try
         {
             var tagFile = new Track(songPath);
-
-            tagFile.Lyrics.SynchronizedLyrics?.ToString(); // Ensure the lyrics are loaded
-                                                           // TagLib-Sharp stores synchronized lyrics in the USLT frame's "Description" field.
-
-
+            // ATL is smart. If lyrics exist, it will populate them.
+            // We just need to check if the text is there.
+            if (tagFile.Lyrics != null && tagFile.Lyrics.Count > 0 && !string.IsNullOrWhiteSpace(tagFile.Lyrics[0].UnsynchronizedLyrics))
+            {
+                return tagFile.Lyrics[0].UnsynchronizedLyrics;
+            }
         }
         catch (Exception ex)
         {
@@ -111,6 +105,16 @@ public class LyricsMetadataService : ILyricsMetadataService
 
         try
         {
+            var ress = await client.GetAsync(requestUri);
+            if (!ress.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("LrcLib search request failed with status code {StatusCode} for {TrackName}", ress.StatusCode, trackName);
+                return Enumerable.Empty<LrcLibSearchResult>();
+            }
+            // Deserialize the response into an array of LrcLibSearchResult
+            var con = await ress.Content.ReadAsStringAsync();
+
+            Debug.WriteLine(con);
             var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
             return results ?? Enumerable.Empty<LrcLibSearchResult>();
         }
@@ -138,12 +142,13 @@ public class LyricsMetadataService : ILyricsMetadataService
         }
 
 
-
         // Step 2: Update the database record
         try
         {
             var dbb = IPlatformApplication.Current.Services.GetService<IRealmFactory>();
             var realm = dbb?.GetRealmInstance();
+            if (realm == null)
+            { return false; }
             var songModel = realm.Find<SongModel>(song.Id);
             if (songModel == null)
             {
@@ -156,28 +161,36 @@ public class LyricsMetadataService : ILyricsMetadataService
                 if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
                 {
 
-                songModel.SyncLyrics = lrcContent;
-                songModel.HasSyncedLyrics = true; // Update flags
-                songModel.HasLyrics = true;
-                songModel.EmbeddedSync.Clear();
-                foreach (var lyr in lyrics.SynchronizedLyrics)
-                {
-                    var syncLyrics = new SyncLyrics
+                    songModel.SyncLyrics = lrcContent;
+                    songModel.HasSyncedLyrics = true; // Update flags
+                    songModel.HasLyrics = true;
+                    songModel.EmbeddedSync.Clear();
+                    if (lyrics is null)
                     {
-                        TimestampMs = lyr.TimestampMs,
-                        Text = lyr.Text
-                    };
-                    songModel.EmbeddedSync.Add(syncLyrics);
-                }
-                realm.Add(songModel, true);
 
-                songModel.LastDateUpdated = DateTimeOffset.UtcNow;
+                        // A. Parse the LRC data into ATL's structure
+                        var newLyricsInfo = new LyricsInfo();
+                        newLyricsInfo.Parse(lrcContent);
+                        lyrics=newLyricsInfo;
+                    }
+                    foreach (var lyr in lyrics.SynchronizedLyrics)
+                    {
+                        var syncLyrics = new SyncLyrics
+                        {
+                            TimestampMs = lyr.TimestampEnd,
+                            Text = lyr.Text
+                        };
+                        songModel.EmbeddedSync.Add(syncLyrics);
+                    }
+                    realm.Add(songModel, true);
+
+                    songModel.LastDateUpdated = DateTimeOffset.UtcNow;
 
                 }
             });
             // Important: Update the view model that was passed in so the UI has the latest data
             _mapper.Map(songModel, song);
-            
+
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
         }
         catch (Exception ex)
@@ -203,10 +216,6 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     }
 
-    public Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent)
-    {
-        throw new NotImplementedException();
-    }
 
     #endregion
 }

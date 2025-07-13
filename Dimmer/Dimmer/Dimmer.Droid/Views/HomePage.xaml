@@ -370,7 +370,7 @@
                                             <dx:DXButton
                                                 Grid.Column="0"
                                                 BackgroundColor="#343534"
-                                                Command="{Binding BaseVM.ToggleRepeatPlaybackModeCommand}"
+                                                Command="{Binding BaseVM.ToggleRepeatModeCommand}"
                                                 HeightRequest="120"
                                                 Icon="repeat.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,
@@ -378,7 +378,39 @@
                                                 IconHeight="40"
                                                 IconWidth="40"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="DarkSlateBlue" />
+                                                PressedBackgroundColor="DarkSlateBlue"
+                                                ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='{0}'}">
+                                                <dx:DXButton.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="0">
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="1">
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="2">
+                                                        <Setter Property="BackgroundColor" Value="Orange" />
+
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        TargetType="dx:DXButton"
+                                                        Value="3">
+                                                        <Setter Property="BackgroundColor" Value="DarkBlue" />
+
+                                                    </DataTrigger>
+                                                </dx:DXButton.Triggers>
+                                            </dx:DXButton>
 
                                             <dx:DXButton
                                                 Grid.Column="1"
@@ -880,7 +912,7 @@
                                                         FontSize="22"
                                                         HorizontalOptions="Start"
                                                         Icon="musicnotess.png"
-                                                        IsIconVisible="True"
+                                                        IsIconVisible="{Binding HasSyncedLyrics}"
                                                         IsVisible="True"
                                                         PressedTextColor="DarkSlateBlue"
                                                         Text="{Binding Title}"

@@ -189,7 +189,7 @@ public class MusicRelationshipService
         // A HashSet is used for fast O(1) in-memory lookups, which is more
         // efficient for the filtering we are about to do.
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => s.Id)
             .ToHashSet();
@@ -295,7 +295,7 @@ public class MusicRelationshipService
     public List<TrendStat> GetArtistWeeklyTrend(ObjectId artistId)
     {
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => (QueryArgument)s.Id)
             .ToArray();
@@ -329,7 +329,7 @@ public class MusicRelationshipService
         // Step 1: Get the list of song IDs. This part works.
         // Use a HashSet for fast in-memory lookups.
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
 
             .ToArray()
             .Select(s => s.Id)
@@ -379,7 +379,7 @@ public class MusicRelationshipService
     public List<TrendStat> GetArtistMonthlyTrend(ObjectId artistId)
     {
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => (QueryArgument)s.Id)
             .ToArray();
@@ -405,7 +405,7 @@ public class MusicRelationshipService
     // COMPLIANT: Uses supported "IN" filter.
     public (int PlayCount, int SongsPlayed, int AlbumsPlayed) GetArtistStatsBetweenDates(ObjectId artistId, DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId).ToArray();
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId).ToArray();
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
 
         if (!artistSongIds.Any())
@@ -439,7 +439,7 @@ public class MusicRelationshipService
         // This is a query we know works from other methods.
         // A HashSet is used for fast, O(1) in-memory lookups.
         var artistSongIds = _realm.All<SongModel>()
-            .Filter("Artist.Id == $0 OR ANY ArtistIds.Id == $0", artistId)
+            .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId)
             .ToArray()
             .Select(s => s.Id)
             .ToHashSet();
@@ -665,84 +665,8 @@ public class MusicRelationshipService
 
     #region 5. The User & The Playlist (Intelligent Suggestions)
 
-    // COMPLIANT: All complex logic and filtering happens on in-memory collections after initial data fetch.
-    public List<SongRecommendation> SuggestSongsForPlaylist(ObjectId playlistId, int limit = 10)
-    {
-        var playlist = _realm.Find<PlaylistModel>(playlistId);
-        if (playlist == null || !playlist.SongsInPlaylist.Any())
-            return new List<SongRecommendation>();
-
-        var songsOnPlaylist = playlist.SongsInPlaylist.ToList();
-        var songIdsOnPlaylist = songsOnPlaylist.Select(s => s.Id).ToHashSet();
-
-        var recommendations = new List<SongRecommendation>();
-
-        // Strategy 1: Artists
-        var artistsOnPlaylist = songsOnPlaylist.Select(s => s.Artist?.Id).Where(id => id.HasValue).Select(id => (QueryArgument)id.Value).Distinct().ToArray();
-        if (artistsOnPlaylist.Any())
-        {
-            var candidateSongs = _realm.All<SongModel>().Filter("Artist.Id IN $0", artistsOnPlaylist).ToList();
-            recommendations.AddRange(candidateSongs
-                .Where(s => !songIdsOnPlaylist.Contains(s.Id))
-                .Select(s => new SongRecommendation(s, $"From a similar artist: {s.ArtistName}", 0.7)));
-        }
-
-        // Strategy 2: Tags
-        var tagsOnPlaylist = songsOnPlaylist.SelectMany(s => s.Tags.Select(t => t.Name)).GroupBy(t => t).OrderByDescending(g => g.Count()).Select(g => (QueryArgument)g.Key).Take(3).ToArray();
-        if (tagsOnPlaylist.Any())
-        {
-            var candidateSongs = _realm.All<SongModel>().Filter("ANY Tags.Name IN $0", tagsOnPlaylist).ToList();
-            recommendations.AddRange(candidateSongs
-                .Where(s => !songIdsOnPlaylist.Contains(s.Id))
-                .Select(s => new SongRecommendation(s, $"Has a similar vibe ({tagsOnPlaylist.First()})", 0.6)));
-        }
-
-        return [.. recommendations
-            .GroupBy(r => r.Song.Id)
-            .Select(g => g.First())
-            .OrderByDescending(r => r.Score)
-            .Take(limit)];
-    }
 
     // COMPLIANT: Uses supported filter, then processes in memory.
-    public double GetPlaylistFreshnessScore(ObjectId playlistId)
-    {
-        var playlist = _realm.Find<PlaylistModel>(playlistId);
-        if (playlist == null || !playlist.SongsInPlaylist.Any())
-            return 0.0;
-
-        var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30);
-        var plays = _realm.All<DimmerPlayEvent>()
-            .Filter("ANY SongsLinkingToThisEvent.Playlists.Id == $0 AND DatePlayed > $1", playlistId, thirtyDaysAgo)
-            .ToList();
-
-        if (plays.Count == 0)
-            return 0.0;
-
-        int uniqueSongsPlayed = plays.Select(p => p.SongId).Distinct().Count();
-        return playlist.SongsInPlaylist.Count > 0 ? (double)uniqueSongsPlayed / playlist.SongsInPlaylist.Count : 0.0;
-    }
-
-    // (methods 39-58 filled in with compliant logic)
-    public List<SongModel> GetPlaylistDeepCuts(ObjectId playlistId)
-    {
-        var playlist = _realm.Find<PlaylistModel>(playlistId);
-        if (playlist == null)
-            return new List<SongModel>();
-        var songPlays = playlist.SongsInPlaylist.ToDictionary(s => s.Id, s => s.PlayHistory.Count());
-        var leastPlayedSongIds = songPlays.OrderBy(kvp => kvp.Value).Take(5).Select(kvp => (QueryArgument)kvp.Key).ToArray();
-        if (!leastPlayedSongIds.Any())
-            return new List<SongModel>();
-        return [.. _realm.All<SongModel>().Filter("Id IN $0", leastPlayedSongIds)];
-    }
-    public SongModel? GetPlaylistAnthem(ObjectId playlistId)
-    {
-        var playlist = _realm.Find<PlaylistModel>(playlistId);
-        if (playlist == null)
-            return null;
-        var topSong = playlist.SongsInPlaylist.ToList().OrderByDescending(s => s.PlayHistory.Count()).FirstOrDefault();
-        return topSong;
-    }
     public PlaylistModel? IdentifyMyMostPlayedPlaylist()
     {
         // This is inefficient (N+1 queries) but compliant with the strict rules.
