@@ -145,21 +145,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     return sortedStream.Top(limiter.Count);
 
             case LimiterType.Last:
-                // To get the "last N" items, we need a trick.
-                // We reverse the original sort order, and then take the "top N".
-                var originalComparer = (SongModelViewComparer)_sortComparer.Value;
-                var reversedDescriptions = originalComparer.SortDescriptions
-                    .Select(sd => new SortDescription(
-                        sd.PropertyName,
-                        sd.Direction == SortDirection.Ascending ? SortDirection.Descending : SortDirection.Ascending
-                    )).ToList();
+                var t = sortedStream.TakeLast(limiter.Count);
+                return t;
 
-                var reversedComparer = new SongModelViewComparer(reversedDescriptions);
-
-                // Re-sort the stream with the reversed comparer, then take the top N.
-                return sortedStream
-                        .Sort(reversedComparer) // Re-sort in reverse
-                        .Top(limiter.Count);    // Take the new "top" items
 
             default:
                 return sortedStream;
