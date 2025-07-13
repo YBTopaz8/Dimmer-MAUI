@@ -683,7 +683,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var limiterClause = orchestrator.CreateLimiterClause();
 
 
-
             _filterPredicate.OnNext(filterPredicate);
             _sortComparer.OnNext(sortComparer);
             _limiterClause.OnNext(limiterClause);
