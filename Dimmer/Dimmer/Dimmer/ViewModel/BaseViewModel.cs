@@ -116,7 +116,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-        var songsStream = realm.All<SongModel>().Shuffle().AsObservableChangeSet<SongModel>();
+        var songsStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>();
 
         songsStream.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
             .Transform(songModel => _mapper.Map<SongModelView>(songModel))
@@ -1086,7 +1086,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void PlayPauseToggle()
     {
-        if (CurrentPlayingSongView == null)
+        if (CurrentPlayingSongView.Title == null)
         {
             PlaySong(_searchResults.FirstOrDefault());
             return;
