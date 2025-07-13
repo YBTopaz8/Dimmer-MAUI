@@ -873,7 +873,7 @@
                         <Label
                             Grid.Row="0"
                             FontSize="28"
-                            Text="{Binding AllLines.Count, StringFormat='Lyrics Lines : {0}'}"
+                            Text="{Binding CurrentLine.DurationMs, StringFormat='Lyrics Lines : {0}'}"
                             VerticalOptions="Start" />
 
                         <CollectionView
