@@ -142,7 +142,7 @@ public class FlagClause : QueryClause
 //#region --- Sorters and Limiters ---
 public class SortClause
 {
-    public string FieldName { get; set; }
+    public string FieldName { get; set; } = null!;
     public SortDirection Direction { get; set; }
 }
 //public class LimiterClause { public LimiterType Type { get; set; } public int Count { get; set; } }

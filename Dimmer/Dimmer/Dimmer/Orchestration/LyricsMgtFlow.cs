@@ -173,7 +173,7 @@ public class LyricsMgtFlow : IDisposable
             _allLyricsSubject.OnNext(_lyrics);
             ResetCurrentLyricDisplay();
 
-            if (!string.IsNullOrEmpty(song.SyncLyrics) && song.SyncLyrics !="")
+            if (song.SyncLyrics is not null || song.SyncLyrics =="")
             {
                 await _lyricsMetadataService.SaveLyricsForSongAsync(song, lrcContent, lyricsInfo); // We don't have the LyricsInfo object anymore, pass null
             }

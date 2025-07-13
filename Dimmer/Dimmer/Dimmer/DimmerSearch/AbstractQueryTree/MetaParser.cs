@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+
+using System.Text.RegularExpressions;
 
 namespace Dimmer.DimmerSearch.AbstractQueryTree;
 
@@ -140,11 +142,16 @@ public class MetaParser
     {
         var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
-
+        bool hasRandomSort = false;
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
-
+            if (token.Type == TokenType.Random || token.Type == TokenType.Shuffle)
+            {
+                hasRandomSort = true;
+                // We don't need to check for a field name here, random applies to the whole list
+            }
+            else
             if (token.Type == TokenType.Asc || token.Type == TokenType.Desc)
             {
                 // Because of our new ProcessPart logic, we can be CERTAIN
@@ -154,19 +161,37 @@ public class MetaParser
                     var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
                     string fieldAlias = allDirectives[i + 1].Text;
 
-                    // Use the shared mapping to get the real property name
-                    if (AstEvaluator.FieldMappings.TryGetValue(fieldAlias, out var propertyName))
+                    if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
                     {
-                        sortDescriptions.Add(new SortDescription(propertyName, direction));
+                        // --- CHANGE #1: Pass the whole object, not just the name ---
+                        // OLD: sortDescriptions.Add(new SortDescription(fieldDef.PrimaryName, direction));
+                        // NEW:
+                        sortDescriptions.Add(new SortDescription(fieldDef, direction));
                     }
-                    // We don't need an 'else' because an invalid field alias
-                    // should just be ignored.
 
-                    i++; // Consume the field token so we don't process it again
+                    i++; // Consume the field token
                 }
             }
         }
+        if (hasRandomSort)
+        {
+            // --- CHANGE #2: Create a dummy FieldDefinition for the random sort ---
+            // The properties of this object don't matter, because the comparer's logic
+            // will see `SortDirection.Random` and use the Guid-based path instead of the accessor.
+            var randomFieldDef = new FieldDefinition(
+                "RandomSort",
+                FieldType.Text,
+                Array.Empty<string>(),
+                "A placeholder for random sorting",
+                _ => new object() // A do-nothing expression
+            );
 
+            // Now create the SortDescription with the dummy FieldDefinition
+            return new SongModelViewComparer(new List<SortDescription>
+        {
+            new SortDescription(randomFieldDef, SortDirection.Random)
+        });
+        }
         return new SongModelViewComparer(sortDescriptions);
     }
 

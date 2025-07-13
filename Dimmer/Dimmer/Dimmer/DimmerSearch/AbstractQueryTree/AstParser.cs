@@ -99,15 +99,16 @@ public class AstParser
             //    throw new Exception($"Field '{field}' requires an operator (e.g., ':', '>', '<').");
             //}
         }
-        return ParseValueExpression(field, op);
+        bool isNegated = Match(TokenType.Bang);
+        return ParseValueExpression(field, op, isNegated);
     }
 
-    private IQueryNode ParseValueExpression(string field, string op)
+    private IQueryNode ParseValueExpression(string field, string op, bool isNegated)
     {
         var valueToken = Peek();
         if (valueToken.Type == TokenType.StringLiteral)
         {
-            return new ClauseNode(field, op, Consume(TokenType.StringLiteral).Text);
+            return new ClauseNode(field, op, Consume(TokenType.StringLiteral).Text, isNegated: isNegated);
         }
 
         if (IsValueToken(Peek().Type))

@@ -1,31 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+
 
 namespace Dimmer.DimmerSearch.AbstractQueryTree;
 
 
 public class AstEvaluator
 {
-    public static Dictionary<string, string> FieldMappings => _fieldMappings;
-    private static readonly Dictionary<string, string> _fieldMappings = new(StringComparer.OrdinalIgnoreCase)
-    {
-        {"any", "SearchableText"},
-        {"t", "Title"}, {"title", "Title"}, {"ar", "OtherArtistsName"}, {"artist", "OtherArtistsName"},
-        {"al", "AlbumName"}, {"album", "AlbumName"}, {"genre", "Genre.Name"}, {"composer", "Composer"},
-        {"lang", "Language"}, {"year", "ReleaseYear"}, {"bpm", "BitRate"}, {"len", "DurationInSeconds"},
-        {"rating", "Rating"}, {"track", "TrackNumber"}, {"disc", "DiscNumber"}, {"haslyrics", "HasLyrics"},
-        {"synced", "HasSyncedLyrics"}, {"fav", "IsFavorite"}, {"lyrics", "SyncLyrics"}, {"lyric", "SyncLyrics"},
-        {"slyrics", "EmbeddedSync"},
-
-
-        {"note", "UserNoteAggregatedText"}, {"comment", "UserNoteAggregatedText"}
-    };
-
-    private static readonly HashSet<string> _numericFields = new() { "ReleaseYear", "BitRate", "DurationInSeconds", "Rating", "TrackNumber", "DiscNumber" };
-    private static readonly HashSet<string> _booleanFields = new() { "HasLyrics", "HasSyncedLyrics", "IsFavorite" };
 
     public Func<SongModelView, bool> CreatePredicate(IQueryNode rootNode)
     {
@@ -54,49 +34,76 @@ public class AstEvaluator
     {
         if (node.Operator == "matchall")
             return true;
-        string propertyName = _fieldMappings.TryGetValue(node.Field, out var name) ? name : "Title";
-        if (propertyName == "SearchableText")
+        // --- Step 1: Use FieldRegistry to get the field's definition ---
+        // This replaces the old _fieldMappings dictionary lookup.
+        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
         {
-            // For the global search field, we only support "contains".
-            // The Precomputed SearchableText is already lowercased.
-            return song.SearchableText?.Contains(node.Value.ToString() ?? "", StringComparison.Ordinal) ?? false;
+            // If the field alias is invalid, we can treat it as a search on the "any" field.
+            fieldDef = FieldRegistry.FieldsByAlias["any"];
         }
-        if (_numericFields.Contains(propertyName))
+        var accessor = fieldDef.PropertyExpression.Compile();
+        object? songValueObject = accessor(song);
+        bool result = false;
+        switch (fieldDef.Type)
         {
-            double songValue = SemanticQueryHelpers.GetNumericProp(song, propertyName);
-            double queryValue = (propertyName == "DurationInSeconds") ? ParseDuration(node.Value.ToString()) : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
-            return node.Operator switch
-            {
-                ">" => songValue > queryValue,
-                "<" => songValue < queryValue,
-                ">=" => songValue >= queryValue,
-                "<=" => songValue <= queryValue,
-                "-" => songValue >= queryValue && songValue <= ParseDuration(node.UpperValue?.ToString() ?? "0"),
-                _ => Math.Abs(songValue - queryValue) < 0.001
-            };
-        }
-        else if (_booleanFields.Contains(propertyName))
-        {
-            bool songValue = SemanticQueryHelpers.GetBoolProp(song, propertyName);
-            bool queryValue = "true|yes|1".Contains(node.Value.ToString()?.ToLower() ?? "false");
-            return songValue == queryValue;
-        }
-        else // Text fields
-        {
-            string songValue = SemanticQueryHelpers.GetStringProp(song, propertyName) ?? "";
-            string queryValue = node.Value.ToString() ?? "";
+            case FieldType.Text:
+                string songValue = songValueObject?.ToString() ?? "";
+                string queryValue = node.Value.ToString() ?? "";
+                result = node.Operator switch
+                {
+                    "=" => songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase),
+                    "^" => songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase),
+                    "$" => songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase),
+                    "~" => SemanticQueryHelpers.LevenshteinDistance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= 2,
+                    _ => songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase)
+                };
+                break;
 
-            return node.Operator switch
-            {
-                "=" => songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase),
-                "^" => songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase),
-                "$" => songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase),
-                "~" => SemanticQueryHelpers.LevenshteinDistance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= 2,
-                "contains" or _ => songValue.IndexOf(queryValue, StringComparison.OrdinalIgnoreCase) >= 0
-            };
+            case FieldType.Numeric:
+            case FieldType.Duration:
+                if (songValueObject is not IConvertible)
+                    return false;
+                double songNumericValue = Convert.ToDouble(songValueObject);
+                double queryNumericValue = (fieldDef.Type == FieldType.Duration)
+                    ? ParseDuration(node.Value.ToString())
+                    : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
+
+                result = node.Operator switch
+                {
+                    ">" => songNumericValue > queryNumericValue,
+                    "<" => songNumericValue < queryNumericValue,
+                    ">=" => songNumericValue >= queryNumericValue,
+                    "<=" => songNumericValue <= queryNumericValue,
+                    "-" => songNumericValue >= queryNumericValue && songNumericValue <= ParseDuration(node.UpperValue?.ToString() ?? "0"),
+                    _ => Math.Abs(songNumericValue - queryNumericValue) < 0.001
+                };
+                break;
+
+            case FieldType.Boolean:
+                if (songValueObject is not bool songBoolValue)
+                    return false;
+                bool queryBoolValue = "true|yes|1".Contains(node.Value.ToString()?.ToLower() ?? "false");
+                result = songBoolValue == queryBoolValue;
+                break;
+
+            case FieldType.Date: // This is where our new date logic goes!
+                if (songValueObject is not DateTimeOffset songDateValue)
+                    return false;
+                var queryDateRange = ParseDateValue(node.Value.ToString()); // The helper we wrote before
+                result = node.Operator switch
+                {
+                    ">" => songDateValue.Date > queryDateRange.start.Date,
+                    "<" => songDateValue.Date < queryDateRange.start.Date,
+                    ">=" => songDateValue.Date >= queryDateRange.start.Date,
+                    "<=" => songDateValue.Date <= queryDateRange.end.Date,
+                    _ => songDateValue.Date >= queryDateRange.start.Date && songDateValue.Date <= queryDateRange.end.Date
+                };
+                break;
         }
+
+        // Finally, apply negation if it exists.
+        return node.IsNegated ? !result : result;
     }
-
     private static double ParseDuration(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -115,5 +122,50 @@ public class AstEvaluator
             { return 0; }
         }
         return totalSeconds;
+    }
+    /// <summary>
+    /// Parses a user's date query string into a start and end date range.
+    /// Handles relative terms like "today", absolute dates like "2023-01-15",
+    /// and ranges like "last month".
+    /// </summary>
+    private static (DateTimeOffset start, DateTimeOffset end) ParseDateValue(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
+
+        var now = DateTimeOffset.UtcNow.Date; // Use start of day for consistency
+        text = text.ToLowerInvariant();
+
+        switch (text)
+        {
+            case "today":
+                return (now, now.AddDays(1).AddTicks(-1));
+            case "yesterday":
+                var yesterday = now.AddDays(-1);
+                return (yesterday, yesterday.AddDays(1).AddTicks(-1));
+            case "this week":
+                var startOfWeek = now.AddDays(-(int)now.DayOfWeek); // Assumes Sunday is start of week
+                return (startOfWeek, startOfWeek.AddDays(7).AddTicks(-1));
+            case "last week":
+                var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek - 7);
+                return (startOfLastWeek, startOfLastWeek.AddDays(7).AddTicks(-1));
+            case "this month":
+                var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.TimeOfDay);
+                return (startOfMonth, startOfMonth.AddMonths(1).AddTicks(-1));
+            case "last month":
+                var startOfLastMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.TimeOfDay).AddMonths(-1);
+                return (startOfLastMonth, startOfLastMonth.AddMonths(1).AddTicks(-1));
+            case "this year":
+                var startOfYear = new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, now.TimeOfDay);
+                return (startOfYear, startOfYear.AddYears(1).AddTicks(-1));
+            default:
+                // Try to parse as an absolute date, e.g., "2023-12-25"
+                if (DateTimeOffset.TryParse(text, out var absoluteDate))
+                {
+                    return (absoluteDate.Date, absoluteDate.Date.AddDays(1).AddTicks(-1));
+                }
+                // Could add more complex parsing here like "3 days ago"
+                return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue); // Invalid format
+        }
     }
 }

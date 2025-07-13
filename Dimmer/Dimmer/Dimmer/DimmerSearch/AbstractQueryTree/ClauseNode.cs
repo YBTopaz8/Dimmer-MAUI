@@ -17,12 +17,13 @@ public class ClauseNode : IQueryNode
     public object Value { get; }
     // An optional second value for range operations (e.g., year:2000-2010)
     public object? UpperValue { get; }
-
-    public ClauseNode(string field, string op, object value, object? upperValue = null)
+    public bool IsNegated { get; }
+    public ClauseNode(string field, string op, object value, object? upperValue = null, bool isNegated = false)
     {
         Field = field;
         Operator = op;
         Value = value;
         UpperValue = upperValue;
+        IsNegated = isNegated;
     }
 }

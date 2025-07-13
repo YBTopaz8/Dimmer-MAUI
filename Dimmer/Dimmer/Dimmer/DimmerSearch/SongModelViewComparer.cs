@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+
+using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,10 +34,19 @@ public class SortDescription
 {
     public string PropertyName { get; }
     public SortDirection Direction { get; }
-    public SortDescription(string propertyName, SortDirection direction)
+    public Func<SongModelView, object> Accessor { get; }
+
+    public FieldDefinition Field { get; }
+    public SortDescription(FieldDefinition field, SortDirection direction)
     {
-        PropertyName = propertyName;
+        Field = field;
         Direction = direction;
+        if (Field is not null)
+        {
+
+            Accessor = Field.PropertyExpression.Compile();
+
+        }
     }
 }
 
@@ -44,11 +56,15 @@ public class SongModelViewComparer : IComparer<SongModelView>
 
     public IReadOnlyList<SortDescription> SortDescriptions => _sortDescriptions;
     private readonly List<SortDescription> _sortDescriptions;
+    private readonly bool _isRandomSort = new();
+    private readonly ConcurrentDictionary<SongModelView, Guid> _randomSortKeys = new();
+
 
     // The constructor is now much simpler.
     public SongModelViewComparer(List<SortDescription>? descriptions)
     {
         _sortDescriptions = descriptions ?? new List<SortDescription>();
+        _isRandomSort = _sortDescriptions.Any(d => d.Direction == SortDirection.Random);
     }
 
     public int Compare(SongModelView? x, SongModelView? y)
@@ -59,18 +75,21 @@ public class SongModelViewComparer : IComparer<SongModelView>
             return 1;
         if (y is null)
             return -1;
+        if (_isRandomSort)
+        {
+            // For a random sort, we ignore all other sort descriptions.
+            // We get or create a stable Guid for each song and compare those.
+            // This is consistent and satisfies the IComparer contract.
+            var xGuid = _randomSortKeys.GetOrAdd(x, _ => Guid.NewGuid());
+            var yGuid = _randomSortKeys.GetOrAdd(y, _ => Guid.NewGuid());
+            return xGuid.CompareTo(yGuid);
+        }
 
-        // The random logic is GONE. This is the only part left.
         foreach (var desc in _sortDescriptions)
         {
-            // Use AstEvaluator's public mapping to find the real property name
-            // Note: Make sure FieldMappings is public static in AstEvaluator
-            var propInfo = typeof(SongModelView).GetProperty(desc.PropertyName);
-            if (propInfo == null)
-                continue;
-
-            var valueX = propInfo.GetValue(x);
-            var valueY = propInfo.GetValue(y);
+            var valueX = desc.Accessor(x!);
+            var valueY = desc.Accessor(y!);
+            // --- End of Change ---
 
             int result;
             if (valueX is IComparable comparableX)
