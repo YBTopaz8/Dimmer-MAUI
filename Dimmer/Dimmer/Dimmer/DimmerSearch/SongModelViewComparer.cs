@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -32,10 +34,19 @@ public class SortDescription
 {
     public string PropertyName { get; }
     public SortDirection Direction { get; }
-    public SortDescription(string propertyName, SortDirection direction)
+    public Func<SongModelView, object> Accessor { get; }
+
+    public FieldDefinition Field { get; }
+    public SortDescription(FieldDefinition field, SortDirection direction)
     {
-        PropertyName = propertyName;
+        Field = field;
         Direction = direction;
+        if (Field is not null)
+        {
+
+            Accessor = Field.PropertyExpression.Compile();
+
+        }
     }
 }
 
@@ -76,14 +87,9 @@ public class SongModelViewComparer : IComparer<SongModelView>
 
         foreach (var desc in _sortDescriptions)
         {
-
-
-            var propInfo = typeof(SongModelView).GetProperty(desc.PropertyName);
-            if (propInfo == null)
-                continue;
-
-            var valueX = propInfo.GetValue(x);
-            var valueY = propInfo.GetValue(y);
+            var valueX = desc.Accessor(x!);
+            var valueY = desc.Accessor(y!);
+            // --- End of Change ---
 
             int result;
             if (valueX is IComparable comparableX)
