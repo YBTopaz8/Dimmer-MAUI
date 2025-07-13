@@ -54,6 +54,14 @@ public class LyricsMetadataService : ILyricsMetadataService
             var tagFile = new Track(songPath);
             // ATL is smart. If lyrics exist, it will populate them.
             // We just need to check if the text is there.
+            if (tagFile.Lyrics is not null && tagFile.Lyrics.Count>0)
+            {
+                if (tagFile.Lyrics[0].SynchronizedLyrics.Count>0)
+                {
+                    return tagFile.Lyrics[0].SynchronizedLyrics.ToString();
+                }
+
+            }
             if (tagFile.Lyrics != null && tagFile.Lyrics.Count > 0 && !string.IsNullOrWhiteSpace(tagFile.Lyrics[0].UnsynchronizedLyrics))
             {
                 return tagFile.Lyrics[0].UnsynchronizedLyrics;
@@ -97,7 +105,7 @@ public class LyricsMetadataService : ILyricsMetadataService
         HttpClient client = _httpClientFactory.CreateClient("LrcLib");
 
         // URL encode the parameters to handle special characters
-        string artistName = Uri.EscapeDataString(song.ArtistName.Split(',')[0].Trim());
+        string artistName = Uri.EscapeDataString(song.OtherArtistsName.Split(',')[0].Trim());
         string trackName = Uri.EscapeDataString(song.Title);
         string albumName = Uri.EscapeDataString(song.AlbumName ?? string.Empty);
 

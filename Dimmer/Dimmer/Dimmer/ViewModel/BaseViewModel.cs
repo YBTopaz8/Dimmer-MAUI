@@ -1156,6 +1156,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (audioService.CurrentTrackMetadata is null)
         {
             PlaySong(CurrentPlayingSongView);
+            return;
         }
         if (IsPlaying)
             audioService.Pause();
