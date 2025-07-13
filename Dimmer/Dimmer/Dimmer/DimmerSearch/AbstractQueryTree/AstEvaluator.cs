@@ -41,14 +41,8 @@ public class AstEvaluator
             // If the field alias is invalid, we can treat it as a search on the "any" field.
             fieldDef = FieldRegistry.FieldsByAlias["any"];
         }
-
-        // --- Step 2: Get the actual value from the song using the accessor ---
-        // The FieldDefinition contains a Func that knows how to get the property value.
-        // This is much safer than using reflection with strings.
-        object? songValueObject = fieldDef.PropertyAccessor(song);
-
-        // --- Step 3: Switch on the FieldType from the registry ---
-        // This replaces all the old `if (_numericFields.Contains(...) ...)` blocks.
+        var accessor = fieldDef.PropertyExpression.Compile();
+        object? songValueObject = accessor(song);
         bool result = false;
         switch (fieldDef.Type)
         {

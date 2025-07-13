@@ -161,24 +161,35 @@ public class MetaParser
                     var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
                     string fieldAlias = allDirectives[i + 1].Text;
 
-                    // Use the shared mapping to get the real property name
                     if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
                     {
-                        sortDescriptions.Add(new SortDescription(fieldDef.PrimaryName, direction));
+                        // --- CHANGE #1: Pass the whole object, not just the name ---
+                        // OLD: sortDescriptions.Add(new SortDescription(fieldDef.PrimaryName, direction));
+                        // NEW:
+                        sortDescriptions.Add(new SortDescription(fieldDef, direction));
                     }
-                    // We don't need an 'else' because an invalid field alias
-                    // should just be ignored.
 
-                    i++; // Consume the field token so we don't process it again
+                    i++; // Consume the field token
                 }
             }
         }
         if (hasRandomSort)
         {
-            // Return a comparer with a single random sort description
+            // --- CHANGE #2: Create a dummy FieldDefinition for the random sort ---
+            // The properties of this object don't matter, because the comparer's logic
+            // will see `SortDirection.Random` and use the Guid-based path instead of the accessor.
+            var randomFieldDef = new FieldDefinition(
+                "RandomSort",
+                FieldType.Text,
+                Array.Empty<string>(),
+                "A placeholder for random sorting",
+                _ => new object() // A do-nothing expression
+            );
+
+            // Now create the SortDescription with the dummy FieldDefinition
             return new SongModelViewComparer(new List<SortDescription>
         {
-            new SortDescription("RandomSort", SortDirection.Random)
+            new SortDescription(randomFieldDef, SortDirection.Random)
         });
         }
         return new SongModelViewComparer(sortDescriptions);
