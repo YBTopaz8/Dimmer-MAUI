@@ -347,7 +347,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
     [ObservableProperty]
-    public partial string AppTitle { get; set; }
+    public partial string AppTitle { get; set; } = "Dimmer";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
@@ -646,7 +646,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
     private readonly BaseAppFlow _baseAppFlow;
-    public const string CurrentAppVersion = "Dimmer v1.9";
+    public const string CurrentAppVersion = "Dimmer v1.9V";
 
 
 
