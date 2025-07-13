@@ -587,4 +587,14 @@ public partial class HomePage : ContentPage
         SearchSongSB.Text = StaticMethods.SetQuotedSearch(field, val);
 
     }
+
+    private void ViewUtilsBtn_Clicked(object sender, EventArgs e)
+    {
+        UtilitiesHSL.IsVisible=!UtilitiesHSL.IsVisible;
+    }
+
+    private void ViewNPQ_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

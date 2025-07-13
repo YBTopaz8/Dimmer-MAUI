@@ -15,7 +15,7 @@
     <Window.TitleBar>
         <TitleBar
             x:Name="DimmerTitleBar"
-            Title="Dimmer 1.9.9U-beta"
+            Title="{Binding AppTitle}"
             BackgroundColor="Transparent">
 
             <TitleBar.Resources>

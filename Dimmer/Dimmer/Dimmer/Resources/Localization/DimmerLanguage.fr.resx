@@ -255,4 +255,7 @@
   <data name="btnprofiletxt" xml:space="preserve">
     <value>Profil</value>
   </data>
+  <data name="txt_utility" xml:space="preserve">
+    <value />
+  </data>
 </root>

@@ -448,6 +448,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Utility.
+        /// </summary>
+        public static string txt_utility {
+            get {
+                return ResourceManager.GetString("txt_utility", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to View.
         /// </summary>
         public static string txt_view {
