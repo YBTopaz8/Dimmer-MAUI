@@ -131,7 +131,13 @@ public partial class SongModelView : ObservableObject
 
         return false;
     }
-
+    public int PlayCount => PlayEvents?.Count ?? 0;
+    public DateTimeOffset LastPlayed =>
+       PlayEvents?
+           .Where(x => x.PlayType == (int)PlayType.Completed)
+           .OrderByDescending(x => x.EventDate)
+           .FirstOrDefault()?
+           .EventDate ?? DateTimeOffset.MinValue;
     [ObservableProperty]
     public partial string SearchableText { get; private set; }
 
