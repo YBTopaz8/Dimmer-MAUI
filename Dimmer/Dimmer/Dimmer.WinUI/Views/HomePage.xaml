@@ -283,7 +283,7 @@
                                 Command="{Binding ToggleRepeatModeCommand}"
                                 ImageSource="repeat.png"
                                 StyleClass="MediaBtnChip"
-                                ToolTipProperties.Text="{Binding CurrentRepeatMode,StringFormat='{0}'}}">
+                                ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
                                 <syncf:SfChip.Triggers>
                                     <DataTrigger
                                         Binding="{Binding CurrentRepeatMode}"

@@ -155,6 +155,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         WireUpLiveStats();
+        SearchSongSB_TextChanged("shuffle");
     }
 
 

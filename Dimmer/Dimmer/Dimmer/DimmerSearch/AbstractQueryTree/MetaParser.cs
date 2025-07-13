@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+
+using System.Text.RegularExpressions;
 
 namespace Dimmer.DimmerSearch.AbstractQueryTree;
 
@@ -155,9 +157,9 @@ public class MetaParser
                     string fieldAlias = allDirectives[i + 1].Text;
 
                     // Use the shared mapping to get the real property name
-                    if (AstEvaluator.FieldMappings.TryGetValue(fieldAlias, out var propertyName))
+                    if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
                     {
-                        sortDescriptions.Add(new SortDescription(propertyName, direction));
+                        sortDescriptions.Add(new SortDescription(fieldDef.PrimaryName, direction));
                     }
                     // We don't need an 'else' because an invalid field alias
                     // should just be ignored.
