@@ -555,7 +555,7 @@ public partial class HomePage : ContentPage
         {
             return;
         }
-        var send = (SfEffectsView)sender;
+        var send = (Microsoft.Maui.Controls.View)sender;
         var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
         if (gest is null)
         {
@@ -593,8 +593,18 @@ public partial class HomePage : ContentPage
         UtilitiesHSL.IsVisible=!UtilitiesHSL.IsVisible;
     }
 
-    private void ViewNPQ_Clicked(object sender, EventArgs e)
+    private async void ViewNPQ_Clicked(object sender, EventArgs e)
     {
+
+        if (!SongsColView.IsVisible)
+        {
+            await Task.WhenAll(SongsColView.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
+        }
+        else
+        {
+
+            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsColView.DimmOutCompletelyAndHide(250));
+        }
 
     }
 }

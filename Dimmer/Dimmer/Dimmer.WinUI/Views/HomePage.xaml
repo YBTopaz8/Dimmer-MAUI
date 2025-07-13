@@ -77,9 +77,12 @@
         ColumnDefinitions="*">
 
 
-        <Grid BackgroundColor="Transparent" RowDefinitions="*">
+        <Grid
+            BackgroundColor="Transparent"
+            ColumnDefinitions="*"
+            RowDefinitions="*">
             <Image
-                Grid.RowSpan="2"
+                Grid.Column="0"
                 Aspect="AspectFit"
                 Opacity="{AppThemeBinding Dark=0.12,
                                           Light=0.39}"
@@ -87,6 +90,7 @@
             <Grid
                 x:Name="MainUI"
                 Grid.Row="0"
+                Grid.Column="0"
                 Padding="10"
                 BackgroundColor="Transparent"
                 IsVisible="True"
@@ -234,6 +238,7 @@
                             VerticalOptions="Center">
                             <Label Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
                             <Slider
+                                x:Name="TrackProgressSlider"
                                 Grid.Column="1"
                                 DragCompleted="Slider_DragCompleted"
                                 Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
@@ -316,12 +321,11 @@
                         x:Name="UtilitySection"
                         Grid.Row="2"
                         BackgroundColor="Transparent"
-                        ColumnDefinitions="*,*"
+                        ColumnDefinitions="auto,*"
                         IsVisible="True"
                         RowDefinitions="auto,*">
                         <HorizontalStackLayout
                             Grid.Column="1"
-                            HorizontalOptions="End"
                             Spacing="20"
                             VerticalOptions="Center">
 
@@ -435,7 +439,23 @@
                             <syncf:SfChip
                                 x:Name="ViewNPQ"
                                 Clicked="ViewNPQ_Clicked"
-                                Text="View Now Playing Queue" />
+                                Text="View Now Playing Queue">
+                                <syncf:SfChip.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding IsVisible, Source={x:Reference SingleSongView}}"
+                                        TargetType="syncf:SfChip"
+                                        Value="True">
+                                        <Setter Property="Text" Value="Hide Now Playing Queue" />
+                                    </DataTrigger>
+                                    <DataTrigger
+                                        Binding="{Binding IsVisible, Source={x:Reference SingleSongView}}"
+                                        TargetType="syncf:SfChip"
+                                        Value="False">
+                                        <Setter Property="Text" Value="Show Now Playing Queue" />
+                                    </DataTrigger>
+                                </syncf:SfChip.Triggers>
+
+                            </syncf:SfChip>
                             <syncf:SfChip
                                 x:Name="ViewUtilsBtn"
                                 Clicked="ViewUtilsBtn_Clicked"
@@ -558,7 +578,7 @@
                 <Grid
                     x:Name="SongsView"
                     Grid.Row="1"
-                    IsVisible="Hidden"
+                    IsVisible="True"
                     RowDefinitions="0.1*,0.1*,*"
                     VerticalOptions="Start">
 
@@ -816,6 +836,30 @@
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
+                    <Grid
+                        x:Name="SingleSongView"
+                        Grid.Row="2"
+                        ColumnDefinitions="0.4*,*"
+                        IsVisible="False">
+                        <Grid.Resources>
+                            <ResourceDictionary>
+                                <Style TargetType="syncf:SfChip">
+                                    <Setter Property="MinimumWidthRequest" Value="30" />
+                                </Style>
+                            </ResourceDictionary>
+                        </Grid.Resources>
+                        <VerticalStackLayout Grid.Column="0">
+                            <syncf:SfChip
+                                x:Name="ArtistChip"
+                                windows:VisualElement.AccessKey="P"
+                                windows:VisualElement.AccessKeyPlacement="Right"
+                                Background="Transparent"
+                                Command="{Binding PlayPauseToggleCommand}"
+                                HorizontalOptions="Start"
+                                StyleClass="MediaBtnChip"
+                                Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
+                        </VerticalStackLayout>
+                    </Grid>
 
                 </Grid>
 

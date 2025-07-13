@@ -39,6 +39,8 @@ using System.Threading.Tasks;
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 using static Dimmer.Utilities.AppUtils;
 
+using SortDirection = Dimmer.DimmerSearch.SortDirection;
+
 
 
 
@@ -113,19 +115,75 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
 
 
+        var sortedStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>()
+    .Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
+    .Transform(songModel => _mapper.Map<SongModelView>(songModel))
+    .Filter(_filterPredicate)
+    .Sort(_sortComparer);
+
+        var limitedStream = _limiterClause
+    .Select(limiter =>
+    {
+        if (limiter is null)
+        {
+            // No limiter, so just pass the sorted stream through.
+            return sortedStream;
+        }
+
+        switch (limiter.Type)
+        {
+            case LimiterType.First:
+                // For 'first 10', take the top N items from the sorted stream.
+                return sortedStream.Top(limiter.Count);
+
+            case LimiterType.Random:
+                // The stream is already shuffled by our new sorter.
+                // Just take the top N items. int.MaxValue means take all.
+                if (limiter.Count == int.MaxValue)
+                    return sortedStream;
+                else
+                    return sortedStream.Top(limiter.Count);
+
+            case LimiterType.Last:
+                // To get the "last N" items, we need a trick.
+                // We reverse the original sort order, and then take the "top N".
+                var originalComparer = (SongModelViewComparer)_sortComparer.Value;
+                var reversedDescriptions = originalComparer.SortDescriptions
+                    .Select(sd => new SortDescription(
+                        sd.PropertyName,
+                        sd.Direction == SortDirection.Ascending ? SortDirection.Descending : SortDirection.Ascending
+                    )).ToList();
+
+                var reversedComparer = new SongModelViewComparer(reversedDescriptions);
+
+                // Re-sort the stream with the reversed comparer, then take the top N.
+                return sortedStream
+                        .Sort(reversedComparer) // Re-sort in reverse
+                        .Top(limiter.Count);    // Take the new "top" items
+
+            default:
+                return sortedStream;
+        }
+    })
+    .Switch();
+        limitedStream
+    .ObserveOn(RxApp.MainThreadScheduler)
+    .Bind(out _searchResults)
+    .Subscribe()
+    .DisposeWith(Disposables);
 
 
 
-        var songsStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>();
+        //var songsStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>();
 
-        songsStream.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
-            .Transform(songModel => _mapper.Map<SongModelView>(songModel))
-            .Filter(_filterPredicate)
-            .Sort(_sortComparer)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out _searchResults)
-            .Subscribe()
-            .DisposeWith(Disposables);
+        //songsStream.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
+        //    .Transform(songModel => _mapper.Map<SongModelView>(songModel))
+        //    .Filter(_filterPredicate)
+        //    .Sort(_sortComparer)
+        //    .ObserveOn(RxApp.MainThreadScheduler)
+        //    .Bind(out _searchResults)
+        //    .Subscribe()
+        //    .DisposeWith(Disposables);
 
 
         _searchResults.ToObservableChangeSet()
@@ -144,21 +202,70 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .DisposeWith(Disposables);
 
 
-        var allPlayEvents = dimmerPlayEventRepo.GetAll();
-
-        // Step 2: Map them to the ViewModel type.
-        var allPlayEventViews = _mapper.Map<IEnumerable<DimmerPlayEventView>>(allPlayEvents);
-
-        // Step 3: Load them into our source list. This fires one big "add" change,
-        // which is exactly what our stats pipeline needs to get its initial data.
-        _playEventSource.AddRange(allPlayEventViews);
+        IReadOnlyCollection<DimmerPlayEvent>? allPlayEvents = dimmerPlayEventRepo.GetAll();
+        DimmerPlayEvent? evt = allPlayEvents?.MaxBy(x => x.EventDate);
 
 
-        WireUpLiveStats();
-        SearchSongSB_TextChanged("shuffle");
+
+        if (evt?.SongId is ObjectId songId && songId != ObjectId.Empty)
+        {
+            // If we are inside this block, we are GUARANTEED that:
+            // 1. 'evt' is not null.
+            // 2. 'evt.SongId' was not null.
+            // 3. The non-null value has been assigned to a new variable 'songId'.
+            // 4. 'songId' is not equal to ObjectId.Empty.
+
+            var song = songRepo.GetById(songId); // Now we can safely pass the non-nullable 'songId'
+
+            CurrentPlayingSongView = song?.ToModelView();
+
+            LoadAndCacheCoverArtAsync(CurrentPlayingSongView);
+        }
+        else
+        {
+            // Handle the case where there's no valid event or the event has no valid song.
+            CurrentPlayingSongView = new();
+        }
+        //// Step 2: Map them to the ViewModel type.
+        //var allPlayEventViews = _mapper.Map<IEnumerable<DimmerPlayEventView>>(allPlayEvents);
+
+        //// Step 3: Load them into our source list. This fires one big "add" change,
+        //// which is exactly what our stats pipeline needs to get its initial data.
+        //_playEventSource.AddRange(allPlayEventViews);
+
+
+        SearchSongSB_TextChanged("random");
     }
+    private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
+    private readonly CompositeDisposable _disposables = new();
+    private IDisposable? _realmSubscription;
+    private bool _isDisposed;
+
+    [ObservableProperty]
+    public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
 
 
+
+    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
+    private ReadOnlyObservableCollection<SongModelView> _searchResults;
+
+    protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
+
+    [ObservableProperty]
+    public partial Label SongsCountLabel { get; set; }
+    [ObservableProperty]
+    public partial Label TranslatedSearch { get; set; }
+
+    private readonly BehaviorSubject<LimiterClause?> _limiterClause;
+
+
+    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
+    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
+
+
+
+    #region privte fields
     private readonly ICoverArtService _coverArtService;
 
     public readonly IMapper _mapper;
@@ -182,6 +289,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
     private readonly ILibraryScannerService libService;
+
+    #endregion
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView> AllLines { get; set; }
     [ObservableProperty]
@@ -350,14 +459,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                     if (!songsFromDb.TryGetValue(songViewModel.Id, out var songDb))
                     {
-                        _logger.LogWarning("Song with ID {SongId} not found in DB, skipping.", songViewModel.Id);
+                        _logger.LogWarning("evt with ID {SongId} not found in DB, skipping.", songViewModel.Id);
                         continue;
                     }
 
 
                     if (songDb.Album == null)
                     {
-                        _logger.LogWarning("Song '{Title}' has no associated album, cannot update album artists.", songDb.Title);
+                        _logger.LogWarning("evt '{Title}' has no associated album, cannot update album artists.", songDb.Title);
                         continue;
                     }
 
@@ -426,7 +535,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var songDb = realm.Find<SongModel>(songViewModel.Id);
             if (songDb == null)
             {
-                _logger.LogWarning("Song with ID {SongId} not found in DB. Cannot refresh metadata.", songViewModel.Id);
+                _logger.LogWarning("evt with ID {SongId} not found in DB. Cannot refresh metadata.", songViewModel.Id);
                 return;
             }
 
@@ -470,7 +579,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                 if (freshSongDb.Album == null)
                 {
-                    _logger.LogWarning("Song '{Title}' has no associated album, cannot update album artists.", freshSongDb.Title);
+                    _logger.LogWarning("evt '{Title}' has no associated album, cannot update album artists.", freshSongDb.Title);
                     return;
                 }
 
@@ -603,41 +712,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         GetStatsGeneral();
     }
-    private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
-    private readonly CompositeDisposable _disposables = new();
-    private IDisposable? _realmSubscription;
-    private bool _isDisposed;
-
-    [ObservableProperty]
-    public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
-
-
-
-
-
-
-
-
-
-    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
-
-    private readonly ReadOnlyObservableCollection<SongModelView> _fullFilteredResults;
-    protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
-
-
-    [ObservableProperty]
-    public partial Label SongsCountLabel { get; set; }
-    [ObservableProperty]
-    public partial Label TranslatedSearch { get; set; }
-
-    private ReadOnlyObservableCollection<SongModelView> _searchResults;
-    private readonly BehaviorSubject<LimiterClause?> _limiterClause;
-
-
-    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
-    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
-
-
     [RelayCommand]
     public void SmolHold()
     {
@@ -1047,8 +1121,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         // --- Step 1: Establish the Playback Context ---
-        var baseQueue = _searchResults.Select(s => s.Id).ToList();
-        int startIndex = baseQueue.IndexOf(songToPlay.Id);
+        var baseQueue = _searchResults.ToList();
+        int startIndex = baseQueue.IndexOf(songToPlay);
 
         if (startIndex == -1)
         {
@@ -1062,8 +1136,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // When shuffle is on, we randomize the *entire queue* but ensure
             // the song the user clicked on is moved to the very beginning.
             var shuffledQueue = baseQueue.OrderBy(x => _random.Next()).ToList();
-            shuffledQueue.Remove(songToPlay.Id);
-            shuffledQueue.Insert(0, songToPlay.Id);
+            shuffledQueue.Remove(songToPlay);
+            shuffledQueue.Insert(0, songToPlay);
             _playbackQueue = shuffledQueue;
             // The starting index is now always 0.
             startIndex = 0;
@@ -1090,6 +1164,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             PlaySong(_searchResults.FirstOrDefault());
             return;
+        }
+        if (audioService.CurrentTrackMetadata is null)
+        {
+            PlaySong(CurrentPlayingSongView);
         }
         if (IsPlaying)
             audioService.Pause();
@@ -1140,12 +1218,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        var nextSongId = _playbackQueue[_playbackQueueIndex];
-        var songToPlay = _searchResults.FirstOrDefault(s => s.Id == nextSongId);
+        var nextSong = _playbackQueue[_playbackQueueIndex];
+        var songToPlay = _searchResults.FirstOrDefault(s => s.Id == nextSong.Id);
 
         if (songToPlay == null)
         {
-            _logger.LogError("Could not find song ID {SongId} in search results. Trying next.", nextSongId);
+            _logger.LogError("Could not find song ID {SongId} in search results. Trying next.", nextSong.Id);
             NextTrack();
             return;
         }
@@ -1235,7 +1313,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // The _playbackQueue holds the correct, shuffled (or unshuffled) list of song IDs.
         foreach (var songId in _playbackQueue)
         {
-            contextPlaylist.SongsIdsInPlaylist.Add(songId);
+            contextPlaylist.SongsIdsInPlaylist.Add(songId.Id);
         }
 
         // --- Step 3: Save the new object to the database ---
@@ -1261,7 +1339,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // The playlist already defines the queue. No need for shuffle logic here,
         // as we want to respect the saved order of the playlist.
-        _playbackQueue = playlist.SongsIdsInPlaylist.ToList();
+        //_playbackQueue = playlist.SongsIdsInPlaylist.ToList();
         CurrentPlaybackQuery = $"playlist:\"{playlist.PlaylistName}\""; // Set context for UI
 
         _logger.LogInformation("Playback queue established from playlist '{PlaylistName}' with {Count} songs.", playlist.PlaylistName, _playbackQueue.Count);
@@ -1285,7 +1363,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var currentSongId = CurrentPlayingSongView.Id;
 
             // Get all songs in the queue EXCEPT the current one.
-            var remainingQueue = _playbackQueue.Where(id => id != currentSongId).ToList();
+            var remainingQueue = _playbackQueue.Where(song => song.Id != currentSongId).ToList();
 
             if (IsShuffleActive)
             {
@@ -1293,7 +1371,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 var shuffledRemaining = remainingQueue.OrderBy(x => _random.Next()).ToList();
 
                 // Rebuild the queue with the current song at the front, followed by the new shuffled part.
-                var newQueue = new List<ObjectId> { currentSongId };
+                var newQueue = new List<SongModelView> { CurrentPlayingSongView };
                 newQueue.AddRange(shuffledRemaining);
                 _playbackQueue = newQueue;
                 _playbackQueueIndex = 0; // We are at the start of this new conceptual queue.
@@ -1302,9 +1380,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 // If shuffle was just turned OFF, we should revert the queue to the original,
                 // sorted order from the search results, but keep our current position.
-                _playbackQueue = _searchResults.Select(s => s.Id).ToList();
+                _playbackQueue = _searchResults.ToList();
                 // Find the new index of our current song in the un-shuffled list.
-                _playbackQueueIndex = _playbackQueue.IndexOf(currentSongId);
+                _playbackQueueIndex = _playbackQueue.IndexOf(CurrentPlayingSongView);
             }
             _logger.LogInformation("Playback queue has been updated to reflect new shuffle state.");
         }
@@ -1331,6 +1409,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     private void PlaySongFromPlaylist(PlaylistSongContext context)
     {
+        return;
         if (context?.Playlist == null || context.SongToPlay == null || !context.Playlist.SongsIdsInPlaylist.Any())
         {
             _logger.LogWarning("PlaySongFromPlaylist called with invalid context.");
@@ -1340,22 +1419,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var playlist = context.Playlist;
         var songToPlay = context.SongToPlay;
 
-        // The playlist's song list becomes our new frozen queue.
-        _playbackQueue = playlist.SongsIdsInPlaylist.ToList();
+        //// The playlist's song list becomes our new frozen queue.
+        //_playbackQueue = playlist.SongsIdsInPlaylist.ToList();
 
-        // Find the starting index of the song the user clicked.
-        var startIndex = _playbackQueue.IndexOf(songToPlay.Id);
-        if (startIndex == -1)
-        {
-            _logger.LogError("Could not find song '{SongTitle}' in playlist '{PlaylistName}'. Starting from the beginning.", songToPlay.Title, playlist.PlaylistName);
-            startIndex = 0;
-        }
+        //// Find the starting index of the song the user clicked.
+        //var startIndex = _playbackQueue.IndexOf(songToPlay.Id);
+        //if (startIndex == -1)
+        //{
+        //    _logger.LogError("Could not find song '{SongTitle}' in playlist '{PlaylistName}'. Starting from the beginning.", songToPlay.Title, playlist.PlaylistName);
+        //    startIndex = 0;
+        //}
 
-        CurrentPlaybackQuery = $"playlist:\"{playlist.PlaylistName}\""; // Set context for UI
+        //CurrentPlaybackQuery = $"playlist:\"{playlist.PlaylistName}\""; // Set context for UI
 
-        _logger.LogInformation("Playback queue established from playlist '{PlaylistName}', starting with '{SongTitle}'.", playlist.PlaylistName, songToPlay.Title);
+        //_logger.LogInformation("Playback queue established from playlist '{PlaylistName}', starting with '{SongTitle}'.", playlist.PlaylistName, songToPlay.Title);
 
-        StartAudioForSongAtIndex(startIndex);
+        //StartAudioForSongAtIndex(startIndex);
     }
 
     // We need a small helper class to pass both the song and playlist to the command.
@@ -1515,9 +1594,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
     private int _playbackQueueIndex = -1;
-    private IReadOnlyList<ObjectId> _playbackQueue = new List<ObjectId>();
+    private IReadOnlyList<SongModelView> _playbackQueue = new List<SongModelView>();
 
-
+    public IReadOnlyList<SongModelView> PlayBackQueue => _playbackQueue;
 
     [ObservableProperty]
     public partial bool IsAppScanning { get; set; }
@@ -1843,17 +1922,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var endDate = DateTimeOffset.UtcNow;
         var startDate = endDate.AddMonths(-1);
 
-        TopSkippedArtists = TopStats.GetTopSkippedArtists(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50).ToObservableCollection();
-        TopSongsByEventType = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50, 3).ToObservableCollection();
-        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50, startDate, endDate).ToObservableCollection();
+        TopSkippedArtists = TopStats.GetTopSkippedArtists(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25).ToObservableCollection();
+        TopSongsByEventType = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25, 3).ToObservableCollection();
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25, startDate, endDate).ToObservableCollection();
 
 
 
 
-        MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50).ToObservableCollection();
+        MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25).ToObservableCollection();
 
 
-        MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 50, startDate, endDate).ToObservableCollection();
+        MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25, startDate, endDate).ToObservableCollection();
     }
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
@@ -1916,7 +1995,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         songModel.Rating = newRating;
         var song = songRepo.Upsert(songModel);
-        _logger.LogInformation("Song '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
+        _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
         _stateService.SetCurrentSong(song);
     }

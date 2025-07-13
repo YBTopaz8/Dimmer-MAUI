@@ -142,11 +142,16 @@ public class MetaParser
     {
         var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
-
+        bool hasRandomSort = false;
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
-
+            if (token.Type == TokenType.Random || token.Type == TokenType.Shuffle)
+            {
+                hasRandomSort = true;
+                // We don't need to check for a field name here, random applies to the whole list
+            }
+            else
             if (token.Type == TokenType.Asc || token.Type == TokenType.Desc)
             {
                 // Because of our new ProcessPart logic, we can be CERTAIN
@@ -168,7 +173,14 @@ public class MetaParser
                 }
             }
         }
-
+        if (hasRandomSort)
+        {
+            // Return a comparer with a single random sort description
+            return new SongModelViewComparer(new List<SortDescription>
+        {
+            new SortDescription("RandomSort", SortDirection.Random)
+        });
+        }
         return new SongModelViewComparer(sortDescriptions);
     }
 
