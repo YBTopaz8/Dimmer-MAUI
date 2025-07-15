@@ -86,7 +86,7 @@
                 Aspect="AspectFit"
                 Opacity="{AppThemeBinding Dark=0.12,
                                           Light=0.39}"
-                Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
             <Grid
                 x:Name="MainUI"
                 Grid.Row="0"
@@ -492,7 +492,8 @@
                                 IsVisible="False"
                                 Text="Advanced Search (TQL)"
                                 ToolTipProperties.Text="Start a Topaz Query using TQL" />
-                            <Label FontSize="19" Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query : {0}'}" />
+                            <Label FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query : {0}'}" />
+                            <Label FontSize="19" Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
 
                         </VerticalStackLayout>
                         <Grid

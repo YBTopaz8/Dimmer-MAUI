@@ -14,7 +14,7 @@ public enum LimiterType { First, Last, Random }
 
 public class LimiterClause
 {
-    public LimiterType Type { get; set; }
+    public LimiterType Type { get; set; } = LimiterType.Random;
     public int Count { get; set; }
     public LimiterClause(LimiterType type, int count)
     {
@@ -36,7 +36,7 @@ public class SortDescription
     public SortDirection Direction { get; }
     public Func<SongModelView, object> Accessor { get; }
 
-    public FieldDefinition Field { get; }
+    public FieldDefinition Field { get; } = null!;
     public SortDescription(FieldDefinition field, SortDirection direction)
     {
         Field = field;

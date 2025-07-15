@@ -36,8 +36,8 @@ public static class Lexer
     private static readonly Dictionary<string, TokenType> _keywords = new(StringComparer.OrdinalIgnoreCase)
     {
         { "and", TokenType.And }, { "or", TokenType.Or }, { "not", TokenType.Not },
-        { "include", TokenType.Include }, { "add", TokenType.Add },
-        { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove },
+        { "include", TokenType.Include }, { "add", TokenType.Add },{ "plus", TokenType.Add },
+        { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove },{ "minus", TokenType.Remove },
         { "asc", TokenType.Asc }, { "desc", TokenType.Desc },
         { "random", TokenType.Random }, { "shuffle", TokenType.Shuffle },
         { "first", TokenType.First }, { "last", TokenType.Last }

@@ -8,7 +8,7 @@ AppPublisher=Yvan Brunel
 AppPublisherURL=https://github.com/YBTopaz8/Dimmer-MAUI
 DefaultDirName={autopf}\Dimmer-MAUI
 DefaultGroupName=Dimmer-MAUI
-OutputBaseFilename=Setup_Dimmer1.9.9V
+OutputBaseFilename=Setup_Dimmer1.9.9W
 Compression=lzma
 SolidCompression=yes
 
@@ -17,7 +17,7 @@ SolidCompression=yes
 
 [Files]
 ; Include all files from the output folder
-Source: "C:\dimm199V\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\dimm199W\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 ; Add a shortcut to the Start Menu

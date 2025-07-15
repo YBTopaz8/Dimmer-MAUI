@@ -119,3 +119,4 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
 
 
 }
+
