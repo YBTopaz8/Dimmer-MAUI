@@ -15,7 +15,7 @@ public class RealmFactory : IRealmFactory
     public RealmFactory()
     {
         // Create database directory.
-        string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDD");
+        string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerRealm");
         if (!Directory.Exists(dbPath))
         {
             Directory.CreateDirectory(dbPath);

@@ -113,7 +113,8 @@ public class AstParser
 
         if (IsValueToken(Peek().Type))
         {
-            var lowerValue = Consume(Peek().Type).Text;
+            var lowerValueToken = Consume(Peek().Type);
+            var lowerValue = lowerValueToken.Text;
 
             // Check for a range operator
             if (Match(TokenType.Minus))
@@ -122,7 +123,7 @@ public class AstParser
                 {
                     var upperValue = Consume(Peek().Type).Text;
                     // Create a single ClauseNode with both values
-                    return new ClauseNode(field, "-", lowerValue, upperValue);
+                    return new ClauseNode(field, op, lowerValue);
                 }
                 throw new Exception($"Syntax Error: Expected an upper value for the range on field '{field}' at position '{Peek().Position}'.");
             }

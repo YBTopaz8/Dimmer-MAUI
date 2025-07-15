@@ -61,9 +61,18 @@ public static class Lexer
                 position++; // Skip opening quote
                 var sb = new StringBuilder();
                 while (position < text.Length && text[position] != '"')
-                { sb.Append(text[position++]); }
-                if (position < text.Length)
-                { position++; } // Skip closing quote
+                {
+                    // If we see a backslash, check if it's escaping a quote
+                    if (text[position] == '\\' && position + 1 < text.Length && text[position + 1] == '"')
+                    {
+                        sb.Append('"'); // Append the quote
+                        position += 2;  // Skip both \ and "
+                    }
+                    else
+                    {
+                        sb.Append(text[position++]);
+                    }
+                }
                 tokens.Add(new Token(TokenType.StringLiteral, sb.ToString(), start));
                 continue;
             }
@@ -93,6 +102,7 @@ public static class Lexer
                 tokens.Add(new Token(TokenType.Number, number, start));
                 continue;
             }
+
 
             tokens.Add(new Token(TokenType.Error, current.ToString(), position++));
         }

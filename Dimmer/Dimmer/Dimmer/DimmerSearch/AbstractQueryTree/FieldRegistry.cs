@@ -32,8 +32,8 @@ public static class FieldRegistry
             new("SearchableText", FieldType.Text, new[]{"any"}, "Any text field", s => s.SearchableText),
             new("Title", FieldType.Text, new[]{"t"}, "The song's title", s => s.Title),
             new("OtherArtistsName", FieldType.Text, new[]{"ar", "artist"}, "The song's artist(s)", s => s.OtherArtistsName),
-            new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", s => s.AlbumName ?? "Unknown Album"),
-            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", s => s.Genre.Name?? "Unknown Genre"),
+            new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", s => string.IsNullOrEmpty( s.AlbumName )?  "Unknown Album":s.AlbumName),
+            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", s => string.IsNullOrEmpty(s.GenreName) ? "Unknown Genre" :s.GenreName),
             new("Composer", FieldType.Text, new[]{"comp"}, "The composer", s => s.Composer),
             new("FilePath", FieldType.Text, new[]{"path"}, "The file path", s => s.FilePath),
 

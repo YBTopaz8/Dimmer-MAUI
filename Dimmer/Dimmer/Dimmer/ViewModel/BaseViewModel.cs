@@ -113,6 +113,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                // Parse the query into a tuple containing all three components.
                if (string.IsNullOrWhiteSpace(query))
                {
+                   _validationResultSubject.OnNext(new(true));
                    return new QueryComponents(
                       Predicate: _ => true,
                       Comparer: new SongModelViewComparer(null),
@@ -122,16 +123,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                try
                {
                    var orchestrator = new MetaParser(query);
+                   _validationResultSubject.OnNext(new(true));
                    return new QueryComponents(
-               Predicate: orchestrator.CreateMasterPredicate(),
-               Comparer: orchestrator.CreateSortComparer(),
-               Limiter: orchestrator.CreateLimiterClause()
-           );
+                       Predicate: orchestrator.CreateMasterPredicate(),
+                       Comparer: orchestrator.CreateSortComparer(),
+                       Limiter: orchestrator.CreateLimiterClause()
+                    );
 
 
                }
-               catch (Exception)
+               catch (Exception ex)
                {
+                   _validationResultSubject.OnNext(new ValidationResult(false, ex.Message));
                    // *** THE KEY CHANGE IS HERE ***
                    // If parsing fails, don't return a "show nothing" filter.
                    // Instead, return null. We will ignore this downstream.
@@ -233,6 +236,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
     }
 
+    public void SearchSongSB_TextChanged(string searchText)
+    {
+
+        _searchQuerySubject.OnNext(searchText);
+
+        CurrentQuery= searchText;
+
+    }
     private readonly BehaviorSubject<string> _searchQuerySubject;
 
     private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
@@ -241,11 +252,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial string DebugMessage { get; set; } = string.Empty;
-
-    private readonly BehaviorSubject<Func<SongModelView, bool>> filterPredicate;
-    private readonly BehaviorSubject<IComparer<SongModelView>> sortComparer;
-    private readonly BehaviorSubject<LimiterClause?> limiterClause;
-
     [RelayCommand]
     public void SmolHold()
     {
@@ -270,14 +276,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _searchQuerySubject.OnNext("random");
         CurrentQuery= "random";
     }
-    public void SearchSongSB_TextChanged(string searchText)
-    {
-
-        _searchQuerySubject.OnNext(searchText);
-
-        CurrentQuery= searchText;
-
-    }
 
     private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
     private readonly CompositeDisposable _disposables = new();
@@ -286,6 +284,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
+    private readonly BehaviorSubject<ValidationResult> _validationResultSubject = new(new(true));
+    public IObservable<ValidationResult> ValidationResult => _validationResultSubject;
 
 
 

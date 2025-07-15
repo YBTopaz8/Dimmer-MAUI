@@ -595,9 +595,7 @@ public partial class HomePage : ContentPage
 
     private async void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-
-        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
-
+        SearchSongSB.Text=MyViewModel.CurrentPlaybackQuery;
         return;
 
         if (!SongsColView.IsVisible)
