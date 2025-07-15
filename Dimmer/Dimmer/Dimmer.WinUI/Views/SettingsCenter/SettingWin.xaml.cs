@@ -7,7 +7,7 @@ public partial class SettingWin : Window
         InitializeComponent();
         Page = new SettingsPage(vm);
         this.Height = 800;
-        this.Width = 600;
+        this.Width = 1000;
 
     }
 }

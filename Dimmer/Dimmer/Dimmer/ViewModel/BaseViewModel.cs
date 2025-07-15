@@ -229,6 +229,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         SearchSongSB_TextChanged("random");
+
+        FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
     }
 
     private readonly BehaviorSubject<string> _searchQuerySubject;
@@ -248,6 +250,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void SmolHold()
     {
         SearchSongSB_TextChanged("Len:<=2:00");
+    }
+
+    [RelayCommand]
+    public void Randomize()
+    {
+        SearchSongSB_TextChanged("random");
     }
 
     [RelayCommand]
@@ -810,11 +818,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public void InitializeApp()
     {
-        if (_songSource.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
-        {
-            var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
 
-        }
     }
     #region Subscription Event Handlers (The Reactive Logic)
 
@@ -1064,6 +1068,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
         // ... your existing logic to refresh FolderPaths and trigger metadata scan ...
         IsAppScanning = false;
+
+        FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
+
     }
 
     #endregion
@@ -1937,7 +1944,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
         _folderMgtService.RemoveFolderFromWatchListAsync(path);
-
+        _settingsService.UserMusicFoldersPreference.Remove(path);
     }
 
 

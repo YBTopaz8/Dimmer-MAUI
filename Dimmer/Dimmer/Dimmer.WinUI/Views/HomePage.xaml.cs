@@ -58,7 +58,7 @@ public partial class HomePage : ContentPage
         // --- Keep these lines. They correctly wire up the UI. ---
 
         MyViewModel.TranslatedSearch= TranslatedSearch;
-        MyViewModel.SongsCountLabel = SongsCountLabel;
+        //MyViewModel.SongsCountLabel = SongsCountLabel;
 
     }
 
@@ -595,6 +595,10 @@ public partial class HomePage : ContentPage
 
     private async void ViewNPQ_Clicked(object sender, EventArgs e)
     {
+
+        MyViewModel.CurrentQuery =MyViewModel.CurrentPlaybackQuery;
+
+        return;
 
         if (!SongsColView.IsVisible)
         {
