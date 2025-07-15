@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch;
 
-public enum TokenType { Field, Value, Keyword, Operator, Parenthesis, Error }
+public enum TokenType { Field, Value, Keyword, Operator, Parenthesis, Error, EndOfFile, }
 
 public record HighlightableToken(string Text, TokenType Type);
 

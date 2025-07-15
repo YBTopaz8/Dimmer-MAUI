@@ -34,6 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="DimmerSearch\QueryAnalysisService.cs" />
+    <Compile Remove="DimmerSearch\QueryTokenizer.cs" />
+    <Compile Remove="DimmerSearch\SearchClass.cs" />
+    <Compile Remove="DimmerSearch\SemanticModel.cs" />
+    <Compile Remove="DimmerSearch\SemanticParser.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
   </ItemGroup>
 

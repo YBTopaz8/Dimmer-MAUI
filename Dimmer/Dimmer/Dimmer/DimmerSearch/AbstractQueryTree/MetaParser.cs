@@ -124,8 +124,8 @@ public class MetaParser
 
         }).Where(p => p.Item2 != null).ToList();
 
-        var mainIncludes = predicates.Where(p => p.SegmentType == "MAIN" || p.SegmentType == "INCLUDE" || p.SegmentType == "ADD").Select(p => p.Item2).ToList();
-        var excludes = predicates.Where(p => p.SegmentType == "EXCLUDE" || p.SegmentType == "REMOVE").Select(p => p.Item2).ToList();
+        var mainIncludes = predicates.Where(p => p.SegmentType == "MAIN" || p.SegmentType == "INCLUDE" || p.SegmentType == "ADD" || p.SegmentType == "PLUS").Select(p => p.Item2).ToList();
+        var excludes = predicates.Where(p => p.SegmentType == "EXCLUDE" || p.SegmentType == "REMOVE"|| p.SegmentType == "MINUS").Select(p => p.Item2).ToList();
 
         return song =>
         {

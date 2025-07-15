@@ -2,19 +2,14 @@
 
 using CommunityToolkit.Mvvm.Input;
 
-using Dimmer.Charts;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.AbstractQueryTree;
-using Dimmer.DimmerSearch.AbstractQueryTree.NL;
-using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Orchestration;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
-using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utilities.ViewsUtils;
 
 using DynamicData;
@@ -26,20 +21,11 @@ using MoreLinq;
 
 using ReactiveUI;
 
-using Realms;
-
-using Syncfusion.Maui.Toolkit.TextInputLayout;
-
 using System.ComponentModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
-using static Dimmer.Utilities.AppUtils;
-
-using SortDirection = Dimmer.DimmerSearch.SortDirection;
 
 
 
@@ -110,83 +96,100 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         this.musicStatsService=new(realmFactory);
 
+
+        _searchQuerySubject = new BehaviorSubject<string>("");
         _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
 
 
-        var sortedStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>()
-    .Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
-    .Transform(songModel => _mapper.Map<SongModelView>(songModel))
-    .Filter(_filterPredicate)
-    .Sort(_sortComparer);
-
-        var limitedStream = _limiterClause
-    .Select(limiter =>
-    {
-        if (limiter is null)
-        {
-            // No limiter, so just pass the sorted stream through.
-            return sortedStream;
-        }
-
-        switch (limiter.Type)
-        {
-            case LimiterType.First:
-                // For 'first 10', take the top N items from the sorted stream.
-                return sortedStream.Top(limiter.Count);
-
-            case LimiterType.Random:
-                // The stream is already shuffled by our new sorter.
-                // Just take the top N items. int.MaxValue means take all.
-                if (limiter.Count == int.MaxValue)
-                    return sortedStream;
-                else
-                    return sortedStream.Top(limiter.Count);
-
-            case LimiterType.Last:
-                var t = sortedStream.TakeLast(limiter.Count);
-                return t;
+        // =====================================================================
+        // PIPELINE 1: CONTROL (string -> all query components)
+        // =====================================================================
+        _searchQuerySubject
+            .Throttle(TimeSpan.FromMilliseconds(200), RxApp.TaskpoolScheduler)
+           .Select(query =>
+           {
+               // Parse the query into a tuple containing all three components.
+               if (string.IsNullOrWhiteSpace(query))
+               {
+                   return new QueryComponents(
+                      Predicate: _ => true,
+                      Comparer: new SongModelViewComparer(null),
+                      Limiter: null
+                  );
+               }
+               try
+               {
+                   var orchestrator = new MetaParser(query);
+                   return new QueryComponents(
+               Predicate: orchestrator.CreateMasterPredicate(),
+               Comparer: orchestrator.CreateSortComparer(),
+               Limiter: orchestrator.CreateLimiterClause()
+           );
 
 
-            default:
-                return sortedStream;
-        }
-    })
-    .Switch();
-        limitedStream
-    .ObserveOn(RxApp.MainThreadScheduler)
-    .Bind(out _searchResults)
-    .Subscribe()
-    .DisposeWith(Disposables);
-
-
-
-        //var songsStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>();
-
-        //songsStream.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
-        //    .Transform(songModel => _mapper.Map<SongModelView>(songModel))
-        //    .Filter(_filterPredicate)
-        //    .Sort(_sortComparer)
-        //    .ObserveOn(RxApp.MainThreadScheduler)
-        //    .Bind(out _searchResults)
-        //    .Subscribe()
-        //    .DisposeWith(Disposables);
-
-
-        _searchResults.ToObservableChangeSet()
-            .Select(_ => _searchResults.Count)
-            .StartWith(0)
+               }
+               catch (Exception)
+               {
+                   // *** THE KEY CHANGE IS HERE ***
+                   // If parsing fails, don't return a "show nothing" filter.
+                   // Instead, return null. We will ignore this downstream.
+                   return null;
+               }
+           })
+    // This new operator filters out the nulls from failed parses.
+    // The stream only continues if the query was valid.
+    .Where(components => components is not null)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(count =>
+            .Subscribe(components =>
             {
-                if (TranslatedSearch is not null && SongsCountLabel is not null)
-                {
+                // Push the new components into their respective "bridge" subjects.
+                _filterPredicate.OnNext(components.Predicate);
+                _sortComparer.OnNext(components.Comparer);
+                _limiterClause.OnNext(components.Limiter);
+            },
+            ex => _logger.LogError(ex, "FATAL: Search control pipeline has crashed."))
+            .DisposeWith(Disposables);
 
-                    TranslatedSearch.Text = $"{count} Songs";
-                    SongsCountLabel.IsVisible = true;
+
+        // This is our base stream that is filtered and sorted in the background.
+        var sortedStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>()
+            .Transform(songModel => _mapper.Map<SongModelView>(songModel))
+            // *** PERFORMANCE FIX ***
+            // We do the heavy work on a background thread. This is safe now.
+            .ObserveOn(RxApp.TaskpoolScheduler)
+            .Filter(_filterPredicate) // Listens for filter changes
+            .Sort(_sortComparer);     // Listens for sort changes
+
+        // This stream applies the limiter on top of the sorted stream.
+        var limitedStream = _limiterClause
+            .Select(limiter =>
+            {
+                // If no limiter, just pass the sorted stream through.
+                if (limiter is null)
+                    return sortedStream;
+
+                // Apply the correct limiter operator.
+                switch (limiter.Type)
+                {
+                    case LimiterType.First:
+                        return sortedStream.Top(limiter.Count);
+                    case LimiterType.Random:
+                        return sortedStream.Top(limiter.Count);
+                    case LimiterType.Last:
+                        return sortedStream.TakeLast(limiter.Count);
+                    default:
+                        return sortedStream;
                 }
             })
+            .Switch(); // .Switch() correctly swaps between the limited/unlimited streams.
+
+        // Finally, bind the result to the UI.
+        limitedStream
+            .ObserveOn(RxApp.MainThreadScheduler) // Come back to the UI thread for binding
+            .Bind(out _searchResults)
+            .Subscribe()
             .DisposeWith(Disposables);
 
 
@@ -197,14 +200,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (evt?.SongId is ObjectId songId && songId != ObjectId.Empty)
         {
-            // If we are inside this block, we are GUARANTEED that:
-            // 1. 'evt' is not null.
-            // 2. 'evt.SongId' was not null.
-            // 3. The non-null value has been assigned to a new variable 'songId'.
-            // 4. 'songId' is not equal to ObjectId.Empty.
 
-            var song = songRepo.GetById(songId); // Now we can safely pass the non-nullable 'songId'
 
+
+
+
+
+            var song = songRepo.GetById(songId);
+            if (song is null)
+            {
+                return;
+            }
             CurrentPlayingSongView = song?.ToModelView();
 
             LoadAndCacheCoverArtAsync(CurrentPlayingSongView);
@@ -223,7 +229,56 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         SearchSongSB_TextChanged("random");
+
+        FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
     }
+
+    private readonly BehaviorSubject<string> _searchQuerySubject;
+
+    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
+    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
+    private readonly BehaviorSubject<LimiterClause?> _limiterClause;
+
+    [ObservableProperty]
+    public partial string DebugMessage { get; set; } = string.Empty;
+
+    private readonly BehaviorSubject<Func<SongModelView, bool>> filterPredicate;
+    private readonly BehaviorSubject<IComparer<SongModelView>> sortComparer;
+    private readonly BehaviorSubject<LimiterClause?> limiterClause;
+
+    [RelayCommand]
+    public void SmolHold()
+    {
+        SearchSongSB_TextChanged("Len:<=2:00");
+    }
+
+    [RelayCommand]
+    public void Randomize()
+    {
+        SearchSongSB_TextChanged("random");
+    }
+
+    [RelayCommand]
+    public void BigHold()
+    {
+        SearchSongSB_TextChanged("Len:<=3:00");
+    }
+
+    [RelayCommand]
+    public void ResetSearch()
+    {
+        _searchQuerySubject.OnNext("random");
+        CurrentQuery= "random";
+    }
+    public void SearchSongSB_TextChanged(string searchText)
+    {
+
+        _searchQuerySubject.OnNext(searchText);
+
+        CurrentQuery= searchText;
+
+    }
+
     private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
     private readonly CompositeDisposable _disposables = new();
     private IDisposable? _realmSubscription;
@@ -245,11 +300,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial Label TranslatedSearch { get; set; }
 
-    private readonly BehaviorSubject<LimiterClause?> _limiterClause;
-
-
-    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
-    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
 
 
 
@@ -646,7 +696,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
     private readonly BaseAppFlow _baseAppFlow;
-    public const string CurrentAppVersion = "Dimmer v1.9V";
+    public const string CurrentAppVersion = "Dimmer v1.9W";
 
 
 
@@ -684,8 +734,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-
-    public string CurrentQuery { get; private set; }
+    [ObservableProperty]
+    public partial string CurrentQuery { get; set; }
     public string QueryBeforePlay { get; private set; }
 
 
@@ -700,75 +750,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         GetStatsGeneral();
     }
-    [RelayCommand]
-    public void SmolHold()
-    {
-        SearchSongSB_TextChanged("Len:<=2:00");
-    }
-
-    [RelayCommand]
-    public void BigHold()
-    {
-        SearchSongSB_TextChanged("Len:<=3:00");
-    }
-
-    [RelayCommand]
-    public void ResetSearch()
-    {
-        _filterPredicate.OnNext(song => true);
-        _sortComparer.OnNext(new SongModelViewComparer(null));
-        _limiterClause.OnNext(null);
-        SearchSongSB_TextChanged(string.Empty);
-    }
-    public void SearchSongSB_TextChanged(string searchText)
-    {
-
-
-        CurrentQuery= searchText;
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            _filterPredicate.OnNext(song => true);
-            _sortComparer.OnNext(new SongModelViewComparer(null));
-            _limiterClause.OnNext(null);
-
-            return;
-        }
-
-        try
-        {
-
-            var orchestrator = new MetaParser(searchText);
-
-
-            var filterPredicate = orchestrator.CreateMasterPredicate();
-            var sortComparer = orchestrator.CreateSortComparer();
-            var limiterClause = orchestrator.CreateLimiterClause();
-
-
-            _filterPredicate.OnNext(filterPredicate);
-            _sortComparer.OnNext(sortComparer);
-            _limiterClause.OnNext(limiterClause);
-
-            CurrentPlaybackQuery=searchText;
-        }
-        catch (Exception ex)
-        {
-            _filterPredicate.OnNext(song => false);
-
-
-            _sortComparer.OnNext(new SongModelViewComparer(null));
-
-
-            _limiterClause.OnNext(null);
-
-            _logger.Log(LogLevel.Debug, ex, "Error while parsing search text: {SearchText}", searchText);
-
-        }
-
-
-
-    }
-
     private void WireUpLiveStats()
     {
         var filteredSongsStream = _searchResults.ToObservableChangeSet()
@@ -837,11 +818,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public void InitializeApp()
     {
-        if (_songSource.Count <1 && _settingsService.UserMusicFoldersPreference.Count >0)
-        {
-            var listofFOlders = _settingsService.UserMusicFoldersPreference.ToList();
 
-        }
     }
     #region Subscription Event Handlers (The Reactive Logic)
 
@@ -1091,6 +1068,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
         // ... your existing logic to refresh FolderPaths and trigger metadata scan ...
         IsAppScanning = false;
+
+        FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
+
     }
 
     #endregion
@@ -1137,6 +1117,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         CurrentPlaybackQuery = CurrentQuery;
+
         _logger.LogInformation("Playback queue established. Shuffle={IsShuffle}. Songs={Count}.", IsShuffleActive, _playbackQueue.Count);
 
         // --- Step 3: Save context and start playback ---
@@ -1310,7 +1291,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // If you wanted to have a single, overwriting "Last Session" playlist,
         // you would find it by a fixed ID first and then use AddOrUpdate.
         _playlistRepo.Create(contextPlaylist);
-
+        QueryBeforePlay=query;
         _logger.LogInformation("Saved playback context with query: \"{query}\"", query);
     }
 
@@ -1963,7 +1944,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
         _folderMgtService.RemoveFolderFromWatchListAsync(path);
-
+        _settingsService.UserMusicFoldersPreference.Remove(path);
     }
 
 
@@ -2332,6 +2313,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // TopSongInFilter = ... // you would assign the result here
         };
     }
-
+    public record QueryComponents(
+        Func<SongModelView, bool> Predicate,
+        IComparer<SongModelView> Comparer,
+        LimiterClause? Limiter
+    );
 
 }

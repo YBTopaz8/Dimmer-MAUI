@@ -86,7 +86,7 @@
                 Aspect="AspectFit"
                 Opacity="{AppThemeBinding Dark=0.12,
                                           Light=0.39}"
-                Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
             <Grid
                 x:Name="MainUI"
                 Grid.Row="0"
@@ -317,128 +317,24 @@
 
 
                     </Grid>
-                    <Grid
+                    <VerticalStackLayout
                         x:Name="UtilitySection"
                         Grid.Row="2"
                         BackgroundColor="Transparent"
-                        ColumnDefinitions="auto,*"
+                        HorizontalOptions="End"
                         IsVisible="True"
-                        RowDefinitions="auto,*">
+                        Spacing="10">
                         <HorizontalStackLayout
                             Grid.Column="1"
+                            HorizontalOptions="End"
                             Spacing="20"
                             VerticalOptions="Center">
 
 
-                            <HorizontalStackLayout
-                                x:Name="UtilitiesHSL"
-                                Spacing="10"
-                                VerticalOptions="Center">
-
-                                <Label x:Name="SongsCountLabel" Text="{Binding ItemsSource.Count, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" />
-                                <syncf:SfChip
-                                    Command="{Binding ToggleFavSongCommand}"
-                                    CommandParameter="{Binding CurrentPlayingSongView}"
-                                    ImageSize="50"
-                                    ImageSource="heart.png"
-                                    ShowIcon="True"
-                                    StrokeThickness="0"
-                                    ToolTipProperties.Text="Save To Playlist"
-                                    WidthRequest="60">
-                                    <syncf:SfChip.Triggers>
-                                        <DataTrigger
-                                            Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                            TargetType="syncf:SfChip"
-                                            Value="False">
-                                            <Setter Property="ImageSource" Value="heartbroken.png" />
-                                        </DataTrigger>
-                                        <DataTrigger
-                                            Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                            TargetType="syncf:SfChip"
-                                            Value="True">
-                                            <Setter Property="ImageSource" Value="heartlock.png" />
-                                            <Setter Property="StrokeThickness" Value="1" />
-                                        </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
-
-                                <ProgressBar
-                                    x:Name="MyProgressBar"
-                                    IsVisible="False"
-                                    WidthRequest="80" />
-                                <Label
-                                    x:Name="MyProgressLabel"
-                                    IsVisible="False"
-                                    WidthRequest="180" />
-
-
-                                <syncf:SfChip
-                                    x:Name="ScrollToSong"
-                                    windows:VisualElement.AccessKey="S"
-                                    windows:VisualElement.AccessKeyPlacement="Right"
-                                    Clicked="ScrollToSong_Clicked"
-                                    ImageSize="40"
-                                    ImageSource="eye.png"
-                                    ShowIcon="True"
-                                    WidthRequest="55" />
-
-                                <syncf:SfChip
-                                    x:Name="RefreshLyrics"
-                                    Clicked="RefreshLyrics_Clicked"
-                                    ImageSize="40"
-                                    ImageSource="lyrics.png"
-                                    IsEnabled="False"
-                                    IsVisible="False"
-                                    ShowIcon="True"
-                                    ToolTipProperties.Text="Refresh Lyrics"
-                                    WidthRequest="55" />
-
-                                <syncf:SfChip
-                                    x:Name="RefreshData"
-                                    Command="{Binding RefreshSongMetadataCommand}"
-                                    ImageSize="40"
-                                    ImageSource="vinyl.png"
-                                    IsEnabled="False"
-                                    IsVisible="False"
-                                    ShowIcon="True"
-                                    Text="refresh"
-                                    WidthRequest="55" />
-
-
-                                <syncf:SfChip
-                                    x:Name="RetroactivelyLinkArtists"
-                                    Command="{Binding RetroactivelyLinkArtistsCommand}"
-                                    ImageSize="40"
-                                    ImageSource="cloudbolt.png"
-                                    IsVisible="False"
-                                    ShowIcon="True"
-                                    ToolTipProperties.Text="Retroactively add links"
-                                    WidthRequest="55" />
-
-                                <syncf:SfChip
-                                    x:Name="SearchIcon"
-                                    ImageSource="searchd.png"
-                                    ToolTipProperties.Text="Search" />
-                                <syncf:SfChip
-                                    x:Name="LyricsChip"
-                                    Clicked="LyricsChip_Clicked"
-                                    ImageSize="40"
-                                    ImageSource="lyrics.png"
-                                    ShowIcon="True"
-                                    WidthRequest="55" />
-
-                                <syncf:SfChip
-                                    x:Name="AllEventsChip"
-                                    Clicked="AllEvents_Clicked"
-                                    ImageSize="40"
-                                    ImageSource="chartb.png"
-                                    ShowIcon="True"
-                                    WidthRequest="55" />
-
-                            </HorizontalStackLayout>
                             <syncf:SfChip
                                 x:Name="ViewNPQ"
                                 Clicked="ViewNPQ_Clicked"
+                                StrokeThickness="5"
                                 Text="View Now Playing Queue">
                                 <syncf:SfChip.Triggers>
                                     <DataTrigger
@@ -462,6 +358,7 @@
                                 HeightRequest="80"
                                 ImageSize="80"
                                 ShowIcon="False"
+                                StrokeThickness="5"
                                 Text="View Utilities">
                                 <syncf:SfChip.Triggers>
                                     <DataTrigger
@@ -480,7 +377,118 @@
                             </syncf:SfChip>
 
                         </HorizontalStackLayout>
-                    </Grid>
+
+                        <HorizontalStackLayout
+                            x:Name="UtilitiesHSL"
+                            Spacing="10"
+                            VerticalOptions="Center">
+
+                            <syncf:SfChip
+                                Command="{Binding ToggleFavSongCommand}"
+                                CommandParameter="{Binding CurrentPlayingSongView}"
+                                ImageSize="50"
+                                ImageSource="heart.png"
+                                ShowIcon="True"
+                                StrokeThickness="5"
+                                ToolTipProperties.Text="Save To Playlist">
+                                <syncf:SfChip.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding CurrentPlayingSongView.IsFavorite}"
+                                        TargetType="syncf:SfChip"
+                                        Value="False">
+                                        <Setter Property="ImageSource" Value="heartbroken.png" />
+                                        <Setter Property="Text" Value="Not Fav" />
+                                    </DataTrigger>
+                                    <DataTrigger
+                                        Binding="{Binding CurrentPlayingSongView.IsFavorite}"
+                                        TargetType="syncf:SfChip"
+                                        Value="True">
+                                        <Setter Property="ImageSource" Value="heartlock.png" />
+                                        <Setter Property="StrokeThickness" Value="1" />
+                                        <Setter Property="Text" Value="Fav" />
+                                    </DataTrigger>
+                                </syncf:SfChip.Triggers>
+                            </syncf:SfChip>
+
+                            <ProgressBar
+                                x:Name="MyProgressBar"
+                                IsVisible="False"
+                                WidthRequest="80" />
+                            <Label
+                                x:Name="MyProgressLabel"
+                                IsVisible="False"
+                                WidthRequest="180" />
+
+
+                            <syncf:SfChip
+                                x:Name="ScrollToSong"
+                                windows:VisualElement.AccessKey="S"
+                                windows:VisualElement.AccessKeyPlacement="Right"
+                                Clicked="ScrollToSong_Clicked"
+                                ImageSize="40"
+                                ImageSource="eye.png"
+                                ShowIcon="True"
+                                StrokeThickness="5"
+                                Text="Scroll To Current Song" />
+
+                            <syncf:SfChip
+                                x:Name="RefreshLyrics"
+                                Clicked="RefreshLyrics_Clicked"
+                                ImageSize="40"
+                                ImageSource="lyrics.png"
+                                IsEnabled="False"
+                                IsVisible="False"
+                                ShowIcon="True"
+                                ToolTipProperties.Text="Refresh Lyrics"
+                                WidthRequest="55" />
+
+                            <syncf:SfChip
+                                x:Name="RefreshData"
+                                Command="{Binding RefreshSongMetadataCommand}"
+                                ImageSize="40"
+                                ImageSource="vinyl.png"
+                                IsEnabled="False"
+                                IsVisible="False"
+                                ShowIcon="True"
+                                Text="refresh"
+                                WidthRequest="55" />
+
+
+                            <syncf:SfChip
+                                x:Name="RetroactivelyLinkArtists"
+                                Command="{Binding RetroactivelyLinkArtistsCommand}"
+                                ImageSize="40"
+                                ImageSource="cloudbolt.png"
+                                IsVisible="False"
+                                ShowIcon="True"
+                                ToolTipProperties.Text="Retroactively add links"
+                                WidthRequest="55" />
+
+                            <syncf:SfChip
+                                x:Name="SearchIcon"
+                                ImageSource="searchd.png"
+                                IsVisible="False"
+                                ToolTipProperties.Text="Search" />
+                            <syncf:SfChip
+                                x:Name="LyricsChip"
+                                Clicked="LyricsChip_Clicked"
+                                ImageSize="40"
+                                ImageSource="lyrics.png"
+                                IsVisible="False"
+                                ShowIcon="True"
+                                Text="View Lyrics" />
+
+                            <syncf:SfChip
+                                x:Name="AllEventsChip"
+                                Clicked="AllEvents_Clicked"
+                                ImageSize="40"
+                                ImageSource="chartb.png"
+                                ShowIcon="True"
+                                StrokeThickness="5"
+                                Text="View Stats (WIP)" />
+
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
                     <VerticalStackLayout
                         x:Name="SearchSection"
                         Grid.Row="3"
@@ -492,7 +500,8 @@
                                 IsVisible="False"
                                 Text="Advanced Search (TQL)"
                                 ToolTipProperties.Text="Start a Topaz Query using TQL" />
-                            <Label FontSize="19" Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query : {0}'}" />
+                            <Label FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query : {0}'}" />
+                            <Label FontSize="19" Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
 
                         </VerticalStackLayout>
                         <Grid
@@ -513,13 +522,10 @@
                                 TextChanged="SearchSongSB_TextChanged"
                                 Unfocused="SearchSongSB_Unfocused" />
                             <HorizontalStackLayout Grid.Column="1" Spacing="10">
+
                                 <Button
-                                    Command="{Binding SmolHoldCommand}"
-                                    Text="Smol Hold"
-                                    WidthRequest="100" />
-                                <Button
-                                    Command="{Binding BigHoldCommand}"
-                                    Text="Big Hold"
+                                    Command="{Binding RandomizeCommand}"
+                                    Text="Randomize"
                                     WidthRequest="100" />
                                 <Button Command="{Binding ResetSearchCommand}" Text="Reset" />
                             </HorizontalStackLayout>
