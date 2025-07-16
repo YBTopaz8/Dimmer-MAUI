@@ -15,19 +15,8 @@ public record FieldDefinition(
     FieldType Type,
     string[] Aliases,
     string Description,
-    Expression<Func<SongModelView, object>> PropertyExpression
-)
-{
-    // Add this property to hold the fast, compiled function.
-    // We initialize it to null and will populate it in the FieldRegistry's static constructor.
-    public Func<SongModelView, object> Accessor { get; private set; } = null!;
-
-    // Helper method to perform the one-time compilation.
-    public void CompileAccessor()
-    {
-        Accessor = PropertyExpression.Compile();
-    }
-}
+   string PropertyName // NEW: The name of the property as a string.
+);
 
 public static class FieldRegistry
 {
@@ -39,56 +28,46 @@ public static class FieldRegistry
         AllFields = new List<FieldDefinition>
         {
             // --- Core Text Fields ---
-            new("SearchableText", FieldType.Text, new[]{"any"}, "Any text field", s => s.SearchableText),
-            new("Title", FieldType.Text, new[]{"t"}, "The song's title", s => s.Title),
-            new("OtherArtistsName", FieldType.Text, new[]{"ar", "artist"}, "The song's artist(s)", s => s.OtherArtistsName),
-            new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", s => s.AlbumName ),
-            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", s => s.GenreName),
-            new("Composer", FieldType.Text, new[]{"comp"}, "The composer", s => s.Composer),
-            new("FilePath", FieldType.Text, new[]{"path"}, "The file path", s => s.FilePath),
+            new("SearchableText", FieldType.Text, new[]{"any"}, "Any text field", nameof(SongModelView.SearchableText)),
+            new("Title", FieldType.Text, new[]{"t"}, "The song's title", nameof(SongModelView.Title)),
+            new("OtherArtistsName", FieldType.Text, new[]{"ar", "artist"}, "The song's artist(s)", nameof(SongModelView.OtherArtistsName)),
+            new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", nameof(SongModelView.AlbumName )),
+            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", nameof(SongModelView.GenreName)),
+            new("Composer", FieldType.Text, new[]{"comp"}, "The composer", nameof(SongModelView.Composer)),
+            new("FilePath", FieldType.Text, new[]{"path"}, "The file path", nameof(SongModelView.FilePath)),
 
             // --- Numeric Fields ---
-            new("ReleaseYear", FieldType.Numeric, new[]{"year"}, "The song's release year", s => s.ReleaseYear ?? 0),
-            new("Rating", FieldType.Numeric, new[]{"rate"}, "The user's rating (0-5)", s => s.Rating),
-            new("TrackNumber", FieldType.Numeric, new[]{"track"}, "The track number", s => s.TrackNumber ?? 0),
-            new("BPM", FieldType.Numeric, new[]{"beats"}, "Beats per minute", s => s.BPM ?? 0),
-            new("BitRate", FieldType.Numeric, new[]{"bit"}, "The audio bitrate in kbps", s => s.BitRate ?? 0),
-            new("FileSize", FieldType.Numeric, new[]{"size"}, "File size in bytes", s => s.FileSize),
-            new("PlayCount", FieldType.Numeric, new[]{"plays"}, "Total number of plays", s => s.PlayCount),
+            new("ReleaseYear", FieldType.Numeric, new[]{"year"}, "The song's release year", nameof(SongModelView.ReleaseYear)),
+            new("Rating", FieldType.Numeric, new[]{"rate"}, "The user's rating (0-5)", nameof(SongModelView.Rating)),
+            new("TrackNumber", FieldType.Numeric, new[]{"track"}, "The track number", nameof(SongModelView.TrackNumber)),
+            new("BPM", FieldType.Numeric, new[]{"beats"}, "Beats per minute", nameof(SongModelView.BPM)),
+            new("BitRate", FieldType.Numeric, new[]{"bit"}, "The audio bitrate in kbps", nameof(SongModelView.BitRate)),
+            new("FileSize", FieldType.Numeric, new[]{"size"}, "File size in bytes", nameof(SongModelView.FileSize)),
+            new("PlayCount", FieldType.Numeric, new[]{"plays"}, "Total number of plays", nameof(SongModelView.PlayCount)),
 
             // --- Boolean Fields ---
-            new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", s => s.IsFavorite),
-            new("HasLyrics", FieldType.Boolean, new[]{"singable"}, "Does the song have any lyrics?", s => s.HasLyrics),
-            new("HasSyncedLyrics", FieldType.Boolean, new[]{"synced","ssingable","syncsingable"}, "Does the song have synced lyrics?", s => s.HasSyncedLyrics),
+            new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", nameof(SongModelView.IsFavorite)),
+            new("HasLyrics", FieldType.Boolean, new[]{"singable"}, "Does the song have any lyrics?", nameof(SongModelView.HasLyrics)),
+            new("HasSyncedLyrics", FieldType.Boolean, new[]{"synced","ssingable","syncsingable"}, "Does the song have synced lyrics?", nameof(SongModelView.HasSyncedLyrics)),
 
             // --- Duration Field ---
-            new("DurationInSeconds", FieldType.Duration, new[]{"len","length","time", "duration"}, "The song's duration", s => s.DurationInSeconds),
+            new("DurationInSeconds", FieldType.Duration, new[]{"len","length","time", "duration"}, "The song's duration", nameof(SongModelView.DurationInSeconds)),
             
             // --- Date Fields ---
-            new("DateCreated", FieldType.Date, new[]{"added"}, "Date the song was added", s => s.DateCreated ?? DateTime.MinValue),
-            new("LastPlayed", FieldType.Date, new[]{"played"}, "The last time the song was played", s => s.LastPlayed),
+            new("DateCreated", FieldType.Date, new[]{"added"}, "Date the song was added", nameof(SongModelView.DateCreated)),
+            new("LastPlayed", FieldType.Date, new[]{"played"}, "The last time the song was played", nameof(SongModelView.LastPlayed)),
 
             // --- Advanced Text Fields ---
-            new("UserNoteAggregatedText", FieldType.Text, new[]{"note", "comment"}, "Text in user notes", s => s.UserNoteAggregatedText),
-            new("LyricsText", FieldType.Text, new[]{"lyrics"}, "Full text of all lyrics", s => s.SyncLyrics ),
+            new("UserNoteAggregatedText", FieldType.Text, new[]{"note", "comment"}, "Text in user notes", nameof(SongModelView.UserNoteAggregatedText)),
+            new("LyricsText", FieldType.Text, new[]{"lyrics"}, "Full text of all lyrics", nameof(SongModelView.SyncLyrics )),
 
         }.AsReadOnly();
-        foreach (var field in AllFields)
-        {
-            field.CompileAccessor();
-        }
+     
+
         FieldsByAlias = AllFields
              .SelectMany(def => def.Aliases.Concat(new[] { def.PrimaryName }),
                         (def, alias) => new { alias, def })
              .ToDictionary(x => x.alias, x => x.def, StringComparer.OrdinalIgnoreCase);
     }
 
-    public static bool IsDate(string fieldAlias)
-    {
-        if (FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
-        {
-            return fieldDef.Type == FieldType.Date;
-        }
-        return false;
-    }
 }

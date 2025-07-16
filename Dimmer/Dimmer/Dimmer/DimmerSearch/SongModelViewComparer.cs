@@ -1,4 +1,5 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree;
+using Dimmer.DimmerSearch.AbstractQueryTree.NL;
 
 using System;
 using System.Collections;
@@ -32,21 +33,14 @@ public enum SortDirection { Ascending, Descending, Random }
 
 public class SortDescription
 {
-    public string PropertyName { get; }
+    public FieldDefinition Field { get; }
     public SortDirection Direction { get; }
-    public Func<SongModelView, object> Accessor { get; }
-
-    public FieldDefinition Field { get; } = null!;
+    public string PropertyName => Field.PrimaryName;
     public SortDescription(FieldDefinition field, SortDirection direction)
     {
         Field = field;
         Direction = direction;
-        if (Field is not null)
-        {
-
-            Accessor = Field.Accessor;
-
-        }
+      
     }
 }
 
@@ -85,8 +79,8 @@ public class SongModelViewComparer : IComparer<SongModelView>
 
         foreach (var desc in _sortDescriptions)
         {
-            var valueX = desc.Accessor(x!);
-            var valueY = desc.Accessor(y!);
+            var valueX = ReflectionCache.GetValue(x!, desc.Field);
+            var valueY = ReflectionCache.GetValue(y!, desc.Field);
             // --- End of Change ---
 
             int result;
