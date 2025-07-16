@@ -15,9 +15,19 @@ public record FieldDefinition(
     FieldType Type,
     string[] Aliases,
     string Description,
-    //Func<SongModelView, object> PropertyAccessor,
     Expression<Func<SongModelView, object>> PropertyExpression
-);
+)
+{
+    // Add this property to hold the fast, compiled function.
+    // We initialize it to null and will populate it in the FieldRegistry's static constructor.
+    public Func<SongModelView, object> Accessor { get; private set; } = null!;
+
+    // Helper method to perform the one-time compilation.
+    public void CompileAccessor()
+    {
+        Accessor = PropertyExpression.Compile();
+    }
+}
 
 public static class FieldRegistry
 {
@@ -32,8 +42,8 @@ public static class FieldRegistry
             new("SearchableText", FieldType.Text, new[]{"any"}, "Any text field", s => s.SearchableText),
             new("Title", FieldType.Text, new[]{"t"}, "The song's title", s => s.Title),
             new("OtherArtistsName", FieldType.Text, new[]{"ar", "artist"}, "The song's artist(s)", s => s.OtherArtistsName),
-            new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", s => string.IsNullOrEmpty( s.AlbumName )?  "Unknown Album":s.AlbumName),
-            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", s => string.IsNullOrEmpty(s.GenreName) ? "Unknown Genre" :s.GenreName),
+            new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", s => s.AlbumName ),
+            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", s => s.GenreName),
             new("Composer", FieldType.Text, new[]{"comp"}, "The composer", s => s.Composer),
             new("FilePath", FieldType.Text, new[]{"path"}, "The file path", s => s.FilePath),
 
@@ -50,7 +60,6 @@ public static class FieldRegistry
             new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", s => s.IsFavorite),
             new("HasLyrics", FieldType.Boolean, new[]{"singable"}, "Does the song have any lyrics?", s => s.HasLyrics),
             new("HasSyncedLyrics", FieldType.Boolean, new[]{"synced","ssingable","syncsingable"}, "Does the song have synced lyrics?", s => s.HasSyncedLyrics),
-            new("HasCoverArt", FieldType.Boolean, new[]{"hascover"}, "Does the song have cover art?", s => !string.IsNullOrEmpty(s.CoverImagePath)),
 
             // --- Duration Field ---
             new("DurationInSeconds", FieldType.Duration, new[]{"len","length","time", "duration"}, "The song's duration", s => s.DurationInSeconds),
@@ -64,7 +73,10 @@ public static class FieldRegistry
             new("LyricsText", FieldType.Text, new[]{"lyrics"}, "Full text of all lyrics", s => s.SyncLyrics ),
 
         }.AsReadOnly();
-
+        foreach (var field in AllFields)
+        {
+            field.CompileAccessor();
+        }
         FieldsByAlias = AllFields
              .SelectMany(def => def.Aliases.Concat(new[] { def.PrimaryName }),
                         (def, alias) => new { alias, def })

@@ -122,6 +122,9 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3351.48" />
 
 
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
+
+
   </ItemGroup>
 
   <ItemGroup>

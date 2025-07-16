@@ -208,11 +208,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (evt?.SongId is ObjectId songId && songId != ObjectId.Empty)
         {
 
-
-
-
-
-
             var song = songRepo.GetById(songId);
             if (song is null)
             {
@@ -247,6 +242,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SearchSongSB_TextChanged("random");
 
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
+
     }
 
     public void SearchSongSB_TextChanged(string searchText)
@@ -887,9 +883,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         CurrentPlayingSongView = args.MediaSong;
-        if (args.MediaSong.co)
+        if (args.MediaSong.CoverImageBytes is not null && !string.IsNullOrEmpty(args.MediaSong.CoverImagePath))
         {
-
+            CurrentPlayingSongView.CoverImagePath=args.MediaSong.CoverImagePath;
+            CurrentPlayingSongView.CoverImageBytes = args.MediaSong.CoverImageBytes;
         }
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);

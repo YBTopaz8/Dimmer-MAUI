@@ -44,7 +44,7 @@ public class SortDescription
         if (Field is not null)
         {
 
-            Accessor = Field.PropertyExpression.Compile();
+            Accessor = Field.Accessor;
 
         }
     }

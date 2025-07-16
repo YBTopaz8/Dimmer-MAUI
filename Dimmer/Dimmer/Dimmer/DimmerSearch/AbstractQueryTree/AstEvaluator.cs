@@ -41,7 +41,7 @@ public class AstEvaluator
             // If the field alias is invalid, we can treat it as a search on the "any" field.
             fieldDef = FieldRegistry.FieldsByAlias["any"];
         }
-        var accessor = fieldDef.PropertyExpression.Compile();
+        var accessor = fieldDef.Accessor;
         object? songValueObject = accessor(song);
         bool result = false;
         switch (fieldDef.Type)

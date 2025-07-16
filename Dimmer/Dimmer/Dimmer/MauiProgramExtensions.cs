@@ -16,7 +16,6 @@ public static class MauiProgramExtensions
     {
         builder
             .UseMauiApp<App>()
-            .UseBarcodeReader()
             .UseSkiaSharp()
             .UseMauiCommunityToolkit(options =>
             {
