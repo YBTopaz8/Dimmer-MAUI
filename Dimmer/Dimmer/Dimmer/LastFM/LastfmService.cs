@@ -1,12 +1,18 @@
-﻿using Hqub.Lastfm;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utilities.Events;
+
+using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
 using Hqub.Lastfm.Entities;
 
 using Microsoft.Extensions.Options;
 
+using ReactiveUI;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +21,10 @@ namespace Dimmer.LastFM;
 public class LastfmService : ILastfmService
 {
     private readonly LastfmClient _client;
-    private readonly LastfmSettings _settings;
+    private readonly LastfmSettings _settings; 
+    private readonly IDimmerAudioService _audioService; // NEW DEPENDENCY
+    private readonly CompositeDisposable _disposables = new(); // To manage subscriptions
+
 
     private readonly BehaviorSubject<bool> _isAuthenticatedSubject;
     public IObservable<bool> IsAuthenticatedChanged => _isAuthenticatedSubject;
@@ -27,8 +36,9 @@ public class LastfmService : ILastfmService
     public string? AuthenticatedUser => IsAuthenticated ? _username : null;
     public string? AuthenticatedUserSessionToken => _client.Session.SessionKey;
 
-    public LastfmService(IOptions<LastfmSettings> settingsOptions)
+    public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService audioService)
     {
+        _audioService = audioService;
         _settings = settingsOptions.Value;
         if (string.IsNullOrEmpty(_settings.ApiKey)) // Only ApiKey is strictly needed for public requests
         {
@@ -47,6 +57,12 @@ public class LastfmService : ILastfmService
 
         LoadSession();
     }
+    private SongModelView? _songToScrobble; // Internal state
+
+ 
+
+    // --- PRIVATE EVENT HANDLER & LOGIC ---
+
 
     #region Authentication
 
@@ -189,7 +205,7 @@ public class LastfmService : ILastfmService
 
         try
         {
-            await _client.Track.UpdateNowPlayingAsync(song.OtherArtistsName, song.Title, album: song.AlbumName);
+         var isUpdated=   await _client.Track.UpdateNowPlayingAsync(song.OtherArtistsName, song.Title, album: song.AlbumName);
         }
         catch (Exception ex)
         {

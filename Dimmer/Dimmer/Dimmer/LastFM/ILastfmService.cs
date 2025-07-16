@@ -17,6 +17,7 @@ public interface ILastfmService
     Task<string> GetAuthenticationUrlAsync(); // Returns only the URL
     Task<bool> CompleteAuthenticationAsync();
 
+
     // --- Authentication ---
     // Note: The library seems to only support direct password auth, not token auth.
     // If you need token auth, a different library or direct HTTP calls might be needed.
