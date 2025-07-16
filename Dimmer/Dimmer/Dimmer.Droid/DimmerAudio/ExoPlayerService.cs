@@ -233,7 +233,7 @@ public class ExoPlayerService : MediaSessionService
 
                 .Build();
 
-            //notificationPlayer = new QueueEnablingPlayerWrapper(player!);
+            notificationPlayer = new QueueEnablingPlayerWrapper(player!);
 
 
             player?.AddListener(new PlayerEventListener(this));
@@ -494,7 +494,7 @@ public class ExoPlayerService : MediaSessionService
 
 
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
-            //player.AddMediaItem(currentMediaItem);
+            player.AddMediaItem(currentMediaItem);
             player.Prepare();
 
             player.Play();
@@ -658,6 +658,8 @@ public class ExoPlayerService : MediaSessionService
                 // Find the full song details from a repository or a cached list
                 // SongModelView newSongContext = MySongRepository.GetById(mediaItem.MediaId);
                 // service.CurrentSongContext = newSongContext;
+                service.player?.Stop();
+                service.RaisePlayingEnded();
                 Console.WriteLine($"[ExoPlayerService] MediaItemTransition: {mediaItem.MediaId} Reason={reason}");
                 System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
             }
@@ -775,7 +777,7 @@ public class ExoPlayerService : MediaSessionService
 
     }
 
-
+    //frowarding player to allow queueing
     public class QueueEnablingPlayerWrapper : Java.Lang.Object, IPlayer
     {
         private readonly IPlayer _realPlayer;
@@ -789,7 +791,30 @@ public class ExoPlayerService : MediaSessionService
         // Properties
         public Looper? ApplicationLooper => _realPlayer.ApplicationLooper;
         public AudioAttributes? AudioAttributes => _realPlayer.AudioAttributes;
-        public PlayerCommands? AvailableCommands => _realPlayer.AvailableCommands;
+        public PlayerCommands? AvailableCommands
+        {
+            get
+            {
+                // 1. Get the commands the real ExoPlayer instance thinks it has.
+                var realCommands = _realPlayer.AvailableCommands;
+
+                // 2. Create a new builder based on the real commands.
+                var builder = new PlayerCommands.Builder();
+
+                builder.AddAll(realCommands);
+
+                // 3. Forcefully add the commands for Next and Previous,
+                //    because WE know how to handle them in our app.
+                //builder.Add(_realPlayer.);
+                //builder.Add(IPlayer.CommandSeekToPrevious);
+                // You can also use CommandSeekToNextMediaItem if you prefer
+                // builder.Add(IPlayer.CommandSeekToNextMediaItem); 
+                // builder.Add(IPlayer.CommandSeekToPreviousMediaItem);
+
+                // 4. Build and return the new, augmented set of commands.
+                return builder.Build();
+            }
+        }
         public int BufferedPercentage => _realPlayer.BufferedPercentage;
         public long BufferedPosition => _realPlayer.BufferedPosition;
         public long ContentBufferedPosition => _realPlayer.ContentBufferedPosition;
