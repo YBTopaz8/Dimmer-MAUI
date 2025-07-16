@@ -130,4 +130,14 @@ public partial class SettingsPage : ContentPage
     {
 
     }
+
+    private async void Logintolastfm_Clicked(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(LastFMEmail.Text) || string.IsNullOrEmpty(LastFMPassword.Text))
+        {
+            await DisplayAlert("Error", "Please enter your Last.fm credentials.", "OK");
+            return;
+        }
+        await MyViewModel.LoginToLastfm(LastFMEmail.Text, LastFMPassword.Text);
+    }
 }

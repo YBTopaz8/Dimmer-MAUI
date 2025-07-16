@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.Droid", "Dimmer\Dimm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.WinUI", "Dimmer\Dimmer.WinUI\Dimmer.WinUI.csproj", "{003C8BE4-A343-477A-A5AA-FB2F21E2A873}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\..\..\source\repos\YBTopaz8\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{692510CD-4237-22A4-4AA7-7F80DBB242AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Debug|Any CPU.Build.0 = Debug|x64
 		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Release|Any CPU.ActiveCfg = Release|x64
 		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Release|Any CPU.Build.0 = Release|x64
+		{692510CD-4237-22A4-4AA7-7F80DBB242AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{692510CD-4237-22A4-4AA7-7F80DBB242AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{692510CD-4237-22A4-4AA7-7F80DBB242AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{692510CD-4237-22A4-4AA7-7F80DBB242AC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

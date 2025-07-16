@@ -609,4 +609,9 @@ public partial class HomePage : ContentPage
         }
 
     }
+
+    private void Button_Clicked_1(object sender, EventArgs e)
+    {
+        SearchSongSB.Text=string.Empty;
+    }
 }

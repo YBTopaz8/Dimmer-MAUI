@@ -15,6 +15,7 @@ public class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public string? CurrentUserId { get; set; }
     public string? CurrentTheme { get; set; }
     public string? CurrentLanguage { get; set; }
+    public string? LastFMSessionKey { get; set; }
     public string? CurrentCountry { get; set; }
     public int RepeatModePreference { get; set; }
     public bool ShuffleStatePreference { get; set; }

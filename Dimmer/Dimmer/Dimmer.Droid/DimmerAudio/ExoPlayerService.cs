@@ -78,7 +78,7 @@ public class ExoPlayerService : MediaSessionService
 
     // --- Internal State ---
     internal static MediaItem? currentMediaItem; // Choose a unique ID
-    public SongModelView CurrentSongContext; // Choose a unique ID
+    public SongModelView? CurrentSongContext; // Choose a unique ID
 
     // --- Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
@@ -233,7 +233,7 @@ public class ExoPlayerService : MediaSessionService
 
                 .Build();
 
-            notificationPlayer = new QueueEnablingPlayerWrapper(player!);
+            //notificationPlayer = new QueueEnablingPlayerWrapper(player!);
 
 
             player?.AddListener(new PlayerEventListener(this));
@@ -496,7 +496,27 @@ public class ExoPlayerService : MediaSessionService
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
             //player.AddMediaItem(currentMediaItem);
             player.Prepare();
+
             player.Play();
+            var awDT = player.CurrentMediaItem.MediaMetadata.ArtworkUri;
+            var awDTT = player.CurrentMediaItem.MediaMetadata.ArtworkData;
+            if (awDT is not null)
+            {
+                CurrentSongContext.CoverImagePath=awDT.Path;
+            }
+            else
+            {
+                CurrentSongContext.CoverImagePath = string.Empty;
+
+            }
+            if (awDTT is not null)
+            {
+                CurrentSongContext.CoverImageBytes = [.. awDTT];
+            }
+            else
+            {
+                CurrentSongContext.CoverImageBytes=null;
+            }
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
 
@@ -612,12 +632,12 @@ public class ExoPlayerService : MediaSessionService
         public void OnSurfaceSizeChanged(int p0, int p1) { /* Video related */ }
         public void OnTimelineChanged(Timeline? timeline, int reason)
         {
-
+            Console.WriteLine($"[PlayerEventListener] TimelineChanged: {timeline?.ToString()} Reason={reason}");
         }
         public void OnTrackSelectionParametersChanged(TrackSelectionParameters? p0) { /* Log if needed */ }
         public void OnTracksChanged(Tracks? tracks)
         {
-
+            Console.WriteLine($"[PlayerEventListener] TracksChanged: {tracks?.ToString()}");
             /* Log if needed */
         }
         public void OnVideoSizeChanged(VideoSize? p0) { /* Video related */ }
@@ -638,7 +658,7 @@ public class ExoPlayerService : MediaSessionService
                 // Find the full song details from a repository or a cached list
                 // SongModelView newSongContext = MySongRepository.GetById(mediaItem.MediaId);
                 // service.CurrentSongContext = newSongContext;
-
+                Console.WriteLine($"[ExoPlayerService] MediaItemTransition: {mediaItem.MediaId} Reason={reason}");
                 System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
             }
         }

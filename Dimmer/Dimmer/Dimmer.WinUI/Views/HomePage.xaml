@@ -382,7 +382,7 @@
                             x:Name="UtilitiesHSL"
                             Spacing="10"
                             VerticalOptions="Center">
-
+                            <Label Text="{Binding IsLastfmAuthenticated}" />
                             <syncf:SfChip
                                 Command="{Binding ToggleFavSongCommand}"
                                 CommandParameter="{Binding CurrentPlayingSongView}"
@@ -527,7 +527,7 @@
                                     Command="{Binding RandomizeCommand}"
                                     Text="Randomize"
                                     WidthRequest="100" />
-                                <Button Command="{Binding ResetSearchCommand}" Text="Reset" />
+                                <Button Clicked="Button_Clicked_1" Text="Reset" />
                             </HorizontalStackLayout>
                         </Grid>
 
@@ -734,7 +734,8 @@
                                         <syncf:SfEffectsView
                                             x:Name="ArtistsEffectsView"
                                             Grid.Column="1"
-                                            BackgroundColor="Transparent">
+                                            BackgroundColor="Transparent"
+                                            ToolTipProperties.Text="{Binding ArtistName, StringFormat='Press and Hold Ctrl The Left Click to quickly Artist {0} '}">
                                             <syncf:SfEffectsView.GestureRecognizers>
                                                 <PointerGestureRecognizer
                                                     PointerPressedCommandParameter="{Binding OtherArtistsName}"
@@ -754,7 +755,7 @@
 
                                             <syncf:SfEffectsView.GestureRecognizers>
                                                 <PointerGestureRecognizer
-                                                    PointerPressedCommandParameter="{Binding Genre.Name}"
+                                                    PointerPressedCommandParameter="{Binding GenreName}"
                                                     PointerReleased="QuickFilterGest_PointerReleased"
                                                     PointerReleasedCommandParameter="genre" />
                                             </syncf:SfEffectsView.GestureRecognizers>
@@ -776,14 +777,14 @@
                                             <Label
                                                 LineBreakMode="TailTruncation"
                                                 Text="{Binding AlbumName}"
-                                                ToolTipProperties.Text="{Binding AlbumName}"
+                                                ToolTipProperties.Text="{Binding AlbumName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}"
                                                 VerticalOptions="Center" />
                                         </syncf:SfEffectsView>
 
-                                        <syncf:SfEffectsView Grid.Column="4">
+                                        <syncf:SfEffectsView Grid.Column="4" ToolTipProperties.Text="{Binding GenreName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}">
                                             <syncf:SfEffectsView.GestureRecognizers>
                                                 <PointerGestureRecognizer
-                                                    PointerPressedCommandParameter="{Binding Genre.Name}"
+                                                    PointerPressedCommandParameter="{Binding GenreName}"
                                                     PointerReleased="QuickFilterGest_PointerReleased"
                                                     PointerReleasedCommandParameter="genre" />
                                             </syncf:SfEffectsView.GestureRecognizers>

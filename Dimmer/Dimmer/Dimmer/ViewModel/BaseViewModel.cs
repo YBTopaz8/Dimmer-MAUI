@@ -6,7 +6,9 @@ using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.AbstractQueryTree;
+using Dimmer.DimmerSearch.Exceptions;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
@@ -47,11 +49,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        ICoverArtService coverArtService,
        IFolderMgtService folderMgtService,
        IRepository<SongModel> songRepo,
+        ILastfmService lastfmService,
        IRepository<ArtistModel> artistRepo,
        IRepository<AlbumModel> albumModel,
        IRepository<GenreModel> genreModel,
        ILogger<BaseViewModel> logger)
     {
+        _lastfmService = lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
@@ -132,17 +136,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
                }
-               catch (Exception ex)
+               catch (ParsingException ex)
                {
                    _validationResultSubject.OnNext(new ValidationResult(false, ex.Message));
+                   _logger.LogDebug("Parsing failed (as expected for partial query): {Message}", ex.Message);
                    // *** THE KEY CHANGE IS HERE ***
                    // If parsing fails, don't return a "show nothing" filter.
                    // Instead, return null. We will ignore this downstream.
                    return null;
                }
            })
-    // This new operator filters out the nulls from failed parses.
-    // The stream only continues if the query was valid.
+
     .Where(components => components is not null)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(components =>
@@ -217,6 +221,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             CurrentPlayingSongView = song?.ToModelView();
 
             LoadAndCacheCoverArtAsync(CurrentPlayingSongView);
+
+            _lastfmService.IsAuthenticatedChanged
+               .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
+               .Subscribe(isAuthenticated =>
+               {
+                   IsLastfmAuthenticated = isAuthenticated;
+                   LastfmUsername = _lastfmService.AuthenticatedUser ?? "Not Logged In";
+               })
+               .DisposeWith(Disposables); // Assuming you have a reactive disposables manager
         }
         else
         {
@@ -424,6 +437,50 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
     }
+    protected readonly ILastfmService _lastfmService;
+
+    // Properties for UI binding
+    [ObservableProperty]
+    public partial bool IsLastfmAuthenticated { get; set; }
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial string LastfmUsername { get; set; }
+
+
+    // Example command for logging in
+    public async Task LoginToLastfm(string user, string pw) // credentials[0]=user, [1]=pass
+    {
+
+        IsBusy = true;
+        try
+        {
+            // 1. Get the URL from our service
+            string url = await _lastfmService.GetAuthenticationUrlAsync();
+
+            // 2. Open it in the browser
+            await Launcher.Default.OpenAsync(new Uri(url));
+
+            // 3. Update UI to prompt user to finish
+            // e.g., Show a message: "Please authorize in your browser, then click 'Finish Login'."
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
+            IsBusy = false;
+            return;
+        }
+
+    }
+
+    // Example command for logging out
+    [RelayCommand]
+    private void LogoutFromLastfm()
+    {
+        _lastfmService.Logout();
+    }
+
     [RelayCommand]
     public void RefreshSongsMetadata()
     {
@@ -830,11 +887,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         CurrentPlayingSongView = args.MediaSong;
+        if (args.MediaSong.co)
+        {
 
+        }
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
         UpdateSongSpecificUi(CurrentPlayingSongView);
+
+
+
     }
     private void UpdateSongSpecificUi(SongModelView? song)
     {
@@ -1009,7 +1072,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
     }
 
-    private void OnPlaybackResumed(PlaybackEventArgs args)
+    private async void OnPlaybackResumed(PlaybackEventArgs args)
     {
         if (args.MediaSong is null)
         {
@@ -1019,17 +1082,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
+
+        await _lastfmService.UpdateNowPlayingAsync(args.MediaSong);
     }
 
-    private void OnPlaybackEnded()
+    private async void OnPlaybackEnded()
     {
         _logger.LogInformation("AudioService confirmed: Playback ended for '{Title}'", CurrentPlayingSongView?.Title ?? "N/A");
-        if (CurrentPlayingSongView != null)
+        if (CurrentPlayingSongView == null)
         {
-            // Only log as 'Completed' if it played to the end naturally.
-            // 'Skipped' is handled in the StartAudioForSongAtIndex method.
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), CurrentTrackDurationSeconds);
+
+            return;
         }
+
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), CurrentTrackDurationSeconds);
+
+        await _lastfmService.ScrobbleAsync(CurrentPlayingSongView);
         // Automatically play the next song in the queue.
         NextTrack();
     }
@@ -1041,12 +1109,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), newPosition);
     }
 
-    private void OnPositionChanged(double positionSeconds)
+    private async void OnPositionChanged(double positionSeconds)
     {
         CurrentTrackPositionSeconds = positionSeconds;
         CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
-    }
 
+    }
+    private ObjectId? _currentScrobbleTrackId = null;
+
+    // Has the 'Now Playing' update been sent for the current track?
+    private bool _hasSentNowPlaying = false;
+
+    // Has the track been scrobbled yet?
+    private bool _hasBeenScrobbled = false;
     private void OnCurrentSongChanged(SongModelView? songView)
     {
         if (songView is null)
@@ -1080,7 +1155,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #region Playback Commands (User Intent)
 
     [RelayCommand]
-    public void PlaySong(SongModelView? songToPlay)
+    public async void PlaySong(SongModelView? songToPlay)
     {
         if (songToPlay == null)
         {
@@ -1123,6 +1198,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // --- Step 3: Save context and start playback ---
         SavePlaybackContext(CurrentPlaybackQuery);
         StartAudioForSongAtIndex(startIndex);
+
+
+        if (IsLastfmAuthenticated)
+        {
+            await _lastfmService.UpdateNowPlayingAsync(CurrentPlayingSongView);
+            _currentScrobbleTrackId = songToPlay.Id;
+            _hasSentNowPlaying = false;
+            _hasBeenScrobbled = false;
+        }
     }
 
 

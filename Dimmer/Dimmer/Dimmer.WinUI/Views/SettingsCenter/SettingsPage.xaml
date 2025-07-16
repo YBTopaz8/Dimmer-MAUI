@@ -196,12 +196,8 @@
                                                         Text="{Binding UserLocal.Password}"
                                                         />-->
 
-                                    <Button
-                                        x:Name="LoginBtnFirstTime"
-                                        Text="{Static lang:DimmerLanguage.txt_login}" />
-                                    <Button
-                                        x:Name="SignUpUserBtnFirstTime"
-                                        Text="{Static lang:DimmerLanguage.txt_signup}" />
+                                    <Button x:Name="LoginBtnFirstTime" Text="{Static lang:DimmerLanguage.txt_login}" />
+                                    <Button x:Name="SignUpUserBtnFirstTime" Text="{Static lang:DimmerLanguage.txt_signup}" />
                                     <Button
                                         x:Name="ForgottenPassFirstTime"
                                         Command="{Binding ForgottenPasswordCommand}"
@@ -224,7 +220,7 @@
                                                CommandParameter="{Binding IsChecked, Source={x:Reference ShowConfiChkBx}}"
                                                Text="Show Confirmation Message on Close"
                                                />-->
-                            <Button  Text="Done" />
+                            <Button Text="Done" />
                         </VerticalStackLayout>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
@@ -304,7 +300,7 @@
                 <syncf:SfTabItem Header="{Static lang:DimmerLanguage.txt_folder}">
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="Auto,*">
-                            <VerticalStackLayout Grid.Row="0">
+                            <VerticalStackLayout Grid.Row="0" Spacing="10">
                                 <Label
                                     Grid.Row="0"
                                     FontAttributes="Bold"
@@ -314,6 +310,15 @@
                                     FontAttributes="Bold"
                                     FontSize="34"
                                     Text="Music Folders" />
+
+                                <Label Text="{Binding IsLastfmAuthenticated}" />
+                                <Editor x:Name="LastFMEmail" Placeholder="Lastfm Username" />
+                                <Editor x:Name="LastFMPassword" Placeholder="Lastfm passordd" />
+
+                                <Button
+                                    x:Name="Logintolastfm"
+                                    Clicked="Logintolastfm_Clicked"
+                                    Text="Login to lastfm" />
                             </VerticalStackLayout>
                             <Grid Grid.Row="1" RowDefinitions="*,0.4*">
 

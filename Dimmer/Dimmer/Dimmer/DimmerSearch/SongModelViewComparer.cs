@@ -77,9 +77,7 @@ public class SongModelViewComparer : IComparer<SongModelView>
             return -1;
         if (_isRandomSort)
         {
-            // For a random sort, we ignore all other sort descriptions.
-            // We get or create a stable Guid for each song and compare those.
-            // This is consistent and satisfies the IComparer contract.
+
             var xGuid = _randomSortKeys.GetOrAdd(x, _ => Guid.NewGuid());
             var yGuid = _randomSortKeys.GetOrAdd(y, _ => Guid.NewGuid());
             return xGuid.CompareTo(yGuid);
@@ -92,15 +90,28 @@ public class SongModelViewComparer : IComparer<SongModelView>
             // --- End of Change ---
 
             int result;
-            if (valueX is IComparable comparableX)
+            if (valueX is null && valueY is null)
+            {
+                result = 0;
+            }
+            else if (valueX is null)
+            {
+                result = -1; // Nulls are usually considered "less than" non-nulls
+            }
+            else if (valueY is null)
+            {
+                result = 1;
+            }
+            else if (valueX is IComparable comparableX)
             {
                 result = comparableX.CompareTo(valueY);
             }
             else
             {
-                result = string.Compare(valueX?.ToString(), valueY?.ToString(), StringComparison.OrdinalIgnoreCase);
+                result = string.Compare(valueX.ToString(), valueY.ToString(), StringComparison.OrdinalIgnoreCase);
             }
 
+            // If we found a difference on this level, we're done. Return the result.
             if (result != 0)
             {
                 return desc.Direction == SortDirection.Ascending ? result : -result;
@@ -108,4 +119,7 @@ public class SongModelViewComparer : IComparer<SongModelView>
         }
         return 0;
     }
+
+
+
 }
