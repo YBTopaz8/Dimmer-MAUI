@@ -316,7 +316,7 @@
                                 <Editor x:Name="LastFMPassword" Placeholder="Lastfm passordd" />
 
                                 <Button
-                                    x:Name="Logintolastfm"
+                                    x:Name="Logintolastfm" Command="{Binding LoginToLastfmCommand}"
                                     Clicked="Logintolastfm_Clicked"
                                     Text="Login to lastfm" />
                             </VerticalStackLayout>

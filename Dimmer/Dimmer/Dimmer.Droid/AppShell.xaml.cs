@@ -1,3 +1,6 @@
+using AndroidX.Lifecycle;
+
+using Dimmer.ViewModel;
 using Dimmer.Views.Stats;
 
 namespace Dimmer;
@@ -16,12 +19,17 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
     }
 
-    protected override void OnAppearing()
+    protected  override void OnAppearing()
     {
         base.OnAppearing();
 
-
+        MyViewModel  = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+        if ((MyViewModel is null))
+        {
+            return;
+        }
+        MyViewModel.Initialize();
     }
 
-    public BaseViewModelAnd MyViewModel { get; internal set; }
+    public BaseViewModel MyViewModel { get; internal set; }
 }

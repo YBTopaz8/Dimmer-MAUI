@@ -69,38 +69,43 @@ public class MetaParser
         var filterTokens = new List<Token>();
         var directiveTokens = new List<Token>();
 
+
+
         for (int i = 0; i < segmentTokens.Count; i++)
         {
             var token = segmentTokens[i];
-            bool isDirective = false;
 
-            // Check for sort directives: asc <field> or desc <field>
+            // --- START OF NEW LOGIC ---
+
+            bool isSortDirective = false;
+            // A token is ONLY a sort directive if it's asc/desc AND followed by a field name.
             if ((token.Type == TokenType.Asc || token.Type == TokenType.Desc) &&
                 (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Identifier))
             {
-                directiveTokens.Add(token);
-                directiveTokens.Add(segmentTokens[i + 1]);
-                i++; // CRUCIAL: Skip the next token since we've processed it.
-                isDirective = true;
+                isSortDirective = true;
+                directiveTokens.Add(token);                  // Add 'asc' or 'desc'
+                directiveTokens.Add(segmentTokens[i + 1]);   // Add the field identifier
+                i++;                                         // IMPORTANT: Skip the field token
             }
-            // Check for limiter directives: first/last/random/shuffle, optionally with a number
-            else if (_directiveTokens.Contains(token.Type))
+            // Handle other non-sort directives (`first`, `last`, `random`, `shuffle`)
+            else if (_directiveTokens.Contains(token.Type) && token.Type != TokenType.Asc && token.Type != TokenType.Desc)
             {
+                isSortDirective = true; // Still a directive, just not a sorting one we check above
                 directiveTokens.Add(token);
-                isDirective = true;
-                // Check for an optional number
+                // Grab the number for `first`, `last`, `random`
                 if (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Number)
                 {
                     directiveTokens.Add(segmentTokens[i + 1]);
-                    i++; // CRUCIAL: Skip the number token.
+                    i++; // Skip the number token
                 }
             }
 
-            // If the token was NOT part of a valid directive, it's a filter token.
-            if (!isDirective)
+            if (!isSortDirective && token.Type != TokenType.EndOfFile)
             {
+                // If it was not a valid, complete directive, it's a filter token.
                 filterTokens.Add(token);
             }
+            // --- END OF NEW LOGIC ---
         }
 
         _segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
@@ -122,16 +127,13 @@ public class MetaParser
         var mainIncludes = predicates.Where(p => p.SegmentType == "MAIN" || p.SegmentType == "INCLUDE" || p.SegmentType == "ADD" || p.SegmentType == "PLUS").Select(p => p.Item2).ToList();
         var excludes = predicates.Where(p => p.SegmentType == "EXCLUDE" || p.SegmentType == "REMOVE"|| p.SegmentType == "MINUS").Select(p => p.Item2).ToList();
 
-        bool hasNoIncludeRules = mainIncludes.Count == 0;
-
         return song =>
         {
-            bool isIncluded = hasNoIncludeRules || mainIncludes.Any(p => p(song));
+            bool isIncluded = mainIncludes.Count==0 || mainIncludes.Any(p => p(song));
             if (!isIncluded)
                 return false;
 
-            // If there are no exclude rules, nothing is ever excluded.
-            bool isExcluded = excludes.Count > 0 && excludes.Any(p => p(song));
+            bool isExcluded = excludes.Count!=0 && excludes.Any(p => p(song));
             return !isExcluded;
         };
     }
@@ -141,13 +143,15 @@ public class MetaParser
         var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
         bool hasRandomSort = false;
-
-
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
-         
-
+            if (token.Type == TokenType.Random || token.Type == TokenType.Shuffle)
+            {
+                hasRandomSort = true;
+                // We don't need to check for a field name here, random applies to the whole list
+            }
+            else
             if (token.Type == TokenType.Asc || token.Type == TokenType.Desc)
             {
                 // Because of our new ProcessPart logic, we can be CERTAIN
@@ -169,7 +173,25 @@ public class MetaParser
                 }
             }
         }
+        if (hasRandomSort)
+        {
+            // --- CHANGE #2: Create a dummy FieldDefinition for the random sort ---
+            // The properties of this object don't matter, because the comparer's logic
+            // will see `SortDirection.Random` and use the Guid-based path instead of the accessor.
+            var randomFieldDef = new FieldDefinition(
+                "RandomSort",
+                FieldType.Text,
+                Array.Empty<string>(),
+                "A placeholder for random sorting",
+                "random" // A do-nothing expression
+            );
 
+            // Now create the SortDescription with the dummy FieldDefinition
+            return new SongModelViewComparer(new List<SortDescription>
+        {
+            new SortDescription(randomFieldDef, SortDirection.Random)
+        });
+        }
         return new SongModelViewComparer(sortDescriptions);
     }
 

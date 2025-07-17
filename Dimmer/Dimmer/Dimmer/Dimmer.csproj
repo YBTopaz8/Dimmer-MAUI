@@ -86,7 +86,6 @@
     <PackageReference Include="morelinq" Version="4.4.0" />
 
 
-    <PackageReference Include="ReactiveUI" Version="20.4.1" />
 
 
     <PackageReference Include="SkiaSharp.Skottie" Version="3.119.0" />
@@ -111,6 +110,7 @@
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.4.0" />
 
 
+    <PackageReference Include="ReactiveUI.Maui" Version="20.4.1" />
 
     <PackageReference Include="z440.atl.core" Version="7.1.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />

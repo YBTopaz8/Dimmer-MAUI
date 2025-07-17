@@ -157,6 +157,8 @@
 
                                     <dx:DXButton Command="{Binding BaseVM.RefreshSongsMetadataCommand}" Content="ReloadLinks" />
                                     <dx:DXButton Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}" Content="Retroactively Links" />
+                                    <dx:DXButton Command="{Binding BaseVM.LoginToLastfmCommand}" Content="Login LastGM" />
+                                    <dx:DXButton Command="{Binding BaseVM.LogoutFromLastfmCommand}" Content="Logout LastFM" />
                                     <dx:DXButton x:Name="ScanAllBtn"
                                                  BorderColor="DarkSlateBlue" ButtonType="Outlined"
                                                  Clicked="AddNewMusicFolder_Clicked" Content="Add New Folder"

@@ -107,8 +107,6 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="ReactiveUI.Maui" Version="20.4.1" />
-    <PackageReference Include="ReactiveUI.WinUI" Version="20.4.1" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="Vanara.Core" Version="4.1.6" />
     <PackageReference Include="Vanara.PInvoke.ComCtl32" Version="4.1.6" />

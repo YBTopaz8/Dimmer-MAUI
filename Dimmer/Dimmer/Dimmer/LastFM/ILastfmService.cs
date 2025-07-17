@@ -18,6 +18,15 @@ public interface ILastfmService
     Task<bool> CompleteAuthenticationAsync();
 
 
+    // --- Data Retrieval ---
+    Task<Track?> GetTrackInfoAsync(string artistName, string trackName);
+    Task<Album?> GetAlbumInfoAsync(string artistName, string albumName);
+    Task<Artist?> GetArtistInfoAsync(string artistName);
+    Task<List<Artist>> GetTopArtistsChartAsync(int limit = 20);
+    Task<List<Track>> GetUserRecentTracksAsync(string username, int limit = 20);
+
+    Task<bool> LoveTrackAsync(SongModelView song);
+    Task<bool> UnloveTrackAsync(SongModelView song);
     // --- Authentication ---
     // Note: The library seems to only support direct password auth, not token auth.
     // If you need token auth, a different library or direct HTTP calls might be needed.
@@ -29,10 +38,20 @@ public interface ILastfmService
     Task ScrobbleAsync(SongModelView song);
     Task UpdateNowPlayingAsync(SongModelView song);
 
-    // --- Data Retrieval ---
-    Task<Artist> GetArtistInfoAsync(string artistName);
-    Task<Album> GetAlbumInfoAsync(string artistName, string albumName);
-    Task<Track> GetTrackInfoAsync(string artistName, string trackName);
-    Task<List<Artist>> GetTopArtistsChartAsync(int limit = 20);
+    /// <summary>
+    /// Fetches metadata for a single song from Last.fm and updates the local database.
+    /// </summary>
+    /// <param name="songId">The ObjectId of the song in your Realm database.</param>
+    /// <returns>True if any data was updated.</returns>
+    Task<bool> EnrichSongMetadataAsync(ObjectId songId);
+
+
+
+    /// <summary>
+    /// Fetches your Last.fm play history and imports any missing songs into your app.
+    /// </summary>
+    /// <param name="since">Only import scrobbles that happened after this date.</param>
+    /// <returns>The number of new play events added to your database.</returns>
+    Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since);
 }
 

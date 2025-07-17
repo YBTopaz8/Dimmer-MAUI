@@ -1,5 +1,7 @@
 using Dimmer.WinUI.Utils.WinMgt;
 
+using System.Threading.Tasks;
+
 
 namespace Dimmer.WinUI;
 
@@ -19,7 +21,7 @@ public partial class AppShell : Shell
 
     }
 
-    protected override void OnAppearing()
+    protected override  void OnAppearing()
     {
         base.OnAppearing();
 

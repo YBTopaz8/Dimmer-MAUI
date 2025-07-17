@@ -1,5 +1,6 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
+using Dimmer.Utilities.StatsUtils;
 
 using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
@@ -20,11 +21,15 @@ namespace Dimmer.LastFM;
 
 public class LastfmService : ILastfmService
 {
+    private readonly IRealmFactory _realmFactory;
     private readonly LastfmClient _client;
     private readonly LastfmSettings _settings; 
-    private readonly IDimmerAudioService _audioService; // NEW DEPENDENCY
+    private readonly IDimmerAudioService _audioService; 
+    private readonly ILogger<LastfmService> _logger;
     private readonly CompositeDisposable _disposables = new(); // To manage subscriptions
 
+    private readonly IRepository<SongModel> _songRepo; 
+    private readonly IRepository<DimmerPlayEvent> _playEventRepo; 
 
     private readonly BehaviorSubject<bool> _isAuthenticatedSubject;
     public IObservable<bool> IsAuthenticatedChanged => _isAuthenticatedSubject;
@@ -36,9 +41,16 @@ public class LastfmService : ILastfmService
     public string? AuthenticatedUser => IsAuthenticated ? _username : null;
     public string? AuthenticatedUserSessionToken => _client.Session.SessionKey;
 
-    public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService audioService)
+    public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService audioService, ILogger<LastfmService> logger,
+        IRealmFactory realmFactory,
+        IRepository<SongModel> songRepo,
+        IRepository<DimmerPlayEvent> playEventRepo)
     {
+        _realmFactory = realmFactory;
         _audioService = audioService;
+        _songRepo = songRepo;
+        _playEventRepo = playEventRepo;
+        this._logger=logger;
         _settings = settingsOptions.Value;
         if (string.IsNullOrEmpty(_settings.ApiKey)) // Only ApiKey is strictly needed for public requests
         {
@@ -56,10 +68,76 @@ public class LastfmService : ILastfmService
         _isAuthenticatedSubject = new BehaviorSubject<bool>(false);
 
         LoadSession();
+
+        Observable.FromEventPattern<PlaybackEventArgs>(
+             h => audioService.PlaybackStateChanged += h,
+             h => audioService.PlaybackStateChanged -= h)
+         .Select(evt => evt.EventArgs)
+         .ObserveOn(RxApp.MainThreadScheduler)
+         .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription"));
+        Observable.FromEventPattern<PlaybackEventArgs>(
+                h => audioService.PlayEnded += h,
+                h => audioService.PlayEnded -= h)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"));
     }
+
+    private async Task OnPlaybackEnded()
+    {
+        if (_songToScrobble != null && IsAuthenticated)
+        {
+            await ScrobbleAsync(_songToScrobble);
+            _songToScrobble = null; // Clear the state.
+        }
+    }
+
+    private void HandlePlaybackStateChange(PlaybackEventArgs args)
+    {
+        PlayType? state = StatesMapper.Map(args.EventType); // Assuming you have a way to get the enum state
+
+        switch (state)
+        {
+            case PlayType.Play:
+                // This case might be handled by PlayEnded -> NextTrack -> StartAudioForSongAtIndex
+                // which then calls InitializeAsync and Play. The audio service might raise
+                // a 'Playing' state change at that point. We can simply log it.
+                OnPlaybackStarted(args);
+                break;
+
+            case PlayType.Resume:
+                OnPlaybackResumed(args);
+                break;
+
+            case PlayType.Pause:
+                OnPlaybackPaused(args);
+                break;
+        } 
+    }
+
+    private async void OnPlaybackPaused(PlaybackEventArgs args)
+    {
+    }
+
+    private async void OnPlaybackResumed(PlaybackEventArgs args)
+    {
+
+
+        await UpdateNowPlayingAsync(args.MediaSong);
+    }
+
+    private async void OnPlaybackStarted(PlaybackEventArgs args)
+    {
+        if (_songToScrobble != null && IsAuthenticated)
+        {
+            await ScrobbleAsync(_songToScrobble);
+            _songToScrobble = null; // Clear the state.
+            await UpdateNowPlayingAsync(args.MediaSong);
+        }
+    }
+
     private SongModelView? _songToScrobble; // Internal state
 
- 
+
 
     // --- PRIVATE EVENT HANDLER & LOGIC ---
 
@@ -153,6 +231,8 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scrobble on Last.fm. {ex.Message}", "OK");
+
             // Log error
         }
     }
@@ -209,6 +289,7 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
+            await Shell.Current.DisplayAlert("Error", $"Failed to update now playing on Last.fm. {ex.Message}", "OK");
             // Log error
         }
     }
@@ -217,28 +298,44 @@ public class LastfmService : ILastfmService
 
     #region Data Retrieval
 
-    public async Task<Artist?> GetArtistInfoAsync(string artistName)
+    public async Task<Artist> GetArtistInfoAsync(string artistName)
     {
         try
-        { return await _client.Artist.GetInfoAsync(artistName); }
-        catch { return null; }
+        { 
+            return await _client.Artist.GetInfoAsync(artistName); 
+        }
+        catch 
+        { 
+            return new Artist(); 
+        }
     }
 
-    public async Task<Album?> GetAlbumInfoAsync(string artistName, string albumName)
+    public async Task<Album> GetAlbumInfoAsync(string artistName, string albumName)
     {
         try
-        { return await _client.Album.GetInfoAsync(artistName, albumName); }
-        catch { return null; }
+        { 
+            return await _client.Album.GetInfoAsync(artistName, albumName); 
+        }
+        catch 
+        { 
+            return new Album(); 
+        }
     }
 
-    public async Task<Track?> GetTrackInfoAsync(string artistName, string trackName)
+    public async Task<Track> GetTrackInfoAsync(string artistName, string trackName)
     {
         try
-        { return await _client.Track.GetInfoAsync(artistName, trackName); }
-        catch { return null; }
+        { 
+          
+            return await _client.Track.GetInfoAsync(artistName, trackName); 
+        }
+        catch 
+        { 
+            return new Track(); 
+        }
     }
 
-    // CORRECTED: The method returns a List<Artist>, not a Chart object.
+
     public async Task<List<Artist>> GetTopArtistsChartAsync(int limit = 20)
     {
         try
@@ -254,4 +351,153 @@ public class LastfmService : ILastfmService
     }
 
     #endregion
+    public async Task<List<Track>> GetUserRecentTracksAsync(string username, int limit = 20)
+    {
+        if (string.IsNullOrEmpty(username))
+            return new List<Track>();
+        try
+        {
+            var pagedResponse = await _client.User.GetRecentTracksAsync(username, page: 1, limit: limit);
+            return pagedResponse.Items.ToList();
+        }
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to get recent tracks for user {User}", username); return new List<Track>(); }
+    }
+
+    public async Task<bool> LoveTrackAsync(SongModelView song)
+    {
+        if (!IsAuthenticated || song is null)
+            return false;
+        try
+        {
+            await _client.Track.LoveAsync(song.OtherArtistsName, song.Title);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            
+            return false;
+        }
+    }
+
+    public async Task<bool> UnloveTrackAsync(SongModelView song)
+    {
+        if (!IsAuthenticated || song is null)
+            return false;
+        try
+        {
+            await _client.Track.UnloveAsync(song.OtherArtistsName, song.Title);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            
+            return false;
+        }
+    }
+
+    public async Task<bool> EnrichSongMetadataAsync(ObjectId songId)
+    {
+        var realm = _realmFactory.GetRealmInstance();
+        var song = realm.Find<SongModel>(songId);
+
+        if (song is null || string.IsNullOrEmpty(song.ArtistName))
+            return false;
+
+        try
+        {
+            var trackInfo = await GetTrackInfoAsync(song.ArtistName, song.Title);
+            if (trackInfo is null)
+                return false;
+
+            Album? albumInfo = trackInfo.Album != null ? await GetAlbumInfoAsync(trackInfo.Artist.Name, trackInfo.Album.Name) : null;
+
+            bool hasChanges = false;
+            realm.Write(() =>
+            {
+                var liveSong = realm.Find<SongModel>(songId);
+                if (liveSong is null)
+                    return;
+
+                // Update Genre
+                if (string.IsNullOrEmpty(liveSong.Genre?.Name) && trackInfo.Tags.Any())
+                {
+                    // Find or create genre
+                    var topTag = trackInfo.Tags.First().Name;
+                    var genre = realm.All<GenreModel>().FirstOrDefault(g => g.Name == topTag)
+                                ?? new GenreModel { Name = topTag };
+                    liveSong.Genre = genre;
+                    hasChanges = true;
+                }
+
+
+                // You can add more enrichment here: Cover art URL, song duration, etc.
+            });
+
+            if (hasChanges)
+                _logger.LogInformation("Enriched metadata for: {Title}", song.Title);
+            return hasChanges;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enrich metadata for song ID {SongId}", songId);
+            return false;
+        }
+    }
+
+
+    public async Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since)
+    {
+        if (!IsAuthenticated || _username is null)
+            return 0;
+        _logger.LogInformation("Starting to pull Last.fm history since {Date}", since);
+
+        var recentTracks = new List<Track>();
+        try
+        {
+            // Fetch multiple pages if needed, but start with one.
+            var pagedResponse = await _client.User.GetRecentTracksAsync(_username, from: since.DateTime, page: 1, limit: 200);
+            recentTracks.AddRange(pagedResponse.Items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch recent tracks from Last.fm.");
+            return 0;
+        }
+
+        var newEvents = new List<DimmerPlayEvent>();
+        foreach (var track in recentTracks.Where(t => t.Date.HasValue))
+        {
+            var song = _songRepo.Query(s => s.Title == track.Name && s.ArtistName == track.Artist.Name).FirstOrDefault();
+
+            // Only add a play event if we know about the song locally.
+            // A more advanced version could create stub song entries.
+            if (song != null)
+            {
+                newEvents.Add(new DimmerPlayEvent
+                {
+                    SongId = song.Id,
+                    SongName = song.Title,
+                    PlayType = 3, // Completed
+                    PlayTypeStr = "Completed",
+                    EventDate = track.Date.Value,
+                    DatePlayed = track.Date.Value,
+                    WasPlayCompleted = true,
+                });
+            }
+        }
+
+        if (newEvents.Count > 0)
+        {
+            foreach (var item in newEvents)
+            {
+                _playEventRepo.Create(item);
+            }
+            _logger.LogInformation("Pulled and saved {Count} new play events from Last.fm.", newEvents.Count);
+        }
+
+        return newEvents.Count;
+    }
+
 }

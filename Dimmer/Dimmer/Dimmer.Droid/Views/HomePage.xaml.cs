@@ -32,8 +32,6 @@ public partial class HomePage : ContentPage
         //NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
         this.HideSoftInputOnTapped=true;
 
-
-        MyViewModel.BaseVM.Initialize();
     }
 
     protected override void OnAppearing()

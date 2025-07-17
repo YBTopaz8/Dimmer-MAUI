@@ -179,7 +179,7 @@ public class FolderMgtService : IFolderMgtService
         else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath))
         {
             _logger.LogInformation("New directory created within watched scope: {FolderPath}. Triggering incremental scan.", e.FullPath);
-            _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true);
+           await _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true);
         }
     }
 

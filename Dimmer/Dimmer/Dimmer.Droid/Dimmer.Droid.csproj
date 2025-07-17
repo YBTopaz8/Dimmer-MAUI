@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-android</TargetFramework>
+    <TargetFramework>net9.0-android35.0</TargetFramework>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">29.0</SupportedOSPlatformVersion>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dimmer</RootNamespace>
@@ -17,6 +17,7 @@
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
     <OptimizationPreference>Size</OptimizationPreference>
+    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +40,10 @@
     <RunAOTCompilation>False</RunAOTCompilation>
     <EnableLLVM Condition="'$(RunAOTCompilation)'=='true'">False</EnableLLVM>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="dimmicoo.ico" />
+  </ItemGroup>
 
   <!--<ItemGroup>
     <None Remove="AndroidManifest.xml" />

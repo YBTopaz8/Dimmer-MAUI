@@ -63,7 +63,7 @@ public static class LyricsParser
         }
         catch (Exception ex)
         {
-            // Log this error if you have a logger available
+            // Log this error if you have a _logger available
             System.Diagnostics.Debug.WriteLine($"Failed to decode timecode '{timeCode}': {ex.Message}");
             return -1;
         }

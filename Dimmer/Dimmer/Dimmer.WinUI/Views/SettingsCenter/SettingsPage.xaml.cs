@@ -138,6 +138,6 @@ public partial class SettingsPage : ContentPage
             await DisplayAlert("Error", "Please enter your Last.fm credentials.", "OK");
             return;
         }
-        await MyViewModel.LoginToLastfm(LastFMEmail.Text, LastFMPassword.Text);
+        await MyViewModel.LoginToLastfm();
     }
 }
