@@ -115,5 +115,23 @@ public class SongModelViewComparer : IComparer<SongModelView>
     }
 
 
+    public SongModelViewComparer Inverted()
+    {
+        var invertedDescriptions = _sortDescriptions.Select(desc =>
+        {
+            // For random sort, the direction doesn't matter, keep it as is.
+            if (desc.Direction == SortDirection.Random)
+                return desc;
 
+            // Invert Ascending to Descending and vice-versa.
+            var invertedDirection = desc.Direction == SortDirection.Ascending
+                ? SortDirection.Descending
+                : SortDirection.Ascending;
+
+            return new SortDescription(desc.Field, invertedDirection);
+
+        }).ToList();
+
+        return new SongModelViewComparer(invertedDescriptions);
+    }
 }

@@ -83,8 +83,13 @@ public static class Lexer
             if (char.IsLetter(current))
             {
                 int start = position;
-                while (position < text.Length && char.IsLetterOrDigit(text[position]))
-                { position++; }
+                while (position < text.Length &&
+        (char.IsLetterOrDigit(text[position]) || text[position] == ':') && // Allow colons
+        !char.IsWhiteSpace(text[position]) && // Stop at whitespace
+        text[position] != '(' && text[position] != ')') // Stop at parens
+                {
+                    position++;
+                }
                 string word = text[start..position];
                 if (_keywords.TryGetValue(word, out var keywordType))
                     tokens.Add(new Token(keywordType, word, start));
@@ -97,7 +102,15 @@ public static class Lexer
             {
                 int start = position;
                 while (position < text.Length && (char.IsDigit(text[position]) || text[position] == '.' || text[position] == ':'))
-                { position++; }
+                {
+                    // Add a lookahead to prevent "33:" from being a number token.
+                    // A colon is only part of a number if another digit follows.
+                    if (text[position] == ':' && (position + 1 >= text.Length || !char.IsDigit(text[position + 1])))
+                    {
+                        break; // This is not a duration, break the loop.
+                    }
+                    position++;
+                }
                 string number = text[start..position];
                 tokens.Add(new Token(TokenType.Number, number, start));
                 continue;
