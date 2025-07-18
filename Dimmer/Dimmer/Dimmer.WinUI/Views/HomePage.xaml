@@ -665,6 +665,17 @@
                         </Grid>
                     </Grid>
 
+                    <syncf:SfTabView Grid.Row="2" IsVisible="False" x:Name="SingleSongTabView">
+                        <syncf:SfTabItem>
+                            <syncf:SfTabItem.Content>
+                                <VerticalStackLayout>
+                                    <Label Text="tr"/>
+                                </VerticalStackLayout>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                    </syncf:SfTabView>
+                    
+                    
                     <CollectionView
                         x:Name="SongsColView"
                         Grid.Row="2"
