@@ -866,7 +866,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
     private readonly BaseAppFlow _baseAppFlow;
-    public const string CurrentAppVersion = "Dimmer v1.9Z";
+    public const string CurrentAppVersion = "Dimmer v1.0";
 
 
 
