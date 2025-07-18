@@ -1,3 +1,5 @@
+using Syncfusion.Maui.Toolkit.Chips;
+
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
 
 namespace Dimmer.Views;
@@ -27,32 +29,18 @@ public partial class SettingsPage : ContentPage
         MyViewModel.BaseVM.DeleteFolderPath(param);
     }
 
-    private async void ChangeFolder_Clicked(object sender, EventArgs e)
-    {
+    //private async void ChangeFolder_Clicked(object sender, EventArgs e)
+    //{
 
 
-        var selectedFolder = (string)((DXButton)sender).CommandParameter;
-        await MyViewModel.AddMusicFolderViaPickerAsync(selectedFolder);
-    }
+    //    var selectedFolder = (string)((DXButton)sender).CommandParameter;
+    //    await MyViewModel.AddMusicFolderViaPickerAsync(selectedFolder);
+    //}
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.AddMusicFolderViaPickerAsync();
     }
-    private async void ViewDevices_Clicked(object sender, EventArgs e)
-    {
-
-        await MyDevicesPopUp.ShowAsync();
-
-    }
-
-    private void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
-    {
-        MainTabView.SelectedItemIndex = 4;
-
-        //MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
-        MyDevicesPopUp.Close();
-    }
-
+ 
     private void SwitchDeviceRecipient_Tap(object sender, System.ComponentModel.HandledEventArgs e)
     {
 
@@ -61,5 +49,80 @@ public partial class SettingsPage : ContentPage
     private void SendMsgBtn_Clicked(object sender, EventArgs e)
     {
 
+    }
+    private void SidePaneChip_Clicked(object sender, EventArgs e)
+    {
+
+        var send = (SfChip)sender;
+        var param = send.CommandParameter.ToString();
+        switch (param)
+        {
+            case "Artists":
+
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
+
+    private async void NavTab_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+        if (e.NewIndex == 1)
+        {
+            await MyViewModel.BaseVM.LoadUserLastFMInfo();
+        }
+    }
+
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
+        //await  MyViewModel.AddMusicFolderAsync(selectedFolder);
+    }
+    private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void NavBtnClicked_Clicked(object sender, EventArgs e)
+    {
+        var send = (Microsoft.Maui.Controls.Button)sender;
+        var param = send.CommandParameter.ToString();
+        switch (param)
+        {
+            case "0":
+                break;
+            case "1":
+                break;
+            default:
+
+                break;
+        }
+
+    }
+
+    private void ShowBtmSheet_Clicked(object sender, EventArgs e)
+    {
+    }
+
+    private void SettingsNavChips_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+
+    }
+    private CancellationTokenSource _lyricsCts;
+    private bool _isLyricsProcessing = false;
+
+
+    private void SettingsNavChips_ChipClicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void Logintolastfm_Clicked(object sender, EventArgs e)
+    {
+
+        await MyViewModel.BaseVM.LoginToLastfm();
     }
 }

@@ -33,289 +33,180 @@
     </ContentPage.Resources>
 
     <dx:SafeKeyboardAreaView>
-        <dx:DXDockLayout StretchLastItem="False">
-            <Label Text="{Binding LatestAppLog.Log}" />
-
-            <dx:TabView x:Name="MainTabView"
-                        Margin="15"
-                        HeaderPanelBackgroundColor="{AppThemeBinding Light=#F5F5F5}"
-                        HeaderPanelHeight="120" HeaderPanelPosition="Bottom"
-                        IsSelectedItemIndicatorVisible="True" ItemHeaderFontSize="15"
-                        ItemHeaderTextColor="{AppThemeBinding Light=black,
-                                                              Dark=white}"
-                        SelectedItemIndex="{Binding BaseVM.SettingsPageIndex}"
-                        SelectedItemIndicatorColor="DarkSlateBlue" SwipeEnabled="True"
-                        >
-                <!--<dx:TabViewItem HeaderText="Main" HeaderTextColor="{AppThemeBinding Dark=White, Light=Black}">
-                    <Grid BackgroundColor="Transparent" RowDefinitions="*,auto">
-
-                        <dx:DXStackLayout Grid.Row="0">
-                            <Label dx:DXDockLayout.Dock="Top" FontAttributes="Bold"
-                                   FontSize="26" Text="Settings"
-                                   />
-                            <dx:DXBorder>
-                                <dx:DXBorder.Content>
-                                    <dx:DXScrollView>
-                                        <dx:DXStackLayout>
-                                            <dx:DXImage HeightRequest="200" Source="{Binding UserLocal.UserProfileImage}" />
-                                            <Label Text="{Binding UserLocal.Username, StringFormat='Welcome Back: {0}'}" />
-                                            <dx:DXButton x:Name="ViewDevices"
-                                                         Clicked="ViewDevices_Clicked" Content="My Devices"
-                                                         />
-
-                                        </dx:DXStackLayout>
-                                    </dx:DXScrollView>
-                                </dx:DXBorder.Content>
-                            </dx:DXBorder>
-
-                        </dx:DXStackLayout>
-                        <dx:DXCollectionView Grid.Row="1" IsVisible="False"
-                                             ItemsSource="{Binding ScanningLogs}"
-                                             >
-                            <dx:DXCollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <Label FontSize="15"
-                                           Text="{Binding .}"
-                                           TextColor="Orange"
-                                           />
-                                </DataTemplate>
-                            </dx:DXCollectionView.ItemTemplate>
-                        </dx:DXCollectionView>
-                    </Grid>
-                </dx:TabViewItem>-->
-                <!--<dx:TabViewItem HeaderHeight="90" HeaderText="Login">
-                    <dx:TabViewItem.Content>
-                        <dx:DXStackLayout CornerRadius="20" Orientation="Vertical">
-                            <Grid BackgroundColor="Transparent" ColumnDefinitions="*"
-                                  ColumnSpacing="5"
-                                  >
-
-                                <Border Grid.Column="0" BackgroundColor="Transparent"
-                                        StrokeShape="RoundRectangle 5" StrokeThickness="0"
-                                        StyleClass="Elevation2"
-                                        >
-
-                                    <VerticalStackLayout Grid.Row="0" BackgroundColor="Transparent"
-                                                         Spacing="15"
-                                                         >
-
-                                        <dx:TextEdit Keyboard="Email" LabelText="Email"
-                                                     Text="{Binding UserLocal.Email}"
-                                                     />
-                                        <dx:TextEdit LabelText="User Name" Text="{Binding UserLocal.Username}" />
-                                        <dx:PasswordEdit LabelText="Password" Text="{Binding UserLocal.Password}" />
-                                        <dx:DXButton Command="{Binding LoginUserCommand}"
-                                                     Content="Login" FontSize="24"
-                                                     HorizontalOptions="Center"
-                                                     />
-                                    </VerticalStackLayout>
-
-                                </Border>
-
-                            </Grid>
-                        </dx:DXStackLayout>
-                    </dx:TabViewItem.Content>
-                </dx:TabViewItem>-->
-
-                <!--<dx:TabViewItem HeaderText="Main" >
-                    <dx:TabViewItem.Content>
-                        <StackLayout>
-                            <dx:DXImage HeightRequest="150"
-                                        Source="{Binding BaseVM.UserLocal.UserProfileImage}"
-                                        WidthRequest="150"
-                                        />
-                            <Label FontSize="34" Text="{Binding BaseVM.UserLocal.Username}" />
-                            <Label FontSize="24" Text="{Binding BaseVM.UserLocal.Email}" />
-                        </StackLayout>
-                    </dx:TabViewItem.Content>
-                </dx:TabViewItem>-->
-
-                <dx:TabViewItem HeaderText="Folders Management">
-                    <dx:TabViewItem.Content>
-                        <dx:DXStackLayout>
-
-                            <dx:DXStackLayout Padding="5" dx:DXDockLayout.Dock="Top">
-
-                                <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-                                    <Image HeightRequest="30" Source="folder.png" />
-                                    <Label FontSize="21" Text="Folders" />
-                                    <Label FontSize="15" Text="{Binding BaseVM.LatestAppLog.Log}" />
-                                    <dx:DXCollectionView HeightRequest="50">
-                                        <dx:DXCollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="x:String">
-                                                <Label Text="{Binding .}" />
-                                            </DataTemplate>
-                                        </dx:DXCollectionView.ItemTemplate>
-
-                                    </dx:DXCollectionView>
-
-                                </dx:DXStackLayout>
-                                <dx:DXButton Command="{Binding BaseVM.RescanSongsCommand}" Content="ReScan Folders" />
-                                <dx:DXStackLayout x:DataType="vm:BaseViewModelAnd" BackgroundColor="Transparent"
-                                                  ItemSpacing="10" Scale="0.9"
-                                                  >
-
-                                    <dx:DXButton Command="{Binding BaseVM.RefreshSongsMetadataCommand}" Content="ReloadLinks" />
-                                    <dx:DXButton Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}" Content="Retroactively Links" />
-                                    <dx:DXButton Command="{Binding BaseVM.LoginToLastfmCommand}" Content="Login LastGM" />
-                                    <dx:DXButton Command="{Binding BaseVM.LogoutFromLastfmCommand}" Content="Logout LastFM" />
-                                    <dx:DXButton x:Name="ScanAllBtn"
-                                                 BorderColor="DarkSlateBlue" ButtonType="Outlined"
-                                                 Clicked="AddNewMusicFolder_Clicked" Content="Add New Folder"
-                                                 PressedBackgroundColor="DarkSlateBlue"
-                                                 />
-
-                                    <dx:DXButton x:Name="ReScanAllBtn"
-                                                 BorderColor="DarkSlateBlue" ButtonType="Outlined"
-                                                 Command="{Binding BaseVM.RescanSongsCommand}"
-                                                 Content="Rescan folders" PressedBackgroundColor="DarkSlateBlue"
-                                                 />
-                                    <dx:DXCollectionView x:Name="ListOfFolders"
-                                                         Grid.Row="1" BackgroundColor="Transparent"
-                                                         Header="List of Folders"
-                                                         ItemsSource="{Binding BaseVM.FolderPaths}"
-                                                         >
-                                        <dx:DXCollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="x:String">
-                                                <Grid BackgroundColor="Transparent" ColumnDefinitions="*,*">
-
-                                                    <Label Grid.Column="0" Text="{Binding .}" />
-
-                                                    <HorizontalStackLayout Grid.Column="1" BackgroundColor="Transparent"
-                                                                           Spacing="25"
-                                                                           >
-                                                        <dx:DXButton x:Name="ChangeFolder"
-                                                                     Clicked="ChangeFolder_Clicked"
-                                                                     CommandParameter="{Binding .}"
-                                                                     Icon="foldera.png"
-                                                                     />
-
-                                                        <dx:DXButton x:Name="DeleteBtn"
-                                                                     Clicked="DeleteBtn_Clicked"
-                                                                     CommandParameter="{Binding .}"
-                                                                     Icon="delete.png"
-                                                                     />
-
-                                                    </HorizontalStackLayout>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </dx:DXCollectionView.ItemTemplate>
-                                    </dx:DXCollectionView>
-                                </dx:DXStackLayout>
+        <dx:DXDockLayout StretchLastItem="True" >
+            <VerticalStackLayout Grid.Row="0" Spacing="10" dx:DXDockLayout.Dock="Top">
+                <Label
+            Grid.Row="0"
+            FontAttributes="Bold"
+            FontSize="25"
+            Text="{Binding BaseVM.LatestAppLog.Log}" />
+                <Label
+            FontAttributes="Bold"
+            FontSize="34"
+            Text="Music Folders" />
 
 
-                            </dx:DXStackLayout>
-                            <dx:DXStackLayout Margin="10" BackgroundColor="Transparent"
-                                              HorizontalOptions="Center" VerticalOptions="End"
-                                              >
-                                <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-                                    <Image HeightRequest="35" Source="issuee.png" />
+            </VerticalStackLayout>
+            <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
+         <syncf:SfTabItem Header="Main">
 
-                                    <Label FontSize="16" Text="Facing Issues ?" />
-                                </dx:DXStackLayout>
-                                <dx:DXButton x:Name="ReportIssueBtn"
-                                             BackgroundColor="DarkSlateBlue" Clicked="ReportIssueBtn_Clicked"
-                                             Content="Click Here To Open an Issue On GitHub" PressedBackgroundColor="White"
-                                             PressedTextColor="DarkSlateBlue" TextColor="White"
-                                             />
-                                <Label HorizontalTextAlignment="Center" Text="Dimmer By Yvan Brunel" />
-                            </dx:DXStackLayout>
+             <syncf:SfTabItem.Content>
+                
+                     <Grid Grid.Row="1" RowDefinitions="*,0.4*">
 
-                        </dx:DXStackLayout>
-                    </dx:TabViewItem.Content>
-                </dx:TabViewItem>
-                <!--<dx:TabViewItem HeaderText="Cross Devices">
-                    <dx:TabViewItem.Content>
-                        <Grid BackgroundColor="Transparent" RowDefinitions="80,*">
-                            <dx:DXCollectionView Grid.Row="0" Header="Your Devices"
-                                                 ItemsSource="{Binding UserDevices}"
-                                                 Orientation="Horizontal"
-                                                 >
-                                <dx:DXCollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="modellive:UserDeviceSession">
-                                        <dxc:DXStackLayout Orientation="Horizontal">
-                                            <dxc:Chip x:Name="SwitchDeviceRecipient"
-                                                      FontSize="36" Tap="SwitchDeviceRecipient_Tap"
-                                                      Text="{Binding DeviceIdiom}"
-                                                      />
-                                        </dxc:DXStackLayout>
-                                    </DataTemplate>
-                                </dx:DXCollectionView.ItemTemplate>
-                            </dx:DXCollectionView>
+                         <CollectionView
+                                 x:Name="ListOfFolders"
+                                 Grid.Row="0"
+                                 Header="List of Folders"
+                                 ItemsSource="{Binding BaseVM.FolderPaths}"
+                                 MaximumWidthRequest="250">
+                             <CollectionView.EmptyView>
+                                 <VerticalStackLayout>
+                                     <Label
+                                             Margin="0,40,0,0"
+                                             FontAttributes="Italic"
+                                             Text="No Folders In Preferences.." />
+                                 </VerticalStackLayout>
+                             </CollectionView.EmptyView>
+                             <CollectionView.ItemTemplate>
+                                 <DataTemplate x:DataType="x:String">
+                                     <Grid ColumnDefinitions="*,*">
 
-                            <Grid Grid.Row="1" BackgroundColor="Transparent"
-                                  RowDefinitions="*,0.2*"
-                                  >
+                                         <Label Grid.Column="0" Text="{Binding .}" />
 
-                                <dx:DXCollectionView Grid.Row="0" ItemsSource="{Binding ActiveMessages}">
+                                         <HorizontalStackLayout Grid.Column="1" Spacing="25">
+                                          
 
-                                    <dx:DXCollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="modellive:ChatMessage">
-                                            <dxc:DXStackLayout>
-                                                <Label FontSize="16"
-                                                       Text="{Binding Sender.Username}"
-                                                       TextColor="White"
-                                                       />
-                                                <Label FontSize="12"
-                                                       Text="{Binding CreatedAt}"
-                                                       TextColor="White"
-                                                       />
-                                            </dxc:DXStackLayout>
-                                        </DataTemplate>
-                                    </dx:DXCollectionView.ItemTemplate>
-                                </dx:DXCollectionView>
+                                             <ImageButton
+                                                     x:Name="DeleteBtn"
+                                                     Clicked="DeleteBtn_Clicked"
+                                                     CommandParameter="{Binding .}"
+                                                     Source="delete.png" />
 
-                                <dx:DXBorder Grid.Row="1" BackgroundColor="Transparent"
-                                             VerticalOptions="Center"
-                                             >
-                                    <Grid BackgroundColor="Transparent" ColumnDefinitions="auto,*,100"
-                                          ColumnSpacing="10" VerticalOptions="Center"
-                                          >
-                                        <StackLayout Grid.Column="0" VerticalOptions="Center">
-                                            <dx:DXButton Content="Add" />
-                                        </StackLayout>
+                                         </HorizontalStackLayout>
+                                     </Grid>
+                                 </DataTemplate>
+                             </CollectionView.ItemTemplate>
+                         </CollectionView>
+                         <VerticalStackLayout
+                                 Grid.Row="1"
+                                 BackgroundColor="Transparent"
+                                 Spacing="10">
 
-                                        <StackLayout Grid.Column="1" VerticalOptions="Center">
-                                            <dx:TextEdit LabelText="Message" Text="{Binding Message}" />
-                                        </StackLayout>
+                             <Button
+                                     Clicked="AddNewMusicFolder_Clicked"
+                                     HorizontalOptions="Start"
+                                     Text="Add New Folder" />
+                             <Button
+                                     x:Name="ReScanAllBtn"
+                                     BorderColor="DarkSlateBlue"
+                                     Command="{Binding BaseVM.RescanSongsCommand}"
+                                     Text="Rescan folders" />
 
-                                        <StackLayout Grid.Column="2" VerticalOptions="Center">
-                                            <dx:DXButton x:Name="SendMsgBtn"
-                                                         Clicked="SendMsgBtn_Clicked" Content="Send"
-                                                         />
-                                        </StackLayout>
-                                    </Grid>
-                                </dx:DXBorder>
-                            </Grid>
-                        </Grid>
-                    </dx:TabViewItem.Content>
-                </dx:TabViewItem>-->
-
-            </dx:TabView>
+                         </VerticalStackLayout>
+                     </Grid>
 
 
-            <dx:DXPopup x:Name="MyDevicesPopUp"
-                        AllowScrim="True" CloseOnScrimTap="True"
-                        >
-                <dx:DXPopup.Content>
-                    <dx:DXStackLayout BackgroundColor="{AppThemeBinding Dark=#1E1E1E, Light=White}" HeightRequest="200">
-                        <dx:DXCollectionView Header="Yvan" ItemsSource="{Binding UserDevices}">
-                            <dx:DXCollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="modellive:UserDeviceSession">
-                                    <dxc:DXStackLayout Orientation="Horizontal">
-                                        <dxc:Chip x:Name="SelectDeviceChip"
-                                                  Tap="SelectDeviceChip_Tap"
-                                                  Text="{Binding DeviceIdiom}"
-                                                  />
-                                    </dxc:DXStackLayout>
-                                </DataTemplate>
-                            </dx:DXCollectionView.ItemTemplate>
-                        </dx:DXCollectionView>
-                    </dx:DXStackLayout>
-                </dx:DXPopup.Content>
+             </syncf:SfTabItem.Content>
+         </syncf:SfTabItem>
+         
+         
+         <syncf:SfTabItem Header="LastFM Tab">
+             <syncf:SfTabItem.Content>
+                 <VerticalStackLayout Margin="10" Spacing="10">
+                     <FlexLayout JustifyContent="SpaceBetween">
 
+                         <Label Text="Last FM Status: "/>
+                                <Editor Placeholder="UserName" Text="{Binding  BaseVM.UserLocal.LastFMAccountInfo.Name}"/>
+                         <Label>
+                             <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                     <Setter Property="Text" Value="Logged In"/>
+                                     <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                 </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
+                                     <Setter Property="Text" Value="Logged Out"/>
+                                     <Setter Property="TextColor" Value="DarkRed"/>
+                                 </DataTrigger>
+                             </Label.Triggers>
+                         </Label>
+                         
+                     </FlexLayout>
 
-            </dx:DXPopup>
+                            <Button HorizontalOptions="Start" Command="{Binding BaseVM.LogoutFromLastfmCommand}">
+                         <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                 <Setter Property="IsVisible" Value="True"/>
+                                 <Setter Property="Text" Value="Log Out"/>
+                                 <Setter Property="BackgroundColor" Value="DarkRed"/>
+                             </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
+                                 <Setter Property="Text" Value="Log in"/>
+                                 <Setter Property="IsVisible" Value="False"/>
+                             </DataTrigger>
+                         </Button.Triggers>
+                     </Button>
+
+                            <Button HorizontalOptions="Start" Command="{Binding BaseVM.LoginToLastfmCommand}" BorderWidth="2" IsVisible="False">
+                         <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                 <Setter Property="IsVisible" Value="False"/>
+                             </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False" >
+                                 <Setter Property="Text" Value="Log into LastFM"/>
+                                 <Setter Property="IsVisible" Value="True"/>
+                                 <Setter Property="TextColor" Value="Red"/>
+                                 <Setter Property="BorderColor" Value="Red"/>
+                                 <Setter Property="BorderWidth" Value="2"/>
+                                 <Setter Property="BackgroundColor" Value="Transparent"/>
+                             </DataTrigger>
+                         </Button.Triggers>
+                     </Button>
+
+                            <Button HorizontalOptions="Start" Command="{Binding BaseVM.CompleteLoginCommand}" BorderWidth="2" IsVisible="False">
+                         <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                 <Setter Property="IsVisible" Value="False"/>
+                             </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False" >
+                                 <Setter Property="Text" Value="Complete LastFM Connection"/>
+                                 <Setter Property="IsVisible" Value="True"/>
+                                 <Setter Property="TextColor" Value="Red"/>
+                                 <Setter Property="BorderColor" Value="Red"/>
+                                 <Setter Property="BorderWidth" Value="2"/>
+                                 <Setter Property="BackgroundColor" Value="Transparent"/>
+                             </DataTrigger>
+                         </Button.Triggers>
+                     </Button>
+
+                     <VerticalStackLayout BackgroundColor="Transparent">
+                         <VerticalStackLayout.Triggers>
+                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                 <Setter Property="IsVisible" Value="True"/>
+                             </DataTrigger>
+                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
+                                 <Setter Property="IsVisible" Value="False"/>
+                             </DataTrigger>
+                         </VerticalStackLayout.Triggers>
+
+                         <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
+
+                                    <Image Source="{Binding BaseVM.UserLocal.LastFMAccountInfo.Image.Url}"/>
+
+                         </Border>
+                                <Label Text="{Binding BaseVM.UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                                <Label Text="{Binding BaseVM.UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                         
+                     </VerticalStackLayout>
+                 </VerticalStackLayout>
+
+             </syncf:SfTabItem.Content>
+         </syncf:SfTabItem>
+         
+         
+     </syncf:SfTabView>
+     
+
         </dx:DXDockLayout>
     </dx:SafeKeyboardAreaView>
 

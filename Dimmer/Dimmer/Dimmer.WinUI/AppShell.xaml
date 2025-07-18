@@ -103,10 +103,21 @@
             <syncf:SfTabItem Header="LastFM Tab">
                 <syncf:SfTabItem.Content>
                     <VerticalStackLayout Margin="10" Spacing="10">
+                        <Editor Placeholder="UserName" 
+                                PlaceholderColor="White"
+                                Text="{Binding UserLocal.LastFMAccountInfo.Name}">
+                            <Editor.Triggers>
+                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                            </Editor.Triggers>
+                        </Editor>
                         <FlexLayout JustifyContent="SpaceBetween">
 
                             <Label Text="Last FM Status: "/>
-                            <Editor Placeholder="UserName" Text="{Binding UserLocal.LastFMAccountInfo.Name}"/>
                             <Label>
                                 <Label.Triggers>
                                     <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="True">
@@ -180,7 +191,7 @@
 
                             <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
                                 
-                            <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}"/>
+                            <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180"/>
 
                             </Border>
                             <Label Text="{Binding UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>

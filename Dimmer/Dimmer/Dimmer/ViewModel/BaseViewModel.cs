@@ -454,6 +454,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task LoadUserLastFMInfo()
     {
+        if (!_lastfmService.IsAuthenticated)
+        {
+            return;
+        }
         var usr= await _lastfmService.GetUserInfoAsync();
         if (usr is null)
         {
@@ -535,7 +539,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task LoginToLastfm() 
     {
-
+        if (string.IsNullOrEmpty(UserLocal.LastFMAccountInfo.Name))
+        {
+            await Shell.Current.DisplayAlert("One More Step", "Please Put in Your Account's UserName", "OK");
+            return;
+        }
         IsBusy = true;
         try
         {
@@ -543,7 +551,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             string url = await _lastfmService.GetAuthenticationUrlAsync();
             await Shell.Current.DisplayAlert(
                "Authorize in Browser",
-               "Please authorize Dimmer in the browser window that just opened, then return here and press 'Complete Login'.",
+               "Please authorize Dimmer in the browser window that will open, then return here and press 'Complete Login'.",
                "OK");
             // 2. Open it in the browser
             await Launcher.Default.OpenAsync(new Uri(url));

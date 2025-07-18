@@ -360,7 +360,8 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
-            // Log the error
+            _logger.Log(logLevel: LogLevel.Error, ex, ex.Message);
+
         }
         return false;
     }
