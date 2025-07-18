@@ -18,12 +18,7 @@
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
     <OptimizationPreference>Size</OptimizationPreference>
     <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
-    <TargetFrameworks>net9.0-android</TargetFrameworks>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Utils\CustomAnimsAndroid.cs" />
-  </ItemGroup>
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -276,11 +271,6 @@
 
   <ItemGroup>
     <MauiImage Include="Resources\drawable\loggo.ico" />
-    <MauiImage Include="Resources\mipmap-xxxhdpi\loggo.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Utils\CustomAnimsAndroid.cs" />
   </ItemGroup>
 
   <ItemGroup>
