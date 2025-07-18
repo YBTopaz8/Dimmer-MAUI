@@ -18,6 +18,7 @@
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
     <OptimizationPreference>Size</OptimizationPreference>
     <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <TargetFrameworks>net9.0-android</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +41,10 @@
     <RunAOTCompilation>False</RunAOTCompilation>
     <EnableLLVM Condition="'$(RunAOTCompilation)'=='true'">False</EnableLLVM>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\drawable\loggo.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="dimmicoo.ico" />
@@ -267,6 +272,11 @@
     <Folder Include="Activities\" />
     <Folder Include="Database\" />
     <Folder Include="Utils\NativeViewAnimations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiImage Include="Resources\drawable\loggo.ico" />
+    <MauiImage Include="Resources\mipmap-xxxhdpi\loggo.ico" />
   </ItemGroup>
 
   <ItemGroup>

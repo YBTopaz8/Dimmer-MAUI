@@ -92,7 +92,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <MauiImage Include="Childish-Music_24985.ico" />
+    <Content Include="dimmicoo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiImage Include="loggo.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -244,7 +248,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Title>Dimmer</Title>
     <PackageIcon>dimmerIcon.png</PackageIcon>
-    <ApplicationIcon>Childish-Music_24985.ico</ApplicationIcon>
+    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!--
