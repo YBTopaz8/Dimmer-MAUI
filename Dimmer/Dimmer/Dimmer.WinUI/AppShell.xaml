@@ -18,55 +18,84 @@
     x:DataType="vm:BaseViewModelWin">
 
     <Shell.FlyoutContent>
-        <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Bottom">
+        <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
             <syncf:SfTabItem Header="Main">
+
                 <syncf:SfTabItem.Content>
-
-                    <VerticalStackLayout x:Name="TopLeftPart" Spacing="15">
-
-                        <syncf:SfChip
-                    x:Name="HomeChip"
-                    Clicked="SidePaneChip_Clicked"
-                    CommandParameter="0"
-                    ImageSource="house.png"
-                    Text="{Static lang:DimmerLanguage.txt_home}" />
-                        <syncf:SfChip
-                    x:Name="ArtistsChip"
-                    Clicked="SidePaneChip_Clicked"
-                    CommandParameter="Artists"
-                    ImageSource="artist.png"
-                    Text="{Static lang:DimmerLanguage.txt_artist}" />
-                        <syncf:SfChip
-                    x:Name="AlbumsChip"
-                    Clicked="SidePaneChip_Clicked"
-                    CommandParameter="Albums"
-                    ImageSource="musicalbum.png"
-                    Text="{Static lang:DimmerLanguage.txt_album}" />
-                        <syncf:SfChip
-                    x:Name="GenresChip"
-                    Clicked="SidePaneChip_Clicked"
-                    CommandParameter="Genres"
-                    Text="Genres" />
-
-                        <BoxView
-                    Margin="0,10"
-                    HeightRequest="1"
-                    Color="DarkSlateBlue" />
-                        <syncf:SfChip
-                    x:Name="LastPlayedChip"
-                    CommandParameter="LastPlayed"
-                    ImageSource="repeat.png"
-                    Text="Last Played" />
-
-                        <!--<syncf:SfChip x:Name="ScrollToChip"
-                        Clicked="SidePaneChip_Clicked" CommandParameter="Scroll"
-                        ImageSource="eye.png" Text="Scroll To"
-                        />-->
+                    <Grid RowDefinitions="Auto,*" Margin="10,0">
+                        <VerticalStackLayout Grid.Row="0" Spacing="10">
+                            <Label
+                                    Grid.Row="0"
+                                    FontAttributes="Bold"
+                                    FontSize="25"
+                                    Text="{Binding LatestAppLog.Log}" />
+                            <Label
+                                    FontAttributes="Bold"
+                                    FontSize="34"
+                                    Text="Music Folders" />
 
 
+                        </VerticalStackLayout>
+                        <Grid Grid.Row="1" RowDefinitions="*,0.4*">
 
-                    </VerticalStackLayout>
+                            <CollectionView
+                                    x:Name="ListOfFolders"
+                                    Grid.Row="0"
+                                    Header="List of Folders"
+                                    ItemsSource="{Binding FolderPaths}"
+                                    MaximumWidthRequest="250">
+                                <CollectionView.EmptyView>
+                                    <VerticalStackLayout>
+                                        <Label
+                                                Margin="0,40,0,0"
+                                                FontAttributes="Italic"
+                                                Text="No Folders In Preferences.." />
+                                    </VerticalStackLayout>
+                                </CollectionView.EmptyView>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Grid ColumnDefinitions="*,*">
 
+                                            <Label Grid.Column="0" Text="{Binding .}" />
+
+                                            <HorizontalStackLayout Grid.Column="1" Spacing="25">
+                                                <ImageButton
+                                                        x:Name="ChangeFolder"
+                                                        Clicked="ChangeFolder_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Source="foldera.png" />
+
+                                                <ImageButton
+                                                        x:Name="DeleteBtn"
+                                                        Clicked="DeleteBtn_Clicked"
+                                                        CommandParameter="{Binding .}"
+                                                        Source="delete.png" />
+
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                            <VerticalStackLayout
+                                    Grid.Row="1"
+                                    BackgroundColor="Transparent"
+                                    Spacing="10">
+
+                                <Button
+                                        Clicked="AddNewMusicFolder_Clicked"
+                                        HorizontalOptions="Start"
+                                        Text="Add New Folder" />
+                                <Button
+                                        x:Name="ReScanAllBtn"
+                                        BorderColor="DarkSlateBlue"
+                                        Command="{Binding RescanSongsCommand}"
+                                        Text="Rescan folders" />
+
+                            </VerticalStackLayout>
+                        </Grid>
+
+
+                    </Grid>
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
             
@@ -77,7 +106,7 @@
                         <FlexLayout JustifyContent="SpaceBetween">
 
                             <Label Text="Last FM Status: "/>
-
+                            <Editor Placeholder="UserName" Text="{Binding UserLocal.LastFMAccountInfo.Name}"/>
                             <Label>
                                 <Label.Triggers>
                                     <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="True">
@@ -139,7 +168,25 @@
                             </Button.Triggers>
                         </Button>
 
+                        <VerticalStackLayout BackgroundColor="Transparent">
+                            <VerticalStackLayout.Triggers>
+                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                            </VerticalStackLayout.Triggers>
 
+                            <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
+                                
+                            <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}"/>
+
+                            </Border>
+                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                            
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
 
                 </syncf:SfTabItem.Content>

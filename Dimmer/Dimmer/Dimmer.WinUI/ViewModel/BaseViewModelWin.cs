@@ -42,14 +42,13 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IRepository<ArtistModel> artistRepo;
     private readonly IRepository<AlbumModel> albumModel;
     private readonly IRepository<GenreModel> genreModel;
-    private readonly ILogger<BaseViewModel> logger1;
-    private readonly ILogger<BaseViewModelWin> logger;
     private readonly IWindowManagerService winMgrService;
 
-    public BaseViewModelWin(IMapper mapper,
-        IFolderPicker _folderPicker,
-        IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
+    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, 
+        IFolderPicker _folderPicker, IWindowManagerService windowManager,
+        IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
     {
+    
 
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
@@ -65,7 +64,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         this.artistRepo=artistRepo;
         this.albumModel=albumModel;
         this.genreModel=genreModel;
-        logger1=logger;
+
         folderPicker = _folderPicker;
         this.lastfmService=lastfmService;
         windowManager1=windowManager;
@@ -90,7 +89,6 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     public async Task AddMusicFolderViaPickerAsync()
     {
 
-        logger.LogInformation("SelectSongFromFolderWindows: Requesting storage permission.");
 
         var res = await folderPicker.PickAsync(CancellationToken.None);
 
@@ -104,18 +102,18 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
             if (!string.IsNullOrEmpty(selectedFolderPath))
             {
-                logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
+                
 
                 AddMusicFolderByPassingToService(selectedFolderPath);
             }
             else
             {
-                logger.LogInformation("No folder selected by user.");
+                
             }
         }
         else
         {
-            logger.LogInformation("Folder selection was cancelled or failed.");
+            
         }
     }
 

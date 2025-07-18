@@ -4,6 +4,8 @@
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Extensions;
 
+using DynamicData;
+
 using Realms.Exceptions;
 
 using System.Linq.Expressions;
@@ -256,4 +258,11 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     }
 
     #endregion
+
+    public IObservable<IChangeSet<T>> Connect()
+    {
+        // The repository now manages the Realm instance and provides the stream
+        var realm = _factory.GetRealmInstance();
+        return realm.All<T>().AsObservableChangeSet();
+    }
 }

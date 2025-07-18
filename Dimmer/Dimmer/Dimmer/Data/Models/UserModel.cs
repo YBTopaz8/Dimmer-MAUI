@@ -91,7 +91,7 @@ public partial class LastFMUser:EmbeddedObject
         /// <summary>
         /// Gets or sets a list of images.
         /// </summary>
-        public IList<LastImage> Images { get;  }
+        public LastImage? Image { get; set; }
 
     public partial class LastImage : EmbeddedObject
     {

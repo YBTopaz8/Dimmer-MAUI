@@ -165,6 +165,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void OnNativePlayEnded(object? sender, PlaybackEventArgs e)
     {
+
+
         // Simply forward the event.
         PlayEnded?.Invoke(this, e);
     }

@@ -15,13 +15,13 @@ public interface ILastfmService
     string? AuthenticatedUser { get; }
     string? AuthenticatedUserSessionToken { get; }
     Task<string> GetAuthenticationUrlAsync(); // Returns only the URL
-    Task<bool> CompleteAuthenticationAsync();
+    Task<bool> CompleteAuthenticationAsync(string userName);
 
 
     // --- Data Retrieval ---
-    Task<Track?> GetTrackInfoAsync(string artistName, string trackName);
-    Task<Album?> GetAlbumInfoAsync(string artistName, string albumName);
-    Task<Artist?> GetArtistInfoAsync(string artistName);
+    Task<Track> GetTrackInfoAsync(string artistName, string trackName);
+    Task<Album> GetAlbumInfoAsync(string artistName, string albumName);
+    Task<Artist> GetArtistInfoAsync(string artistName);
     Task<List<Artist>> GetTopArtistsChartAsync(int limit = 20);
     Task<List<Track>> GetUserRecentTracksAsync(string username, int limit = 20);
 
@@ -53,5 +53,7 @@ public interface ILastfmService
     /// <param name="since">Only import scrobbles that happened after this date.</param>
     /// <returns>The number of new play events added to your database.</returns>
     Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since);
+    void Start();
+    Task<User> GetUserInfoAsync();
 }
 

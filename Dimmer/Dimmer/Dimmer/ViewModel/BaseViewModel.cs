@@ -233,14 +233,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             LoadAndCacheCoverArtAsync(CurrentPlayingSongView);
 
-            _lastfmService.IsAuthenticatedChanged
-               .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
-               .Subscribe(isAuthenticated =>
-               {
-                   IsLastfmAuthenticated = isAuthenticated;
-                   LastfmUsername = _lastfmService.AuthenticatedUser ?? "Not Logged In";
-               })
-               .DisposeWith(Disposables); // Assuming you have a reactive disposables manager
         }
         else
         {
@@ -258,7 +250,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SearchSongSB_TextChanged("random");
 
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
-
+        _lastfmService.IsAuthenticatedChanged
+           .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
+           .Subscribe(isAuthenticated =>
+           {
+               IsLastfmAuthenticated = isAuthenticated;
+               LastfmUsername = _lastfmService.AuthenticatedUser ?? "Not Logged In";
+           })
+           .DisposeWith(Disposables); // Assuming you have a reactive disposables manager
+        _lastfmService.Start();
     }
 
     public void SearchSongSB_TextChanged(string searchText)
@@ -451,6 +451,77 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     protected readonly ILastfmService _lastfmService;
 
+    [RelayCommand]
+    public async Task LoadUserLastFMInfo()
+    {
+        var usr= await _lastfmService.GetUserInfoAsync();
+        if (usr is null)
+        {
+            _logger.LogWarning("Failed to load Last.fm user info.");
+            return;
+        }
+        UserLocal.LastFMAccountInfo.Name = usr.Name;
+        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
+        UserLocal.LastFMAccountInfo.Url = usr.Url;
+        UserLocal.LastFMAccountInfo.Country = usr.Country;
+        UserLocal.LastFMAccountInfo.Age = usr.Age;
+        UserLocal.LastFMAccountInfo.Playcount= usr.Playcount;
+        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
+        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
+        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
+        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
+        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        var rlm= realmFactory.GetRealmInstance();
+        rlm.Write(() =>
+        {
+            var usre= rlm.All<UserModel>().ToList();
+            if (usre is not null)
+            {
+                var usrr = usre.FirstOrDefault();
+                if (usrr is not null )
+                {
+                    usrr.LastFMAccountInfo=new();
+                    usrr.LastFMAccountInfo.Name = usr.Name;
+                    usrr.LastFMAccountInfo.RealName = usr.RealName;
+                    usrr.LastFMAccountInfo.Url = usr.Url;
+                    usrr.LastFMAccountInfo.Country = usr.Country;
+                    usrr.LastFMAccountInfo.Age = usr.Age;
+                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
+                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
+                    usrr.LastFMAccountInfo.Registered = usr.Registered;
+                    usrr.LastFMAccountInfo.Gender = usr.Gender;
+
+                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
+                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
+                    rlm.Add(usrr, update: true);
+                }
+                else
+                {
+                    usrr = new UserModel();
+                    usrr.LastFMAccountInfo=new();
+                    usrr.Id=new();
+                    usrr.UserName= usr.Name;
+                    usrr.LastFMAccountInfo.Name = usr.Name;
+                    usrr.LastFMAccountInfo.RealName = usr.RealName;
+                    usrr.LastFMAccountInfo.Url = usr.Url;
+                    usrr.LastFMAccountInfo.Country = usr.Country;
+                    usrr.LastFMAccountInfo.Age = usr.Age;
+                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
+                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
+                    usrr.LastFMAccountInfo.Registered = usr.Registered;
+                    usrr.LastFMAccountInfo.Gender = usr.Gender;
+                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
+                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
+
+                    rlm.Add(usrr, update: true);
+                }
+            }
+        });
+    }
+
     // Properties for UI binding
     [ObservableProperty]
     public partial bool IsLastfmAuthenticated { get; set; }
@@ -495,7 +566,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             // Call the second-step method in your service
-            bool success = await _lastfmService.CompleteAuthenticationAsync();
+            bool success = await _lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
 
             if (success)
             {
@@ -849,12 +920,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         GetStatsGeneral();
     }
+
     private void WireUpLiveStats()
     {
         var filteredSongsStream = _searchResults.ToObservableChangeSet()
-    .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
-    .ToCollection()
-    .StartWith(_searchResults); // Start with the initial collection
+        .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
+        .ToCollection()
+        .StartWith(_searchResults); // Start with the initial collection
 
         // Stream 2: A stream that fires whenever the full list of play events changes.
         // This is your existing _playEventSource.
@@ -1193,8 +1265,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // ... your existing logic to refresh FolderPaths and trigger metadata scan ...
         IsAppScanning = false;
 
-        FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
+        var realmm = realmFactory.GetRealmInstance();
 
+        var appModel = realmm.All<AppStateModel>().ToList();
+        if (appModel is not null && appModel.Count>0)
+        {
+            var appmodel = appModel[0];
+
+            FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
+   
+        }
     }
 
     #endregion
@@ -2105,7 +2185,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _stateService.SetCurrentSong(song);
     }
     [RelayCommand]
-    public void ToggleFavSong(SongModelView songModel)
+    public async void ToggleFavSong(SongModelView songModel)
     {
 
 
@@ -2123,7 +2203,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         songModel.IsFavorite = !songModel.IsFavorite;
         var song = songRepo.Upsert(songModel.ToModel(_mapper));
 
+        if (songModel.IsFavorite)
+        {
+            _= await _lastfmService.LoveTrackAsync(songModel);
+        }
+        else
+        {
+            _= await _lastfmService.UnloveTrackAsync(songModel);
 
+        }
     }
 
 

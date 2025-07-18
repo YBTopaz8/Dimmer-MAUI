@@ -71,7 +71,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
 
 
-
         _mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
         _mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
     }

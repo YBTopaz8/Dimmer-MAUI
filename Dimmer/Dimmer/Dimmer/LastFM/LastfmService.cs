@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,7 +29,7 @@ public class LastfmService : ILastfmService
     private readonly IRealmFactory _realmFactory;
     private readonly LastfmClient _client;
     private readonly LastfmSettings _settings; 
-    private readonly IDimmerAudioService _audioService; 
+    private readonly IDimmerAudioService audioService; 
     private readonly ILogger<LastfmService> _logger;
     private readonly CompositeDisposable _disposables = new(); // To manage subscriptions
 
@@ -45,13 +46,13 @@ public class LastfmService : ILastfmService
     public string? AuthenticatedUser => IsAuthenticated ? _username : null;
     public string? AuthenticatedUserSessionToken => _client.Session.SessionKey;
 
-    public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService audioService, ILogger<LastfmService> logger,
+    public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService _audioService, ILogger<LastfmService> logger,
         IRealmFactory realmFactory,
         IRepository<SongModel> songRepo,
         IRepository<DimmerPlayEvent> playEventRepo)
     {
         _realmFactory = realmFactory;
-        _audioService = audioService;
+        this.audioService = _audioService;
         _songRepo = songRepo;
         _playEventRepo = playEventRepo;
         this._logger=logger;
@@ -73,69 +74,84 @@ public class LastfmService : ILastfmService
 
         LoadSession();
 
+       
+    }
+
+    public void Start()
+    {
+        if (_disposables.Count > 0)
+            return; // Prevent multiple subscriptions
+
+        _logger.LogInformation("Last.fm Service starting listeners...");
+
+        // --- 1. Handle "Now Playing" and setting the scrobble candidate ---
+        // We use PlaybackStateChanged because it fires for Play, Resume, etc.
         Observable.FromEventPattern<PlaybackEventArgs>(
-             h => audioService.PlaybackStateChanged += h,
-             h => audioService.PlaybackStateChanged -= h)
-         .Select(evt => evt.EventArgs)
-         .ObserveOn(RxApp.MainThreadScheduler)
-         .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription"));
+            h => audioService.PlaybackStateChanged += h,
+            h => audioService.PlaybackStateChanged -= h)
+        .Select(evt => evt.EventArgs)
+        .Where(_ => IsAuthenticated)
+        .ObserveOn(RxApp.TaskpoolScheduler)
+        .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in Last.fm PlaybackStateChanged subscription."))
+        .DisposeWith(_disposables);
+
         Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.PlayEnded += h,
-                h => audioService.PlayEnded -= h)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"));
+                    h => audioService.PlayEnded += h,
+                    h => audioService.PlayEnded -= h)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"));
+
     }
 
     private async Task OnPlaybackEnded()
     {
-        if (_songToScrobble != null && IsAuthenticated)
+        // This event is for when the *entire queue* finishes.
+        // We need to scrobble the very last track.
+        if (_songToScrobble != null)
         {
             await ScrobbleAsync(_songToScrobble);
-            _songToScrobble = null; // Clear the state.
         }
+        // The session is over, clear the candidate.
+        _songToScrobble = null;
     }
 
-    private void HandlePlaybackStateChange(PlaybackEventArgs args)
+    private async void HandlePlaybackStateChange(PlaybackEventArgs args)
     {
-        PlayType? state = StatesMapper.Map(args.EventType); // Assuming you have a way to get the enum state
+        var currentSong = args.MediaSong;
 
-        switch (state)
+        switch (args.EventType)
         {
-            case PlayType.Play:
-                // This case might be handled by PlayEnded -> NextTrack -> StartAudioForSongAtIndex
-                // which then calls InitializeAsync and Play. The audio service might raise
-                // a 'Playing' state change at that point. We can simply log it.
-                OnPlaybackStarted(args);
+            case DimmerPlaybackState.Playing:
+                if (currentSong is null)
+                    return;
+
+                // When a new song starts playing, it implies the previous one finished.
+                // This handles both natural track changes and manual skips.
+                if (_songToScrobble != null)
+                {
+                    await ScrobbleAsync(_songToScrobble);
+                }
+
+                // Now, set the state for the new song.
+                _songToScrobble = currentSong;
+                await UpdateNowPlayingAsync(currentSong);
+                _ = EnrichSongMetadataAsync(currentSong.Id);
                 break;
 
-            case PlayType.Resume:
-                OnPlaybackResumed(args);
+            case DimmerPlaybackState.Resumed:
+                if (currentSong is null)
+                    return;
+                await UpdateNowPlayingAsync(currentSong);
                 break;
 
-            case PlayType.Pause:
-                OnPlaybackPaused(args);
+            case DimmerPlaybackState.PlayCompleted:
                 break;
-        } 
-    }
 
-    private async void OnPlaybackPaused(PlaybackEventArgs args)
-    {
-    }
-
-    private async void OnPlaybackResumed(PlaybackEventArgs args)
-    {
-
-
-        await UpdateNowPlayingAsync(args.MediaSong);
-    }
-
-    private async void OnPlaybackStarted(PlaybackEventArgs args)
-    {
-        if (_songToScrobble != null && IsAuthenticated)
-        {
-            await ScrobbleAsync(_songToScrobble);
-            _songToScrobble = null; // Clear the state.
-            await UpdateNowPlayingAsync(args.MediaSong);
+            // No Last.fm action needed for these states.
+            case DimmerPlaybackState.Skipped: // Handled by the next 'Playing' state
+            case DimmerPlaybackState.PausedDimmer:
+            default:
+                break;
         }
     }
 
@@ -254,7 +270,7 @@ public class LastfmService : ILastfmService
     /// <summary>
     /// Step 2: After the user authorizes on the website, this completes the authentication.
     /// </summary>
-    public async Task<bool> CompleteAuthenticationAsync()
+    public async Task<bool> CompleteAuthenticationAsync(string authenticatedUser)
     {
         try
         {
@@ -263,17 +279,16 @@ public class LastfmService : ILastfmService
 
             if (_client.Session.Authenticated)
             {
-                // CRITICAL STEP: After getting the session key, we must find out the username.
-                // The most reliable way is to make a quick call to user.getInfo.
-                User? userInfo = await _client.User.GetInfoAsync(); // Gets info for the NOW authenticated user.
-                _username = userInfo.Name;
-                
+
+                _username = authenticatedUser;
+
                 // Now we save the session key AND the username.
                 SaveSession();
                 _isAuthenticatedSubject.OnNext(true);
 
+                User userInfo = await GetUserInfoAsync();
                 var realmm = _realmFactory.GetRealmInstance();
-               await realmm.WriteAsync(() =>
+                await realmm.WriteAsync(() =>
                 {
 
                     var usrs = realmm.All<UserModel>().ToList();
@@ -292,21 +307,7 @@ public class LastfmService : ILastfmService
                         newUsr.LastFMAccountInfo.Type=userInfo.Type;
                         newUsr.LastFMAccountInfo.Registered=userInfo.Registered;
                         newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
-
-                        if (userInfo.Images is not null && userInfo.Images.Count>0)
-                        {
-                            foreach (var img in userInfo.Images)
-                            {
-                                var imgg = new LastImage
-                                {
-                                    Size = img.Size,
-                                    Url = img.Url
-                                };
-                                newUsr.LastFMAccountInfo.Images.Add(imgg);
-
-                            }
-
-                        }
+                        realmm.Add(newUsr, update: true);   
                     }
                     else
                     {
@@ -314,32 +315,43 @@ public class LastfmService : ILastfmService
                         if (newUsr is not null)
                         {
 
-                        newUsr.LastFMAccountInfo??=new();
-                        newUsr.LastFMAccountInfo.Name=userInfo.Name;
-                        newUsr.LastFMAccountInfo.RealName=userInfo.RealName;
-                        newUsr.LastFMAccountInfo.Gender=userInfo.Gender;
-                        newUsr.LastFMAccountInfo.Playcount=userInfo.Playcount;
-                        newUsr.LastFMAccountInfo.Age=userInfo.Age;
-                        newUsr.LastFMAccountInfo.Country=userInfo.Country;
-                        newUsr.LastFMAccountInfo.Url=userInfo.Url;
-                        newUsr.LastFMAccountInfo.Type=userInfo.Type;
-                        newUsr.LastFMAccountInfo.Registered=userInfo.Registered;
-                        newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
+                            newUsr.LastFMAccountInfo??=new();
+                            newUsr.LastFMAccountInfo.Name=userInfo.Name;
+                            newUsr.LastFMAccountInfo.RealName=userInfo.RealName;
+                            newUsr.LastFMAccountInfo.Gender=userInfo.Gender;
+                            newUsr.LastFMAccountInfo.Playcount=userInfo.Playcount;
+                            newUsr.LastFMAccountInfo.Age=userInfo.Age;
+                            newUsr.LastFMAccountInfo.Country=userInfo.Country;
+                            newUsr.LastFMAccountInfo.Url=userInfo.Url;
+                            newUsr.LastFMAccountInfo.Type=userInfo.Type;
+                            newUsr.LastFMAccountInfo.Registered=userInfo.Registered;
+                            newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
 
-                        if (userInfo.Images is not null && userInfo.Images.Count>0)
-                        {
-                            foreach (var img in userInfo.Images)
-                            {
-                                var imgg = new LastImage
-                                {
-                                    Size = img.Size,
-                                    Url = img.Url
-                                };
-                                newUsr.LastFMAccountInfo.Images.Add(imgg);
-
-                            }
+                            newUsr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                            newUsr.LastFMAccountInfo.Image.Url=userInfo.Images.LastOrDefault().Url;
+                            newUsr.LastFMAccountInfo.Image.Size=userInfo.Images.LastOrDefault().Size;
 
                         }
+                        else
+                        {
+                            newUsr = new UserModel();
+                            newUsr.LastFMAccountInfo=new();
+                            newUsr.Id=new();
+                            newUsr.UserName= userInfo.Name;
+                            newUsr.LastFMAccountInfo.Name = userInfo.Name;
+                            newUsr.LastFMAccountInfo.RealName = userInfo.RealName;
+                            newUsr.LastFMAccountInfo.Url = userInfo.Url;
+                            newUsr.LastFMAccountInfo.Country = userInfo.Country;
+                            newUsr.LastFMAccountInfo.Age = userInfo.Age;
+                            newUsr.LastFMAccountInfo.Playcount= userInfo.Playcount;
+                            newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
+                            newUsr.LastFMAccountInfo.Registered = userInfo.Registered;
+                            newUsr.LastFMAccountInfo.Gender = userInfo.Gender;
+                            newUsr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                            newUsr.LastFMAccountInfo.Image.Url=userInfo.Images.LastOrDefault().Url;
+                            newUsr.LastFMAccountInfo.Image.Size=userInfo.Images.LastOrDefault().Size;
+
+                            realmm.Add(newUsr, update: true);
                         }
                     }
                 });
@@ -353,6 +365,24 @@ public class LastfmService : ILastfmService
         return false;
     }
 
+    public async Task<User> GetUserInfoAsync()
+    {
+        if (AuthenticatedUser is null)
+        {
+            LoadSession();
+            if (AuthenticatedUser is null)
+            {
+                return new User("Unknown");
+            }
+
+          return  await _client.User.GetInfoAsync(AuthenticatedUser);
+        }
+
+
+        return  await _client.User.GetInfoAsync(AuthenticatedUser);
+        // Gets info for the NOW authenticated user.
+    }
+
     #endregion
     public async Task UpdateNowPlayingAsync(SongModelView song)
     {
@@ -361,7 +391,7 @@ public class LastfmService : ILastfmService
 
         try
         {
-         var isUpdated=   await _client.Track.UpdateNowPlayingAsync(song.OtherArtistsName, song.Title, album: song.AlbumName);
+         var isUpdated=   await _client.Track.UpdateNowPlayingAsync(song.Title, song.OtherArtistsName, album: song.AlbumName);
         }
         catch (Exception ex)
         {
@@ -403,7 +433,7 @@ public class LastfmService : ILastfmService
         try
         { 
           
-            return await _client.Track.GetInfoAsync(artistName, trackName); 
+            return await _client.Track.GetInfoAsync(trackName, artistName); 
         }
         catch 
         { 
@@ -445,7 +475,7 @@ public class LastfmService : ILastfmService
             return false;
         try
         {
-            await _client.Track.LoveAsync(song.OtherArtistsName, song.Title);
+            await _client.Track.LoveAsync(song.Title, song.OtherArtistsName );
             
             return true;
         }
@@ -462,7 +492,7 @@ public class LastfmService : ILastfmService
             return false;
         try
         {
-            await _client.Track.UnloveAsync(song.OtherArtistsName, song.Title);
+            await _client.Track.UnloveAsync(song.Title, song.OtherArtistsName);
             
             return true;
         }
@@ -484,11 +514,14 @@ public class LastfmService : ILastfmService
         try
         {
             var trackInfo = await GetTrackInfoAsync(song.ArtistName, song.Title);
-            if (trackInfo is null)
+            if (trackInfo is null || trackInfo.IsNull ||trackInfo.Duration==0)
                 return false;
 
             Album? albumInfo = trackInfo.Album != null ? await GetAlbumInfoAsync(trackInfo.Artist.Name, trackInfo.Album.Name) : null;
-
+            if (albumInfo is null)
+            {
+                return false;
+            }
             bool hasChanges = false;
             realm.Write(() =>
             {
@@ -521,7 +554,6 @@ public class LastfmService : ILastfmService
             return false;
         }
     }
-
 
     public async Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since)
     {

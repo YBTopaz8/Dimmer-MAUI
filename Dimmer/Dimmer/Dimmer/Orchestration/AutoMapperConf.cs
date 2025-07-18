@@ -2,6 +2,8 @@
 
 // Assuming other necessary using statements for your ViewModels etc.
 
+using static Dimmer.Data.ModelView.LastFMUserView;
+
 namespace Dimmer.Orchestration;
 
 public static class AutoMapperConf
@@ -16,6 +18,8 @@ public static class AutoMapperConf
             // =====================================================================
             // These are for general application use (e.g., UI binding).
 
+            //cfg.CreateMap<LastImageView, Dimmer.Data.Models.LastFMUser>().ReverseMap().PreserveReferences();
+            cfg.CreateMap<LastFMUser, LastFMUserView>().ReverseMap().PreserveReferences();
             cfg.CreateMap<SongModel, SongModelView>().ReverseMap().PreserveReferences();
             cfg.CreateMap<AlbumModel, AlbumModelView>().ReverseMap().PreserveReferences();
             cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap().PreserveReferences();
