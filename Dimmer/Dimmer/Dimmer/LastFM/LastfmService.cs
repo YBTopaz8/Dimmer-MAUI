@@ -287,7 +287,7 @@ public class LastfmService : ILastfmService
                 _isAuthenticatedSubject.OnNext(true);
 
                 User userInfo = await GetUserInfoAsync();
-                var realmm = _realmFactory.GetRealmInstance();
+                Realm realmm = _realmFactory.GetRealmInstance()!;
                 await realmm.WriteAsync(() =>
                 {
 
