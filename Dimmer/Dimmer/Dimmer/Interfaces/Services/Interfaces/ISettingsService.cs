@@ -16,6 +16,8 @@ public interface ISettingsService
     bool RemoveMusicFolder(string path);
     bool ClearAllFolders();
     void SetMusicFolders(IEnumerable<string> paths);
+    void SaveLastFMUserSession(string sessionTok);
+    string? GetLastFMUserSession();
 
     // Potentially methods to Save/Load settings if not done automatically on set
     // Task SaveAsync();

@@ -1,7 +1,12 @@
 ﻿using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.LastFM;
+
+using Microsoft.Extensions.Configuration;
 
 using SkiaSharp.Views.Maui.Controls.Hosting;
+
+using System.Reflection;
 
 namespace Dimmer;
 
@@ -11,7 +16,6 @@ public static class MauiProgramExtensions
     {
         builder
             .UseMauiApp<App>()
-            .UseBarcodeReader()
             .UseSkiaSharp()
             .UseMauiCommunityToolkit(options =>
             {
@@ -78,9 +82,42 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<MusicMetadataService>();
         builder.Services.AddSingleton<MusicPowerUserService>();
 
+        builder.Services.AddSingleton<ILastfmService, LastfmService>();
         builder.Services.AddSingleton<BaseViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
+
+        var assembly = Assembly.GetExecutingAssembly();
+
+        // THE CORRECTED RESOURCE NAME
+        // Use your project's default namespace (likely "Dimmer") + the filename.
+        const string resourceName = "Dimmer.appsettings.json";
+
+        var ress = assembly.GetManifestResourceNames();
+
+        Debug.WriteLine(ress.ToString());
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+
+        // This null check will prevent the crash and tell you exactly what's wrong.
+        if (stream == null)
+        {
+            // If you hit this, the resource name is still wrong or the build action is not set.
+            throw new FileNotFoundException(
+                $"Could not find the embedded resource '{resourceName}'. " +
+                "Ensure the 'Build Action' is set to 'Embedded resource' for Dimmer.appsettings.json",
+                resourceName);
+        }
+
+        // This section will now work without crashing.
+        var config = new ConfigurationBuilder()
+                    .AddJsonStream(stream)
+                    .Build();
+
+        builder.Configuration.AddConfiguration(config);
+
+        // Register LastfmSettings
+        builder.Services.Configure<LastfmSettings>(builder.Configuration.GetSection("Lastfm"));
+
         return builder;
     }
 }

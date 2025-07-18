@@ -595,9 +595,7 @@ public partial class HomePage : ContentPage
 
     private async void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-
-        MyViewModel.CurrentQuery =MyViewModel.CurrentPlaybackQuery;
-
+        SearchSongSB.Text=MyViewModel.CurrentPlaybackQuery;
         return;
 
         if (!SongsColView.IsVisible)
@@ -610,5 +608,10 @@ public partial class HomePage : ContentPage
             await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsColView.DimmOutCompletelyAndHide(250));
         }
 
+    }
+
+    private void Button_Clicked_1(object sender, EventArgs e)
+    {
+        SearchSongSB.Text=string.Empty;
     }
 }

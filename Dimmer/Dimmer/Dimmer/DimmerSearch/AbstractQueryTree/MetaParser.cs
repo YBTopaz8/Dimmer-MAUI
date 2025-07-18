@@ -183,7 +183,7 @@ public class MetaParser
                 FieldType.Text,
                 Array.Empty<string>(),
                 "A placeholder for random sorting",
-                _ => new object() // A do-nothing expression
+                "random" // A do-nothing expression
             );
 
             // Now create the SortDescription with the dummy FieldDefinition

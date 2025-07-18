@@ -51,7 +51,7 @@ public class LiveRealmService : ILiveRealmService
         // that DynamicData needs. No intermediate observables.
         Songs = liveSongs.AsObservableChangeSet<SongModel, ObjectId>(s => s.Id);
         Artists = liveArtists.AsObservableChangeSet<ArtistModel, ObjectId>(a => a.Id);
-        // Use your actual logger here
+        // Use your actual _logger here
     }
 
 

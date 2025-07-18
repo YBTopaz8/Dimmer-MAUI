@@ -1,4 +1,5 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree;
+using Dimmer.DimmerSearch.AbstractQueryTree.NL;
 
 using System;
 using System.Collections;
@@ -32,21 +33,14 @@ public enum SortDirection { Ascending, Descending, Random }
 
 public class SortDescription
 {
-    public string PropertyName { get; }
+    public FieldDefinition Field { get; }
     public SortDirection Direction { get; }
-    public Func<SongModelView, object> Accessor { get; }
-
-    public FieldDefinition Field { get; } = null!;
+    public string PropertyName => Field.PrimaryName;
     public SortDescription(FieldDefinition field, SortDirection direction)
     {
         Field = field;
         Direction = direction;
-        if (Field is not null)
-        {
-
-            Accessor = Field.PropertyExpression.Compile();
-
-        }
+      
     }
 }
 
@@ -77,9 +71,7 @@ public class SongModelViewComparer : IComparer<SongModelView>
             return -1;
         if (_isRandomSort)
         {
-            // For a random sort, we ignore all other sort descriptions.
-            // We get or create a stable Guid for each song and compare those.
-            // This is consistent and satisfies the IComparer contract.
+
             var xGuid = _randomSortKeys.GetOrAdd(x, _ => Guid.NewGuid());
             var yGuid = _randomSortKeys.GetOrAdd(y, _ => Guid.NewGuid());
             return xGuid.CompareTo(yGuid);
@@ -87,25 +79,59 @@ public class SongModelViewComparer : IComparer<SongModelView>
 
         foreach (var desc in _sortDescriptions)
         {
-            var valueX = desc.Accessor(x!);
-            var valueY = desc.Accessor(y!);
+            var valueX = ReflectionCache.GetValue(x!, desc.Field);
+            var valueY = ReflectionCache.GetValue(y!, desc.Field);
             // --- End of Change ---
 
             int result;
-            if (valueX is IComparable comparableX)
+            if (valueX is null && valueY is null)
+            {
+                result = 0;
+            }
+            else if (valueX is null)
+            {
+                result = -1; // Nulls are usually considered "less than" non-nulls
+            }
+            else if (valueY is null)
+            {
+                result = 1;
+            }
+            else if (valueX is IComparable comparableX)
             {
                 result = comparableX.CompareTo(valueY);
             }
             else
             {
-                result = string.Compare(valueX?.ToString(), valueY?.ToString(), StringComparison.OrdinalIgnoreCase);
+                result = string.Compare(valueX.ToString(), valueY.ToString(), StringComparison.OrdinalIgnoreCase);
             }
 
+            // If we found a difference on this level, we're done. Return the result.
             if (result != 0)
             {
                 return desc.Direction == SortDirection.Ascending ? result : -result;
             }
         }
         return 0;
+    }
+
+
+    public SongModelViewComparer Inverted()
+    {
+        var invertedDescriptions = _sortDescriptions.Select(desc =>
+        {
+            // For random sort, the direction doesn't matter, keep it as is.
+            if (desc.Direction == SortDirection.Random)
+                return desc;
+
+            // Invert Ascending to Descending and vice-versa.
+            var invertedDirection = desc.Direction == SortDirection.Ascending
+                ? SortDirection.Descending
+                : SortDirection.Ascending;
+
+            return new SortDescription(desc.Field, invertedDirection);
+
+        }).ToList();
+
+        return new SongModelViewComparer(invertedDescriptions);
     }
 }

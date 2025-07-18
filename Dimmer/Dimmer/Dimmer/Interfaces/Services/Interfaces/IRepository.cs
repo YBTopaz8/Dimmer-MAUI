@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using DynamicData;
+
+using System.Linq.Expressions;
 
 namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IRepository<T> where T : new()
@@ -14,4 +16,6 @@ public interface IRepository<T> where T : new()
     void DeletMany(IEnumerable<ObjectId> ids);
     T Create(T entity);
     bool Update(ObjectId id, Action<T> updateAction);
+
+    IObservable<IChangeSet<T>> Connect();
 }

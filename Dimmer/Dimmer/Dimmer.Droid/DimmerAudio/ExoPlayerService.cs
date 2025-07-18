@@ -78,7 +78,7 @@ public class ExoPlayerService : MediaSessionService
 
     // --- Internal State ---
     internal static MediaItem? currentMediaItem; // Choose a unique ID
-    public SongModelView CurrentSongContext; // Choose a unique ID
+    public SongModelView? CurrentSongContext; // Choose a unique ID
 
     // --- Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
@@ -494,9 +494,29 @@ public class ExoPlayerService : MediaSessionService
 
 
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
-            //player.AddMediaItem(currentMediaItem);
+            player.AddMediaItem(currentMediaItem);
             player.Prepare();
+
             player.Play();
+            var awDT = player.CurrentMediaItem.MediaMetadata.ArtworkUri;
+            var awDTT = player.CurrentMediaItem.MediaMetadata.ArtworkData;
+            if (awDT is not null)
+            {
+                CurrentSongContext.CoverImagePath=awDT.Path;
+            }
+            else
+            {
+                CurrentSongContext.CoverImagePath = string.Empty;
+
+            }
+            if (awDTT is not null)
+            {
+                CurrentSongContext.CoverImageBytes = [.. awDTT];
+            }
+            else
+            {
+                CurrentSongContext.CoverImageBytes=null;
+            }
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
 
@@ -612,12 +632,12 @@ public class ExoPlayerService : MediaSessionService
         public void OnSurfaceSizeChanged(int p0, int p1) { /* Video related */ }
         public void OnTimelineChanged(Timeline? timeline, int reason)
         {
-
+            Console.WriteLine($"[PlayerEventListener] TimelineChanged: {timeline?.ToString()} Reason={reason}");
         }
         public void OnTrackSelectionParametersChanged(TrackSelectionParameters? p0) { /* Log if needed */ }
         public void OnTracksChanged(Tracks? tracks)
         {
-
+            Console.WriteLine($"[PlayerEventListener] TracksChanged: {tracks?.ToString()}");
             /* Log if needed */
         }
         public void OnVideoSizeChanged(VideoSize? p0) { /* Video related */ }
@@ -638,7 +658,9 @@ public class ExoPlayerService : MediaSessionService
                 // Find the full song details from a repository or a cached list
                 // SongModelView newSongContext = MySongRepository.GetById(mediaItem.MediaId);
                 // service.CurrentSongContext = newSongContext;
-
+                service.player?.Stop();
+                service.RaisePlayingEnded();
+                Console.WriteLine($"[ExoPlayerService] MediaItemTransition: {mediaItem.MediaId} Reason={reason}");
                 System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
             }
         }
@@ -755,7 +777,7 @@ public class ExoPlayerService : MediaSessionService
 
     }
 
-
+    //frowarding player to allow queueing
     public class QueueEnablingPlayerWrapper : Java.Lang.Object, IPlayer
     {
         private readonly IPlayer _realPlayer;
@@ -769,7 +791,30 @@ public class ExoPlayerService : MediaSessionService
         // Properties
         public Looper? ApplicationLooper => _realPlayer.ApplicationLooper;
         public AudioAttributes? AudioAttributes => _realPlayer.AudioAttributes;
-        public PlayerCommands? AvailableCommands => _realPlayer.AvailableCommands;
+        public PlayerCommands? AvailableCommands
+        {
+            get
+            {
+                // 1. Get the commands the real ExoPlayer instance thinks it has.
+                var realCommands = _realPlayer.AvailableCommands;
+
+                // 2. Create a new builder based on the real commands.
+                var builder = new PlayerCommands.Builder();
+
+                builder.AddAll(realCommands);
+
+                // 3. Forcefully add the commands for Next and Previous,
+                //    because WE know how to handle them in our app.
+                //builder.Add(_realPlayer.);
+                //builder.Add(IPlayer.CommandSeekToPrevious);
+                // You can also use CommandSeekToNextMediaItem if you prefer
+                // builder.Add(IPlayer.CommandSeekToNextMediaItem); 
+                // builder.Add(IPlayer.CommandSeekToPreviousMediaItem);
+
+                // 4. Build and return the new, augmented set of commands.
+                return builder.Build();
+            }
+        }
         public int BufferedPercentage => _realPlayer.BufferedPercentage;
         public long BufferedPosition => _realPlayer.BufferedPosition;
         public long ContentBufferedPosition => _realPlayer.ContentBufferedPosition;

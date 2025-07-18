@@ -92,7 +92,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Childish-Music_24985.ico" />
+    <Content Include="dimmicoo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiImage Include="loggo.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -102,12 +106,11 @@
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
     <PackageReference Include="FunctionZero.Maui.zBind" Version="8.1.1" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.90" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="ReactiveUI.Maui" Version="20.4.1" />
-    <PackageReference Include="ReactiveUI.WinUI" Version="20.4.1" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="Vanara.Core" Version="4.1.6" />
     <PackageReference Include="Vanara.PInvoke.ComCtl32" Version="4.1.6" />
@@ -119,6 +122,9 @@
     <PackageReference Include="Vanara.Windows.Shell" Version="4.1.6" />
     <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3351.48" />
+
+
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
 
 
   </ItemGroup>
@@ -242,7 +248,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Title>Dimmer</Title>
     <PackageIcon>dimmerIcon.png</PackageIcon>
-    <ApplicationIcon>Childish-Music_24985.ico</ApplicationIcon>
+    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!--

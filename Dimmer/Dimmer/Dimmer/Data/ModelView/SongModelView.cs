@@ -23,14 +23,14 @@ public partial class SongModelView : ObservableObject
     public partial string ArtistName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string? AlbumName { get; set; }
+    public partial string AlbumName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial AlbumModelView? Album { get; set; }
+    public partial AlbumModelView Album { get; set; } = new();
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView?> ArtistToSong { get; set; }
     [ObservableProperty]
-    public partial GenreModelView? Genre { get; set; }
+    public partial GenreModelView Genre { get; set; } = new();
     [ObservableProperty]
     public partial string GenreName { get; set; } = string.Empty;
     [ObservableProperty]
@@ -59,7 +59,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial byte[]? CoverImageBytes { get; set; }
     [ObservableProperty]
-    public partial string CoverImagePath { get; set; } = "musicnoteslider.png";
+    public partial string CoverImagePath { get; set; }
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
@@ -135,6 +135,7 @@ public partial class SongModelView : ObservableObject
     public DateTimeOffset LastPlayed =>
        PlayEvents?
            .Where(x => x.PlayType == (int)PlayType.Completed)
+
            .OrderByDescending(x => x.EventDate)
            .FirstOrDefault()?
            .EventDate ?? DateTimeOffset.MinValue;

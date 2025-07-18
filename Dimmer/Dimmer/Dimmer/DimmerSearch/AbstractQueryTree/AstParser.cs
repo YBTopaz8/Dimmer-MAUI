@@ -1,4 +1,6 @@
 ﻿
+using Dimmer.DimmerSearch.Exceptions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +42,7 @@ public class AstParser
         //    return new ClauseNode("Title", "contains", "");
         var result = ParseExpression();
         if (!IsAtEnd())
-            throw new Exception($"Syntax error: Unexpected token '{Peek().Text}' at position {Peek().Position}.");
+            throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
         return result;
     }
 
@@ -93,6 +95,8 @@ public class AstParser
         }
         else
         {
+
+            //throw new ParsingException($"Field '{field}' requires an operator (e.g., ':', '>', '<').\"", Peek().Position);
             //// NEW: Check if the field requires an explicit operator
             //if (FieldRegistry.IsNumeric(field) && Peek().Type != TokenType.Number)
             //{ // You'd need a FieldRegistry
@@ -113,7 +117,8 @@ public class AstParser
 
         if (IsValueToken(Peek().Type))
         {
-            var lowerValue = Consume(Peek().Type).Text;
+            var lowerValueToken = Consume(Peek().Type);
+            var lowerValue = lowerValueToken.Text;
 
             // Check for a range operator
             if (Match(TokenType.Minus))
@@ -122,9 +127,9 @@ public class AstParser
                 {
                     var upperValue = Consume(Peek().Type).Text;
                     // Create a single ClauseNode with both values
-                    return new ClauseNode(field, "-", lowerValue, upperValue);
+                    return new ClauseNode(field, "-", lowerValue, upperValue, isNegated);
                 }
-                throw new Exception($"Syntax Error: Expected an upper value for the range on field '{field}' at position '{Peek().Position}'.");
+                throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
             }
 
             // If not a range, proceed with the original implicit AND logic
@@ -138,13 +143,12 @@ public class AstParser
             }
             return logicalChain;
         }
-
-        throw new Exception($"Syntax Error: Expected a value for field '{field}' but found '{Peek().Text}'at position '{Peek().Position}'.");
+        throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
     }
 
     private Token Peek(int offset = 0) => _position + offset >= _tokens.Count ? _tokens.Last() : _tokens[_position + offset];
     private bool IsAtEnd() => Peek().Type == TokenType.EndOfFile;
-    private Token Consume(TokenType type, string message) => Peek().Type == type ? _tokens[_position++] : throw new Exception(message);
+    private Token Consume(TokenType type, string message) => Peek().Type == type ? _tokens[_position++] : throw new ParsingException(message, Peek().Position);
     private Token Consume(TokenType type) => Consume(type, $"Expected {type} but got {Peek().Type}.");
     private bool Match(params TokenType[] types)
     {

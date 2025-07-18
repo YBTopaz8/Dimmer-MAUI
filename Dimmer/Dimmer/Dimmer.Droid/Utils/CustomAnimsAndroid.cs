@@ -9,10 +9,10 @@ public static class CustomAnimsAndroid
 			return;
 
 		// Set the stroke color based on pause/resume state
-		avatarView.Stroke = strokeColor;
+		avatarView.BorderColor = strokeColor;
 
 		// Define a single animation to embiggen the stroke
-		Animation expandAnimation = new Animation(v => avatarView.StrokeThickness = v, // Only animating StrokeThickness now
+		Animation expandAnimation = new Animation(v => avatarView.BorderThickness = v, // Only animating StrokeThickness now
 			0,                                   // Start with 0 thickness
 			5,                                  // Expand to 10 thickness
 			Easing.CubicInOut                    // Smooth easing
@@ -20,7 +20,7 @@ public static class CustomAnimsAndroid
 
 		// Shrink the stroke back to zero after embiggen
 		Animation shrinkAnimation = new Animation(
-			v => avatarView.StrokeThickness = v,
+			v => avatarView.BorderThickness = v,
 			5,                                   // Start at 10 thickness
 			0,                                    // Reduce to 0 thickness
 			Easing.CubicInOut

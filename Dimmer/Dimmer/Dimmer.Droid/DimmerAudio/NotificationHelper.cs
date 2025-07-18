@@ -67,7 +67,7 @@ public static class NotificationHelper
 
 
         chan.SetAllowBubbles(true);
-        chan.EnableLights(false);
+        chan.EnableLights(true);
         chan.LockscreenVisibility = NotificationVisibility.Public;
         chan.SetShowBadge(true);
         chan.SetBypassDnd(true);

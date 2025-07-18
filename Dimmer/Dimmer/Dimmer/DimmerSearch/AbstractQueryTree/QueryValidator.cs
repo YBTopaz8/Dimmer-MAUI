@@ -25,7 +25,7 @@ public static class QueryValidator
                 return new(false, "Mismatched ')' found.", token.Position);
         }
         if (parenBalance > 0)
-            return new(false, "Missing ')' in query.", tokens.Last().Position);
+            return new(false, "Missing ')' in query.", tokens[^1].Position);
 
         // Iterate through tokens to find specific clause errors
         for (int i = 0; i < tokens.Count; i++)

@@ -2,6 +2,8 @@
 
 // Assuming other necessary using statements for your ViewModels etc.
 
+using static Dimmer.Data.ModelView.LastFMUserView;
+
 namespace Dimmer.Orchestration;
 
 public static class AutoMapperConf
@@ -16,6 +18,8 @@ public static class AutoMapperConf
             // =====================================================================
             // These are for general application use (e.g., UI binding).
 
+            //cfg.CreateMap<LastImageView, Dimmer.Data.Models.LastFMUser>().ReverseMap().PreserveReferences();
+            cfg.CreateMap<LastFMUser, LastFMUserView>().ReverseMap().PreserveReferences();
             cfg.CreateMap<SongModel, SongModelView>().ReverseMap().PreserveReferences();
             cfg.CreateMap<AlbumModel, AlbumModelView>().ReverseMap().PreserveReferences();
             cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap().PreserveReferences();
@@ -50,10 +54,11 @@ public static class AutoMapperConf
             cfg.CreateMap<GenreModel, GenreModel>()
                .ForMember(dest => dest.Songs, opt => opt.Ignore()); // Backlink
 
+            cfg.CreateMap<UserModel, UserModelView>().ReverseMap();
             // This is now a "shallow" copy map
             cfg.CreateMap<SongModel, SongModel>()
-               .ForMember(dest => dest.Album, opt => opt.Ignore())
-               .ForMember(dest => dest.Genre, opt => opt.Ignore())
+               //.ForMember(dest => dest.Album, opt => opt.Ignore())
+               //.ForMember(dest => dest.Genre, opt => opt.Ignore())
                .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())

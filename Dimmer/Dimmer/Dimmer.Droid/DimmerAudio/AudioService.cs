@@ -15,7 +15,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // Store the last known song model to provide context in events.
     private SongModelView? _currentSongModel;
-    public SongModelView? CurrentTrackMetadata => _currentSongModel;
+    public SongModelView? CurrentTrackMetadata => Service?.CurrentSongContext;
 
     #region IDimmerAudioService Implementation (Properties)
 
@@ -165,6 +165,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void OnNativePlayEnded(object? sender, PlaybackEventArgs e)
     {
+
+
         // Simply forward the event.
         PlayEnded?.Invoke(this, e);
     }

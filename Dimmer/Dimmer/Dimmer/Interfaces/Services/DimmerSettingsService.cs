@@ -121,7 +121,15 @@ public partial class DimmerSettingsService : ISettingsService
     public bool MinimizeToTrayPreference { get; set; }
 
 
+    public void SaveLastFMUserSession(string sessionTok)
+    {
+        _realm.Write(() => _model.LastFMSessionKey = sessionTok);
+    }
 
+    public string? GetLastFMUserSession()
+    {
+        return _model.LastFMSessionKey;
+    }
     // Add a folder
     public void AddMusicFolder(string path)
     {

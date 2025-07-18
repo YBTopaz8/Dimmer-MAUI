@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <SelectedDevice>pixel_7_-_api_29</SelectedDevice>
+    <SelectedDevice>pixel_7_-_api_35</SelectedDevice>
     <SelectedPlatformGroup>PhysicalDevice</SelectedPlatformGroup>
     <ActiveDebugProfile>Nothing A142</ActiveDebugProfile>
-    <DefaultDevice>pixel_7_-_api_29</DefaultDevice>
+    <DefaultDevice>pixel_7_-_api_35</DefaultDevice>
     <ActiveDebugFramework>net9.0-android</ActiveDebugFramework>
     <_LastSelectedProfileId>C:\Users\MCS\Music\dimm\Dimmer\Dimmer\Dimmer.Droid\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
