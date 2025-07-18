@@ -127,7 +127,7 @@ public class AstParser
                 {
                     var upperValue = Consume(Peek().Type).Text;
                     // Create a single ClauseNode with both values
-                    return new ClauseNode(field, op, lowerValue);
+                    return new ClauseNode(field, "-", lowerValue, upperValue, isNegated);
                 }
                 throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
             }

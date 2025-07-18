@@ -95,7 +95,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var realm = realmFactory.GetRealmInstance();
 
-        _searchQuerySubject = new BehaviorSubject<string>("");
 
         this.musicRelationshipService=new(realmFactory);
         this.musicArtistryService=new(realmFactory);
@@ -471,7 +470,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             // 1. Get the URL from our service
             string url = await _lastfmService.GetAuthenticationUrlAsync();
-
+            await Shell.Current.DisplayAlert(
+               "Authorize in Browser",
+               "Please authorize Dimmer in the browser window that just opened, then return here and press 'Complete Login'.",
+               "OK");
             // 2. Open it in the browser
             await Launcher.Default.OpenAsync(new Uri(url));
 
@@ -486,7 +488,34 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
     }
+    [RelayCommand]
+    public async Task CompleteLoginAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            // Call the second-step method in your service
+            bool success = await _lastfmService.CompleteAuthenticationAsync();
 
+            if (success)
+            {
+                await Shell.Current.DisplayAlert("Success!", $"Successfully logged in as {_lastfmService.AuthenticatedUser}.", "Awesome!");
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Login Failed", "Could not complete the login process. Please try again.", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while completing Last.fm login.");
+            await Shell.Current.DisplayAlert("Error", "An unexpected error occurred. Please try again.", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
     // Example command for logging out
     [RelayCommand]
     private void LogoutFromLastfm()

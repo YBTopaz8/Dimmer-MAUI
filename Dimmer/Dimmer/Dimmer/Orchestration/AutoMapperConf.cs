@@ -50,10 +50,11 @@ public static class AutoMapperConf
             cfg.CreateMap<GenreModel, GenreModel>()
                .ForMember(dest => dest.Songs, opt => opt.Ignore()); // Backlink
 
+            cfg.CreateMap<UserModel, UserModelView>().ReverseMap();
             // This is now a "shallow" copy map
             cfg.CreateMap<SongModel, SongModel>()
-               .ForMember(dest => dest.Album, opt => opt.Ignore())
-               .ForMember(dest => dest.Genre, opt => opt.Ignore())
+               //.ForMember(dest => dest.Album, opt => opt.Ignore())
+               //.ForMember(dest => dest.Genre, opt => opt.Ignore())
                .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
                .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())

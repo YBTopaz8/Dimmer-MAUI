@@ -14,56 +14,141 @@
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:views="clr-namespace:Dimmer.WinUI.Views"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    Shell.FlyoutBehavior="Flyout">
+    Shell.FlyoutBehavior="Flyout"
+    x:DataType="vm:BaseViewModelWin">
 
     <Shell.FlyoutContent>
-        <ScrollView Grid.Row="0" Padding="10">
+        <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Bottom">
+            <syncf:SfTabItem Header="Main">
+                <syncf:SfTabItem.Content>
 
-            <VerticalStackLayout x:Name="TopLeftPart" Spacing="15">
+                    <VerticalStackLayout x:Name="TopLeftPart" Spacing="15">
 
-                <syncf:SfChip
+                        <syncf:SfChip
                     x:Name="HomeChip"
                     Clicked="SidePaneChip_Clicked"
                     CommandParameter="0"
                     ImageSource="house.png"
                     Text="{Static lang:DimmerLanguage.txt_home}" />
-                <syncf:SfChip
+                        <syncf:SfChip
                     x:Name="ArtistsChip"
                     Clicked="SidePaneChip_Clicked"
                     CommandParameter="Artists"
                     ImageSource="artist.png"
                     Text="{Static lang:DimmerLanguage.txt_artist}" />
-                <syncf:SfChip
+                        <syncf:SfChip
                     x:Name="AlbumsChip"
                     Clicked="SidePaneChip_Clicked"
                     CommandParameter="Albums"
                     ImageSource="musicalbum.png"
                     Text="{Static lang:DimmerLanguage.txt_album}" />
-                <syncf:SfChip
+                        <syncf:SfChip
                     x:Name="GenresChip"
                     Clicked="SidePaneChip_Clicked"
                     CommandParameter="Genres"
                     Text="Genres" />
 
-                <BoxView
+                        <BoxView
                     Margin="0,10"
                     HeightRequest="1"
                     Color="DarkSlateBlue" />
-                <syncf:SfChip
+                        <syncf:SfChip
                     x:Name="LastPlayedChip"
                     CommandParameter="LastPlayed"
                     ImageSource="repeat.png"
                     Text="Last Played" />
 
-                <!--<syncf:SfChip x:Name="ScrollToChip"
+                        <!--<syncf:SfChip x:Name="ScrollToChip"
                         Clicked="SidePaneChip_Clicked" CommandParameter="Scroll"
                         ImageSource="eye.png" Text="Scroll To"
                         />-->
 
 
 
-            </VerticalStackLayout>
-        </ScrollView>
+                    </VerticalStackLayout>
+
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+            
+            
+            <syncf:SfTabItem Header="LastFM Tab">
+                <syncf:SfTabItem.Content>
+                    <VerticalStackLayout Margin="10" Spacing="10">
+                        <FlexLayout JustifyContent="SpaceBetween">
+
+                            <Label Text="Last FM Status: "/>
+
+                            <Label>
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                        <Setter Property="Text" Value="Logged In"/>
+                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                        <Setter Property="Text" Value="Logged Out"/>
+                                        <Setter Property="TextColor" Value="DarkRed"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                            
+                        </FlexLayout>
+
+                        <Button HorizontalOptions="Start" Command="{Binding LogoutFromLastfmCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                    <Setter Property="Text" Value="Log Out"/>
+                                    <Setter Property="BackgroundColor" Value="DarkRed"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                    <Setter Property="Text" Value="Log in"/>
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <Button HorizontalOptions="Start" Command="{Binding LoginToLastfmCommand}" BorderWidth="2" IsVisible="False">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False" >
+                                    <Setter Property="Text" Value="Log into LastFM"/>
+                                    <Setter Property="IsVisible" Value="True"/>
+                                    <Setter Property="TextColor" Value="Red"/>
+                                    <Setter Property="BorderColor" Value="Red"/>
+                                    <Setter Property="BorderWidth" Value="2"/>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <Button HorizontalOptions="Start" Command="{Binding CompleteLoginCommand}" BorderWidth="2" IsVisible="False">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False" >
+                                    <Setter Property="Text" Value="Complete LastFM Connection"/>
+                                    <Setter Property="IsVisible" Value="True"/>
+                                    <Setter Property="TextColor" Value="Red"/>
+                                    <Setter Property="BorderColor" Value="Red"/>
+                                    <Setter Property="BorderWidth" Value="2"/>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+
+                    </VerticalStackLayout>
+
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+            
+            
+        </syncf:SfTabView>
+        
+
 
     </Shell.FlyoutContent>
 

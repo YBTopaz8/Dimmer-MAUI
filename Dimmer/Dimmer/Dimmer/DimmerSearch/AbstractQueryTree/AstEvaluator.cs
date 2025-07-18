@@ -67,15 +67,34 @@ public class AstEvaluator
                     ? ParseDuration(node.Value.ToString())
                     : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
 
-                result = node.Operator switch
+
+                switch (node.Operator)
                 {
-                    ">" => songNumericValue > queryNumericValue,
-                    "<" => songNumericValue < queryNumericValue,
-                    ">=" => songNumericValue >= queryNumericValue,
-                    "<=" => songNumericValue <= queryNumericValue,
-                    "-" => songNumericValue >= queryNumericValue && songNumericValue <= ParseDuration(node.UpperValue?.ToString() ?? "0"),
-                    _ => Math.Abs(songNumericValue - queryNumericValue) < 0.001
-                };
+                    case ">":
+                        result = songNumericValue > queryNumericValue;
+                        break;
+
+                    case "<":
+                        result = songNumericValue < queryNumericValue;
+                        break;
+
+                    case ">=":
+                        result = songNumericValue >= queryNumericValue;
+                        break;
+
+                    case "<=":
+                        result = songNumericValue <= queryNumericValue;
+                        break;
+
+                    case "-":
+                        double upperValue = ParseDuration(node.UpperValue?.ToString() ?? "0");
+                        result = songNumericValue >= queryNumericValue && songNumericValue <= upperValue;
+                        break;
+
+                    default: // This handles every other operator
+                        result = Math.Abs(songNumericValue - queryNumericValue) < 0.001;
+                        break;
+                }
                 break;
 
             case FieldType.Boolean:
@@ -91,7 +110,7 @@ public class AstEvaluator
                 var queryDateRange = ParseDateValue(node.Value.ToString()); // The helper we wrote before
                 result = node.Operator switch
                 {
-                    ">" => songDateValue.Date > queryDateRange.start.Date,
+                    ">" => songDateValue.Date > queryDateRange.end.Date,
                     "<" => songDateValue.Date < queryDateRange.start.Date,
                     ">=" => songDateValue.Date >= queryDateRange.start.Date,
                     "<=" => songDateValue.Date <= queryDateRange.end.Date,

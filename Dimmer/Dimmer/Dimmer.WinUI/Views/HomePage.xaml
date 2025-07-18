@@ -382,7 +382,16 @@
                             x:Name="UtilitiesHSL"
                             Spacing="10"
                             VerticalOptions="Center">
-                            <Label Text="{Binding IsLastfmAuthenticated}" />
+                            <Label>
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                        <Setter Property="Text" Value="Connected To LastFM"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                        <Setter Property="Text" Value="Not Connected To LastFM"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
                             <syncf:SfChip
                                 Command="{Binding ToggleFavSongCommand}"
                                 CommandParameter="{Binding CurrentPlayingSongView}"

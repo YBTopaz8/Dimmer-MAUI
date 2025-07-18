@@ -2,6 +2,8 @@
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.StatsUtils;
 
+using DynamicData;
+
 using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
 using Hqub.Lastfm.Entities;
@@ -16,6 +18,8 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
+
+using static Dimmer.Data.Models.LastFMUser;
 
 namespace Dimmer.LastFM;
 
@@ -261,12 +265,84 @@ public class LastfmService : ILastfmService
             {
                 // CRITICAL STEP: After getting the session key, we must find out the username.
                 // The most reliable way is to make a quick call to user.getInfo.
-                var userInfo = await _client.User.GetInfoAsync(); // Gets info for the NOW authenticated user.
+                User? userInfo = await _client.User.GetInfoAsync(); // Gets info for the NOW authenticated user.
                 _username = userInfo.Name;
-
+                
                 // Now we save the session key AND the username.
                 SaveSession();
                 _isAuthenticatedSubject.OnNext(true);
+
+                var realmm = _realmFactory.GetRealmInstance();
+               await realmm.WriteAsync(() =>
+                {
+
+                    var usrs = realmm.All<UserModel>().ToList();
+                    if (usrs is null)
+                    {
+                        UserModel newUsr = new UserModel();
+                        newUsr.UserName = userInfo.Name;
+                        newUsr.LastFMAccountInfo=new();
+                        newUsr.LastFMAccountInfo.Name=userInfo.Name;
+                        newUsr.LastFMAccountInfo.RealName=userInfo.RealName;
+                        newUsr.LastFMAccountInfo.Gender=userInfo.Gender;
+                        newUsr.LastFMAccountInfo.Playcount=userInfo.Playcount;
+                        newUsr.LastFMAccountInfo.Age=userInfo.Age;
+                        newUsr.LastFMAccountInfo.Country=userInfo.Country;
+                        newUsr.LastFMAccountInfo.Url=userInfo.Url;
+                        newUsr.LastFMAccountInfo.Type=userInfo.Type;
+                        newUsr.LastFMAccountInfo.Registered=userInfo.Registered;
+                        newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
+
+                        if (userInfo.Images is not null && userInfo.Images.Count>0)
+                        {
+                            foreach (var img in userInfo.Images)
+                            {
+                                var imgg = new LastImage
+                                {
+                                    Size = img.Size,
+                                    Url = img.Url
+                                };
+                                newUsr.LastFMAccountInfo.Images.Add(imgg);
+
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        UserModel newUsr = realmm.Find<UserModel>(usrs.FirstOrDefault()?.Id);
+                        if (newUsr is not null)
+                        {
+
+                        newUsr.LastFMAccountInfo??=new();
+                        newUsr.LastFMAccountInfo.Name=userInfo.Name;
+                        newUsr.LastFMAccountInfo.RealName=userInfo.RealName;
+                        newUsr.LastFMAccountInfo.Gender=userInfo.Gender;
+                        newUsr.LastFMAccountInfo.Playcount=userInfo.Playcount;
+                        newUsr.LastFMAccountInfo.Age=userInfo.Age;
+                        newUsr.LastFMAccountInfo.Country=userInfo.Country;
+                        newUsr.LastFMAccountInfo.Url=userInfo.Url;
+                        newUsr.LastFMAccountInfo.Type=userInfo.Type;
+                        newUsr.LastFMAccountInfo.Registered=userInfo.Registered;
+                        newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
+
+                        if (userInfo.Images is not null && userInfo.Images.Count>0)
+                        {
+                            foreach (var img in userInfo.Images)
+                            {
+                                var imgg = new LastImage
+                                {
+                                    Size = img.Size,
+                                    Url = img.Url
+                                };
+                                newUsr.LastFMAccountInfo.Images.Add(imgg);
+
+                            }
+
+                        }
+                        }
+                    }
+                });
                 return true;
             }
         }
