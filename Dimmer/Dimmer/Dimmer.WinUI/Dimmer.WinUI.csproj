@@ -92,7 +92,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Childish-Music_24985.ico" />
+    <MauiImage Include="Childish-Music_24985.ico" />
   </ItemGroup>
 
   <ItemGroup>
