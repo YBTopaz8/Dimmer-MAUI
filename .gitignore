@@ -52,3 +52,5 @@ obj (2)/
 /Dimmer/BindinTwooo/bin/Debug/net9.0-android
 /Dimmer/Dimmer/Dimmer.WinUI/releaseDoc/Output
 /Dimmer/Dimmer/Dimmer/appsettings.json
+/Dimmer/Dimmer.Tests/Dimmer.Tests.csproj
+/Dimmer/Dimmer.Tests
