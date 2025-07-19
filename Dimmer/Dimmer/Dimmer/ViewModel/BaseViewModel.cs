@@ -24,6 +24,7 @@ using MoreLinq;
 using ReactiveUI;
 
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
@@ -107,114 +108,150 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
         _limiterClause = new BehaviorSubject<LimiterClause?>(null); // We DO need this to distinguish between limiter types.
 
-        // =====================================================================
-        // STEP 2: THE CONTROL PIPELINE - Translates a query into instructions
-        // =====================================================================
 
-        // This pipeline's only job is to parse the query and push the resulting
-        // components into our BehaviorSubjects. It doesn't touch the data.
+        var initialSongs = realm.All<SongModel>().ToList().Select(song => song.ToViewModel());
+        _songSource.AddRange(initialSongs);
+        Debug.WriteLine($"[LOAD] Manually loaded {_songSource.Count} songs into SourceList.");
+
+
         _searchQuerySubject
-            .Throttle(TimeSpan.FromMilliseconds(350), RxApp.TaskpoolScheduler)
-            .Select(query =>
-            {
-                // This parsing logic is UNCHANGED and correct.
-                if (string.IsNullOrWhiteSpace(query))
-                {
-                    return new QueryComponents(p => true, new SongModelViewComparer(null), null);
-                }
-                try
-                {
-                    var orchestrator = new MetaParser(query);
-                    return new QueryComponents(
-                       orchestrator.CreateMasterPredicate(),
-                       orchestrator.CreateSortComparer(),
-                       orchestrator.CreateLimiterClause()
-                    );
-                }
-                catch (ParsingException ex)
-                {
-                    // ... handle parsing exception ...
-                    return null;
-                }
-            })
-            .Where(components => components is not null)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(components =>
-            {
-                // This is now simple again. It just broadcasts the parsed components.
-                var predicate = components.Predicate ?? (song => true);
-                var comparer = components.Comparer ?? new SongModelViewComparer(null); // Good practice to do the same for the comparer
+            .Throttle(TimeSpan.FromMilliseconds(380), RxApp.TaskpoolScheduler)
+           .Select(query =>
+           {
+               // If the query is empty, clear any previous error and return a "match all" state.
+               if (string.IsNullOrWhiteSpace(query))
+               {
+                   // IMPORTANT: Return a tuple to provide both components and status.
+                   return (Components: new QueryComponents(p => true, new SongModelViewComparer(null), null), ErrorMessage: (string?)null);
+               }
 
-                // Now, push the guaranteed non-null values to the subjects.
-                _filterPredicate.OnNext(predicate);
-                _sortComparer.OnNext(comparer);
-                _limiterClause.OnNext(components.Limiter); // Limiter can be null, that's fine.
+               try
+               {
+                   var orchestrator = new MetaParser(query);
+                   var components = new QueryComponents(
+                      orchestrator.CreateMasterPredicate(),
+                      orchestrator.CreateSortComparer(),
+                      orchestrator.CreateLimiterClause()
+                   );
+                   // Success! Return the components and a null error message.
+                   return (Components: components, ErrorMessage: (string?)null);
+               }
+               catch (ParsingException ex)
+               {
+                   // THIS IS THE FIX! We caught the error.
+                   _logger.LogWarning(ex, "User search query failed to parse: {Query}", query);
+
+                   // Return a null for components and the user-friendly error message.
+                   return (Components: (QueryComponents?)null, ErrorMessage: ex.Message);
+               }
+               // You could add a catch-all for unexpected errors too
+               catch (Exception ex)
+               {
+                   _logger.LogError(ex, "An unexpected error occurred during search parsing for query: {Query}", query);
+                   return (Components: (QueryComponents?)null, ErrorMessage: "An unexpected error occurred.");
+               }
+           })
+
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(result =>
+            {
+                if (result.ErrorMessage is null)
+                {
+                    DebugMessage = string.Empty;
+                }
+                else
+                {
+                    DebugMessage = result.ErrorMessage;
+                }
+                // ONLY update the pipeline if the parse was successful.
+                if (result.Components is not null)
+                {
+                    var predicate = result.Components.Predicate ?? (song => true);
+                    var comparer = result.Components.Comparer ?? new SongModelViewComparer(null);
+
+                    _filterPredicate.OnNext(predicate);
+                    _sortComparer.OnNext(comparer);
+                    _limiterClause.OnNext(result.Components.Limiter);
+                }
+                // If result.Components is null, we do nothing. The last valid filter/sort remains active.
             },
             ex => _logger.LogError(ex, "FATAL: Search control pipeline has crashed."))
             .DisposeWith(Disposables);
 
+        var controlPipeline = Observable.CombineLatest(
+      _filterPredicate,
+      _sortComparer,
+      _limiterClause,
+      (predicate, comparer, limiter) => new { predicate, comparer, limiter }
+  );
 
-        // =====================================================================
-        // STEP 3: THE MAIN DATA PIPELINE - The smart, hybrid approach
-        // =====================================================================
+        // --- THIS IS THE CORRECT DATA PIPELINE ---
 
-        // This is the base stream that filters and sorts.
-        // It will be the source for both our "seamless" and "shuffled" streams.
-        var filteredAndSortedStream = realm.All<SongModel>().AsObservableChangeSet<SongModel>()
-            .Transform(songModel => _mapper.Map<SongModelView>(songModel))
-            .ObserveOn(RxApp.TaskpoolScheduler)
-            .Filter(_filterPredicate)
-            .Sort(_sortComparer); // Uses the original sort comparer
+        // 1. Create a NEW, DEDICATED list to hold the search results.
+        //    This breaks the infinite loop.
+        var searchResultsHolder = new SourceList<SongModelView>();
 
-        // This is the "seamless" stream. It handles 'first' and 'last' perfectly.
-        // It's the default path.
-        var seamlessStream = Observable.CombineLatest(_sortComparer, _limiterClause,
-            (comparer, limiter) => new { comparer, limiter })
-            .Select(p =>
+        // 2. The pipeline now reads from the master list and populates the results holder.
+        _songSource.Connect()
+            .ToCollection()
+            .ObserveOn(RxApp.TaskpoolScheduler) // Heavy lifting on background thread
+            .CombineLatest(controlPipeline, (songs, controls) => new { songs, controls })
+            .Select(data =>
             {
-                var finalComparer = p.comparer;
-                // If the limiter is 'last', we use our efficient inverted sort.
-                if (p.limiter?.Type == LimiterType.Last)
+                var predicate = data.controls.predicate;
+                var comparer = data.controls.comparer;
+                var limiter = data.controls.limiter;
+
+                // The calculation logic you had is perfectly fine.
+                var filtered = data.songs.Where(predicate);
+
+                IOrderedEnumerable<SongModelView> sorted;
+                if (limiter?.Type == LimiterType.Random)
                 {
-                    finalComparer = (p.comparer as SongModelViewComparer)?.Inverted() ?? p.comparer;
+                    var random = new Random();
+                    sorted = filtered.OrderBy(x => random.Next());
+                }
+                else if (limiter?.Type == LimiterType.Last)
+                {
+                    var invertedComparer = (comparer as SongModelViewComparer)?.Inverted() ?? comparer;
+                    sorted = filtered.OrderBy(x => x, invertedComparer);
+                }
+                else
+                {
+                    sorted = filtered.OrderBy(x => x, comparer);
                 }
 
-                // Re-sort ONLY if we are in the 'last' case.
-                var stream = (p.limiter?.Type == LimiterType.Last)
-                    ? filteredAndSortedStream.Sort(finalComparer)
-                    : filteredAndSortedStream;
-
-                // Apply a size limit.
-                return stream.Top(p.limiter?.Count ?? int.MaxValue);
+                var limited = sorted.Take(limiter?.Count ?? int.MaxValue);
+                return limited.ToList();
             })
-            .Switch();
-
-        var randomStream = _limiterClause
-     .Select(limiter =>
-     {
-         // Get the count from the current limiter clause. Default to a high number if null.
-         var count = limiter?.Count ?? int.MaxValue;
-
-         // Re-apply the shuffle and Top operator every time the limiter changes.
-         return filteredAndSortedStream
-             .Transform(x => new { Item = x, Guid = Guid.NewGuid() })
-             .Sort(SortExpressionComparer<dynamic>.Ascending(x => x.Guid))
-             .Transform(x => x.Item)
-             .Top(count); // Use the static 'count' integer here.
-     })
-     .Switch(); // .Switch() applies the new pipeline.
-        // This is the final stream that gets bound to the UI.
-        // It intelligently switches between the SEAMLESS stream and the RANDOM stream.
-        var finalStream = _limiterClause
-            .Select(limiter => (limiter?.Type == LimiterType.Random) ? randomStream : seamlessStream)
-            .Switch();
-
-        // Finally, bind to the UI.
-        finalStream
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out _searchResults)
-            .Subscribe()
+            .ObserveOn(RxApp.MainThreadScheduler) // Switch to UI thread before editing the list
+            .Subscribe(
+                newList =>
+                {
+                    // IMPORTANT: We are editing the NEW holder, NOT the original _songSource.
+                    searchResultsHolder.Edit(updater =>
+                    {
+                        updater.Clear();
+                        updater.AddRange(newList);
+                    });
+                },
+                ex => _logger.LogError(ex, "FATAL: Data calculation pipeline crashed!"))
             .DisposeWith(Disposables);
+
+        // 3. Bind your public UI property (_searchResults) to the dedicated results holder.
+        searchResultsHolder.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler) // Binding should always be on the UI thread
+            .Bind(out _searchResults)
+            .Subscribe(
+                cs =>
+                {
+
+                },
+                ex => _logger.LogError(ex, "FATAL: Data binding pipeline crashed!"))
+            .DisposeWith(Disposables);
+
+
+
 
         IReadOnlyCollection<DimmerPlayEvent>? allPlayEvents = dimmerPlayEventRepo.GetAll();
         DimmerPlayEvent? evt = allPlayEvents?.MaxBy(x => x.EventDate);
@@ -874,7 +911,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
     private readonly BaseAppFlow _baseAppFlow;
-    public const string CurrentAppVersion = "Dimmer v1.0";
+    public const string CurrentAppVersion = "Dimmer v1.1Theta";
 
 
 
@@ -1246,13 +1283,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
 
     }
-    private ObjectId? _currentScrobbleTrackId = null;
 
-    // Has the 'Now Playing' update been sent for the current track?
-    private bool _hasSentNowPlaying = false;
-
-    // Has the track been scrobbled yet?
-    private bool _hasBeenScrobbled = false;
     private void OnCurrentSongChanged(SongModelView? songView)
     {
         if (songView is null)
@@ -1260,7 +1291,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlayingSongView = songView;
         CurrentTrackDurationSeconds = songView.DurationInSeconds > 0 ? songView.DurationInSeconds : 1;
-        AppTitle = $"{songView.Title} - {songView.ArtistName} | {CurrentAppVersion}";
+        AppTitle = $"{CurrentAppVersion} | {songView.Title} - {songView.ArtistName} ";
 
         // Efficiently load related data
         CurrentPlayingSongView.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
