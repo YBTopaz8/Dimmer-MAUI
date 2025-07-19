@@ -430,8 +430,10 @@ public partial class HomePage : ContentPage
 
     private async void AllEvents_Clicked(object sender, EventArgs e)
     {
+        this.IsBusy=true;
         if (!AllEventsBorder.IsVisible)
         {
+            MyViewModel.LoadStatsApp();
             await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsView.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
 
         }
@@ -441,8 +443,7 @@ public partial class HomePage : ContentPage
 
 
         }
-
-        MyViewModel.LoadStatsApp();
+        this.IsBusy=false;
 
     }
 
@@ -500,6 +501,7 @@ public partial class HomePage : ContentPage
             return;
         }
         var sss = MyViewModel.SearchResults.First(x => x.Id==songg.Song.Id);
+
 
         MyViewModel.SelectedSong=sss;
         ColViewOfTopSongs.SelectedItem=       songg;
@@ -613,5 +615,12 @@ public partial class HomePage : ContentPage
     private void Button_Clicked_1(object sender, EventArgs e)
     {
         SearchSongSB.Text=string.Empty;
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var gestRec = view.GestureRecognizers[0] as TapGestureRecognizer;
+        MyViewModel.SelectedSong=gestRec.CommandParameter as SongModelView;
     }
 }

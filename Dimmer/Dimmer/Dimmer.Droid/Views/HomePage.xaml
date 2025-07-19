@@ -760,16 +760,16 @@
                                         Grid.Column="1"
                                         BackgroundColor="Transparent"
                                         HorizontalOptions="End"
-                                        Spacing="20"
+                                        Spacing="5"
                                         VerticalOptions="Start">
-                                        <Label x:Name="SongsCountLabel" Text="{Binding VisibleItemCount, Source={x:Reference SongsColView}, StringFormat='Songs : {0}'}" />
+                                        <Label x:Name="SongsCountLabel" Text="{Binding BaseVM.SearchResults.Count, StringFormat='Songs : {0}'}" />
 
                                         <dx:Chip
                                             x:Name="Settings"
                                             BorderThickness="0"
                                             Icon="settings.png"
                                             IconColor="DarkSlateBlue"
-                                            IconSize="50,50"
+                                            IconSize="35,35"
                                             IsIconVisible="True"
                                             Tap="Settings_Tap" />
 
@@ -777,7 +777,7 @@
                                             x:Name="ScrollToCurrSong"
                                             BorderThickness="0"
                                             Icon="eye.png"
-                                            IconSize="50,50"
+                                            IconSize="35,35"
                                             IsIconVisible="True"
                                             Tap="ScrollToCurrSong_Tap" />
 
@@ -788,7 +788,7 @@
                                             ImageSize="40"
                                             ImageSource="lyrics.png"
                                             IsEnabled="False"
-                                            ShowIcon="True"
+                                            ShowIcon="True" IsVisible="False"
                                             ToolTipProperties.Text="Refresh Lyrics"
                                             WidthRequest="55" />
 
@@ -812,7 +812,7 @@
                                             Command="{Binding BaseVM.RetroactivelyLinkArtistsCommand}"
                                             ImageSize="40"
                                             ImageSource="cloudbolt.png"
-                                            ShowIcon="True"
+                                            ShowIcon="True" IsVisible="False"
                                             ToolTipProperties.Text="Retroactively add links"
                                             WidthRequest="55" />
 

@@ -36,22 +36,16 @@
             <HorizontalStackLayout>
                 <Label
                     FontAttributes="Bold"
-                    FontSize="12"
+                    FontSize="19"
                     HorizontalOptions="Center"
                     Text="{Binding Item.Song.Title, StringFormat='{0} Played'}"
                     TextColor="White"
                     VerticalOptions="Center" />
-                <Label
-                    FontAttributes="Bold"
-                    FontSize="12"
-                    HorizontalOptions="Center"
-                    Text="{Binding Item.Song.OtherArtistsName, StringFormat='{0} Played'}"
-                    TextColor="White"
-                    VerticalOptions="Center" />
+                
 
                 <Label
                     FontAttributes="Bold"
-                    FontSize="12"
+                    FontSize="21"
                     HorizontalOptions="Center"
                     Text="{Binding Item.Count, StringFormat='{0} Times'}"
                     TextColor="DarkSlateBlue"
@@ -152,7 +146,7 @@
                                 FontFamily="AleySans"
                                 LineBreakMode="WordWrap"
                                 MaximumWidthRequest="250"
-                                Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                                Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
 
                         </Border>
                         <Border>
@@ -955,35 +949,65 @@
                     Grid.Row="1"
                     BackgroundColor="Transparent"
                     IsVisible="False"
-                    RowDefinitions="0.2*,*">
-                    <Grid Grid.Row="0" ColumnDefinitions="auto,*">
+                    ColumnDefinitions="*,0.4*">
 
-                        <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Center">
+                    <ScrollView Grid.Column="1">
+                        <Grid  RowDefinitions="auto,*" >
+
+                        <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="Center">
 
                             <Label
                                 x:Name="NowPlayingLabel"
-                                FontSize="20"
-                                Text="{Binding CurrentPlayingSongView.PlayEvents.Count}"
+                                FontSize="20" IsVisible="False"
+                                Text="{Binding SelectedSong.PlayEvents.Count}"
                                 VerticalOptions="Center" />
                         </HorizontalStackLayout>
-                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
-                            <Button
+                        <VerticalStackLayout >
+                            <HorizontalStackLayout  VerticalOptions="Start" HorizontalOptions="End">
+                                <Button
                                 x:Name="returnHome"
-                                Clicked="returnHome_Clicked"
+                                Clicked="AllEvents_Clicked"
                                 Text="return home" />
-                            <Button
-                                x:Name="savee"
+                                <Button
+                                x:Name="savee" IsVisible="False"
                                 Clicked="savee_Clicked"
                                 Text="save" />
-                        </HorizontalStackLayout>
+                            </HorizontalStackLayout>
+                                <VerticalStackLayout BackgroundColor="Transparent"
+    
+    Spacing="10">
+
+                                    <Label Text="Additional Content Here" HorizontalOptions="Center" />
+
+                                    <Image
+        HeightRequest="300"
+        Source="{Binding SelectedSong.CoverImagePath}"
+        WidthRequest="300" />
+                                    <syncf:SfChip Text="{Binding SelectedSong.Title}" />
+                                    <syncf:SfChip Text="{Binding SelectedSong.OtherArtistsName,StringFormat='Artists : {0}'}" />
+                                    <syncf:SfChip Text="{Binding SelectedSong.AlbumName,StringFormat='Album : {0}'}" />
+                                    <syncf:SfChip Text="{Binding SelectedSong.GenreName,StringFormat='Genre : {0}'}" />
+                                    <syncf:SfChip Text="{Binding SelectedSong.ReleaseYear}" />
+                                </VerticalStackLayout>
+                                
+                            </VerticalStackLayout>
+                       
                     </Grid>
-                    <Grid Grid.Row="1" ColumnDefinitions="0.4*,*,*">
+                    </ScrollView>
+                    <ScrollView Grid.Column="0">
+                        
+                    <Grid  ColumnDefinitions="0.4*,*">
+                        
                         <Grid
-                            Grid.Column="0"
-                            RowDefinitions="*,*"
+                            Grid.Column="0" 
+                            RowDefinitions="auto,auto"
                             VerticalOptions="Center">
-                            <CollectionView
-                                x:Name="ColViewOfTopSongs"
+
+                                <Grid RowDefinitions="*,*"  >
+                                    <Label Text="Full List" HorizontalOptions="Center"/>
+                                    
+                                    <CollectionView Grid.Row="1" 
+                                x:Name="ColViewOfTopSongs"  
                                 ItemsSource="{Binding TopSongsLastMonth}"
                                 SelectionMode="Single">
                                 <CollectionView.ItemsLayout>
@@ -991,20 +1015,28 @@
                                 </CollectionView.ItemsLayout>
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:DimmerStats">
-                                        <Border
+                                                <Border
                                             Padding="10"
                                             Stroke="DarkSlateBlue"
                                             StrokeShape="RoundRectangle 10"
                                             StrokeThickness="0.4">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"
+                                                                         CommandParameter="{Binding Song}"     >
+                                                            
+                                                        </TapGestureRecognizer>
+                                                    </Border.GestureRecognizers>
 
-                                            <Grid ColumnDefinitions="*,auto">
-                                                <HorizontalStackLayout Grid.Column="0">
+                                                    <Grid RowDefinitions="*,auto">
+                                                <VerticalStackLayout Grid.Row="0">
                                                     <Label Text="{Binding Song.Title}" />
-                                                </HorizontalStackLayout>
+                                                    <Label Text="{Binding Song.ArtistName}" />
+                                                </VerticalStackLayout>
 
 
-                                                <HorizontalStackLayout Grid.Column="1">
-                                                    <Label Text="{Binding Count}" />
+                                                <HorizontalStackLayout Grid.Row="1" >
+                                                    <Label Text="{Binding Count,StringFormat='Dimmed : {0} Times'}" FontAttributes="Bold" 
+                                                           TextColor="MediumSlateBlue" FontSize="16" />
                                                 </HorizontalStackLayout>
 
 
@@ -1015,16 +1047,22 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
 
+                                </Grid>
                         </Grid>
-
-                        <syncf:SfCircularChart x:Name="MyPie" Grid.Column="1">
+                        
+                        
+                            <Grid Grid.Column="1" RowDefinitions="*,auto">
+                                
+                            <syncf:SfCircularChart x:Name="MyPie" VerticalOptions="Start"  
+                                                   HeightRequest="600"
+                                                   Grid.Row="0">
                             <syncf:SfCircularChart.Title>
-                                <Label HorizontalOptions="Center" Text="Play Events Distribution" />
+                                <Label HorizontalOptions="Center" Text="{Binding TopSongsLastMonth.Count,StringFormat='{0} Dimms This Month '}" />
                             </syncf:SfCircularChart.Title>
 
-                            <syncf:PieSeries
+                            <syncf:PieSeries 
                                 EnableAnimation="True"
-                                EnableTooltip="True"
+                                EnableTooltip="True" 
                                 ItemsSource="{Binding TopSongsLastMonth}"
                                 LabelContext="Percentage"
                                 ShowDataLabels="True"
@@ -1043,32 +1081,12 @@
                                 </syncf:PieSeries.DataLabelSettings>
                             </syncf:PieSeries>
                         </syncf:SfCircularChart>
-                        <VerticalStackLayout
-                            Grid.Column="2"
-                            HorizontalOptions="End"
-                            Spacing="10">
-                            <!--<VerticalStackLayout.Resources>
-                 <ResourceDictionary>
-                     <Style TargetType="syncf:SfChip">
-                         <Setter Property="WidthRequest" Value="100" />
-                     </Style>
-                 </ResourceDictionary>
-             </VerticalStackLayout.Resources>-->
+                            </Grid>
 
-                            <Label Text="Additional Content Here" />
+                      
+                        </Grid>
 
-                            <Image
-                                HeightRequest="300"
-                                Source="{Binding SelectedSong.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}"
-                                WidthRequest="300" />
-                            <syncf:SfChip Text="{Binding SelectedSong.Title}" />
-                            <syncf:SfChip Text="{Binding SelectedSong.OtherArtistsName}" />
-                            <syncf:SfChip Text="{Binding SelectedSong.AlbumName}" />
-                            <syncf:SfChip Text="{Binding SelectedSong.HasSyncedLyrics, StringFormat='Has Synchronized ? : {0}'}" />
-                            <syncf:SfChip Text="{Binding SelectedSong.ReleaseYear}" />
-                        </VerticalStackLayout>
-                    </Grid>
-
+                    </ScrollView>
                 </Grid>
 
             </Grid>

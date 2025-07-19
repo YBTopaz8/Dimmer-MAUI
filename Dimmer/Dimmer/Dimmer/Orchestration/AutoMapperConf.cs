@@ -22,9 +22,9 @@ public static class AutoMapperConf
                 // These are explicit to prevent threading issues and silent failures.
 
                 cfg.CreateMap<SongModel, SongModelView>()
-                    .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.Artist != null ? src.ArtistName : "Unknown Artist"))
-                    .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.Album != null ? src.AlbumName : "Unknown Album"))
-                    .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre != null ? src.Genre.Name : "Unknown Genre"))
+                    .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.OtherArtistsName ))
+                    .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.AlbumName ))
+                    .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
                     .ForMember(dest => dest.Album, opt => opt.Ignore()) // Must ignore RealmObject properties
                     .ForMember(dest => dest.Genre, opt => opt.Ignore())
                     .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))

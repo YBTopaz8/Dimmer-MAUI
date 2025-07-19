@@ -911,7 +911,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
     private readonly BaseAppFlow _baseAppFlow;
-    public const string CurrentAppVersion = "Dimmer v1.1Theta";
+    public const string CurrentAppVersion = "Dimmer v1.3Theta";
 
 
 
@@ -954,17 +954,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public string QueryBeforePlay { get; private set; }
 
 
-    public void LoadStatsApp()
-    {
-
-
-        var s = dimmerPlayEventRepo.GetAll();
-        DimmerPlayEventList= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(s);
-
-
-
-        GetStatsGeneral();
-    }
+   
 
     private void WireUpLiveStats()
     {
@@ -1040,7 +1030,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     #region Subscription Event Handlers (The Reactive Logic)
 
-    private async void OnPlaybackStarted(PlaybackEventArgs args)
+    private void OnPlaybackStarted(PlaybackEventArgs args)
     {
         if (args.MediaSong is null)
         {
@@ -1068,12 +1058,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     }
-    private void UpdateSongSpecificUi(SongModelView? song)
+    private async void UpdateSongSpecificUi(SongModelView? song)
     {
         if (song is null)
         {
             // What should the UI show when nothing is playing?
-            AppTitle = "Dimmer - Beta"; // Reset the title
+            AppTitle = "Dimmer - 1.3Theta"; // Reset the title
             CurrentTrackDurationSeconds = 1; // Prevent division by zero
             return;
         }
@@ -1081,7 +1071,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         AppTitle = $"{song.Title} - {song.OtherArtistsName} | {song.AlbumName} ({song.ReleaseYear}) | {CurrentAppVersion}";
         CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
         // Trigger the new, evolved cover art loading process
-        LoadAndCacheCoverArtAsync(song);
+       await LoadAndCacheCoverArtAsync(song);
+    }
+
+
+
+    async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue is not null)
+        {
+           await LoadAndCacheCoverArtAsync(newValue);
+            // Efficiently load related data
+            newValue.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
+                songRepo.GetById(newValue.Id)?.PlayHistory);
+        }
     }
 
     /// <summary>
@@ -1089,22 +1092,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// checks for cached files, and only extracts from the audio file as a last resort,
     /// caching the result for future use.
     /// </summary>
-    private void LoadAndCacheCoverArtAsync(SongModelView song)
+    public async Task LoadAndCacheCoverArtAsync(SongModelView song)
     {
         // Don't start the process if the image is already loaded in the UI object.
         if (song.CoverImageBytes != null && song.CoverImageBytes.Length>1 || !string.IsNullOrEmpty(song.CoverImagePath))
             return;
 
-        Task.Run(async () =>
-        {
             // --- Stage 1: Check for an existing path in our data model ---
             if (!string.IsNullOrEmpty(song.CoverImagePath) && File.Exists(song.CoverImagePath))
             {
                 try
                 {
-                    song.CoverImageBytes = await File.ReadAllBytesAsync(song.CoverImagePath);
-                    // No DB update needed, the path was already correct.
-                    _logger.LogTrace("Loaded cover art from existing path: {CoverImagePath}", song.CoverImagePath);
+                    var imageBytes = await File.ReadAllBytesAsync(song.CoverImagePath);
+                MainThread.BeginInvokeOnMainThread(() => song.CoverImageBytes = imageBytes);
+                // No DB update needed, the path was already correct.
+                _logger.LogTrace("Loaded cover art from existing path: {CoverImagePath}", song.CoverImagePath);
                     return; // We're done!
                 }
                 catch (Exception ex)
@@ -1148,14 +1150,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 if (song.CoverImagePath != finalImagePath)
                 {
                     song.CoverImagePath= finalImagePath;
-                    var realm = realmFactory.GetRealmInstance();
+                    using var realm = realmFactory.GetRealmInstance();
                     if (realm is null)
                     {
                         _logger.LogError("Failed to get Realm instance from RealmFactory.");
                         return;
                     }
                     // Update the song in the database with the new cover image path.
-                    realm.Write(() =>
+                    await realm.WriteAsync(() =>
                     {
                         var songToUpdate = realm.Find<SongModel>(song.Id);
                         if (songToUpdate != null)
@@ -1169,16 +1171,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 _logger.LogError(ex, "Failed to load or update cover art from final path: {ImagePath}", finalImagePath);
             }
-        });
+        
     }
 
-    [RelayCommand]
-    private async Task PreCacheArtForVisibleSongsAsync()
+    public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
         // Get a copy of the current list to avoid issues if it changes during the process.
-        var songsToProcess = SearchResults.ToList();
-
-        _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count);
+       
+        _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count());
 
         // This is a great use case for parallel processing.
         await Parallel.ForEachAsync(songsToProcess, async (song, cancellationToken) =>
@@ -1187,42 +1187,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
             {
                 // We re-use the same core logic, but we don't need to load the bytes into the UI here.
-                try
-                {
-                    var track = new Track(song.FilePath);
-                    var embeddedPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-
-                    string? finalCoverImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.FilePath, embeddedPicture);
-
-                    if (finalCoverImagePath != null && song.CoverImagePath != finalCoverImagePath)
-                    {
-                        song.CoverImagePath = finalCoverImagePath;
-                        var realm = realmFactory.GetRealmInstance();
-                        if (realm is null)
-                        {
-                            _logger.LogError("Failed to get Realm instance from RealmFactory.");
-                            return;
-                        }
-                        // Update the song in the database with the new cover image path.
-                        realm.Write(() =>
-                        {
-                            var songToUpdate = realm.Find<SongModel>(song.Id);
-                            if (songToUpdate != null)
-                            {
-                                songToUpdate.CoverImagePath = finalCoverImagePath;
-                            }
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to pre-cache art for {FilePath}", song.FilePath);
-                }
+               await  LoadAndCacheCoverArtAsync(song);
+               
             }
         });
 
         _logger.LogInformation("Finished pre-caching cover art process.");
     }
+
+
     private void OnPlaybackPaused(PlaybackEventArgs args)
     {
         if (args.MediaSong is null)
@@ -1297,8 +1270,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPlayingSongView.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
             songRepo.GetById(songView.Id)?.PlayHistory
         );
-    }
 
+
+    }
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
         // This logic was okay, just moved to a dedicated handler.
@@ -2139,26 +2113,44 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     }
-
-    public void GetStatsGeneral()
+    public void LoadStatsApp()
     {
+
+
+        var s = dimmerPlayEventRepo.GetAll();
+        if (DimmerPlayEventList is null || DimmerPlayEventList.Count<1)
+        {
+
+            DimmerPlayEventList= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(s);
+        }
+
+
+        GetStatsGeneral();
+    }
+    public async void GetStatsGeneral()
+    {
+        
+
+        if (SelectedSong is not null || CurrentPlayingSongView is null || SelectedSong?.Id == CurrentPlayingSongView.Id)
+        {
+            return;
+        }
+        else
+        {
+            SelectedSong = CurrentPlayingSongView;
+        }
 
 
 
         var endDate = DateTimeOffset.UtcNow;
         var startDate = endDate.AddMonths(-1);
 
-        TopSkippedArtists = TopStats.GetTopSkippedArtists(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25).ToObservableCollection();
-        TopSongsByEventType = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25, 3).ToObservableCollection();
-        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25, startDate, endDate).ToObservableCollection();
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 15, startDate, endDate).ToObservableCollection();
+           MostSkipped = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 15, 5).ToObservableCollection();
+
+        await EnsureCoverArtCachedForSongsAsync(SearchResults);
 
 
-
-
-        MostSkipped = TopStats.GetTopSkippedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25).ToObservableCollection();
-
-
-        MostListened = TopStats.GetTopSongsByListeningTime(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 25, startDate, endDate).ToObservableCollection();
     }
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
