@@ -49,6 +49,13 @@ public partial class App : Application
             // Just return and don't log it.
             return;
         }
+        if (ex is System.IO.FileNotFoundException
+     && ex.Message.StartsWith("Could not load file or assembly 'ReactiveUI."))
+        {
+            // This is ReactiveUI probing for platform-specific assemblies (WPF, Blazor, etc.).
+            // It's expected behavior and safe to ignore.
+            return;
+        }
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +
                               $"Message: {e.Exception.Message}\n" +

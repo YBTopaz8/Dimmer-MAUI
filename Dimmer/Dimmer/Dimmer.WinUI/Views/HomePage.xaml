@@ -377,6 +377,7 @@
                             </syncf:SfChip>
 
                         </HorizontalStackLayout>
+                        <Label Text="{Binding DebugMessage}"/>
 
                         <HorizontalStackLayout
                             x:Name="UtilitiesHSL"
@@ -782,7 +783,7 @@
                                             <Label
                                                 HorizontalOptions="Center"
                                                 LineBreakMode="TailTruncation"
-                                                Text="{Binding Genre.Name}"
+                                                Text="{Binding GenreName}"
                                                 VerticalOptions="Center" />
                                         </syncf:SfEffectsView>
 

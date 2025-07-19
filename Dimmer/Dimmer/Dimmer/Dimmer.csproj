@@ -26,11 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <EmbeddedResource Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <MauiCss Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <MauiXaml Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <None Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+    <Compile Remove="DimmerSearch\TQL\NL\**" />
+    <EmbeddedResource Remove="DimmerSearch\TQL\NL\**" />
+    <MauiCss Remove="DimmerSearch\TQL\NL\**" />
+    <MauiXaml Remove="DimmerSearch\TQL\NL\**" />
+    <None Remove="DimmerSearch\TQL\NL\**" />
   </ItemGroup>
 
   <ItemGroup>
