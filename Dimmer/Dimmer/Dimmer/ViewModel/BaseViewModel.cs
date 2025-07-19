@@ -247,7 +247,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         //_playEventSource.AddRange(allPlayEventViews);
 
 
-        SearchSongSB_TextChanged("random");
+        //SearchSongSB_TextChanged("random");
 
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
         _lastfmService.IsAuthenticatedChanged
@@ -968,6 +968,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     readonly IRealmFactory realmFactory;
+    private readonly Realm realm;
+
     [ObservableProperty]
     public partial SongStat AllTimeTopSong { get; set; }
     [ObservableProperty]
@@ -2291,7 +2293,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             _realmSubscription?.Dispose();
             _playEventSource.Dispose();
-
+            realm.Dispose();
 
             Disposables.Dispose();
         }

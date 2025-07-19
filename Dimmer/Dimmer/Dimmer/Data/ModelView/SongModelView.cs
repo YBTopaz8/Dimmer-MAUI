@@ -108,7 +108,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int? DiscTotal { get; set; }
     [ObservableProperty]
-    public partial int? UserIDOnline { get; set; }
+    public partial string? UserIDOnline { get; set; }
     [ObservableProperty]
     public partial bool IsNew { get; set; }
 
