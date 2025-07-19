@@ -15,6 +15,7 @@ public class LyricsMetadataService : ILyricsMetadataService
     public LyricsMetadataService(
         IHttpClientFactory httpClientFactory,
         IMapper mapper,
+        
         ILogger<LyricsMetadataService> logger)
     {
         _httpClientFactory = httpClientFactory;

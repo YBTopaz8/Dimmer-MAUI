@@ -196,7 +196,7 @@ public class LyricsMgtFlow : IDisposable
         // Follows the hierarchy: DB -> Local Files -> Online
         if (!string.IsNullOrEmpty(song.SyncLyrics))
         {
-            _logger.LogTrace("Using lyrics from database for {SongTitle}", song.Title);
+            _logger.LogTrace("LYRICS FINDER :::::: Using lyrics from database for {SongTitle}", song.Title);
             return song.SyncLyrics;
         }
 
@@ -206,7 +206,7 @@ public class LyricsMgtFlow : IDisposable
             return localLyrics;
         }
 
-        _logger.LogTrace("No local lyrics for {SongTitle}, searching online.", song.Title);
+        _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
         var onlineResults = await _lyricsMetadataService.SearchOnlineAsync(song);
         return onlineResults?.FirstOrDefault()?.SyncedLyrics;
     }

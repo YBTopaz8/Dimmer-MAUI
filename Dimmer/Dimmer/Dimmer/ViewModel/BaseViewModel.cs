@@ -268,7 +268,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
             CurrentPlayingSongView = song?.ToModelView();
 
-            LoadAndCacheCoverArtAsync(CurrentPlayingSongView);
 
         }
         else
