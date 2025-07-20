@@ -64,6 +64,10 @@
 
 
 
+    <PackageReference Include="Fastenshtein" Version="1.0.10" />
+
+
+
 
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
