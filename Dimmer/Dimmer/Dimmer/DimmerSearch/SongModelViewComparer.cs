@@ -79,8 +79,8 @@ public class SongModelViewComparer : IComparer<SongModelView>
 
         foreach (var desc in _sortDescriptions)
         {
-            var valueX = ReflectionCache.GetValue(x!, desc.Field);
-            var valueY = ReflectionCache.GetValue(y!, desc.Field);
+            var valueX = SemanticQueryHelpers.GetComparableProp(x!, desc.PropertyName);
+            var valueY = SemanticQueryHelpers.GetComparableProp(y!, desc.PropertyName);
             // --- End of Change ---
 
             int result;

@@ -9,10 +9,10 @@ namespace Dimmer.DimmerSearch.AbstractQueryTree;
 
 public class QuerySegment
 {
-    public string SegmentType { get; }
+    public SegmentType SegmentType { get; }
     public List<Token> FilterTokens { get; }
     public List<Token> DirectiveTokens { get; }
-    public QuerySegment(string type, List<Token> filter, List<Token> directives)
+    public QuerySegment(SegmentType type, List<Token> filter, List<Token> directives)
     {
         SegmentType = type;
         FilterTokens = filter;
@@ -20,9 +20,16 @@ public class QuerySegment
     }
 }
 
+public enum SegmentType { Main, Include, Exclude }
 public class MetaParser
 {
-
+    private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
+    {
+        { TokenType.Include, SegmentType.Include },
+        { TokenType.Add,     SegmentType.Include },
+        { TokenType.Exclude, SegmentType.Exclude },
+        { TokenType.Remove,  SegmentType.Exclude }
+    };
     public IReadOnlyList<QuerySegment> GetSegments() => _segments.AsReadOnly();
     private readonly List<QuerySegment> _segments = new();
     private static readonly HashSet<TokenType> _directiveTokens = new()
@@ -36,14 +43,15 @@ public class MetaParser
 
     private void ParseSegmentsFromTokens(List<Token> allTokens)
     {
-        var segmentStartIndices = new List<(int index, string type)> { (0, "MAIN") };
-        var metaKeywords = new HashSet<TokenType> { TokenType.Include, TokenType.Add, TokenType.Exclude, TokenType.Remove };
+        // The first segment is always Main
+        var segmentStartIndices = new List<(int index, SegmentType type)> { (0, SegmentType.Main) };
 
         for (int i = 0; i < allTokens.Count; i++)
         {
-            if (metaKeywords.Contains(allTokens[i].Type))
+            // Use our centralized map to find meta keywords
+            if (_segmentTypeMap.TryGetValue(allTokens[i].Type, out var segmentType))
             {
-                segmentStartIndices.Add((i, allTokens[i].Text.ToUpperInvariant()));
+                segmentStartIndices.Add((i, segmentType));
             }
         }
 
@@ -51,8 +59,7 @@ public class MetaParser
         {
             var (startIndex, type) = segmentStartIndices[i];
 
-            // The tokens for this segment start after the keyword (if it's not the first segment)
-            var segmentTokenStartIndex = (type == "MAIN") ? startIndex : startIndex + 1;
+            var segmentTokenStartIndex = (type == SegmentType.Main) ? startIndex : startIndex + 1;
 
             var endIndex = (i + 1 < segmentStartIndices.Count)
                 ? segmentStartIndices[i + 1].index
@@ -64,7 +71,7 @@ public class MetaParser
     }
 
 
-    private void ProcessPart(List<Token> segmentTokens, string segmentType)
+    private void ProcessPart(List<Token> segmentTokens, SegmentType segmentType)
     {
         var filterTokens = new List<Token>();
         var directiveTokens = new List<Token>();
@@ -124,9 +131,8 @@ public class MetaParser
 
         }).Where(p => p.Item2 != null).ToList();
 
-        var mainIncludes = predicates.Where(p => p.SegmentType == "MAIN" || p.SegmentType == "INCLUDE" || p.SegmentType == "ADD" || p.SegmentType == "PLUS").Select(p => p.Item2).ToList();
-        var excludes = predicates.Where(p => p.SegmentType == "EXCLUDE" || p.SegmentType == "REMOVE"|| p.SegmentType == "MINUS").Select(p => p.Item2).ToList();
-
+        var mainIncludes = predicates.Where(p => p.SegmentType == SegmentType.Main || p.SegmentType == SegmentType.Include).Select(p => p.Item2).ToList();
+        var excludes = predicates.Where(p => p.SegmentType == SegmentType.Exclude).Select(p => p.Item2).ToList();
         return song =>
         {
             bool isIncluded = mainIncludes.Count==0 || mainIncludes.Any(p => p(song));

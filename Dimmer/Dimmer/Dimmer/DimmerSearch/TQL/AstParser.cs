@@ -81,7 +81,7 @@
 
         private IQueryNode ParseClause()
         {
-            string field = "Title";
+            string field = "any";
             if (Peek().Type == TokenType.Identifier && Peek(1).Type == TokenType.Colon)
             {
                 field = Consume(TokenType.Identifier).Text;
@@ -96,57 +96,112 @@
             else
             {
 
-                //throw new ParsingException($"Field '{field}' requires an operator (e.g., ':', '>', '<').\"", Peek().Position);
-                //// NEW: Check if the field requires an explicit operator
-                //if (FieldRegistry.IsNumeric(field) && Peek().Type != TokenType.Number)
-                //{ // You'd need a FieldRegistry
-                //    throw new Exception($"Field '{field}' requires an operator (e.g., ':', '>', '<').");
-                //}
+            //throw new ParsingException($"Field '{field}' requires an operator (e.g., ':', '>', '<').\"", Peek().Position);
+            //// NEW: Check if the field requires an explicit operator
+            //if (FieldRegistry.IsNumeric(field) && Peek().Type != TokenType.Number)
+            //{ // You'd need a FieldRegistry
+            //    throw new Exception($"Field '{field}' requires an operator (e.g., ':', '>', '<').");
+            //}
+            //throw new ParsingException($"Field '{field}' requires an operator (e.g., ':', '>', '<').");
             }
             bool isNegated = Match(TokenType.Bang);
             return ParseValueExpression(field, op, isNegated);
         }
 
-        private IQueryNode ParseValueExpression(string field, string op, bool isNegated)
+    private IQueryNode ParseValueExpression(string field, string op, bool isNegated)
+    {
+        // This handles an initial negation, like `artist:!beatles`
+        if (isNegated && IsValueToken(Peek().Type))
         {
-            var valueToken = Peek();
-            if (valueToken.Type == TokenType.StringLiteral)
-            {
-                return new ClauseNode(field, op, Consume(TokenType.StringLiteral).Text, isNegated: isNegated);
-            }
-
-            if (IsValueToken(Peek().Type))
-            {
-                var lowerValueToken = Consume(Peek().Type);
-                var lowerValue = lowerValueToken.Text;
-
-                // Check for a range operator
-                if (Match(TokenType.Minus))
-                {
-                    if (IsValueToken(Peek().Type))
-                    {
-                        var upperValue = Consume(Peek().Type).Text;
-                        // Create a single ClauseNode with both values
-                        return new ClauseNode(field, "-", lowerValue, upperValue, isNegated);
-                    }
-                    throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
-                }
-
-                // If not a range, proceed with the original implicit AND logic
-                var firstNode = new ClauseNode(field, op, lowerValue);
-                IQueryNode logicalChain = firstNode;
-
-                while (IsValueToken(Peek().Type))
-                {
-                    var nextValue = Consume(Peek().Type).Text;
-                    logicalChain = new LogicalNode(logicalChain, LogicalOperator.And, new ClauseNode(field, op, nextValue));
-                }
-                return logicalChain;
-            }
-            throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
+            var value = Consume(Peek().Type).Text;
+            return new ClauseNode(field, op, value, isNegated: true);
         }
 
-        private Token Peek(int offset = 0) => _position + offset >= _tokens.Count ? _tokens.Last() : _tokens[_position + offset];
+        // Now handle one or more values, which can be identifiers or strings
+        if (!IsValueToken(Peek().Type) && Peek().Type != TokenType.StringLiteral)
+        {
+            throw new ParsingException($"Expected a value (text or a \"quoted string\") for field '{field}' but found '{Peek().Text}'.", Peek().Position);
+        }
+
+        // Parse the first value
+        IQueryNode firstNode = ParseSingleValue(field, op);
+        IQueryNode logicalChain = firstNode;
+
+        // Implicit AND for subsequent values (e.g., artist:beatles lennon)
+        while (IsValueToken(Peek().Type) || Peek().Type == TokenType.StringLiteral)
+        {
+            var nextNode = ParseSingleValue(field, op);
+            logicalChain = new LogicalNode(logicalChain, LogicalOperator.And, nextNode);
+        }
+
+        return logicalChain;
+    }
+    private IQueryNode ParseSingleValue(string field, string op)
+    {
+        bool isNegated = Match(TokenType.Bang, TokenType.Not);
+
+        if (!IsValueToken(Peek().Type))
+        {
+            // If we expect a value but don't find one, return a no-op node instead of crashing.
+            return new ClauseNode("any", "matchall", "");
+        }
+
+        var lowerValueToken = Consume(Peek().Type);
+
+        // Handle numeric ranges like "year:2000-2005"
+        if (op != "-" && Match(TokenType.Minus))
+        {
+            if (IsValueToken(Peek().Type))
+            {
+                var upperValue = Consume(Peek().Type).Text;
+                return new ClauseNode(field, "-", lowerValueToken.Text, upperValue, isNegated);
+            }
+            // Incomplete range, return a clause for just the lower value.
+            return new ClauseNode(field, op, lowerValueToken.Text, isNegated: isNegated);
+        }
+
+        return new ClauseNode(field, op, lowerValueToken.Text, isNegated: isNegated);
+    }
+    //private IQueryNode ParseValueExpression(string field, string op, bool isNegated)
+    //{
+    //    var valueToken = Peek();
+    //    if (valueToken.Type == TokenType.StringLiteral)
+    //    {
+    //        return new ClauseNode(field, op, Consume(TokenType.StringLiteral).Text, isNegated: isNegated);
+    //    }
+
+    //    if (IsValueToken(Peek().Type))
+    //    {
+    //        var lowerValueToken = Consume(Peek().Type);
+    //        var lowerValue = lowerValueToken.Text;
+
+    //        // Check for a range operator
+    //        if (Match(TokenType.Minus))
+    //        {
+    //            if (IsValueToken(Peek().Type))
+    //            {
+    //                var upperValue = Consume(Peek().Type).Text;
+    //                // Create a single ClauseNode with both values
+    //                return new ClauseNode(field, "-", lowerValue, upperValue, isNegated);
+    //            }
+    //            throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
+    //        }
+
+    //        // If not a range, proceed with the original implicit AND logic
+    //        var firstNode = new ClauseNode(field, op, lowerValue);
+    //        IQueryNode logicalChain = firstNode;
+
+    //        while (IsValueToken(Peek().Type))
+    //        {
+    //            var nextValue = Consume(Peek().Type).Text;
+    //            logicalChain = new LogicalNode(logicalChain, LogicalOperator.And, new ClauseNode(field, op, nextValue));
+    //        }
+    //        return logicalChain;
+    //    }
+    //    throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' at the end of the query.", Peek().Position);
+    //}
+
+    private Token Peek(int offset = 0) => _position + offset >= _tokens.Count ? _tokens.Last() : _tokens[_position + offset];
         private bool IsAtEnd() => Peek().Type == TokenType.EndOfFile;
         private Token Consume(TokenType type, string message) => Peek().Type == type ? _tokens[_position++] : throw new ParsingException(message, Peek().Position);
         private Token Consume(TokenType type) => Consume(type, $"Expected {type} but got {Peek().Type}.");
@@ -165,5 +220,5 @@
             TokenType.Caret or TokenType.Dollar => true,
             _ => false
         };
-        private static bool IsValueToken(TokenType type) => type == TokenType.Identifier || type == TokenType.Number;
-    }
+    private static bool IsValueToken(TokenType type) => type == TokenType.Identifier || type == TokenType.Number || type == TokenType.StringLiteral;
+}
