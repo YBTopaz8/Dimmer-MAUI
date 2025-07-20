@@ -1,5 +1,7 @@
 ﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
 
+using Fastenshtein;
+
 
 namespace Dimmer.DimmerSearch.AbstractQueryTree;
 
@@ -48,14 +50,36 @@ public class AstEvaluator
             case FieldType.Text:
                 string songValue = SemanticQueryHelpers.GetStringProp(song, fieldDef.PropertyName);
                 string queryValue = node.Value.ToString() ?? "";
-                result = node.Operator switch
+
+                switch (node.Operator)
                 {
-                    "=" => songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase),
-                    "^" => songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase),
-                    "$" => songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase),
-                    "~" => SemanticQueryHelpers.LevenshteinDistance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= 2,
-                    _ => songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase)
-                };
+                    case "=":
+                        result = songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case "^":
+                        result = songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case "$":
+                        result = songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case "~":
+
+                        const int levenshteinThreshold = 4;
+                        if (Math.Abs(songValue.Length - queryValue.Length) > levenshteinThreshold)
+                        {
+                            result = false;
+                        }
+                        else
+                        {
+
+                            result = Levenshtein.Distance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= levenshteinThreshold;
+                        }
+                        break;
+                    default:
+                        result = songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                }
+
                 break;
 
             case FieldType.Numeric:

@@ -48,6 +48,7 @@
         <Setter Property="FontSize" Value="22" />
         <Setter Property="ImageSize" Value="20" />
         <Setter Property="ShowIcon" Value="True" />
+        <Setter Property="HeightRequest" Value="60" />
         <Setter Property="Stroke" Value="DarkSlateBlue" />
 
 

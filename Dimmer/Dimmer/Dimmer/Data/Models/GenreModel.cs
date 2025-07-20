@@ -9,7 +9,7 @@ public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
     public string? DeviceModel { get; set; }
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
-    public string Name { get; set; } = "Unknown Genre";
+    public string Name { get; set; }
     [Backlink(nameof(SongModel.Genre))]
     public IQueryable<SongModel> Songs { get; }
 
