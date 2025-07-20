@@ -1,11 +1,11 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+﻿using Dimmer.DimmerSearch.AbstractQueryTree;
+using Dimmer.DimmerSearch.AbstractQueryTree.NL;
 
-using System.Text.RegularExpressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
-
-
-
+namespace Dimmer.DimmerSearch.TQL;
 
 public class QuerySegment
 {
@@ -21,6 +21,7 @@ public class QuerySegment
 }
 
 public enum SegmentType { Main, Include, Exclude }
+
 public class MetaParser
 {
     private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
@@ -30,8 +31,10 @@ public class MetaParser
         { TokenType.Exclude, SegmentType.Exclude },
         { TokenType.Remove,  SegmentType.Exclude }
     };
+
     public IReadOnlyList<QuerySegment> GetSegments() => _segments.AsReadOnly();
     private readonly List<QuerySegment> _segments = new();
+
     private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
 
@@ -43,78 +46,72 @@ public class MetaParser
 
     private void ParseSegmentsFromTokens(List<Token> allTokens)
     {
-        // The first segment is always Main
-        var segmentStartIndices = new List<(int index, SegmentType type)> { (0, SegmentType.Main) };
+        if (allTokens.Count == 0)
+        {
+            _segments.Add(new QuerySegment(SegmentType.Main, new List<Token>(), new List<Token>()));
+            return;
+        }
+
+        int segmentStartIndex = 0;
+        // FIX: The type is now correctly SegmentType enum.
+        SegmentType currentSegmentType = SegmentType.Main;
 
         for (int i = 0; i < allTokens.Count; i++)
         {
-            // Use our centralized map to find meta keywords
-            if (_segmentTypeMap.TryGetValue(allTokens[i].Type, out var segmentType))
+            var token = allTokens[i];
+
+            // Check if the current token is a keyword that starts a new segment.
+            if (_segmentTypeMap.TryGetValue(token.Type, out var newSegmentType))
             {
-                segmentStartIndices.Add((i, segmentType));
+                // Process the segment that just ended.
+                var segmentTokens = allTokens.GetRange(segmentStartIndex, i - segmentStartIndex);
+                ProcessSegment(segmentTokens, currentSegmentType);
+
+                // Set up for the next segment.
+                currentSegmentType = newSegmentType;
+                segmentStartIndex = i + 1;
             }
         }
 
-        for (int i = 0; i < segmentStartIndices.Count; i++)
-        {
-            var (startIndex, type) = segmentStartIndices[i];
-
-            var segmentTokenStartIndex = (type == SegmentType.Main) ? startIndex : startIndex + 1;
-
-            var endIndex = (i + 1 < segmentStartIndices.Count)
-                ? segmentStartIndices[i + 1].index
-                : allTokens.Count;
-
-            var segmentTokens = allTokens.GetRange(segmentTokenStartIndex, endIndex - segmentTokenStartIndex);
-            ProcessPart(segmentTokens, type);
-        }
+        // Process the final segment after the loop.
+        var lastSegmentTokens = allTokens.GetRange(segmentStartIndex, allTokens.Count - segmentStartIndex);
+        ProcessSegment(lastSegmentTokens, currentSegmentType);
     }
 
-
-    private void ProcessPart(List<Token> segmentTokens, SegmentType segmentType)
+    private void ProcessSegment(List<Token> segmentTokens, SegmentType segmentType)
     {
         var filterTokens = new List<Token>();
         var directiveTokens = new List<Token>();
 
-
-
         for (int i = 0; i < segmentTokens.Count; i++)
         {
             var token = segmentTokens[i];
+            bool isDirective = false;
 
-            // --- START OF NEW LOGIC ---
-
-            bool isSortDirective = false;
-            // A token is ONLY a sort directive if it's asc/desc AND followed by a field name.
-            if ((token.Type == TokenType.Asc || token.Type == TokenType.Desc) &&
-                (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Identifier))
+            // Logic to separate filter tokens from directive tokens
+            if ((token.Type == TokenType.Asc || token.Type == TokenType.Desc) && i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Identifier)
             {
-                isSortDirective = true;
-                directiveTokens.Add(token);                  // Add 'asc' or 'desc'
-                directiveTokens.Add(segmentTokens[i + 1]);   // Add the field identifier
-                i++;                                         // IMPORTANT: Skip the field token
-            }
-            // Handle other non-sort directives (`first`, `last`, `random`, `shuffle`)
-            else if (_directiveTokens.Contains(token.Type) && token.Type != TokenType.Asc && token.Type != TokenType.Desc)
-            {
-                isSortDirective = true; // Still a directive, just not a sorting one we check above
+                isDirective = true;
                 directiveTokens.Add(token);
-                // Grab the number for `first`, `last`, `random`
+                directiveTokens.Add(segmentTokens[i + 1]);
+                i++; // Skip field token
+            }
+            else if (_directiveTokens.Contains(token.Type) && !isDirective)
+            {
+                isDirective = true;
+                directiveTokens.Add(token);
                 if (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Number)
                 {
                     directiveTokens.Add(segmentTokens[i + 1]);
-                    i++; // Skip the number token
+                    i++; // Skip number token
                 }
             }
 
-            if (!isSortDirective && token.Type != TokenType.EndOfFile)
+            if (!isDirective)
             {
-                // If it was not a valid, complete directive, it's a filter token.
                 filterTokens.Add(token);
             }
-            // --- END OF NEW LOGIC ---
         }
-
         _segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
     }
 
@@ -122,24 +119,24 @@ public class MetaParser
     {
         var predicates = _segments.Select(seg =>
         {
-            // This part is now correct because QuerySegment holds tokens.
-            if (seg.FilterTokens.Count==0)
+            if (seg.FilterTokens.Count == 0)
                 return (seg.SegmentType, (Func<SongModelView, bool>)null);
 
-            var ast = new AstParser(seg.FilterTokens).Parse(); // Uses the new AstParser constructor
+            var ast = new AstParser(seg.FilterTokens).Parse();
             return (seg.SegmentType, new AstEvaluator().CreatePredicate(ast));
 
         }).Where(p => p.Item2 != null).ToList();
 
         var mainIncludes = predicates.Where(p => p.SegmentType == SegmentType.Main || p.SegmentType == SegmentType.Include).Select(p => p.Item2).ToList();
         var excludes = predicates.Where(p => p.SegmentType == SegmentType.Exclude).Select(p => p.Item2).ToList();
+
         return song =>
         {
-            bool isIncluded = mainIncludes.Count==0 || mainIncludes.Any(p => p(song));
+            bool isIncluded = mainIncludes.Count == 0 || mainIncludes.Any(p => p(song));
             if (!isIncluded)
                 return false;
 
-            bool isExcluded = excludes.Count!=0 && excludes.Any(p => p(song));
+            bool isExcluded = excludes.Count != 0 && excludes.Any(p => p(song));
             return !isExcluded;
         };
     }
@@ -149,19 +146,16 @@ public class MetaParser
         var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
         bool hasRandomSort = false;
+
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
-            if (token.Type == TokenType.Random || token.Type == TokenType.Shuffle)
+            if (token.Type is TokenType.Random or TokenType.Shuffle)
             {
                 hasRandomSort = true;
-                // We don't need to check for a field name here, random applies to the whole list
             }
-            else
-            if (token.Type == TokenType.Asc || token.Type == TokenType.Desc)
+            else if (token.Type is TokenType.Asc or TokenType.Desc)
             {
-                // Because of our new ProcessPart logic, we can be CERTAIN
-                // that the next token is the Identifier field name.
                 if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Identifier)
                 {
                     var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
@@ -169,49 +163,30 @@ public class MetaParser
 
                     if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
                     {
-                        // --- CHANGE #1: Pass the whole object, not just the name ---
-                        // OLD: sortDescriptions.Add(new SortDescription(fieldDef.PrimaryName, direction));
-                        // NEW:
                         sortDescriptions.Add(new SortDescription(fieldDef, direction));
                     }
-
                     i++; // Consume the field token
                 }
             }
         }
+
         if (hasRandomSort)
         {
-            // --- CHANGE #2: Create a dummy FieldDefinition for the random sort ---
-            // The properties of this object don't matter, because the comparer's logic
-            // will see `SortDirection.Random` and use the Guid-based path instead of the accessor.
-            var randomFieldDef = new FieldDefinition(
-                "RandomSort",
-                FieldType.Text,
-                Array.Empty<string>(),
-                "A placeholder for random sorting",
-                "random" // A do-nothing expression
-            );
-
-            // Now create the SortDescription with the dummy FieldDefinition
-            return new SongModelViewComparer(new List<SortDescription>
-        {
-            new SortDescription(randomFieldDef, SortDirection.Random)
-        });
+            var randomFieldDef = new FieldDefinition("RandomSort", FieldType.Text, Array.Empty<string>(), "A placeholder for random sorting", "random");
+            return new SongModelViewComparer(new List<SortDescription> { new SortDescription(randomFieldDef, SortDirection.Random) });
         }
+
         return new SongModelViewComparer(sortDescriptions);
     }
-
 
     public LimiterClause? CreateLimiterClause()
     {
         var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
-        LimiterClause? limiter = null; // "Last one wins"
+        LimiterClause? limiter = null;
 
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
-
-            // Case 1: Handle `first <num>` and `last <num>`
             LimiterType? limiterType = token.Type switch
             {
                 TokenType.First => LimiterType.First,
@@ -229,18 +204,12 @@ public class MetaParser
                         i++; // Consume the number token
                     }
                 }
-                // If no number, it's not a valid limiter, so we just ignore it.
                 continue;
             }
 
-            // Case 2: Handle `shuffle` and `random`
-            if (token.Type == TokenType.Shuffle || token.Type == TokenType.Random)
+            if (token.Type is TokenType.Shuffle or TokenType.Random)
             {
-                // By default, it's a full shuffle.
-                // int.MaxValue is a sentinel to mean "take all items, but randomized".
                 int count = int.MaxValue;
-
-                // Check if it's `random <num>`
                 if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Number)
                 {
                     if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
@@ -252,7 +221,6 @@ public class MetaParser
                 limiter = new LimiterClause(LimiterType.Random, count);
             }
         }
-
         return limiter;
     }
 }
