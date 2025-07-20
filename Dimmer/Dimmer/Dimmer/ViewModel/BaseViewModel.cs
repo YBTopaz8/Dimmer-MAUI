@@ -7,6 +7,7 @@ using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.DimmerSearch.Exceptions;
+using Dimmer.DimmerSearch.TQL;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
@@ -127,7 +128,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                try
                {
-                   var orchestrator = new MetaParser(query);
+                   var orchestrator = new MetaParser (query);
                    var components = new QueryComponents(
                       orchestrator.CreateMasterPredicate(),
                       orchestrator.CreateSortComparer(),
