@@ -391,8 +391,8 @@
                                 Clicked="RefreshLyrics_Clicked"
                                 ImageSize="40"
                                 ImageSource="lyrics.png"
-                                IsEnabled="False"
-                                IsVisible="False"
+                                IsEnabled="True"
+                                IsVisible="True"
                                 ShowIcon="True"
                                 ToolTipProperties.Text="Refresh Lyrics"
                                 WidthRequest="55" />
@@ -403,7 +403,7 @@
                                 ImageSize="40"
                                 ImageSource="vinyl.png"
                                 IsEnabled="False"
-                                IsVisible="False"
+                                IsVisible="True"
                                 ShowIcon="True"
                                 Text="refresh"
                                 WidthRequest="55" />
@@ -849,155 +849,6 @@
                     </CollectionView>
                     </Grid>
 
-                <Grid
-                        x:Name="SingleSongView"
-                        Grid.Row="1"
-                        IsVisible="False">
-                    <Grid.Resources>
-                        <ResourceDictionary>
-                            <Style TargetType="syncf:SfChip">
-                                <Setter Property="MinimumWidthRequest" Value="30" />
-                            </Style>
-                        </ResourceDictionary>
-                    </Grid.Resources>
-                    <Grid ColumnDefinitions="0.5*,*" ColumnSpacing="15">
-                    <syncf:SfTabView Grid.Column="0" 
-                                         TabBarPlacement="Bottom"
-                                         IsVisible="True" x:Name="SingleSongTabView">
-                        <syncf:SfTabItem>
-                            <syncf:SfTabItem.Content>
-                                <Grid ColumnSpacing="15" RowDefinitions="auto,*" RowSpacing="10">
-
-                                    <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="Auto,*" RowSpacing="20">
-
-                                        <VerticalStackLayout Grid.Row="0">
-                                            <Button Text="Close" x:Name="CloseSideBar"
-                                                    Clicked="CloseSideBar_Clicked"
-                                                    />
-                                        </VerticalStackLayout>
-
-                                        <VerticalStackLayout Grid.Row="1" Spacing="15">
-                                            <syncf:SfChip Text="View Lyrics"/>
-                                            <syncf:SfChip Text="View Lyrics"/>
-                                        </VerticalStackLayout>
-
-                                    </Grid>
-                                        <VerticalStackLayout Spacing="15" Grid.Row="1">
-                                            <VerticalStackLayout.Resources>
-                                            <ResourceDictionary>
-                                                <Style TargetType="Label">
-                                                    <Setter Property="FontSize" Value="23"/>
-                                                </Style>
-                                            </ResourceDictionary>
-                                        </VerticalStackLayout.Resources>
-                                        <Image 
-HeightRequest="300" VerticalOptions="Start" 
-Source="{Binding SelectedSong.CoverImagePath}"
-WidthRequest="300" />
-                                        <Grid ColumnDefinitions="*,*">
-                                            <Label Grid.Column="0" Text="Title" />
-                                            <Label Grid.Column="1" Text="{Binding SelectedSong.Title}" />
-                                        </Grid>
-                                        <Grid ColumnDefinitions="*,*">
-                                            <Label Grid.Column="0" Text="Artist" />
-                                            <Label Grid.Column="1" Text="{Binding SelectedSong.OtherArtistsName}" />
-                                        </Grid>
-                                        <Grid ColumnDefinitions="*,*">
-                                            <Label Grid.Column="0" Text="Album" />
-                                            <Label Grid.Column="1" Text="{Binding SelectedSong.AlbumName}" />
-                                        </Grid>
-                                        <Grid ColumnDefinitions="*,*">
-                                            <Label Grid.Column="0" Text="Genre" />
-                                            <Label Grid.Column="1" Text="{Binding SelectedSong.GenreName}" />
-                                        </Grid>
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </syncf:SfTabItem.Content>
-                        </syncf:SfTabItem>
-                    </syncf:SfTabView>
-      
-
-                <syncf:SfTabView Grid.Column="1" Grid.Row="1" TabBarPlacement="Bottom">
-
-                                        <syncf:SfTabItem Header="Song Details">
-                                            <syncf:SfTabItem.Content>
-
-                                            <Grid ColumnDefinitions="*" >
-
-                                        <CollectionView ItemsSource="{Binding AllLyricsResultsLrcLib}"
-                                              SelectionMode="None"       Grid.Column="0"    >
-
-                                            <CollectionView.ItemsLayout>
-                                                <GridItemsLayout Span="3" Orientation="Vertical"
-                                                                 VerticalItemSpacing="10"
-                                                                 HorizontalItemSpacing="10">
-                                                </GridItemsLayout>
-                                                
-                                            </CollectionView.ItemsLayout>
-                                            <CollectionView.EmptyView>
-                                                <VerticalStackLayout>
-                                                    <Label Text="No Lyrics"/>
-                                                </VerticalStackLayout>
-                                            </CollectionView.EmptyView>
-                                            <CollectionView.ItemTemplate>
-                                                
-                                                <DataTemplate x:DataType="models:LrcLibSearchResult">
-                                                    <Border StrokeShape="RoundRectangle, 20" Stroke="DarkSlateBlue"
-                                                            StrokeThickness="3">
-                                                        <VerticalStackLayout Spacing="10" >
-
-                                                            <Label Text="{Binding Name}" FontSize="23"
-                                                           HorizontalOptions="Center"/>
-
-                                                            <Label Text="{Binding ArtistName }"  FontSize="21"
-                                                           HorizontalOptions="Center"/>
-
-                                                            <Label Text="{Binding AlbumName }"  FontSize="19"
-                                                           HorizontalOptions="Center"/>
-                                                            <Button Text="Save To DataBase" HorizontalOptions="Center"/>
-                                                            <ScrollView HeightRequest="200">
-
-                                                                <Label Text="{Binding SyncedLyrics }"
-                                                           HorizontalOptions="Center"/>
-                                                            </ScrollView>
-                                                        </VerticalStackLayout>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
-                                            </Grid>
-
-                                        </syncf:SfTabItem.Content>
-                                        </syncf:SfTabItem>
-
-                                        <syncf:SfTabItem Header="Song Details">
-                                            <syncf:SfTabItem.Content>
-                                                <Grid RowDefinitions="Auto,*" >
-                                                    
-                                                </Grid>
-                                            </syncf:SfTabItem.Content>
-                                        </syncf:SfTabItem>
-
-                                        <syncf:SfTabItem Header="Song Details">
-                                            <syncf:SfTabItem.Content>
-
-                                                <Grid RowDefinitions="Auto,*" >
-                                                </Grid>
-                                            </syncf:SfTabItem.Content>
-                                        </syncf:SfTabItem>
-
-
-                                
-                        <syncf:SfTabItem>
-                            <syncf:SfTabItem.Content>
-                                <VerticalStackLayout>
-                                    <Label Text="tr"/>
-                                </VerticalStackLayout>
-                            </syncf:SfTabItem.Content>
-                        </syncf:SfTabItem>
-                    </syncf:SfTabView>
-                    </Grid>
-                </Grid>
                 <Border
                     x:Name="LyricsView"
                     Grid.Row="1"

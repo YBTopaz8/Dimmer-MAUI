@@ -29,7 +29,7 @@ public partial class AppShell : Shell
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
       await  MyViewModel.Initialize();
-
+        this.BindingContext = MyViewModel;
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }

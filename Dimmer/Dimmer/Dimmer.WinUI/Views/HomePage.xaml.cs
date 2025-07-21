@@ -384,11 +384,8 @@ public partial class HomePage : ContentPage
 
         try
         {
-            MyViewModel.SearchSongSB_TextChanged(string.Empty); // Clear the search bar to refresh the list
-            var songsToRefresh = MyViewModel.SearchResults; // Or your full master list
-            var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
 
+            await MyViewModel.LoadSongDataAsync(progressReporter, _lyricsCts);
             await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
         }
         catch (OperationCanceledException)
@@ -621,31 +618,13 @@ public partial class HomePage : ContentPage
         var view = (Microsoft.Maui.Controls.View)sender;
         var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
         MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
-        if (!SongsGrid.IsVisible)
-        {
-            await Task.WhenAll(SongsGrid.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
-        }
-        else
-        {
-            await MyViewModel.LoadSongLastFMData();
-            await MyViewModel.LoadSongLastFMMoreData();
 
-            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsGrid.DimmOutCompletelyAndHide(250));
-        }
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+      
     }
 
-    private async void CloseSideBar_Clicked(object sender, EventArgs e)
+    private  void CloseSideBar_Clicked(object sender, EventArgs e)
     {
-        if (!SongsGrid.IsVisible)
-        {
-            await Task.WhenAll(SongsGrid.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
-        }
-        else
-        {
-            await MyViewModel.LoadSongLastFMData();
-            await MyViewModel.LoadSongLastFMMoreData();
 
-            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsGrid.DimmOutCompletelyAndHide(250));
-        }
     }
 }
