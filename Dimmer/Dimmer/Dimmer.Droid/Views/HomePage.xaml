@@ -218,8 +218,21 @@
                                             <dx:DXImage
                                                 Grid.Row="0"
                                                 IsVisible="True"
-                                                Opacity="0.3"
-                                                Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                                                Opacity="0.3" HeightRequest="500"
+                                                Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" >
+                                                <dx:DXImage.Triggers>
+                                                    <DataTrigger TargetType="dx:DXImage" Value="True"
+                                                                 Binding="{Binding BaseVM.AllLines,Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                                                 >
+                                                        <Setter Property="Opacity" Value="0.8"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="dx:DXImage" Value="False"
+                                                                 Binding="{Binding BaseVM.AllLines,Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                                                 >
+                                                        <Setter Property="Opacity" Value="0.5"/>
+                                                    </DataTrigger>
+                                                </dx:DXImage.Triggers>
+                                            </dx:DXImage>
 
                                         </dx:DXBorder>
 
@@ -300,14 +313,12 @@
                                                 </DataTrigger>
                                             </dx:Chip.Triggers>
                                         </dx:Chip>
-                                        <dx:Chip
+                                        <Label
                                             BackgroundColor="Transparent"
-                                            BorderColor="Transparent"
-                                            BorderThickness="0.1"
+                                            HorizontalTextAlignment="Center"
                                             FontFamily="AleySans"
-                                            FontSize="25"
-                                            Tap="ArtistChip_Tap"
-                                            TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
+                                            FontSize="18"
+                                            
                                             Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}" />
 
                                         <dx:DXStackLayout HorizontalOptions="Center" Orientation="Horizontal">
