@@ -222,12 +222,12 @@
                                                 Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" >
                                                 <dx:DXImage.Triggers>
                                                     <DataTrigger TargetType="dx:DXImage" Value="True"
-                                                                 Binding="{Binding BaseVM.AllLines,Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                                                 Binding="{Binding BaseVM.AllLines,Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                                  >
                                                         <Setter Property="Opacity" Value="0.8"/>
                                                     </DataTrigger>
                                                     <DataTrigger TargetType="dx:DXImage" Value="False"
-                                                                 Binding="{Binding BaseVM.AllLines,Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                                                 Binding="{Binding BaseVM.AllLines,Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                                  >
                                                         <Setter Property="Opacity" Value="0.5"/>
                                                     </DataTrigger>
@@ -922,8 +922,7 @@
                                                         FontFamily="AleySans"
                                                         FontSize="22"
                                                         HorizontalOptions="Start"
-                                                        Icon="musicnotess.png"
-                                                        IsIconVisible="{Binding HasSyncedLyrics}"
+                                                        Icon="{Binding CoverImagePath}"
                                                         IsVisible="True"
                                                         PressedTextColor="DarkSlateBlue"
                                                         Text="{Binding Title}"

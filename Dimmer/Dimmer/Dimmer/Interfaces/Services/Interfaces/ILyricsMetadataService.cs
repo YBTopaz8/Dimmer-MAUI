@@ -36,12 +36,3 @@ public interface ILyricsMetadataService
 /// <summary>
 /// A Data Transfer Object (DTO) representing a single search result from LrcLib.
 /// </summary>
-public class LrcLibSearchResult
-{
-    public int Id { get; set; }
-    public string TrackName { get; set; } = string.Empty;
-    public string ArtistName { get; set; } = string.Empty;
-    public string AlbumName { get; set; } = string.Empty;
-    public string? SyncedLyrics { get; set; }
-    public string? UnsyncedLyrics { get; set; }
-}

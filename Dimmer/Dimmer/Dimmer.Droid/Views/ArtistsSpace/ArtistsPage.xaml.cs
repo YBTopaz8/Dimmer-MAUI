@@ -28,24 +28,24 @@ public partial class ArtistsPage : ContentPage
         MyViewModel.BaseVM.ViewArtistDetails(s);
 
     }
-    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        MyViewModel.BaseVM.PlaySong(song);
+      await  MyViewModel.BaseVM.PlaySong(song);
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync("..");
     }
-    private void PlayAll_Clicked(object sender, EventArgs e)
+    private async void PlayAll_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.BaseVM.PlaySong(MyViewModel.BaseVM.SearchResults.FirstOrDefault());
+      await  MyViewModel.BaseVM.PlaySong(MyViewModel.BaseVM.SearchResults.FirstOrDefault());
     }
-    private void TapGestRec_Tapped(object sender, TappedEventArgs e)
+    private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-        MyViewModel.BaseVM.PlaySong(song);
+      await  MyViewModel.BaseVM.PlaySong(song);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;

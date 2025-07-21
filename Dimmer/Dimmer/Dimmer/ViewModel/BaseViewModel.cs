@@ -8,6 +8,7 @@ using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.DimmerSearch.Exceptions;
 using Dimmer.DimmerSearch.TQL;
+using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
@@ -35,7 +36,6 @@ using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 
 
 
-
 namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
@@ -58,6 +58,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        IRepository<GenreModel> genreModel,
        ILogger<BaseViewModel> logger)
     {
+
         _lastfmService = lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this.appInitializerService=appInitializerService;
@@ -78,6 +79,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
+
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
                                              h => audioServ.PositionChanged += h,
@@ -88,9 +90,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlayingSongView=new();
         _baseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>()!;
-
-
-
 
         folderMonitorService = IPlatformApplication.Current!.Services.GetService<IFolderMonitorService>()!;
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
@@ -186,10 +185,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
       (predicate, comparer, limiter) => new { predicate, comparer, limiter }
   );
 
-        // --- THIS IS THE CORRECT DATA PIPELINE ---
-
-        // 1. Create a NEW, DEDICATED list to hold the search results.
-        //    This breaks the infinite loop.
         var searchResultsHolder = new SourceList<SongModelView>();
 
         // 2. The pipeline now reads from the master list and populates the results holder.
@@ -267,7 +262,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 return;
             }
-            CurrentPlayingSongView = song?.ToModelView();
+            CurrentPlayingSongView = song.ToModelView();
 
 
         }
@@ -1300,7 +1295,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #region Playback Commands (User Intent)
 
     [RelayCommand]
-    public void PlaySong(SongModelView? songToPlay)
+    public async Task PlaySong(SongModelView? songToPlay)
     {
         if (songToPlay == null)
         {
@@ -1309,7 +1304,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         // --- Step 1: Establish the Playback Context ---
-        var baseQueue = _searchResults.ToList();
+        var baseQueue = _songSource.Items;
         int startIndex = baseQueue.IndexOf(songToPlay);
 
         if (startIndex == -1)
@@ -1342,22 +1337,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // --- Step 3: Save context and start playback ---
         SavePlaybackContext(CurrentPlaybackQuery);
-        StartAudioForSongAtIndex(startIndex);
+       await StartAudioForSongAtIndex(startIndex);
 
     }
 
 
     [RelayCommand]
-    public void PlayPauseToggle()
+    public async Task PlayPauseToggle()
     {
         if (CurrentPlayingSongView.Title == null)
         {
-            PlaySong(_searchResults.FirstOrDefault());
+           await PlaySong(_searchResults.FirstOrDefault());
             return;
         }
         if (audioService.CurrentTrackMetadata is null)
         {
-            PlaySong(CurrentPlayingSongView);
+          await  PlaySong(CurrentPlayingSongView);
             return;
         }
         if (IsPlaying)
@@ -1432,6 +1427,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await audioService.InitializeAsync(songToPlay);
     }
 
+    private int _playbackQueueIndex = -1;
+    private IReadOnlyList<SongModelView> _playbackQueue = new List<SongModelView>();
+
     /// <summary>
     /// Calculates the next valid index in the queue, correctly handling all Repeat and Shuffle modes.
     /// </summary>
@@ -1495,7 +1493,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         return nextIndex;
     }
-    private static readonly ObjectId LastSessionPlaylistId = new("65f0c1a9c3b8a0b3f8e3c1a9"); // Example fixed ID
 
     private void SavePlaybackContext(string query)
     {
@@ -1529,7 +1526,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// Plays an entire playlist from the beginning.
     /// </summary>
     [RelayCommand]
-    private void PlayPlaylist(PlaylistModelView? playlist)
+    private async Task PlayPlaylist(PlaylistModelView? playlist)
     {
         if (playlist == null || !playlist.SongsIdsInPlaylist.Any())
         {
@@ -1546,7 +1543,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // No need to call SavePlaybackContext, as this isn't a temporary search session.
         // Start playback from the first song (index 0).
-        StartAudioForSongAtIndex(0);
+       await StartAudioForSongAtIndex(0);
     }
     [RelayCommand]
     public void ToggleShuffleMode()
@@ -1794,10 +1791,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
-    private int _playbackQueueIndex = -1;
-    private IReadOnlyList<SongModelView> _playbackQueue = new List<SongModelView>();
-
-    public IReadOnlyList<SongModelView> PlayBackQueue => _playbackQueue;
 
     [ObservableProperty]
     public partial bool IsAppScanning { get; set; }

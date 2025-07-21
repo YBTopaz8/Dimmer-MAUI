@@ -94,10 +94,10 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
-    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        MyViewModel.BaseVM.PlaySong(song);
+      await  MyViewModel.BaseVM.PlaySong(song);
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
         //DetailView.IsVisible=true;
@@ -169,9 +169,13 @@ public partial class HomePage : ContentPage
     private void AddToPlaylist_Clicked(object sender, EventArgs e)
     {
         var send = (DXButton)sender;
+        
         var song = send.CommandParameter as SongModelView;
+        
         var pl = MyViewModel.BaseVM.AllPlaylists;
+        
         var listt = new List<SongModelView>();
+       
         listt.Add(song);
 
         MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
@@ -181,7 +185,6 @@ public partial class HomePage : ContentPage
     {
 
         Debug.WriteLine(this.Parent.GetType());
-        //this.IsExpanded = !this.IsExpanded;
 
     }
     private async void DXButton_Clicked_3(object sender, EventArgs e)
@@ -191,11 +194,9 @@ public partial class HomePage : ContentPage
     SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
     {
-        return true;
-
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
 
         return true;
+
     }
 
     private void SortCategory_LongPress(object sender, HandledEventArgs e)

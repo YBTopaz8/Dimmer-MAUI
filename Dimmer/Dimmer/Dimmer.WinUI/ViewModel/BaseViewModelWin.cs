@@ -13,14 +13,18 @@ using Dimmer.Utilities.FileProcessorUtils;
 // Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
 using Dimmer.WinUI.Utils.WinMgt;
 
+using Hqub.Lastfm.Entities;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
+using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 
 public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dimmer.MyViewModel
 {
-    private readonly IMapper mapper;
+    private readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerAudioService audioServ;
@@ -44,13 +48,20 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IRepository<GenreModel> genreModel;
     private readonly IWindowManagerService winMgrService;
 
-    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, 
-        IFolderPicker _folderPicker, IWindowManagerService windowManager,
-        IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
+    //public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, 
+    //    IFolderPicker _folderPicker, IWindowManagerService windowManager,
+    //    ILyricsMetadataService lyricsMetadataService,
+    //    IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService,  dimmerLiveStateService, audioServ, stateService,  settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
+    //{
+    
+
+        public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService
+            , IFolderPicker _folderPicker 
+            , IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
     {
     
 
-        this.mapper=mapper;
+    _mapper=mapper;
         this.appInitializerService=appInitializerService;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.audioServ=audioServ;
@@ -116,18 +127,49 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
             
         }
     }
-
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; } 
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; } 
     public async Task PickFolderToScan()
     {
         await AddMusicFolderViaPickerAsync();
     }
 
+    internal async Task LoadSongLastFMData()
+    {
+        SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName,SelectedSong.AlbumName);
 
+    }
 
+    partial void OnSelectedSongLastFMDataChanged(Track? oldValue, Track? newValue)
+    {
+
+        if (newValue is null)
+        {
+
+        }
+    }
+    internal async Task LoadSongLastFMMoreData()
+    {
+         SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSongLastFMData.Artist.Name, SelectedSongLastFMData.Name);
+     var   LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        IEnumerable<LrcLibSearchResult>? s =await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
+        AllLyricsResultsLrcLib = s.ToObservableCollection();
+    }
 
 
     [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
+    [ObservableProperty]
+    public partial List<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
+    [ObservableProperty]
     public partial bool IsSearching { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<LrcLibSearchResult>? AllLyricsResultsLrcLib { get; set; }
     [ObservableProperty]
     public partial SongModelView SelectedSongOnPage { get; set; }
 }

@@ -18,10 +18,10 @@ public static class ModelExtensions
         {
             Id = src.Id,
             Title = src.Title,
-            ArtistName = src.Artist?.Name ?? "Unknown Artist",
+            ArtistName = src.ArtistName,
             OtherArtistsName = src.OtherArtistsName,
-            AlbumName = src.Album?.Name ?? "Unknown Album",
-            GenreName = src.Genre?.Name ?? "Unknown Genre",
+            AlbumName = src.AlbumName,
+            GenreName = src.Genre is not null ?  src.Genre.Name : string.Empty,
             FilePath = src.FilePath,
             DurationInSeconds = src.DurationInSeconds,
             ReleaseYear = src.ReleaseYear,

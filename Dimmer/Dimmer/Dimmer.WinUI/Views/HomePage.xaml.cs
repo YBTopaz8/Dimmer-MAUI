@@ -302,7 +302,7 @@ public partial class HomePage : ContentPage
 
     private async void PointerRecog_PointerExited(object sender, PointerEventArgs e)
     {
-        await Task.WhenAll(SongsColView.DimmIn(),
+        await Task.WhenAll(SongsGrid.DimmIn(),
             TranslatedSearch.DimmOut(),
              AdvSearch.DimmOutCompletelyAndHide(),
             UtilitySection.DimmInCompletelyAndShow
@@ -313,7 +313,7 @@ public partial class HomePage : ContentPage
     private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
 
-        await Task.WhenAll(SongsColView.DimmOut(),
+        await Task.WhenAll(SongsGrid.DimmOut(),
              AdvSearch.DimmInCompletelyAndShow(),
             SearchSongSB.AnimateHeight(65, 650, Easing.SpringOut));
 
@@ -434,12 +434,12 @@ public partial class HomePage : ContentPage
         if (!AllEventsBorder.IsVisible)
         {
             MyViewModel.LoadStatsApp();
-            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsView.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
+            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsGrid.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
 
         }
         else
         {
-            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SearchSection.AnimateFadeInFront(400), SongsView.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
+            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SearchSection.AnimateFadeInFront(400), SongsGrid.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
 
 
         }
@@ -537,7 +537,7 @@ public partial class HomePage : ContentPage
 
     private async void LyricsChip_Clicked(object sender, EventArgs e)
     {
-        await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsView.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
+        await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsGrid.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
     }
 
     private void ArtistsEffectsView_LongPressed_1(object sender, EventArgs e)
@@ -600,15 +600,7 @@ public partial class HomePage : ContentPage
         SearchSongSB.Text=MyViewModel.CurrentPlaybackQuery;
         return;
 
-        if (!SongsColView.IsVisible)
-        {
-            await Task.WhenAll(SongsColView.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
-        }
-        else
-        {
-
-            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsColView.DimmOutCompletelyAndHide(250));
-        }
+        
 
     }
 
@@ -622,5 +614,38 @@ public partial class HomePage : ContentPage
         var view = (Microsoft.Maui.Controls.View)sender;
         var gestRec = view.GestureRecognizers[0] as TapGestureRecognizer;
         MyViewModel.SelectedSong=gestRec.CommandParameter as SongModelView;
+    }
+
+    private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
+        MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
+        if (!SongsGrid.IsVisible)
+        {
+            await Task.WhenAll(SongsGrid.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
+        }
+        else
+        {
+            await MyViewModel.LoadSongLastFMData();
+            await MyViewModel.LoadSongLastFMMoreData();
+
+            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsGrid.DimmOutCompletelyAndHide(250));
+        }
+    }
+
+    private async void CloseSideBar_Clicked(object sender, EventArgs e)
+    {
+        if (!SongsGrid.IsVisible)
+        {
+            await Task.WhenAll(SongsGrid.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
+        }
+        else
+        {
+            await MyViewModel.LoadSongLastFMData();
+            await MyViewModel.LoadSongLastFMMoreData();
+
+            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsGrid.DimmOutCompletelyAndHide(250));
+        }
     }
 }

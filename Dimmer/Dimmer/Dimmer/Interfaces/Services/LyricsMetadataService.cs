@@ -139,6 +139,49 @@ public class LyricsMetadataService : ILyricsMetadataService
         }
     }
 
+    public async Task<IEnumerable<LrcLibSearchResult>> SearchOnlineManualParamsAsync(string songName, string songArtist , string songAlbum)
+    {
+        if (string.IsNullOrEmpty(songName) || string.IsNullOrEmpty(songArtist)|| string.IsNullOrEmpty(songAlbum))
+        {
+            return Enumerable.Empty<LrcLibSearchResult>();
+        }
+
+        HttpClient client = _httpClientFactory.CreateClient("LrcLib");
+
+        // URL encode the parameters to handle special characters
+        string artistName = Uri.EscapeDataString(songArtist);
+        string trackName = Uri.EscapeDataString(songName);
+        string albumName = Uri.EscapeDataString(songAlbum);
+
+        string requestUri = $"api/search?track_name={trackName}&artist_name={artistName}&album_name={albumName}";
+
+        try
+        {
+            var ress = await client.GetAsync(requestUri);
+            if (!ress.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("LrcLib search request failed with status code {StatusCode} for {TrackName}", ress.StatusCode, trackName);
+                return Enumerable.Empty<LrcLibSearchResult>();
+            }
+            // Deserialize the response into an array of LrcLibSearchResult
+            var con = await ress.Content.ReadAsStringAsync();
+
+            Debug.WriteLine(con);
+            var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
+            return results ?? Enumerable.Empty<LrcLibSearchResult>();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error searching for lyrics for {TrackName}", trackName);
+            return Enumerable.Empty<LrcLibSearchResult>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize LrcLib response for {TrackName}", trackName);
+            return Enumerable.Empty<LrcLibSearchResult>();
+        }
+    }
+
     #endregion
 
     #region Save Lyrics
