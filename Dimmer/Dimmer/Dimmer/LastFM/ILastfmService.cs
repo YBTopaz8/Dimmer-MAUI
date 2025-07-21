@@ -1,4 +1,5 @@
-﻿using Hqub.Lastfm.Entities;
+﻿using Hqub.Lastfm;
+using Hqub.Lastfm.Entities;
 
 using System;
 using System.Collections.Generic;
@@ -55,5 +56,11 @@ public interface ILastfmService
     Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since);
     void Start();
     Task<User> GetUserInfoAsync();
+    Task<List<Tag>> GetTagsAsync(string artistName, string trackName);
+    Task<List<Track>> GetSimilarAsync(string artistName, string trackName);
+    Task<Track> GetCorrectionAsync(string artistName, string trackName);
+    Task<List<ChartTimeSpan>> GetWeeklyUserChartListAsync();
+    Task<PagedResponse<Track>> GetLovedTracksAsync();
+    Task<PagedResponse<Track>> GetUserTopTracksAsync();
 }
 
