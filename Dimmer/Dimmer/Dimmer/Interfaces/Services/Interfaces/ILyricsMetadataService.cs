@@ -21,6 +21,7 @@ public interface ILyricsMetadataService
     /// <param name="song">The song to search for.</param>
     /// <returns>A collection of potential search results, or an empty collection if none are found.</returns>
     Task<IEnumerable<LrcLibSearchResult>> SearchOnlineAsync(SongModelView song);
+    Task<IEnumerable<LrcLibSearchResult>> SearchOnlineManualParamsAsync(string songName, string songArtist, string songAlbum);
 
     /// <summary>
     /// Saves the provided LRC content for a song. This involves two steps:
