@@ -774,7 +774,7 @@
                                         Spacing="5"
                                         VerticalOptions="Start">
                                         <Label x:Name="SongsCountLabel" Text="{Binding BaseVM.SearchResults.Count, StringFormat='Songs : {0}'}" />
-
+                                        <Button Text="ReloadImages" Command="{Binding BaseVM.LoadInSongsAndEventsCommand}"/>
                                         <dx:Chip
                                             x:Name="Settings"
                                             BorderThickness="0"
@@ -906,29 +906,44 @@
 
                                             <Grid
                                                 BackgroundColor="Transparent"
-                                                ColumnDefinitions="*,0.35*"
+                                                ColumnDefinitions="0.3*,*,0.35*"
                                                 HeightRequest="100"
                                                 VerticalOptions="Center">
+                                                <dx:DXBorder CornerRadius="20">
+                                                    <dx:DXBorder.Triggers>
+                                                        <DataTrigger
+Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
+TargetType="dx:DXBorder"
+Value="True">
+                                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                            <Setter Property="BorderThickness" Value="3" />
+                                                        </DataTrigger>
+                                                        <DataTrigger
+Binding="{Binding HasSyncedLyrics}"
+TargetType="dx:DXBorder"
+Value="False">
+                                                            <Setter Property="BorderColor" Value="Transparent" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                        </DataTrigger>
+                                                    </dx:DXBorder.Triggers>
 
+                                                    <Image
+                                               Grid.Column="0"
+BackgroundColor="Transparent"
+Source="{Binding CoverImagePath}"
+IsVisible="True"
+                HorizontalOptions="Fill"                               
+VerticalOptions="Center" >
+
+                                                    </Image>
+                                                </dx:DXBorder>
+                                                
                                                 <dx:DXStackLayout
                                                     x:Name="TitleAndArtists"
-                                                    Grid.Column="0"
+                                                    Grid.Column="1"
                                                     BackgroundColor="Transparent"
                                                     VerticalOptions="Center">
-                                                    <dx:Chip
-                                                        BackgroundColor="Transparent"
-                                                        BorderThickness="0"
-                                                        FontAttributes="Bold"
-                                                        FontFamily="AleySans"
-                                                        FontSize="22"
-                                                        HorizontalOptions="Start"
-                                                        Icon="{Binding CoverImagePath}"
-                                                        IsVisible="True"
-                                                        PressedTextColor="DarkSlateBlue"
-                                                        Text="{Binding Title}"
-                                                        TextColor="{AppThemeBinding Dark=White,
-                                                                                    Light=black}"
-                                                        VerticalOptions="Center" />
+                                                   
 
                                                     <dx:Chip
                                                         x:Name="ArtistsChip"
@@ -982,7 +997,7 @@
 
                                                 <dx:Chip
                                                     x:Name="MoreIcon"
-                                                    Grid.Column="1"
+                                                    Grid.Column="2"
                                                     Padding="20"
                                                     BorderColor="DarkSlateBlue"
                                                     BorderThickness="0.7"

@@ -19,7 +19,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
     }
 
-    protected  override void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
 
@@ -28,7 +28,7 @@ public partial class AppShell : Shell
         {
             return;
         }
-        MyViewModel.Initialize();
+     await  MyViewModel.Initialize();
     }
 
     public BaseViewModel MyViewModel { get; internal set; }

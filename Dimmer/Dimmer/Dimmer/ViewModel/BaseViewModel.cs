@@ -291,6 +291,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
            })
            .DisposeWith(Disposables); // Assuming you have a reactive disposables manager
         _lastfmService.Start();
+       
     }
 
     public void SearchSongSB_TextChanged(string searchText)
@@ -1011,13 +1012,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public IObservable<bool> AudioEngineIsPlayingObservable { get; }
     public IObservable<double> AudioEnginePositionObservable { get; }
     public IObservable<double> AudioEngineVolumeObservable { get; }
-    public void Initialize()
+    public async Task Initialize()
     {
         InitializeApp();
 
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
+        await EnsureAllCoverArtCachedForSongsAsync();
     }
 
     public void InitializeApp()
@@ -1170,11 +1172,32 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         
     }
 
+   
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
         // Get a copy of the current list to avoid issues if it changes during the process.
-       
+
         _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count());
+
+        // This is a great use case for parallel processing.
+        await Parallel.ForEachAsync(songsToProcess, async (song, cancellationToken) =>
+        {
+            // We only need to process songs that don't already have a valid path.
+            if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
+            {
+                // We re-use the same core logic, but we don't need to load the bytes into the UI here.
+                await LoadAndCacheCoverArtAsync(song);
+
+            }
+        });
+
+        _logger.LogInformation("Finished pre-caching cover art process.");
+    }
+
+    public async Task EnsureAllCoverArtCachedForSongsAsync()
+    {
+        // Get a copy of the current list to avoid issues if it changes during the process.
+        IEnumerable<SongModelView> songsToProcess = _songSource.Items.AsEnumerable();
 
         // This is a great use case for parallel processing.
         await Parallel.ForEachAsync(songsToProcess, async (song, cancellationToken) =>

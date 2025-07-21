@@ -23,12 +23,12 @@ public partial class AppShell : Shell
 
     }
 
-    protected override  void OnAppearing()
+    protected async override  void OnAppearing()
     {
         base.OnAppearing();
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        MyViewModel.Initialize();
+      await  MyViewModel.Initialize();
 
     }
 
