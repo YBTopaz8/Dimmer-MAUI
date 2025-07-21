@@ -505,13 +505,10 @@ public partial class HomePage : ContentPage
 
         try
         {
-            // Get the list of songs you want to process
-            var songsToRefresh = MyViewModel.BaseVM.SearchResults; // Or your full master list
-            var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-            // --- Call our static, background-safe method ---
-            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
-
+            
+           await MyViewModel.LoadSongDataAsync(progressReporter,_lyricsCts);
             await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
+
         }
         catch (OperationCanceledException)
         {

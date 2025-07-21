@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
-using Dimmer.DimmerSearch.AbstractQueryTree;
 using Dimmer.DimmerSearch.Exceptions;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.Interfaces.Services;
@@ -25,6 +24,7 @@ using MoreLinq;
 
 using ReactiveUI;
 
+using System.Buffers.Text;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -1118,6 +1118,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             PictureInfo? embeddedPicture = null;
             try
             {
+            if (!File.Exists(song.FilePath))
+            {
+                return;
+            }
                 var track = new Track(song.FilePath);
                 embeddedPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
             }
@@ -2588,6 +2592,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // TopSongInFilter = ... // you would assign the result here
         };
     }
+
+    public async Task LoadSongDataAsync(Progress<LyricsProcessingProgress> progressReporter, CancellationTokenSource _lyricsCts)
+    {
+        // Get the list of songs you want to process
+        var songsToRefresh = _songSource.Items.AsEnumerable(); // Or your full master list
+        var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        // --- Call our static, background-safe method ---
+        await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
+    }
+
     public record QueryComponents(
         Func<SongModelView, bool> Predicate,
         IComparer<SongModelView> Comparer,

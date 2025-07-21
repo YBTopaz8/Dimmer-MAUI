@@ -8,6 +8,7 @@ namespace Dimmer.Interfaces.Services;
 
 public class LyricsMetadataService : ILyricsMetadataService
 {
+    private readonly IRealmFactory realmFact;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMapper _mapper; // To map between SongModel and SongModelView
     private readonly ILogger<LyricsMetadataService> _logger;
@@ -15,9 +16,11 @@ public class LyricsMetadataService : ILyricsMetadataService
     public LyricsMetadataService(
         IHttpClientFactory httpClientFactory,
         IMapper mapper,
-        
+        IRealmFactory realmFactory,
         ILogger<LyricsMetadataService> logger)
     {
+
+        realmFact = realmFactory;
         _httpClientFactory = httpClientFactory;
         _mapper = mapper;
         _logger = logger;
@@ -106,7 +109,7 @@ public class LyricsMetadataService : ILyricsMetadataService
         HttpClient client = _httpClientFactory.CreateClient("LrcLib");
 
         // URL encode the parameters to handle special characters
-        string artistName = Uri.EscapeDataString(song.OtherArtistsName.Split(',')[0].Trim());
+        string artistName = Uri.EscapeDataString(song.ArtistName.ToLower());
         string trackName = Uri.EscapeDataString(song.Title);
         string albumName = Uri.EscapeDataString(song.AlbumName ?? string.Empty);
 
@@ -197,8 +200,7 @@ public class LyricsMetadataService : ILyricsMetadataService
         // Step 2: Update the database record
         try
         {
-            var dbb = IPlatformApplication.Current.Services.GetService<IRealmFactory>();
-            var realm = dbb?.GetRealmInstance();
+            var realm = realmFact?.GetRealmInstance();
             if (realm == null)
             { return false; }
             var songModel = realm.Find<SongModel>(song.Id);
@@ -212,7 +214,7 @@ public class LyricsMetadataService : ILyricsMetadataService
             {
                 if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
                 {
-
+                    songModel.UnSyncLyrics=song.UnSyncLyrics;
                     songModel.SyncLyrics = lrcContent;
                     songModel.HasSyncedLyrics = true; // Update flags
                     songModel.HasLyrics = true;
@@ -234,14 +236,19 @@ public class LyricsMetadataService : ILyricsMetadataService
                         };
                         songModel.EmbeddedSync.Add(syncLyrics);
                     }
-                    realm.Add(songModel, true);
 
                     songModel.LastDateUpdated = DateTimeOffset.UtcNow;
 
                 }
+                else
+                {
+                    songModel.HasLyrics = false;
+                    songModel.HasSyncedLyrics=false;
+                }
+                realm.Add(songModel, true);
             });
-            // Important: Update the view model that was passed in so the UI has the latest data
-            _mapper.Map(songModel, song);
+            //// Important: Update the view model that was passed in so the UI has the latest data
+            //_mapper.Map(songModel, song);
 
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
         }

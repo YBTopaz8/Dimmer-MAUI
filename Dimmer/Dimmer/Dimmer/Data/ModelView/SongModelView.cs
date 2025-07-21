@@ -58,6 +58,9 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial byte[]? CoverImageBytes { get; set; }
+
+    [ObservableProperty]
+    public partial bool? IsInstrumental { get; set; }
     [ObservableProperty]
     public partial string CoverImagePath { get; set; }
     [ObservableProperty]
@@ -166,6 +169,10 @@ public partial class SongModelView : ObservableObject
         {
 
         }
+        HasSyncedLyrics= !string.IsNullOrEmpty(SyncLyrics) && SyncLyrics.Length > 1;
+        HasLyrics = !string.IsNullOrEmpty(UnSyncLyrics) && UnSyncLyrics.Length > 1;
+        IsFileExists = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
+
     }
     public string UserNoteAggregatedText =>
         UserNote != null && UserNote.Any()

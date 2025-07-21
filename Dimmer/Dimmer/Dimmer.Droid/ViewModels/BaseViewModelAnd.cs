@@ -1,16 +1,19 @@
 ﻿
 //using System.Reactive.Linq;
 
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using AndroidX.Lifecycle;
 
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
+using Dimmer.DimmerLive;
 using Dimmer.ViewModel;
 
 using Microsoft.Extensions.Logging;
+
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : ObservableObject, IDisposable
@@ -254,6 +257,13 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     public void Dispose()
     {
         throw new NotImplementedException();
+    }
+
+    internal async Task LoadSongDataAsync(Progress<LyricsProcessingProgress> progressReporter, CancellationTokenSource _lyricsCts)
+    { 
+       await baseVM.LoadSongDataAsync(progressReporter, _lyricsCts);
+      
+
     }
     #endregion
 }

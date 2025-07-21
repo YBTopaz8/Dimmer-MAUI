@@ -20,7 +20,7 @@
     x:FieldModifier="Public"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                       Dark=#1E1E1E}"
-    Shell.NavBarIsVisible="False"
+    Shell.NavBarIsVisible="True"
     Shell.TabBarIsVisible="False">
 
     <ContentPage.Resources>
@@ -793,30 +793,6 @@
                                             Tap="ScrollToCurrSong_Tap" />
 
 
-                                        <syncf:SfChip
-                                            x:Name="RefreshLyrics"
-                                            Clicked="RefreshLyrics_Clicked"
-                                            ImageSize="40"
-                                            ImageSource="lyrics.png"
-                                            IsEnabled="False"
-                                            ShowIcon="True" IsVisible="False"
-                                            ToolTipProperties.Text="Refresh Lyrics"
-                                            WidthRequest="55" />
-
-
-
-
-                                        <syncf:SfChip
-                                            x:Name="RefreshData"
-                                            Command="{Binding BaseVM.RefreshSongMetadataCommand}"
-                                            ImageSize="40"
-                                            ImageSource="vinyl.png"
-                                            IsEnabled="False"
-                                            IsVisible="False"
-                                            ShowIcon="True"
-                                            Text="refresh"
-                                            WidthRequest="55" />
-
 
                                         <syncf:SfChip
                                             x:Name="RetroactivelyLinkArtists"
@@ -836,8 +812,9 @@
                                 </dx:DXStackLayout>
                                 <Label
                                     x:Name="MyProgressLabel"
-                                    IsVisible="False"
-                                    WidthRequest="180" />
+                                    IsVisible="True"
+                                    
+                                    HeightRequest="70"/>
                                 <ProgressBar
                                     x:Name="MyProgressBar"
                                     IsVisible="False"
@@ -846,7 +823,17 @@
                                     BackgroundColor="Transparent"
                                     IsVisible="True"
                                     Orientation="Horizontal">
-                                    <dx:Chip
+                                    <syncf:SfChip
+       x:Name="RefreshLyrics"
+       Clicked="RefreshLyrics_Clicked"
+       ImageSize="40"
+       ImageSource="lyrics.png"
+       IsEnabled="True"
+       IsVisible="True"
+       ShowIcon="True"
+       ToolTipProperties.Text="Refresh Lyrics"
+       WidthRequest="55" />
+                                    <!--<dx:Chip
                                         x:Name="SortCategory"
                                         BackgroundColor="Transparent"
                                         BorderColor="Transparent"
@@ -872,7 +859,7 @@
 
                                             </DataTrigger>
                                         </dx:Chip.Triggers>
-                                    </dx:Chip>
+                                    </dx:Chip>-->
                                 </dx:DXStackLayout>
 
                             </dx:DXStackLayout>
@@ -909,7 +896,8 @@
                                                 ColumnDefinitions="0.3*,*,0.35*"
                                                 HeightRequest="100"
                                                 VerticalOptions="Center">
-                                                <dx:DXBorder CornerRadius="20">
+                                                <dx:DXBorder CornerRadius="20" 
+                                               Grid.Column="0"> 
                                                     <dx:DXBorder.Triggers>
                                                         <DataTrigger
 Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
@@ -928,7 +916,6 @@ Value="False">
                                                     </dx:DXBorder.Triggers>
 
                                                     <Image
-                                               Grid.Column="0"
 BackgroundColor="Transparent"
 Source="{Binding CoverImagePath}"
 IsVisible="True"
