@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
+namespace Dimmer.DimmerSearch.TQL;
 
 public enum TokenType
 {

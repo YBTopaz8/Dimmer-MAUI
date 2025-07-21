@@ -1,7 +1,4 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree;
-using Dimmer.DimmerSearch.AbstractQueryTree.NL;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 

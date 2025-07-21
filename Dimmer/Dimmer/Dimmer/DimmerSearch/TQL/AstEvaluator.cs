@@ -1,9 +1,7 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
-
-using Fastenshtein;
+﻿using Fastenshtein;
 
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
+namespace Dimmer.DimmerSearch.TQL;
 
 
 public class AstEvaluator
@@ -85,7 +83,7 @@ public class AstEvaluator
             case FieldType.Numeric:
             case FieldType.Duration:
                 double songNumericValue = SemanticQueryHelpers.GetNumericProp(song, fieldDef.PropertyName);
-                double queryNumericValue = (fieldDef.Type == FieldType.Duration)
+                double queryNumericValue = fieldDef.Type == FieldType.Duration
                     ? ParseDuration(node.Value.ToString())
                     : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
 
@@ -122,7 +120,7 @@ public class AstEvaluator
             case FieldType.Boolean:
                 bool songBoolValue = SemanticQueryHelpers.GetBoolProp(song, fieldDef.PropertyName);
                 
-                bool queryBoolValue = "true|yes|1".Contains(node.Value.ToString()?.ToLower() ?? "false");
+                bool queryBoolValue = "true|yes|1|oui".Contains(node.Value.ToString()?.ToLower() ?? "false");
                 result = songBoolValue == queryBoolValue;
                 break;
 
