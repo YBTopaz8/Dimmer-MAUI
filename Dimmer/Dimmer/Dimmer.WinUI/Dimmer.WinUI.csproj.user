@@ -52,9 +52,6 @@
     <MauiXaml Update="Views\SongNotifierWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\SingleSongPage.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
     <MauiXaml Update="Views\CustomViews\MediaControlBtmBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

@@ -30,6 +30,7 @@ global using Syncfusion.Maui.Toolkit.EffectsView;
 global using Dimmer.WinUI.Utils.StaticUtils;
 global using Microsoft.UI.Xaml.Input;
 global using System.ComponentModel;
+global using Dimmer.WinUI.Views.SingleSongPages;
 
 global using Dimmer.Data.ModelView;
 #nullable enable // Enable nullable reference types for better compile-time safety

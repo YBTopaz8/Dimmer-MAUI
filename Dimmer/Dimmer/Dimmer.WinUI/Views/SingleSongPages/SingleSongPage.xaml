@@ -57,12 +57,6 @@
 
                             <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="Auto,*" RowSpacing="20">
 
-                                <VerticalStackLayout Grid.Row="0">
-                                    <Button Text="Close" x:Name="CloseSideBar"
-                                                    Clicked="CloseSideBar_Clicked"
-                                                    />
-                                </VerticalStackLayout>
-
                                 <VerticalStackLayout Grid.Row="1" Spacing="15">
                                     <syncf:SfChip Text="View Lyrics"/>
                                     <syncf:SfChip Text="View Lyrics"/>

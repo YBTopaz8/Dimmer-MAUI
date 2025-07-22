@@ -38,7 +38,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<HomePage>();
 
-        builder.Services.AddTransient<SingleSongPage>();
+        builder.Services.AddSingleton<SingleSongPage>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

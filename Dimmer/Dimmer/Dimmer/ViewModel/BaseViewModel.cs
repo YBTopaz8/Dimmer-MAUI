@@ -1215,7 +1215,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
         });
 
-        _logger.LogInformation("Finished pre-caching cover art process.");
+        _logger.LogInformation("Finished pre-caching ALL cover art process.");
     }
 
 

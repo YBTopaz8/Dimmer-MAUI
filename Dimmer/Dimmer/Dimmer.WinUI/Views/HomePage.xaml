@@ -438,20 +438,7 @@
                                 Clicked="ViewNPQ_Clicked"
                                 StrokeThickness="5" ShowIcon="False"
                                 Text="View Now Playing Queue">
-                                <syncf:SfChip.Triggers>
-                                    <DataTrigger
-                                        Binding="{Binding IsVisible, Source={x:Reference SingleSongView}}"
-                                        TargetType="syncf:SfChip"
-                                        Value="True">
-                                        <Setter Property="Text" Value="Playing Queue" />
-                                    </DataTrigger>
-                                    <DataTrigger
-                                        Binding="{Binding IsVisible, Source={x:Reference SingleSongView}}"
-                                        TargetType="syncf:SfChip"
-                                        Value="False">
-                                        <Setter Property="Text" Value="Playing Queue" />
-                                    </DataTrigger>
-                                </syncf:SfChip.Triggers>
+                                
 
                             </syncf:SfChip>
                             <syncf:SfChip

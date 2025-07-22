@@ -61,7 +61,6 @@
     <None Remove="Views\PlaylistWindow.xaml" />
     <None Remove="Views\SettingsCenter\SettingsPage.xaml" />
     <None Remove="Views\SettingsCenter\SettingWin.xaml" />
-    <None Remove="Views\SingleSongPage.xaml" />
     <None Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
@@ -85,7 +84,6 @@
     <Page Remove="Views\SettingsCenter\SettingsPage.xaml" />
     <Page Remove="Views\SettingsCenter\SettingWin.xaml" />
     <Page Remove="Views\SettingWindow.xaml" />
-    <Page Remove="Views\SingleSongPage.xaml" />
     <Page Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <Page Remove="Views\SongNotifierWindow.xaml" />
     <Page Remove="Views\StatisticsPage.xaml" />
@@ -202,9 +200,6 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\SettingsCenter\SettingWin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SingleSongPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\SingleSongPages\SingleSongPage.xaml">
