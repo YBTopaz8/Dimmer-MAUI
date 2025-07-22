@@ -138,6 +138,10 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
     internal async Task LoadSongLastFMData()
     {
+        if (SelectedSong is null)
+        {
+            return;
+        }
         SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
         SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
@@ -155,7 +159,11 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     }
     internal async Task LoadSongLastFMMoreData()
     {
-         SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSongLastFMData.Artist.Name, SelectedSongLastFMData.Name);
+        if (SelectedSong is null )
+        {
+            return;
+        }
+         SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
      var   LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
         IEnumerable<LrcLibSearchResult>? s =await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
         AllLyricsResultsLrcLib = s.ToObservableCollection();

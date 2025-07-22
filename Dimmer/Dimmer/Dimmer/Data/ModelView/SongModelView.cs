@@ -20,10 +20,10 @@ public partial class SongModelView : ObservableObject
         TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
     }
     [ObservableProperty]
-    public partial string ArtistName { get; set; } = string.Empty;
+    public partial string ArtistName { get; set; } 
 
     [ObservableProperty]
-    public partial string AlbumName { get; set; } = string.Empty;
+    public partial string AlbumName { get; set; } 
 
     [ObservableProperty]
     public partial AlbumModelView Album { get; set; } = new();
@@ -32,9 +32,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial GenreModelView Genre { get; set; } = new();
     [ObservableProperty]
-    public partial string GenreName { get; set; } = string.Empty;
+    public partial string? GenreName { get; set; } 
     [ObservableProperty]
-    public partial string FilePath { get; set; } = string.Empty;
+    public partial string FilePath { get; set; } 
     [ObservableProperty]
     public partial double DurationInSeconds { get; set; }
     [ObservableProperty]

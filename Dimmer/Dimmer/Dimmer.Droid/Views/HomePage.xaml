@@ -777,6 +777,7 @@
                                         <Button Text="ReloadImages" Command="{Binding BaseVM.LoadInSongsAndEventsCommand}"/>
                                         <dx:Chip
                                             x:Name="Settings"
+                                            
                                             BorderThickness="0"
                                             Icon="settings.png"
                                             IconColor="DarkSlateBlue"

@@ -700,7 +700,8 @@ public partial class HomePage : ContentPage
 
     private async void Settings_Tap(object sender, HandledEventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(SettingsPage));
+        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+        //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 }
 
