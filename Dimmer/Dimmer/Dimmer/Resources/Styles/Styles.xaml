@@ -209,7 +209,7 @@
     </Style>
 
     <Style TargetType="Label">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=#999999}" />
         <Setter Property="VerticalTextAlignment" Value="Center" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="AleySans" />

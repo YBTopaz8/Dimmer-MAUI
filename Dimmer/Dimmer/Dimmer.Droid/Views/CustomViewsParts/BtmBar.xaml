@@ -45,7 +45,7 @@
                     <dx:DXImage
                         Aspect="AspectFit"
                         HeightRequest="70"
-                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
                 </StackLayout>
                 <Grid Grid.Column="1" ColumnDefinitions="*,auto">
 
@@ -64,14 +64,15 @@
                             FontAttributes="Italic"
                             FontSize="14"
                             LineBreakMode="WordWrap"
+                            TextColor="{AppThemeBinding Light=Black, Dark= White}"
                             Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}" />
                     </StackLayout>
 
                     <dx:Chip
                         x:Name="DurationAndSearchChip"
                         Grid.Column="1"
-                        BorderThickness="0" DoubleTap="DurationAndSearchChip_DoubleTap"
-                        Tap="DurationAndSearchChip_Tap"
+                        BorderThickness="0" DoubleTap="DurationAndSearchChip_LongPress"
+                        Tap="DurationAndSearchChip_LongPress"
                         LongPress="DurationAndSearchChip_LongPress">
                         <dx:Chip.ContentTemplate>
                             <DataTemplate>

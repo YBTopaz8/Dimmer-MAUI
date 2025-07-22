@@ -651,6 +651,38 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
                                 <Border Padding="10" StrokeShape="RoundRectangle 20">
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Add Quick Note"
+                           Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
+                           CommandParameter="Black" />
+                                            
+                                            <MenuFlyoutSubItem Text="Light">
+                                                <MenuFlyoutItem Text="Blue"
+                               Clicked="OnLabelClicked"
+                               CommandParameter="LightBlue" />
+                                                <MenuFlyoutItem Text="Coral"
+                               Clicked="OnLabelClicked"
+                               CommandParameter="LightCoral" />
+                                                <MenuFlyoutItem Text="Cyan"
+                               Clicked="OnLabelClicked"
+                               CommandParameter="LightCyan" />
+                                            </MenuFlyoutSubItem>
+                                            
+                                            
+                                            <MenuFlyoutSubItem Text="Dark">
+                                                <MenuFlyoutItem Text="Blue"
+                               Clicked="OnLabelClicked"
+                               CommandParameter="DarkBlue" />
+                                                <MenuFlyoutItem Text="Cyan"
+                               Clicked="OnLabelClicked"
+                               CommandParameter="DarkCyan" />
+                                                <MenuFlyoutItem Text="Magenta"
+                               Clicked="OnLabelClicked"
+                               CommandParameter="DarkMagenta" />
+                                            </MenuFlyoutSubItem>
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
                                     <Grid
                                         ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*,0.7*"
                                         ColumnSpacing="10">

@@ -95,9 +95,6 @@ public static class TopStats
 
     #region --- Convenience "Top" Methods ---
 
-    // These wrap the core methods for easier use.
-
-    // --- Based on COMPLETED PLAYS (Your Primary Use Case) ---
     public static List<DimmerStats> GetTopCompletedSongs(IReadOnlyCollection<SongModel> s, IReadOnlyCollection<DimmerPlayEvent> e, int count, DateTimeOffset? start = null, DateTimeOffset? end = null)
         => GetTopSongsByEventType(s, e, count, PlayType_Completed, start, end);
 

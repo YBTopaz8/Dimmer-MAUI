@@ -1703,7 +1703,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 h => audioService.IsPlayingChanged -= h)
             .Select(evt => evt.EventArgs.IsPlaying) // Get the boolean value from the event args
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(isPlaying => IsPlaying = isPlaying, ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
+            .Subscribe(isPlaying =>
+            {
+                IsPlaying = isPlaying;
+
+                }
+            , ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
 
         // --- Position and Seeking (These were already correct based on your interface) ---
         _subsManager.Add(Observable.FromEventPattern<double>(
