@@ -43,6 +43,19 @@ public partial class DimmerStats : ObservableObject
     /// </summary>
     [ObservableProperty]
     public partial string? StatTitle {get;set;}
+  
+    public double SecondaryValue { get; set; } // For more complex charts
+
+    // For categorical or time-series data
+    public DateTimeOffset Date { get; set; }
+    public string Category { get; set; } = string.Empty;
+    public int Low { get; internal set; }
+    public int High { get; internal set; }
+    public double HighDouble { get; internal set; }
+    public double LowDouble { get; internal set; }
+    public int Size { get; internal set; }
+    public int Open { get; internal set; }
+    public int Close { get; internal set; }
 }
 public class ChartDataPoint
 {

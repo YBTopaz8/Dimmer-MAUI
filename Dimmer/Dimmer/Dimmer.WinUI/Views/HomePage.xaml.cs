@@ -627,4 +627,14 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private void OnAddQuickNoteClicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void OnLabelClicked(object sender, EventArgs e)
+    {
+
+    }
 }

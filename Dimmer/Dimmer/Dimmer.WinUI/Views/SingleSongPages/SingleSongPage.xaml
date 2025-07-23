@@ -26,7 +26,7 @@
               FontAttributes="Bold"
               FontSize="19"
               HorizontalOptions="Center"
-              Text="{Binding Item.Song.Title, StringFormat='{0} Played'}"
+              Text="{Binding Item.Name, StringFormat='{0} Played'}"
               TextColor="White"
               VerticalOptions="Center" />
 
@@ -35,7 +35,7 @@
               FontAttributes="Bold"
               FontSize="21"
               HorizontalOptions="Center"
-              Text="{Binding Item.Count, StringFormat='{0} Times'}"
+              Text="{Binding Item.Count, StringFormat=' {0} Times'}"
               TextColor="DarkSlateBlue"
               VerticalOptions="Center" />
             </HorizontalStackLayout>
@@ -140,12 +140,12 @@ WidthRequest="300" />
                                 <syncf:PieSeries 
         EnableAnimation="True"
         EnableTooltip="True" 
-        ItemsSource="{Binding SelectedSong.PlayEvents}"
+        ItemsSource="{Binding SongPlayTypeDistribution}"
         LabelContext="Percentage"
         ShowDataLabels="True"
         TooltipTemplate="{StaticResource tooltipTemplate}"
-        XBindingPath="SongName"
-        YBindingPath="PlayType">
+        XBindingPath="Name"
+        YBindingPath="Count">
 
                                     <syncf:PieSeries.SelectionBehavior>
                                         <syncf:DataPointSelectionBehavior

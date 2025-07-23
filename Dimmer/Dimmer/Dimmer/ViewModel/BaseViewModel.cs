@@ -2153,31 +2153,319 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         GetStatsGeneral();
     }
-    public async void GetStatsGeneral()
-    {
-        
+    //public void GetStatsGeneral()
+    //{
 
-        if (SelectedSong is not null || CurrentPlayingSongView is null || SelectedSong?.Id == CurrentPlayingSongView.Id)
+    //    // It's more efficient to get these once and pass them around.
+    //    var allSongs = songRepo.GetAll();
+    //    var allEvents = dimmerPlayEventRepo.GetAll();
+    //    int topCount = 10; // Define how many items you want in your "Top" lists
+
+    //    // --- Time-based Stats ---
+    //    var endDate = DateTimeOffset.UtcNow;
+    //    var startDate = endDate.AddMonths(-1);
+
+    //    // --- Calling your existing TopStats ---
+    //    TopSongsLastMonth = TopStats.GetTopCompletedSongs(allSongs, allEvents, topCount, startDate, endDate).ToObservableCollection();
+    //    //MostSkipped = TopStats.GetTopSkippedSongs(allSongs, allEvents, topCount).ToObservableCollection();
+
+    //    // --- Calling the NEW AdvancedStats (Global Methods) ---
+
+    //    // "Which artists' discographies have I explored the most?"
+    //    TopArtistsByVariety = TopStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
+
+    //    // "Which songs did I love intensely but get tired of quickly?"
+    //    TopBurnoutSongs = TopStats.GetTopBurnoutSongs(allEvents, allSongs, topCount).ToObservableCollection();
+
+    //    // "What old favorites did I recently get back into?"
+    //    TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(allEvents, allSongs, topCount).ToObservableCollection();
+
+    //    // "Which artists' songs do I tend to skip most often?"
+    //    ArtistsByHighestSkipRate = TopStats.GetArtistsByHighestSkipRate(allEvents, allSongs, topCount).ToObservableCollection();
+
+    //    // You can call any of the 9 "Global & Comparative Analysis" methods here.
+    //}
+
+    /// <summary>
+    /// Loads ALL global, library-wide statistics. Call this once when the page loads.
+    /// </summary>
+    public void GetStatsGeneral()
+    {
+        // It's more efficient to get these once and pass them around.
+        var allSongs = songRepo.GetAll();
+        var allEvents = dimmerPlayEventRepo.GetAll();
+        int topCount = 10; // How many items to show in ranked lists
+
+        // --- Time-based Filters ---
+        var endDate = DateTimeOffset.UtcNow;
+        var monthStartDate = endDate.AddMonths(-1);
+
+        // --- Basic Rankings (from TopStats) ---
+        TopSongsLastMonth = TopStats.GetTopCompletedSongs(allSongs, allEvents, topCount, monthStartDate, endDate).ToObservableCollection();
+        MostSkippedSongs = TopStats.GetTopSkippedSongs(allSongs, allEvents, topCount).ToObservableCollection();
+        ArtistsByHighestSkipRate = TopStats.GetArtistsByHighestSkipRate(allEvents, allSongs, topCount).ToObservableCollection();
+        TopBurnoutSongs = TopStats.GetTopBurnoutSongs(allEvents, allSongs, topCount).ToObservableCollection();
+        TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(allEvents, allSongs, topCount).ToObservableCollection();
+
+        // --- Calls to NEW ChartSpecificStats ---
+
+        // CIRCULAR
+        OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(allEvents).ToObservableCollection();
+
+        // POLAR
+        TopArtistListeningClocks = ChartSpecificStats.GetTopArtistListeningClocks(allEvents, allSongs, 3).ToObservableCollection();
+
+        // BAR / COLUMN
+        TopArtistsByVariety = ChartSpecificStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
+        TopGenresByListeningTime = ChartSpecificStats.GetTopGenresByListeningTime(allEvents, allSongs, topCount).ToObservableCollection();
+
+        // LINE / AREA
+        DailyListeningVolume = ChartSpecificStats.GetDailyListeningVolume(allEvents, monthStartDate, endDate).ToObservableCollection();
+
+        // STACKED
+        DeviceUsageByTopArtists = ChartSpecificStats.GetDeviceUsageByTopArtists(allEvents, allSongs, 5).ToObservableCollection();
+        GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(allEvents, allSongs, 5).ToObservableCollection();
+
+        // RANGE
+        DailyListeningTimeRange = ChartSpecificStats.GetDailyListeningTimeRange(allEvents).ToObservableCollection();
+        SongDurationVsListenTime = ChartSpecificStats.GetSongDurationVsListenTime(allEvents, allSongs, topCount).ToObservableCollection();
+
+        // BUBBLE
+        SongProfileBubbleChart = ChartSpecificStats.GetSongProfileBubbleChart(allEvents, allSongs).ToObservableCollection();
+
+        // WATERFALL
+        LibraryGrowthWaterfall = ChartSpecificStats.GetLibraryGrowthWaterfall(allSongs).ToObservableCollection();
+        SkipContributionByArtist = ChartSpecificStats.GetSkipContributionByArtist(allEvents, allSongs, topCount).ToObservableCollection();
+
+        // HISTOGRAM / BOXPLOT
+        // Note: BoxPlot may need extra processing to group the 'Value' property by 'Category'
+        ReleaseYearDistributionByGenre = ChartSpecificStats.GetReleaseYearDistributionByGenre(allSongs, 5).ToObservableCollection();
+        SongDurationHistogram = ChartSpecificStats.GetSongDurationHistogram(allSongs).ToObservableCollection();
+        ListeningSessionDurationHistogram = ChartSpecificStats.GetListeningSessionDurationHistogram(allEvents).ToObservableCollection();
+
+        // OHLC / CANDLE
+        DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(allEvents).ToObservableCollection();
+    }
+
+    /// <summary>
+    /// Loads ALL statistics for a single song. Call this when a song is selected.
+    /// </summary>
+    public void LoadStatsForSelectedSong(SongModelView? song)
+    {
+        // If a null song is passed, use the currently selected one if it exists.
+        song ??= SelectedSong;
+
+        // If no song is selected or available, clear the properties and exit.
+        if (song == null)
         {
+            ClearSingleSongStats();
             return;
         }
-        else
+
+        // Using your pattern to ensure fresh event data for the specific song.
+        // Note: If song.PlayEvents is already reliably populated, you can use that directly
+        // to avoid a full scan of all events, which would be more performant.
+        var songEvents = dimmerPlayEventRepo.GetAll()
+            .Where(x => x.SongId == song.Id).ToList().AsReadOnly();
+
+        if (songEvents.Count==0)
         {
-            SelectedSong = CurrentPlayingSongView;
+            ClearSingleSongStats();
+            return;
         }
 
+        // --- Calling ALL Single-Song Stat Methods ---
 
+        // CIRCULAR
+        SongPlayTypeDistribution = ChartSpecificStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
 
-        var endDate = DateTimeOffset.UtcNow;
-        var startDate = endDate.AddMonths(-1);
+        // POLAR
+        SongPlayDistributionByHour = ChartSpecificStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
 
-        TopSongsLastMonth = TopStats.GetTopCompletedSongs(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 15, startDate, endDate).ToObservableCollection();
-           MostSkipped = TopStats.GetTopSongsByEventType(songRepo.GetAll(), dimmerPlayEventRepo.GetAll(), 15, 5).ToObservableCollection();
+        // LINE / AREA
+        SongPlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(songEvents).ToObservableCollection();
 
-        await EnsureCoverArtCachedForSongsAsync(SearchResults);
+        // SCATTER / HISTOGRAM
+        SongDropOffPoints = ChartSpecificStats.GetSongDropOffPoints(songEvents).ToObservableCollection();
 
+        // OHLC / CANDLE
+        SongWeeklyOHLC = ChartSpecificStats.GetSongWeeklyOHLC(songEvents).ToObservableCollection();
 
+        // KPI / GAUGE
+        SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id); // This was from the original TopStats
+        SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
     }
+
+    /// <summary>
+    /// Helper method to clear all properties related to a single song's stats.
+    /// </summary>
+    private void ClearSingleSongStats()
+    {
+        SongPlayTypeDistribution = null;
+        SongPlayDistributionByHour = null;
+        SongPlayHistoryOverTime = null;
+        SongDropOffPoints = null;
+        SongWeeklyOHLC = null;
+        SongBingeFactor = null;
+        SongAverageListenThrough = null;
+    }
+    //public void LoadStatsForSelectedSong(SongModelView? song)
+    //{
+    //    if (song is null)
+    //    {
+    //        song = SelectedSong;
+    //    }
+    //    var songdb = songRepo.GetById(song.Id);
+    //    // If no song is selected or it has no play history, clear the old stats and exit.
+    //    if (song == null || song.PlayEvents == null || !song.PlayEvents.Any())
+    //    {
+    //        SongPlayDistributionByHour = null;
+    //        SongPlayTypeDistribution = null;
+    //        SongBingeFactor = null;
+    //        SongAverageListenThrough = null;
+    //        // Clear other single-song stat properties here...
+    //        return;
+    //    }
+
+    //    // The events are already filtered for us on the song object!
+    //    var songEvents = dimmerPlayEventRepo.GetAll().
+    //        Where(x => x.SongId == song.Id).ToList().AsReadOnly();
+            
+
+    //    // --- Calling the NEW AdvancedStats (Single Song Methods) ---
+
+    //    // "Is this a morning, afternoon, or late-night song?"
+    //    SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
+
+    //    // "Do I let this song finish, or do I usually skip it?"
+    //    SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
+
+    //    // "How often do I play this song back-to-back?"
+    //    SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
+
+    //    // "On average, how much of this song do I actually listen to?"
+    //    SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
+
+        
+    //    // Call the other 3 single-song methods (GetPlayHistoryOverTime, GetDropOffPoints, etc.) here
+    //    // and assign them to their properties.
+    //}
+
+    #region --- Observable Properties ---
+
+    //=========================================================
+    //==           1. GLOBAL / LIBRARY-WIDE STATS            ==
+    //=========================================================
+
+    // --- General Rankings & Time-Based ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? TopSongsLastMonth { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? MostSkippedSongs { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? TopArtistsByVariety { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? TopBurnoutSongs { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? TopRediscoveredSongs { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? ArtistsByHighestSkipRate { get; set; }
+
+    // --- For Circular Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? OverallListeningByDayOfWeek { get; set; }
+
+    // --- For Polar Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? TopArtistListeningClocks { get; set; }
+
+    // --- For Bar/Column Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? TopGenresByListeningTime { get; set; }
+
+    // --- For Line/Area/Step Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? DailyListeningVolume { get; set; }
+
+    // --- For Stacked Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? DeviceUsageByTopArtists { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? GenrePopularityOverTime { get; set; }
+
+    // --- For Range Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? DailyListeningTimeRange { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongDurationVsListenTime { get; set; }
+
+    // --- For Scatter/Bubble Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongProfileBubbleChart { get; set; }
+
+    // --- For Waterfall Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? LibraryGrowthWaterfall { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SkipContributionByArtist { get; set; }
+
+    // --- For Histogram & BoxPlot ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? ReleaseYearDistributionByGenre { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongDurationHistogram { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? ListeningSessionDurationHistogram { get; set; }
+
+    // --- For OHLC/Candle Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? DailyListeningRoutineOHLC { get; set; }
+
+
+    //=========================================================
+    //==              2. SINGLE SONG STATS                   ==
+    //=========================================================
+
+    // --- For Circular Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongPlayTypeDistribution { get; set; }
+
+    // --- For Polar Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongPlayDistributionByHour { get; set; }
+
+    // --- For Line/Area Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongPlayHistoryOverTime { get; set; }
+
+    // --- For Scatter/Histogram ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongDropOffPoints { get; set; }
+
+    // --- For OHLC/Candle Charts ---
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongWeeklyOHLC { get; set; }
+
+    // --- For KPI/Gauge Indicators (Note: these are single objects) ---
+    [ObservableProperty]
+    public partial DimmerStats? SongBingeFactor { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? SongAverageListenThrough { get; set; }
+
+    #endregion
+
+
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
         if (userNote == null || songWithNote == null)
@@ -2191,20 +2479,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopSongsLastMonth { get; set; }
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopSkippedArtists { get; set; }
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopSongsByEventType { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? MostSkipped { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? MostListened { get; set; }
 
 
 
@@ -2244,7 +2518,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _stateService.SetCurrentSong(song);
     }
     [RelayCommand]
-    public async void ToggleFavSong(SongModelView songModel)
+    public async Task ToggleFavSong(SongModelView songModel)
     {
 
 

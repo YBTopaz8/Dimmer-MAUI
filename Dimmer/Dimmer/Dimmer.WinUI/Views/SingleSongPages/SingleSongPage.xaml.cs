@@ -19,8 +19,9 @@ public partial class SingleSongPage : ContentPage
        
             await MyViewModel.LoadSongLastFMData();
             await MyViewModel.LoadSongLastFMMoreData();
+        MyViewModel.LoadStatsForSelectedSong(null);
 
-        
+
     }
 
     private void DataPointSelectionBehavior_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangingEventArgs e)
