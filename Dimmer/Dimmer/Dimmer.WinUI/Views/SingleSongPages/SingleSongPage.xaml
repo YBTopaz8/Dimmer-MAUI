@@ -62,276 +62,218 @@
         </DataTemplate>
     </ContentPage.Resources>
 
-    <Grid
-                        x:Name="SingleSongView"
-                        Grid.Row="1"
-                        IsVisible="True">
-        <Grid.Resources>
-            <ResourceDictionary>
-                <Style TargetType="syncf:SfChip">
-                    <Setter Property="MinimumWidthRequest" Value="30" />
-                </Style>
-            </ResourceDictionary>
-        </Grid.Resources>
-        <Grid ColumnDefinitions="0.5*,*" ColumnSpacing="15">
-            <syncf:SfTabView Grid.Column="0" 
-                                         TabBarPlacement="Bottom"
-                                         IsVisible="True" x:Name="SingleSongTabView">
-                <syncf:SfTabItem>
-                    <syncf:SfTabItem.Content>
-                        <Grid ColumnSpacing="15" RowDefinitions="auto,*" RowSpacing="10">
+    <Grid x:Name="SingleSongView" IsVisible="{Binding IsSongSelected}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.6*"/>
+        </Grid.ColumnDefinitions>
 
-                            <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="Auto,*" RowSpacing="20">
+        <!-- =============================================================== -->
+        <!-- LEFT COLUMN: At-a-Glance Info, Quick Actions, and File Properties -->
+        <!-- =============================================================== -->
+        <ScrollView Grid.Column="0">
+            <VerticalStackLayout Spacing="10" Padding="15">
+                <!-- Cover Art and Main Info -->
+                <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" HeightRequest="320" WidthRequest="320" HorizontalOptions="Center">
+                    <Image Aspect="AspectFill" Source="{Binding SelectedSong.CoverImageBytes, Converter={StaticResource BytesToImageConverter}}"/>
+                </Border>
 
-                                <VerticalStackLayout Grid.Row="1" Spacing="15">
-                                    <syncf:SfChip Text="View Lyrics"/>
-                                    <syncf:SfChip Text="View Lyrics"/>
+                <Label Text="{Binding SelectedSong.Title}" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                <Label Text="{Binding SelectedSong.OtherArtistsName}" FontSize="20" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
+
+                <!-- Quick Actions -->
+                <Button Text="Add to Playlist..." Command="{Binding AddToPlaylistCommand}" CommandParameter="{Binding SelectedSong}"/>
+                <Button Text="Share..." Command="{Binding ShareSongCommand}" CommandParameter="{Binding SelectedSong}"/>
+
+                <!-- Tags Section -->
+                <Label Text="Tags" Style="{StaticResource SectionHeader}"/>
+                <!--<FlexLayout BindableLayout.ItemsSource="{Binding SelectedSong}" Wrap="Wrap">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:TagModelView">
+                            <syncf:SfChip Text="{Binding Name}" Margin="0,0,5,5"/>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>-->
+
+                <!-- User Note Section -->
+                <Label Text="My Notes" Style="{StaticResource SectionHeader}"/>
+                <Label Text="{Binding SelectedSong.UserNote.Count}" LineBreakMode="WordWrap"/>
+                <Button Text="Add / Edit Note" Command="{Binding EditNoteCommand}" CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
+
+                <!-- File Properties -->
+                <Label Text="File Properties" Style="{StaticResource SectionHeader}"/>
+                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Path:" Style="{StaticResource FieldLabel}"/>
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.FilePath}" LineBreakMode="TailTruncation"/>
+
+                    <Label Grid.Row="1" Grid.Column="0" Text="Size:" Style="{StaticResource FieldLabel}"/>
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
+
+                    <Label Grid.Row="2" Grid.Column="0" Text="Format:" Style="{StaticResource FieldLabel}"/>
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.FileFormat, StringFormat='{0}, {1} kbps'}">
+                        <!--<Label.BindingContext>
+                            <MultiBinding>
+                                <Binding Path="SelectedSong.FileFormat"/>
+                                <Binding Path="SelectedSong.BitRate"/>
+                            </MultiBinding>
+                        </Label.BindingContext>-->
+                    </Label>
+
+                    <Label Grid.Row="3" Grid.Column="0" Text="Date Added:" Style="{StaticResource FieldLabel}"/>
+                    <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSong.DateCreated, Converter={StaticResource DateTimeConverter}}"/>
+                </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- =============================================================== -->
+        <!-- RIGHT COLUMN: The Powerhouse Tab View for Editing and Details   -->
+        <!-- =============================================================== -->
+        <syncf:SfTabView Grid.Column="1" TabBarPlacement="Top" >
+
+            <!-- TAB 1: METADATA EDITOR -->
+            <syncf:SfTabItem Header="Edit Metadata">
+                <syncf:SfTabItem.Content>
+                    <ScrollView>
+                        <VerticalStackLayout Padding="15" Spacing="10">
+                            <Label Text="Edit the core information for this song. These changes will be saved directly to the audio file's tags."/>
+
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="10" ColumnDefinitions="Auto,*">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Title" Style="{StaticResource FieldLabel}"/>
+                                <Entry Grid.Row="0" Grid.Column="1" Text="{Binding EditableSong.Title}"/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Artist(s)" Style="{StaticResource FieldLabel}"/>
+                                <Entry Grid.Row="1" Grid.Column="1" Text="{Binding EditableSong.ArtistName}" Placeholder="e.g. Artist A, Artist B"/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Album" Style="{StaticResource FieldLabel}"/>
+                                <Entry Grid.Row="2" Grid.Column="1" Text="{Binding EditableSong.AlbumName}"/>
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Album Artist" Style="{StaticResource FieldLabel}"/>
+                                <Entry Grid.Row="3" Grid.Column="1" Text="{Binding EditableSong.AlbumArtistName}"/>
+
+                                <Label Grid.Row="4" Grid.Column="0" Text="Genre" Style="{StaticResource FieldLabel}"/>
+                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding EditableSong.GenreName}"/>
+
+                                <Label Grid.Row="5" Grid.Column="0" Text="Year" Style="{StaticResource FieldLabel}"/>
+                                <Entry Grid.Row="5" Grid.Column="1" Text="{Binding EditableSong.ReleaseYear}" Keyboard="Numeric"/>
+
+                                <Label Grid.Row="6" Grid.Column="0" Text="Tags" VerticalOptions="Start" Style="{StaticResource FieldLabel}"/>
+                                <VerticalStackLayout Grid.Row="6" Grid.Column="1">
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding EditableSong.Tags}" Wrap="Wrap">
+                                        <!-- Similar to display, but with a delete button -->
+                                    </FlexLayout>
+                                    <HorizontalStackLayout>
+                                        <Entry Placeholder="Add a new tag..." Text="{Binding NewTagText}" HorizontalOptions="FillAndExpand"/>
+                                        <Button Text="Add" Command="{Binding AddTagCommand}"/>
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
-
                             </Grid>
-                            <VerticalStackLayout Spacing="15" Grid.Row="1">
-                                <VerticalStackLayout.Resources>
-                                    <ResourceDictionary>
-                                        <Style TargetType="Label">
-                                            <Setter Property="FontSize" Value="23"/>
-                                        </Style>
-                                    </ResourceDictionary>
-                                </VerticalStackLayout.Resources>
-                                <Image 
-HeightRequest="300" VerticalOptions="Start" 
-Source="{Binding SelectedSong.CoverImagePath}"
-WidthRequest="300" />
-                                <Grid ColumnDefinitions="*,*">
-                                    <Label Grid.Column="0" Text="Title" />
-                                    <Label Grid.Column="1" Text="{Binding SelectedSong.Title}" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*">
-                                    <Label Grid.Column="0" Text="Artist" />
-                                    <Label Grid.Column="1" Text="{Binding SelectedSong.OtherArtistsName}" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*">
-                                    <Label Grid.Column="0" Text="Album" />
-                                    <Label Grid.Column="1" Text="{Binding SelectedSong.AlbumName}" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*">
-                                    <Label Grid.Column="0" Text="Genre" />
-                                    <Label Grid.Column="1" Text="{Binding SelectedSong.GenreName}" />
-                                </Grid>
-                            </VerticalStackLayout>
-                        </Grid>
-                    </syncf:SfTabItem.Content>
-                </syncf:SfTabItem>
-            </syncf:SfTabView>
 
-
-            <syncf:SfTabView Grid.Column="1" Grid.Row="1" TabBarPlacement="Bottom">
-
-                <syncf:SfTabItem Header="Song Details">
-                    <syncf:SfTabItem.Content>
-                        <ScrollView>
-                            
-                        <VerticalStackLayout>
-
-                            
-                            
-                            
-                            
-                            <syncf:SfCircularChart x:Name="MyPie" VerticalOptions="Start"  
-                           HeightRequest="300"
-                           Grid.Row="0">
-                                <syncf:SfCircularChart.Title>
-                                    <Label HorizontalOptions="Center" Text="{Binding SongPlayDistributionByHour.Count,StringFormat='{0} Dimms This Month '}" />
-                                </syncf:SfCircularChart.Title>
-
-                                <syncf:PieSeries 
-        EnableAnimation="True"
-        EnableTooltip="True" 
-        ItemsSource="{Binding SongPlayTypeDistribution}"
-        LabelContext="Percentage"
-        ShowDataLabels="True"
-        TooltipTemplate="{StaticResource tooltipTemplate}"
-        XBindingPath="Name"
-        YBindingPath="YValue">
-
-                                    <syncf:PieSeries.SelectionBehavior>
-                                        <syncf:DataPointSelectionBehavior
-                SelectionBrush="DarkSlateBlue"
-                SelectionChanging="DataPointSelectionBehavior_SelectionChanging"
-                Type="SingleDeselect" />
-                                    </syncf:PieSeries.SelectionBehavior>
-                                    <syncf:PieSeries.DataLabelSettings>
-                                        <syncf:CircularDataLabelSettings LabelPosition="Outside" SmartLabelAlignment="Shift" />
-                                    </syncf:PieSeries.DataLabelSettings>
-                                </syncf:PieSeries>
-                            </syncf:SfCircularChart>
-
-                            <syncf:SfPolarChart HeightRequest="600">
-                                <syncf:SfPolarChart.Title>
-                                    <Label Text="Listening Clock for Selected Song" FontSize="16" FontAttributes="Bold"/>
-                                </syncf:SfPolarChart.Title>
-
-                                <syncf:SfPolarChart.Legend>
-                                    <syncf:ChartLegend/>
-                                </syncf:SfPolarChart.Legend>
-
-                                <!-- The Primary Axis is for the categories around the circle -->
-                                <syncf:SfPolarChart.PrimaryAxis>
-                                    <syncf:CategoryAxis LabelPlacement="BetweenTicks"/>
-                                </syncf:SfPolarChart.PrimaryAxis>
-
-                                <!-- The Secondary Axis is for the numeric values (play count) -->
-                                <syncf:SfPolarChart.SecondaryAxis>
-                                    <!-- Let the axis auto-adjust. Don't set Maximum unless you have a specific reason. -->
-                                    <syncf:NumericalAxis/>
-                                </syncf:SfPolarChart.SecondaryAxis>
-
-                                <syncf:PolarLineSeries ItemsSource="{Binding SongPlayDistributionByHour}"
-                                                           XBindingPath="Name" ShowDataLabels="True"
-                                                           x:Name="SongPlayDistributionByHourPolarLine"
-                                                           EnableTooltip="True"
-        TooltipTemplate="{StaticResource tooltipTemplate}"
-                                                           YBindingPath="YValue"
-                                                           />
-                            </syncf:SfPolarChart>
-
-
-
-
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="10" Margin="0,20,0,0">
+                                <Button Text="Cancel" Command="{Binding CancelEditCommand}"/>
+                                <Button Text="Save Changes" Command="{Binding SaveMetadataChangesCommand}" FontAttributes="Bold"/>
+                            </HorizontalStackLayout>
                         </VerticalStackLayout>
-                            
+                    </ScrollView>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
+            <!-- TAB 2: LYRICS MANAGEMENT -->
+            <syncf:SfTabItem Header="Lyrics">
+                <syncf:SfTabItem.Content>
+                    <Grid RowDefinitions="Auto, *">
+                        <!-- Search and Download Section -->
+                        <VerticalStackLayout Grid.Row="0" Padding="15">
+                            <Label Text="Find Lyrics Online" Style="{StaticResource SectionHeader}"/>
+                            <HorizontalStackLayout>
+                                <Entry Placeholder="Search by title, artist..." Text="{Binding LyricsSearchQuery}" HorizontalOptions="FillAndExpand"/>
+                                <Button Text="Search" Command="{Binding SearchLyricsCommand}"/>
+                            </HorizontalStackLayout>
+                            <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"/>
+                            <CollectionView ItemsSource="{Binding LyricsSearchResults}" EmptyView="No results found.">
+                                <!-- Your existing ItemTemplate for LrcLibSearchResult goes here -->
+                            </CollectionView>
+                        </VerticalStackLayout>
+
+                        <!-- Display and Action Section -->
+                        <ScrollView Grid.Row="1" Padding="15">
+                            <Label Text="{Binding SelectedSong.UnSyncLyrics}" FontSize="16"/>
                         </ScrollView>
-                    </syncf:SfTabItem.Content>
-                </syncf:SfTabItem>
-                <syncf:SfTabItem Header="Last FM Info">
-                    <syncf:SfTabItem.Content>
-                        
-                        <Grid ColumnDefinitions="*,auto" 
-                              >
-                            <Grid.Resources>
-                                <ResourceDictionary>
-                                    <Style TargetType="Label">
-                                        <Setter Property="FontSize" Value="24"/>
-                                    </Style>
-                                </ResourceDictionary>
-                            </Grid.Resources>
-                            <VerticalStackLayout Grid.Column="0" VerticalOptions="Start">
+                    </Grid>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
 
-                                <Grid 
-                                  
-                                  ColumnDefinitions="*,*">
+            <!-- TAB 3: MANUAL LYRICS SYNCER -->
+            <syncf:SfTabItem Header="Sync Lyrics">
+                <syncf:SfTabItem.Content>
+                    <Grid RowDefinitions="Auto, *, Auto" Padding="15">
+                        <Label Grid.Row="0" Text="Listen and tap 'Set Timestamp' at the start of each line."/>
 
-                                    <Label Text="Song Title" Grid.Column="0"/>
-
-                                    <Label Text=""
-                                       Grid.Column="1"/>
-                                </Grid>
-
-                                <Grid 
-                                  
-                                  ColumnDefinitions="*,*">
-
-                                    <Label Text="Is Favorite" Grid.Column="0"/>
-
-                                    <Label Text=""
-                                       Grid.Column="1"/>
-                                </Grid>
-
-                                <Grid 
-                                  
-                                  ColumnDefinitions="*,*">
-
-                                    <Label Text="Artist Name" Grid.Column="0"/>
-
-                                    <Label Text=""
-                                       Grid.Column="1"/>
-                                </Grid>
-
-                                <Grid 
-                                  
-                                  ColumnDefinitions="*,*">
-
-                                    <Label Text="Artist Image" Grid.Column="0"/>
-
-                                  
-                                </Grid>
-
-                                <Grid 
-                                  
-                                  ColumnDefinitions="*,*">
-
-                                    <Label Text="Song Title" Grid.Column="0"/>
-
-                                    <Label Text=""
-                                       Grid.Column="1"/>
-                                </Grid>
-
-                            </VerticalStackLayout>
-                        </Grid>
-                    </syncf:SfTabItem.Content>
-                </syncf:SfTabItem>
-                <syncf:SfTabItem Header="Song Details">
-                    <syncf:SfTabItem.Content>
-
-                        <Grid ColumnDefinitions="*" >
-
-                            <CollectionView ItemsSource="{Binding AllLyricsResultsLrcLib}"
-                                              SelectionMode="None"       Grid.Column="0"    >
-
-                                <CollectionView.ItemsLayout>
-                                    <GridItemsLayout Span="3" Orientation="Vertical"
-                                                                 VerticalItemSpacing="10"
-                                                                 HorizontalItemSpacing="10">
-                                    </GridItemsLayout>
-
-                                </CollectionView.ItemsLayout>
-                                <CollectionView.EmptyView>
-                                    <VerticalStackLayout>
-                                        <Label Text="No Lyrics"/>
-                                    </VerticalStackLayout>
-                                </CollectionView.EmptyView>
+                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+                            <!-- List of lyric lines -->
+                            <CollectionView Grid.Column="0" ItemsSource="{Binding ManualSyncLines}" SelectedItem="{Binding SelectedSyncLine}">
                                 <CollectionView.ItemTemplate>
-
-                                    <DataTemplate x:DataType="models:LrcLibSearchResult">
-                                        <Border StrokeShape="RoundRectangle, 20" Stroke="DarkSlateBlue"
-                                                            StrokeThickness="3">
-                                            <VerticalStackLayout Spacing="10" >
-
-                                                <Label Text="{Binding Name}" FontSize="23"
-                                                           HorizontalOptions="Center"/>
-
-                                                <Label Text="{Binding ArtistName }"  FontSize="21"
-                                                           HorizontalOptions="Center"/>
-
-                                                <Label Text="{Binding AlbumName }"  FontSize="19"
-                                                           HorizontalOptions="Center"/>
-                                                <Button Text="Save To DataBase" HorizontalOptions="Center"/>
-                                                <ScrollView HeightRequest="200">
-
-                                                    <Label Text="{Binding SyncedLyrics }"
-                                                           HorizontalOptions="Center"/>
-                                                </ScrollView>
-                                            </VerticalStackLayout>
-                                        </Border>
+                                    <DataTemplate>
+                                        <HorizontalStackLayout>
+                                            <Label Text="{Binding Timestamp, StringFormat='{0:mm\\:ss\\.fff}'}" WidthRequest="80"/>
+                                            <Label Text="{Binding Text}"/>
+                                        </HorizontalStackLayout>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
+
+                            <!-- Timestamping Controls -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center">
+                                <Label Text="{Binding CurrentSyncPosition, StringFormat='{0:mm\\:ss\\.fff}'}" FontSize="24" HorizontalOptions="Center"/>
+                                <Button Text="Set Timestamp" Command="{Binding SetTimestampForLineCommand}" HeightRequest="60"/>
+                                <Button Text="Clear Timestamp" Command="{Binding ClearTimestampForLineCommand}"/>
+                            </VerticalStackLayout>
                         </Grid>
 
-                    </syncf:SfTabItem.Content>
-                </syncf:SfTabItem>
-
-
-
-
-
-                <syncf:SfTabItem>
-                    <syncf:SfTabItem.Content>
-                        <VerticalStackLayout>
-                            <Label Text="tr"/>
+                        <!-- Playback and Save Controls -->
+                        <VerticalStackLayout Grid.Row="2">
+                            <Slider Value="{Binding CurrentSyncPosition}" Maximum="{Binding SelectedSong.DurationInSeconds}"/>
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                                <Button Text="5s" Command="{Binding SeekSyncCommand}" CommandParameter="-5"/>
+                                <Button Text="Play/Pause" Command="{Binding PlayPauseSyncCommand}"/>
+                                <Button Text=">> 5s" Command="{Binding SeekSyncCommand}" CommandParameter="5"/>
+                            </HorizontalStackLayout>
+                            <Button Text="Save Synced Lyrics" Command="{Binding SaveManualSyncCommand}" Margin="0,10,0,0"/>
                         </VerticalStackLayout>
-                    </syncf:SfTabItem.Content>
-                </syncf:SfTabItem>
-            </syncf:SfTabView>
-        </Grid>
+                    </Grid>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
+            <!-- TAB 4: STATISTICS & HISTORY -->
+            <syncf:SfTabItem Header="Statistics">
+                <syncf:SfTabItem.Content>
+                    <ScrollView>
+                        <VerticalStackLayout Padding="15">
+                            <Label Text="Charts" Style="{StaticResource SectionHeader}"/>
+                           
+                            <Label Text="Key Metrics" Style="{StaticResource SectionHeader}"/>
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="5">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Total Plays:" Style="{StaticResource FieldLabel}"/>
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSongStats.TotalPlays}"/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Last Played:" Style="{StaticResource FieldLabel}"/>
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSongStats.LastPlayed, Converter={StaticResource DateTimeConverter}}"/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Skips:" Style="{StaticResource FieldLabel}"/>
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSongStats.SkipCount}"/>
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Playtime:" Style="{StaticResource FieldLabel}"/>
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSongStats.TotalPlayTime, StringFormat='{0} hours'}"/>
+                            </Grid>
+
+                            <Label Text="Recent Play History" Style="{StaticResource SectionHeader}"/>
+                            <CollectionView ItemsSource="{Binding SelectedSong.PlayEvents}">
+                                <!-- DataTemplate to show EventDate and EventType -->
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
+        </syncf:SfTabView>
     </Grid>
 </ContentPage>

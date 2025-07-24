@@ -467,7 +467,7 @@
                             <syncf:SfChip
                                 x:Name="AllEventsChip"
                                 Clicked="AllEvents_Clicked"
-                                ImageSize="40"
+                                ImageSize="40" IsVisible="False"
                                 ImageSource="chartb.png"
                                 ShowIcon="True"
                                 StrokeThickness="5"

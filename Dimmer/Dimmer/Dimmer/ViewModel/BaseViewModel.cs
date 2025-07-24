@@ -472,7 +472,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public const string CurrentAppVersion = "Dimmer v1.4Theta";
+    public const string CurrentAppVersion = "Dimmer v1.7aheta";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
