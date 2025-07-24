@@ -16,6 +16,12 @@ public partial class DimmerStats : ObservableObject
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]
+    public partial string? ArtistName { get; set; }
+    [ObservableProperty]
+    public partial string? AlbumName { get; set; }
+    [ObservableProperty]
+    public partial string? GenreName { get; set; }
+    [ObservableProperty]
     public partial double? TotalSecondsNumeric { get; set; }
     [ObservableProperty]
     public partial double? Value { get; set; }
@@ -38,16 +44,28 @@ public partial class DimmerStats : ObservableObject
     [ObservableProperty]
     public partial List<ChartDataPoint>? PlotData {get;set;}
 
-    /// <summary>
-    /// A title for the statistic, making the object self-describing.
-    /// </summary>
+
+    /// <summary>A title for the statistic, making the object self-describing (e.g., "Your Busiest Listening Day").</summary>
     [ObservableProperty]
-    public partial string? StatTitle {get;set;}
-  
+    public partial string? StatTitle { get; set; }
+
+    /// <summary>A brief explanation of what the stat means.</summary>
+    [ObservableProperty]
+    public partial string? StatExplanation {get;set;}
+
+    /// <summary>A value to compare the user against (e.g., a global average).</summary>
+    [ObservableProperty]
+    public partial double ComparisonValue { get; set; }
+
+    /// <summary>The label for the comparison value (e.g., "Global Average").</summary>
+    [ObservableProperty]
+    public partial string? ComparisonLabel {get;set;}
+ 
     public double SecondaryValue { get; set; } // For more complex charts
 
     // For categorical or time-series data
     public DateTimeOffset Date { get; set; }
+    public int DayOfYear { get; set; }
     public string Category { get; set; } = string.Empty;
     public int Low { get; internal set; }
     public int High { get; internal set; }
@@ -56,6 +74,16 @@ public partial class DimmerStats : ObservableObject
     public int Size { get; internal set; }
     public int Open { get; internal set; }
     public int Close { get; internal set; }
+
+    public bool IsLongListeningDay { get; set; }
+
+    public object? XValue { get; set; } // For numerical or DateTime X-Axes. Use this for XBindingPath.
+
+    // For Numerical Y-Axes
+    public double YValue { get; set; } // Primary Y-Axis value. Use this for YBindingPath.
+public bool IsSummary { get; set; }      // For WaterfallSeries' SummaryBindingPath
+    public List<SongModelView> ContributingSongs { get; internal set; } = new();
+    public double SizeDouble { get; internal set; }
 }
 public class ChartDataPoint
 {

@@ -1,6 +1,6 @@
 ﻿using ATL;
 
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public interface IMusicMetadataService
 {
     ArtistModelView GetOrCreateArtist(Track track, string name);
@@ -22,4 +22,6 @@ public interface IMusicMetadataService
     bool DoesSongExist(string title, int durationInSeconds, out SongModelView? existingSong);
     void MarkAsUpdated(SongModelView song);
     bool DoesSongExist(string title, double durationInSeconds);
+    bool HasFileBeenProcessed(string filePath);
+   
 }

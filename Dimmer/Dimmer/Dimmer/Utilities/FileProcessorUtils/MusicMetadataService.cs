@@ -1,5 +1,7 @@
 ﻿using ATL;
 
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+
 namespace Dimmer.Utilities.FileProcessorUtils;
 
 public class MusicMetadataService : IMusicMetadataService
@@ -7,6 +9,7 @@ public class MusicMetadataService : IMusicMetadataService
     private readonly Dictionary<string, ArtistModelView> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AlbumModelView> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, GenreModelView> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
 
 
     public List<ArtistModelView> NewArtists { get; } = new();
@@ -50,6 +53,14 @@ public class MusicMetadataService : IMusicMetadataService
             _existingSongKeys.Add(song.TitleDurationKey);
         }
         _processedSongsInThisScan.AddRange(existingSongs);
+
+        foreach (var song in existingSongs)
+        {
+            if (!string.IsNullOrWhiteSpace(song.FilePath))
+            {
+                _existingFilePaths.Add(song.FilePath);
+            }
+        }
     }
     private readonly List<SongModelView> _processedSongsInThisScan = new();
 
@@ -159,5 +170,9 @@ public class MusicMetadataService : IMusicMetadataService
     public IReadOnlyList<SongModelView> GetProcessedSongs()
     {
         return [.. _processedSongsInThisScan];
+    }
+    public bool HasFileBeenProcessed(string filePath)
+    {
+        return _existingFilePaths.Contains(filePath);
     }
 }

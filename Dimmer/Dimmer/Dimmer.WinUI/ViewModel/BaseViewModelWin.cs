@@ -4,6 +4,7 @@ using CommunityToolkit.Maui.Storage;
 using Dimmer.Data.Models;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
 using Dimmer.Utilities.FileProcessorUtils;
 
@@ -29,6 +30,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerAudioService audioServ;
     private readonly IFolderPicker folderPicker;
+    private readonly IDuplicateFinderService duplicateFinderService;
     private readonly ILastfmService lastfmService;
     private readonly IWindowManagerService windowManager1;
     private readonly IWindowManagerService windowManager;
@@ -56,8 +58,8 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     
 
         public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService
-            , IFolderPicker _folderPicker 
-            , IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
+            , IFolderPicker _folderPicker ,IDuplicateFinderService duplicateFinderService
+            , IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo,duplicateFinderService, lastfmService, artistRepo, albumModel, genreModel, logger)
     {
     
 
@@ -77,6 +79,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         this.genreModel=genreModel;
 
         folderPicker = _folderPicker;
+        this.duplicateFinderService=duplicateFinderService;
         this.lastfmService=lastfmService;
         windowManager1=windowManager;
     }
@@ -96,7 +99,14 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         }
     }
 
-
+    public void RescanFolderPath(string folderPath)
+    {
+        if (string.IsNullOrEmpty(folderPath))
+        {
+            return;
+        }
+        AddMusicFolderByPassingToService(folderPath);
+    }
     public async Task AddMusicFolderViaPickerAsync()
     {
 

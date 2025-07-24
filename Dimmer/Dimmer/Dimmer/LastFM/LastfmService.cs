@@ -661,7 +661,7 @@ public class LastfmService : ILastfmService
                     return;
 
                 // Update Genre
-                if (string.IsNullOrEmpty(liveSong.Genre?.Name) && trackInfo.Tags.Any())
+                if (string.IsNullOrEmpty(liveSong.Genre?.Name) && trackInfo.Tags.Count!=0)
                 {
                     // Find or create genre
                     var topTag = trackInfo.Tags.First().Name;

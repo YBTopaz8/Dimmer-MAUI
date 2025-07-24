@@ -26,7 +26,7 @@
               FontAttributes="Bold"
               FontSize="19"
               HorizontalOptions="Center"
-              Text="{Binding Item.Name, StringFormat='{0} Played'}"
+              Text="{Binding Item.Name, StringFormat='{0}'}"
               TextColor="White"
               VerticalOptions="Center" />
 
@@ -35,7 +35,7 @@
               FontAttributes="Bold"
               FontSize="21"
               HorizontalOptions="Center"
-              Text="{Binding Item.Count, StringFormat=' {0} Times'}"
+              Text="{Binding Item.YValue, StringFormat=' {0} Times'}"
               TextColor="DarkSlateBlue"
               VerticalOptions="Center" />
             </HorizontalStackLayout>
@@ -128,13 +128,19 @@ WidthRequest="300" />
 
                 <syncf:SfTabItem Header="Song Details">
                     <syncf:SfTabItem.Content>
-                        <Grid Grid.Column="1" RowDefinitions="*,auto">
+                        <ScrollView>
+                            
+                        <VerticalStackLayout>
 
+                            
+                            
+                            
+                            
                             <syncf:SfCircularChart x:Name="MyPie" VerticalOptions="Start"  
-                           HeightRequest="600"
+                           HeightRequest="300"
                            Grid.Row="0">
                                 <syncf:SfCircularChart.Title>
-                                    <Label HorizontalOptions="Center" Text="{Binding SelectedSong.PlayEvents.Count,StringFormat='{0} Dimms This Month '}" />
+                                    <Label HorizontalOptions="Center" Text="{Binding SongPlayDistributionByHour.Count,StringFormat='{0} Dimms This Month '}" />
                                 </syncf:SfCircularChart.Title>
 
                                 <syncf:PieSeries 
@@ -145,7 +151,7 @@ WidthRequest="300" />
         ShowDataLabels="True"
         TooltipTemplate="{StaticResource tooltipTemplate}"
         XBindingPath="Name"
-        YBindingPath="Count">
+        YBindingPath="YValue">
 
                                     <syncf:PieSeries.SelectionBehavior>
                                         <syncf:DataPointSelectionBehavior
@@ -159,7 +165,41 @@ WidthRequest="300" />
                                 </syncf:PieSeries>
                             </syncf:SfCircularChart>
 
-                        </Grid>
+                            <syncf:SfPolarChart HeightRequest="600">
+                                <syncf:SfPolarChart.Title>
+                                    <Label Text="Listening Clock for Selected Song" FontSize="16" FontAttributes="Bold"/>
+                                </syncf:SfPolarChart.Title>
+
+                                <syncf:SfPolarChart.Legend>
+                                    <syncf:ChartLegend/>
+                                </syncf:SfPolarChart.Legend>
+
+                                <!-- The Primary Axis is for the categories around the circle -->
+                                <syncf:SfPolarChart.PrimaryAxis>
+                                    <syncf:CategoryAxis LabelPlacement="BetweenTicks"/>
+                                </syncf:SfPolarChart.PrimaryAxis>
+
+                                <!-- The Secondary Axis is for the numeric values (play count) -->
+                                <syncf:SfPolarChart.SecondaryAxis>
+                                    <!-- Let the axis auto-adjust. Don't set Maximum unless you have a specific reason. -->
+                                    <syncf:NumericalAxis/>
+                                </syncf:SfPolarChart.SecondaryAxis>
+
+                                <syncf:PolarLineSeries ItemsSource="{Binding SongPlayDistributionByHour}"
+                                                           XBindingPath="Name" ShowDataLabels="True"
+                                                           x:Name="SongPlayDistributionByHourPolarLine"
+                                                           EnableTooltip="True"
+        TooltipTemplate="{StaticResource tooltipTemplate}"
+                                                           YBindingPath="YValue"
+                                                           />
+                            </syncf:SfPolarChart>
+
+
+
+
+                        </VerticalStackLayout>
+                            
+                        </ScrollView>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
                 <syncf:SfTabItem Header="Last FM Info">

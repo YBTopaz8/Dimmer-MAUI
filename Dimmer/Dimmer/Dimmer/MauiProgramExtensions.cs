@@ -1,5 +1,6 @@
 ﻿using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
 
 using Microsoft.Extensions.Configuration;
@@ -87,6 +88,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
+        builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
         var assembly = Assembly.GetExecutingAssembly();
 
         // THE CORRECTED RESOURCE NAME

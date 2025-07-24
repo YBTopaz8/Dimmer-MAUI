@@ -46,7 +46,7 @@ public static class SongDataProcessor
     /// <returns>A Task that completes when all processing is finished.</returns>
     public static Task ProcessLyricsAsync(
         IEnumerable<SongModelView> songsToProcess, ILyricsMetadataService lyricsService,
-        IProgress<LyricsProcessingProgress> progress,
+        IProgress<LyricsProcessingProgress>? progress,
         CancellationToken cancellationToken)
     {
        

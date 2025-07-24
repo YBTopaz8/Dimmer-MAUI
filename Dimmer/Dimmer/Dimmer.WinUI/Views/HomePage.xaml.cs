@@ -430,7 +430,7 @@ public partial class HomePage : ContentPage
         this.IsBusy=true;
         if (!AllEventsBorder.IsVisible)
         {
-            MyViewModel.LoadStatsApp();
+            MyViewModel.GetStatsGeneral();
             await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsGrid.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
 
         }

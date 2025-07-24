@@ -8,7 +8,6 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     public ObjectId Id { get; set; }
     public string? Name { get; set; }
     public string? Bio { get; set; }
-    public string? ImagePath { get; set; }
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }
     public string? DeviceFormFactor { get; set; }
@@ -24,6 +23,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 
 
     public IList<TagModel> Tags { get; } = null!;
+    public string? ImagePath { get; set; }
     public IList<UserNoteModel> UserNotes { get; } = null!;
     public ArtistModel()
     {

@@ -2,6 +2,7 @@
 
 using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.Data.ModelView.LibSanityModels;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch;
@@ -9,6 +10,7 @@ using Dimmer.DimmerSearch.Exceptions;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
@@ -40,6 +42,7 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
 {
+    private readonly IDuplicateFinderService _duplicateFinderService;
     public BaseViewModel(
        IMapper mapper,
        IAppInitializerService appInitializerService,
@@ -52,6 +55,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        ICoverArtService coverArtService,
        IFolderMgtService folderMgtService,
        IRepository<SongModel> songRepo,
+       IDuplicateFinderService duplicateFinderService,
         ILastfmService lastfmService,
        IRepository<ArtistModel> artistRepo,
        IRepository<AlbumModel> albumModel,
@@ -80,6 +84,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
 
+        _duplicateFinderService = duplicateFinderService;
         libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
                                              h => audioServ.PositionChanged += h,
@@ -950,47 +955,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial string CurrentQuery { get; set; }
     public string QueryBeforePlay { get; private set; }
 
-
-   
-
-    private void WireUpLiveStats()
-    {
-        var filteredSongsStream = _searchResults.ToObservableChangeSet()
-        .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
-        .ToCollection()
-        .StartWith(_searchResults); // Start with the initial collection
-
-        // Stream 2: A stream that fires whenever the full list of play events changes.
-        // This is your existing _playEventSource.
-        var allPlayEventsStream = _playEventSource.Connect()
-            .ToCollection()
-            .StartWith(new List<DimmerPlayEventView>()); // Start with an empty list
-
-        filteredSongsStream.CombineLatest(allPlayEventsStream, (filteredSongs, allEvents) =>
-        {
-            // This is the "combiner" function. It runs on a background thread
-            // thanks to ObserveOn(TaskPoolScheduler.Default) below.
-            // We pass both the current songs and all events to our calculation method.
-            return CalculateStats(filteredSongs, allEvents);
-        })
-       .ObserveOn(TaskPoolScheduler.Default) // Perform the calculation on a background thread
-       .ObserveOn(RxApp.MainThreadScheduler)   // Switch back to the UI thread to update properties
-       .Subscribe(stats =>
-       {
-           // The 'stats' object is the result from CalculateStats.
-           // Now we can update all our UI properties.
-           if (stats != null)
-           {
-               AllTimeTopSong = stats.TopSong;
-               // You can add more properties to the stats result object
-               // e.g., TopSongFromFilter = stats.TopSongInFilter;
-               //      TotalPlaysInFilter = stats.TotalPlaysInFilter;
-           }
-       })
-       .DisposeWith(Disposables); // Add this combined subscription to our main disposable.
-    }
-
-
     readonly IRealmFactory realmFactory;
     private readonly Realm realm;
 
@@ -1028,6 +992,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     #region Subscription Event Handlers (The Reactive Logic)
 
+    [ObservableProperty]
+    public partial string CurrentCoverImagePath { get; set; } ///OBJECT TO SHOW BG IMAGE OF CURRENT CONTEXTUAL PAGE
     private void OnPlaybackStarted(PlaybackEventArgs args)
     {
         if (args.MediaSong is null)
@@ -1043,8 +1009,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             if (args.MediaSong.CoverImageBytes.Length>1)
             {
-                CurrentPlayingSongView.CoverImagePath=args.MediaSong.CoverImagePath;
-                CurrentPlayingSongView.CoverImageBytes = args.MediaSong.CoverImageBytes;
+                CurrentCoverImagePath=args.MediaSong.CoverImagePath;
 
             }
         }
@@ -1302,6 +1267,25 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
         // ... your existing logic to refresh FolderPaths and trigger metadata scan ...
         IsAppScanning = false;
+        var newSongs = stateInfo.ExtraParameter as List<SongModelView>;
+        if(newSongs != null && newSongs.Count > 0)
+        { 
+            _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
+
+        _songSource.AddRange(newSongs);
+
+        _ = EnsureCoverArtCachedForSongsAsync(newSongs);
+
+         var   _lyricsCts = new CancellationTokenSource();
+            _ = LoadSongDataAsync(null, _lyricsCts);
+        }
+    else
+    {
+        _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
+    }
+
+
+
 
         var realmm = realmFactory.GetRealmInstance();
 
@@ -1935,7 +1919,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void LoadInSongsAndEvents()
     {
-        Task.Run(() => libService.LoadInSongsAndEvents());
+        //Task.Run(() => libService.LoadInSongsAndEvents());
 
     }
     public void AddMusicFolderByPassingToService(string folderPath)
@@ -2128,63 +2112,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             SelectedArtistAlbums.Add(album.ToModelView(_mapper));
         }
 
-
-
-
-
-
-
-
         _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
 
 
     }
-    public void LoadStatsApp()
-    {
 
 
-        var s = dimmerPlayEventRepo.GetAll();
-        if (DimmerPlayEventList is null || DimmerPlayEventList.Count<1)
-        {
 
-            DimmerPlayEventList= _mapper.Map<ObservableCollection<DimmerPlayEventView>>(s);
-        }
+    [ObservableProperty]
+    public partial DimmerStats? SongListeningStreak { get; set; }
 
+    [ObservableProperty]
+    public partial DimmerStats? SongEvergreenScore {get;set;}
 
-        GetStatsGeneral();
-    }
-    //public void GetStatsGeneral()
-    //{
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats>? SongWeekdayVsWeekend {get;set;}
 
-    //    // It's more efficient to get these once and pass them around.
-    //    var allSongs = songRepo.GetAll();
-    //    var allEvents = dimmerPlayEventRepo.GetAll();
-    //    int topCount = 10; // Define how many items you want in your "Top" lists
-
-    //    // --- Time-based Stats ---
-    //    var endDate = DateTimeOffset.UtcNow;
-    //    var startDate = endDate.AddMonths(-1);
-
-    //    // --- Calling your existing TopStats ---
-    //    TopSongsLastMonth = TopStats.GetTopCompletedSongs(allSongs, allEvents, topCount, startDate, endDate).ToObservableCollection();
-    //    //MostSkipped = TopStats.GetTopSkippedSongs(allSongs, allEvents, topCount).ToObservableCollection();
-
-    //    // --- Calling the NEW AdvancedStats (Global Methods) ---
-
-    //    // "Which artists' discographies have I explored the most?"
-    //    TopArtistsByVariety = TopStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
-
-    //    // "Which songs did I love intensely but get tired of quickly?"
-    //    TopBurnoutSongs = TopStats.GetTopBurnoutSongs(allEvents, allSongs, topCount).ToObservableCollection();
-
-    //    // "What old favorites did I recently get back into?"
-    //    TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(allEvents, allSongs, topCount).ToObservableCollection();
-
-    //    // "Which artists' songs do I tend to skip most often?"
-    //    ArtistsByHighestSkipRate = TopStats.GetArtistsByHighestSkipRate(allEvents, allSongs, topCount).ToObservableCollection();
-
-    //    // You can call any of the 9 "Global & Comparative Analysis" methods here.
-    //}
 
     /// <summary>
     /// Loads ALL global, library-wide statistics. Call this once when the page loads.
@@ -2194,11 +2137,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // It's more efficient to get these once and pass them around.
         var allSongs = songRepo.GetAll();
         var allEvents = dimmerPlayEventRepo.GetAll();
-        int topCount = 10; // How many items to show in ranked lists
+        int topCount = 10;
 
         // --- Time-based Filters ---
         var endDate = DateTimeOffset.UtcNow;
         var monthStartDate = endDate.AddMonths(-1);
+        var yearStartDate = endDate.AddYears(-1);
 
         // --- Basic Rankings (from TopStats) ---
         TopSongsLastMonth = TopStats.GetTopCompletedSongs(allSongs, allEvents, topCount, monthStartDate, endDate).ToObservableCollection();
@@ -2206,45 +2150,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         ArtistsByHighestSkipRate = TopStats.GetArtistsByHighestSkipRate(allEvents, allSongs, topCount).ToObservableCollection();
         TopBurnoutSongs = TopStats.GetTopBurnoutSongs(allEvents, allSongs, topCount).ToObservableCollection();
         TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(allEvents, allSongs, topCount).ToObservableCollection();
+        TopArtistsByVariety = TopStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
+        TopGenresByListeningTime = TopStats.GetTopGenresByListeningTime(allEvents, allSongs, topCount).ToObservableCollection();
 
-        // --- Calls to NEW ChartSpecificStats ---
+        // --- Populating Chart-Specific Properties ---
+        OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(allEvents, allSongs).ToObservableCollection();
+        DeviceUsageByTopArtists = TopStats.GetDeviceUsageByTopArtists(allEvents, allSongs, 5).ToObservableCollection(); // Using TopStats method
+        GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(allEvents, allSongs).ToObservableCollection();
+        DailyListeningTimeRange = ChartSpecificStats.GetDailyListeningTimeRange(allEvents, allSongs, monthStartDate, endDate).ToObservableCollection();
+        SongProfileBubbleChart = ChartSpecificStats.GetSongProfileBubbleChartData(allEvents, allSongs).ToObservableCollection();
+        DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(allEvents, allSongs, monthStartDate, endDate).ToObservableCollection();
 
-        // CIRCULAR
-        OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(allEvents).ToObservableCollection();
-
-        // POLAR
-        TopArtistListeningClocks = ChartSpecificStats.GetTopArtistListeningClocks(allEvents, allSongs, 3).ToObservableCollection();
-
-        // BAR / COLUMN
-        TopArtistsByVariety = ChartSpecificStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
-        TopGenresByListeningTime = ChartSpecificStats.GetTopGenresByListeningTime(allEvents, allSongs, topCount).ToObservableCollection();
-
-        // LINE / AREA
-        DailyListeningVolume = ChartSpecificStats.GetDailyListeningVolume(allEvents, monthStartDate, endDate).ToObservableCollection();
-
-        // STACKED
-        DeviceUsageByTopArtists = ChartSpecificStats.GetDeviceUsageByTopArtists(allEvents, allSongs, 5).ToObservableCollection();
-        GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(allEvents, allSongs, 5).ToObservableCollection();
-
-        // RANGE
-        DailyListeningTimeRange = ChartSpecificStats.GetDailyListeningTimeRange(allEvents).ToObservableCollection();
-        SongDurationVsListenTime = ChartSpecificStats.GetSongDurationVsListenTime(allEvents, allSongs, topCount).ToObservableCollection();
-
-        // BUBBLE
-        SongProfileBubbleChart = ChartSpecificStats.GetSongProfileBubbleChart(allEvents, allSongs).ToObservableCollection();
-
-        // WATERFALL
-        LibraryGrowthWaterfall = ChartSpecificStats.GetLibraryGrowthWaterfall(allSongs).ToObservableCollection();
-        SkipContributionByArtist = ChartSpecificStats.GetSkipContributionByArtist(allEvents, allSongs, topCount).ToObservableCollection();
-
-        // HISTOGRAM / BOXPLOT
-        // Note: BoxPlot may need extra processing to group the 'Value' property by 'Category'
-        ReleaseYearDistributionByGenre = ChartSpecificStats.GetReleaseYearDistributionByGenre(allSongs, 5).ToObservableCollection();
-        SongDurationHistogram = ChartSpecificStats.GetSongDurationHistogram(allSongs).ToObservableCollection();
-        ListeningSessionDurationHistogram = ChartSpecificStats.GetListeningSessionDurationHistogram(allEvents).ToObservableCollection();
-
-        // OHLC / CANDLE
-        DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(allEvents).ToObservableCollection();
+        // Note: Waterfall, Histogram, BoxPlot might require more specific logic or different data shaping
+        // depending on the exact chart component API. These are placeholders for that future implementation.
     }
 
     /// <summary>
@@ -2252,21 +2170,25 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     public void LoadStatsForSelectedSong(SongModelView? song)
     {
-        // If a null song is passed, use the currently selected one if it exists.
         song ??= SelectedSong;
 
-        // If no song is selected or available, clear the properties and exit.
         if (song == null)
         {
             ClearSingleSongStats();
             return;
         }
 
-        // Using your pattern to ensure fresh event data for the specific song.
-        // Note: If song.PlayEvents is already reliably populated, you can use that directly
-        // to avoid a full scan of all events, which would be more performant.
-        var songEvents = dimmerPlayEventRepo.GetAll()
-            .Where(x => x.SongId == song.Id).ToList().AsReadOnly();
+        // It's much more efficient to get the full song model once with its relations.
+        var songDb = songRepo.GetById(song.Id);
+        if (songDb == null)
+        {
+            ClearSingleSongStats();
+            return;
+        }
+
+        // Use the song's own PlayHistory if it's reliably populated.
+        // This is VASTLY more performant than scanning all events in the database.
+        var songEvents = songDb.PlayHistory.ToList().AsReadOnly();
 
         if (songEvents.Count==0)
         {
@@ -2276,24 +2198,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // --- Calling ALL Single-Song Stat Methods ---
 
-        // CIRCULAR
-        SongPlayTypeDistribution = ChartSpecificStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
+        // FROM TopStats (or original methods)
+        SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
+        SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
+        SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
+        SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
 
-        // POLAR
-        SongPlayDistributionByHour = ChartSpecificStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
-
-        // LINE / AREA
+        // FROM ChartSpecificStats
         SongPlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(songEvents).ToObservableCollection();
-
-        // SCATTER / HISTOGRAM
         SongDropOffPoints = ChartSpecificStats.GetSongDropOffPoints(songEvents).ToObservableCollection();
-
-        // OHLC / CANDLE
         SongWeeklyOHLC = ChartSpecificStats.GetSongWeeklyOHLC(songEvents).ToObservableCollection();
 
-        // KPI / GAUGE
-        SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id); // This was from the original TopStats
-        SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
+        // FROM NEW METHODS in Part 1 (previous response)
+        // Note: You'll need to add these methods to either TopStats or ChartSpecificStats
+        SongListeningStreak = TopStats.GetListeningStreak(songEvents);
+        //SongEvergreenScore = TopStats.GetEvergreenScore(songEvents);
+        //SongWeekdayVsWeekend = TopStats.GetWeekdayVsWeekendDistribution(songEvents).ToObservableCollection();
     }
 
     /// <summary>
@@ -2308,163 +2228,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SongWeeklyOHLC = null;
         SongBingeFactor = null;
         SongAverageListenThrough = null;
+
+        // Clear the new properties too
+        SongListeningStreak = null;
     }
-    //public void LoadStatsForSelectedSong(SongModelView? song)
-    //{
-    //    if (song is null)
-    //    {
-    //        song = SelectedSong;
-    //    }
-    //    var songdb = songRepo.GetById(song.Id);
-    //    // If no song is selected or it has no play history, clear the old stats and exit.
-    //    if (song == null || song.PlayEvents == null || !song.PlayEvents.Any())
-    //    {
-    //        SongPlayDistributionByHour = null;
-    //        SongPlayTypeDistribution = null;
-    //        SongBingeFactor = null;
-    //        SongAverageListenThrough = null;
-    //        // Clear other single-song stat properties here...
-    //        return;
-    //    }
-
-    //    // The events are already filtered for us on the song object!
-    //    var songEvents = dimmerPlayEventRepo.GetAll().
-    //        Where(x => x.SongId == song.Id).ToList().AsReadOnly();
-            
-
-    //    // --- Calling the NEW AdvancedStats (Single Song Methods) ---
-
-    //    // "Is this a morning, afternoon, or late-night song?"
-    //    SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
-
-    //    // "Do I let this song finish, or do I usually skip it?"
-    //    SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
-
-    //    // "How often do I play this song back-to-back?"
-    //    SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
-
-    //    // "On average, how much of this song do I actually listen to?"
-    //    SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
-
-        
-    //    // Call the other 3 single-song methods (GetPlayHistoryOverTime, GetDropOffPoints, etc.) here
-    //    // and assign them to their properties.
-    //}
-
-    #region --- Observable Properties ---
-
-    //=========================================================
-    //==           1. GLOBAL / LIBRARY-WIDE STATS            ==
-    //=========================================================
-
-    // --- General Rankings & Time-Based ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopSongsLastMonth { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? MostSkippedSongs { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopArtistsByVariety { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopBurnoutSongs { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopRediscoveredSongs { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? ArtistsByHighestSkipRate { get; set; }
-
-    // --- For Circular Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? OverallListeningByDayOfWeek { get; set; }
-
-    // --- For Polar Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopArtistListeningClocks { get; set; }
-
-    // --- For Bar/Column Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? TopGenresByListeningTime { get; set; }
-
-    // --- For Line/Area/Step Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? DailyListeningVolume { get; set; }
-
-    // --- For Stacked Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? DeviceUsageByTopArtists { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? GenrePopularityOverTime { get; set; }
-
-    // --- For Range Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? DailyListeningTimeRange { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongDurationVsListenTime { get; set; }
-
-    // --- For Scatter/Bubble Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongProfileBubbleChart { get; set; }
-
-    // --- For Waterfall Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? LibraryGrowthWaterfall { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SkipContributionByArtist { get; set; }
-
-    // --- For Histogram & BoxPlot ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? ReleaseYearDistributionByGenre { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongDurationHistogram { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? ListeningSessionDurationHistogram { get; set; }
-
-    // --- For OHLC/Candle Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? DailyListeningRoutineOHLC { get; set; }
-
-
-    //=========================================================
-    //==              2. SINGLE SONG STATS                   ==
-    //=========================================================
-
-    // --- For Circular Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongPlayTypeDistribution { get; set; }
-
-    // --- For Polar Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongPlayDistributionByHour { get; set; }
-
-    // --- For Line/Area Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongPlayHistoryOverTime { get; set; }
-
-    // --- For Scatter/Histogram ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongDropOffPoints { get; set; }
-
-    // --- For OHLC/Candle Charts ---
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerStats>? SongWeeklyOHLC { get; set; }
-
-    // --- For KPI/Gauge Indicators (Note: these are single objects) ---
-    [ObservableProperty]
-    public partial DimmerStats? SongBingeFactor { get; set; }
-
-    [ObservableProperty]
-    public partial DimmerStats? SongAverageListenThrough { get; set; }
-
-    #endregion
-
 
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
@@ -2686,193 +2453,76 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public ReadOnlyObservableCollection<InteractiveChartPoint> PlayEventsByHourChartData { get; private set; }
     public ReadOnlyObservableCollection<DimmerPlayEventView> PlaysByDurationChartData { get; private set; }
 
-    /*
-    private void OnRealmPlayEventsChanged(IRealmCollection<DimmerPlayEvent> sender, ChangeSet? changes)
-    {
-        if (changes is null)
-        {
-            var initialItems = _mapper.Map<IEnumerable<DimmerPlayEventView>>(sender);
-            _playEventSource.Edit(innerList => { innerList.Clear(); innerList.AddRange(initialItems); });
-            return;
-        }
-        _playEventSource.Edit(innerList =>
-        {
-            for (int i = changes.DeletedIndices.Length - 1; i >= 0; i--)
-            { var indexToDelete = changes.DeletedIndices[i]; innerList.RemoveAt(indexToDelete); }
-            foreach (var i in changes.InsertedIndices)
-            { innerList.Insert(i, _mapper.Map<DimmerPlayEventView>(sender[i])); }
-            foreach (var i in changes.NewModifiedIndices)
-            { innerList[i] = _mapper.Map<DimmerPlayEventView>(sender[i]); }
-        });
-    }
-    */
-    private Dictionary<ObjectId, SongModelView> _allSongsLookup = new();
-    private void BuildRawDataChartPipelines()
-    {
-        _playEventSource.Connect()
-      .ToCollection()
-      .Select(events => events
-
-
-
-
-          .Where(evt => evt.PlayTypeStr == "Skipped")
-          .GroupBy(evt => evt.SongId)
-          .Select(group => new
-          {
-              SongId = group.Key,
-              SkipCount = group.Count()
-          })
-          .OrderByDescending(x => x.SkipCount)
-          .Take(10)
-          .Select(x =>
-          {
-
-              if (_allSongsLookup.TryGetValue(x.SongId.Value, out var fullSong))
-              {
-
-                  return new InteractiveChartPoint(fullSong.Title, x.SkipCount, fullSong);
-              }
-              return null;
-          })
-          .Where(x => x != null)
-          .ToList())
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Subscribe(newData =>
-      {
-          _topSkipsList.Clear();
-          _topSkipsList.AddRange(newData!);
-      })
-      .DisposeWith(_disposables);
-
-
-
-
-
-        _playEventSource.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(_scatterChartList)
-            .Subscribe()
-            .DisposeWith(_disposables);
-
-
-        _playEventSource.Connect()
-                  .ToCollection()
-                  .Select(events => events
-                      .GroupBy(evt => evt.DatePlayed.Hour)
-                      .Select(group => new InteractiveChartPoint(group.Key.ToString("00") + ":00", group.Count()))
-                      .OrderBy(dp => dp.XValue.ToString())
-                      .ToList())
-                  .ObserveOn(RxApp.MainThreadScheduler)
-
-
-                  .Subscribe(newChartData =>
-                  {
-                      _barChartList.Clear();
-                      _barChartList.AddRange(newChartData);
-                  })
-                  .DisposeWith(_disposables);
-
-
-        _playEventSource.Connect()
-    .ToCollection()
-    .Select(events => events
-        .Where(evt => evt.PlayTypeStr == "Skipped")
-        .GroupBy(evt => evt.SongName)
-        .Select(group => new InteractiveChartPoint(group.Key, group.Count()))
-        .OrderByDescending(dp => dp.YValue)
-        .Take(10)
-        .ToList())
-    .ObserveOn(RxApp.MainThreadScheduler)
-    .Subscribe(newData =>
-    {
-        _skippedSongsList.Clear();
-        _skippedSongsList.AddRange(newData);
-    })
-    .DisposeWith(_disposables);
-
-
-
-
-        _playEventSource.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(_bubbleChartList)
-            .Subscribe()
-            .DisposeWith(_disposables);
-    }
-
-
-    private readonly ObservableCollectionExtended<DimmerPlayEventView> _scatterChartList = new();
-    private readonly ObservableCollectionExtended<InteractiveChartPoint> _barChartList = new();
-    private readonly ObservableCollectionExtended<DimmerPlayEventView> _bubbleChartList = new();
-    public ReadOnlyObservableCollection<InteractiveChartPoint> SkippedSongsChart { get; }
-    private readonly ObservableCollectionExtended<InteractiveChartPoint> _skippedSongsList = new();
-
-    public ReadOnlyObservableCollection<DimmerPlayEventView> PlayEventsForScatterChart { get; }
-    public ReadOnlyObservableCollection<InteractiveChartPoint> PlayEventsByHourForBarChart { get; }
-    public ReadOnlyObservableCollection<DimmerPlayEventView> PlayEventsForBubbleChart { get; }
-
     private readonly ObservableCollectionExtended<InteractiveChartPoint> _topSkipsList = new();
     private readonly BehaviorSubject<LimiterClause?> _limiterClause;
 
     public ReadOnlyObservableCollection<InteractiveChartPoint> TopSkipsChartData { get; }
 
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> SongPlayTypeDistribution { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> SongPlayDistributionByHour { get; set; }
+    
+    [ObservableProperty]
+    public partial DimmerStats SongBingeFactor { get; set; }
+    
+    [ObservableProperty]
+    public partial DimmerStats SongAverageListenThrough { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> SongPlayHistoryOverTime { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> SongDropOffPoints { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> SongWeeklyOHLC { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> TopSongsLastMonth { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> MostSkippedSongs { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> ArtistsByHighestSkipRate { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> TopBurnoutSongs { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> TopRediscoveredSongs { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> TopArtistsByVariety { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> TopGenresByListeningTime { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> OverallListeningByDayOfWeek { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> DailyListeningVolume { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> DeviceUsageByTopArtists { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> GenrePopularityOverTime { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> DailyListeningTimeRange { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> SongProfileBubbleChart { get; set; }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<DimmerStats> DailyListeningRoutineOHLC { get; set; }
 
-    public class LiveStatsResult
-    {
-        public SongStat? TopSong { get; init; }
-        // You can add more results here later, e.g.:
-        // public SongStat? TopSongInFilter { get; init; }
-        // public int TotalPlaysInFilter { get; init; }
-    }
 
-    /// <summary>
-    /// Calculates statistics based on a collection of songs and play events.
-    /// This method is designed to be called from a background thread.
-    /// </summary>
-    /// <param name="filteredSongs">The list of songs currently visible in the UI.</param>
-    /// <param name="allPlayEvents">The complete list of all historical play events.</param>
-    /// <returns>A LiveStatsResult object containing the calculated stats.</returns>
-    private LiveStatsResult? CalculateStats(IReadOnlyCollection<SongModelView> filteredSongs, IReadOnlyCollection<DimmerPlayEventView> allPlayEvents)
-    {
-        // --- STUBBED IMPLEMENTATION ---
-        // This is where your complex logic will go. For now, we'll implement
-        // the "AllTimeTopArtist" calculation you already had.
-
-        if (allPlayEvents.Count==0)
-        {
-            return null; // No events, no stats.
-        }
-
-        // This calculation does not depend on the filteredSongs, so it's an "All Time" stat.
-        var topSong = allPlayEvents
-            .Where(e => !string.IsNullOrEmpty(e.SongName))
-            .GroupBy(e => e.SongName) // Group by SongName for better accuracy
-            .Select(g => new SongStat(new SongModel { Title = g.Key }, g.Count()))
-            .OrderByDescending(a => a.PlayCount)
-            .FirstOrDefault();
-
-        // --- EXAMPLE: Stat that USES the filter ---
-        // Let's say you wanted to find the most played song *within the current search results*.
-        /*
-        var filteredSongIds = new HashSet<ObjectId>(filteredSongs.Select(s => s.Id));
-
-        var topSongInFilter = allPlayEvents
-            .Where(e => e.SongId.HasValue && filteredSongIds.Contains(e.SongId.Value))
-            .GroupBy(e => e.SongId)
-            .Select(g => new { SongId = g.Key, Count = g.Count() })
-            .OrderByDescending(x => x.Count)
-            .FirstOrDefault();
-        */
-
-        return new LiveStatsResult
-        {
-            TopSong = topSong,
-            // TopSongInFilter = ... // you would assign the result here
-        };
-    }
-
-    public async Task LoadSongDataAsync(Progress<LyricsProcessingProgress> progressReporter, CancellationTokenSource _lyricsCts)
+    public async Task LoadSongDataAsync(Progress<LyricsProcessingProgress>? progressReporter, CancellationTokenSource _lyricsCts)
     {
         // Get the list of songs you want to process
         var songsToRefresh = _songSource.Items.AsEnumerable(); // Or your full master list
@@ -2887,4 +2537,88 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         LimiterClause? Limiter
     );
 
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDuplicates))]
+    public partial ObservableCollection<DuplicateSetViewModel> DuplicateSets { get; set; } = new();
+
+    public bool HasDuplicates => DuplicateSets.Count>0;
+
+    [ObservableProperty]
+    public partial bool IsFindingDuplicates { get; set; }
+
+    [RelayCommand]
+    private void FindDuplicates()
+    {
+        IsFindingDuplicates = true;
+        DuplicateSets.Clear(); // Clear previous results
+
+        try
+        {
+            var results = _duplicateFinderService.FindDuplicates();
+            foreach (var set in results)
+            {
+                DuplicateSets.Add(set);
+            }
+            // You can also add a status message for the user here
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while finding duplicates.");
+            // Show an error to the user
+        }
+        finally
+        {
+            IsFindingDuplicates = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ApplyDuplicateActionsAsync()
+    {
+        // 1. Get a flat list of all items the user has marked for deletion.
+        var itemsToDelete = DuplicateSets
+            .SelectMany(set => set.Items)
+            .Where(item => item.Action == DuplicateAction.Delete)
+            .ToList();
+
+        if (!itemsToDelete.Any())
+        {
+            // Inform user nothing to do
+            return;
+        }
+
+        // Optional: Add a confirmation dialog here!
+        // var confirmed = await ShowConfirmationAsync("Are you sure?", $"This will permanently delete {itemsToDelete.Count} files and their library entries.");
+        // if (!confirmed) return;
+
+        // 2. Use the service to do the heavy lifting.
+        var deletedCount = await _duplicateFinderService.ResolveDuplicatesAsync(itemsToDelete);
+
+        // 3. Clean up the UI.
+        // Remove the songs from our master _songSource list.
+        var idsToDelete = itemsToDelete.Select(i => i.Song.Id).ToHashSet();
+        _songSource.RemoveMany(_songSource.Items.Where(s => idsToDelete.Contains(s.Id)));
+
+        // Mark the now-resolved sets so they can be hidden.
+        foreach (var set in DuplicateSets)
+        {
+            // If all duplicates in a set were deleted, the set is resolved.
+            if (set.Items.All(item => item.Action == DuplicateAction.Keep || idsToDelete.Contains(item.Song.Id)))
+            {
+                set.IsResolved = true;
+            }
+        }
+
+        // You might want a button to "show resolved" or just remove them:
+        var resolvedSets = DuplicateSets.Where(s => s.IsResolved).ToList();
+        foreach (var set in resolvedSets)
+        {
+            DuplicateSets.Remove(set);
+        }
+
+
+        // Inform the user of the result.
+        _logger.LogInformation("Successfully resolved duplicates, deleting {Count} items.", deletedCount);
+    }
 }
