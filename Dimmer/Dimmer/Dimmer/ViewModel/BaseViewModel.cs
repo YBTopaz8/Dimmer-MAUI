@@ -22,7 +22,8 @@ using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
-using MoreLinq;
+//using MoreLinq;
+//using MoreLinq.Extensions;
 
 using ReactiveUI;
 
@@ -251,6 +252,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 ex => _logger.LogError(ex, "FATAL: Data binding pipeline crashed!"))
             .DisposeWith(Disposables);
 
+
+
+
+        _duplicateSource.Connect()
+    .Sort(SortExpressionComparer<DuplicateSetViewModel>.Ascending(d => d.Title)) // Keep the list sorted
+    .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates are on the main thread
+    .Bind(out _duplicateSets) // Bind the results to our public property
+    .Subscribe() // Activate the pipeline
+    .DisposeWith(Disposables);
 
 
 
@@ -1425,7 +1435,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         var nextSong = _playbackQueue[_playbackQueueIndex];
-        var songToPlay = _searchResults.FirstOrDefault(s => s.Id == nextSong.Id);
+        var songToPlay = _songSource.Items.FirstOrDefault(s => s.Id == nextSong.Id);
 
         if (songToPlay == null)
         {
@@ -2538,87 +2548,141 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     );
 
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDuplicates))]
-    public partial ObservableCollection<DuplicateSetViewModel> DuplicateSets { get; set; } = new();
+    private readonly SourceList<DuplicateSetViewModel> _duplicateSource = new();
 
-    public bool HasDuplicates => DuplicateSets.Count>0;
+    // 2. THE DESTINATION: This is the read-only collection for the UI.
+    private readonly ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
+
+    // 3. THE PUBLIC PROPERTY: The UI will bind to this.
+    public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
+
+    public bool HasDuplicates => _duplicateSets.Any();
 
     [ObservableProperty]
     public partial bool IsFindingDuplicates { get; set; }
-
     [RelayCommand]
-    private void FindDuplicates()
+    private async Task FindDuplicatesAsync()
     {
         IsFindingDuplicates = true;
-        DuplicateSets.Clear(); // Clear previous results
+
+        // We can clear the source directly. DynamicData will update the UI.
+        _duplicateSource.Clear();
 
         try
         {
-            var results = _duplicateFinderService.FindDuplicates();
-            foreach (var set in results)
+            // Offload the finding of data to a background thread so the UI never freezes.
+            var results = await Task.Run(() => _duplicateFinderService.FindDuplicates());
+
+            if (results.Any())
             {
-                DuplicateSets.Add(set);
+                // THIS IS THE DYNAMIC DATA FIX:
+                // Use .Edit() to perform a highly efficient bulk update.
+                // This replaces the slow foreach loop and prevents the UI from freezing.
+                // It calculates all the changes and sends ONE notification to the UI.
+                _duplicateSource.Edit(updater =>
+                {
+                    updater.Clear();
+                    updater.AddRange(results);
+                });
             }
-            // You can also add a status message for the user here
+            else
+            {
+                // Optionally show a "No duplicates found" message
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while finding duplicates.");
-            // Show an error to the user
         }
         finally
         {
             IsFindingDuplicates = false;
         }
     }
-
     [RelayCommand]
     private async Task ApplyDuplicateActionsAsync()
     {
-        // 1. Get a flat list of all items the user has marked for deletion.
         var itemsToDelete = DuplicateSets
             .SelectMany(set => set.Items)
             .Where(item => item.Action == DuplicateAction.Delete)
             .ToList();
 
         if (!itemsToDelete.Any())
-        {
-            // Inform user nothing to do
             return;
-        }
 
-        // Optional: Add a confirmation dialog here!
-        // var confirmed = await ShowConfirmationAsync("Are you sure?", $"This will permanently delete {itemsToDelete.Count} files and their library entries.");
-        // if (!confirmed) return;
+        // ... (Confirmation dialog logic here) ...
 
-        // 2. Use the service to do the heavy lifting.
         var deletedCount = await _duplicateFinderService.ResolveDuplicatesAsync(itemsToDelete);
 
-        // 3. Clean up the UI.
-        // Remove the songs from our master _songSource list.
+        // --- Clean up the UI using Dynamic Data ---
+
+        // 1. Remove the deleted songs from the main song source list
         var idsToDelete = itemsToDelete.Select(i => i.Song.Id).ToHashSet();
         _songSource.RemoveMany(_songSource.Items.Where(s => idsToDelete.Contains(s.Id)));
 
-        // Mark the now-resolved sets so they can be hidden.
-        foreach (var set in DuplicateSets)
-        {
-            // If all duplicates in a set were deleted, the set is resolved.
-            if (set.Items.All(item => item.Action == DuplicateAction.Keep || idsToDelete.Contains(item.Song.Id)))
-            {
-                set.IsResolved = true;
-            }
-        }
+        // 2. Identify which duplicate sets are now fully resolved
+        var resolvedSets = DuplicateSets
+            .Where(set => set.Items.All(item => item.Action == DuplicateAction.Keep || item.Action == DuplicateAction.Ignore))
+            .ToList();
 
-        // You might want a button to "show resolved" or just remove them:
-        var resolvedSets = DuplicateSets.Where(s => s.IsResolved).ToList();
-        foreach (var set in resolvedSets)
-        {
-            DuplicateSets.Remove(set);
-        }
+        // 3. Remove these resolved sets from the duplicate source list.
+        //    DynamicData will automatically remove them from the UI.
+        _duplicateSource.RemoveMany(resolvedSets);
 
-
-        // Inform the user of the result.
         _logger.LogInformation("Successfully resolved duplicates, deleting {Count} items.", deletedCount);
+    }
+
+
+    [ObservableProperty]
+    public partial bool IsCheckingFilePresence { get; set; }
+
+    // --- Add the new command ---
+    [RelayCommand]
+    private async Task ValidateLibraryAsync()
+    {
+        if (IsCheckingFilePresence)
+            return;
+
+        IsCheckingFilePresence = true;
+        _logger.LogInformation("Starting library validation...");
+        // Optionally show a status message to the user
+
+        try
+        {
+            // 1. Run the service on a background thread to keep the UI responsive.
+            var validationResult = await Task.Run(() => _duplicateFinderService.ValidateFilePresenceAsync(_mapper.Map<List<SongModelView>>( songRepo.GetAll())));
+
+            if (validationResult.MissingCount == 0)
+            {
+                _logger.LogInformation("Library validation complete. No missing files found.");
+                // Show a "Library is clean!" message
+                return;
+            }
+
+            _logger.LogInformation("Found {Count} songs with missing files. Removing from UI and database.", validationResult.MissingCount);
+
+            // 2. Get the IDs of the songs to remove. A HashSet is fastest for lookups.
+            var missingIds = validationResult.MissingSongs.Select(s => s.Id).ToHashSet();
+
+            // 3. Find the corresponding items currently in our UI's SourceList.
+            var itemsInUiToRemove = _songSource.Items.Where(s => missingIds.Contains(s.Id)).ToList();
+
+            // 4. Use the high-performance RemoveMany to update the UI just once.
+            _songSource.RemoveMany(itemsInUiToRemove);
+
+            // 5. CRITICAL: Clean up the database as well.
+            await _duplicateFinderService.RemoveSongsFromDbAsync(missingIds);
+
+            // Show a final "Cleanup complete" message
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred during library validation.");
+            // Show an error message to the user
+        }
+        finally
+        {
+            IsCheckingFilePresence = false;
+        }
     }
 }

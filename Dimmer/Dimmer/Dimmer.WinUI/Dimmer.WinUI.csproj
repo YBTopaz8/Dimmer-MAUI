@@ -59,6 +59,7 @@
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
+    <None Remove="Views\SettingsCenter\LibSanityPage.xaml" />
     <None Remove="Views\SettingsCenter\SettingsPage.xaml" />
     <None Remove="Views\SettingsCenter\SettingWin.xaml" />
     <None Remove="Views\SingleSongPages\SingleSongPage.xaml" />
@@ -81,6 +82,7 @@
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
     <Page Remove="Views\PlaylistWindow.xaml" />
+    <Page Remove="Views\SettingsCenter\LibSanityPage.xaml" />
     <Page Remove="Views\SettingsCenter\SettingsPage.xaml" />
     <Page Remove="Views\SettingsCenter\SettingWin.xaml" />
     <Page Remove="Views\SettingWindow.xaml" />
@@ -195,6 +197,9 @@
     <MauiXaml Include="Views\PlaylistWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\SettingsCenter\LibSanityPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\SettingsCenter\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -241,8 +246,9 @@
     <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Title>Dimmer</Title>
-    <PackageIcon>dimmerIcon.png</PackageIcon>
     <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <!--<PackageIcon>atom.svg</PackageIcon>
+    <ApplicationIcon>atom.svg</ApplicationIcon>-->
   </PropertyGroup>
 
   <!--

@@ -36,6 +36,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<DimmerWin>();
         builder.Services.AddScoped<DimmerOnlineViewModel>();
 
+        builder.Services.AddSingleton<LibSanityPage>();
         builder.Services.AddSingleton<HomePage>();
 
         builder.Services.AddSingleton<SingleSongPage>();

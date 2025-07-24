@@ -37,9 +37,9 @@ public static class AutoMapperConf
                     .AfterMap((src, dest) => dest.PrecomputeSearchableText());
 
                 cfg.CreateMap<AlbumModel, AlbumModelView>()
-                    .ForMember(dest => dest.Songs, opt => opt.Ignore()) // Ignore backlink
-                    .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
-                    .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());
+                  .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
+                        .ForMember(dest => dest.Songs, opt => opt.Ignore()) // Ignore backlink
+                  .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());
 
                 cfg.CreateMap<ArtistModel, ArtistModelView>()
                     .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
@@ -112,13 +112,47 @@ public static class AutoMapperConf
     .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore());
 
                 // Self-maps for creating unmanaged copies
-                cfg.CreateMap<AlbumModel, AlbumModel>().ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore());
-                cfg.CreateMap<ArtistModel, ArtistModel>().ForMember(dest => dest.Songs, opt => opt.Ignore()).ForMember(dest => dest.Albums, opt => opt.Ignore());
+                cfg.CreateMap<AlbumModel, AlbumModel>()
+                .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore())
+                  .ForMember(dest => dest.ArtistIds, opt => opt.Ignore()) // Handle this manually
+                        .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Ignore backlink
+                  .ForMember(dest => dest.UserNotes, opt => opt.Ignore());
+
+
+
+                cfg.CreateMap<ArtistModel, ArtistModel>()
+                .ForMember(x=>x.Songs , opt => opt.Ignore())
+                .ForMember(dest => dest.Albums, opt => opt.Ignore())
+                .ForMember(dest => dest.Songs, opt => opt.Ignore()).ForMember(dest => dest.Albums, opt => opt.Ignore());
                 cfg.CreateMap<GenreModel, GenreModel>().ForMember(dest => dest.Songs, opt => opt.Ignore());
                 cfg.CreateMap<SongModel, SongModel>(); // Add others as needed
                 cfg.CreateMap<AppStateModel, AppStateModel>();
+
+
+
+                cfg.CreateMap<AlbumModelView, AlbumModel>()
+                    .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Must ignore RealmList/backlinks
+                    .ForMember(dest => dest.UserNotes, opt => opt.Ignore())    // Must ignore Realm relationships
+                    .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())   // This is likely managed separately
+                    .ForMember(dest => dest.Tags, opt => opt.Ignore())   // This is likely managed separately
+                    .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
+
+                cfg.CreateMap<ArtistModelView, ArtistModel>()
+                    .ForMember(dest => dest.Songs, opt => opt.Ignore())       // Must ignore RealmList
+                    .ForMember(dest => dest.Albums, opt => opt.Ignore())      // Must ignore RealmList
+                    .ForMember(dest => dest.Tags, opt => opt.Ignore())      // Must ignore RealmList
+                    .ForMember(dest => dest.UserNotes, opt => opt.Ignore())      // Must ignore RealmList
+                    .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
+
+                cfg.CreateMap<GenreModelView, GenreModel>()
+                    .ForMember(dest => dest.Songs, opt => opt.Ignore())       // Must ignore backlinks
+                    .ForMember(dest => dest.UserNotes, opt => opt.Ignore())       // Must ignore backlinks
+                    .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
+
+
             });
 
+           
             // This should now pass without errors.
             config.AssertConfigurationIsValid();
 

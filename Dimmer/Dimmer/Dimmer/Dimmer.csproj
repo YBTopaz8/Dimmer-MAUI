@@ -14,6 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\atom.svg" Color="#483d8b" />
+    <MauiIcon Include="Resources\Images\atom2.svg" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <!-- Images -->
     <MauiImage Include="Resources\Images\*" />
     <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
@@ -40,6 +45,10 @@
     <Compile Remove="DimmerSearch\SemanticModel.cs" />
     <Compile Remove="DimmerSearch\SemanticParser.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiImage Remove="Resources\Images\atom2.svg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -163,6 +172,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\source\repos\YBTopaz8\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+    <ProjectReference Include="..\atldotnet-main\ATL\ATL.csproj" />
   </ItemGroup>
 
 </Project>

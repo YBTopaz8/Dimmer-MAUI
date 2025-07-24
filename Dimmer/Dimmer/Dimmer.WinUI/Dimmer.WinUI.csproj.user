@@ -19,6 +19,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\SettingsCenter\LibSanityPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\AlbumsPage\SingleAlbumPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

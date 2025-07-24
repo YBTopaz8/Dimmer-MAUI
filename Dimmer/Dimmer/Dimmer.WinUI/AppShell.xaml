@@ -8,6 +8,7 @@
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:libSanity="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -16,27 +17,39 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     Shell.FlyoutBehavior="Flyout"
     x:DataType="vm:BaseViewModelWin">
-
+    <Shell.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+        <ResourceDictionary />
+    </Shell.Resources>
     <Shell.FlyoutContent>
-        <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
+        <Grid RowDefinitions="0.2*,*"
+              >
+
+            <VerticalStackLayout Grid.Row="0" Spacing="10" Margin="10">
+                <Label
+                                    Grid.Row="0"
+                                    FontAttributes="Bold"
+                                    FontSize="19"
+                                    Text="{Binding LatestAppLog.Log}" />
+             
+
+
+            </VerticalStackLayout>
+
+        <syncf:SfTabView Grid.Row="1" x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
             <syncf:SfTabItem Header="Main">
 
                 <syncf:SfTabItem.Content>
-                    <Grid RowDefinitions="Auto,*" Margin="10,0">
-                        <VerticalStackLayout Grid.Row="0" Spacing="10">
-                            <Label
-                                    Grid.Row="0"
-                                    FontAttributes="Bold"
-                                    FontSize="25"
-                                    Text="{Binding LatestAppLog.Log}" />
-                            <Label
-                                    FontAttributes="Bold"
-                                    FontSize="34"
-                                    Text="Music Folders" />
-
-
-                        </VerticalStackLayout>
-                        <Grid Grid.Row="1" RowDefinitions="*,0.4*">
+                    <Grid RowDefinitions="*" Margin="10,0">
+                        <Grid Grid.Row="1" RowDefinitions="*,auto">
 
                             <CollectionView
                                     x:Name="ListOfFolders"
@@ -80,8 +93,10 @@
                                     Grid.Row="1"
                                     BackgroundColor="Transparent"
                                     Spacing="10">
-
-                                <Button
+                                    <Button Text="Validate Songs"
+    Command="{Binding ValidateLibraryCommand}"
+    />
+                                    <Button
                                         Clicked="AddNewMusicFolder_Clicked"
                                         HorizontalOptions="Start"
                                         Text="Add New Folder" />
@@ -90,8 +105,12 @@
                                         BorderColor="DarkSlateBlue"
                                         Command="{Binding RescanSongsCommand}"
                                         Text="Rescan folders" />
+                                    <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
+        Clicked="FindDupes_Clicked"
+                                            BackgroundColor="SlateBlue"/>
 
-                            </VerticalStackLayout>
+                                    
+                                </VerticalStackLayout>
                         </Grid>
 
 
@@ -202,11 +221,11 @@
 
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
-            
-            
-        </syncf:SfTabView>
-        
 
+        </syncf:SfTabView>
+
+
+        </Grid>
 
     </Shell.FlyoutContent>
 

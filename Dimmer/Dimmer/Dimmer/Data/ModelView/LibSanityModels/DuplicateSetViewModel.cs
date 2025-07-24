@@ -26,3 +26,23 @@ public partial class DuplicateSetViewModel : ObservableObject
         DurationInSeconds = duration;
     }
 }
+
+// In a Models folder, e.g., Dimmer.Data.ModelView.LibSanityModels
+public class LibraryValidationResult
+{
+    /// <summary>
+    /// A list of songs that were found in the database but whose
+    /// corresponding file no longer exists on disk.
+    /// </summary>
+    public List<SongModelView> MissingSongs { get; init; } = new();
+
+    /// <summary>
+    /// The total number of songs that were scanned.
+    /// </summary>
+    public int ScannedCount { get; init; }
+
+    /// <summary>
+    /// A convenience property for the count of missing songs.
+    /// </summary>
+    public int MissingCount => MissingSongs.Count;
+}

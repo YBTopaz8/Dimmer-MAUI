@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.SettingsCenter.LibSanityPage"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+    xmlns:libSanity="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
+xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+x:Name="myPage"
+Title="HomePage"
+x:DataType="vm:BaseViewModelWin"
+BackgroundColor="Transparent"
+Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+        <ResourceDictionary />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- 1. The Initiation Controls -->
+        <VerticalStackLayout Grid.Row="0" Padding="10" Spacing="10">
+            <Label Text="Find songs with the same title and duration. You can then choose which versions to keep or delete."/>
+            <Button Text="Find Duplicate Songs" 
+                    Command="{Binding FindDuplicatesCommand}"
+                    IsEnabled="{Binding IsFindingDuplicates, Converter={StaticResource BoolToInverse}}"/>
+            <ActivityIndicator IsRunning="{Binding IsFindingDuplicates}" />
+
+            <Button 
+                Text="Apply Changes and Delete Files" 
+                Command="{Binding ApplyDuplicateActionsCommand}"
+                Margin="10"
+                BackgroundColor="Red"
+                IsVisible="{Binding HasDuplicates}"/>
+        </VerticalStackLayout>
+
+        <CollectionView   Grid.Row="1" ItemsSource="{Binding DuplicateSets}">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Span="3" HorizontalItemSpacing="5"
+                                 VerticalItemSpacing="5"
+                                 Orientation="Vertical"
+                                 />
+            </CollectionView.ItemsLayout>
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="libSanity:DuplicateSetViewModel">
+
+                    <!-- This is the card for a single set of duplicates -->
+                    <Border Stroke="LightGray" StrokeThickness="1" Padding="10" Margin="10">
+                        <VerticalStackLayout Spacing="5">
+                            <Label FontSize="Large" FontAttributes="Bold">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Duplicate Set: "/>
+                                        <Span Text="{Binding Title}"/>
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <!-- This is the inner list of the actual song files -->
+                            <CollectionView ItemsSource="{Binding Items}" HeightRequest="210">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="libSanity:DuplicateItemViewModel">
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Padding="5">
+
+                                            <!-- Visual cue for Original vs Duplicate -->
+                                            <Image Grid.Column="0" Source="crown_icon.png" VerticalOptions="Center" Margin="0,0,10,0">
+                                                <Image.Triggers>
+                                                    <DataTrigger TargetType="Image" Binding="{Binding Status}" Value="Duplicate">
+                                                        <Setter Property="IsVisible" Value="False" />
+                                                    </DataTrigger>
+                                                </Image.Triggers>
+                                            </Image>
+
+                                            <!-- The crucial song info -->
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                <Label Text="{Binding Song.FilePath}" FontAttributes="Bold"/>
+                                                <Label>
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="Size: "/>
+                                                            <Span Text="{Binding Song.FileSize, StringFormat='{0} MB'}"/>
+                                                            <!-- Add a converter for bytes to MB -->
+                                                            <Span Text="  |  Bitrate: "/>
+                                                            <Span Text="{Binding Song.BitRate, StringFormat='{0} kbps'}"/>
+                                                            <Span Text="  |  Added: "/>
+                                                            <Span Text="{Binding Song.DateCreated, StringFormat='{0:yyyy-MM-dd}'}"/>
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                            </VerticalStackLayout>
+
+                                            <!-- The Action Selector -->
+                                            <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
+                                                <!-- Note: RadioButton binding can be complex. You might need a command on the item viewmodel -->
+                                                <!-- or use a Picker for simplicity -->
+                                                <Picker SelectedItem="{Binding Action, Mode=TwoWay}" FontSize="Small">
+                                                    <Picker.ItemsSource>
+                                                        <x:Array Type="{x:Type libSanity:DuplicateAction}">
+                                                            <libSanity:DuplicateAction>Keep</libSanity:DuplicateAction>
+                                                            <libSanity:DuplicateAction>Delete</libSanity:DuplicateAction>
+                                                            <libSanity:DuplicateAction>Ignore</libSanity:DuplicateAction>
+                                                        </x:Array>
+                                                    </Picker.ItemsSource>
+                                                </Picker>
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.EmptyView>
+                <Label Text="Click 'Find Duplicates' to begin." HorizontalOptions="Center" VerticalOptions="Center"/>
+            </CollectionView.EmptyView>
+
+        </CollectionView>
+
+        <!-- 3. The Finalization Button -->
+
+    </Grid>
+</ContentPage>

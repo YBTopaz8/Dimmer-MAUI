@@ -1,6 +1,7 @@
 ﻿using Dimmer.Data.ModelView.LibSanityModels;
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,15 +42,18 @@ public class DuplicateFinderService : IDuplicateFinderService
             var sortedSongs = group.OrderBy(s => s.DateCreated).ToList();
 
             // The first one is the original
-            var originalSong = _mapper.Map<SongModelView>(sortedSongs.First());
-            set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original));
-
-            // All others are duplicates
-            foreach (var duplicateSongModel in sortedSongs.Skip(1))
+            var originalSong = _mapper.Map<SongModelView>(sortedSongs.Last());
+            if (File.Exists(originalSong.FilePath))
             {
-                var duplicateSongView = _mapper.Map<SongModelView>(duplicateSongModel);
-                set.Items.Add(new DuplicateItemViewModel(duplicateSongView, DuplicateStatus.Duplicate));
+                set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original));
             }
+
+                // All others are duplicates
+                foreach (var duplicateSongModel in sortedSongs.Skip(1))
+                {
+                    var duplicateSongView = _mapper.Map<SongModelView>(duplicateSongModel);
+                    set.Items.Add(new DuplicateItemViewModel(duplicateSongView, DuplicateStatus.Duplicate));
+                }
             results.Add(set);
         }
 
@@ -101,5 +105,55 @@ public class DuplicateFinderService : IDuplicateFinderService
         }
 
         return deletedCount;
+    }
+
+    
+    public async Task<LibraryValidationResult> ValidateFilePresenceAsync(IList<SongModelView>? allSongs)
+    {
+
+        _logger.LogInformation("Starting file presence validation for {Count} songs.", allSongs.Count);
+
+        // Use a thread-safe collection to store results from the parallel loop.
+        var missingSongs = new ConcurrentBag<SongModelView>();
+
+        // Use Parallel.ForEachAsync for a massive performance boost.
+        await Parallel.ForEachAsync(allSongs, async (song, cancellationToken) =>
+        {
+            if (string.IsNullOrEmpty(song.FilePath) || !File.Exists(song.FilePath))
+            {
+                missingSongs.Add(song);
+            }
+        });
+
+        _logger.LogInformation("Validation complete. Found {Count} missing files.", missingSongs.Count);
+
+        // Map the results to the ViewModel type the UI needs.
+        var missingSongViews =missingSongs.ToList();
+
+        return new LibraryValidationResult
+        {
+            ScannedCount = allSongs.Count,
+            MissingSongs = missingSongViews
+        };
+    }
+
+    public async Task RemoveSongsFromDbAsync(IEnumerable<ObjectId> songIds)
+    {
+        if (!songIds.Any())
+            return;
+
+        using var realm = _realmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            foreach (var id in songIds)
+            {
+                var songInDb = realm.Find<SongModel>(id);
+                if (songInDb != null)
+                {
+                    realm.Remove(songInDb);
+                }
+            }
+        });
+        _logger.LogInformation("Permanently removed {Count} song entries from the database.", songIds.Count());
     }
 }
