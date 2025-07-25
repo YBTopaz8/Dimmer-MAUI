@@ -57,7 +57,7 @@ public partial class AppInitializerService : IAppInitializerService
             _logger.LogInformation("Triggering initial library scan...");
             // Library scanner will update _stateService.LoadAllSongs upon completion
 
-            _libraryScanner.LoadInSongsAndEvents();
+            //_libraryScanner.LoadInSongsAndEvents();
             _state.SetCurrentPlaylist(null); // Ensure no playlist is active initially
 
             // Optionally, load last played song/queue if that's a feature

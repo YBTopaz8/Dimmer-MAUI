@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree.NL;
+namespace Dimmer.DimmerSearch.TQL;
 
 public class AutocompleteEngine
 {

@@ -8,6 +8,7 @@ namespace Dimmer.Interfaces.Services;
 
 public class LyricsMetadataService : ILyricsMetadataService
 {
+    private readonly IRealmFactory realmFact;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMapper _mapper; // To map between SongModel and SongModelView
     private readonly ILogger<LyricsMetadataService> _logger;
@@ -15,8 +16,11 @@ public class LyricsMetadataService : ILyricsMetadataService
     public LyricsMetadataService(
         IHttpClientFactory httpClientFactory,
         IMapper mapper,
+        IRealmFactory realmFactory,
         ILogger<LyricsMetadataService> logger)
     {
+
+        realmFact = realmFactory;
         _httpClientFactory = httpClientFactory;
         _mapper = mapper;
         _logger = logger;
@@ -105,9 +109,52 @@ public class LyricsMetadataService : ILyricsMetadataService
         HttpClient client = _httpClientFactory.CreateClient("LrcLib");
 
         // URL encode the parameters to handle special characters
-        string artistName = Uri.EscapeDataString(song.OtherArtistsName.Split(',')[0].Trim());
+        string artistName = Uri.EscapeDataString(song.ArtistName.ToLower());
         string trackName = Uri.EscapeDataString(song.Title);
         string albumName = Uri.EscapeDataString(song.AlbumName ?? string.Empty);
+
+        string requestUri = $"api/search?track_name={trackName}&artist_name={artistName}&album_name={albumName}";
+
+        try
+        {
+            var ress = await client.GetAsync(requestUri);
+            if (!ress.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("LrcLib search request failed with status code {StatusCode} for {TrackName}", ress.StatusCode, trackName);
+                return Enumerable.Empty<LrcLibSearchResult>();
+            }
+            // Deserialize the response into an array of LrcLibSearchResult
+            var con = await ress.Content.ReadAsStringAsync();
+
+            //Debug.WriteLine(con);
+            var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
+            return results ?? Enumerable.Empty<LrcLibSearchResult>();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error searching for lyrics for {TrackName}", trackName);
+            return Enumerable.Empty<LrcLibSearchResult>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize LrcLib response for {TrackName}", trackName);
+            return Enumerable.Empty<LrcLibSearchResult>();
+        }
+    }
+
+    public async Task<IEnumerable<LrcLibSearchResult>> SearchOnlineManualParamsAsync(string songName, string songArtist , string songAlbum)
+    {
+        if (string.IsNullOrEmpty(songName) || string.IsNullOrEmpty(songArtist)|| string.IsNullOrEmpty(songAlbum))
+        {
+            return Enumerable.Empty<LrcLibSearchResult>();
+        }
+
+        HttpClient client = _httpClientFactory.CreateClient("LrcLib");
+
+        // URL encode the parameters to handle special characters
+        string artistName = Uri.EscapeDataString(songArtist);
+        string trackName = Uri.EscapeDataString(songName);
+        string albumName = Uri.EscapeDataString(songAlbum);
 
         string requestUri = $"api/search?track_name={trackName}&artist_name={artistName}&album_name={albumName}";
 
@@ -153,8 +200,7 @@ public class LyricsMetadataService : ILyricsMetadataService
         // Step 2: Update the database record
         try
         {
-            var dbb = IPlatformApplication.Current.Services.GetService<IRealmFactory>();
-            var realm = dbb?.GetRealmInstance();
+            var realm = realmFact?.GetRealmInstance();
             if (realm == null)
             { return false; }
             var songModel = realm.Find<SongModel>(song.Id);
@@ -168,7 +214,7 @@ public class LyricsMetadataService : ILyricsMetadataService
             {
                 if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
                 {
-
+                    songModel.UnSyncLyrics=song.UnSyncLyrics;
                     songModel.SyncLyrics = lrcContent;
                     songModel.HasSyncedLyrics = true; // Update flags
                     songModel.HasLyrics = true;
@@ -190,14 +236,19 @@ public class LyricsMetadataService : ILyricsMetadataService
                         };
                         songModel.EmbeddedSync.Add(syncLyrics);
                     }
-                    realm.Add(songModel, true);
 
                     songModel.LastDateUpdated = DateTimeOffset.UtcNow;
 
                 }
+                else
+                {
+                    songModel.HasLyrics = false;
+                    songModel.HasSyncedLyrics=false;
+                }
+                realm.Add(songModel, true);
             });
-            // Important: Update the view model that was passed in so the UI has the latest data
-            _mapper.Map(songModel, song);
+            //// Important: Update the view model that was passed in so the UI has the latest data
+            //_mapper.Map(songModel, song);
 
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
         }

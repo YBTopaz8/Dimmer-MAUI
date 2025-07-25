@@ -29,6 +29,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public bool HasLyrics { get; set; }
     public bool HasSyncedLyrics { get; set; }
 
+    public bool? IsInstrumental { get; set; }
     public string? SyncLyrics { get; set; } = string.Empty;
     public string? CoverImagePath { get; set; }
     public byte[]? CoverImageBytes { get; set; }

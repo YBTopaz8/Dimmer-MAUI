@@ -43,7 +43,7 @@ public class LastfmService : ILastfmService
     private string? _username;
 
     public bool IsAuthenticated => _client.Session.Authenticated;
-    public string? AuthenticatedUser => IsAuthenticated ? _username : null;
+    public string? AuthenticatedUser => ((ILastfmService)this).IsAuthenticated ? _username : null;
     public string? AuthenticatedUserSessionToken => _client.Session.SessionKey;
 
     public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService _audioService, ILogger<LastfmService> logger,
@@ -90,7 +90,7 @@ public class LastfmService : ILastfmService
             h => audioService.PlaybackStateChanged += h,
             h => audioService.PlaybackStateChanged -= h)
         .Select(evt => evt.EventArgs)
-        .Where(_ => IsAuthenticated)
+        .Where(_ => ((ILastfmService)this).IsAuthenticated)
         .ObserveOn(RxApp.TaskpoolScheduler)
         .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in Last.fm PlaybackStateChanged subscription."))
         .DisposeWith(_disposables);
@@ -109,7 +109,7 @@ public class LastfmService : ILastfmService
         // We need to scrobble the very last track.
         if (_songToScrobble != null)
         {
-            await ScrobbleAsync(_songToScrobble);
+            await ((ILastfmService)this).ScrobbleAsync(_songToScrobble);
         }
         // The session is over, clear the candidate.
         _songToScrobble = null;
@@ -129,19 +129,19 @@ public class LastfmService : ILastfmService
                 // This handles both natural track changes and manual skips.
                 if (_songToScrobble != null)
                 {
-                    await ScrobbleAsync(_songToScrobble);
+                    await ((ILastfmService)this).ScrobbleAsync(_songToScrobble);
                 }
 
                 // Now, set the state for the new song.
                 _songToScrobble = currentSong;
-                await UpdateNowPlayingAsync(currentSong);
-                _ = EnrichSongMetadataAsync(currentSong.Id);
+                await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
+                _ = ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
                 break;
 
             case DimmerPlaybackState.Resumed:
                 if (currentSong is null)
                     return;
-                await UpdateNowPlayingAsync(currentSong);
+                await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
                 break;
 
             case DimmerPlaybackState.PlayCompleted:
@@ -186,7 +186,7 @@ public class LastfmService : ILastfmService
         }
 
         // Ensure state is clean on failure
-        Logout();
+        ((ILastfmService)this).Logout();
         return false;
     }
 
@@ -230,7 +230,7 @@ public class LastfmService : ILastfmService
 
     public async Task ScrobbleAsync(SongModelView song)
     {
-        if (!IsAuthenticated || song == null)
+        if (!((ILastfmService)this).IsAuthenticated || song == null)
             return;
 
         // CORRECTED: Use parameterless constructor and set properties.
@@ -286,7 +286,7 @@ public class LastfmService : ILastfmService
                 SaveSession();
                 _isAuthenticatedSubject.OnNext(true);
 
-                User userInfo = await GetUserInfoAsync();
+                User userInfo = await ((ILastfmService)this).GetUserInfoAsync();
                 Realm realmm = _realmFactory.GetRealmInstance()!;
                 await realmm.WriteAsync(() =>
                 {
@@ -368,26 +368,26 @@ public class LastfmService : ILastfmService
 
     public async Task<User> GetUserInfoAsync()
     {
-        if (AuthenticatedUser is null)
+        if (((ILastfmService)this).AuthenticatedUser is null)
         {
             LoadSession();
-            if (AuthenticatedUser is null)
+            if (((ILastfmService)this).AuthenticatedUser is null)
             {
                 return new User("Unknown");
             }
 
-          return  await _client.User.GetInfoAsync(AuthenticatedUser);
+          return  await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
         }
 
 
-        return  await _client.User.GetInfoAsync(AuthenticatedUser);
+        return  await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
         // Gets info for the NOW authenticated user.
     }
 
     #endregion
     public async Task UpdateNowPlayingAsync(SongModelView song)
     {
-        if (!IsAuthenticated || song == null)
+        if (!((ILastfmService)this).IsAuthenticated || song == null)
             return;
 
         try
@@ -429,6 +429,18 @@ public class LastfmService : ILastfmService
         }
     }
 
+    public async Task<PagedResponse<Track>> GetTopTracksAsync(string country)
+    {
+        try
+        { 
+            return await _client.Geo.GetTopTracksAsync(country); 
+        }
+        catch 
+        {
+            return new PagedResponse<Track>();
+        }
+    }
+
     public async Task<Track> GetTrackInfoAsync(string artistName, string trackName)
     {
         try
@@ -443,7 +455,125 @@ public class LastfmService : ILastfmService
     }
 
 
-    public async Task<List<Artist>> GetTopArtistsChartAsync(int limit = 20)
+    public async Task<Track> GetCorrectionAsync(string artistName, string trackName)
+    {
+        try
+        { 
+          
+            return await _client.Track.GetCorrectionAsync(trackName, artistName); 
+        }
+        catch 
+        { 
+            return new Track(); 
+        }
+    }
+
+    public async Task<List<Track>> GetSimilarAsync(string artistName, string trackName)
+    {
+        try
+        { 
+          
+            return await _client.Track.GetSimilarAsync(trackName, artistName); 
+        }
+        catch 
+        { 
+            return Enumerable.Empty<Track>().ToList();
+        }
+    }
+
+    public async Task<List<Tag>> GetTagsAsync(string artistName, string trackName)
+    {
+        try
+        { 
+          
+            return await _client.Track.GetTagsAsync(_username, trackName, artistName); 
+        }
+        catch 
+        { 
+            return Enumerable.Empty<Tag>().ToList();
+        }
+    }
+
+    public async Task<PagedResponse<Track>> GetLovedTracksAsync()
+    {
+        try
+        {
+
+            return await _client.User.GetLovedTracksAsync(_username);
+        }
+        catch 
+        {
+            return new PagedResponse<Track>();
+        }
+    }
+
+    public async Task<ChartResponse<Album>> GetUserWeeklyAlbumChartAsync( )
+    {
+        try
+        {
+
+            return await _client.User.GetWeeklyAlbumChartAsync(_username);
+        }
+        catch 
+        {
+            return new ChartResponse<Album>();
+        }
+    }
+
+    public async Task<List<ChartTimeSpan>> GetWeeklyUserChartListAsync( )
+    {
+        try
+        {
+
+            return await _client.User.GetWeeklyChartListAsync(_username);
+        }
+        catch 
+        {
+            return new List<ChartTimeSpan>();
+        }
+    }
+
+    public async Task<PagedResponse<Album>> GetTopUserAlbumsAsync()
+    {
+        try
+        {
+
+            return await _client.User.GetTopAlbumsAsync(_username);
+        }
+        catch 
+        {
+            return new PagedResponse<Album>();
+        }
+    }
+
+    public async Task<PagedResponse<Track>> GetUserTopTracksAsync( )
+    {
+        try
+        {
+
+            return await _client.User.GetTopTracksAsync(_username);
+        }
+        catch 
+        {
+            return new PagedResponse<Track>();
+        }
+    }
+
+    public async Task<ChartResponse<Track>> GetUserWeeklyTrackChartAsync( )
+    {
+        try
+        {
+
+            return await _client.User.GetWeeklyTrackChartAsync(_username);
+        }
+        catch 
+        {
+            return new ChartResponse<Track>();
+        }
+    }
+
+
+    public async Task<List<Artist>> GetTopArtistsChartAsync(int limit)
     {
         try
         {
@@ -458,7 +588,7 @@ public class LastfmService : ILastfmService
     }
 
     #endregion
-    public async Task<List<Track>> GetUserRecentTracksAsync(string username, int limit = 20)
+    public async Task<List<Track>> GetUserRecentTracksAsync(string username, int limit)
     {
         if (string.IsNullOrEmpty(username))
             return new List<Track>();
@@ -472,7 +602,7 @@ public class LastfmService : ILastfmService
 
     public async Task<bool> LoveTrackAsync(SongModelView song)
     {
-        if (!IsAuthenticated || song is null)
+        if (!((ILastfmService)this).IsAuthenticated || song is null)
             return false;
         try
         {
@@ -489,7 +619,7 @@ public class LastfmService : ILastfmService
 
     public async Task<bool> UnloveTrackAsync(SongModelView song)
     {
-        if (!IsAuthenticated || song is null)
+        if (!((ILastfmService)this).IsAuthenticated || song is null)
             return false;
         try
         {
@@ -514,11 +644,11 @@ public class LastfmService : ILastfmService
 
         try
         {
-            var trackInfo = await GetTrackInfoAsync(song.ArtistName, song.Title);
+            var trackInfo = await ((ILastfmService)this).GetTrackInfoAsync(song.ArtistName, song.Title);
             if (trackInfo is null || trackInfo.IsNull ||trackInfo.Duration==0)
                 return false;
 
-            Album? albumInfo = trackInfo.Album != null ? await GetAlbumInfoAsync(trackInfo.Artist.Name, trackInfo.Album.Name) : null;
+            Album? albumInfo = trackInfo.Album != null ? await ((ILastfmService)this).GetAlbumInfoAsync(trackInfo.Artist.Name, trackInfo.Album.Name) : null;
             if (albumInfo is null)
             {
                 return false;
@@ -531,7 +661,7 @@ public class LastfmService : ILastfmService
                     return;
 
                 // Update Genre
-                if (string.IsNullOrEmpty(liveSong.Genre?.Name) && trackInfo.Tags.Any())
+                if (string.IsNullOrEmpty(liveSong.Genre?.Name) && trackInfo.Tags.Count!=0)
                 {
                     // Find or create genre
                     var topTag = trackInfo.Tags.First().Name;
@@ -558,7 +688,7 @@ public class LastfmService : ILastfmService
 
     public async Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since)
     {
-        if (!IsAuthenticated || _username is null)
+        if (!((ILastfmService)this).IsAuthenticated || _username is null)
             return 0;
         _logger.LogInformation("Starting to pull Last.fm history since {Date}", since);
 

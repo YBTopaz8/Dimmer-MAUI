@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree.NL;
+namespace Dimmer.DimmerSearch.TQL;
 public enum FieldType { Text, Numeric, Boolean, Duration, Date }
 
 public record FieldDefinition(
@@ -15,7 +15,7 @@ public record FieldDefinition(
     FieldType Type,
     string[] Aliases,
     string Description,
-   string PropertyName // NEW: The name of the property as a string.
+   string PropertyName 
 );
 
 public static class FieldRegistry
@@ -47,8 +47,8 @@ public static class FieldRegistry
 
             // --- Boolean Fields ---
             new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", nameof(SongModelView.IsFavorite)),
-            new("HasLyrics", FieldType.Boolean, new[]{"singable"}, "Does the song have any lyrics?", nameof(SongModelView.HasLyrics)),
-            new("HasSyncedLyrics", FieldType.Boolean, new[]{"synced","ssingable","syncsingable"}, "Does the song have synced lyrics?", nameof(SongModelView.HasSyncedLyrics)),
+            new("PlainLyrics", FieldType.Boolean, new[]{"singable"}, "Does the song have any lyrics?", nameof(SongModelView.HasLyrics)),
+            new("HasLyrics", FieldType.Boolean, new[]{"synced","ssingable","syncsingable"}, "Does the song have synced lyrics?", nameof(SongModelView.HasSyncedLyrics)),
 
             // --- Duration Field ---
             new("DurationInSeconds", FieldType.Duration, new[]{"len","length","time", "duration"}, "The song's duration", nameof(SongModelView.DurationInSeconds)),

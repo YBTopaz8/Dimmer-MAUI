@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
+namespace Dimmer.DimmerSearch.TQL;
 
 /// <summary>
 /// Represents a leaf node in the tree—a specific, concrete condition.

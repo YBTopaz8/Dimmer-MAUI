@@ -14,6 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\atom.svg" Color="#483d8b" />
+    <MauiIcon Include="Resources\Images\atom2.svg" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <!-- Images -->
     <MauiImage Include="Resources\Images\*" />
     <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
@@ -26,11 +31,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <EmbeddedResource Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <MauiCss Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <MauiXaml Remove="DimmerSearch\AbstractQueryTree\NL\**" />
-    <None Remove="DimmerSearch\AbstractQueryTree\NL\**" />
+    <Compile Remove="DimmerSearch\TQL\NL\**" />
+    <EmbeddedResource Remove="DimmerSearch\TQL\NL\**" />
+    <MauiCss Remove="DimmerSearch\TQL\NL\**" />
+    <MauiXaml Remove="DimmerSearch\TQL\NL\**" />
+    <None Remove="DimmerSearch\TQL\NL\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +45,10 @@
     <Compile Remove="DimmerSearch\SemanticModel.cs" />
     <Compile Remove="DimmerSearch\SemanticParser.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiImage Remove="Resources\Images\atom2.svg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,6 +70,10 @@
 
 
     <PackageReference Include="DynamicData" Version="9.4.1" />
+
+
+
+    <PackageReference Include="Fastenshtein" Version="1.0.10" />
 
 
 
@@ -159,6 +172,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\source\repos\YBTopaz8\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+    <ProjectReference Include="..\atldotnet-main\ATL\ATL.csproj" />
   </ItemGroup>
 
 </Project>

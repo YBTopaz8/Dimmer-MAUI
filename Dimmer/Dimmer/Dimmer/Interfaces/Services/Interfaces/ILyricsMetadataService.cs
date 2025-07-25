@@ -21,6 +21,7 @@ public interface ILyricsMetadataService
     /// <param name="song">The song to search for.</param>
     /// <returns>A collection of potential search results, or an empty collection if none are found.</returns>
     Task<IEnumerable<LrcLibSearchResult>> SearchOnlineAsync(SongModelView song);
+    Task<IEnumerable<LrcLibSearchResult>> SearchOnlineManualParamsAsync(string songName, string songArtist, string songAlbum);
 
     /// <summary>
     /// Saves the provided LRC content for a song. This involves two steps:
@@ -35,12 +36,3 @@ public interface ILyricsMetadataService
 /// <summary>
 /// A Data Transfer Object (DTO) representing a single search result from LrcLib.
 /// </summary>
-public class LrcLibSearchResult
-{
-    public int Id { get; set; }
-    public string TrackName { get; set; } = string.Empty;
-    public string ArtistName { get; set; } = string.Empty;
-    public string AlbumName { get; set; } = string.Empty;
-    public string? SyncedLyrics { get; set; }
-    public string? UnsyncedLyrics { get; set; }
-}

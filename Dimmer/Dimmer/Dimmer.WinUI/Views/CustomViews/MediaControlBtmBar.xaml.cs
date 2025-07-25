@@ -1,3 +1,5 @@
+
+
 namespace Dimmer.WinUI.Views.CustomViews;
 
 public partial class MediaControlBtmBar : ContentView

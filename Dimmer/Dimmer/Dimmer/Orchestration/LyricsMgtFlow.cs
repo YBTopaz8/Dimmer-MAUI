@@ -64,7 +64,7 @@ public class LyricsMgtFlow : IDisposable
          // Ensure we don't re-process if the same song event fires twice.
          .DistinctUntilChanged(song => song?.Id)
          .Subscribe(
-             async song => await ProcessSongForLyrics(song),
+             async song => await ProcessExistingLyricsForSong(song),
              ex => _logger.LogError(ex, "Error processing new song for lyrics from audio service event.")
          ));
 
@@ -89,8 +89,76 @@ public class LyricsMgtFlow : IDisposable
     }
 
     public IObservable<double> AudioEnginePositionObservable { get; }
+    /// <summary>
+    /// A NEW PUBLIC method that the ViewModel will call when the user
+    /// has chosen which lyrics to use from an online search.
+    /// </summary>
+    public void LoadLyrics(string lrcContent)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(lrcContent))
+            {
+                ClearLyrics();
+                return;
+            }
+            // All the parsing and synchronizer setup logic is now here.
+            var lyricsInfo = new LyricsInfo();
+            lyricsInfo.Parse(lrcContent);
 
-    private async Task ProcessSongForLyrics(SongModelView? song)
+            if (lyricsInfo.SynchronizedLyrics.Count == 0)
+            {
+                ClearLyrics();
+                return;
+            }
+
+            // Your existing parsing logic to create List<LyricPhraseModelView> is good.
+            var phrases = lyricsInfo.SynchronizedLyrics
+                .Select(p => new LyricPhraseModelView { TimestampStart = p.TimestampStart
+                ,TimeStampMs=p.TimestampEnd
+                , Text = p.Text, IsLyricSynced = true })
+                .OrderBy(p => p.TimestampStart)
+                .ToList();
+
+            for (int i = 0; i < phrases.Count; i++)
+            {
+                phrases[i].DurationMs = (i + 1 < phrases.Count)
+                    ? phrases[i + 1].TimeStampMs - phrases[i].TimeStampMs
+                    : 3000; // Guess duration for the last line
+            }
+
+            _lyrics = phrases;
+            _synchronizer = new LyricSynchronizer(_lyrics);
+            _allLyricsSubject.OnNext(_lyrics);
+            ResetCurrentLyricDisplay();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to parse and load provided LRC content.");
+            ClearLyrics();
+        }
+    }
+
+    /// <summary>
+    /// Helper method that replaces the old automatic search logic.
+    /// </summary>
+    private async Task<string?> GetStoredLyricsContentAsync(SongModelView song)
+    {
+        if (!string.IsNullOrEmpty(song.SyncLyrics))
+        {
+            _logger.LogTrace("Found lyrics in database for {SongTitle}", song.Title);
+            return song.SyncLyrics;
+        }
+
+        var localLyrics = await _lyricsMetadataService.GetLocalLyricsAsync(song);
+        if (!string.IsNullOrEmpty(localLyrics))
+        {
+            return localLyrics;
+        }
+        return null; // Don't search online here.
+    }
+
+    private async Task ProcessExistingLyricsForSong(SongModelView? song)
     {
         if (song == null)
         {
@@ -98,89 +166,16 @@ public class LyricsMgtFlow : IDisposable
             return;
         }
 
-        try
+        // Try to get lyrics from DB first, then local files.
+        string? lrcContent = await GetStoredLyricsContentAsync(song);
+        if (!string.IsNullOrWhiteSpace(lrcContent))
         {
-            // --- Step 1: Get raw LRC content from the best available source ---
-            string? lrcContent = await GetLyricsContentAsync(song);
-            if (string.IsNullOrWhiteSpace(lrcContent))
-            {
-                _logger.LogInformation("No lyrics content found for {SongTitle}", song.Title);
-                ClearLyrics();
-                return;
-            }
-
-            // --- Step 2: Use ATL to parse the content. This is the key change. ---
-            var lyricsInfo = new LyricsInfo();
-            lyricsInfo.Parse(lrcContent); // ATL does all the parsing work for us!
-
-            if (lyricsInfo.SynchronizedLyrics.Count == 0)
-            {
-                _logger.LogInformation("Lyrics content for {SongTitle} was not synchronized.", song.Title);
-                ClearLyrics();
-                return;
-            }
-
-
-            var lines = lrcContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var phrases = new List<LyricPhraseModelView>();
-
-            foreach (var line in lines)
-            {
-                int closingBracketIndex = line.IndexOf(']');
-                if (line.StartsWith('[') && closingBracketIndex > -1)
-                {
-                    string timecodeStr = line.Substring(0, closingBracketIndex + 1);
-                    string text = line.Substring(closingBracketIndex + 1).Trim();
-
-                    // Use OUR utility class, which we can trust and maintain.
-                    int timestampMs = LyricsParser.DecodeTimecodeToMs(timecodeStr);
-
-                    if (timestampMs >= 0 && !string.IsNullOrWhiteSpace(text))
-                    {
-                        phrases.Add(new LyricPhraseModelView
-                        {
-                            TimestampStart = timestampMs, // We only have one timestamp from LRC
-                            Text = text,
-                            IsLyricSynced = true
-                        });
-                    }
-                }
-            }
-
-            if (phrases.Count == 0)
-            {
-                _logger.LogInformation("Content for {SongTitle} was not a valid synchronized format.", song.Title);
-                ClearLyrics();
-                return;
-            }
-
-            // Sort by timestamp just in case the LRC file is out of order.
-            _lyrics = phrases.OrderBy(p => p.TimestampStart).ToList();
-
-            // Calculate durations now that the list is sorted.
-            for (int i = 0; i < _lyrics.Count; i++)
-            {
-                int? nextTimestamp = (i + 1 < _lyrics.Count)
-                    ? _lyrics[i + 1].TimestampStart
-                    : null;
-
-                // If there's a next line, duration is the gap. Otherwise, guess a duration.
-                _lyrics[i].DurationMs = (nextTimestamp ?? (_lyrics[i].TimestampStart + 2000)) - _lyrics[i].TimestampStart;
-            }
-
-            _synchronizer = new LyricSynchronizer(_lyrics);
-
-            _allLyricsSubject.OnNext(_lyrics);
-            ResetCurrentLyricDisplay();
-
-            if (song.SyncLyrics is not null || song.SyncLyrics =="")
-            {
-                await _lyricsMetadataService.SaveLyricsForSongAsync(song, lrcContent, lyricsInfo); // We don't have the LyricsInfo object anymore, pass null
-            }
+            // If we found content, parse and load it for synchronization.
+            LoadLyrics(lrcContent);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Failed to process lyrics for song: {SongTitle}", song.Title);
+            // If no stored lyrics, do nothing. The UI will show an empty state.
             ClearLyrics();
         }
     }
@@ -196,7 +191,7 @@ public class LyricsMgtFlow : IDisposable
         // Follows the hierarchy: DB -> Local Files -> Online
         if (!string.IsNullOrEmpty(song.SyncLyrics))
         {
-            _logger.LogTrace("Using lyrics from database for {SongTitle}", song.Title);
+            _logger.LogTrace("LYRICS FINDER :::::: Using lyrics from database for {SongTitle}", song.Title);
             return song.SyncLyrics;
         }
 
@@ -206,7 +201,7 @@ public class LyricsMgtFlow : IDisposable
             return localLyrics;
         }
 
-        _logger.LogTrace("No local lyrics for {SongTitle}, searching online.", song.Title);
+        _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
         var onlineResults = await _lyricsMetadataService.SearchOnlineAsync(song);
         return onlineResults?.FirstOrDefault()?.SyncedLyrics;
     }

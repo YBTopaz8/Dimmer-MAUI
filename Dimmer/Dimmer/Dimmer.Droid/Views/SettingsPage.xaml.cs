@@ -1,3 +1,5 @@
+using Java.Net;
+
 using Syncfusion.Maui.Toolkit.Chips;
 
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
@@ -29,7 +31,7 @@ public partial class SettingsPage : ContentPage
         MyViewModel.BaseVM.DeleteFolderPath(param);
     }
 
-    //private async void ChangeFolder_Clicked(object sender, EventArgs e)
+    //private async void ViewUserAccountOnline(object sender, EventArgs e)
     //{
 
 
@@ -76,10 +78,11 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    private async void ViewUserAccountOnline(object sender, EventArgs e)
     {
-        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        //await  MyViewModel.AddMusicFolderAsync(selectedFolder);
+
+
+        await Launcher.Default.OpenAsync(new Uri(MyViewModel.BaseVM.UserLocal.LastFMAccountInfo.Url));
     }
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {

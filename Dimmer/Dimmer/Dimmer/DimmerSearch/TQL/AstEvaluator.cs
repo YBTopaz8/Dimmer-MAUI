@@ -1,7 +1,7 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
+﻿using Fastenshtein;
 
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
+namespace Dimmer.DimmerSearch.TQL;
 
 
 public class AstEvaluator
@@ -41,29 +41,49 @@ public class AstEvaluator
             // If the field alias is invalid, we can treat it as a search on the "any" field.
             fieldDef = FieldRegistry.FieldsByAlias["any"];
         }
-        object? songValueObject = ReflectionCache.GetValue(song, fieldDef);
+
         bool result = false;
         switch (fieldDef.Type)
         {
             case FieldType.Text:
-                string songValue = songValueObject?.ToString() ?? "";
+                string songValue = SemanticQueryHelpers.GetStringProp(song, fieldDef.PropertyName);
                 string queryValue = node.Value.ToString() ?? "";
-                result = node.Operator switch
+
+                switch (node.Operator)
                 {
-                    "=" => songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase),
-                    "^" => songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase),
-                    "$" => songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase),
-                    "~" => SemanticQueryHelpers.LevenshteinDistance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= 2,
-                    _ => songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase)
-                };
+                    case "=":
+                        result = songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case "^":
+                        result = songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case "$":
+                        result = songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case "~":
+
+                        const int levenshteinThreshold = 4;
+                        if (Math.Abs(songValue.Length - queryValue.Length) > levenshteinThreshold)
+                        {
+                            result = false;
+                        }
+                        else
+                        {
+
+                            result = Levenshtein.Distance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= levenshteinThreshold;
+                        }
+                        break;
+                    default:
+                        result = songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase);
+                        break;
+                }
+
                 break;
 
             case FieldType.Numeric:
             case FieldType.Duration:
-                if (songValueObject is not IConvertible)
-                    return false;
-                double songNumericValue = Convert.ToDouble(songValueObject);
-                double queryNumericValue = (fieldDef.Type == FieldType.Duration)
+                double songNumericValue = SemanticQueryHelpers.GetNumericProp(song, fieldDef.PropertyName);
+                double queryNumericValue = fieldDef.Type == FieldType.Duration
                     ? ParseDuration(node.Value.ToString())
                     : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
 
@@ -98,23 +118,22 @@ public class AstEvaluator
                 break;
 
             case FieldType.Boolean:
-                if (songValueObject is not bool songBoolValue)
-                    return false;
-                bool queryBoolValue = "true|yes|1".Contains(node.Value.ToString()?.ToLower() ?? "false");
+                bool songBoolValue = SemanticQueryHelpers.GetBoolProp(song, fieldDef.PropertyName);
+                
+                bool queryBoolValue = "true|yes|1|oui".Contains(node.Value.ToString()?.ToLower() ?? "false");
                 result = songBoolValue == queryBoolValue;
                 break;
 
             case FieldType.Date: // This is where our new date logic goes!
-                if (songValueObject is not DateTimeOffset songDateValue)
-                    return false;
-                var queryDateRange = ParseDateValue(node.Value.ToString()); // The helper we wrote before
+                var songDateValue = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
+                var (start, end)= ParseDateValue(node.Value.ToString()); 
                 result = node.Operator switch
                 {
-                    ">" => songDateValue.Date > queryDateRange.end.Date,
-                    "<" => songDateValue.Date < queryDateRange.start.Date,
-                    ">=" => songDateValue.Date >= queryDateRange.start.Date,
-                    "<=" => songDateValue.Date <= queryDateRange.end.Date,
-                    _ => songDateValue.Date >= queryDateRange.start.Date && songDateValue.Date <= queryDateRange.end.Date
+                    ">" => songDateValue.Value.Date > end.Date,
+                    "<" => songDateValue.Value.Date< start.Date,
+                    ">=" => songDateValue.Value.Date>= start.Date,
+                    "<=" => songDateValue.Value.Date<= end.Date,
+                    _ => songDateValue.Value.Date>= start.Date && songDateValue.Value.Date <= end.Date
                 };
                 break;
         }

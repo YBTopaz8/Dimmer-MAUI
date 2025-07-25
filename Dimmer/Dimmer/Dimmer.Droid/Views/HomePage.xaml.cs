@@ -94,10 +94,10 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
-    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-        MyViewModel.BaseVM.PlaySong(song);
+      await  MyViewModel.BaseVM.PlaySong(song);
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
         //DetailView.IsVisible=true;
@@ -169,9 +169,13 @@ public partial class HomePage : ContentPage
     private void AddToPlaylist_Clicked(object sender, EventArgs e)
     {
         var send = (DXButton)sender;
+        
         var song = send.CommandParameter as SongModelView;
+        
         var pl = MyViewModel.BaseVM.AllPlaylists;
+        
         var listt = new List<SongModelView>();
+       
         listt.Add(song);
 
         MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
@@ -181,7 +185,6 @@ public partial class HomePage : ContentPage
     {
 
         Debug.WriteLine(this.Parent.GetType());
-        //this.IsExpanded = !this.IsExpanded;
 
     }
     private async void DXButton_Clicked_3(object sender, EventArgs e)
@@ -191,11 +194,9 @@ public partial class HomePage : ContentPage
     SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
     {
-        return true;
-
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
 
         return true;
+
     }
 
     private void SortCategory_LongPress(object sender, HandledEventArgs e)
@@ -418,12 +419,12 @@ public partial class HomePage : ContentPage
 
     private void SearchBy_Focused(object sender, FocusEventArgs e)
     {
-        //await BtmBarZone.AnimateSlideDown(80);
+        
     }
 
     private async void myPageSKAV_Closed(object sender, EventArgs e)
     {
-        //await BtmBarZone.AnimateSlideUp(80);
+        
 
         await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
     }
@@ -460,8 +461,11 @@ public partial class HomePage : ContentPage
 
     private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
     {
-        UISection.IsExpanded=!UISection.IsExpanded;
-        MainViewExpander.IsExpanded = !UISection.IsExpanded;
+        NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+
+        BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
     }
 
     private async void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
@@ -504,13 +508,10 @@ public partial class HomePage : ContentPage
 
         try
         {
-            // Get the list of songs you want to process
-            var songsToRefresh = MyViewModel.BaseVM.SearchResults; // Or your full master list
-            var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-            // --- Call our static, background-safe method ---
-            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
-
+            
+           await MyViewModel.LoadSongDataAsync(progressReporter,_lyricsCts);
             await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
+
         }
         catch (OperationCanceledException)
         {
@@ -628,7 +629,7 @@ public partial class HomePage : ContentPage
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        //UISection.Commands.ToggleExpandState.Execute(null);
+        //NowPlayingUISection.Commands.ToggleExpandState.Execute(null);
     }
 
     private void BtmBar_RequestFocusNowPlayingUI_1(object sender, EventArgs e)
@@ -700,9 +701,31 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void Settings_Tap(object sender, HandledEventArgs e)
+    private void Settings_Tap(object sender, HandledEventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(SettingsPage));
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+        //await Shell.Current.GoToAsync(nameof(SettingsPage));
+    }
+
+    private void MoreIcon_LongPress(object sender, HandledEventArgs e)
+    {
+        SongsColView.Commands.ShowDetailForm.Execute(null);
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+       
+
+            NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+            MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+
+            BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
+
+
+            return true;
+        return base.OnBackButtonPressed();
     }
 }
 

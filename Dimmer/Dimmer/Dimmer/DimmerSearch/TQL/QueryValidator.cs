@@ -1,12 +1,10 @@
-﻿using Dimmer.DimmerSearch.AbstractQueryTree.NL;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
+namespace Dimmer.DimmerSearch.TQL;
 public record ValidationResult(bool IsValid, string Message = "", int Position = -1);
 
 public static class QueryValidator

@@ -20,10 +20,10 @@ public partial class SongModelView : ObservableObject
         TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
     }
     [ObservableProperty]
-    public partial string ArtistName { get; set; } = string.Empty;
+    public partial string ArtistName { get; set; } 
 
     [ObservableProperty]
-    public partial string AlbumName { get; set; } = string.Empty;
+    public partial string AlbumName { get; set; } 
 
     [ObservableProperty]
     public partial AlbumModelView Album { get; set; } = new();
@@ -32,9 +32,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial GenreModelView Genre { get; set; } = new();
     [ObservableProperty]
-    public partial string GenreName { get; set; } = string.Empty;
+    public partial string? GenreName { get; set; } 
     [ObservableProperty]
-    public partial string FilePath { get; set; } = string.Empty;
+    public partial string FilePath { get; set; } 
     [ObservableProperty]
     public partial double DurationInSeconds { get; set; }
     [ObservableProperty]
@@ -58,6 +58,9 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial byte[]? CoverImageBytes { get; set; }
+
+    [ObservableProperty]
+    public partial bool? IsInstrumental { get; set; }
     [ObservableProperty]
     public partial string CoverImagePath { get; set; }
     [ObservableProperty]
@@ -108,7 +111,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int? DiscTotal { get; set; }
     [ObservableProperty]
-    public partial int? UserIDOnline { get; set; }
+    public partial string? UserIDOnline { get; set; }
     [ObservableProperty]
     public partial bool IsNew { get; set; }
 
@@ -166,6 +169,10 @@ public partial class SongModelView : ObservableObject
         {
 
         }
+        HasSyncedLyrics= !string.IsNullOrEmpty(SyncLyrics) && SyncLyrics.Length > 1;
+        HasLyrics = !string.IsNullOrEmpty(UnSyncLyrics) && UnSyncLyrics.Length > 1;
+        IsFileExists = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
+
     }
     public string UserNoteAggregatedText =>
         UserNote != null && UserNote.Any()

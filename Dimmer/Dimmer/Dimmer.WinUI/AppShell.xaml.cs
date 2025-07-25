@@ -19,17 +19,18 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
+        Routing.RegisterRoute(nameof(LibSanityPage), typeof(LibSanityPage));
 
 
     }
 
-    protected override  void OnAppearing()
+    protected async override  void OnAppearing()
     {
         base.OnAppearing();
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        MyViewModel.Initialize();
-
+      await  MyViewModel.Initialize();
+        this.BindingContext = MyViewModel;
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -67,10 +68,10 @@ public partial class AppShell : Shell
         }
     }
 
-    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    private void RescanFolderPath_Clicked(object sender, EventArgs e)
     {
         var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        //await  MyViewModel.AddMusicFolderAsync(selectedFolder);
+        MyViewModel.RescanFolderPath(selectedFolder);
     }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
@@ -127,5 +128,20 @@ public partial class AppShell : Shell
     {
 
         await MyViewModel.LoginToLastfm();
+    }
+
+    private void FindDuplicatesBtn_Clicked(object sender, EventArgs e)
+    {
+        this.NavTab.SelectedIndex = NavTab.Items.Count - 1; 
+    }
+
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void FindDupes_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(LibSanityPage), true);
     }
 }

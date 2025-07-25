@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Dimmer.DimmerSearch.AbstractQueryTree;
+namespace Dimmer.DimmerSearch.TQL;
+
 public enum TokenType
 {
     // Single-character tokens
@@ -17,10 +17,8 @@ public enum TokenType
     // Literals
     Identifier, StringLiteral, Number,
 
-    // Keywords for logic
+    // Keywords
     And, Or, Not,
-
-    // Keywords for meta-commands and directives
     Include, Add, Exclude, Remove,
     Asc, Desc, Random, Shuffle,
     First, Last,
@@ -36,8 +34,8 @@ public static class Lexer
     private static readonly Dictionary<string, TokenType> _keywords = new(StringComparer.OrdinalIgnoreCase)
     {
         { "and", TokenType.And }, { "or", TokenType.Or }, { "not", TokenType.Not },
-        { "include", TokenType.Include }, { "add", TokenType.Add },{ "plus", TokenType.Add },
-        { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove },{ "minus", TokenType.Remove },
+        { "include", TokenType.Include }, { "add", TokenType.Add }, { "plus", TokenType.Add },
+        { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove }, { "minus", TokenType.Remove },
         { "asc", TokenType.Asc }, { "desc", TokenType.Desc },
         { "random", TokenType.Random }, { "shuffle", TokenType.Shuffle },
         { "first", TokenType.First }, { "last", TokenType.Last }
@@ -62,17 +60,16 @@ public static class Lexer
                 var sb = new StringBuilder();
                 while (position < text.Length && text[position] != '"')
                 {
-                    // If we see a backslash, check if it's escaping a quote
                     if (text[position] == '\\' && position + 1 < text.Length && text[position + 1] == '"')
                     {
-                        sb.Append('"'); // Append the quote
-                        position += 2;  // Skip both \ and "
+                        sb.Append('"');
+                        position += 2;
                     }
                     else
-                    {
-                        sb.Append(text[position++]);
-                    }
+                    { sb.Append(text[position++]); }
                 }
+                if (position < text.Length)
+                    position++; // Skip closing quote
                 tokens.Add(new Token(TokenType.StringLiteral, sb.ToString(), start));
                 continue;
             }
@@ -85,7 +82,7 @@ public static class Lexer
                 int start = position;
                 while (position < text.Length && char.IsLetterOrDigit(text[position]))
                 { position++; }
-                string word = text[start..position];
+                string word = text.Substring(start, position - start);
                 if (_keywords.TryGetValue(word, out var keywordType))
                     tokens.Add(new Token(keywordType, word, start));
                 else
@@ -98,11 +95,10 @@ public static class Lexer
                 int start = position;
                 while (position < text.Length && (char.IsDigit(text[position]) || text[position] == '.' || text[position] == ':'))
                 { position++; }
-                string number = text[start..position];
+                string number = text.Substring(start, position - start);
                 tokens.Add(new Token(TokenType.Number, number, start));
                 continue;
             }
-
 
             tokens.Add(new Token(TokenType.Error, current.ToString(), position++));
         }
@@ -140,6 +136,7 @@ public static class Lexer
             '-' => TokenType.Minus,
             _ => (TokenType?)null
         };
+
         if (type.HasValue)
         {
             tokens.Add(new Token(type.Value, c.ToString(), position));

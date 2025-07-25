@@ -302,7 +302,7 @@ public partial class HomePage : ContentPage
 
     private async void PointerRecog_PointerExited(object sender, PointerEventArgs e)
     {
-        await Task.WhenAll(SongsColView.DimmIn(),
+        await Task.WhenAll(SongsGrid.DimmIn(),
             TranslatedSearch.DimmOut(),
              AdvSearch.DimmOutCompletelyAndHide(),
             UtilitySection.DimmInCompletelyAndShow
@@ -313,7 +313,7 @@ public partial class HomePage : ContentPage
     private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
 
-        await Task.WhenAll(SongsColView.DimmOut(),
+        await Task.WhenAll(SongsGrid.DimmOut(),
              AdvSearch.DimmInCompletelyAndShow(),
             SearchSongSB.AnimateHeight(65, 650, Easing.SpringOut));
 
@@ -384,11 +384,8 @@ public partial class HomePage : ContentPage
 
         try
         {
-            MyViewModel.SearchSongSB_TextChanged(string.Empty); // Clear the search bar to refresh the list
-            var songsToRefresh = MyViewModel.SearchResults; // Or your full master list
-            var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-            await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
 
+            await MyViewModel.LoadSongDataAsync(progressReporter, _lyricsCts);
             await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
         }
         catch (OperationCanceledException)
@@ -430,19 +427,20 @@ public partial class HomePage : ContentPage
 
     private async void AllEvents_Clicked(object sender, EventArgs e)
     {
+        this.IsBusy=true;
         if (!AllEventsBorder.IsVisible)
         {
-            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsView.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
+            MyViewModel.GetStatsGeneral();
+            await Task.WhenAll(AllEventsBorder.AnimateFadeInFront(400), SearchSection.AnimateFadeOutBack(400), SongsGrid.AnimateFadeOutBack(400), LyricsView.AnimateFadeOutBack(400));
 
         }
         else
         {
-            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SearchSection.AnimateFadeInFront(400), SongsView.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
+            await Task.WhenAll(AllEventsBorder.AnimateFadeOutBack(400), SearchSection.AnimateFadeInFront(400), SongsGrid.AnimateFadeInFront(400), LyricsView.AnimateFadeOutBack(400));
 
 
         }
-
-        MyViewModel.LoadStatsApp();
+        this.IsBusy=false;
 
     }
 
@@ -501,6 +499,7 @@ public partial class HomePage : ContentPage
         }
         var sss = MyViewModel.SearchResults.First(x => x.Id==songg.Song.Id);
 
+
         MyViewModel.SelectedSong=sss;
         ColViewOfTopSongs.SelectedItem=       songg;
         Debug.WriteLine($"Selected Song: {songg.Song.Title}, Played {songg.Count} times.");
@@ -535,7 +534,7 @@ public partial class HomePage : ContentPage
 
     private async void LyricsChip_Clicked(object sender, EventArgs e)
     {
-        await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsView.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
+        await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsGrid.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
     }
 
     private void ArtistsEffectsView_LongPressed_1(object sender, EventArgs e)
@@ -598,20 +597,44 @@ public partial class HomePage : ContentPage
         SearchSongSB.Text=MyViewModel.CurrentPlaybackQuery;
         return;
 
-        if (!SongsColView.IsVisible)
-        {
-            await Task.WhenAll(SongsColView.DimmInCompletelyAndShow(300), SingleSongView.DimmOutCompletelyAndHide(250));
-        }
-        else
-        {
-
-            await Task.WhenAll(SingleSongView.DimmInCompletelyAndShow(300), SongsColView.DimmOutCompletelyAndHide(250));
-        }
+        
 
     }
 
     private void Button_Clicked_1(object sender, EventArgs e)
     {
         SearchSongSB.Text=string.Empty;
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var gestRec = view.GestureRecognizers[0] as TapGestureRecognizer;
+        MyViewModel.SelectedSong=gestRec.CommandParameter as SongModelView;
+    }
+
+    private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
+        MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
+
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+      
+    }
+
+    private  void CloseSideBar_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void OnAddQuickNoteClicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void OnLabelClicked(object sender, EventArgs e)
+    {
+
     }
 }

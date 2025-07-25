@@ -12,17 +12,7 @@ public class ErrorHandler : IErrorHandler
     public void HandleError(Exception ex)
     {
         LogException(ex);
-        MainThread.BeginInvokeOnMainThread(async () =>
-        {
-            if (Application.Current?.Windows[0] != null)
-            {
-                await Shell.Current.DisplayAlert("An Unexpected Error Occurred", "The application has encountered an error. Please try again. If the problem persists, please contact support.", "OK");
-            }
-            else
-            {
-                Debug.WriteLine($"Error: MainPage is null. Could not display alert. Exception: {ex}");
-            }
-        });
+        
     }
 
     public static void LogException(Exception ex)
@@ -34,7 +24,7 @@ public class ErrorHandler : IErrorHandler
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            string fileName = $"Loggercrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string fileName = $"MAUIILoggercrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nException Type: {ex.GetType()}\nMessage: {ex.Message}\nStackTrace: {ex.StackTrace}\n";
             if (ex.InnerException != null)

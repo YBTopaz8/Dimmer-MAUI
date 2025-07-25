@@ -45,7 +45,7 @@ public class LibraryScannerService : ILibraryScannerService
         _coverArtService = new CoverArtService(_config);
     }
 
-    public async Task<LoadSongsResult?> ScanLibrary(List<string>? folderPaths)
+    public async Task<LoadSongsResult>? ScanLibrary(List<string>? folderPaths)
     {
         try
         {
@@ -73,7 +73,6 @@ public class LibraryScannerService : ILibraryScannerService
             _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
 
             MusicMetadataService currentScanMetadataService = new();
-            AudioFileProcessor audioFileProcessor = new AudioFileProcessor(_coverArtService, currentScanMetadataService, _config);
 
             List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
 
@@ -90,31 +89,49 @@ public class LibraryScannerService : ILibraryScannerService
             var existingGenres = _mapper.Map<List<GenreModelView>>(realm.All<GenreModel>().ToList());
             var existingSongs = _mapper.Map<List<SongModelView>>(realm.All<SongModel>().ToList());
 
+
+
             _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
                 existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
 
-            currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
-            int totalFiles = allFiles.Count;
-            int processedFileCount = 0;
-            _logger.LogInformation("Processing {TotalFiles} audio files...", totalFiles);
 
-            foreach (string file in allFiles)
+
+
+
+            currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
+
+            var newFilesToProcess = allFiles.Where(file => !currentScanMetadataService.HasFileBeenProcessed(file)).ToList();
+
+            int totalFilesToProcess = newFilesToProcess.Count;
+            if (totalFilesToProcess == 0)
+            {
+                _logger.LogInformation("Scan complete. No new music found.");
+                _state.SetCurrentLogMsg(new AppLogModel { Log = "Your library is up-to-date." });
+                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, "No new files.", null, null));
+                return new LoadSongsResult { /* Indicate success with no changes */ };
+            }
+
+            _logger.LogInformation("Found {TotalFiles} new audio files to process.", totalFilesToProcess);
+            _state.SetCurrentLogMsg(new AppLogModel { Log = $"Found {totalFilesToProcess} new songs. Starting import..." });
+
+            // --- 4. Process ONLY the new files ---
+            var audioFileProcessor = new AudioFileProcessor(_coverArtService, currentScanMetadataService, _config);
+            var processedResults = new List<FileProcessingResult>();
+            int processedFileCount = 0;
+
+            foreach (string file in newFilesToProcess)
             {
                 processedFileCount++;
-                if (processedFileCount % 50 == 0 || processedFileCount == totalFiles)
-                {
-                    _logger.LogInformation("Scanning progress: {ProcessedCount}/{TotalCount} files.", processedFileCount, totalFiles);
-                }
-
-                var fileProcessingResult = audioFileProcessor.ProcessFiles(new List<string>() { file })[0];
+                var fileProcessingResult = audioFileProcessor.ProcessFile(file); // Use ProcessFile directly
+                processedResults.Add(fileProcessingResult);
 
                 if (fileProcessingResult.Success && fileProcessingResult.ProcessedSong != null)
                 {
                     _state.SetCurrentLogMsg(new AppLogModel
                     {
-                        Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
-                        AppScanLogModel = new AppScanLogModel() { TotalFiles = totalFiles, CurrentFilePosition = processedFileCount, },
-                        TotalScanFiles = totalFiles,
+                        Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{newFilesToProcess.Count})",
+                        AppScanLogModel = new AppScanLogModel() { TotalFiles = newFilesToProcess.Count, CurrentFilePosition = processedFileCount, },
+                        TotalScanFiles = newFilesToProcess.Count,
                         CurrentScanFile = processedFileCount,
                         ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
                     });
@@ -134,18 +151,12 @@ public class LibraryScannerService : ILibraryScannerService
             var newArtists = currentScanMetadataService.NewArtists;
             var newAlbums = currentScanMetadataService.NewAlbums;
             var newGenres = currentScanMetadataService.NewGenres;
+            var newSongs = processedResults.Where(r => r.Success && r.ProcessedSong != null).Select(r => r.ProcessedSong).ToList();
 
-            var processedSongs = currentScanMetadataService.GetProcessedSongs();
-            var newSongs = processedSongs.Where(s => !currentScanMetadataService.DoesSongExist(s.Title, s.DurationInSeconds)).ToList();
-
-            _logger.LogInformation("Found {SongCount} new songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
-                newSongs.Count, newArtists.Count, newAlbums.Count, newGenres.Count);
-
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, newSongs, newSongs.FirstOrDefault(), null));
-
-
-            if (newArtists.Count!=0 || newAlbums.Count!=0 || newGenres.Count!=0 || newSongs.Count!=0)
+            if (newSongs.Count!=0)
             {
+                _logger.LogInformation("Found {SongCount} new songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
+                    newSongs.Count, newArtists.Count, newAlbums.Count, newGenres.Count);
                 _logger.LogInformation("Persisting metadata changes to database...");
 
                 // STEP 1: Map all new VIEW objects to new MODEL objects OUTSIDE the transaction.
@@ -243,6 +254,7 @@ public class LibraryScannerService : ILibraryScannerService
                     }
                 });
             }
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, extParam: newSongs,null, null));
 
 
             return new LoadSongsResult { /* ... */ };
@@ -336,7 +348,7 @@ public class LibraryScannerService : ILibraryScannerService
         _state.LoadAllSongs(freshSongs.AsReadOnly());
         _logger.LogInformation($"Loaded {freshSongs.Count} songs into global state.");
     }
-    public async Task<LoadSongsResult?> ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
+    public async Task<LoadSongsResult>? ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));
         return await ScanLibrary(pathsToScan);

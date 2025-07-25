@@ -230,7 +230,7 @@ public class ExoPlayerService : MediaSessionService
                 //.SetSeekParameters(new SeekParameters(10,10))
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
-
+                
                 .Build();
 
             notificationPlayer = new QueueEnablingPlayerWrapper(player!);
@@ -254,7 +254,6 @@ public class ExoPlayerService : MediaSessionService
             mediaSession = new MediaSession.Builder(this, notificationPlayer)!
                 .SetSessionActivity(pendingIntent)!
                 .SetCallback(sessionCallback)!
-
                 .SetId("Dimmer_MediaSession_Main")!
                 .Build();
 
@@ -546,6 +545,7 @@ public class ExoPlayerService : MediaSessionService
         {
             if (playbackState == 4)
             {
+                service.player.Stop();
                 service.RaisePlayingEnded();
             }
         }

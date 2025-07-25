@@ -59,9 +59,9 @@
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
+    <None Remove="Views\SettingsCenter\LibSanityPage.xaml" />
     <None Remove="Views\SettingsCenter\SettingsPage.xaml" />
     <None Remove="Views\SettingsCenter\SettingWin.xaml" />
-    <None Remove="Views\SingleSongPage.xaml" />
     <None Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
@@ -82,10 +82,10 @@
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
     <Page Remove="Views\PlaylistWindow.xaml" />
+    <Page Remove="Views\SettingsCenter\LibSanityPage.xaml" />
     <Page Remove="Views\SettingsCenter\SettingsPage.xaml" />
     <Page Remove="Views\SettingsCenter\SettingWin.xaml" />
     <Page Remove="Views\SettingWindow.xaml" />
-    <Page Remove="Views\SingleSongPage.xaml" />
     <Page Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <Page Remove="Views\SongNotifierWindow.xaml" />
     <Page Remove="Views\StatisticsPage.xaml" />
@@ -105,7 +105,6 @@
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-    <PackageReference Include="FunctionZero.Maui.zBind" Version="8.1.1" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.90" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
@@ -198,13 +197,13 @@
     <MauiXaml Include="Views\PlaylistWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\SettingsCenter\LibSanityPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\SettingsCenter\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\SettingsCenter\SettingWin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SingleSongPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\SingleSongPages\SingleSongPage.xaml">
@@ -247,8 +246,9 @@
     <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Title>Dimmer</Title>
-    <PackageIcon>dimmerIcon.png</PackageIcon>
     <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <!--<PackageIcon>atom.svg</PackageIcon>
+    <ApplicationIcon>atom.svg</ApplicationIcon>-->
   </PropertyGroup>
 
   <!--

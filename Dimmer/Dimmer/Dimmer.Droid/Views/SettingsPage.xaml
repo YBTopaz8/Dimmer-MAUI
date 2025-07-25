@@ -9,6 +9,7 @@
              Title="Settings" x:DataType="vm:BaseViewModelAnd"
              BackgroundColor="{AppThemeBinding Dark=#1e1e1e,
                                                Light=White}"
+             Shell.TabBarIsVisible="False"
              Shell.NavBarIsVisible="False"
              >
     <ContentPage.Resources>
@@ -38,28 +39,25 @@
                 <Label
             Grid.Row="0"
             FontAttributes="Bold"
-            FontSize="25"
+            FontSize="16" HorizontalOptions="Center"
             Text="{Binding BaseVM.LatestAppLog.Log}" />
-                <Label
-            FontAttributes="Bold"
-            FontSize="34"
-            Text="Music Folders" />
-
 
             </VerticalStackLayout>
-            <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
-         <syncf:SfTabItem Header="Main">
+            <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Bottom"
+                             EnableSwiping="True" 
+                             SelectionChanged="NavTab_SelectionChanged">
+         <syncf:SfTabItem Header="Main" FontSize="24" >
 
              <syncf:SfTabItem.Content>
-                
-                     <Grid Grid.Row="1" RowDefinitions="*,0.4*">
+
+                        <Grid Grid.Row="1" RowDefinitions="*,0.4*" Margin="10">
 
                          <CollectionView
                                  x:Name="ListOfFolders"
                                  Grid.Row="0"
                                  Header="List of Folders"
                                  ItemsSource="{Binding BaseVM.FolderPaths}"
-                                 MaximumWidthRequest="250">
+                                 >
                              <CollectionView.EmptyView>
                                  <VerticalStackLayout>
                                      <Label
@@ -70,26 +68,17 @@
                              </CollectionView.EmptyView>
                              <CollectionView.ItemTemplate>
                                  <DataTemplate x:DataType="x:String">
-                                     <Grid ColumnDefinitions="*,*">
+                                     <Grid RowDefinitions="*,*">
 
-                                         <Label Grid.Column="0" Text="{Binding .}" />
+                                         <Label Grid.Row="0" Text="{Binding .}" />
 
-                                         <HorizontalStackLayout Grid.Column="1" Spacing="25">
-                                          
-
-                                             <ImageButton
-                                                     x:Name="DeleteBtn"
-                                                     Clicked="DeleteBtn_Clicked"
-                                                     CommandParameter="{Binding .}"
-                                                     Source="delete.png" />
-
-                                         </HorizontalStackLayout>
+                                         
                                      </Grid>
                                  </DataTemplate>
                              </CollectionView.ItemTemplate>
                          </CollectionView>
                          <VerticalStackLayout
-                                 Grid.Row="1"
+                                 Grid.Row="1" VerticalOptions="Start"
                                  BackgroundColor="Transparent"
                                  Spacing="10">
 
@@ -109,11 +98,11 @@
 
              </syncf:SfTabItem.Content>
          </syncf:SfTabItem>
-         
-         
-         <syncf:SfTabItem Header="LastFM Tab">
+
+
+                <syncf:SfTabItem Header="LastFM Tab" FontSize="24" TextColor="Red" >
              <syncf:SfTabItem.Content>
-                 <VerticalStackLayout Margin="10" Spacing="10">
+                 <dx:DXStackLayout Margin="10" ItemSpacing="10">
                      <FlexLayout JustifyContent="SpaceBetween">
 
                          <Label Text="Last FM Status: "/>
@@ -189,16 +178,10 @@
                              </DataTrigger>
                          </VerticalStackLayout.Triggers>
 
-                         <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
+                               
+                            </VerticalStackLayout>
 
-                                    <Image Source="{Binding BaseVM.UserLocal.LastFMAccountInfo.Image.Url}"/>
-
-                         </Border>
-                                <Label Text="{Binding BaseVM.UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
-                                <Label Text="{Binding BaseVM.UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
-                         
-                     </VerticalStackLayout>
-                 </VerticalStackLayout>
+                 </dx:DXStackLayout>
 
              </syncf:SfTabItem.Content>
          </syncf:SfTabItem>

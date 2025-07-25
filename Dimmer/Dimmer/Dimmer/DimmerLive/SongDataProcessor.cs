@@ -1,13 +1,15 @@
 ﻿using ATL;
-using ATL;
 
 using Dimmer.Interfaces.Services.Interfaces;
+
+using Hqub.Lastfm.Entities;
+
+using Humanizer.Localisation;
 
 using System;
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Concurrent; // For BlockingCollection
 using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -42,10 +44,10 @@ public static class SongDataProcessor
     /// <returns>A Task that completes when all processing is finished.</returns>
     public static Task ProcessLyricsAsync(
         IEnumerable<SongModelView> songsToProcess, ILyricsMetadataService lyricsService,
-        IProgress<LyricsProcessingProgress> progress,
+        IProgress<LyricsProcessingProgress>? progress,
         CancellationToken cancellationToken)
     {
-        // Use ToList() to avoid issues with collection modification during enumeration
+       
         var songList = songsToProcess.ToList();
         int totalCount = songList.Count;
         int processedCount = 0;
@@ -103,18 +105,49 @@ public static class SongDataProcessor
                          string? fetchedLrcData = null;
 
                          // First, try to get from local file metadata using ATL (our original fast path)
-                         var track = new Track(song.FilePath);
-                         if (!string.IsNullOrWhiteSpace(track.Lyrics?.First().UnsynchronizedLyrics) || (track.Lyrics?.First().SynchronizedLyrics?.Any() ?? false))
-                         {
-                             // If found, format it into LRC data string.
-                             fetchedLrcData = track.Lyrics.First().FormatSynch();
+                         var track = new ATL.Track(song.FilePath);
+                         song.AlbumName = track.Album;
+                         song.ArtistName= track.Artist;
+                         song.OtherArtistsName= track.OriginalArtist;
+                         song.GenreName=track.Genre;
+                        
+                         
+                         if (track.Lyrics?.Count>0)
+                         { 
+                             if (!string.IsNullOrWhiteSpace(track.Lyrics?.First().UnsynchronizedLyrics) || (track.Lyrics?.First().SynchronizedLyrics?.Any() ?? false))
+                             {
+                                 // If found, format it into LRC data string.
+                                 fetchedLrcData = track.Lyrics.First().FormatSynch();
+                                 if (string.IsNullOrEmpty(fetchedLrcData))
+                                 {
+
+                                     var onlineResults = await lyricsService.SearchOnlineAsync(song);
+                                     if (onlineResults is not null && onlineResults.Any())
+                                     {
+                                         var firstFetched = onlineResults.First();
+
+                                         fetchedLrcData = firstFetched.SyncedLyrics;
+                                         song.IsInstrumental = firstFetched.Instrumental;
+                                         song.UnSyncLyrics=firstFetched.PlainLyrics;
+
+                                     }
+                                 }
+                             }
                          }
                          else
                          {
                              //continue; // No lyrics found in metadata, skip to next song.
                              // If not found in file, use your service to search online.
                              var onlineResults = await lyricsService.SearchOnlineAsync(song);
-                             fetchedLrcData = onlineResults?.FirstOrDefault()?.SyncedLyrics;
+                             if (onlineResults is not null && onlineResults.Any())
+                             {
+                                 var firstFetched = onlineResults.First();
+                                
+                                     fetchedLrcData = firstFetched.SyncedLyrics;
+                                     song.IsInstrumental = firstFetched.Instrumental;
+                                 song.UnSyncLyrics=firstFetched.PlainLyrics;
+                                 
+                             }
                          }
 
                          // --- STEP 3: If lyrics were found, process and save them ---
@@ -134,6 +167,7 @@ public static class SongDataProcessor
                                  {
                                      song.HasLyrics = !string.IsNullOrWhiteSpace(newLyricsInfo.UnsynchronizedLyrics);
                                      song.HasSyncedLyrics = newLyricsInfo.SynchronizedLyrics.Any();
+
                                      song.UnSyncLyrics = newLyricsInfo.UnsynchronizedLyrics;
                                      song.EmbeddedSync.Clear(); // Ensure it's empty before adding
                                      song.SyncLyrics= newLyricsInfo.SynchronizedLyrics.Any() ? newLyricsInfo.SynchronizedLyrics.ToString()! : string.Empty;
@@ -142,7 +176,7 @@ public static class SongDataProcessor
                                          song.EmbeddedSync.Add(new SyncLyricsView(phrase));
                                      }
                                  });
-                                 var fileToUpdate = new Track(song.FilePath);
+                                 var fileToUpdate = new ATL.Track(song.FilePath);
                                  fileToUpdate.Lyrics.Add(newLyricsInfo);
                                  fileToUpdate.Save(); // Persist the changes!
 

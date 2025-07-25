@@ -197,7 +197,7 @@ public class FolderMgtService : IFolderMgtService
             _logger.LogInformation("Watched sub-directory deleted: {FolderPath}. Triggering full library refresh.", e.FullPath);
 
             var currentFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-            _libraryScanner.ScanLibrary(currentFolders);
+            await _libraryScanner.ScanLibrary(currentFolders);
         }
     }
 

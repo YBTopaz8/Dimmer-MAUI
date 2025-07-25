@@ -33,7 +33,7 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 44,
+            SchemaVersion = 45,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
 
@@ -73,3 +73,4 @@ public static class ExpressionBuilder
         return Expression.Lambda<Func<TElement, bool>>(body, parameter);
     }
 }
+

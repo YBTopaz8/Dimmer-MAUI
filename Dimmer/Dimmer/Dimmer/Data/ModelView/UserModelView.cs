@@ -18,7 +18,10 @@ public partial class UserModelView : ObservableObject
     public partial bool IsNew { get; set; }
     public bool UserHasAccount
     {
-        get => string.IsNullOrEmpty(Email);
+        get
+        {
+            return string.IsNullOrEmpty(Email);
+        }
 
         set;
     }
