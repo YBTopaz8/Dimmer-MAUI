@@ -20,6 +20,11 @@
         <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
         <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
         <converters:VolumeConverter x:Key="VolConverter" />
+        <Style TargetType="Label" 
+            
+            x:Key="SectionHeader">
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
         <DataTemplate x:Key="tooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
                 <Label
@@ -75,14 +80,28 @@
             <VerticalStackLayout Spacing="10" Padding="15">
                 <!-- Cover Art and Main Info -->
                 <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" HeightRequest="320" WidthRequest="320" HorizontalOptions="Center">
-                    <Image Aspect="AspectFill" Source="{Binding SelectedSong.CoverImageBytes, Converter={StaticResource BytesToImageConverter}}"/>
+                    <Image Aspect="AspectFill" Source="{Binding SelectedSong.CoverImagePath}"/>
                 </Border>
 
                 <Label Text="{Binding SelectedSong.Title}" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                 <Label Text="{Binding SelectedSong.OtherArtistsName}" FontSize="20" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
 
                 <!-- Quick Actions -->
-                <Button Text="Add to Playlist..." Command="{Binding AddToPlaylistCommand}" CommandParameter="{Binding SelectedSong}"/>
+                <Button Text="Toggle Fav" Command="{Binding ToggleFavSongCommand}" 
+                        
+                        CommandParameter="{Binding SelectedSong}"
+                        >
+                    <Button.Triggers>
+                        <DataTrigger Binding="{Binding SelectedSong.IsFavorite}"
+                                     Value="True" TargetType="Button">
+                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SelectedSong.IsFavorite}"
+                                     Value="False" TargetType="Button">
+                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
                 <Button Text="Share..." Command="{Binding ShareSongCommand}" CommandParameter="{Binding SelectedSong}"/>
 
                 <!-- Tags Section -->
@@ -139,31 +158,29 @@
 
                             <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="10" ColumnDefinitions="Auto,*">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Title" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="0" Grid.Column="1" Text="{Binding EditableSong.Title}"/>
+                                <Entry Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.Title}"/>
 
                                 <Label Grid.Row="1" Grid.Column="0" Text="Artist(s)" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="1" Grid.Column="1" Text="{Binding EditableSong.ArtistName}" Placeholder="e.g. Artist A, Artist B"/>
+                                <Entry Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.ArtistName}" Placeholder="e.g. Artist A, Artist B"/>
 
                                 <Label Grid.Row="2" Grid.Column="0" Text="Album" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="2" Grid.Column="1" Text="{Binding EditableSong.AlbumName}"/>
+                                <Entry Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.AlbumName}"/>
 
-                                <Label Grid.Row="3" Grid.Column="0" Text="Album Artist" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="3" Grid.Column="1" Text="{Binding EditableSong.AlbumArtistName}"/>
 
                                 <Label Grid.Row="4" Grid.Column="0" Text="Genre" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding EditableSong.GenreName}"/>
+                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding SelectedSong.GenreName}"/>
 
                                 <Label Grid.Row="5" Grid.Column="0" Text="Year" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="5" Grid.Column="1" Text="{Binding EditableSong.ReleaseYear}" Keyboard="Numeric"/>
+                                <Entry Grid.Row="5" Grid.Column="1" Text="{Binding SelectedSong.ReleaseYear}" Keyboard="Numeric"/>
 
                                 <Label Grid.Row="6" Grid.Column="0" Text="Tags" VerticalOptions="Start" Style="{StaticResource FieldLabel}"/>
                                 <VerticalStackLayout Grid.Row="6" Grid.Column="1">
-                                    <FlexLayout BindableLayout.ItemsSource="{Binding EditableSong.Tags}" Wrap="Wrap">
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedSong.UserNote}" Wrap="Wrap">
                                         <!-- Similar to display, but with a delete button -->
                                     </FlexLayout>
                                     <HorizontalStackLayout>
-                                        <Entry Placeholder="Add a new tag..." Text="{Binding NewTagText}" HorizontalOptions="FillAndExpand"/>
-                                        <Button Text="Add" Command="{Binding AddTagCommand}"/>
+                                        <Entry Placeholder="Add a new tag..." Text="{Binding CurrentNoteToSave}" HorizontalOptions="Fill"/>
+                                        <Button Text="Add" Command="{Binding SaveNotToSong}"/>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Grid>
@@ -185,12 +202,31 @@
                         <VerticalStackLayout Grid.Row="0" Padding="15">
                             <Label Text="Find Lyrics Online" Style="{StaticResource SectionHeader}"/>
                             <HorizontalStackLayout>
-                                <Entry Placeholder="Search by title, artist..." Text="{Binding LyricsSearchQuery}" HorizontalOptions="FillAndExpand"/>
+                                <Entry Placeholder="Search by title, artist..." Text="{Binding LyricsSearchQuery}" HorizontalOptions="Fill"/>
                                 <Button Text="Search" Command="{Binding SearchLyricsCommand}"/>
                             </HorizontalStackLayout>
                             <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"/>
                             <CollectionView ItemsSource="{Binding LyricsSearchResults}" EmptyView="No results found.">
-                                <!-- Your existing ItemTemplate for LrcLibSearchResult goes here -->
+                                <CollectionView.ItemsLayout>
+                                    <GridItemsLayout Span="3"
+                                     Orientation="Vertical"                HorizontalItemSpacing="10"
+                                                     VerticalItemSpacing="10"
+                                                     />
+                                </CollectionView.ItemsLayout>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:LrcLibSearchResult">
+                                        <Border>
+                                            <VerticalStackLayout>
+                                                <Label Text="{Binding Name}"/>
+                                                <Label Text="{Binding ArtistName}"/>
+                                                <Label Text="{Binding Duration,Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                                                <Label Text="{Binding Instrumental,StringFormat='Is Instrumental: {0}'}"/>
+                                                <Label Text="{Binding SyncedLyrics}"/>
+                                                <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
                             </CollectionView>
                         </VerticalStackLayout>
 

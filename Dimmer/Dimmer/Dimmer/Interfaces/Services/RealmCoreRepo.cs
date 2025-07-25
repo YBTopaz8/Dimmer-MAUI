@@ -265,4 +265,99 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         var realm = _factory.GetRealmInstance();
         return realm.All<T>().AsObservableChangeSet();
     }
+
+    /// <summary>
+    /// Updates multiple objects in a single, efficient transaction.
+    /// </summary>
+    /// <param name="ids">An enumerable of ObjectIds to identify the objects to update.</param>
+    /// <param name="updateAction">The action to perform on each found object within the transaction.</param>
+    public void UpdateMany(IEnumerable<ObjectId> ids, Action<T> updateAction)
+    {
+        // We use ExecuteWrite to ensure the entire batch runs in one transaction
+        // on a single, isolated Realm instance. This is both performant and thread-safe.
+        ExecuteWrite(realm =>
+        {
+            foreach (var id in ids)
+            {
+                var liveEntity = realm.Find<T>(id);
+                if (liveEntity != null)
+                {
+                    // The updateAction is invoked on the 'live' object
+                    // that belongs to this specific transaction's Realm instance.
+                    updateAction(liveEntity);
+                }
+            }
+            Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] Attempted to update {ids.Count()} entities.");
+        });
+    }
+
+    /// <summary>
+    /// Finds all objects matching a native RQL query string. This is the most flexible
+    /// and reliable way to query Realm.
+    /// </summary>
+    /// <param name="rqlQuery">The RQL filter string (e.g., "ArtistName == $0 AND ReleaseYear > $1").</param>
+    /// <param name="args">The arguments to substitute for the $0, $1, etc. placeholders.</param>
+    /// <returns>A thread-safe, frozen list of matching objects.</returns>
+    public List<T> QueryWithRQL(string rqlQuery, params Realms.QueryArgument[] args)
+    {
+        return ExecuteRead(realm =>
+        {
+            var results = realm.All<T>().Filter(rqlQuery, args).ToList();
+            return results.Select(o => o.Freeze()).ToList();
+        });
+    }
+
+    /// <summary>
+    /// Finds the first object matching a native RQL query. Guaranteed to be supported by Realm.
+    /// </summary>
+    /// <param name="rqlQuery">The RQL filter string.</param>
+    /// <param name="args">The arguments for the query.</param>
+    /// <returns>A frozen, thread-safe copy of the first matching object, or null if not found.</returns>
+    public T? FirstOrDefaultWithRQL(string rqlQuery, params Realms.QueryArgument[] args)
+    {
+        return ExecuteRead(realm =>
+        {
+            // .Filter() returns an IQueryable, so we still use LINQ's FirstOrDefault() here,
+            // but the core filtering has already been done by the more reliable RQL engine.
+            var obj = realm.All<T>().Filter(rqlQuery, args).FirstOrDefault();
+            return obj?.Freeze();
+        });
+    }
+
+    /// <summary>
+    /// Checks for the existence of any object matching a native RQL query.
+    /// </summary>
+    /// <param name="rqlQuery">The RQL filter string.</param>
+    /// <param name="args">The arguments for the query.</param>
+    /// <returns>True if at least one matching object exists, otherwise false.</returns>
+    public bool ExistsWithRQL(string rqlQuery, params Realms.QueryArgument[] args)
+    {
+        return ExecuteRead(realm =>
+        {
+            return realm.All<T>().Filter(rqlQuery, args).Any();
+        });
+    }
+
+    /// <summary>
+    /// A convenient "power method" to find an object by your business key (Title and Duration)
+    /// using a pre-built, reliable RQL query.
+    /// </summary>
+    /// <param name="title">The title of the song.</param>
+    /// <param name="duration">The duration of the song in seconds.</param>
+    /// <returns>A frozen, thread-safe copy of the matching song, or null.</returns>
+    public T? FindByTitleAndDuration(string title, double duration)
+    {
+        // This assumes your T is a SongModel. This might be better in a specific SongRepository.
+        // For a generic repo, this is an example of a more specialized query.
+        if (typeof(T) != typeof(SongModel))
+        {
+            throw new NotSupportedException("FindByTitleAndDuration is only supported for SongModel.");
+        }
+
+        string key = $"{title.ToLowerInvariant().Trim()}|{duration}";
+        string rql = "TitleDurationKey == $0";
+
+        return FirstOrDefaultWithRQL(rql, key);
+    }
+
 }

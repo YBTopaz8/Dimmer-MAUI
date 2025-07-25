@@ -637,4 +637,14 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private void Button_Clicked_2(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFilter_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddFilterCommand.Execute(null);
+    }
 }

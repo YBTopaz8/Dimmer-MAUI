@@ -96,6 +96,7 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// The device version.
     /// </value>
     public string? DeviceVersion { get; set; }
+    public ArtistModel? Artist{ get; set; }
     /// <summary>
     /// Gets or sets the local device identifier.
     /// </summary>

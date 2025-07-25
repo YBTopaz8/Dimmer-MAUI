@@ -135,6 +135,7 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.UserNotes, opt => opt.Ignore())    // Must ignore Realm relationships
                     .ForMember(dest => dest.ArtistIds, opt => opt.Ignore())   // This is likely managed separately
                     .ForMember(dest => dest.Tags, opt => opt.Ignore())   // This is likely managed separately
+                    .ForMember(dest => dest.Artist, opt => opt.Ignore())   // This is likely managed separately
                     .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
 
                 cfg.CreateMap<ArtistModelView, ArtistModel>()

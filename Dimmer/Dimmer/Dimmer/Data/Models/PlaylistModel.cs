@@ -11,6 +11,10 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// A flag to determine if the playlist is dynamic (query-based) or a manual collection of songs.
     /// </summary>
     public bool IsSmartPlaylist { get; set; }
+    /// <summary>
+    /// A running history of every time this playlist was initiated for playback.
+    /// </summary>
+    public IList<PlaylistEvent> PlayHistory { get; } = null!;
 
     /// <summary>
     /// For Smart Playlists (IsSmartPlaylist = true).
@@ -35,7 +39,10 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     public string? CurrentSongId { get; set; }
 
     public string? CoverImagePath { get; set; }
-
+    /// <summary>
+    /// The last time this playlist was played. This allows for sorting by "recently played".
+    /// </summary>
+    public DateTimeOffset LastPlayedDate { get; set; }
     /// <summary>
     /// The user who created this playlist.
     /// </summary>
@@ -51,7 +58,7 @@ public partial class PlaylistEvent : EmbeddedObject
     public int PlayTypeValue { get; set; }
 
     // This property is for your code; Realm will ignore it.
-
+  
     public PlayType PlayType
     {
         get => (PlayType)PlayTypeValue;
@@ -59,6 +66,5 @@ public partial class PlaylistEvent : EmbeddedObject
     }
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? EventSongId { get; set; }
-
-
+   
 }

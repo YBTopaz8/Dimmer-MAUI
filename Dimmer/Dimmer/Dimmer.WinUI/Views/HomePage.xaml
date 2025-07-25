@@ -8,9 +8,11 @@
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
@@ -487,13 +489,15 @@
                                 Text="Advanced Search (TQL)"
                                 ToolTipProperties.Text="Start a Topaz Query using TQL" />
                             <Label FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query : {0}'}" />
+                            <VerticalStackLayout>
+
                            
-                        </VerticalStackLayout>
-                        <Grid
+                            </VerticalStackLayout>
+                            <Grid
                             Padding="5"
                             ColumnDefinitions="*,auto"
                             ColumnSpacing="5">
-                            <Editor
+                                <Editor
                                 x:Name="SearchSongSB"
                                 windows:SearchBar.IsSpellCheckEnabled="True"
                                 windows:VisualElement.AccessKey="F"
@@ -506,49 +510,49 @@
                                                                    Light=Black}"
                                 TextChanged="SearchSongSB_TextChanged"
                                 Unfocused="SearchSongSB_Unfocused" />
-                            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                                <HorizontalStackLayout Grid.Column="1" Spacing="10">
 
-                                <Button
+                                    <Button
                                     Command="{Binding RandomizeCommand}"
                                     Text="Randomize"
                                     WidthRequest="100" />
-                                <Button Clicked="Button_Clicked_1" Text="Reset" />
-                            </HorizontalStackLayout>
-                        </Grid>
+                                    <Button Clicked="Button_Clicked_1" Text="Reset" />
+                                </HorizontalStackLayout>
+                            </Grid>
 
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
 
-                    <VerticalStackLayout
+                        <VerticalStackLayout
                         x:Name="LyricsSection"
                         Grid.Row="4"
                         HorizontalOptions="Center"
                         IsVisible="False">
-                        <VerticalStackLayout.Triggers>
+                            <VerticalStackLayout.Triggers>
 
-                            <DataTrigger
+                                <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                 TargetType="VerticalStackLayout"
                                 Value="true">
-                                <Setter Property="IsVisible" Value="True" />
-                            </DataTrigger>
+                                    <Setter Property="IsVisible" Value="True" />
+                                </DataTrigger>
 
-                            <DataTrigger
+                                <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                 TargetType="VerticalStackLayout"
                                 Value="false">
-                                <Setter Property="IsVisible" Value="False" />
-                            </DataTrigger>
-                        </VerticalStackLayout.Triggers>
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </VerticalStackLayout.Triggers>
 
-                        <Label
+                            <Label
                             FontSize="18"
                             HorizontalTextAlignment="Center"
                             Opacity="0.7"
                             Text="{Binding PreviousLine.Text}" />
-                        <Grid 
+                            <Grid 
                             HorizontalOptions="Center">
-                            <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
-                            <Label
+                                <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
+                                <Label
                                 Margin="10"
                                 FontAttributes="Bold"
                                 FontSize="38"
@@ -556,14 +560,15 @@
                                 Opacity="1"
                                 Text="{Binding CurrentLine.Text}"
                                 TextColor="DarkSlateBlue">
-                                <Label.Triggers />
-                            </Label>
-                        </Grid>
-                        <Label
+                                    <Label.Triggers />
+                                </Label>
+                            </Grid>
+                            <Label
                             FontSize="20"
                             HorizontalTextAlignment="Center"
                             Opacity="0.7"
                             Text="{Binding NextLine.Text}" />
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Grid>
 

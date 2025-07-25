@@ -32,7 +32,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial GenreModelView Genre { get; set; } = new();
     [ObservableProperty]
-    public partial string? GenreName { get; set; } 
+    public partial string GenreName { get; set; } = string.Empty; 
     [ObservableProperty]
     public partial string FilePath { get; set; } 
     [ObservableProperty]
@@ -123,7 +123,7 @@ public partial class SongModelView : ObservableObject
 
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView>? UserNote { get; set; }
+    public partial ObservableCollection<UserNoteModelView>? UserNote { get; set; } = new();
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
