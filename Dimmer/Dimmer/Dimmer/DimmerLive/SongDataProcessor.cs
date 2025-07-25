@@ -1,5 +1,4 @@
 ﻿using ATL;
-using ATL;
 
 using Dimmer.Interfaces.Services.Interfaces;
 
@@ -11,7 +10,6 @@ using System;
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Concurrent; // For BlockingCollection
 using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Diagnostics;

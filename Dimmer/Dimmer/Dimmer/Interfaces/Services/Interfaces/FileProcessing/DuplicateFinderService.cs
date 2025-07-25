@@ -156,4 +156,109 @@ public class DuplicateFinderService : IDuplicateFinderService
         });
         _logger.LogInformation("Permanently removed {Count} song entries from the database.", songIds.Count());
     }
+
+    public async Task<LibraryReconciliationResult> ReconcileLibraryAsync(IEnumerable<SongModelView> allSongs)
+    {
+        var allSongsList = allSongs.ToList();
+        _logger.LogInformation("Starting library reconciliation for {Count} songs.", allSongsList.Count);
+
+        var migratedDetails = new List<MigrationDetail>();
+        var unresolvedMissing = new List<SongModelView>();
+
+        // --- Step 1: Partition songs into 'existing' and 'potential ghosts' ---
+        var existingSongs = new List<SongModelView>();
+        var potentialGhosts = new List<SongModelView>();
+        foreach (var song in allSongsList)
+        {
+            if (!string.IsNullOrEmpty(song.FilePath) && File.Exists(song.FilePath))
+            {
+                existingSongs.Add(song);
+            }
+            else
+            {
+                potentialGhosts.Add(song);
+            }
+        }
+
+        if (!potentialGhosts.Any())
+        {
+            _logger.LogInformation("Reconciliation complete. No missing files found.");
+            return new LibraryReconciliationResult { ScannedCount = allSongsList.Count };
+        }
+
+        // --- Step 2: Create a high-speed lookup dictionary of existing songs ---
+        // The key is the song's identity (Title|Duration). This is crucial for performance.
+        var existingSongsLookup = existingSongs
+            .ToDictionary(s => $"{s.Title.Trim()}|{s.DurationInSeconds}", s => s);
+
+        using var realm = _realmFactory.GetRealmInstance();
+
+        // --- Step 3: Process the ghosts and try to find them a new home ---
+        foreach (var ghostSong in potentialGhosts)
+        {
+            var songIdentityKey = $"{ghostSong.Title.Trim()}|{ghostSong.DurationInSeconds}";
+
+            // Look for an existing song with the same identity.
+            if (existingSongsLookup.TryGetValue(songIdentityKey, out var replacementSong))
+            {
+                // MATCH FOUND! Perform the data migration.
+                await realm.WriteAsync(() =>
+                {
+                    var ghostRealmObj = realm.Find<SongModel>(ghostSong.Id);
+                    var replacementRealmObj = realm.Find<SongModel>(replacementSong.Id);
+
+                    if (ghostRealmObj == null || replacementRealmObj == null)
+                        return;
+
+                    _logger.LogTrace("Migrating data from '{Path}' to '{NewPath}'", ghostRealmObj.FilePath, replacementRealmObj.FilePath);
+
+                    // Migrate play history, user notes, tags, etc.
+                    foreach (var playEvent in ghostRealmObj.PlayHistory)
+                    {
+                        replacementRealmObj.PlayHistory.Add(playEvent);
+                    }
+                    foreach (var note in ghostRealmObj.UserNotes)
+                    {
+                        replacementRealmObj.UserNotes.Add(note);
+                    }
+                    // You can add more migration logic here (tags, ratings, etc.)
+
+                    // CRITICAL: After migrating, remove the old ghost entry.
+                    realm.Remove(ghostRealmObj);
+                });
+
+                // Update the ViewModel object with the new data to send back to the UI
+                var updatedReplacementView = _mapper.Map<SongModelView>(realm.Find<SongModel>(replacementSong.Id));
+                migratedDetails.Add(new MigrationDetail(ghostSong, updatedReplacementView));
+            }
+            else
+            {
+                // NO MATCH FOUND. This is a true ghost.
+                unresolvedMissing.Add(ghostSong);
+            }
+        }
+
+        // --- Step 4: If any true ghosts remain, remove them from the DB ---
+        if (unresolvedMissing.Any())
+        {
+            await realm.WriteAsync(() =>
+            {
+                foreach (var song in unresolvedMissing)
+                {
+                    var songInDb = realm.Find<SongModel>(song.Id);
+                    if (songInDb != null)
+                        realm.Remove(songInDb);
+                }
+            });
+        }
+
+        _logger.LogInformation("Reconciliation complete. Migrated: {MigratedCount}, Unresolved: {UnresolvedCount}", migratedDetails.Count, unresolvedMissing.Count);
+
+        return new LibraryReconciliationResult
+        {
+            ScannedCount = allSongsList.Count,
+            MigratedSongs = migratedDetails,
+            UnresolvedMissingSongs = unresolvedMissing
+        };
+    }
 }

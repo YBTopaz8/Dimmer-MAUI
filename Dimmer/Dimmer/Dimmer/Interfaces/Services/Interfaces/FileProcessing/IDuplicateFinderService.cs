@@ -18,4 +18,10 @@ public interface IDuplicateFinderService
     /// </summary>
     Task<int> ResolveDuplicatesAsync(IEnumerable<DuplicateItemViewModel> itemsToDelete);
     Task<LibraryValidationResult> ValidateFilePresenceAsync(IList<SongModelView>? allSongs);
+
+    /// <summary>
+    /// Intelligently validates the library. Finds missing files and attempts
+    /// to migrate their data to existing files with the same identity.
+    /// </summary>
+    Task<LibraryReconciliationResult> ReconcileLibraryAsync(IEnumerable<SongModelView> allSongs);
 }

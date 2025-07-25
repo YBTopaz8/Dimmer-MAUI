@@ -105,6 +105,11 @@
                                         BorderColor="DarkSlateBlue"
                                         Command="{Binding RescanSongsCommand}"
                                         Text="Rescan folders" />
+                                <Button
+                                        x:Name="Reconcile"
+                                        BorderColor="DarkSlateBlue"
+                                        Command="{Binding ReconcileLibraryCommand}"
+                                        Text="Reconcile Songs" />
                                     <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
         Clicked="FindDupes_Clicked"
                                             BackgroundColor="SlateBlue"/>

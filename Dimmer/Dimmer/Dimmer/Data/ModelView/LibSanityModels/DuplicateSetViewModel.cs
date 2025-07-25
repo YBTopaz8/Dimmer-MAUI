@@ -46,3 +46,32 @@ public class LibraryValidationResult
     /// </summary>
     public int MissingCount => MissingSongs.Count;
 }
+
+/// <summary>
+/// Represents the outcome of reconciling the library database with the file system.
+/// </summary>
+public class LibraryReconciliationResult
+{
+    /// <summary>
+    /// A record of songs whose data was successfully migrated from an old,
+    /// missing file path to a new, existing one.
+    /// </summary>
+    public List<MigrationDetail> MigratedSongs { get; init; } = new();
+
+    /// <summary>
+    /// A list of songs that were missing and for which NO suitable replacement
+    /// file could be found. These are true "ghost" entries.
+    /// </summary>
+    public List<SongModelView> UnresolvedMissingSongs { get; init; } = new();
+
+    public int ScannedCount { get; init; }
+    public int MigratedCount => MigratedSongs.Count;
+    public int UnresolvedCount => UnresolvedMissingSongs.Count;
+}
+
+/// <summary>
+/// A small record to hold the details of a single data migration.
+/// </summary>
+/// <param name="From">The old song entry whose file is missing.</param>
+/// <param name="To">The new song entry that received the old data.</param>
+public record MigrationDetail(SongModelView From, SongModelView To);

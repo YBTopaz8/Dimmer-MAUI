@@ -1439,8 +1439,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (songToPlay == null)
         {
+            audioService.Stop();
             _logger.LogError("Could not find song ID {SongId} in search results. Trying next.", nextSong.Id);
            await NextTrack();
+            return;
+        }
+
+        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
+          
             return;
         }
 
@@ -2683,6 +2691,190 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         finally
         {
             IsCheckingFilePresence = false;
+        }
+    }
+
+
+
+
+
+
+    [ObservableProperty]
+    public partial string LyricsSearchQuery { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLyricsSearchResults))]
+    public partial ObservableCollection<LrcLibSearchResult> LyricsSearchResults { get; set; } = new();
+
+    public bool HasLyricsSearchResults => LyricsSearchResults.Any();
+
+    [ObservableProperty]
+    public partial bool IsLyricsSearchBusy {get; set;}
+
+    [ObservableProperty]
+    public partial bool IsReconcilingLibrary { get; set;}
+
+
+    [RelayCommand]
+    private async Task SearchLyricsAsync()
+    {
+        if (SelectedSong == null)
+            return;
+
+        IsLyricsSearchBusy = true;
+        LyricsSearchResults.Clear(); // Clear old results
+
+        try
+        {
+
+            ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
+            // Use the manual search from the service. Use the query if provided, otherwise the song's tags.
+            string query = string.IsNullOrWhiteSpace(LyricsSearchQuery) ? SelectedSong.Title : LyricsSearchQuery;
+            var results = await _lyricsMetadataService.SearchOnlineManualParamsAsync(query, SelectedSong.ArtistName, SelectedSong.AlbumName);
+
+            foreach (var result in results)
+            {
+                LyricsSearchResults.Add(result);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to search for lyrics online.");
+            // Optionally show a user-facing error message
+
+            await Shell.Current.DisplayAlert("Error", "Failed to search for lyrics. Please try again later.", "OK");
+        }
+        finally
+        {
+            IsLyricsSearchBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SelectLyricsAsync(LrcLibSearchResult? selectedResult)
+    {
+        if (SelectedSong == null || selectedResult == null || string.IsNullOrWhiteSpace(selectedResult.SyncedLyrics))
+        {
+            return;
+        }
+
+        try
+        {
+            // Step 1: Tell the real-time flow to use these lyrics NOW.
+            _lyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
+
+            // Step 2: Tell the metadata service to SAVE these lyrics for the future.
+            // The service needs a LyricsInfo object, so we create one.
+            var lyricsInfo = new LyricsInfo();
+            lyricsInfo.Parse(selectedResult.SyncedLyrics);
+            var _lyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+
+            await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong, selectedResult.SyncedLyrics, lyricsInfo);
+
+            // Step 3: Update the local ViewModel state so the UI reacts instantly.
+            SelectedSong.SyncLyrics = selectedResult.SyncedLyrics;
+            SelectedSong.HasLyrics = true;
+            SelectedSong.HasSyncedLyrics = true;
+
+            // Step 4: Clean up the UI
+            LyricsSearchResults.Clear(); // Hide the search results
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to select and save lyrics.");
+        }
+    }
+
+    [RelayCommand]
+    private async Task UnlinkLyricsAsync()
+    {
+        if (SelectedSong == null)
+            return;
+
+        // Optional: Add a confirmation dialog here!
+
+        bool confirm = await Shell.Current.DisplayAlert(
+            "Unlink Lyrics",
+            "Are you sure you want to unlink the lyrics from this song? This will remove all synced lyrics.",
+            "Yes, Unlink",
+            "Cancel"
+        );
+
+        if (!confirm)
+            return; // User cancelled the unlinking
+
+        var _lyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+
+        // Clear the lyrics from the song object
+        var emptyLyricsInfo = new LyricsInfo(); // An empty object to clear data
+        await  _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong, string.Empty, emptyLyricsInfo);
+
+        // Update the local ViewModel state
+        SelectedSong.SyncLyrics = string.Empty;
+        SelectedSong.UnSyncLyrics = string.Empty;
+        SelectedSong.HasLyrics = false;
+        SelectedSong.HasSyncedLyrics = false;
+
+        // Tell the flow to clear its current state
+        _lyricsMgtFlow.LoadLyrics(string.Empty);
+    }
+
+    [RelayCommand]
+    private async Task ReconcileLibraryAsync()
+    {
+        if (IsReconcilingLibrary)
+            return;
+
+        IsReconcilingLibrary = true;
+        _logger.LogInformation("Starting library reconciliation...");
+        // Show a status message to the user
+
+        try
+        {
+            // 1. Run the service on a background thread. Pass the current UI song list.
+            var result = await Task.Run(() => _duplicateFinderService.ReconcileLibraryAsync(_songSource.Items.ToList()));
+
+            if (result.MigratedCount == 0 && result.UnresolvedCount == 0)
+            {
+                _logger.LogInformation("Reconciliation complete. Library is already in a perfect state.");
+                return;
+            }
+
+            // 2. Prepare the changeset for the UI update.
+            // We need a list of all items to remove from the source list.
+            var songsToRemove = new List<SongModelView>();
+
+            // Add all the truly missing songs.
+            songsToRemove.AddRange(result.UnresolvedMissingSongs);
+
+            // Add the OLD version of the migrated songs.
+            songsToRemove.AddRange(result.MigratedSongs.Select(m => m.From));
+
+            // We also need to remove the UN-UPDATED version of the replacement songs,
+            // because we will add the UPDATED version back in.
+            songsToRemove.AddRange(result.MigratedSongs.Select(m => m.To));
+
+            // This is the list of songs with fresh, migrated data to add back.
+            var songsToAdd = result.MigratedSongs.Select(m => m.To).ToList();
+
+            // 3. Use Dynamic Data's .Edit() for a single, high-performance UI update.
+            _songSource.Edit(updater =>
+            {
+                updater.Remove(songsToRemove);
+                updater.AddRange(songsToAdd); // Add the updated versions back.
+            });
+
+            // Show a final "Cleanup complete" message to the user
+            _logger.LogInformation("UI updated. Removed {RemoveCount} entries, added back {AddCount} updated entries.", songsToRemove.Count, songsToAdd.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred during library reconciliation.");
+            // Show an error message to the user
+        }
+        finally
+        {
+            IsReconcilingLibrary = false;
         }
     }
 }
