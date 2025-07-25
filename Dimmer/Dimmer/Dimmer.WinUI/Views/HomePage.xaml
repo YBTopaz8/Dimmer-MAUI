@@ -482,7 +482,7 @@
                         Grid.Row="3"
                         BackgroundColor="Transparent"
                         Spacing="10">
-                        <VerticalStackLayout x:Name="AdvSearch" HorizontalOptions="Center">
+                        <VerticalStackLayout x:Name="AdvSearch" >
                             <Label x:Name="TranslatedSearch" IsVisible="True" />
                             <syncf:SfChip
                                 IsVisible="False"

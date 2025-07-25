@@ -123,12 +123,15 @@
                 <Label Text="File Properties" Style="{StaticResource SectionHeader}"/>
                 <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
                     <Label Grid.Row="0" Grid.Column="0" Text="Path:" Style="{StaticResource FieldLabel}"/>
-                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.FilePath}" LineBreakMode="TailTruncation"/>
 
-                    <Label Grid.Row="1" Grid.Column="0" Text="Size:" Style="{StaticResource FieldLabel}"/>
+                    <syncf:SfEffectsView Grid.Row="0" Grid.Column="1" x:Name="ViewFileFolder"
+                                         TouchDown="ViewFileFolder_TouchDown">
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.FilePath}" LineBreakMode="TailTruncation"/>
+                    </syncf:SfEffectsView>
+                    <Label Grid.Row="1" Grid.Column="0" Text="Size:" Style="{StaticResource SectionHeader}"/>
                     <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
 
-                    <Label Grid.Row="2" Grid.Column="0" Text="Format:" Style="{StaticResource FieldLabel}"/>
+                    <Label Grid.Row="2" Grid.Column="0" Text="Format:" Style="{StaticResource SectionHeader}"/>
                     <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.FileFormat, StringFormat='{0}, {1} kbps'}">
                         <!--<Label.BindingContext>
                             <MultiBinding>
@@ -161,14 +164,14 @@
                                 <Entry Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.Title}"/>
 
                                 <Label Grid.Row="1" Grid.Column="0" Text="Artist(s)" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.ArtistName}" Placeholder="e.g. Artist A, Artist B"/>
+                                <Entry Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.OtherArtistsName}" Placeholder="e.g. Artist A, Artist B"/>
 
                                 <Label Grid.Row="2" Grid.Column="0" Text="Album" Style="{StaticResource FieldLabel}"/>
                                 <Entry Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.AlbumName}"/>
 
 
                                 <Label Grid.Row="4" Grid.Column="0" Text="Genre" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding SelectedSong.GenreName}"/>
+                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding SelectedSong.Genre.Name}"/>
 
                                 <Label Grid.Row="5" Grid.Column="0" Text="Year" Style="{StaticResource FieldLabel}"/>
                                 <Entry Grid.Row="5" Grid.Column="1" Text="{Binding SelectedSong.ReleaseYear}" Keyboard="Numeric"/>

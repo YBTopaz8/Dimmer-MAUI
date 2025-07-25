@@ -187,6 +187,24 @@ public partial class SongModelView : ObservableObject
     {
         return HashCode.Combine(Id);
     }
+
+    [Indexed]
+    [ObservableProperty]
+    public partial int SongTypeValue { get; set; } = (int)SongType.Track;
+
+    public SongType SongType { get => (SongType)SongTypeValue; set => SongTypeValue = (int)value; }
+
+    [ObservableProperty]
+    public partial ObjectId? ParentSongId { get; set; }
+    [ObservableProperty]
+    public partial double? SegmentStartTime { get; set; }
+    [ObservableProperty]
+    public partial double? SegmentEndTime { get; set; }
+    [ObservableProperty]
+    public partial int SegmentEndBehaviorValue { get; set; } = (int)SegmentEndBehavior.Stop;
+
+    public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
+
 }
 
 public partial class UserNoteModelView : ObservableObject
@@ -204,7 +222,7 @@ public partial class UserNoteModelView : ObservableObject
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
 }
-public partial class SyncLyricsView:ObservableObject
+public partial class SyncLyricsView : ObservableObject
 {
     public int TimestampMs { get; set; }
     public string? Text { get; set; }
@@ -252,20 +270,7 @@ public partial class SyncLyricsView:ObservableObject
         TimestampMs = syncLyricsDB.TimestampMs;
 
     }
-    [ObservableProperty]
-    public partial int SongTypeValue { get; set; } = (int)SongType.Track;
-  
-    public  SongType SongType { get => (SongType)SongTypeValue; set => SongTypeValue = (int)value; }
-    [ObservableProperty]
-    public partial ObjectId? ParentSongId { get; set; }
-    [ObservableProperty]
-    public partial double? SegmentStartTime { get; set; }
-    [ObservableProperty]
-    public partial double? SegmentEndTime { get; set; }
-    [ObservableProperty]
-    public partial int SegmentEndBehaviorValue { get; set; } = (int)SegmentEndBehavior.Stop;
-  
-    public  SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
+
 }
 public enum SongType { Track, Segment }
 public enum SegmentEndBehavior { Stop, LoopSegment, PlayThrough }

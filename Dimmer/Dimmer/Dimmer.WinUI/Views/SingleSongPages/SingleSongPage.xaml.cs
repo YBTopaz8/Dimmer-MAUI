@@ -62,4 +62,14 @@ public partial class SingleSongPage : ContentPage
         Debug.WriteLine(ee);
         Debug.WriteLine(old);
     }
+
+        private void ViewFileFolder_TouchDown(object sender, EventArgs e)
+        {
+            var song = MyViewModel.SelectedSong;
+            if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
+            {
+                string argument = "/select, \"" + song.FilePath + "\"";
+                System.Diagnostics.Process.Start("explorer.exe", argument);
+            }
+        }
 }
