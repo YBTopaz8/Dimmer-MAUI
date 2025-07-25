@@ -1064,8 +1064,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
         // Trigger the new, evolved cover art loading process
 
-        CurrentCoverImagePath= song.CoverImagePath ?? string.Empty;
-        //await LoadAndCacheCoverArtAsync(song);
+      _=  LoadAndCacheCoverArtAsync(song);
     }
 
 
@@ -1120,26 +1119,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         // Don't start the process if the image is already loaded in the UI object.
         if (song.CoverImageBytes != null && song.CoverImageBytes.Length>1 || !string.IsNullOrEmpty(song.CoverImagePath))
+        {
+            CurrentCoverImagePath= song.CoverImagePath;
             return;
-
-            // --- Stage 1: Check for an existing path in our data model ---
-            if (!string.IsNullOrEmpty(song.CoverImagePath) && File.Exists(song.CoverImagePath))
-            {
-                try
-                {
-                    var imageBytes = await File.ReadAllBytesAsync(song.CoverImagePath);
-                MainThread.BeginInvokeOnMainThread(() => song.CoverImageBytes = imageBytes);
-                // No DB update needed, the path was already correct.
-                _logger.LogTrace("Loaded cover art from existing path: {CoverImagePath}", song.CoverImagePath);
-                    return; // We're done!
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to load cover art from existing path {CoverImagePath}", song.CoverImagePath);
-                    // The path might be invalid, so we continue to the next stage.
-                }
-            }
-
+        }
+            
             // --- Stage 2: Extract picture info from the audio file using ATL ---
             PictureInfo? embeddedPicture = null;
             try
@@ -1161,7 +1145,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // This will either return an existing cached path or save the new one.
             string? finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.FilePath, embeddedPicture);
 
-            if (finalImagePath == null)
+        if (finalImagePath == null)
             {
                 _logger.LogTrace("No cover art found or could be saved for {FilePath}", song.FilePath);
                 return; // No cover art available.
@@ -1169,9 +1153,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             // --- Stage 4: Update the UI and the Database ---
             try
-            {
-                // Load the image bytes for the UI
-                song.CoverImageBytes = await File.ReadAllBytesAsync(finalImagePath);
+        {
+            CurrentCoverImagePath= finalImagePath;
+            // Load the image bytes for the UI
+            song.CoverImageBytes = await File.ReadAllBytesAsync(finalImagePath);
                 _logger.LogTrace("Loaded cover art from new/cached path: {ImagePath}", finalImagePath);
 
                 // If the path is new, update our song model and save it to the database.

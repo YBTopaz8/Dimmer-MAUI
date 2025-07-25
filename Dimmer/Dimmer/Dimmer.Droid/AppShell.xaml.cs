@@ -126,4 +126,13 @@ public partial class AppShell : Shell
 
         await MyViewModel.BaseVM.LoginToLastfm();
     }
+    private void FindDuplicatesBtn_Clicked(object sender, EventArgs e)
+    {
+        this.NavTab.SelectedIndex = NavTab.Items.Count - 1;
+    }
+
+    private void FindDupes_Clicked(object sender, EventArgs e)
+    {
+        this.NavTab.SelectedIndex = NavTab.Items.Count - 1;
+    }
 }
