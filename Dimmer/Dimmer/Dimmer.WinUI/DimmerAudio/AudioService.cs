@@ -379,6 +379,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             }
         }
     }
+
+
+    private IDisposable? _positionSubscription;
+    private void HandleSegmentEnd()
+    {
+        if (_currentSong == null)
+            return;
+        _positionSubscription?.Dispose();
+
+        
+    }
+
     /// <summary>
     /// Starts or resumes playback.
     /// </summary>

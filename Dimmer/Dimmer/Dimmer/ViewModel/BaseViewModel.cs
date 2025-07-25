@@ -3346,4 +3346,52 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             ActiveFilters.Remove(filterToRemove);
         }
     }
+
+    [ObservableProperty] public partial bool IsCreatingSegment { get; set; }
+    [ObservableProperty] public partial double NewSegmentStart {get;set;}
+    [ObservableProperty] public partial double NewSegmentEnd {get;set;}
+    [ObservableProperty] public partial string? NewSegmentName {get;set;}
+
+    [RelayCommand]
+    private void BeginCreateSegment()
+    {
+        if (CurrentPlayingSongView == null)
+            return;
+        NewSegmentStart = CurrentTrackPositionSeconds;
+        NewSegmentEnd = NewSegmentStart + 30;
+        NewSegmentName = $"{CurrentPlayingSongView.Title} (Clip)";
+        IsCreatingSegment = true;
+    }
+
+    [RelayCommand] private void SetSegmentStartFromCurrent() => NewSegmentStart = CurrentTrackPositionSeconds;
+    [RelayCommand] private void SetSegmentEndFromCurrent() => NewSegmentEnd = CurrentTrackPositionSeconds;
+    [RelayCommand] private void CancelCreateSegment() => IsCreatingSegment = false;
+
+    [RelayCommand]
+    private void SaveNewSegment()
+    {
+        if (CurrentPlayingSongView == null || string.IsNullOrWhiteSpace(NewSegmentName))
+            return;
+
+        var segmentModel = new SongModel
+        {
+            Id = ObjectId.GenerateNewId(),
+            SongType = SongType.Segment,
+            Title = NewSegmentName,
+            ParentSongId = CurrentPlayingSongView.Id,
+            FilePath = CurrentPlayingSongView.FilePath,
+            ArtistName = CurrentPlayingSongView.ArtistName,
+            AlbumName = CurrentPlayingSongView.AlbumName,
+            SegmentStartTime = NewSegmentStart,
+            SegmentEndTime = NewSegmentEnd,
+            SegmentEndBehavior = SegmentEndBehavior.LoopSegment, // Default to loop
+            DurationInSeconds = NewSegmentEnd - NewSegmentStart,
+        };
+
+        var createdSegmentModel = songRepo.Create(segmentModel);
+        var createdSegmentView = _mapper.Map<SongModelView>(createdSegmentModel);
+
+        _songSource.Add(createdSegmentView);
+        IsCreatingSegment = false;
+    }
 }

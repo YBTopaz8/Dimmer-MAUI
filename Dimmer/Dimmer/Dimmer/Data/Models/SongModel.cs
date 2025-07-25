@@ -109,6 +109,20 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     {
 
     }
+
+    [Indexed]
+    public int SongTypeValue { get; set; } = (int)SongType.Track;
+
+    [Ignored]
+    public SongType SongType { get => (SongType)SongTypeValue; set => SongTypeValue = (int)value; }
+
+    public ObjectId? ParentSongId { get; set; }
+    public double? SegmentStartTime { get; set; }
+    public double? SegmentEndTime { get; set; }
+    public int SegmentEndBehaviorValue { get; set; } = (int)SegmentEndBehavior.Stop;
+
+    [Ignored]
+    public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
 }
 public partial class SyncLyrics : EmbeddedObject
 {
