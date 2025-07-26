@@ -55,3 +55,4 @@ obj (2)/
 /Dimmer/Dimmer.Tests/Dimmer.Tests.csproj
 /Dimmer/Dimmer.Tests
 /Dimmer/Dimmer/atldotnet-main
+/Dimmer/Dimmer/Dimmer/DimmerLive/Orchestration/ApiKeys.cs
