@@ -1,4 +1,7 @@
-﻿using System.Drawing.Imaging;
+﻿using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
+
+using System.Drawing.Imaging;
 
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
@@ -257,4 +260,20 @@ public static class PlatUtils
     }
 
 
+
+    public static void ShowNewSongNotification(string songTitle, string artistName, string albumArtPath)
+    {
+        var notificationBuilder = new AppNotificationBuilder()
+            .AddArgument("action", "viewSong")
+            .AddArgument("songId", "12345")
+            .SetAppLogoOverride(new Uri(albumArtPath), AppNotificationImageCrop.Circle)
+            .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(1))
+            .AddText(artistName)
+            .AddButton(new AppNotificationButton("Play Now")
+                .AddArgument("action", "play"))
+            .AddButton(new AppNotificationButton("Queue")
+                .AddArgument("action", "queue"));
+
+        AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+    }
 }

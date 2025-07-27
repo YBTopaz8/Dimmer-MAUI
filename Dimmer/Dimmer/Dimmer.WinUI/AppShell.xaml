@@ -241,6 +241,15 @@
             x:Name="BottomLeft"
             Grid.Row="1"
             Margin="0,10">
+
+
+            <syncf:SfChip 
+                Clicked="OpenDimmerLiveSettingsChip_Clicked"
+                x:Name="OpenDimmerLive"
+                Text="Open Dimmer Live"
+                />
+
+
             <syncf:SfChip
                 x:Name="SettingsChip"
                 Clicked="SettingsChip_Clicked"

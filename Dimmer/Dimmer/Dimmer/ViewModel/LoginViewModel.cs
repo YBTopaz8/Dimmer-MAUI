@@ -16,8 +16,7 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
-    [ObservableProperty]
-    public partial bool IsAuthenticated { get; set; }
+    public bool IsAuthenticated => string.IsNullOrEmpty( ParseClient.Instance.CurrentUser?.SessionToken);
 
     [ObservableProperty]
     public partial bool IsLoginEnabled { get; set; } = true;
@@ -35,8 +34,9 @@ public partial class LoginViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(RegisterCommand))]
     [NotifyCanExecuteChangedFor(nameof(ForgotPasswordCommand))]
     public partial bool IsBusy{ get; set; }
-    public ParseUser CurrentUser { get; private set; }
+    public UserModelOnline CurrentUser { get; private set; }
 
+    
     public LoginViewModel(IAuthenticationService authService)
     {
         _authService = authService;
@@ -125,7 +125,22 @@ public partial class LoginViewModel : ObservableObject
 
         if (res.IsSuccess)
         {
-            CurrentUser = ParseClient.Instance.CurrentUser;
+            var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
+                .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
+        
+            var usr = await qr.FirstOrDefaultAsync();
+            if (usr is null)
+            {
+                
+                UserModelOnline newUsr = new UserModelOnline(ParseClient.Instance.CurrentUser);
+                
+                await newUsr.SaveAsync();
+                CurrentUser=newUsr;
+                return;
+            }
+            CurrentUser = usr;
+        
+        
         }
     }
 }

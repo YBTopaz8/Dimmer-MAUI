@@ -196,12 +196,12 @@ public partial class DimmerLiveViewModel :ObservableObject, IReactiveObject, IAc
             _authService.CurrentUser
                 .Select(user => user != null)
                 .DistinctUntilChanged()
-                .Subscribe(isLoggedIn =>
+                .Subscribe(async isLoggedIn =>
                 {
                     IsSocialHubActive = isLoggedIn;
                     if (isLoggedIn)
                     {
-                        SetupLiveQueryListeners().DisposeWith(d);
+                       await SetupLiveQueryListeners().DisposeWith(d);
                     }
                     else
                     {
@@ -228,7 +228,7 @@ public partial class DimmerLiveViewModel :ObservableObject, IReactiveObject, IAc
         var disposables = new CompositeDisposable();
 
 
-        var currentUserPointer = ParseClient.Instance.CreateObjectWithoutData<ParseUser>(currentUser.ObjectId);
+        var currentUserPointer = ParseClient.Instance.CurrentUser;
 
 
         // 1. Friend Requests
@@ -239,13 +239,13 @@ public partial class DimmerLiveViewModel :ObservableObject, IReactiveObject, IAc
 
         // 2. Conversations
         var convoQuery = new ParseQuery<ChatConversation>(ParseClient.Instance).WhereEqualTo("participants", currentUser);
-        var convoSub = client.SubscribeAsync(convoQuery).Result;
+        var convoSub = await client.SubscribeAsync(convoQuery);
         convoSub.On(Subscription.Event.Create, chat => _conversationsCache.AddOrUpdate(chat));
         convoSub.On(Subscription.Event.Update, (chat, _) => _conversationsCache.AddOrUpdate(chat));
 
         // 3. Messages in those conversations
         var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance).WhereMatchesQuery("conversation", convoQuery);
-        var messageSub = client.SubscribeAsync(messageQuery).Result;
+        var messageSub = await client.SubscribeAsync(messageQuery);
         messageSub.On(Subscription.Event.Create, msg => _messagesCache.AddOrUpdate(msg));
         messageSub.On(Subscription.Event.Update, (msg, _) => _messagesCache.AddOrUpdate(msg));
         messageSub.On(Subscription.Event.Delete, msg => _messagesCache.Remove(msg));

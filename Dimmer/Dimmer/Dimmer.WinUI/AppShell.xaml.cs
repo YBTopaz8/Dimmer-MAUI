@@ -1,6 +1,7 @@
 using Dimmer.DimmerLive;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.DimmerLiveUI;
 
 using System.Threading.Tasks;
 
@@ -18,18 +19,19 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
         Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
+        Routing.RegisterRoute(nameof(DimmerLivePage), typeof(DimmerLivePage));
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(LibSanityPage), typeof(LibSanityPage));
 
 
     }
 
-    protected async override  void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-      await  MyViewModel.Initialize();
+        await MyViewModel.Initialize();
         this.BindingContext = MyViewModel;
     }
 
@@ -51,6 +53,10 @@ public partial class AppShell : Shell
 
     }
 
+    private async void OpenDimmerLiveSettingsChip_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(DimmerLivePage));
+    }
     private void SettingsChip_Clicked(object sender, EventArgs e)
     {
 
@@ -132,7 +138,7 @@ public partial class AppShell : Shell
 
     private void FindDuplicatesBtn_Clicked(object sender, EventArgs e)
     {
-        this.NavTab.SelectedIndex = NavTab.Items.Count - 1; 
+        this.NavTab.SelectedIndex = NavTab.Items.Count - 1;
     }
 
     private void ChangeFolder_Clicked(object sender, EventArgs e)
@@ -144,4 +150,5 @@ public partial class AppShell : Shell
     {
         await Shell.Current.GoToAsync(nameof(LibSanityPage), true);
     }
+
 }
