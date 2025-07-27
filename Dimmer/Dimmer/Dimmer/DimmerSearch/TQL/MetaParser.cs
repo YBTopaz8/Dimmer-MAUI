@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Dimmer.DimmerSearch.TQL;
+﻿namespace Dimmer.DimmerSearch.TQL;
 
 public class QuerySegment
 {

@@ -1,13 +1,4 @@
-﻿using Microsoft.Maui.Platform;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQL;
+﻿namespace Dimmer.DimmerSearch.TQL;
 public enum FieldType { Text, Numeric, Boolean, Duration, Date }
 
 public record FieldDefinition(
