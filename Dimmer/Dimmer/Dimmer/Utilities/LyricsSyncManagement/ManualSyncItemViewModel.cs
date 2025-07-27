@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.LyricsSyncManagement;
+﻿namespace Dimmer.Utilities.LyricsSyncManagement;
 public partial class ManualSyncItemViewModel : ObservableObject
 {
     public string Text { get; set; }

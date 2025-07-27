@@ -2,12 +2,6 @@
 
 using Parse.LiveQuery;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dimmer.DimmerLive.Interfaces;
 public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
 {
@@ -16,6 +10,7 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
     // THIS IS THE PUBLIC OBSERVABLE. The ViewModel will connect to this.
     public IObservable<IChangeSet<DeviceState, string>> AvailablePlayers => _availablePlayersCache.Connect();
     private readonly ParseLiveQueryClient _liveQueryClient;
+    public ParseLiveQueryClient LiveQueryClient => _liveQueryClient;
     private readonly ILogger<DeviceConnectivityService> _logger;
     private string _myDeviceId;
     private DeviceState _myDeviceState;
@@ -31,9 +26,10 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
 
     public IObservable<DeviceCommand> IncomingCommands => _incomingCommands.AsObservable();
 
-    public DeviceConnectivityService(ParseLiveQueryClient liveQueryClient, ILogger<DeviceConnectivityService> logger)
+    public DeviceConnectivityService( ILogger<DeviceConnectivityService> logger)
     {
-        _liveQueryClient = liveQueryClient;
+        
+        _liveQueryClient = new ParseLiveQueryClient();
         _logger = logger;
     }
 
@@ -43,14 +39,33 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
         _myDeviceId = Preferences.Get("MyDeviceId", Guid.NewGuid().ToString());
         Preferences.Set("MyDeviceId", _myDeviceId);
 
-        // Step 2: Find our state object on the server or create it
-        var query = new ParseQuery<DeviceState>(ParseClient.Instance).WhereEqualTo("deviceId", _myDeviceId);
-        _myDeviceState = await query.FirstOrDefaultAsync() ?? new DeviceState { DeviceId = _myDeviceId };
+        if (ParseClient.Instance.CurrentUserController.CurrentUser is null)
+        {
+            return;
+        }
 
-        _myDeviceState.DeviceName = DeviceInfo.Name; // e.g., "MCS's Desktop"
-        _myDeviceState.LastSeen = DateTime.UtcNow;
+
+
+        _liveQueryClient.Start();
+        _liveQueryClient.OnConnectionStateChanged.Subscribe(state =>
+        {
+            _logger.LogInformation("LiveQuery Client state changed to: {State}", state);
+            Debug.WriteLine("LiveQuery Client state changed to: {State}", state);
+        });
+
+
+
+        _myDeviceState = new DeviceState
+        {
+            ObjectId = _myDeviceId, // You might want to use a specific field for this
+            DeviceId = _myDeviceId,
+            DeviceName = DeviceInfo.Name,
+            LastSeen = DateTime.UtcNow
+        };
+
+
         await _myDeviceState.SaveAsync();
-
+     
         // Step 3: Start a timer to periodically update our "lastSeen" timestamp
         _presenceTimer = new System.Timers.Timer(TimeSpan.FromSeconds(60).TotalMilliseconds);
         _presenceTimer.Elapsed += async (s, e) => {
@@ -72,6 +87,14 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
             .WhereEqualTo("isHandled", false);
 
         _commandSubscription = await _liveQueryClient.SubscribeAsync(commandQuery);
+
+        _commandSubscription.On(Subscription.Event.Create, newCommand =>
+        {
+            // `newCommand` is already a strongly-typed DeviceCommand object!
+            _logger.LogInformation("Received new command: {CommandName}", newCommand.CommandName);
+            _incomingCommands.OnNext(newCommand);
+        });
+
         _commandSubscription.Events
             .Where(e => e.EventType == Subscription.Event.Create)
             .Subscribe(e => _incomingCommands.OnNext(e.Object));
@@ -82,23 +105,15 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
 
         _stateSubscription = await _liveQueryClient.SubscribeAsync(stateQuery);
 
-        // Use the full power of DynamicData to manage the collection
-        _stateSubscription.Events
-            .Subscribe(e => {
-                var device = e.Object;
-                switch (e.EventType)
-                {
-                    case Subscription.Event.Enter: // A new device came online
-                    case Subscription.Event.Create:
-                    case Subscription.Event.Update:
-                        _availablePlayers.AddOrUpdate(device);
-                        break;
-                    case Subscription.Event.Leave: // A device went offline
-                    case Subscription.Event.Delete:
-                        _availablePlayers.Remove(device);
-                        break;
-                }
-            });
+
+        _stateSubscription.On(Subscription.Event.Enter, device => _availablePlayersCache.AddOrUpdate(device));
+        _stateSubscription.On(Subscription.Event.Create, device => _availablePlayersCache.AddOrUpdate(device));
+        _stateSubscription.On(Subscription.Event.Update, device => _availablePlayersCache.AddOrUpdate(device));
+        _stateSubscription.On(Subscription.Event.Leave, device => _availablePlayersCache.Remove(device));
+        _stateSubscription.On(Subscription.Event.Delete, device => _availablePlayersCache.Remove(device));
+
+
+
     }
 
     public void StopListeners()

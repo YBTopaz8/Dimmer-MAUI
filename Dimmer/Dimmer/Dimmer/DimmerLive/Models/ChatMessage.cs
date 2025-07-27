@@ -11,9 +11,9 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("sender")]
-    public UserModelOnline Sender
+    public ParseUser Sender
     {
-        get => GetProperty<UserModelOnline>();
+        get => GetProperty<ParseUser>();
         set => SetProperty(value);
     }
 
@@ -67,9 +67,9 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("readBy")]
-    public IList<UserModelOnline> ReadBy
+    public IList<ParseUser> ReadBy
     {
-        get => GetProperty<IList<UserModelOnline>>();
+        get => GetProperty<IList<ParseUser>>();
         set => SetProperty(value); // Or use AddUnique for managing this array
     }
     [ParseFieldName("reactions")]

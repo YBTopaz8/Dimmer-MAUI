@@ -1,4 +1,5 @@
 ﻿using Dimmer.Data.RealmStaticFilters;
+using Dimmer.DimmerLive.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
@@ -47,13 +48,14 @@ public static class MauiProgramExtensions
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer/2.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
         });
 
-
+        
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
 
+        builder.Services.AddSingleton<IDeviceConnectivityService, DeviceConnectivityService>();
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IDimmerStateService, DimmerStateService>();
         builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
@@ -73,7 +75,19 @@ public static class MauiProgramExtensions
 
 
         IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();
+
         builder.Services.AddSingleton(mapper);
+
+
+        builder.Services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddSingleton<DeviceConnectivityService>();
+        builder.Services.AddSingleton<DimmerLiveViewModel>();
+
+
+
+
+
 
         builder.Services.AddSingleton<BaseAppFlow>();
         builder.Services.AddSingleton<LyricsMgtFlow>();

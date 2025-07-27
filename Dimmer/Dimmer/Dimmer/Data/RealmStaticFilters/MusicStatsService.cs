@@ -1,12 +1,4 @@
-﻿using Realms;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Data.RealmStaticFilters;
+﻿namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicStatsService
 {

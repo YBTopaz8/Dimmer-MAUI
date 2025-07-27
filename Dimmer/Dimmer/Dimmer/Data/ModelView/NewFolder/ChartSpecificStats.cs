@@ -1,10 +1,4 @@
 ﻿using Dimmer.Utilities.Extensions;
-
-using Dimmer.Data.ModelView;
-using Dimmer.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 namespace Dimmer.Data.ModelView.NewFolder;
 /// <summary>
 /// Provides methods specifically designed to generate data structures

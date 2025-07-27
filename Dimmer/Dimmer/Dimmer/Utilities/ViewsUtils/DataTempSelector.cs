@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities.ViewsUtils;
+﻿namespace Dimmer.Utilities.ViewsUtils;
 // A simple enum to make our view modes clear
 public enum SongViewMode
 {

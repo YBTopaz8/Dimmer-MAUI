@@ -2,23 +2,7 @@
 
 using Dimmer.Interfaces.Services.Interfaces;
 
-using Hqub.Lastfm.Entities;
-
-using Humanizer.Localisation;
-
-using System;
-
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq;
-using System.Text;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks;
 
 
 namespace Dimmer.DimmerLive;

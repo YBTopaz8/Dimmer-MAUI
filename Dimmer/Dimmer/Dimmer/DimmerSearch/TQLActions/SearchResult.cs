@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQLActions;
+﻿namespace Dimmer.DimmerSearch.TQLActions;
 
 /// <summary>
 /// A container for the results of a query, including the list of songs

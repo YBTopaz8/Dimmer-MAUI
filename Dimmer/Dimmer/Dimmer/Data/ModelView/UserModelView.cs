@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public partial class UserModelView : ObservableObject
 {
 

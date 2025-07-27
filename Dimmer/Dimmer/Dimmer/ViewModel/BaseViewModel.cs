@@ -6,11 +6,9 @@ using Dimmer.Data.ModelView.DimmerSearch;
 using Dimmer.Data.ModelView.LibSanityModels;
 using Dimmer.Data.ModelView.NewFolder;
 using Dimmer.Data.RealmStaticFilters;
-using Dimmer.DimmerLive.Interfaces;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.Exceptions;
 using Dimmer.DimmerSearch.TQL;
-using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
@@ -23,7 +21,6 @@ using DynamicData;
 using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Maui.Graphics;
 
 using Parse.LiveQuery;
 
@@ -34,15 +31,10 @@ using Parse.LiveQuery;
 
 using ReactiveUI;
 
-using System.Buffers.Text;
 using System.ComponentModel;
-using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-using static Dimmer.Data.Models.PlaylistEvent;
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 
 
@@ -314,10 +306,39 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
         _lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
-           .Subscribe(isAuthenticated =>
+           .Subscribe( isAuthenticated =>
            {
                IsLastfmAuthenticated = isAuthenticated;
                LastfmUsername = _lastfmService.AuthenticatedUser ?? "Not Logged In";
+               if (isAuthenticated)
+               {
+
+
+                   if (string.IsNullOrEmpty(UserLocal.Username))
+                   {
+                       if ((!string.IsNullOrEmpty(_lastfmService.AuthenticatedUser)))
+                       {
+                           UserLocal.Username=_lastfmService.AuthenticatedUser;
+                           var db = realmFactory.GetRealmInstance();
+                           db.Write(() =>
+                           {
+
+                           var usrs = db.All<UserModel>().ToList();
+                           if (usrs is not null && usrs.Count>0)
+                           {
+                               UserModel usr = usrs.First();
+                               usr.UserName=_lastfmService.AuthenticatedUser;
+
+
+
+
+                               db.Add(usr,true);
+                                }
+
+                           });
+                       }
+                   }
+               }
            })
            .DisposeWith(Disposables); // Assuming you have a reactive disposables manager
         _lastfmService.Start();
@@ -352,14 +373,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [RelayCommand]
-    public async Task OpenFieInFolder()
-    {
-        var songToView = SelectedSong;
-        
-    }
-
-
-    [RelayCommand]
     private async Task RemoteNextTrackAsync()
     {
         if (ControlledDeviceState == null)
@@ -369,6 +382,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private async void InitializeConnectivity()
     {
+
+
+
         await _deviceConnectivityService.InitializeAsync();
 
         // Subscribe to the commands from the service
@@ -379,10 +395,104 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _deviceConnectivityService.StartListeners();
     }
+    private string _myDeviceId; // A unique ID stored in app settings
+    private DeviceState _myDeviceState; // The ParseObject representing this device's state
+
+
+    private ParseClient ParseClient { get; set; }
+    private ParseLiveQueryClient LiveClient { get; set; }
+    public string MyDeviceId { get; }
+
+    // ==========================================================
+    // REMOTE MODE LOGIC (Sends commands, listens for state)
+    // ==========================================================
+    private void SetupRemoteModeListeners()
+    {
+        // For simplicity, let's just watch all devices for now.
+        // In a real app, the user would select a device to control.
+        var stateQuery = new ParseQuery<DeviceState>(ParseClient);
+        var stateSub = LiveClient.SubscribeAsync(stateQuery);
+
+
+    }
+    private async Task SetupPlayerModeListeners()
+    {
+        // Subscribe to commands targeted at THIS device
+        var commandQuery = new ParseQuery<DeviceCommand>(ParseClient)
+            .WhereEqualTo("targetDeviceId", _myDeviceId)
+            .WhereEqualTo("isHandled", false);
+
+        var commandSub = await LiveClient.SubscribeAsync(commandQuery);
+
+        // When a new command is CREATED for us...
+        commandSub.Events
+            .Where(e => e.EventType == Subscription.Event.Create)
+            .Subscribe(e => HandleIncomingDeviceCommand(e.Object));
+    }
+
+    private async void HandleIncomingDeviceCommand(DeviceCommand command)
+    {
+        _logger.LogInformation("Received remote command: {Command}", command.CommandName);
+
+        // Execute the command by calling our existing RelayCommands
+        switch (command.CommandName)
+        {
+            case "PLAY_PAUSE":
+                await PlayPauseToggle();
+                break;
+            case "NEXT":
+                await NextTrack();
+                break;
+            case "PREVIOUS":
+                await PreviousTrack();
+                break;
+                // ... add cases for SEEK, SET_VOLUME, etc. ...
+        }
+
+        // Mark the command as handled so we don't process it again
+        command.IsHandled = true;
+        await command.SaveAsync();
+    }
+
+    [ObservableProperty]
+    public partial DeviceState? ControlledDeviceState { get; set; }
+
+
     private readonly ReadOnlyObservableCollection<DeviceState> _availablePlayers;
     public ReadOnlyObservableCollection<DeviceState> AvailablePlayers => _availablePlayers;
 
     private readonly IDeviceConnectivityService _deviceConnectivityService;
+
+
+    [RelayCommand]
+    public async Task OpenFieInFolder()
+    {
+        var songToView = SelectedSong;
+        
+        if (songToView is null || string.IsNullOrEmpty(songToView.FilePath))
+        {
+            await Shell.Current.DisplayAlert("Error", "No song selected or file path is empty.", "OK");
+            return;
+        }
+        try
+        {
+            var fileUri = new Uri(songToView.FilePath);
+            if (fileUri.IsFile)
+            {
+                // Use Launcher to open the file in its default application
+                await Launcher.Default.OpenAsync(fileUri);
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Error", "The selected song's file path is not valid.", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open file in folder for song: {SongTitle}", songToView.Title);
+            await Shell.Current.DisplayAlert("Error", "Failed to open file in folder. Please check the file path.", "OK");
+        }
+    }
 
     private string LoadOrGenerateDeviceId()
     {
@@ -3474,69 +3584,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
 
-    private string _myDeviceId; // A unique ID stored in app settings
-    private DeviceState _myDeviceState; // The ParseObject representing this device's state
-
-
-    [ObservableProperty]
-    public partial DeviceState? ControlledDeviceState { get; set; }
-
-
-    private async Task SetupPlayerModeListeners()
-    {
-        // Subscribe to commands targeted at THIS device
-        var commandQuery = new ParseQuery<DeviceCommand>(ParseClient)
-            .WhereEqualTo("targetDeviceId", _myDeviceId)
-            .WhereEqualTo("isHandled", false);
-
-        var commandSub = await LiveClient.SubscribeAsync(commandQuery);
-
-        // When a new command is CREATED for us...
-        commandSub.Events
-            .Where(e => e.EventType == Subscription.Event.Create)
-            .Subscribe(e => HandleIncomingDeviceCommand(e.Object));
-    }
-
-    private async void HandleIncomingDeviceCommand(DeviceCommand command)
-    {
-        _logger.LogInformation("Received remote command: {Command}", command.CommandName);
-
-        // Execute the command by calling our existing RelayCommands
-        switch (command.CommandName)
-        {
-            case "PLAY_PAUSE":
-                await PlayPauseToggle();
-                break;
-            case "NEXT":
-                await NextTrack();
-                break;
-            case "PREVIOUS":
-                await PreviousTrack();
-                break;
-                // ... add cases for SEEK, SET_VOLUME, etc. ...
-        }
-
-        // Mark the command as handled so we don't process it again
-        command.IsHandled = true;
-        await command.SaveAsync();
-    }
-
-    private ParseClient ParseClient { get; set; }
-    private ParseLiveQueryClient LiveClient { get; set; }
-    public string MyDeviceId { get; }
-
-    // ==========================================================
-    // REMOTE MODE LOGIC (Sends commands, listens for state)
-    // ==========================================================
-    private void SetupRemoteModeListeners()
-    {
-        // For simplicity, let's just watch all devices for now.
-        // In a real app, the user would select a device to control.
-        var stateQuery = new ParseQuery<DeviceState>(ParseClient);
-        var stateSub = LiveClient.SubscribeAsync(stateQuery);
-
-
-    }
+   
 
    
 }

@@ -2,14 +2,7 @@
 
 using Dimmer.DimmerSearch.TQL;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
-
-using static SkiaSharp.SKPath;
 
 namespace Dimmer.Data.ModelView.DimmerSearch;
 public partial class ActiveFilterViewModel : ObservableObject, IQueryComponentViewModel

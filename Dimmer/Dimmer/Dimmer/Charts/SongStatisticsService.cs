@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Charts;
+﻿namespace Dimmer.Charts;
 /// <summary>
 /// Provides static methods for calculating and aggregating song playback statistics.
 /// </summary>

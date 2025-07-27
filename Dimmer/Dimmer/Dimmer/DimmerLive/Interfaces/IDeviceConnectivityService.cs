@@ -1,10 +1,6 @@
 ﻿using DynamicData;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Parse.LiveQuery;
 
 namespace Dimmer.DimmerLive.Interfaces;
 public record RemotePlayerState(string DeviceId, string DeviceName, string PlaybackState, string CurrentSongTitle);
@@ -40,6 +36,7 @@ public interface IDeviceConnectivityService
     /// An observable stream of commands received from other devices that this instance should execute.
     /// </summary>
     IObservable<DeviceCommand> IncomingCommands { get; }
+    ParseLiveQueryClient LiveQueryClient { get; }
 
     /// <summary>
     /// Broadcasts the current state of this device to the server.
