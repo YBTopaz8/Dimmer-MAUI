@@ -9,9 +9,6 @@ public class UserModelOnline : ParseUser
         set => SetProperty(value);
     }
 
-
-    // This represents a one-to-many relationship from _User to UserDeviceSession objects.
-    // The field name on Parse Server will be "userDeviceSessions".
     private const string UserDeviceSessionsKey = "userDeviceSessions"; // Define key as a constant
 
     [ParseFieldName(UserDeviceSessionsKey)] // Conventionally plural for relations
@@ -21,6 +18,15 @@ public class UserModelOnline : ParseUser
         // You don't typically provide a setter for ParseRelation properties.
         get => GetRelation<UserDeviceSession>(UserDeviceSessionsKey);
     }
+
+    [ParseFieldName("profileImageFile")]
+    public ParseFile? ProfileImageFile 
+    { 
+        get=> GetProperty<ParseFile?>();
+
+        set => SetProperty(value);
+    }
+
     public UserModelOnline() : base() { }
     public UserModelOnline(ParseUser plainUser) : this() // Calls the base parameterless constructor
     {

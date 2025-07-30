@@ -28,13 +28,20 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
 
     public DeviceConnectivityService( ILogger<DeviceConnectivityService> logger)
     {
-        
+        return;
         _liveQueryClient = new ParseLiveQueryClient();
         _logger = logger;
     }
 
+    private Subscription<ChatMessage> _messageSubscription;
+    private readonly Subject<ChatMessage> _incomingMessages = new();
+    public IObservable<ChatMessage> IncomingMessages => _incomingMessages.AsObservable();
+
+
+
     public async Task InitializeAsync()
     {
+        return;
         // Step 1: Get or create our unique ID
         _myDeviceId = Preferences.Get("MyDeviceId", Guid.NewGuid().ToString());
         Preferences.Set("MyDeviceId", _myDeviceId);
@@ -79,14 +86,16 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
         _presenceTimer.Start();
     }
 
-    public async void StartListeners()
+    public void StartListeners()
     {
+        return;
+        LiveQueryClient.Start();
         // --- Listener for incoming commands ---
         var commandQuery = new ParseQuery<DeviceCommand>(ParseClient.Instance)
             .WhereEqualTo("targetDeviceId", _myDeviceId)
             .WhereEqualTo("isHandled", false);
 
-        _commandSubscription = await _liveQueryClient.SubscribeAsync(commandQuery);
+        _commandSubscription = _liveQueryClient.Subscribe(commandQuery);
 
         _commandSubscription.On(Subscription.Event.Create, newCommand =>
         {
@@ -94,16 +103,11 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
             _logger.LogInformation("Received new command: {CommandName}", newCommand.CommandName);
             _incomingCommands.OnNext(newCommand);
         });
-
-        _commandSubscription.Events
-            .Where(e => e.EventType == Subscription.Event.Create)
-            .Subscribe(e => _incomingCommands.OnNext(e.Object));
-
         // --- Listener for other devices' states ---
         var stateQuery = new ParseQuery<DeviceState>(ParseClient.Instance)
             .WhereNotEqualTo("deviceId", _myDeviceId); // Don't listen to our own state
 
-        _stateSubscription = await _liveQueryClient.SubscribeAsync(stateQuery);
+        _stateSubscription = _liveQueryClient.Subscribe(stateQuery);
 
 
         _stateSubscription.On(Subscription.Event.Enter, device => _availablePlayersCache.AddOrUpdate(device));
@@ -113,7 +117,23 @@ public class DeviceConnectivityService : IDeviceConnectivityService, IDisposable
         _stateSubscription.On(Subscription.Event.Delete, device => _availablePlayersCache.Remove(device));
 
 
-
+        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
+            ;
+        _messageSubscription = _liveQueryClient.Subscribe(messageQuery);
+        _messageSubscription.On(Subscription.Event.Open, action =>
+        {
+            Debug.WriteLine("conn");
+        });
+        _messageSubscription.On(Subscription.Event.Enter, action =>
+        {
+            Debug.WriteLine("connEnter");
+        });
+        _messageSubscription.
+            On(Subscription.Event.Create , message =>
+        {
+            _logger.LogInformation("Received new message: {MessageText}", message.Text);
+            _incomingMessages.OnNext(message);
+        });
     }
 
     public void StopListeners()

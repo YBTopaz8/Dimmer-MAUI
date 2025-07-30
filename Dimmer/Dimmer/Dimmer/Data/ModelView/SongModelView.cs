@@ -123,7 +123,7 @@ public partial class SongModelView : ObservableObject
 
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView>? UserNote { get; set; } = new();
+    public partial ObservableCollection<UserNoteModelView>? UserNotes { get; set; } = new();
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
@@ -148,8 +148,11 @@ public partial class SongModelView : ObservableObject
     // This method is called after the object is created and its properties are set.
     public void PrecomputeSearchableText()
     {
-        var allNotes = UserNote?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
-
+        //var allNotes = UserNotes?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
+        //if (!string.IsNullOrEmpty(allNotes))
+        //{
+        //    Debug.WriteLine(allNotes);
+        //}
         var sb = new StringBuilder();
         sb.Append(Title?.ToLowerInvariant()).Append(' ');
         sb.Append(OtherArtistsName?.ToLowerInvariant()).Append(' ');
@@ -157,8 +160,8 @@ public partial class SongModelView : ObservableObject
         sb.Append(UnSyncLyrics?.ToLowerInvariant()).Append(' ');
         sb.Append(SyncLyrics?.ToLowerInvariant()).Append(' ');
         sb.Append(Genre?.Name?.ToLowerInvariant()).Append(' '); // Example of adding more
-        sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
-        sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
+        //sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
+        //sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
 
         SearchableText = sb.ToString();
         if (string.IsNullOrEmpty(SearchableText) || string.IsNullOrWhiteSpace(SearchableText))
@@ -175,8 +178,8 @@ public partial class SongModelView : ObservableObject
 
     }
     public string UserNoteAggregatedText =>
-        UserNote != null && UserNote.Any()
-        ? string.Join(" ", UserNote.Select(n => n.UserMessageText))
+        UserNotes != null && UserNotes.Any()
+        ? string.Join(" ", UserNotes.Select(n => n.UserMessageText))
         : string.Empty;
 
     public SongModelView()
@@ -211,6 +214,12 @@ public partial class UserNoteModelView : ObservableObject
 {
     [ObservableProperty]
     public partial string? UserMessageText { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset CreatedAt { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset ModifiedAt { get; set; }
+    [ObservableProperty]
+    public partial string? Id{ get; set; }
     [ObservableProperty]
     public partial string? UserMessageImagePath { get; set; }
     [ObservableProperty]

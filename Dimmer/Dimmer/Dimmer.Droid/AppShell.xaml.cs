@@ -5,6 +5,8 @@ using Dimmer.Views.Stats;
 
 using Syncfusion.Maui.Toolkit.Chips;
 
+using System.Threading.Tasks;
+
 using Button = Microsoft.Maui.Controls.Button;
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
 
@@ -116,9 +118,11 @@ public partial class AppShell : Shell
     private bool _isLyricsProcessing = false;
 
 
-    private void SettingsNavChips_ChipClicked(object sender, EventArgs e)
+    private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
-
+        this.IsBusy=true;
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
+        this.IsBusy=false;
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)

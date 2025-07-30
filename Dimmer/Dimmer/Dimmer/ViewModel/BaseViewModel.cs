@@ -411,18 +411,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // For simplicity, let's just watch all devices for now.
         // In a real app, the user would select a device to control.
         var stateQuery = new ParseQuery<DeviceState>(ParseClient);
-        var stateSub = LiveClient.SubscribeAsync(stateQuery);
+        var stateSub = LiveClient.Subscribe(stateQuery);
 
 
     }
-    private async Task SetupPlayerModeListeners()
+    private void SetupPlayerModeListeners()
     {
         // Subscribe to commands targeted at THIS device
         var commandQuery = new ParseQuery<DeviceCommand>(ParseClient)
             .WhereEqualTo("targetDeviceId", _myDeviceId)
             .WhereEqualTo("isHandled", false);
 
-        var commandSub = await LiveClient.SubscribeAsync(commandQuery);
+        var commandSub = LiveClient.Subscribe(commandQuery);
 
         // When a new command is CREATED for us...
         commandSub.Events
@@ -1175,7 +1175,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public string QueryBeforePlay { get; private set; }
 
     readonly IRealmFactory realmFactory;
-    private readonly Realm realm;
+    private Realm realm;
 
     [ObservableProperty]
     public partial SongStat AllTimeTopSong { get; set; }
@@ -1226,7 +1226,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlayingSongView = args.MediaSong;
         _songToScrobble = CurrentPlayingSongView; // This is the next candidate.
-
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=true;
 
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
@@ -1432,7 +1432,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.PausedUser), CurrentTrackPositionSeconds);
 
-
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=false;
         _ = _deviceConnectivityService.UpdateDeviceStateAsync("Paused", args.MediaSong, CurrentTrackPositionSeconds, audioService.Volume);
     }
 
@@ -1444,6 +1444,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=true;
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Resumed), CurrentTrackPositionSeconds);
 
@@ -1457,6 +1458,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             return;
         }
+
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=false;
 
         _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.PlayCompleted), CurrentTrackDurationSeconds);
 
@@ -1490,7 +1493,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // Efficiently load related data
         CurrentPlayingSongView.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
-            songRepo.GetById(songView.Id)?.PlayHistory
+            dimmerPlayEventRepo.GetAll().Where(x=>x.SongName == songView.Title)
         );
 
 
@@ -1507,7 +1510,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
 
             _songSource.AddRange(newSongs);
-
+            
             _ = EnsureCoverArtCachedForSongsAsync(newSongs);
 
             var _lyricsCts = new CancellationTokenSource();
@@ -2492,22 +2495,48 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // Clear the new properties too
         SongListeningStreak = null;
     }
-
     public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
     {
         if (userNote == null || songWithNote == null)
             return;
-        _logger.LogInformation("Saving user note for song: {SongTitle}", songWithNote.Title);
-        var songDb = songWithNote.ToModel(_mapper);
-        var userNoteDb = _mapper.Map<UserNoteModel>(userNote);
-        if (songDb != null && userNoteDb != null)
-        {
 
+        // --- The Fix ---
+        // The line `songWithNote.UserNotes ??= new();` is removed.
+        // We can safely add directly to the list because we know it was initialized
+        // in the SongModelView's constructor.
+        songWithNote.UserNotes.Add(userNote);
+
+        // The rest of your logic for database persistence follows...
+        try
+        {
+            realm ??= realmFactory.GetRealmInstance();
+            realm.Write(() =>
+            {
+                var existingSong = realm.Find<SongModel>(songWithNote.Id);
+                if (existingSong != null)
+                {
+                    var userNoteDb = _mapper.Map<UserNoteModel>(userNote);
+                    if (userNoteDb != null)
+                    {
+                        existingSong.UserNotes.Add(userNoteDb);
+
+                        // Use the proven pattern of an explicit update
+                        realm.Add(existingSong, true);
+
+                        _logger.LogInformation("Successfully persisted user note for song: {SongTitle}", existingSong.Title);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find song with ID {SongId} to save user note.", songWithNote.Id);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save user note for song {SongId}", songWithNote.Id);
         }
     }
-
-
-
 
 
 
@@ -2719,10 +2748,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public ReadOnlyObservableCollection<InteractiveChartPoint> TopSkipsChartData { get; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> SongPlayTypeDistribution { get; set; }
+    public partial ObservableCollection<DimmerStats>? SongPlayTypeDistribution { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> SongPlayDistributionByHour { get; set; }
+    public partial ObservableCollection<DimmerStats>? SongPlayDistributionByHour { get; set; }
 
     [ObservableProperty]
     public partial DimmerStats SongBingeFactor { get; set; }
@@ -2731,22 +2760,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial DimmerStats SongAverageListenThrough { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> SongPlayHistoryOverTime { get; set; }
+    public partial ObservableCollection<DimmerStats>? SongPlayHistoryOverTime { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> SongDropOffPoints { get; set; }
+    public partial ObservableCollection<DimmerStats>? SongDropOffPoints { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> SongWeeklyOHLC { get; set; }
+    public partial ObservableCollection<DimmerStats>? SongWeeklyOHLC { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> TopSongsLastMonth { get; set; }
+    public partial ObservableCollection<DimmerStats>? TopSongsLastMonth { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> MostSkippedSongs { get; set; }
+    public partial ObservableCollection<DimmerStats>? MostSkippedSongs { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerStats> ArtistsByHighestSkipRate { get; set; }
+    public partial ObservableCollection<DimmerStats>? ArtistsByHighestSkipRate { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerStats> TopBurnoutSongs { get; set; }

@@ -11,7 +11,9 @@ namespace Dimmer.DimmerLive.Models;
 public partial class ChatConversation : ParseObject
 {
     // Use Relation for participants for better querying
-    public ParseRelation<ParseUser> Participants => GetRelation<ParseUser>(nameof(Participants));
+
+    [ParseFieldName("participants")]
+    public ParseRelation<UserModelOnline> Participants => GetRelation<UserModelOnline>(nameof(Participants));
 
     [ParseFieldName("lastMessage")]
     public ChatMessage LastMessage
@@ -40,7 +42,12 @@ public partial class ChatConversation : ParseObject
         get => GetProperty<bool>();
         set => SetProperty(value);
     }
-
+    [ParseFieldName("isDirectMessage")]
+    public bool IsDirectMessage 
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
 }
 
 /// <summary>
@@ -54,9 +61,9 @@ public class FriendRequest : ParseObject
         
         /// </summary>
         [ParseFieldName("sender")]
-        public ParseUser Sender
+        public UserModelOnline Sender
     {
-        get => GetProperty<ParseUser>();
+        get => GetProperty<UserModelOnline>();
         set => SetProperty(value);
     }
 
@@ -64,9 +71,9 @@ public class FriendRequest : ParseObject
         
         /// </summary>
         [ParseFieldName("recipient")]
-        public ParseUser Recipient
+        public UserModelOnline Recipient
     {
-        get => GetProperty<ParseUser>();
+        get => GetProperty<UserModelOnline>();
         set => SetProperty(value);
     }
 

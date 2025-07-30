@@ -34,7 +34,7 @@ public static class ParseSetup
                 ServerURI = ApiKeys.ServerUri,
                 Key = ApiKeys.DotNetKEY,
 
-            },serviceHub
+            }
             );
             //HostManifestData manifest = new HostManifestData()
             //{

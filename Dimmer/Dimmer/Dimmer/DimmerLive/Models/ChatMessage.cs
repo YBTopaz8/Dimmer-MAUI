@@ -1,4 +1,8 @@
-﻿namespace Dimmer.DimmerLive.Models;
+﻿
+
+using Microsoft.Maui.Devices;
+
+namespace Dimmer.DimmerLive.Models;
 
 [ParseClassName("ChatMessage")]
 public partial class ChatMessage : ParseObject
@@ -11,9 +15,9 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("sender")]
-    public ParseUser Sender
+    public UserModelOnline Sender
     {
-        get => GetProperty<ParseUser>();
+        get => GetProperty<UserModelOnline>();
         set => SetProperty(value);
     }
 
@@ -67,9 +71,9 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("readBy")]
-    public IList<ParseUser> ReadBy
+    public IList<UserModelOnline> ReadBy
     {
-        get => GetProperty<IList<ParseUser>>();
+        get => GetProperty<IList<UserModelOnline>>();
         set => SetProperty(value); // Or use AddUnique for managing this array
     }
     [ParseFieldName("reactions")]
@@ -78,4 +82,36 @@ public partial class ChatMessage : ParseObject
         get => GetProperty<IDictionary<string, IList<string>>>();
         set => SetProperty(value);
     }
+    [ParseFieldName("UserDevicePlatform")]
+    public string UserDevicePlatform
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserDeviceIdiom")]
+    public string UserDeviceIdiom
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserDeviceVersion")]
+    public string UserDeviceVersion
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserName")]
+    public string UserName
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserSenderId")]
+    public string UserSenderId
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+   
+
 }

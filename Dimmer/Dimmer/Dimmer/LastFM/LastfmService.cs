@@ -232,11 +232,11 @@ public class LastfmService : ILastfmService
         // CORRECTED: Use parameterless constructor and set properties.
         var scrobble = new Scrobble
         {
-            Artist = song.OtherArtistsName,
+            Artist = song.ArtistName,
             Track = song.Title,
             Date = DateTime.UtcNow, // Timestamp is required for a scrobble
             Album = song.AlbumName,
-            AlbumArtist = song.OtherArtistsName
+            AlbumArtist = song.ArtistName
         };
 
         try

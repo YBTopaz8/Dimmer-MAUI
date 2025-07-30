@@ -39,9 +39,9 @@ public static class CustomAnimsExtensions
     }
     public static async Task DimmInCompletelyAndShow(this View element, double duration = 550)
     {
+        element.IsVisible=true;
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
 
-        element.IsVisible=true;
 
     }
 

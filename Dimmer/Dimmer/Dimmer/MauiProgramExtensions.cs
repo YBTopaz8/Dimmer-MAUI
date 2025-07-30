@@ -111,7 +111,7 @@ public static class MauiProgramExtensions
 
         var ress = assembly.GetManifestResourceNames();
 
-        Debug.WriteLine(ress.ToString());
+        //Debug.WriteLine(ress.ToString());
         using var stream = assembly.GetManifestResourceStream(resourceName);
 
         // This null check will prevent the crash and tell you exactly what's wrong.

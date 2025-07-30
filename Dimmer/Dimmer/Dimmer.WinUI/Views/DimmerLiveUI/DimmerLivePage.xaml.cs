@@ -1,3 +1,5 @@
+using Dimmer.DimmerLive.Models;
+
 using ReactiveUI;
 
 using Syncfusion.Maui.Toolkit.Carousel;
@@ -35,11 +37,26 @@ public partial class DimmerLivePage : ContentPage
 
     private void AcceptBtn_Clicked(object sender, EventArgs e)
     {
+        var send = (View)sender;
 
+        ViewModel.DimmerLiveViewModel.AcceptFriendRequestCommand.Execute(null);
     }
 
     private void RejectBtn_Clicked(object sender, EventArgs e)
     {
+        ViewModel.DimmerLiveViewModel.RejectFriendRequestCommand.Execute(null);
 
+    }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        ViewModel.DimmerLiveViewModel.SendFriendRequestCommand.Execute(FriendUsernameEntry.Text);
+    }
+
+    private void ConvoStart_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var param = send.BindingContext as UserModelOnline;
+        ViewModel.DimmerLiveViewModel.ViewOrStartChatCommand.Execute(param!);
     }
 }

@@ -8,7 +8,7 @@ public interface IAuthenticationService
     /// An observable that emits the current user when the auth state changes.
     /// Emits null if the user is logged out.
     /// </summary>
-    IObservable<UserModelView?> CurrentUser { get; }
+    UserModelOnline? CurrentUser { get; }
 
     /// <summary>
     /// Gets a value indicating whether a user is currently logged in.
@@ -28,4 +28,5 @@ public interface IAuthenticationService
     Task<AuthResult> RegisterAsync(string username, string email, string password);
     Task<AuthResult> RequestPasswordResetAsync(string email);
     Task<AuthResult> LoginWithSessionTokenAsync();
+    Task<UserModelView> SyncUser(ParseUser parseUser);
 }

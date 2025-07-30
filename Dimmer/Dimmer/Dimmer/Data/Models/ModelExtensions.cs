@@ -49,6 +49,9 @@ public static class ModelExtensions
             DiscTotal = src.DiscTotal,
             UserIDOnline = src.UserIDOnline,
             IsNew = src.IsNew
+            ,
+            UserNotes = src.UserNotes.Select(x=> new UserNoteModelView() { UserMessageText=x.UserMessageText,
+            CreatedAt=x.CreatedAt,ModifiedAt=x.ModifiedAt}).ToObservableCollection()
         };
 
         dest.PrecomputeSearchableText();

@@ -1,5 +1,7 @@
 ﻿using Dimmer.Data.Models;
 
+using Hqub.Lastfm.Entities;
+
 using Parse.Infrastructure;
 
 using Realms;
@@ -14,10 +16,10 @@ public class ParseAuthenticationService : IAuthenticationService
     private readonly IMapper _mapper;
 
     // A BehaviorSubject holds the latest value for new subscribers. Perfect for auth state.
-    private readonly BehaviorSubject<UserModelView?> _currentUserSubject = new(null);
+    private readonly BehaviorSubject<UserModelOnline?> _currentUserSubject = new(null);
 
-    public IObservable<UserModelView?> CurrentUser => _currentUserSubject;
-    public UserModelView? CurrentUserValue => _currentUserSubject.Value;
+    public UserModelOnline? CurrentUser {get;set; }
+    public UserModelOnline? CurrentUserValue => _currentUserSubject.Value;
     public bool IsLoggedIn => _currentUserSubject.Value != null;
 
     public ParseAuthenticationService(ILogger<ParseAuthenticationService> logger, IRealmFactory realmFactory, IMapper mapper)
@@ -54,7 +56,11 @@ public class ParseAuthenticationService : IAuthenticationService
                     await parseUser.FetchIfNeededAsync();
                     _logger.LogInformation("Found existing user session for: {Username}", parseUser.Username);
                     var userModelView = await SyncUserToLocalDbAsync(parseUser);
-                    _currentUserSubject.OnNext(userModelView);
+                    var query = ParseClient.Instance.GetQuery<UserModelOnline>().WhereEqualTo("objectId", parseUser.ObjectId);
+                    var usr = await query.FirstAsync();
+                    _logger.LogInformation("User session restored successfully: {Username}", parseUser.Username);
+                    CurrentUser=usr;
+                    _currentUserSubject.OnNext(usr);
                     return new AuthResult(true, "OK");
                 
                 }
@@ -88,7 +94,11 @@ public class ParseAuthenticationService : IAuthenticationService
             var parseUser = await ParseClient.Instance.LogInWithAsync(username, password);
             _logger.LogInformation("User logged in successfully: {Username}", parseUser.Username);
             var userModelView = await SyncUserToLocalDbAsync(parseUser);
-            _currentUserSubject.OnNext(userModelView);
+            var query = ParseClient.Instance.GetQuery<UserModelOnline>().WhereEqualTo("objectId", parseUser.ObjectId);
+            var usr = await query.FirstAsync();
+            _logger.LogInformation("User session restored successfully: {Username}", parseUser.Username);
+            CurrentUser=usr;
+            _currentUserSubject.OnNext(usr);
             return new AuthResult(true);
         }
         catch (Exception ex)
@@ -109,10 +119,15 @@ public class ParseAuthenticationService : IAuthenticationService
 
         try
         {
+
             await ParseClient.Instance.SignUpWithAsync(parseUser);
             _logger.LogInformation("User registered and logged in: {Username}", parseUser.Username);
-            var userModelView = await SyncUserToLocalDbAsync(parseUser);
-            _currentUserSubject.OnNext(userModelView);
+            var userModelView = await SyncUserToLocalDbAsync(ParseClient.Instance.CurrentUser);
+            var query = ParseClient.Instance.GetQuery<UserModelOnline>().WhereEqualTo("objectId", parseUser.ObjectId);
+            var usr = await query.FirstAsync();
+            _logger.LogInformation("User session restored successfully: {Username}", parseUser.Username);
+            CurrentUser=usr;
+            _currentUserSubject.OnNext(usr);
             return new AuthResult(true);
         }
         catch (Exception ex)
@@ -126,9 +141,14 @@ public class ParseAuthenticationService : IAuthenticationService
     {
         _logger.LogInformation("Logging out user: {Username}", _currentUserSubject.Value?.Username ?? "N/A");
         await ParseClient.Instance.LogOutAsync();
+        CurrentUser=null;
         _currentUserSubject.OnNext(null);
     }
 
+    public async Task<UserModelView> SyncUser(ParseUser parseUser)
+    {
+         return await  SyncUserToLocalDbAsync(parseUser);
+    }
     /// <summary>
     /// Creates or updates the user in the local Realm database to match the server state.
     /// This is a critical step for data consistency.
@@ -214,10 +234,11 @@ public class ParseAuthenticationService : IAuthenticationService
             // This is the key Parse SDK method. It validates the token with the server
             // and returns the full user object if the session is still valid.
             var parseUser = await ParseClient.Instance.BecomeAsync(sessionToken);
-
+            var query = ParseClient.Instance.GetQuery<UserModelOnline>().WhereEqualTo("objectId",parseUser.ObjectId);
+            var usr = await query.FirstAsync();
             _logger.LogInformation("User session restored successfully: {Username}", parseUser.Username);
             var userModelView = await SyncUserToLocalDbAsync(parseUser);
-            _currentUserSubject.OnNext(userModelView);
+            _currentUserSubject.OnNext(usr);
             return AuthResult.Success();
         }
         catch (ParseFailureException ex) when (ex.Code == ParseFailureException.ErrorCode.InvalidSessionToken)
@@ -232,5 +253,9 @@ public class ParseAuthenticationService : IAuthenticationService
             return AuthResult.Failure("An unexpected error occurred while restoring your session.");
         }
     }
+
+
+
 }
+
 

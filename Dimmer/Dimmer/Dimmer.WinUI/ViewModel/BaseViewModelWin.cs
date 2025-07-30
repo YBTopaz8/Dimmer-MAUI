@@ -26,15 +26,14 @@ namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel nam
 public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dimmer.MyViewModel
 {
     public LoginViewModel LoginViewModel => loginViewModel;
-    
+    private readonly LoginViewModel loginViewModel;
+
     public DimmerLiveViewModel DimmerLiveViewModel => dimmerLiveViewModel;
 
 
 
     private readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
-    private readonly LoginViewModel loginViewModel;
-    private readonly IFolderPicker folderPicker1;
     private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerAudioService audioServ;
     private readonly IFolderPicker folderPicker;
@@ -62,9 +61,9 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly IWindowManagerService winMgrService;
 
     public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, 
-        LoginViewModel loginViewModel
-        , IFolderPicker folderPicker, IWindowManagerService windowManager,
-        DimmerLiveViewModel dimmerLiveViewModel,
+        LoginViewModel loginViewModel,
+        DimmerLiveViewModel dimmerLiveViewModel
+        , IFolderPicker _folderPicker, IWindowManagerService windowManager,
         IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDeviceConnectivityService deviceConnectivityService, IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, lastfmService, artistRepo, albumModel, genreModel, logger)
     {
     
@@ -73,7 +72,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         _mapper=mapper;
         this.appInitializerService=appInitializerService;
         this.loginViewModel=loginViewModel;
-        folderPicker1=folderPicker;
+        folderPicker=_folderPicker;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.audioServ=audioServ;
         this.stateService=stateService;

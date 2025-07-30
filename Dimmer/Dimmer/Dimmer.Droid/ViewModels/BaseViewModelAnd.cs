@@ -18,6 +18,11 @@ using System.Runtime.CompilerServices;
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : ObservableObject, IDisposable
 {
+    public LoginViewModel LoginViewModel => loginViewModel;
+    private readonly LoginViewModel loginViewModel;
+    private readonly DimmerLiveViewModel dimmerLiveViewModel;
+
+    public DimmerLiveViewModel DimmerLiveViewModel => dimmerLiveViewModel;
     public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
     protected readonly IDimmerStateService _stateService;
@@ -59,13 +64,19 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
 
-    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService, IDimmerLiveStateService dimmerLiveStateService, IFolderPicker folderPicker, IAnimationService animService,
+    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService,
+
+        LoginViewModel loginViewModel,
+        DimmerLiveViewModel dimmerLiveViewModel,
+        IDimmerLiveStateService dimmerLiveStateService, IFolderPicker folderPicker, IAnimationService animService,
        IDimmerAudioService _audioService, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
         baseVM = baseViewModel; // Store the BaseViewModel reference if needed
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
+        this.loginViewModel=loginViewModel;
+        this.dimmerLiveViewModel=dimmerLiveViewModel;
         this.dimmerLiveStateService=dimmerLiveStateService;
         this.folderPicker=folderPicker;
         this.animService=animService;
@@ -242,8 +253,8 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     }
 
     #region INotifyPropertyChanged
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
+    public new event PropertyChangedEventHandler PropertyChanged;
+    protected new bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string? propertyName = "")
     {
         if (EqualityComparer<T>.Default.Equals(backingStore, value))
             return false;
@@ -251,12 +262,13 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         OnPropertyChanged(propertyName);
         return true;
     }
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
+    protected new void OnPropertyChanged([CallerMemberName] string? propertyName = "") =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+
+        this.Dispose();
     }
 
     internal async Task LoadSongDataAsync(Progress<LyricsProcessingProgress> progressReporter, CancellationTokenSource _lyricsCts)
@@ -266,4 +278,11 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     }
     #endregion
+
+
+    public async Task InitializeDimmerLiveData()
+    {
+        loginViewModel.Username=baseVM.UserLocal.Username;
+        await loginViewModel.InitializeAsync();
+    }
 }

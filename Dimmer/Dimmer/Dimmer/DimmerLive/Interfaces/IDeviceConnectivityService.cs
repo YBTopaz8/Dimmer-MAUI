@@ -37,6 +37,7 @@ public interface IDeviceConnectivityService
     /// </summary>
     IObservable<DeviceCommand> IncomingCommands { get; }
     ParseLiveQueryClient LiveQueryClient { get; }
+    IObservable<ChatMessage> IncomingMessages { get; }
 
     /// <summary>
     /// Broadcasts the current state of this device to the server.

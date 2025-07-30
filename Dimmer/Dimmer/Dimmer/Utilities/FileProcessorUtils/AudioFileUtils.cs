@@ -51,15 +51,15 @@ public static class AudioFileUtils
 
         // Normalize separators: "feat.", "ft.", "vs.", "vs", "&", " x ", " X "
         string normalized = input
-            .Replace(" feat. ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" featuring ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" ft. ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" vs. ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" vs ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" , ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" & ", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(",", " | ", StringComparison.OrdinalIgnoreCase)
-            .Replace(" x ", " | ", StringComparison.OrdinalIgnoreCase); // "Artist A x Artist B"
+            .Replace("feat.", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace("featuring ", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace("ft. ", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace("v. ", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace("vs", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace(",", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace("&", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace(",", " . ", StringComparison.OrdinalIgnoreCase)
+            .Replace("x", " . ", StringComparison.OrdinalIgnoreCase); // "Artist A x Artist B"
 
         string[] individualArtists = normalized.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
