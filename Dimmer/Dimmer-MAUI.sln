@@ -5,8 +5,6 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer", "Dimmer\Dimmer\Dimmer.csproj", "{51C2E416-6CCB-4659-8A58-38210335263C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.Droid", "Dimmer\Dimmer.Droid\Dimmer.Droid.csproj", "{635BE060-4FD3-4299-B9A9-356D36CF9B8A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.WinUI", "Dimmer\Dimmer.WinUI\Dimmer.WinUI.csproj", "{003C8BE4-A343-477A-A5AA-FB2F21E2A873}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\..\..\source\repos\YBTopaz8\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{692510CD-4237-22A4-4AA7-7F80DBB242AC}"
@@ -27,12 +25,6 @@ Global
 		{51C2E416-6CCB-4659-8A58-38210335263C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51C2E416-6CCB-4659-8A58-38210335263C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51C2E416-6CCB-4659-8A58-38210335263C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Debug|Any CPU.Build.0 = Debug|x64
 		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Release|Any CPU.ActiveCfg = Release|x64
