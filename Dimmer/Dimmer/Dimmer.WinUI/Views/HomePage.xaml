@@ -188,8 +188,9 @@ Value="False">
                                                 Binding="{Binding IsCurrentPlayingHighlight}"
                                                 TargetType="Label"
                                                 Value="True">
-                                    <Setter Property="FontSize" Value="16" />
+                                    <Setter Property="FontSize" Value="19" />
                                     <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                    <Setter Property="FontAttributes" Value="Bold" />
                                 </DataTrigger>
                                 <DataTrigger
                                                 Binding="{Binding IsCurrentPlayingHighlight}"
@@ -323,9 +324,7 @@ Value="False">
                               Collapsed="TopExpander_Collapsed"
                               
                               Collapsing="TopExpander_Collapsing">
-                <syncf:SfExpander.GestureRecognizers>
-                    
-                </syncf:SfExpander.GestureRecognizers>
+              
                 <syncf:SfExpander.Header>
                     <Grid RowDefinitions="auto,auto">
                         <Grid.GestureRecognizers>
