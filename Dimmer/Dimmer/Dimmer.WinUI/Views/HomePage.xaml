@@ -145,7 +145,8 @@
                             <Setter Property="FontSize" Value="15" />
                         </Style>
                     </Grid.Resources>
-                    <HorizontalStackLayout Grid.Column="0" Spacing="5">
+                    <HorizontalStackLayout Grid.Column="0" Spacing="5"
+                                           ToolTipProperties.Text="{Binding Title,StringFormat='Title : {0}'}">
 
 
                         <Border StrokeShape="RoundRectangle 20"
@@ -625,6 +626,13 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                    HorizontalOptions="End"
                    IsVisible="True"
                    Spacing="5">
+                                <HorizontalStackLayout.Resources>
+                                    
+                                    <Style TargetType="syncf:SfChip">
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Dark=white, Light=black}"/>
+                                        <Setter Property="StrokeThickness" Value="0"/>
+                                    </Style>
+                                </HorizontalStackLayout.Resources>
                             <HorizontalStackLayout
                        Grid.Column="1"
                        HorizontalOptions="End"
@@ -741,7 +749,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                 <syncf:SfChip
                            x:Name="ViewNPQ" 
                            Clicked="ViewNPQ_Clicked"
-                           ShowIcon="False"
+                           ShowIcon="False" StrokeThickness="1"
                            Text="View Now Playing Queue">
 
 
@@ -751,7 +759,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            Clicked="ViewUtilsBtn_Clicked"
                           
                            ShowIcon="False"
-                           
+                           StrokeThickness="1"
                            Text="View Utilities">
                                     <syncf:SfChip.Triggers>
                                         <DataTrigger
@@ -820,6 +828,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                Text="Randomize"
                                WidthRequest="100" />
                                         <Button Clicked="Button_Clicked_1" Text="Reset" />
+                                        <Button Clicked="Button_Clicked_1" Text="X" />
                                     </HorizontalStackLayout>
                                 </Grid>
 
@@ -879,7 +888,8 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                     <Grid Grid.Row="1" RowDefinitions="auto,*"
                     
                    x:Name="SongsGrid" >
-                        <Grid Grid.Row="0" ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*,0.7*">
+                        <Grid Grid.Row="0" ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*,0.7*"
+                              ColumnSpacing="10">
                             <Grid.Resources>
                                 <Style TargetType="Label">
                                     <Setter Property="FontSize" Value="18" />
