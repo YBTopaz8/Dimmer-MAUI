@@ -116,7 +116,7 @@
 
                 <!-- User Note Section -->
                 <Label Text="My Notes" Style="{StaticResource SectionHeader}"/>
-                <Label Text="{Binding SelectedSong.UserNote.Count}" LineBreakMode="WordWrap"/>
+                <Label Text="{Binding SelectedSong.UserNotes.Count}" LineBreakMode="WordWrap"/>
                 <Button Text="Add / Edit Note" Command="{Binding EditNoteCommand}" CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
 
                 <!-- File Properties -->
@@ -178,7 +178,7 @@
 
                                 <Label Grid.Row="6" Grid.Column="0" Text="Tags" VerticalOptions="Start" Style="{StaticResource FieldLabel}"/>
                                 <VerticalStackLayout Grid.Row="6" Grid.Column="1">
-                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedSong.UserNote}" Wrap="Wrap">
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedSong.UserNotes}" Wrap="Wrap">
                                         <!-- Similar to display, but with a delete button -->
                                     </FlexLayout>
                                     <HorizontalStackLayout>
