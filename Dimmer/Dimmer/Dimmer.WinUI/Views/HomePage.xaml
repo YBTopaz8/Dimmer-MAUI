@@ -98,15 +98,17 @@
             <Border Padding="10" StrokeShape="RoundRectangle 20">
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
-
-                        <MenuFlyoutItem Text="Open Top View"
-                                           Clicked="OnToggleTopViewClicked">
-
-                        </MenuFlyoutItem>
                         <MenuFlyoutItem Text="Add Quick Note"
                    Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
-                   CommandParameter="Black" />
-
+                   CommandParameter="Black"
+                                       >
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator
+                                    Key="N"
+                                    Modifiers="None"
+                                     />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
                         <MenuFlyoutSubItem Text="File Tools">
                             <MenuFlyoutItem Text="Open File in Explorer"
                        Clicked="OnLabelClicked"
@@ -120,6 +122,14 @@
                         </MenuFlyoutSubItem>
 
 
+                        <MenuFlyoutItem Text="Toggle Top View"
+                                        Clicked="OnToggleTopViewClicked">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator
+                                    Key="O" 
+                                    Modifiers="Ctrl"/>
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
                 <Grid RowDefinitions="55"
@@ -319,7 +329,7 @@ Value="False">
                               
                               Collapsing="TopExpander_Collapsing">
               
-                <syncf:SfExpander.Header>
+                <syncf:SfExpander.Header >
                     <Grid RowDefinitions="auto,auto">
                         <Grid.GestureRecognizers>
                             <PointerGestureRecognizer 
@@ -329,23 +339,12 @@ Value="False">
                     <HorizontalStackLayout 
                         Grid.Row="0" Spacing="15"
                         HorizontalOptions="Center">
-                            <Label Text="{Binding CurrentPlayingSongView.Title}" FontSize="23"
-                               WidthRequest="250" 
-                                   ToolTipProperties.Text="{Binding CurrentPlayingSongView.Title,StringFormat='Title : {0}'}"
-                                   LineBreakMode="TailTruncation">
+                        
+                            <Label Text="{Binding CurrentPlayingSongView.Title}" FontSize="23">
                                
                             </Label>
-                            <Label WidthRequest="250"
-                                   HorizontalTextAlignment="Center"
-                                   ToolTipProperties.Text="{Binding CurrentPlayingSongView.OtherArtistsName,StringFormat='Artists : {0}'}"
-                                LineBreakMode="TailTruncation"
-                                Text="{Binding CurrentPlayingSongView.OtherArtistsName}" FontSize="23"
-                                   />
-                            <Label Text="{Binding CurrentPlayingSongView.AlbumName}"
-                                   
-                                   ToolTipProperties.Text="{Binding CurrentPlayingSongView.AlbumName,StringFormat='Album : {0}'}"
-                                   LineBreakMode="TailTruncation"
-                                   FontSize="23" WidthRequest="250"/>
+                            <Label Text="{Binding CurrentPlayingSongView.OtherArtistsName}" FontSize="23"/>
+                            <Label Text="{Binding CurrentPlayingSongView.AlbumName}" FontSize="23"/>
                             <Label Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >
                                 <Label.Triggers>
                                     <DataTrigger Binding="{Binding IsPlaying}"
@@ -357,12 +356,12 @@ Value="False">
                                 </Label.Triggers>
                             </Label>
 
-                            <Button
-                                BackgroundColor="Transparent"
-                                TextColor="#999999"
-                                Clicked="OnToggleTopViewClicked"
-                                windows:VisualElement.AccessKey="O"
-                                Grid.Column="2" Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                            <Button Grid.Column="2" 
+                                    Clicked="OnToggleTopViewClicked"
+                                   BackgroundColor="Transparent"
+                                    windows:VisualElement.AccessKey="O"
+                                    windows:VisualElement.AccessKeyPlacement="Bottom"
+                                   Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
                         </HorizontalStackLayout>
 
@@ -379,7 +378,7 @@ Value="False">
                 <syncf:SfExpander.Content>
                     <VerticalStackLayout>
                     <Grid Grid.Row="0" x:Name="TopBarAboveColView"
-               BackgroundColor="Transparent" Margin="10,0"
+               BackgroundColor="Transparent"
                RowDefinitions="100,auto,auto,auto,auto"
                RowSpacing="5">
                             <Grid.GestureRecognizers>
@@ -496,57 +495,47 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                        x:Name="MediaBtns"
                        Grid.Row="0"
                        HeightRequest="50"
-                       Spacing="5"
+                       Spacing="10"
                        VerticalOptions="Center">
-                                    <HorizontalStackLayout.Resources>
-                                        <ResourceDictionary>
-                                            <Style TargetType="ImageButton">
-                                                <Setter Property="HeightRequest" Value="50"/>
-                                                <Setter Property="Padding" Value="4"/>
-                                                <Setter Property="BorderWidth" Value="0"/>
-                                            </Style>
-                                        </ResourceDictionary>
-                                    </HorizontalStackLayout.Resources>
-                                <ImageButton
-                           x:Name="SkipPrev" 
+                                <syncf:SfChip
+                           x:Name="SkipPrev"
                            windows:VisualElement.AccessKey="B"
-                           windows:VisualElement.AccessKeyPlacement="Top"
+                           windows:VisualElement.AccessKeyPlacement="Right"
                            Background="Transparent"
                            Command="{Binding PreviousTrackCommand}"
-                           Source="skipprevious.png"
+                           ImageSource="skipprevious.png"
                            StyleClass="MediaBtnChip" />
-                                <ImageButton
-                           x:Name="PlayPauseBtn" 
+                                <syncf:SfChip
+                           x:Name="PlayPauseBtn"
                            windows:VisualElement.AccessKey="P"
-                           windows:VisualElement.AccessKeyPlacement="Bottom"
+                           windows:VisualElement.AccessKeyPlacement="Right"
                            Background="Transparent"
                            Command="{Binding PlayPauseToggleCommand}"
-                           Source="play.png"
+                           ImageSource="play.png"
                            StyleClass="MediaBtnChip">
-                                    <ImageButton.Triggers>
+                                    <syncf:SfChip.Triggers>
                                         <DataTrigger
                                    Binding="{Binding IsPlaying}"
-                                   TargetType="ImageButton"
+                                   TargetType="syncf:SfChip"
                                    Value="true">
-                                            <Setter Property="Source" Value="pause.png" />
+                                            <Setter Property="ImageSource" Value="pause.png" />
                                         </DataTrigger>
 
                                         <DataTrigger
                                    Binding="{Binding IsPlaying}"
-                                   TargetType="ImageButton"
+                                   TargetType="syncf:SfChip"
                                    Value="false">
-                                            <Setter Property="Source" Value="play.png" />
+                                            <Setter Property="ImageSource" Value="play.png" />
                                         </DataTrigger>
-                                    </ImageButton.Triggers>
-                                </ImageButton>
-                                    <ImageButton
+                                    </syncf:SfChip.Triggers>
+                                </syncf:SfChip>
+                                <syncf:SfChip
                            x:Name="SkipNext"
-                                    windows:VisualElement.AccessKey="N"
-                                        
-                           windows:VisualElement.AccessKeyPlacement="Top"
+                           windows:VisualElement.AccessKey="N"
+                           windows:VisualElement.AccessKeyPlacement="Right"
                            Background="Transparent"
                            Command="{Binding NextTrackCommand}"
-                           Source="skipnext.png"
+                           ImageSource="skipnext.png"
                            StyleClass="MediaBtnChip" />
 
 
@@ -560,8 +549,6 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                        VerticalOptions="Center">
                                 <Label Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
                                 <Slider
-                                    
-                                    
                            x:Name="TrackProgressSlider"
                            Grid.Column="1"
                            DragCompleted="Slider_DragCompleted"
@@ -710,12 +697,14 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            WidthRequest="180" />
 
 
-                                <ImageButton
+                                <syncf:SfChip
                            x:Name="ScrollToSong"
+                           windows:VisualElement.AccessKey="S"
+                           windows:VisualElement.AccessKeyPlacement="Right"
                            Clicked="ScrollToSong_Clicked"
-                           Source="eye.png"
-                                    windows:VisualElement.AccessKey="I"
-                        HeightRequest="45"
+                           ImageSize="40"
+                           ImageSource="eye.png"
+                           ShowIcon="True" WidthRequest="58"
                            
                            />
 
@@ -819,9 +808,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            IsVisible="False"
                            Text="Advanced Search (TQL)"
                            ToolTipProperties.Text="Start a Topaz Query using TQL" />
-                                <Label
-                                    HorizontalOptions="Center"
-                                    FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query {0}'}" />
+                                <Label FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query : {0}'}" />
                                 <VerticalStackLayout>
 
 
@@ -834,7 +821,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            x:Name="SearchSongSB"
                            windows:SearchBar.IsSpellCheckEnabled="True"
                            windows:VisualElement.AccessKey="F"
-                           windows:VisualElement.AccessKeyPlacement="Top"
+                           windows:VisualElement.AccessKeyPlacement="Right"
                            Focused="SearchSongSB_Focused"
                            FontSize="17"
                            IsTextPredictionEnabled="True"
@@ -846,73 +833,20 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                     <HorizontalStackLayout Grid.Column="1" Spacing="10">
 
                                         <Button
-                                            windows:VisualElement.AccessKey="R"
                                Command="{Binding RandomizeCommand}"
                                Text="Randomize"
                                WidthRequest="100" />
-                                        <Button Clicked="Button_Clicked_1" Text="Reset" 
-                                                 />
-                                        <Button
-
-                                            windows:VisualElement.AccessKey="X"
-                                            windows:VisualElement.AccessKeyPlacement="Top"
-                                               
-                                            BackgroundColor="Transparent"
-                                            BorderWidth="1"
-                                            ToolTipProperties.Text="Close Top View"
-                                            Clicked="OnToggleTopViewClicked" Text="X" />
+                                        <Button Clicked="Button_Clicked_1" Text="Reset" />
+                                        <Button Clicked="OnToggleTopViewClicked" Text="X" 
+                                                BackgroundColor="Transparent"
+                                                BorderWidth="1"
+                                    windows:VisualElement.AccessKey="X"
+                                    windows:VisualElement.AccessKeyPlacement="Bottom"/>
                                     </HorizontalStackLayout>
                                 </Grid>
 
                             </VerticalStackLayout>
 
-                            <VerticalStackLayout
-                   x:Name="LyricsSection"
-                   Grid.Row="4"
-                   HorizontalOptions="Center"
-                   IsVisible="False">
-                                <VerticalStackLayout.Triggers>
-
-                                    <DataTrigger
-                           Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                           TargetType="VerticalStackLayout"
-                           Value="true">
-                                        <Setter Property="IsVisible" Value="True" />
-                                    </DataTrigger>
-
-                                    <DataTrigger
-                           Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                           TargetType="VerticalStackLayout"
-                           Value="false">
-                                        <Setter Property="IsVisible" Value="False" />
-                                    </DataTrigger>
-                                </VerticalStackLayout.Triggers>
-
-                                <Label
-                       FontSize="18"
-                       HorizontalTextAlignment="Center"
-                       Opacity="0.7"
-                       Text="{Binding PreviousLine.Text}" />
-                                <Grid 
-                       HorizontalOptions="Center">
-                                    <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
-                                    <Label
-                           Margin="10"
-                           FontAttributes="Bold"
-                           FontSize="38"
-                       HorizontalTextAlignment="Center"
-                           Opacity="1"
-                           Text="{Binding CurrentLine.Text}"
-                           TextColor="DarkSlateBlue">
-                                        <Label.Triggers />
-                                    </Label>
-                                </Grid>
-                                <Label
-                       FontSize="20"
-                       HorizontalTextAlignment="Center"
-                       Opacity="0.7"
-                       Text="{Binding NextLine.Text}" />
-                            </VerticalStackLayout>
                         </VerticalStackLayout>
                     </Grid>
 
@@ -920,7 +854,56 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                     <Grid Grid.Row="1" RowDefinitions="auto,*"
                     
                    x:Name="SongsGrid" >
-                        <Grid Grid.Row="0" ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*,0.7*"
+                            <VerticalStackLayout Grid.Row="0">
+
+                                <VerticalStackLayout
+                   x:Name="LyricsSection"
+                   Grid.Row="4"
+                   HorizontalOptions="Center"
+                   IsVisible="False">
+                                    <VerticalStackLayout.Triggers>
+
+                                        <DataTrigger
+                           Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                           TargetType="VerticalStackLayout"
+                           Value="true">
+                                            <Setter Property="IsVisible" Value="True" />
+                                        </DataTrigger>
+
+                                        <DataTrigger
+                           Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                           TargetType="VerticalStackLayout"
+                           Value="false">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </VerticalStackLayout.Triggers>
+
+                                    <Label
+                       FontSize="18"
+                       HorizontalTextAlignment="Center"
+                       Opacity="0.7"
+                       Text="{Binding PreviousLine.Text}" />
+                                    <Grid 
+                       HorizontalOptions="Center">
+                                        <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
+                                        <Label
+                           Margin="10"
+                           FontAttributes="Bold"
+                           FontSize="38"
+                       HorizontalTextAlignment="Center"
+                           Opacity="1"
+                           Text="{Binding CurrentLine.Text}"
+                           TextColor="DarkSlateBlue">
+                                            <Label.Triggers />
+                                        </Label>
+                                    </Grid>
+                                    <Label
+                       FontSize="20"
+                       HorizontalTextAlignment="Center"
+                       Opacity="0.7"
+                       Text="{Binding NextLine.Text}" />
+                                </VerticalStackLayout>
+                                <Grid  ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*,0.7*"
                               ColumnSpacing="10">
                             <Grid.Resources>
                                 <Style TargetType="Label">
@@ -987,6 +970,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                         </Grid>
 
 
+                            </VerticalStackLayout>
                     </Grid>
                     </VerticalStackLayout>
                 </syncf:SfExpander.Content>

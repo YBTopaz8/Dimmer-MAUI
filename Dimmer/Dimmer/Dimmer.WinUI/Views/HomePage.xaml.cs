@@ -667,19 +667,9 @@ public partial class HomePage : ContentPage
         }
         // Prompt the user for a note
 
-        var result = await DisplayPromptAsync("Note Text", "Enter the note to save",
-            placeholder: "Tip: You could find just type this note to find this song back through search :)",
-            accept: "Done", keyboard: Keyboard.Text);
-        if (result != null)
-        {
-            UserNoteModelView note = new()
-            {
-                UserMessageText = result,
+       
+      await  MyViewModel.SaveUserNoteToDbLegacy(song);
 
-
-            };
-            MyViewModel.SaveUserNoteToDbLegacy(note, song);
-        }
 
     }
 
@@ -712,7 +702,7 @@ public partial class HomePage : ContentPage
     {
 
         var topView = TopExpander.Header;
-        await topView.DimmOutCompletelyAndHide(1000);
+        await topView.DimmOut(1000,0.05);
     }
 
     private void CloseTopExpander_PointerPressed(object sender, PointerEventArgs e)
@@ -742,12 +732,10 @@ public partial class HomePage : ContentPage
     private async void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
         var topView = TopExpander.Header;
-        if (!topView.IsVisible)
-        {
+       
 
-        await topView.DimmInCompletelyAndShow(500);
+            await topView.DimmInCompletelyAndShow(700);
 
-        }
     }
 
     private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)

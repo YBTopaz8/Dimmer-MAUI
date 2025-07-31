@@ -713,7 +713,8 @@ public partial class HomePage : ContentPage
         var send = (Chip)sender;
         SongModelView song = send.BindingContext as SongModelView;
         MyViewModel.BaseVM.SelectedSong=song;
-        await Shell.Current.GoToAsync(nameof(SingleSongPage));
+        await MyViewModel.BaseVM.SaveUserNoteToDbLegacy(song);
+        //await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
     protected override bool OnBackButtonPressed()

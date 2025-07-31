@@ -678,7 +678,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public const string CurrentAppVersion = "Dimmer v1.8heta";
+    public const string CurrentAppVersion = "Dimmer v1.9heta";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
@@ -2495,11 +2495,26 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // Clear the new properties too
         SongListeningStreak = null;
     }
-    public void SaveUserNoteToDbLegacy(UserNoteModelView userNote, SongModelView songWithNote)
+    
+    public async Task SaveUserNoteToDbLegacy(SongModelView songWithNote)
     {
-        if (userNote == null || songWithNote == null)
+        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Not for {Environment.NewLine}" +
+            $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
+    placeholder: "Tip: You could find just type this note to find this song back through search :)",
+    accept: "Done", keyboard: Keyboard.Text);
+        if (result == null)
+        {
             return;
+        }
+            UserNoteModelView userNote = new()
+            {
+                UserMessageText = result,
+                CreatedAt = DateTime.Now,
 
+
+            };
+        
+       
         // --- The Fix ---
         // The line `songWithNote.UserNotes ??= new();` is removed.
         // We can safely add directly to the list because we know it was initialized

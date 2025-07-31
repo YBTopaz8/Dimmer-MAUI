@@ -168,9 +168,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\source\repos\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
-    <ProjectReference Include="..\..\..\..\..\source\repos\YBTopaz8\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
     <ProjectReference Include="..\atldotnet-main\ATL\ATL.csproj" />
+    <ProjectReference Include="..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+    <ProjectReference Include="..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
   </ItemGroup>
 
 </Project>
