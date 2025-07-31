@@ -98,6 +98,11 @@
             <Border Padding="10" StrokeShape="RoundRectangle 20">
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
+
+                        <MenuFlyoutItem Text="Open Top View"
+                                           Clicked="OnToggleTopViewClicked">
+
+                        </MenuFlyoutItem>
                         <MenuFlyoutItem Text="Add Quick Note"
                    Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
                    CommandParameter="Black" />
@@ -115,17 +120,6 @@
                         </MenuFlyoutSubItem>
 
 
-                        <MenuFlyoutSubItem Text="Dark">
-                            <MenuFlyoutItem Text="Blue"
-                       Clicked="OnLabelClicked"
-                       CommandParameter="DarkBlue" />
-                            <MenuFlyoutItem Text="Cyan"
-                       Clicked="OnLabelClicked"
-                       CommandParameter="DarkCyan" />
-                            <MenuFlyoutItem Text="Magenta"
-                       Clicked="OnLabelClicked"
-                       CommandParameter="DarkMagenta" />
-                        </MenuFlyoutSubItem>
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
                 <Grid RowDefinitions="55"
@@ -335,11 +329,23 @@ Value="False">
                     <HorizontalStackLayout 
                         Grid.Row="0" Spacing="15"
                         HorizontalOptions="Center">
-                            <Label Text="{Binding CurrentPlayingSongView.Title}" FontSize="23">
+                            <Label Text="{Binding CurrentPlayingSongView.Title}" FontSize="23"
+                               WidthRequest="250" 
+                                   ToolTipProperties.Text="{Binding CurrentPlayingSongView.Title,StringFormat='Title : {0}'}"
+                                   LineBreakMode="TailTruncation">
                                
                             </Label>
-                            <Label Text="{Binding CurrentPlayingSongView.OtherArtistsName}" FontSize="23"/>
-                            <Label Text="{Binding CurrentPlayingSongView.AlbumName}" FontSize="23"/>
+                            <Label WidthRequest="250"
+                                   HorizontalTextAlignment="Center"
+                                   ToolTipProperties.Text="{Binding CurrentPlayingSongView.OtherArtistsName,StringFormat='Artists : {0}'}"
+                                LineBreakMode="TailTruncation"
+                                Text="{Binding CurrentPlayingSongView.OtherArtistsName}" FontSize="23"
+                                   />
+                            <Label Text="{Binding CurrentPlayingSongView.AlbumName}"
+                                   
+                                   ToolTipProperties.Text="{Binding CurrentPlayingSongView.AlbumName,StringFormat='Album : {0}'}"
+                                   LineBreakMode="TailTruncation"
+                                   FontSize="23" WidthRequest="250"/>
                             <Label Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >
                                 <Label.Triggers>
                                     <DataTrigger Binding="{Binding IsPlaying}"
@@ -351,7 +357,12 @@ Value="False">
                                 </Label.Triggers>
                             </Label>
 
-                            <Label Grid.Column="2" Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                            <Button
+                                BackgroundColor="Transparent"
+                                TextColor="#999999"
+                                Clicked="OnToggleTopViewClicked"
+                                windows:VisualElement.AccessKey="O"
+                                Grid.Column="2" Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
                         </HorizontalStackLayout>
 
@@ -368,7 +379,7 @@ Value="False">
                 <syncf:SfExpander.Content>
                     <VerticalStackLayout>
                     <Grid Grid.Row="0" x:Name="TopBarAboveColView"
-               BackgroundColor="Transparent"
+               BackgroundColor="Transparent" Margin="10,0"
                RowDefinitions="100,auto,auto,auto,auto"
                RowSpacing="5">
                             <Grid.GestureRecognizers>
@@ -485,47 +496,57 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                        x:Name="MediaBtns"
                        Grid.Row="0"
                        HeightRequest="50"
-                       Spacing="10"
+                       Spacing="5"
                        VerticalOptions="Center">
-                                <syncf:SfChip
-                           x:Name="SkipPrev"
+                                    <HorizontalStackLayout.Resources>
+                                        <ResourceDictionary>
+                                            <Style TargetType="ImageButton">
+                                                <Setter Property="HeightRequest" Value="50"/>
+                                                <Setter Property="Padding" Value="4"/>
+                                                <Setter Property="BorderWidth" Value="0"/>
+                                            </Style>
+                                        </ResourceDictionary>
+                                    </HorizontalStackLayout.Resources>
+                                <ImageButton
+                           x:Name="SkipPrev" 
                            windows:VisualElement.AccessKey="B"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                           windows:VisualElement.AccessKeyPlacement="Top"
                            Background="Transparent"
                            Command="{Binding PreviousTrackCommand}"
-                           ImageSource="skipprevious.png"
+                           Source="skipprevious.png"
                            StyleClass="MediaBtnChip" />
-                                <syncf:SfChip
-                           x:Name="PlayPauseBtn"
+                                <ImageButton
+                           x:Name="PlayPauseBtn" 
                            windows:VisualElement.AccessKey="P"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
                            Background="Transparent"
                            Command="{Binding PlayPauseToggleCommand}"
-                           ImageSource="play.png"
+                           Source="play.png"
                            StyleClass="MediaBtnChip">
-                                    <syncf:SfChip.Triggers>
+                                    <ImageButton.Triggers>
                                         <DataTrigger
                                    Binding="{Binding IsPlaying}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="ImageButton"
                                    Value="true">
-                                            <Setter Property="ImageSource" Value="pause.png" />
+                                            <Setter Property="Source" Value="pause.png" />
                                         </DataTrigger>
 
                                         <DataTrigger
                                    Binding="{Binding IsPlaying}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="ImageButton"
                                    Value="false">
-                                            <Setter Property="ImageSource" Value="play.png" />
+                                            <Setter Property="Source" Value="play.png" />
                                         </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
-                                <syncf:SfChip
+                                    </ImageButton.Triggers>
+                                </ImageButton>
+                                    <ImageButton
                            x:Name="SkipNext"
-                           windows:VisualElement.AccessKey="N"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                                    windows:VisualElement.AccessKey="N"
+                                        
+                           windows:VisualElement.AccessKeyPlacement="Top"
                            Background="Transparent"
                            Command="{Binding NextTrackCommand}"
-                           ImageSource="skipnext.png"
+                           Source="skipnext.png"
                            StyleClass="MediaBtnChip" />
 
 
@@ -539,6 +560,8 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                        VerticalOptions="Center">
                                 <Label Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
                                 <Slider
+                                    
+                                    
                            x:Name="TrackProgressSlider"
                            Grid.Column="1"
                            DragCompleted="Slider_DragCompleted"
@@ -687,14 +710,12 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            WidthRequest="180" />
 
 
-                                <syncf:SfChip
+                                <ImageButton
                            x:Name="ScrollToSong"
-                           windows:VisualElement.AccessKey="S"
-                           windows:VisualElement.AccessKeyPlacement="Right"
                            Clicked="ScrollToSong_Clicked"
-                           ImageSize="40"
-                           ImageSource="eye.png"
-                           ShowIcon="True" WidthRequest="58"
+                           Source="eye.png"
+                                    windows:VisualElement.AccessKey="I"
+                        HeightRequest="45"
                            
                            />
 
@@ -798,7 +819,9 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            IsVisible="False"
                            Text="Advanced Search (TQL)"
                            ToolTipProperties.Text="Start a Topaz Query using TQL" />
-                                <Label FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query : {0}'}" />
+                                <Label
+                                    HorizontalOptions="Center"
+                                    FontSize="19" Text="{Binding CurrentQuery, StringFormat='Current Query {0}'}" />
                                 <VerticalStackLayout>
 
 
@@ -811,7 +834,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            x:Name="SearchSongSB"
                            windows:SearchBar.IsSpellCheckEnabled="True"
                            windows:VisualElement.AccessKey="F"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                           windows:VisualElement.AccessKeyPlacement="Top"
                            Focused="SearchSongSB_Focused"
                            FontSize="17"
                            IsTextPredictionEnabled="True"
@@ -823,11 +846,21 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                     <HorizontalStackLayout Grid.Column="1" Spacing="10">
 
                                         <Button
+                                            windows:VisualElement.AccessKey="R"
                                Command="{Binding RandomizeCommand}"
                                Text="Randomize"
                                WidthRequest="100" />
-                                        <Button Clicked="Button_Clicked_1" Text="Reset" />
-                                        <Button Clicked="Button_Clicked_1" Text="X" />
+                                        <Button Clicked="Button_Clicked_1" Text="Reset" 
+                                                 />
+                                        <Button
+
+                                            windows:VisualElement.AccessKey="X"
+                                            windows:VisualElement.AccessKeyPlacement="Top"
+                                               
+                                            BackgroundColor="Transparent"
+                                            BorderWidth="1"
+                                            ToolTipProperties.Text="Close Top View"
+                                            Clicked="OnToggleTopViewClicked" Text="X" />
                                     </HorizontalStackLayout>
                                 </Grid>
 

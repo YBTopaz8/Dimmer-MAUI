@@ -93,6 +93,7 @@ public partial class HomePage : ContentPage
 
     private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
     {
+        return;
         var view = (Microsoft.Maui.Controls.View)sender;
         var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
         MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
@@ -629,7 +630,7 @@ public partial class HomePage : ContentPage
         UtilitiesHSL.IsVisible=!UtilitiesHSL.IsVisible;
     }
 
-    private async void ViewNPQ_Clicked(object sender, EventArgs e)
+    private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
         SearchSongSB.Text=MyViewModel.CurrentPlaybackQuery;
         return;
@@ -720,6 +721,11 @@ public partial class HomePage : ContentPage
         var arggs = e.PlatformArgs.PointerRoutedEventArgs;
         OnGlobalPointerPressed(sender, arggs);
     }
+    private void OnToggleTopViewClicked(object sender, EventArgs e)
+    {
+        TopExpander.IsExpanded = !TopExpander.IsExpanded;
+        
+    }
     private  void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
@@ -736,7 +742,12 @@ public partial class HomePage : ContentPage
     private async void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
         var topView = TopExpander.Header;
-        await topView.DimmInCompletelyAndShow(1000);
+        if (!topView.IsVisible)
+        {
+
+        await topView.DimmInCompletelyAndShow(500);
+
+        }
     }
 
     private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)

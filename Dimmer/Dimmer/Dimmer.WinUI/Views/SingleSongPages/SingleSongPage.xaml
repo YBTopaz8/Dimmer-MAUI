@@ -25,6 +25,11 @@
             x:Key="SectionHeader">
             <Setter Property="FontAttributes" Value="Bold"/>
         </Style>
+        <Style TargetType="Label" 
+            
+            x:Key="FieldLabel">
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
         <DataTemplate x:Key="tooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
                 <Label
@@ -116,7 +121,7 @@
 
                 <!-- User Note Section -->
                 <Label Text="My Notes" Style="{StaticResource SectionHeader}"/>
-                <Label Text="{Binding SelectedSong.UserNote.Count}" LineBreakMode="WordWrap"/>
+                <Label Text="{Binding SelectedSong.UserNotes.Count}" LineBreakMode="WordWrap"/>
                 <Button Text="Add / Edit Note" Command="{Binding EditNoteCommand}" CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
 
                 <!-- File Properties -->
