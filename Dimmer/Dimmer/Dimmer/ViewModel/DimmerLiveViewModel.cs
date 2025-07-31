@@ -223,187 +223,6 @@ public partial class DimmerLiveViewModel :ObservableObject, IReactiveObject, IAc
         //Task.Run(SetupLiveQueryListeners);
         #endregion
     }
-    private async Task SetupLiveQueryListeners()
-    {
-        var currentUser = ParseClient.Instance.CurrentUser;
-
-        if (currentUser == null)
-            return ;
-
-        LiveClient = new ParseLiveQueryClient();
-        var disposables = new CompositeDisposable();
-        LiveClient.Start();
-
-        LiveClient.OnError
-        .Subscribe(ex => Debug.WriteLine($"[LiveQuery Error]: {ex.Message}"));
-
-        // You can still listen to these for logging if you wish.
-        LiveClient.OnSubscribed
-            .Subscribe(e =>
-            {
-                Debug.WriteLine($"Successfully subscribed with ID: {e.requestId}");
-            });
-
-
-        LiveClient.OnDisconnected
-            .Do(info =>
-                Debug.WriteLine($"Server disconnected.{info.Reason}"))
-            .Subscribe();
-
-
-        LiveClient.OnSubscribed
-            .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
-            .Subscribe();
-
-        var currentUserPointer = ParseClient.Instance.CurrentUser;
-
-        LiveClient.OnConnectionStateChanged
-      .ObserveOn(RxApp.MainThreadScheduler) // Best practice: ensure UI updates are on the main thread
-      .Subscribe(state =>
-      {
-          Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state}");
-          IsConnected = state == LiveQueryConnectionState.Connected;
-      });
-
-        //// 1. Friend Requests
-        //var requestQuery = new ParseQuery<FriendRequest>(ParseClient.Instance);
-        //var requestSub = await LiveClient.SubscribeAsync(requestQuery);
-        //requestSub.On(Subscription.Event.Create, req =>
-        //{
-        //    _friendRequestsCache.AddOrUpdate(req);
-        //});
-        //requestSub.On(Subscription.Event.Delete, req =>
-        //{
-        //    _friendRequestsCache.Remove(req);
-        //});
-
-        // 3. Messages in those conversations
-        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-            ;
-        var messageSub = LiveClient.Subscribe(messageQuery);
-        messageSub.On(Subscription.Event.Create, async msg =>
-        {
-            var messageType = msg.MessageType;
-            var currentUserId = ParseUser.CurrentUser.ObjectId;
-            
-
-
-            // Use a switch to handle different commands
-            switch (messageType)
-            {
-                case "PlaylistReceived":
-                    Debug.WriteLine("Playlist received notification!");
-
-                    // 1. Get the ParseFile object from the message
-                    var playlistFile = msg.Get<ParseFile>("playlistFile");
-                    if (playlistFile != null && playlistFile.Url != null)
-                    {
-                        
-                        using (var httpClient = new HttpClient())
-                        {
-                            var jsonContent = await httpClient.GetStringAsync(playlistFile.Url);
-
-                            
-                            var receivedSongs = JsonSerializer.Deserialize<List<DimmerSharedSong>>(jsonContent);
-                            if (receivedSongs is null)
-                                return;
-                            
-                            var MyListOfSongsOnDeviceA = viewModel._mapper.Map<ObservableCollection<SongModelView>>((receivedSongs));
-                            Debug.WriteLine($"Successfully downloaded and parsed {receivedSongs.Count} songs.");
-                        }
-                    }
-                    break;
-
-                case "PlaySong":
-
-                    Debug.WriteLine("Playy");
-                    break;
-
-                default:
-                    _messagesCache.AddOrUpdate(msg); // It's a regular chat message
-                    break;
-            }
-        });
-        messageSub.On(Subscription.Event.Update, (msg, _) =>
-        {
-            _messagesCache.AddOrUpdate(msg);
-        });
-        messageSub.On(Subscription.Event.Delete, msg => _messagesCache.Remove(msg));
-
- 
-
-        NewMessageText="Joined General Channel";
-        NewMessageText = DimmerPlaybackState.ChatJoinedGeneralChannel.ToString();
-        await SendMessageInternalAsync();
-        return;
-    }
- 
-public async Task GetSongs()
-    { 
-
-        NewMessageText="Joined General Channel";
-        NewMessageText = DimmerPlaybackState.ChatJoinedGeneralChannel.ToString();
-        await SendMessageInternalAsync();
-        return;
-    }
-
-
-
-    public async Task SendPlaylistToDeviceA(List<SongModelView> songs, string deviceAUserId)
-    {
-        var shareSongs = songs.Select(song =>
-        {
-
-            // Convert your DimmerSharedSong to a simpler object if needed
-            return new
-        DimmerSharedSong  ()  {
-                Title=                song.Title,
-                ArtistName=song.ArtistName,
-                AlbumName=song.AlbumName,
-                GenreName=song.GenreName,
-                IsFavorite=song.IsFavorite,
-                IsPlaying=song.IsPlaying,
-            };
-
-
-        
-        }).ToList();
-
-    var parameters = new Dictionary<string, object>
-    {
-        // NOTE: Your SongModel must be serializable to basic types.
-        // If it's complex, convert it to a simpler object first.
-        { "songs", songs },
-        { "recipientId", deviceAUserId }
-    };
-
-        try
-        {
-            // Call the cloud function and wait for its response
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<Dictionary<string, object>>("transferPlaylist", parameters);
-            Debug.WriteLine($"Cloud function result: {result["message"]}");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to transfer playlist: {ex.Message}");
-        }
-    }
-
-    public async Task EndLiveQueries()
-    {
-               if (LiveClient != null)
-        {
-            await LiveClient.RemoveAllSubscriptions();
-            await LiveClient.DisconnectAsync();
-            await LiveClient.DisposeAsync();
-            LiveClient = null;
-        }
-        AllMessages?.Clear();
-        AllMessages = null;
-    }
-
-
-
     [RelayCommand]
     public async Task LoadUsers()
 
@@ -433,37 +252,85 @@ public async Task GetSongs()
             await LoadUsers();
         }
     }
+  
+
+
+    private readonly SourceCache<UserModelOnline, string> _friendsCache = new(user => user.ObjectId);
+    private readonly SourceCache<FriendRequest, string> _friendRequestsCache = new(req => req.ObjectId);
+    private readonly SourceCache<ChatConversation, string> _conversationsCache = new(chat => chat.ObjectId);
+    private readonly SourceCache<ChatMessage, string> _messagesCache = new(msg => msg.ObjectId);
+
+    private readonly ReadOnlyObservableCollection<UserModelOnline> _friends;
+    private readonly ReadOnlyObservableCollection<UserModelOnline> _userss;
+    private readonly ReadOnlyObservableCollection<FriendRequest> _friendRequests;
+    private readonly ReadOnlyObservableCollection<ChatConversation> _conversations;
+    private readonly ReadOnlyObservableCollection<ChatMessage> _messagesInGroupConversation;
+    public ReadOnlyObservableCollection<ChatMessage> MessagesInGroupConversation => _messagesInGroupConversation;
+
+    public ReadOnlyObservableCollection<UserModelOnline> Friends => _friends;
+    public ReadOnlyObservableCollection<UserModelOnline> Users => _userss;
+    public ReadOnlyObservableCollection<FriendRequest> FriendRequests => _friendRequests;
+    public ReadOnlyObservableCollection<ChatConversation> Conversations => _conversations;
+
+    [ObservableProperty] public partial ChatConversation? SelectedConversation { get; set; }
+    [ObservableProperty] public partial string NewMessageText {get;set;}
+    [ObservableProperty] public partial string LatestMessageType {get;set;}
+    [ObservableProperty] public partial bool IsSocialHubActive {get;set;}
+
+
+    public ReactiveCommand<string, AuthResult> SendFriendRequestCommand { get; }
+    public ReactiveCommand<FriendRequest, Unit> AcceptFriendRequestCommand { get; }
+    public ReactiveCommand<FriendRequest, Unit> RejectFriendRequestCommand { get; }
+    public ReactiveCommand<Unit, Unit> SendMessageCommand { get; }
+    public ReactiveCommand<ChatMessage, Unit> EditMessageCommand { get; }
+    public ReactiveCommand<ChatMessage, Unit> DeleteMessageCommand { get; }
+    public ReactiveCommand<ChatMessage, Unit> ReactToMessageCommand { get; } // Assumes a payload from CommandParameter
+                                                                             // This property will hold the user that the app user clicks on in the list.
+    [ObservableProperty]
+    public partial UserModelOnline? SelectedUserFromList { get; set; }
+
+    // This command will be triggered to load or refresh the list of all users.
+    public ReactiveCommand<Unit, Unit> LoadAllUsersCommand { get; }
+
+    // This command is triggered when a user is selected from the list.
+    public ReactiveCommand<UserModelOnline, ChatConversation> ViewOrStartChatCommand { get; }
+    [ObservableProperty] public partial ObservableCollection<UserModelOnline>? AllUsers { get; set; }
+    [ObservableProperty] public partial ObservableCollection<ChatMessage>? AllMessages { get; set; }
+    [ObservableProperty] public partial bool IsConnected { get; set; }
+
+
+
+
+
+    [RelayCommand]
+    public async Task FindAllMessagesInconvo(ChatConversation conversation)
+    {
+        //    var query = new ParseQuery<ChatMessage>(ParseClient.Instance)
+        //        .WhereRelatedTo(conversation, CurrentUser.ObjectId);
+        ////.WhereEqualTo("conversation", selectedConversation);
+
+        //    var messages = await query.FindAsync();
+        var messages = await new ParseQuery<ChatMessage>(ParseClient.Instance)
+            .Include(nameof(ChatMessage.Conversation)).FindAsync();
+
+        var rr = messages.ToList();
+    //.WhereEqualTo("conversation", conversation)
+    //.OrderBy("createdAt")
+    //.FindAsync();
+
+        AllMessages ??= new ObservableCollection<ChatMessage>();
+        AllMessages.Clear();
+        foreach (var message in messages)
+        {
+            AllMessages.Add(message);
+        }
+
+
+    }
+
+    #endregion
     #region --- Internal Business Logic ---
 
-    private async Task<AuthResult> SendFriendRequestInternalAsync(string username)
-    {
-        CurrentUser = _authService.CurrentUser;
-
-        var recipientQuery = new ParseQuery<UserModelOnline>(ParseClient.Instance);
-        var recipient = await recipientQuery.WhereEqualTo("userUserModelOnline?e", username).FirstOrDefaultAsync();
-        var currUsr = ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(CurrentUser.ObjectId);
-        if (recipient == null)
-            return AuthResult.Failure("User not found.");
-
-        var request = new FriendRequest();
-        request.Recipient = recipient;
-        request.Sender = currUsr;
-        request.Status = "pending"; 
-
-        await request.SaveAsync();
-        return AuthResult.Success();
-    }
-
-
-    private async Task AcceptFriendRequestInternalAsync(FriendRequest requestObjectId)
-    {
-        // This MUST be a Cloud Code function for security.
-        // The parameters would be the objectId of the request.
-        var parameters = new Dictionary<string, object> { { "requestId", requestObjectId.ObjectId } };
-        await ParseClient.Instance.CallCloudCodeFunctionAsync<FriendRequest>("acceptFriendRequest", parameters);
-    }
-
-    private Task RejectFriendRequestInternalAsync(FriendRequest request) => request.DeleteAsync();
 
     /// <summary>
     /// Gets a stable, unique ID for the sender.
@@ -471,92 +338,7 @@ public async Task GetSongs()
     /// - For anonymous users, this is the ObjectId of their app's installation.
     /// </summary>
     /// <returns>A unique sender ID string.</returns>
-    private async Task<string> GetUniqueSenderIdAsync()
-    {
-        var currentUser = _authService.CurrentUser;
-        if (currentUser?.ObjectId != null)
-        {
-            return currentUser.ObjectId;
-        }
-
-        
-        try
-        {
-            
-            var installation = await ParseClient.Instance.CurrentInstallationController.GetAsync(ParseClient.Instance);
-
-            
-            
-            if (installation.ObjectId is null)
-            {
-                
-                
-                await installation.SaveAsync();
-            }
-
-            
-            return installation.ObjectId;
-        }
-        catch (Exception ex)
-        {
-            
-            Console.WriteLine($"Critical Error: Could not retrieve or save installation to get a unique ID. {ex.Message}");
-            
-            return "anonymous-error";
-        }
-    }
-
-
-    private async Task SendMessageInternalAsync()
-    {
-        // --- Your existing validation is perfect ---
-        if (string.IsNullOrWhiteSpace(NewMessageText))
-        {
-            return;
-        }
-        LatestMessageType = DimmerPlaybackState.ChatJoinedGeneralChannel.ToString();
-
-        
-        var message = new ChatMessage
-        {
-            Text = NewMessageText,
-
-            
-            
-            
-            MessageType = LatestMessageType,
-            
-            UserSenderId = await GetUniqueSenderIdAsync(),
-
-            UserDevicePlatform = DeviceInfo.Platform.ToString(),
-            UserDeviceIdiom = DeviceInfo.Idiom.ToString(),
-            UserDeviceVersion = DeviceInfo.VersionString,
-        };
-        message.UserName = CurrentUser?.Username ?? $"Listener #{message.UserSenderId}";
-
-
-        DimmerSharedSong currentSong = new()
-                    {
-            Title = viewModel.CurrentPlayingSongView.Title,
-            ArtistName = viewModel.CurrentPlayingSongView.OtherArtistsName,
-            AlbumName = viewModel.CurrentPlayingSongView.AlbumName,
-            GenreName = viewModel.CurrentPlayingSongView.GenreName,
-            IsFavorite = viewModel.CurrentPlayingSongView.IsFavorite,
-            IsPlaying = viewModel.IsPlaying,
-            SharedPositionInSeconds = viewModel.CurrentTrackPositionSeconds,
-            
-        };
-        await currentSong.SaveAsync();
-
-
-        var currSongPointer = ParseClient.Instance.CreateObjectWithoutData<DimmerSharedSong>(currentSong.ObjectId);
-        message.SharedSong = currentSong;
-        
-
-        await message.SaveAsync();
-
-        NewMessageText = string.Empty;
-    }
+   
     private async Task LoadAllUsersInternalAsync()
     {
         CurrentUser= _authService.CurrentUser;
@@ -648,6 +430,284 @@ public async Task GetSongs()
         return newConversation;
     }
 
+
+
+
+
+
+
+    private async Task SetupLiveQueryListeners()
+    {
+        var currentUser = ParseClient.Instance.CurrentUser;
+
+        if (currentUser == null)
+            return;
+
+        LiveClient = new ParseLiveQueryClient();
+        var disposables = new CompositeDisposable();
+        LiveClient.Start();
+
+        LiveClient.OnError
+        .Subscribe(ex => Debug.WriteLine($"[LiveQuery Error]: {ex.Message}"));
+
+        // You can still listen to these for logging if you wish.
+        LiveClient.OnSubscribed
+            .Subscribe(e =>
+            {
+                Debug.WriteLine($"Successfully subscribed with ID: {e.requestId}");
+            });
+
+
+        LiveClient.OnDisconnected
+            .Do(info =>
+                Debug.WriteLine($"Server disconnected.{info.Reason}"))
+            .Subscribe();
+
+
+        LiveClient.OnSubscribed
+            .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
+            .Subscribe();
+
+        var currentUserPointer = ParseClient.Instance.CurrentUser;
+
+        LiveClient.OnConnectionStateChanged
+      .ObserveOn(RxApp.MainThreadScheduler) // Best practice: ensure UI updates are on the main thread
+      .Subscribe(state =>
+      {
+          Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state}");
+          IsConnected = state == LiveQueryConnectionState.Connected;
+      });
+
+
+        // 3. Messages in those conversations
+        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
+           ;
+        var messageSub = LiveClient.Subscribe(messageQuery)
+            ;
+        messageSub.On(Subscription.Event.Create, async msg =>
+        {
+            var messageType = msg.MessageType;
+            var currentUserId = ParseUser.CurrentUser.ObjectId;
+            
+            // Use a switch to handle different commands
+            switch (messageType)
+            {
+                case "SessionTransfer":
+                    if ((msg.UserDeviceVersion == DeviceInfo.Current.VersionString) && (msg.UserDevicePlatform == DeviceInfo.Current.Platform.ToString()))
+                    {
+                        return;
+                    }
+
+                    NewMessageText = "Session Transfer";
+
+                    await SendMessageInternalAsync();
+
+                    var currentSong = viewModel.CurrentPlayingSongView;
+                    var currentSongBytes = File.ReadAllBytes(currentSong.FilePath);
+
+                    ParseFile currentSongFile = new ParseFile(currentSong.Title, currentSongBytes);
+                    await currentSongFile.SaveAsync(ParseClient.Instance);
+
+                 
+
+
+
+                    break;
+                case "PlaylistReceived":
+                    Debug.WriteLine("Playlist received notification!");
+
+                    // 1. Get the ParseFile object from the message
+                    var playlistFile = msg.Get<ParseFile>("playlistFile");
+                    if (playlistFile != null && playlistFile.Url != null)
+                    {
+
+                        using (var httpClient = new HttpClient())
+                        {
+                            var jsonContent = await httpClient.GetStringAsync(playlistFile.Url);
+
+
+                            var receivedSongs = JsonSerializer.Deserialize<List<DimmerSharedSong>>(jsonContent);
+                            if (receivedSongs is null)
+                                return;
+
+                            var MyListOfSongsOnDeviceA = viewModel._mapper.Map<ObservableCollection<SongModelView>>((receivedSongs));
+                            Debug.WriteLine($"Successfully downloaded and parsed {receivedSongs.Count} songs.");
+                        }
+                    }
+                    break;
+
+                case "PlaySong":
+
+                    Debug.WriteLine("Playy");
+                    break;
+
+                default:
+                    _messagesCache.AddOrUpdate(msg); // It's a regular chat message
+                    break;
+            }
+        });
+        messageSub.On(Subscription.Event.Update, (msg, _) =>
+        {
+            _messagesCache.AddOrUpdate(msg);
+        });
+        messageSub.On(Subscription.Event.Delete, msg =>
+        {
+            _messagesCache.Remove(msg);
+        });
+
+
+
+        NewMessageText="Joined General Channel";
+        NewMessageText = DimmerPlaybackState.ChatJoinedGeneralChannel.ToString();
+        await SendMessageInternalAsync();
+        return;
+    }
+
+    public async Task GetSongs()
+    {
+
+        NewMessageText="Joined General Channel";
+        NewMessageText = DimmerPlaybackState.ChatJoinedGeneralChannel.ToString();
+        await SendMessageInternalAsync();
+        return;
+    }
+
+
+
+    public async Task SendPlaylistToDeviceA(List<SongModelView> songs, string deviceAUserId)
+    {
+        var shareSongs = songs.Select(song =>
+        {
+
+            // Convert your DimmerSharedSong to a simpler object if needed
+            return new
+        DimmerSharedSong()
+            {
+                Title=                song.Title,
+                ArtistName=song.ArtistName,
+                AlbumName=song.AlbumName,
+                GenreName=song.GenreName,
+                IsFavorite=song.IsFavorite,
+                IsPlaying=song.IsPlaying,
+            };
+
+
+
+        }).ToList();
+
+        var parameters = new Dictionary<string, object>
+    {
+        // NOTE: Your SongModel must be serializable to basic types.
+        // If it's complex, convert it to a simpler object first.
+        { "songs", songs },
+        { "recipientId", deviceAUserId }
+    };
+
+        try
+        {
+            // Call the cloud function and wait for its response
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<Dictionary<string, object>>("transferPlaylist", parameters);
+            Debug.WriteLine($"Cloud function result: {result["message"]}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to transfer playlist: {ex.Message}");
+        }
+    }
+
+    public async Task EndLiveQueries()
+    {
+        if (LiveClient != null)
+        {
+            await LiveClient.RemoveAllSubscriptions();
+            await LiveClient.DisconnectAsync();
+            await LiveClient.DisposeAsync();
+            LiveClient = null;
+        }
+        AllMessages?.Clear();
+        AllMessages = null;
+    }
+
+
+    private async Task<string> GetUniqueSenderIdAsync()
+    {
+        var currentUser = _authService.CurrentUser;
+        if (currentUser?.ObjectId != null)
+        {
+            return currentUser.ObjectId;
+        }
+
+
+        try
+        {
+
+            var installation = await ParseClient.Instance.CurrentInstallationController.GetAsync(ParseClient.Instance);
+
+
+
+            if (installation.ObjectId is null)
+            {
+
+
+                await installation.SaveAsync();
+            }
+
+
+            return installation.ObjectId;
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine($"Critical Error: Could not retrieve or save installation to get a unique ID. {ex.Message}");
+
+            return "anonymous-error";
+        }
+    }
+
+
+    private async Task SendMessageInternalAsync()
+    {
+        // --- Your existing validation is perfect ---
+        if (string.IsNullOrWhiteSpace(NewMessageText))
+        {
+            return;
+        }
+
+
+        var message = new ChatMessage
+        {
+            Text = NewMessageText,
+            MessageType = LatestMessageType,
+            UserSenderId = await GetUniqueSenderIdAsync(),
+            UserDevicePlatform = DeviceInfo.Platform.ToString(),
+            UserDeviceIdiom = DeviceInfo.Idiom.ToString(),
+            UserDeviceVersion = DeviceInfo.VersionString,
+        };
+        message.UserName = CurrentUser?.Username ?? $"Listener #{message.UserSenderId}";
+
+
+        DimmerSharedSong currentSong = new()
+        {
+            Title = viewModel.CurrentPlayingSongView.Title,
+            ArtistName = viewModel.CurrentPlayingSongView.OtherArtistsName,
+            AlbumName = viewModel.CurrentPlayingSongView.AlbumName,
+            GenreName = viewModel.CurrentPlayingSongView.GenreName,
+            IsFavorite = viewModel.CurrentPlayingSongView.IsFavorite,
+            IsPlaying = viewModel.IsPlaying,
+            SharedPositionInSeconds = viewModel.CurrentTrackPositionSeconds,
+
+        };
+        await currentSong.SaveAsync();
+
+
+        var currSongPointer = ParseClient.Instance.CreateObjectWithoutData<DimmerSharedSong>(currentSong.ObjectId);
+        message.SharedSong = currSongPointer;
+
+
+        await message.SaveAsync();
+
+        NewMessageText = string.Empty;
+    }
     private async Task EditMessageInternalAsync(ChatMessage message)
     {
         // Assume you got new text from a popup...
@@ -655,7 +715,7 @@ public async Task GetSongs()
         message.MessageType = "EditedMessage";
         message.Text = newText;
         await message.SaveAsync();
-    NewMessageText=string.Empty;
+        NewMessageText=string.Empty;
 
     }
 
@@ -674,82 +734,38 @@ public async Task GetSongs()
         await message.SaveAsync();
     }
 
-    #endregion
 
-
-
-    private readonly SourceCache<UserModelOnline, string> _friendsCache = new(user => user.ObjectId);
-    private readonly SourceCache<FriendRequest, string> _friendRequestsCache = new(req => req.ObjectId);
-    private readonly SourceCache<ChatConversation, string> _conversationsCache = new(chat => chat.ObjectId);
-    private readonly SourceCache<ChatMessage, string> _messagesCache = new(msg => msg.ObjectId);
-
-    private readonly ReadOnlyObservableCollection<UserModelOnline> _friends;
-    private readonly ReadOnlyObservableCollection<UserModelOnline> _userss;
-    private readonly ReadOnlyObservableCollection<FriendRequest> _friendRequests;
-    private readonly ReadOnlyObservableCollection<ChatConversation> _conversations;
-    private readonly ReadOnlyObservableCollection<ChatMessage> _messagesInGroupConversation;
-    public ReadOnlyObservableCollection<ChatMessage> MessagesInGroupConversation => _messagesInGroupConversation;
-
-    public ReadOnlyObservableCollection<UserModelOnline> Friends => _friends;
-    public ReadOnlyObservableCollection<UserModelOnline> Users => _userss;
-    public ReadOnlyObservableCollection<FriendRequest> FriendRequests => _friendRequests;
-    public ReadOnlyObservableCollection<ChatConversation> Conversations => _conversations;
-
-    [ObservableProperty] public partial ChatConversation? SelectedConversation { get; set; }
-    [ObservableProperty] public partial string NewMessageText {get;set;}
-    [ObservableProperty] public partial string LatestMessageType {get;set;}
-    [ObservableProperty] public partial bool IsSocialHubActive {get;set;}
-
-
-    public ReactiveCommand<string, AuthResult> SendFriendRequestCommand { get; }
-    public ReactiveCommand<FriendRequest, Unit> AcceptFriendRequestCommand { get; }
-    public ReactiveCommand<FriendRequest, Unit> RejectFriendRequestCommand { get; }
-    public ReactiveCommand<Unit, Unit> SendMessageCommand { get; }
-    public ReactiveCommand<ChatMessage, Unit> EditMessageCommand { get; }
-    public ReactiveCommand<ChatMessage, Unit> DeleteMessageCommand { get; }
-    public ReactiveCommand<ChatMessage, Unit> ReactToMessageCommand { get; } // Assumes a payload from CommandParameter
-                                                                             // This property will hold the user that the app user clicks on in the list.
-    [ObservableProperty]
-    public partial UserModelOnline? SelectedUserFromList { get; set; }
-
-    // This command will be triggered to load or refresh the list of all users.
-    public ReactiveCommand<Unit, Unit> LoadAllUsersCommand { get; }
-
-    // This command is triggered when a user is selected from the list.
-    public ReactiveCommand<UserModelOnline, ChatConversation> ViewOrStartChatCommand { get; }
-    [ObservableProperty] public partial ObservableCollection<UserModelOnline>? AllUsers { get; set; }
-    [ObservableProperty] public partial ObservableCollection<ChatMessage>? AllMessages { get; set; }
-    [ObservableProperty] public partial bool IsConnected { get; set; }
-
-
+    ParseLiveQueryClient? LiveClient;
     [RelayCommand]
-    public async Task FindAllMessagesInconvo(ChatConversation conversation)
+    async Task SetupLiveQueries()
     {
-        //    var query = new ParseQuery<ChatMessage>(ParseClient.Instance)
-        //        .WhereRelatedTo(conversation, CurrentUser.ObjectId);
-        ////.WhereEqualTo("conversation", selectedConversation);
+        await SetupLiveQueryListeners();
 
-        //    var messages = await query.FindAsync();
-        var messages = await new ParseQuery<ChatMessage>(ParseClient.Instance)
-            .Include(nameof(ChatMessage.Conversation)).FindAsync();
-
-        var rr = messages.ToList();
-    //.WhereEqualTo("conversation", conversation)
-    //.OrderBy("createdAt")
-    //.FindAsync();
-
-        AllMessages ??= new ObservableCollection<ChatMessage>();
-        AllMessages.Clear();
-        foreach (var message in messages)
-        {
-            AllMessages.Add(message);
-        }
-
-
+        //if (LiveClient == null)
+        //{
+        //    Debug.WriteLine("[LiveQuery Error]: LiveQuery client is not initialized.");
+        //    return;
+        //}
+        //await SetupLiveQuery();
     }
 
     #endregion
 
+    // method to set up user session transfer
+    // user subsribes LQ to be able to transfer data between devices
+
+
+    //method to send commands to the selected device e.g GetALlSongs, GetAllArtists, GetAllAlbums, GetAllGenres, GetAllPlaylists, GetAllSongsInPlaylist, etc.
+    //play song,pause song, next song, previous song, etc.
+
+
+    //essentially, we are using a chatmessage object to send to parse server, which will then be sent to the selected device.
+    // user saves the chat messageobject with messagetype PlayCommand, NextTrackCommand, PreviousTrackCommand, etc.
+    // parse server will save messageobject and ensure it's only ACL to selected User.
+
+    // i need a cloud method to get list of songmodelview, convert to chatmessage, and send to the selected device.
+    //send to parse server, which will then send save 1 parse chatmessage object pushPlaylist to target device.
+    //so the lq will let receiver call another parse cloud function to get the playlist.
 
 
 
@@ -768,6 +784,37 @@ public async Task GetSongs()
 
 
 
+
+
+    private async Task<AuthResult> SendFriendRequestInternalAsync(string username)
+    {
+        CurrentUser = _authService.CurrentUser;
+
+        var recipientQuery = new ParseQuery<UserModelOnline>(ParseClient.Instance);
+        var recipient = await recipientQuery.WhereEqualTo("userUserModelOnline?e", username).FirstOrDefaultAsync();
+        var currUsr = ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(CurrentUser.ObjectId);
+        if (recipient == null)
+            return AuthResult.Failure("User not found.");
+
+        var request = new FriendRequest();
+        request.Recipient = recipient;
+        request.Sender = currUsr;
+        request.Status = "pending";
+
+        await request.SaveAsync();
+        return AuthResult.Success();
+    }
+
+
+    private async Task AcceptFriendRequestInternalAsync(FriendRequest requestObjectId)
+    {
+        // This MUST be a Cloud Code function for security.
+        // The parameters would be the objectId of the request.
+        var parameters = new Dictionary<string, object> { { "requestId", requestObjectId.ObjectId } };
+        await ParseClient.Instance.CallCloudCodeFunctionAsync<FriendRequest>("acceptFriendRequest", parameters);
+    }
+
+    private Task RejectFriendRequestInternalAsync(FriendRequest request) => request.DeleteAsync();
 
     public void Dispose()
     {
@@ -788,127 +835,7 @@ public async Task GetSongs()
     }
 
 
-    ParseLiveQueryClient? LiveClient;
-    [RelayCommand]
-    async Task SetupLiveQueries()
-    {
-        await SetupLiveQueryListeners();
 
-        //if (LiveClient == null)
-        //{
-        //    Debug.WriteLine("[LiveQuery Error]: LiveQuery client is not initialized.");
-        //    return;
-        //}
-        //await SetupLiveQuery();
-    }
-    void SetupLiveQuery()
-    {
-        try
-        {
-            AllMessages?.Clear();
-            AllMessages ??= new ObservableCollection<ChatMessage>();
-            
-            if (LiveClient == null)
-            {
-                Debug.WriteLine("[LiveQuery Error]: LiveQuery client is not initialized.");
-                return;
-            }
-            LiveClient.Start();
-            int retryDelaySeconds = 5;
-            int maxRetries = 10;
-
-
-            LiveClient.OnConnectionStateChanged
-          .ObserveOn(RxApp.MainThreadScheduler) // Best practice: ensure UI updates are on the main thread
-          .Subscribe(state =>
-          {
-              Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state}");
-              IsConnected = state == LiveQueryConnectionState.Connected;
-          });
-
-            LiveClient.OnError
-            .Subscribe(ex => Debug.WriteLine($"[LiveQuery Error]: {ex.Message}"));
-
-            // You can still listen to these for logging if you wish.
-            LiveClient.OnSubscribed
-                .Subscribe(e =>
-                {
-                    Debug.WriteLine($"Successfully subscribed with ID: {e.requestId}");
-                });
-
-
-            LiveClient.OnDisconnected
-                .Do(info =>
-                    Debug.WriteLine($"Server disconnected.{info.Reason}"))
-                .Subscribe();
-
-
-            LiveClient.OnSubscribed
-                .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
-                .Subscribe();
-            var query = ParseClient.Instance.GetQuery<ChatMessage>();
-            //.WhereEqualTo("Username", "YBTopaz8");
-            var subscription =  LiveClient.Subscribe(query);
-
-
-
-            int batchSize = 3; // Number of events to release at a time
-            TimeSpan throttleTime = TimeSpan.FromMilliseconds(100);
-            subscription.Events
-          // You can still use your excellent performance optimizations!
-          .GroupBy(e => e.EventType)
-          .SelectMany(group =>
-          {
-              // Apply throttling and batching to Create events to keep the UI smooth
-              if (group.Key == Subscription.Event.Create)
-              {
-                  return group.Throttle(throttleTime)
-                              .Buffer(TimeSpan.FromSeconds(1), batchSize)
-                              .SelectMany(batch => batch);
-              }
-              // Pass all other events through immediately
-              return group;
-          })
-          .ObserveOn(RxApp.MainThreadScheduler) // Ensure all UI work is on the main thread
-          .Subscribe(e =>
-          {
-              var chat = e.Object;
-
-              switch (e.EventType)
-              {
-                  case Subscription.Event.Create:
-                  case Subscription.Event.Enter: // Usually treat these the same in a chat app
-                      AllMessages.Add(chat);
-                     
-                      break;
-
-                  case Subscription.Event.Update:
-                      var objToUpdate = AllMessages.FirstOrDefault(x => x.ObjectId == chat.ObjectId);
-                      if (objToUpdate != null)
-                      {
-                          // A simple and effective way to update in-place for ObservableCollection
-                          int index = AllMessages.IndexOf(objToUpdate);
-                          AllMessages[index] = chat;
-                      }
-                      break;
-
-                  case Subscription.Event.Delete:
-                  case Subscription.Event.Leave: // Usually treat these the same
-                      var objToDelete = AllMessages.FirstOrDefault(x => x.ObjectId == chat.ObjectId);
-                      if (objToDelete != null)
-                      {
-                          AllMessages.Remove(objToDelete);
-                      }
-                      break;
-              }
-          },
-          ex => Debug.WriteLine($"[Subscription Error]: The subscription stream encountered an error: {ex.Message}")); // Error handling for this specific stream
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"A critical error occurred during LiveQuery setup: {ex.Message}");
-            // Optionally, display an alert to the user here.
-        }
-    }
+    
 
 }

@@ -3638,9 +3638,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
 
-   
+    [RelayCommand]
+    public async Task UpdateSongToDB(SongModelView song)
+    {
+        //this is going to be a bit complex because 
+        // i have to handle artist changes, album changes or actually, any change.
 
-   
+        //i'll think of a system of it, i can only think of listening to onpropertychanged to save the latest state.
+
+    }
+
+
 }
 
 

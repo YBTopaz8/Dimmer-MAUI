@@ -4,44 +4,44 @@ public class DeviceState : ParseObject
 {
 
     
-    [ParseFieldName("currentSong")]
+    [ParseFieldName("CurrentSong")]
     public ParseObject CurrentSong { get => GetProperty<ParseObject>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongTitle")]
+    [ParseFieldName("CurrentSongTitle")]
     public string CurrentSongTitle { get => GetProperty<string>(); set => SetProperty(value); }
 
-    [ParseFieldName("currentSongDuration")]
+    [ParseFieldName("CurrentSongDuration")]
     public double CurrentSongDuration { get => GetProperty<double>(); set => SetProperty(value); }
     
-    [ParseFieldName("currentSongArtistName")]
+    [ParseFieldName("CurrentSongArtistName")]
     public string CurrentSongArtistName { get => GetProperty<string>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongAlbumName")]
+    [ParseFieldName("CurrentSongAlbumName")]
     public string CurrentSongAlbumName { get => GetProperty<string>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongFilePath")]
+    [ParseFieldName("CurrentSongFilePath")]
     public string CurrentSongFilePath { get => GetProperty<string>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongFileSize")]
+    [ParseFieldName("CurrentSongFileSize")]
     public long CurrentSongFileSize { get => GetProperty<long>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongFileFormat")]
+    [ParseFieldName("CurrentSongFileFormat")]
     public string CurrentSongFileFormat { get => GetProperty<string>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongBitRate")]
+    [ParseFieldName("CurrentSongBitRate")]
     public int CurrentSongBitRate { get => GetProperty<int>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongReleaseYear")]
+    [ParseFieldName("CurrentSongReleaseYear")]
     public int? CurrentSongReleaseYear { get => GetProperty<int?>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongTrackNumber")]
+    [ParseFieldName("CurrentSongTrackNumber")]
     public int? CurrentSongTrackNumber { get => GetProperty<int?>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongDiscNumber")]
+    [ParseFieldName("CurrentSongDiscNumber")]
     public int? CurrentSongDiscNumber { get => GetProperty<int?>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongDiscTotal")]
+    [ParseFieldName("CurrentSongDiscTotal")]
     public int? CurrentSongDiscTotal { get => GetProperty<int?>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongLyricist")]
+    [ParseFieldName("CurrentSongLyricist")]
     public string CurrentSongLyricist { get => GetProperty<string>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongComposer")]
+    [ParseFieldName("CurrentSongComposer")]
     public string CurrentSongComposer { get => GetProperty<string>(); set => SetProperty(value); }
-    [ParseFieldName("currentSongConductor")]
+    [ParseFieldName("CurrentSongConductor")]
     public string CurrentSongConductor { get => GetProperty<string>(); set => SetProperty(value); }
     /// <summary>
     /// A unique, persistent ID for this specific app instance (e.g., a GUID stored in app settings).
     /// </summary>
-    [ParseFieldName("deviceId")]
+    [ParseFieldName("DeviceId")]
     public string DeviceId
     {
         get => GetProperty<string>();
@@ -49,9 +49,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// A user-friendly name for this device (e.g., "MCS's Desktop", "My Pixel Phone").
+    /// A user-friendly name for this Device (e.g., "MCS's Desktop", "My Pixel Phone").
     /// </summary>
-    [ParseFieldName("deviceName")]
+    [ParseFieldName("DeviceName")]
     public string DeviceName
     {
         get => GetProperty<string>();
@@ -59,7 +59,7 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// The current playback state. Stored as a string for simplicity (e.g., "Playing", "Paused", "Stopped").
+    /// The Current playback state. Stored as a string for simplicity (e.g., "Playing", "Paused", "Stopped").
     /// </summary>
     [ParseFieldName("playbackState")]
     public string PlaybackState
@@ -69,9 +69,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// The Parse ObjectId of the song that is currently playing or paused.
+    /// The Parse ObjectId of the song that is Currently playing or paused.
     /// </summary>
-    [ParseFieldName("currentSongId")]
+    [ParseFieldName("CurrentSongId")]
     public string CurrentSongId
     {
         get => GetProperty<string>();
@@ -79,9 +79,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// The playback position of the current song, in total seconds.
+    /// The playback position of the Current song, in total seconds.
     /// </summary>
-    [ParseFieldName("currentPosition")]
+    [ParseFieldName("CurrentPosition")]
     public double CurrentPosition
     {
         get => GetProperty<double>();
@@ -89,9 +89,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// The current volume of the device, from 0.0 to 1.0.
+    /// The Current volume of the Device, from 0.0 to 1.0.
     /// </summary>
-    [ParseFieldName("volume")]
+    [ParseFieldName("Volume")]
     public double Volume
     {
         get => GetProperty<double>();
@@ -99,9 +99,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// The current shuffle mode state.
+    /// The Current shuffle mode state.
     /// </summary>
-    [ParseFieldName("isShuffleActive")]
+    [ParseFieldName("IsShuffleActive")]
     public bool IsShuffleActive
     {
         get => GetProperty<bool>();
@@ -109,9 +109,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// The current repeat mode. Stored as a string (e.g., "None", "One", "All").
+    /// The Current repeat mode. Stored as a string (e.g., "None", "One", "All").
     /// </summary>
-    [ParseFieldName("repeatMode")]
+    [ParseFieldName("RepeatMode")]
     public string RepeatMode
     {
         get => GetProperty<string>();
@@ -119,9 +119,9 @@ public class DeviceState : ParseObject
     }
 
     /// <summary>
-    /// A timestamp that is updated periodically to indicate the device is online and active.
+    /// A timestamp that is updated periodically to indicate the Device is online and active.
     /// </summary>
-    [ParseFieldName("lastSeen")]
+    [ParseFieldName("LastSeen")]
     public DateTime? LastSeen
     {
         get => GetProperty<DateTime?>();
@@ -134,9 +134,9 @@ public class DeviceState : ParseObject
 public class DeviceCommand : ParseObject
 {
     /// <summary>
-    /// The unique 'deviceId' of the player that should execute this command.
+    /// The unique 'DeviceId' of the player that should execute this command.
     /// </summary>
-    [ParseFieldName("targetDeviceId")]
+    [ParseFieldName("TargetDeviceId")]
     public string TargetDeviceId
     {
         get => GetProperty<string>();
@@ -144,9 +144,9 @@ public class DeviceCommand : ParseObject
     }
 
     /// <summary>
-    /// The unique 'deviceId' of the remote that sent this command.
+    /// The unique 'DeviceId' of the remote that sent this command.
     /// </summary>
-    [ParseFieldName("sourceDeviceId")]
+    [ParseFieldName("SourceDeviceId")]
     public string SourceDeviceId
     {
         get => GetProperty<string>();
@@ -156,7 +156,7 @@ public class DeviceCommand : ParseObject
     /// <summary>
     /// The name of the action to be performed (e.g., "NEXT", "SEEK", "PLAY_SONG").
     /// </summary>
-    [ParseFieldName("commandName")]
+    [ParseFieldName("CommandName")]
     public string CommandName
     {
         get => GetProperty<string>();
@@ -168,7 +168,7 @@ public class DeviceCommand : ParseObject
     /// For SEEK, it could be { "position": 123.45 }.
     /// For PLAY_SONG, it could be { "songId": "abcdef1234" }.
     /// </summary>
-    [ParseFieldName("payload")]
+    [ParseFieldName("Payload")]
     public IDictionary<string, object> Payload
     {
         get => GetProperty<IDictionary<string, object>>();
@@ -176,10 +176,10 @@ public class DeviceCommand : ParseObject
     }
 
     /// <summary>
-    /// A flag that the target device sets to 'true' after it has successfully
+    /// A flag that the target Device sets to 'true' after it has successfully
     /// processed the command. This prevents re-execution.
     /// </summary>
-    [ParseFieldName("isHandled")]
+    [ParseFieldName("IsHandled")]
     public bool IsHandled
     {
         get => GetProperty<bool>();
@@ -189,7 +189,7 @@ public class DeviceCommand : ParseObject
     /// <summary>
     /// The UTC timestamp of when the command was created.
     /// </summary>
-    [ParseFieldName("timestamp")]
+    [ParseFieldName("Timestamp")]
     public DateTime? Timestamp
     {
         get => GetProperty<DateTime?>();

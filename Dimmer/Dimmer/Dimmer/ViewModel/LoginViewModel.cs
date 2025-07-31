@@ -144,7 +144,7 @@ public partial class LoginViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task InitializeAsync()
+    public async Task<bool> InitializeAsync()
     {
         var res = await _authService.InitializeAsync();
 
@@ -161,11 +161,16 @@ public partial class LoginViewModel : ObservableObject
                 
                 await newUsr.SaveAsync();
                 CurrentUser=newUsr;
-                return;
+                return true;
             }
             CurrentUser = usr;
+            return true;
 
-        
+
+        }
+        else
+        {
+            return false;
         }
     }
     [RelayCommand]
