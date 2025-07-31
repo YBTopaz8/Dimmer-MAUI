@@ -1,5 +1,6 @@
 ﻿using ATL;
 
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.Input;
 
 using Dimmer.Data.ModelView.DimmerSearch;
@@ -2495,13 +2496,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // Clear the new properties too
         SongListeningStreak = null;
     }
-    
+    public async Task SaveNoteToListOfSongs(IEnumerable<SongModelView> songs)
+    {
+        foreach (var item in songs)
+        {
+            await SaveUserNoteToDbLegacy(item);
+        }
+        //TODO : make an error handling logic here
+    }
     public async Task SaveUserNoteToDbLegacy(SongModelView songWithNote)
     {
-        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Not for {Environment.NewLine}" +
+        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Note for {Environment.NewLine}" +
             $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
-    placeholder: "Tip: You could find just type this note to find this song back through search :)",
-    accept: "Done", keyboard: Keyboard.Text);
+                placeholder: "Tip: Just type this note to search this song through TQL :)",
+                accept: "Done", keyboard: Keyboard.Text);
         if (result == null)
         {
             return;
@@ -2510,15 +2518,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 UserMessageText = result,
                 CreatedAt = DateTime.Now,
-
-
             };
-        
-       
-        // --- The Fix ---
-        // The line `songWithNote.UserNotes ??= new();` is removed.
-        // We can safely add directly to the list because we know it was initialized
-        // in the SongModelView's constructor.
+
+
+        songWithNote.UserNotes = new();
         songWithNote.UserNotes.Add(userNote);
 
         // The rest of your logic for database persistence follows...
@@ -2546,7 +2549,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     _logger.LogWarning("Could not find song with ID {SongId} to save user note.", songWithNote.Id);
                 }
             });
+            Toast newToast = new()
+            {
+                Duration= CommunityToolkit.Maui.Core.ToastDuration.Long,
+                Text = $"Added Note {userNote.UserMessageText} to {songWithNote.Title}"
+            };
+           await newToast.Show(CancellationToken.None);
         }
+
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save user note for song {SongId}", songWithNote.Id);
