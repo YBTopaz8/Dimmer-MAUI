@@ -53,6 +53,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public AlbumModel Album { get; set; }
     public ArtistModel Artist { get; set; }
     public GenreModel Genre { get; set; }
+    public string GenreName { get; set; }
     public IList<ArtistModel> ArtistToSong { get; } = null!;
     public IList<TagModel> Tags { get; } = null!;
 
@@ -108,6 +109,20 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     {
 
     }
+
+    [Indexed]
+    public int SongTypeValue { get; set; } = (int)SongType.Track;
+
+    [Ignored]
+    public SongType SongType { get => (SongType)SongTypeValue; set => SongTypeValue = (int)value; }
+
+    public ObjectId? ParentSongId { get; set; }
+    public double? SegmentStartTime { get; set; }
+    public double? SegmentEndTime { get; set; }
+    public int SegmentEndBehaviorValue { get; set; } = (int)SegmentEndBehavior.Stop;
+
+    [Ignored]
+    public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
 }
 public partial class SyncLyrics : EmbeddedObject
 {
@@ -118,7 +133,7 @@ public partial class SyncLyrics : EmbeddedObject
     /// <summary>
     /// Text
     /// </summary>
-    public string Text { get; set; }
+    public string? Text { get; set; }
     public SyncLyrics()
     {
     }

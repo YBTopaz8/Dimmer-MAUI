@@ -45,7 +45,7 @@
                     <dx:DXImage
                         Aspect="AspectFit"
                         HeightRequest="70"
-                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
+                        Source="{Binding BaseVM.CurrentCoverImagePath}" />
                 </StackLayout>
                 <Grid Grid.Column="1" ColumnDefinitions="*,auto">
 

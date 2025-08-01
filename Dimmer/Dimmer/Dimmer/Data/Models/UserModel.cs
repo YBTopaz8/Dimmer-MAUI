@@ -14,6 +14,7 @@ public partial class UserModel : RealmObject, IRealmObjectWithObjectId
     public string? UserCountry { get; set; }
     public string? UserLanguage { get; set; }
     public string? UserTheme { get; set; }
+    public string? UserIDOnline { get; set; }
     public string? SessionToken { get; set; } = string.Empty;
     public DateTimeOffset? UserDateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }

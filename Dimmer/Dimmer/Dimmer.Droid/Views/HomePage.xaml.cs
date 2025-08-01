@@ -610,8 +610,8 @@ public partial class HomePage : ContentPage
     private void DXButton_Clicked(object sender, EventArgs e)
     {
         //BottomExpander.IsExpanded = !BottomExpander.IsExpanded;
-
-
+        MediaControlView.IsExpanded = false;
+        UtilsTabView.IsVisible=true;
     }
     private void SongTitleChip_LongPress(object sender, HandledEventArgs e)
     {
@@ -708,9 +708,13 @@ public partial class HomePage : ContentPage
         //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
-    private void MoreIcon_LongPress(object sender, HandledEventArgs e)
+    private async void MoreIcon_LongPress(object sender, HandledEventArgs e)
     {
-        SongsColView.Commands.ShowDetailForm.Execute(null);
+        var send = (Chip)sender;
+        SongModelView song = send.BindingContext as SongModelView;
+        MyViewModel.BaseVM.SelectedSong=song;
+        await MyViewModel.BaseVM.SaveUserNoteToDbLegacy(song);
+        //await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
     protected override bool OnBackButtonPressed()
@@ -726,6 +730,14 @@ public partial class HomePage : ContentPage
 
             return true;
         return base.OnBackButtonPressed();
+    }
+
+    private async void MoreIcon_Clicked(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        SongModelView song = send.BindingContext as SongModelView;
+        MyViewModel.BaseVM.SelectedSong=song;
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 }
 

@@ -64,7 +64,6 @@
   <ItemGroup>
 
 
-
     <PackageReference Include="AutoMapper" Version="14.0.0" />
 
 
@@ -120,12 +119,10 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
-    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.4.0" />
 
 
     <PackageReference Include="ReactiveUI.Maui" Version="20.4.1" />
 
-    <PackageReference Include="z440.atl.core" Version="7.1.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
 
   </ItemGroup>
@@ -171,8 +168,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\source\repos\YBTopaz8\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
     <ProjectReference Include="..\atldotnet-main\ATL\ATL.csproj" />
+    <ProjectReference Include="..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+    <ProjectReference Include="..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
   </ItemGroup>
 
 </Project>

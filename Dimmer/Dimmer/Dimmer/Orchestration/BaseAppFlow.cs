@@ -1,12 +1,8 @@
 ﻿using System.Reactive.Disposables;
 
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Events;
-using Dimmer.Utilities.Extensions;
 
 using Microsoft.Extensions.Logging.Abstractions;
-
-using static Dimmer.Utilities.AppUtils;
 
 namespace Dimmer.Orchestration;
 

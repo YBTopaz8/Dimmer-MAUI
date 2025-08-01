@@ -1,12 +1,6 @@
 ﻿using Hqub.Lastfm;
 using Hqub.Lastfm.Entities;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dimmer.LastFM;
 public interface ILastfmService
 {

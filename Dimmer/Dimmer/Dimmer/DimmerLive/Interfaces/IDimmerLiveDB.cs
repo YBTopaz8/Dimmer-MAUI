@@ -1,17 +1,4 @@
 ﻿using DynamicData;
-using DynamicData.Binding;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.Specialized; // For INotifyCollectionChanged
-using System.Linq;
-using DynamicData;
-using Realms.Exceptions;
-using Realms.Extensions; // THIS IS THE KEY for AsObservable()
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 
 namespace Dimmer.DimmerLive.Interfaces;
 

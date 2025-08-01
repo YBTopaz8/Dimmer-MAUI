@@ -3,10 +3,20 @@
              x:Class="Dimmer.Views.SettingsPage" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:dx="http://schemas.devexpress.com/maui" xmlns:dxc="http://schemas.devexpress.com/maui"
-             xmlns:modellive="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+             
+             
+             xmlns:models="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
+             xmlns:modellive="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer" xmlns:model="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit" xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" xmlns:vm="clr-namespace:Dimmer.ViewModels"
              Title="Settings" x:DataType="vm:BaseViewModelAnd"
+             
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+ xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+ xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              BackgroundColor="{AppThemeBinding Dark=#1e1e1e,
                                                Light=White}"
              Shell.TabBarIsVisible="False"
@@ -34,163 +44,428 @@
     </ContentPage.Resources>
 
     <dx:SafeKeyboardAreaView>
-        <dx:DXDockLayout StretchLastItem="True" >
-            <VerticalStackLayout Grid.Row="0" Spacing="10" dx:DXDockLayout.Dock="Top">
-                <Label
+
+
+        <syncf:SfTabView SelectedIndex="{Binding LoginViewModel.SelectedIndex}">
+            <syncf:SfTabItem Header="Login">
+                <syncf:SfTabItem.Content>
+                    <ScrollView x:Name="TabA">
+                        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Start">
+
+                            <Label Text="Dimmer Live" 
+                                   FontFamily="AleySans" FontAttributes="Bold"
+                                   FontSize="35"
+                                   HorizontalOptions="Center" />
+
+
+                            <Image
+                                    HeightRequest="250"
+                                    WidthRequest="250"
+                                    Source="{Binding LoginViewModel.CurrentUser.ProfileImageFile.Url}"
+                                    
+                                    />
+
+                            <ImageButton
+                                HeightRequest="30" WidthRequest="30"
+                                Source="edit.png"
+                                        Command="{Binding LoginViewModel.PickImageFromDeviceCommand}"/>
+                            <Button Text="Logout"
+                                    Command="{Binding LoginViewModel.LogoutCommand}"
+                                       />
+
+
+                            <FlexLayout JustifyContent="SpaceBetween">
+                                <VerticalStackLayout>
+                                    <Label Text="Username"/>
+                                    <Label Text="Email"/>
+                                    <Label Text="Date Joined"/>
+                                    <Label Text="Photo Path"/>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding LoginViewModel.CurrentUser.Username}"/>
+                                    <Label Text="{Binding LoginViewModel.CurrentUser.Email}"/>
+                                    <Label Text="{Binding LoginViewModel.CurrentUser.CreatedAt}"/>
+                                    <Label Text="{Binding LoginViewModel.CurrentUser.ProfileImagePath}"/>
+
+                                </VerticalStackLayout>
+                            </FlexLayout>
+
+                            <!-- Error Message Display -->
+                            <Label Text="{Binding LoginViewModel.ErrorMessage}"
+                   TextColor="Red"
+                   IsVisible="{Binding LoginViewModel.ErrorMessage, Converter={converters:CountToVisibilityConverter}}"
+                   HorizontalOptions="Center" />
+                            <VerticalStackLayout IsVisible="{Binding LoginViewModel.IsAuthenticated , Converter={converters:BoolToInverseConverter}}">
+
+                                <!-- Input Fields -->
+                                <Entry Placeholder="Username" Text="{Binding LoginViewModel.CurrentUser.Username}" IsEnabled="{Binding LoginViewModel.IsBusy, Converter={converters:BoolToInverseConverter}}" />
+                                <Entry Placeholder="Email (for registration/reset)" Text="{Binding LoginViewModel.Email}" IsEnabled="{Binding LoginViewModel.IsBusy, Converter={converters:BoolToInverseConverter}}" />
+                                <Entry Placeholder="Password" Text="{Binding LoginViewModel.Password}" IsPassword="True" IsEnabled="{Binding LoginViewModel.IsBusy, Converter={converters:BoolToInverseConverter}}" />
+
+                                <ActivityIndicator IsRunning="{Binding LoginViewModel.IsBusy}" IsVisible="{Binding LoginViewModel.IsBusy}" />
+
+                                <!-- Action Buttons -->
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Button Grid.Column="0" Text="Login" Command="{Binding LoginViewModel.LoginCommand}" IsEnabled="{Binding IsBusy, Converter={converters:BoolToInverseConverter}}" />
+                                    <Button Grid.Column="1" Text="Register" Command="{Binding LoginViewModel.RegisterCommand}" IsEnabled="{Binding IsBusy, Converter={converters:BoolToInverseConverter}}" />
+                                </Grid>
+
+                                <Button Text="Forgot Password?" Command="{Binding LoginViewModel.ForgotPasswordCommand}" IsEnabled="{Binding IsBusy, Converter={converters:BoolToInverseConverter}}" HorizontalOptions="Center" />
+
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
+            <syncf:SfTabItem Header="Conversations">
+                <syncf:SfTabItem.Content>
+                    <Grid RowDefinitions="*, Auto">
+                        <!-- List of Conversations -->
+                        <CollectionView Grid.Row="0"
+                            ItemsSource="{Binding  DimmerLiveViewModel.Conversations}"
+                            SelectionMode="Single" EmptyView="No Convos"
+                            SelectedItem="{Binding DimmerLiveViewModel.SelectedConversation}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:ChatConversation">
+                                    <Border Padding="10" Margin="5" StrokeShape="RoundRectangle 8">
+                                        <Label Text="{Binding Name}" FontSize="Medium" />
+                                        <!-- You could also bind the LastMessage here -->
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Message Display and Input for Selected Chat -->
+                        <Grid Grid.Row="1" IsVisible="{Binding DimmerLiveViewModel.SelectedConversation, Converter={converters:IsNotNullOrEmptyConverter}}">
+                            <Grid RowDefinitions="*, Auto">
+                                <CollectionView Grid.Row="0" ItemsSource="{Binding DimmerLiveViewModel.MessagesForSelectedConversation}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ChatMessage">
+                                            <Border Margin="5">
+                                                <VerticalStackLayout>
+                                                    <Label Text="{Binding Sender.Username}" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Text}" />
+                                                    <!-- Add Image for file attachments, etc. -->
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+
+                                <VerticalStackLayout Grid.Row="1" Padding="10">
+                                    <Entry Placeholder="Type a message..." Text="{Binding DimmerLiveViewModel.NewMessageText}" />
+                                    <Button Text="Send" Command="{Binding DimmerLiveViewModel.SendMessageCommand}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
+            <syncf:SfTabItem Header="Friends">
+                <syncf:SfTabItem.Content>
+                    <CollectionView ItemsSource="{Binding DimmerLiveViewModel.Friends}"
+                                    EmptyView="NO Friends">
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:UserModelOnline">
+                                <Border Padding="10" Margin="5">
+                                    <Label Text="{Binding Username}" />
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
+            <syncf:SfTabItem Header="Requests">
+                <syncf:SfTabItem.Content>
+                    <VerticalStackLayout Spacing="10">
+                        <!-- Section to Send a New Request -->
+                        <Border Padding="10">
+                            <VerticalStackLayout>
+                                <Label Text="Send a New Friend Request" FontAttributes="Bold"/>
+                                <Entry x:Name="FriendUsernameEntry" Placeholder="Enter username" />
+                                <Button Text="Send Request" 
+                            Command="{Binding DimmerLiveViewModel.SendFriendRequestCommand}"
+                            CommandParameter="{Binding Source={x:Reference FriendUsernameEntry}, Path=Text}" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- List of Incoming Requests -->
+                        <Label Text="Incoming Requests" FontSize="Title" Padding="10,0"/>
+                        <CollectionView ItemsSource="{Binding DimmerLiveViewModel.FriendRequests}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:FriendRequest">
+                                    <Border Padding="10" Margin="5">
+                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                            <!-- Assumes Sender is included in the query -->
+                                            <Label Grid.Column="0" Text="{Binding Sender.Username}" VerticalOptions="Center"/>
+                                            <Button Grid.Column="1" Text="Accept" 
+x:Name="AcceptBtn"
+                                                    Clicked="AcceptBtn_Clicked"
+                                                    CommandParameter="{Binding .}" />
+                                            <Button Grid.Column="2" Text="Reject" x:Name="RejectBtn"
+                                                    Clicked="RejectBtn_Clicked"
+                                        CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+            <syncf:SfTabItem>
+                <syncf:SfTabItem.Content>
+
+                    <dx:DXDockLayout StretchLastItem="True" >
+                        <VerticalStackLayout Grid.Row="0" Spacing="10" dx:DXDockLayout.Dock="Top">
+                            <Label
             Grid.Row="0"
             FontAttributes="Bold"
             FontSize="16" HorizontalOptions="Center"
             Text="{Binding BaseVM.LatestAppLog.Log}" />
 
-            </VerticalStackLayout>
-            <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Bottom"
+                        </VerticalStackLayout>
+                        <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Bottom"
                              EnableSwiping="True" 
                              SelectionChanged="NavTab_SelectionChanged">
-         <syncf:SfTabItem Header="Main" FontSize="24" >
+                            <syncf:SfTabItem Header="Main" FontSize="24" >
 
-             <syncf:SfTabItem.Content>
+                                <syncf:SfTabItem.Content>
 
-                        <Grid Grid.Row="1" RowDefinitions="*,0.4*" Margin="10">
+                                    <Grid Grid.Row="1" RowDefinitions="*,0.4*" Margin="10">
 
-                         <CollectionView
+                                        <CollectionView
                                  x:Name="ListOfFolders"
                                  Grid.Row="0"
                                  Header="List of Folders"
                                  ItemsSource="{Binding BaseVM.FolderPaths}"
                                  >
-                             <CollectionView.EmptyView>
-                                 <VerticalStackLayout>
-                                     <Label
+                                            <CollectionView.EmptyView>
+                                                <VerticalStackLayout>
+                                                    <Label
                                              Margin="0,40,0,0"
                                              FontAttributes="Italic"
                                              Text="No Folders In Preferences.." />
-                                 </VerticalStackLayout>
-                             </CollectionView.EmptyView>
-                             <CollectionView.ItemTemplate>
-                                 <DataTemplate x:DataType="x:String">
-                                     <Grid RowDefinitions="*,*">
+                                                </VerticalStackLayout>
+                                            </CollectionView.EmptyView>
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <Grid RowDefinitions="*,*">
 
-                                         <Label Grid.Row="0" Text="{Binding .}" />
+                                                        <Label Grid.Row="0" Text="{Binding .}" />
 
-                                         
-                                     </Grid>
-                                 </DataTemplate>
-                             </CollectionView.ItemTemplate>
-                         </CollectionView>
-                         <VerticalStackLayout
+
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <VerticalStackLayout
                                  Grid.Row="1" VerticalOptions="Start"
                                  BackgroundColor="Transparent"
                                  Spacing="10">
 
-                             <Button
+                                            <Button
                                      Clicked="AddNewMusicFolder_Clicked"
                                      HorizontalOptions="Start"
                                      Text="Add New Folder" />
-                             <Button
+                                            <Button
                                      x:Name="ReScanAllBtn"
                                      BorderColor="DarkSlateBlue"
                                      Command="{Binding BaseVM.RescanSongsCommand}"
                                      Text="Rescan folders" />
 
-                         </VerticalStackLayout>
-                     </Grid>
+                                        </VerticalStackLayout>
+                                    </Grid>
 
 
-             </syncf:SfTabItem.Content>
-         </syncf:SfTabItem>
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
 
 
-                <syncf:SfTabItem Header="LastFM Tab" FontSize="24" TextColor="Red" >
-             <syncf:SfTabItem.Content>
-                 <dx:DXStackLayout Margin="10" ItemSpacing="10">
-                     <FlexLayout JustifyContent="SpaceBetween">
+                            <syncf:SfTabItem Header="LastFM Tab" FontSize="24" TextColor="Red" >
+                                <syncf:SfTabItem.Content>
+                                    <dx:DXStackLayout Margin="10" ItemSpacing="10">
+                                        <FlexLayout JustifyContent="SpaceBetween">
 
-                         <Label Text="Last FM Status: "/>
-                                <Editor Placeholder="UserName" Text="{Binding  BaseVM.UserLocal.LastFMAccountInfo.Name}"/>
-                         <Label>
-                             <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
-                                     <Setter Property="Text" Value="Logged In"/>
-                                     <Setter Property="TextColor" Value="DarkSlateBlue"/>
-                                 </DataTrigger>
-                                        <DataTrigger TargetType="Label" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
-                                     <Setter Property="Text" Value="Logged Out"/>
-                                     <Setter Property="TextColor" Value="DarkRed"/>
-                                 </DataTrigger>
-                             </Label.Triggers>
-                         </Label>
-                         
-                     </FlexLayout>
+                                            <Label Text="Last FM Status: "/>
+                                            <Editor Placeholder="UserName" Text="{Binding  BaseVM.UserLocal.LastFMAccountInfo.Name}"/>
+                                            <Label>
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                                        <Setter Property="Text" Value="Logged In"/>
+                                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
+                                                        <Setter Property="Text" Value="Logged Out"/>
+                                                        <Setter Property="TextColor" Value="DarkRed"/>
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
 
-                            <Button HorizontalOptions="Start" Command="{Binding BaseVM.LogoutFromLastfmCommand}">
-                         <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
-                                 <Setter Property="IsVisible" Value="True"/>
-                                 <Setter Property="Text" Value="Log Out"/>
-                                 <Setter Property="BackgroundColor" Value="DarkRed"/>
-                             </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
-                                 <Setter Property="Text" Value="Log in"/>
-                                 <Setter Property="IsVisible" Value="False"/>
-                             </DataTrigger>
-                         </Button.Triggers>
-                     </Button>
+                                        </FlexLayout>
 
-                            <Button HorizontalOptions="Start" Command="{Binding BaseVM.LoginToLastfmCommand}" BorderWidth="2" IsVisible="False">
-                         <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
-                                 <Setter Property="IsVisible" Value="False"/>
-                             </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False" >
-                                 <Setter Property="Text" Value="Log into LastFM"/>
-                                 <Setter Property="IsVisible" Value="True"/>
-                                 <Setter Property="TextColor" Value="Red"/>
-                                 <Setter Property="BorderColor" Value="Red"/>
-                                 <Setter Property="BorderWidth" Value="2"/>
-                                 <Setter Property="BackgroundColor" Value="Transparent"/>
-                             </DataTrigger>
-                         </Button.Triggers>
-                     </Button>
+                                        <Button HorizontalOptions="Start" Command="{Binding BaseVM.LogoutFromLastfmCommand}">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                    <Setter Property="Text" Value="Log Out"/>
+                                                    <Setter Property="BackgroundColor" Value="DarkRed"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
+                                                    <Setter Property="Text" Value="Log in"/>
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
 
-                            <Button HorizontalOptions="Start" Command="{Binding BaseVM.CompleteLoginCommand}" BorderWidth="2" IsVisible="False">
-                         <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
-                                 <Setter Property="IsVisible" Value="False"/>
-                             </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False" >
-                                 <Setter Property="Text" Value="Complete LastFM Connection"/>
-                                 <Setter Property="IsVisible" Value="True"/>
-                                 <Setter Property="TextColor" Value="Red"/>
-                                 <Setter Property="BorderColor" Value="Red"/>
-                                 <Setter Property="BorderWidth" Value="2"/>
-                                 <Setter Property="BackgroundColor" Value="Transparent"/>
-                             </DataTrigger>
-                         </Button.Triggers>
-                     </Button>
+                                        <Button HorizontalOptions="Start" Command="{Binding BaseVM.LoginToLastfmCommand}" BorderWidth="2" IsVisible="False">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False" >
+                                                    <Setter Property="Text" Value="Log into LastFM"/>
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                    <Setter Property="TextColor" Value="Red"/>
+                                                    <Setter Property="BorderColor" Value="Red"/>
+                                                    <Setter Property="BorderWidth" Value="2"/>
+                                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
 
-                     <VerticalStackLayout BackgroundColor="Transparent">
-                         <VerticalStackLayout.Triggers>
-                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
-                                 <Setter Property="IsVisible" Value="True"/>
-                             </DataTrigger>
-                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
-                                 <Setter Property="IsVisible" Value="False"/>
-                             </DataTrigger>
-                         </VerticalStackLayout.Triggers>
+                                        <Button HorizontalOptions="Start" Command="{Binding BaseVM.CompleteLoginCommand}" BorderWidth="2" IsVisible="False">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Button" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False" >
+                                                    <Setter Property="Text" Value="Complete LastFM Connection"/>
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                    <Setter Property="TextColor" Value="Red"/>
+                                                    <Setter Property="BorderColor" Value="Red"/>
+                                                    <Setter Property="BorderWidth" Value="2"/>
+                                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
 
-                               
-                            </VerticalStackLayout>
+                                        <VerticalStackLayout BackgroundColor="Transparent">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="False">
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
 
-                 </dx:DXStackLayout>
 
-             </syncf:SfTabItem.Content>
-         </syncf:SfTabItem>
-         
-         
-     </syncf:SfTabView>
-     
+                                        </VerticalStackLayout>
 
-        </dx:DXDockLayout>
+                                    </dx:DXStackLayout>
+
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
+
+
+                        </syncf:SfTabView>
+
+
+                    </dx:DXDockLayout>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+            <syncf:SfTabItem Header="OG Login">
+                <syncf:SfTabItem.Content>
+
+                    <VerticalStackLayout>
+
+                        <Border x:Name="LoginSignUp" StyleClass="Elevation2">
+
+                            <syncf:SfTabView
+                            x:Name="LoginSignUpTab">
+                                <syncf:SfTabItem>
+                                    <syncf:SfTabItem.Content>
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
+                                            <Label 
+                                            Text="Login"
+                                            FontSize="24"
+                                            HorizontalOptions="Center" />
+                                            <Label Text="{Binding LoginViewModel.CurrentUser.Username}"/>
+                                            <Label Text="{Binding LoginViewModel.CurrentUser.SessionToken}"/>
+                                            <Label
+                                            Text="Please login to continue"
+                                            FontSize="16"
+                                            HorizontalOptions="Center" />
+
+
+                                            <Entry
+                                            Text="{Binding LoginViewModel.Username}"
+                                            x:Name="UsernameEntry"
+                                            Placeholder="Enter your username"
+                                            FontSize="16"
+                                            HorizontalOptions="Fill" />
+                                            <Entry
+                                            Text="{Binding LoginViewModel.Email}"
+                                            x:Name="EmailEntry"
+                                            Placeholder="Enter your Email"
+                                            FontSize="16"
+                                            HorizontalOptions="Fill" />
+
+
+                                            <Entry
+                                            x:Name="PasswordEntry"
+                                            Placeholder="Enter your password"
+                                            IsPassword="True"
+                                            Text="{Binding LoginViewModel.Password}"
+                                            FontSize="16"
+                                            HorizontalOptions="Fill" />
+
+                                            <HorizontalStackLayout
+                                            Spacing="10"
+                                            HorizontalOptions="Center">
+
+                                                <Button
+                                            Text="Login"
+                                            FontSize="16"
+                                            Command="{Binding LoginViewModel.LoginCommand}"
+                                            HorizontalOptions="Center"
+                                           />
+
+
+                                                <Button
+                                            Command="{Binding LoginViewModel.RegisterCommand}"
+                                            Text="Sign Up"
+                                            FontSize="16"
+                                            HorizontalOptions="Center"
+                                            />
+
+                                            </HorizontalStackLayout>
+
+
+
+                                        </VerticalStackLayout>
+                                    </syncf:SfTabItem.Content>
+                                </syncf:SfTabItem>
+                            </syncf:SfTabView>
+
+                        </Border>
+
+
+
+
+                    </VerticalStackLayout>
+
+
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+        </syncf:SfTabView>
+
     </dx:SafeKeyboardAreaView>
 
 

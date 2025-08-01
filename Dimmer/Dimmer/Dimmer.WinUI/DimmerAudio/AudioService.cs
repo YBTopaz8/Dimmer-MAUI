@@ -38,7 +38,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _mediaPlayer = new MediaPlayer
         {
             AudioCategory = MediaPlayerAudioCategory.Media,
-            CommandManager = { IsEnabled = true }
+            CommandManager = { IsEnabled = true },
+            
+
         };
 
 
@@ -58,7 +60,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
         _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
         _mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
-
         _mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
         _mediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
         _mediaPlayer.PlaybackSession.NaturalDurationChanged += PlaybackSession_NaturalDurationChanged;
@@ -331,11 +332,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
                     _mediaPlayer.Source = mediaPlaybackItem;
 
-
-                    Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened/MediaFailed.", songModel.Title);
-                    success = true; // Assume success for now; MediaFailed will correct this
+success = true; // Assume success for now; MediaFailed will correct this
 
                     Play();
+
+                    Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened", songModel.Title);
                 }
                 else
                 {
@@ -344,9 +345,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                Debug.WriteLine("[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {SongTitle}.", songModel.Title);
+                Debug.WriteLine($"[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {songModel.Title}. {ex.Message}");
 
             }
             finally
@@ -379,6 +380,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             }
         }
     }
+
+
+    private IDisposable? _positionSubscription;
+    private void HandleSegmentEnd()
+    {
+        if (_currentSong == null)
+            return;
+        _positionSubscription?.Dispose();
+
+        
+    }
+
     /// <summary>
     /// Starts or resumes playback.
     /// </summary>
@@ -546,19 +559,29 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
             var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
             var props = mediaPlaybackItem.GetDisplayProperties();
-
             props.Type = MediaPlaybackType.Music;
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
-            props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
+            props.MusicProperties.Artist = media.OtherArtistsName ?? "Unknown Artist";
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            props.Thumbnail = storageFile != null
-                ? RandomAccessStreamReference.CreateFromFile(storageFile)
-                : null;
+            
+            props.MusicProperties.AlbumTrackCount = (uint)media.TrackNumber!;
+            if (File.Exists(media.CoverImagePath))
+            {
 
+                IStorageFile coverImageFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
+                using (var stream = await coverImageFile.OpenAsync(FileAccessMode.Read))
+                {
+                    // Create the thumbnail from the stream
+                    props.Thumbnail = RandomAccessStreamReference.CreateFromStream(stream);
+                }
+            
+              
 
+            }
             mediaPlaybackItem.ApplyDisplayProperties(props);
             Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");
             return mediaPlaybackItem;
+            
         }
         catch (OperationCanceledException)
         {
@@ -577,7 +600,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Generic error creating MediaSource for '{media.FilePath}': {ex.ToString()}");
+            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Generic error creating MediaSource for '{media.FilePath}': {ex.Message}");
             return null;
         }
     }
@@ -630,6 +653,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         CurrentPosition = sender.PlaybackSession.Position.TotalSeconds;
         var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.Playing };
         _playStarted?.Invoke(this, eventArgs);
+        
     }
 
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)

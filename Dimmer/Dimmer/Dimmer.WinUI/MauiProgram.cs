@@ -5,6 +5,7 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
+using Dimmer.WinUI.Views.DimmerLiveUI;
 
 namespace Dimmer.WinUI;
 
@@ -34,12 +35,13 @@ public static class MauiProgram
         builder.Services.AddSingleton<IWindowManagerService, WindowManagerService>();
 
         builder.Services.AddSingleton<DimmerWin>();
-        builder.Services.AddScoped<DimmerOnlineViewModel>();
 
         builder.Services.AddSingleton<LibSanityPage>();
         builder.Services.AddSingleton<HomePage>();
 
         builder.Services.AddSingleton<SingleSongPage>();
+        builder.Services.AddSingleton<DimmerLivePage>();
+        builder.Services.AddSingleton<ExperimentsPage>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

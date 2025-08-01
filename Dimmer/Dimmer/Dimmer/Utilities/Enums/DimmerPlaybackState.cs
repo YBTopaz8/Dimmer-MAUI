@@ -44,4 +44,11 @@ public enum DimmerPlaybackState
     FolderScanStarted,
     FolderWatchStarted,
     PlaySongFrommOutsideApp,
+    ChatJoinedGeneralChannel,
+    ChatJoinedAlbumChannel,
+    ChatJoinedSongChannel,
+    ChatJoinedGenreChannel,
+    ChatJoinedArtistChannel,
+    ChatJoinedPrivateChannel,
+    ChatLeftChannel
 }

@@ -34,7 +34,35 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
      ShowIcon="True" IsVisible="True"
      ToolTipProperties.Text="Retroactively add links"
      WidthRequest="55" />
-                        
+
+
+                        <VerticalStackLayout
+                                Grid.Row="1"
+                                BackgroundColor="Transparent"
+                                Spacing="10">
+                            <Button Text="Validate Songs"
+Command="{Binding BaseVM.ValidateLibraryCommand}"
+/>
+                            <Button
+                                    Clicked="AddNewMusicFolder_Clicked"
+                                    HorizontalOptions="Start"
+                                    Text="Add New Folder" />
+                            <Button
+                                    x:Name="ReScanAllBtn"
+                                    BorderColor="DarkSlateBlue"
+                                    Command="{Binding BaseVM.RescanSongsCommand}"
+                                    Text="Rescan folders" />
+                            <Button
+                                    x:Name="Reconcile"
+                                    BorderColor="DarkSlateBlue"
+                                    Command="{Binding BaseVM.ReconcileLibraryCommand}"
+                                    Text="Reconcile Songs" />
+                            <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
+    Clicked="FindDupes_Clicked"
+                                        BackgroundColor="SlateBlue"/>
+
+
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
@@ -104,11 +132,7 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
                                       Clicked="AddNewMusicFolder_Clicked"
                                       HorizontalOptions="Start"
                                       Text="Add New Folder" />
-                                <Button
-                                      x:Name="ReScanAllBtn"
-                                      BorderColor="DarkSlateBlue"
-                                      Command="{Binding BaseVM.RescanSongsCommand}"
-                                      Text="Rescan folders" />
+                               
 
                             </VerticalStackLayout>
                         </Grid>
@@ -217,6 +241,9 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
                             <Label Text="{Binding BaseVM.UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
 
                         </VerticalStackLayout>
+                        
+                        
+                        
                     </VerticalStackLayout>
 
                 </syncf:SfTabItem.Content>

@@ -1,8 +1,5 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utilities.Events;
-using Dimmer.Utilities.StatsUtils;
-
-using DynamicData;
 
 using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
@@ -12,15 +9,7 @@ using Microsoft.Extensions.Options;
 
 using ReactiveUI;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
-using System.Threading.Tasks;
-
-using static Dimmer.Data.Models.LastFMUser;
 
 namespace Dimmer.LastFM;
 
@@ -43,7 +32,14 @@ public class LastfmService : ILastfmService
     private string? _username;
 
     public bool IsAuthenticated => _client.Session.Authenticated;
+    /// <summary>
+    /// Gets the username of the authenticated user.
+    /// </summary>
     public string? AuthenticatedUser => ((ILastfmService)this).IsAuthenticated ? _username : null;
+    /// <summary>
+    ///     
+    /// Gets the session token for the authenticated user.
+    /// </summary>
     public string? AuthenticatedUserSessionToken => _client.Session.SessionKey;
 
     public LastfmService(IOptions<LastfmSettings> settingsOptions, IDimmerAudioService _audioService, ILogger<LastfmService> logger,
@@ -135,7 +131,7 @@ public class LastfmService : ILastfmService
                 // Now, set the state for the new song.
                 _songToScrobble = currentSong;
                 await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
-                _ = ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
+                await ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
                 break;
 
             case DimmerPlaybackState.Resumed:
@@ -230,17 +226,17 @@ public class LastfmService : ILastfmService
 
     public async Task ScrobbleAsync(SongModelView song)
     {
-        if (!((ILastfmService)this).IsAuthenticated || song == null)
+        if (!((ILastfmService)this).IsAuthenticated || song == null||song.ArtistName is null )
             return;
 
         // CORRECTED: Use parameterless constructor and set properties.
         var scrobble = new Scrobble
         {
-            Artist = song.OtherArtistsName,
+            Artist = song.ArtistName,
             Track = song.Title,
             Date = DateTime.UtcNow, // Timestamp is required for a scrobble
             Album = song.AlbumName,
-            AlbumArtist = song.OtherArtistsName
+            AlbumArtist = song.ArtistName
         };
 
         try

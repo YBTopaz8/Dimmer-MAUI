@@ -1,4 +1,8 @@
-﻿namespace Dimmer.DimmerLive.Models;
+﻿
+
+using Microsoft.Maui.Devices;
+
+namespace Dimmer.DimmerLive.Models;
 
 [ParseClassName("ChatMessage")]
 public partial class ChatMessage : ParseObject
@@ -78,4 +82,36 @@ public partial class ChatMessage : ParseObject
         get => GetProperty<IDictionary<string, IList<string>>>();
         set => SetProperty(value);
     }
+    [ParseFieldName("UserDevicePlatform")]
+    public string UserDevicePlatform
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserDeviceIdiom")]
+    public string UserDeviceIdiom
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserDeviceVersion")]
+    public string UserDeviceVersion
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserName")]
+    public string UserName
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("UserSenderId")]
+    public string UserSenderId
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+   
+
 }

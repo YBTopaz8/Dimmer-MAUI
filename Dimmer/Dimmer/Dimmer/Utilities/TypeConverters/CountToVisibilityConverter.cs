@@ -1,4 +1,7 @@
 ﻿
+
+
+
 namespace Dimmer.Utilities.TypeConverters;
 public class CountToVisibilityConverter : IValueConverter
 {
@@ -34,4 +37,25 @@ public class CountToVisibilityConverter : IValueConverter
     {
         throw new NotImplementedException();
     }
+}
+
+
+
+public class IsNotNullOrEmptyConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is string str && !string.IsNullOrEmpty(str) && !string.IsNullOrWhiteSpace(str);
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+
+public class IsNullTrueOrFalseConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is null;
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }

@@ -18,4 +18,9 @@ public interface IRepository<T> where T : new()
     bool Update(ObjectId id, Action<T> updateAction);
 
     IObservable<IChangeSet<T>> Connect();
+    void UpdateMany(IEnumerable<ObjectId> ids, Action<T> updateAction);
+    bool ExistsWithRQL(string rqlQuery, params QueryArgument[] args);
+    T? FirstOrDefaultWithRQL(string rqlQuery, params QueryArgument[] args);
+    List<T> QueryWithRQL(string rqlQuery, params QueryArgument[] args);
+    T? FindByTitleAndDuration(string title, double duration);
 }

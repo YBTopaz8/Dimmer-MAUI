@@ -2,31 +2,52 @@
 [ParseClassName("DimmerSharedSong")]
 public class DimmerSharedSong : ParseObject
 {
-    [ParseFieldName("title")]
+    [ParseFieldName("Title")]
     public string Title
     {
         get => GetProperty<string>();
         set => SetProperty(value);
     }
 
-    [ParseFieldName("artist")]
-    public string Artist
+    [ParseFieldName("ArtistName")]
+    public string ArtistName
     {
         get => GetProperty<string>();
         set => SetProperty(value);
     }
 
-    [ParseFieldName("album")]
-    public string Album
+    [ParseFieldName("AlbumName")]
+    public string AlbumName
     {
         get => GetProperty<string>();
         set => SetProperty(value);
     }
 
-    [ParseFieldName("durationSeconds")]
+    [ParseFieldName("GenreName")]
+    public string GenreName
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("DurationSeconds")]
     public double? DurationSeconds
     {
         get => GetProperty<double?>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("IsFavorite")]
+    public bool IsFavorite
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("IsPlaying")]
+    public bool IsPlaying
+    {
+        get => GetProperty<bool>();
         set => SetProperty(value);
     }
     
@@ -81,7 +102,7 @@ public class DimmerSharedSong : ParseObject
     }
 
     // NEW: External source URL if the song is from a streaming service (optional)
-    [ParseFieldName("externalUrl")]
+    [ParseFieldName("ExternalUrl")]
     public string ExternalUrl
     {
         get => GetProperty<string>();
@@ -89,7 +110,7 @@ public class DimmerSharedSong : ParseObject
     }
 
     // NEW: Lyrics (if you want to store them with the shared song)
-    [ParseFieldName("lyrics")]
+    [ParseFieldName("LyricsText")]
     public string LyricsText
     {
         get => GetProperty<string>();

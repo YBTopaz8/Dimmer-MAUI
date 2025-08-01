@@ -1,5 +1,4 @@
-﻿using System.Runtime.Serialization;
-
+﻿
 namespace Dimmer.Data.ModelView;
 public partial class UserModelView : ObservableObject
 {
@@ -65,6 +64,8 @@ public partial class UserModelView : ObservableObject
 
     [ObservableProperty]
     public partial LastFMUserView LastFMAccountInfo { get; set; } = new LastFMUserView();
+    [ObservableProperty]
+    public partial ParseFile? ProfileImageFile { get;  set; }
 }
 
 public partial class LastFMUserView : ObservableObject

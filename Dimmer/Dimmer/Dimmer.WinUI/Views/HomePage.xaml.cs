@@ -34,18 +34,16 @@ using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunc
 using Syncfusion.Maui.Toolkit.Charts;
 using Label = Microsoft.Maui.Controls.Label;
 using Dimmer.DimmerLive;
+using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
 
 namespace Dimmer.WinUI.Views;
 
 public partial class HomePage : ContentPage
 {
+
+
     public BaseViewModelWin MyViewModel { get; internal set; }
-    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
-        // Optional: Update a summary label
-        //SummaryLabel.Text = query.Humanize();
-    }
+ 
 
 
     public HomePage(BaseViewModelWin vm)
@@ -57,8 +55,51 @@ public partial class HomePage : ContentPage
 
         // --- Keep these lines. They correctly wire up the UI. ---
 
-        MyViewModel.TranslatedSearch= TranslatedSearch;
+        //MyViewModel.TranslatedSearch= TranslatedSearch;
         //MyViewModel.SongsCountLabel = SongsCountLabel;
+        _availableLayouts = new List<DataTemplate>
+        {
+            (DataTemplate)Resources["SimpleListAndArtist"],
+            (DataTemplate)Resources["SimpleList"],
+            (DataTemplate)Resources["OGView"]
+        };
+    }
+    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
+    }
+    private List<DataTemplate> _availableLayouts;
+    private int _currentLayoutIndex = 0;
+    private void ChangeLayout_Clicked(object sender, EventArgs e)
+    {
+        // Move to the next layout index
+        _currentLayoutIndex++;
+
+        // If the index goes beyond the list of layouts, cycle back to the start
+        if (_currentLayoutIndex >= _availableLayouts.Count)
+        {
+            _currentLayoutIndex = 0;
+        }
+        if (_currentLayoutIndex == 1)
+        {
+            SongsColView.ItemsLayout = new GridItemsLayout(ItemsLayoutOrientation.Vertical)
+            {
+                VerticalItemSpacing =10,
+                Span = 6
+            };
+
+        }
+        if (_currentLayoutIndex == 0)
+        {
+            SongsColView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical)
+            {
+                
+            };
+
+        }
+        var tem = _availableLayouts[_currentLayoutIndex];
+        // Apply the new layout to the CollectionView
+        SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
 
     }
 
@@ -66,9 +107,64 @@ public partial class HomePage : ContentPage
     {
 
     }
+    private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
+        MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
+
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+
+    }
+
+    private async void NavigateToSelectedSongPageAsync(object sender, EventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var selectedSec = view.BindingContext as SongModelView;
+        await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
+    }
+    private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+        if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
+        {
+            return;
+        }
+        var send = (Microsoft.Maui.Controls.View)sender;
+        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        if (gest is null)
+        {
+            return;
+        }
+        var field = gest.PointerReleasedCommandParameter as string;
+        var val = gest.PointerPressedCommandParameter as string;
+        if (field is "artist")
+        {
+            char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+            var namesList = val
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+                .Select(name => name.Trim())                           // Trim whitespace from each name
+                .ToArray();                                             // Convert to a List
 
 
+            var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
 
+            if (string.IsNullOrEmpty(res))
+            {
+                return;
+            }
+            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", res);
+
+            return;
+        }
+
+        SearchSongSB.Text = StaticMethods.SetQuotedSearch(field, val);
+
+    }
+
+
+    ////////
 
 
 
@@ -133,8 +229,6 @@ public partial class HomePage : ContentPage
     }
 
     private bool isOnFocusMode;
-    private bool _isThrottling = false;
-    private readonly int throttleDelay = 300; // Time in milliseconds
 
     List<SongModelView> songsToDisplay = new();
 
@@ -189,15 +283,15 @@ public partial class HomePage : ContentPage
         public bool IsAscending { get; set; }
 
         public List<SortHeaderClass> DefaultHeaders { get; set; } = new List<SortHeaderClass>
-        {
-            new SortHeaderClass { SortProperty = "Title", IsAscending = true },
-            new SortHeaderClass { SortProperty = "Artist", IsAscending = true },
-            new SortHeaderClass { SortProperty = "Album", IsAscending = true },
-            new SortHeaderClass { SortProperty = "Genre", IsAscending = true },
-            new SortHeaderClass { SortProperty = "Duration", IsAscending = true },
-            new SortHeaderClass { SortProperty = "Year", IsAscending = true },
-            new SortHeaderClass { SortProperty = "DateAdded", IsAscending = true }
-        };
+    {
+        new SortHeaderClass { SortProperty = "Title", IsAscending = true },
+        new SortHeaderClass { SortProperty = "Artist", IsAscending = true },
+        new SortHeaderClass { SortProperty = "Album", IsAscending = true },
+        new SortHeaderClass { SortProperty = "Genre", IsAscending = true },
+        new SortHeaderClass { SortProperty = "Duration", IsAscending = true },
+        new SortHeaderClass { SortProperty = "Year", IsAscending = true },
+        new SortHeaderClass { SortProperty = "DateAdded", IsAscending = true }
+    };
 
         public SortHeaderClass() { }
     }
@@ -255,25 +349,7 @@ public partial class HomePage : ContentPage
     {
     }
 
-    private void SongsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
-    {
-
-    }
-    private Compositor _compositor;
-    private Visual _scrollViewerContentVisual; // The visual we will animate for scrolling
-    private WinUIControls.ListView? _nativeListView;
-    private void AllLyricsColView_Loaded(object sender, EventArgs e)
-    {
-        if (AllLyricsColView.Handler?.PlatformView is WinUIControls.ListView nativeListView)
-        {
-
-            return;
-            _nativeListView = nativeListView;
-
-
-        }
-    }
-
+ 
 
 
 
@@ -300,24 +376,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void PointerRecog_PointerExited(object sender, PointerEventArgs e)
-    {
-        await Task.WhenAll(SongsGrid.DimmIn(),
-            TranslatedSearch.DimmOut(),
-             AdvSearch.DimmOutCompletelyAndHide(),
-            UtilitySection.DimmInCompletelyAndShow
-            ()
-            );
-        SearchSongSB.Unfocus();
-    }
-    private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
-    {
-
-        await Task.WhenAll(SongsGrid.DimmOut(),
-             AdvSearch.DimmInCompletelyAndShow(),
-            SearchSongSB.AnimateHeight(65, 650, Easing.SpringOut));
-
-    }
 
     private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
@@ -329,6 +387,8 @@ public partial class HomePage : ContentPage
     }
 
 
+    private bool _isThrottling = false;
+    private readonly int throttleDelay = 300; // Time in milliseconds
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
         var send = (Slider)sender;
@@ -415,6 +475,72 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void MiddleClickGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var send = (Label)sender;
+        var gestRec = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        var field = gestRec.PointerEnteredCommandParameter as string;
+        var valuee = gestRec.PointerReleasedCommandParameter as string;
+
+
+        Microsoft.UI.Input.PointerDeviceType ee = e.PlatformArgs.PointerRoutedEventArgs.Pointer.PointerDeviceType;
+        Windows.System.VirtualKeyModifiers ewe = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+
+        if (ewe==Windows.System.VirtualKeyModifiers.Control || ewe==Windows.System.VirtualKeyModifiers.Menu|| ewe==Windows.System.VirtualKeyModifiers.Shift && ee==Microsoft.UI.Input.PointerDeviceType.Mouse)
+        {
+            SearchSongSB.Text= StaticMethods.SetQuotedSearch(field.ToString(), valuee);
+        }
+    }
+
+    private void ArtistSfEffectsView_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ResetChip_Clicked(object sender, EventArgs e)
+    {
+
+    }
+    /*
+     * 
+     *    private void SongsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+
+    }
+    private Compositor _compositor;
+    private Visual _scrollViewerContentVisual; // The visual we will animate for scrolling
+    private WinUIControls.ListView? _nativeListView;
+    private void AllLyricsColView_Loaded(object sender, EventArgs e)
+    {
+        if (AllLyricsColView.Handler?.PlatformView is WinUIControls.ListView nativeListView)
+        {
+
+            return;
+            _nativeListView = nativeListView;
+
+
+        }
+    }
+
+    private async void PointerRecog_PointerExited(object sender, PointerEventArgs e)
+    {
+        await Task.WhenAll(SongsGrid.DimmIn(),
+            TranslatedSearch.DimmOut(),
+             AdvSearch.DimmOutCompletelyAndHide(),
+            UtilitySection.DimmInCompletelyAndShow
+            ()
+            );
+        SearchSongSB.Unfocus();
+    }
+    private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    {
+
+        await Task.WhenAll(SongsGrid.DimmOut(),
+             AdvSearch.DimmInCompletelyAndShow(),
+            SearchSongSB.AnimateHeight(65, 650, Easing.SpringOut));
+
+    }
+
     private void AllLyricsColView_SelectionChanged_1(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
         var newItem = e.CurrentSelection;
@@ -441,33 +567,6 @@ public partial class HomePage : ContentPage
 
         }
         this.IsBusy=false;
-
-    }
-
-    private void MiddleClickGest_PointerReleased(object sender, PointerEventArgs e)
-    {
-        var send = (Label)sender;
-        var gestRec = send.GestureRecognizers[0] as PointerGestureRecognizer;
-        var field = gestRec.PointerEnteredCommandParameter as string;
-        var valuee = gestRec.PointerReleasedCommandParameter as string;
-
-
-        Microsoft.UI.Input.PointerDeviceType ee = e.PlatformArgs.PointerRoutedEventArgs.Pointer.PointerDeviceType;
-        Windows.System.VirtualKeyModifiers ewe = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
-
-        if (ewe==Windows.System.VirtualKeyModifiers.Control || ewe==Windows.System.VirtualKeyModifiers.Menu|| ewe==Windows.System.VirtualKeyModifiers.Shift && ee==Microsoft.UI.Input.PointerDeviceType.Mouse)
-        {
-            SearchSongSB.Text= StaticMethods.SetQuotedSearch(field.ToString(), valuee);
-        }
-    }
-
-    private void ArtistSfEffectsView_TouchUp(object sender, EventArgs e)
-    {
-
-    }
-
-    private void ResetChip_Clicked(object sender, EventArgs e)
-    {
 
     }
 
@@ -531,12 +630,12 @@ public partial class HomePage : ContentPage
     {
 
     }
-
+    
+    */
     private async void LyricsChip_Clicked(object sender, EventArgs e)
     {
-        await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsGrid.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
+        //await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsGrid.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
     }
-
     private void ArtistsEffectsView_LongPressed_1(object sender, EventArgs e)
     {
 
@@ -547,57 +646,17 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
-    {
-        var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
-        if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
-        {
-            return;
-        }
-        var send = (Microsoft.Maui.Controls.View)sender;
-        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
-        if (gest is null)
-        {
-            return;
-        }
-        var field = gest.PointerReleasedCommandParameter as string;
-        var val = gest.PointerPressedCommandParameter as string;
-        if (field is "artist")
-        {
-            char[] dividers = new char[] { ',', ';', ':', '|', '-' };
-
-            var namesList = val
-                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-                .Select(name => name.Trim())                           // Trim whitespace from each name
-                .ToArray();                                             // Convert to a List
-
-
-            var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
-
-            if (string.IsNullOrEmpty(res))
-            {
-                return;
-            }
-            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", res);
-
-            return;
-        }
-
-        SearchSongSB.Text = StaticMethods.SetQuotedSearch(field, val);
-
-    }
-
     private void ViewUtilsBtn_Clicked(object sender, EventArgs e)
     {
         UtilitiesHSL.IsVisible=!UtilitiesHSL.IsVisible;
     }
 
-    private async void ViewNPQ_Clicked(object sender, EventArgs e)
+    private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
         SearchSongSB.Text=MyViewModel.CurrentPlaybackQuery;
         return;
 
-        
+
 
     }
 
@@ -613,23 +672,25 @@ public partial class HomePage : ContentPage
         MyViewModel.SelectedSong=gestRec.CommandParameter as SongModelView;
     }
 
-    private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
-    {
-        var view = (Microsoft.Maui.Controls.View)sender;
-        var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
-        MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
 
-        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
-      
-    }
-
-    private  void CloseSideBar_Clicked(object sender, EventArgs e)
+    private void CloseSideBar_Clicked(object sender, EventArgs e)
     {
 
     }
 
-    private void OnAddQuickNoteClicked(object sender, EventArgs e)
+    private async void OnAddQuickNoteClicked(object sender, EventArgs e)
     {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        // Prompt the user for a note
+
+       
+      await  MyViewModel.SaveUserNoteToDbLegacy(song);
+
 
     }
 
@@ -637,4 +698,110 @@ public partial class HomePage : ContentPage
     {
 
     }
+
+    private void Button_Clicked_2(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFilter_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddFilterCommand.Execute(null);
+    }
+
+    private void AllEvents_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    {
+
+    }
+
+    private async void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    {
+
+        var topView = TopExpander.Header;
+
+
+        await Task.WhenAll(topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
+
+    }
+    private async void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    {
+        
+    }
+    private async void TopExpander_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    {
+        var topView = TopExpander.Header;
+        await Task.WhenAll(topView.SlideOutToRight(1000),
+        TopViewBtmpart.BounceOut(500));
+
+    }
+
+    private async void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    {
+     
+
+    }
+
+    private void CloseTopExpander_PointerPressed(object sender, PointerEventArgs e)
+    {
+
+        var arggs = e.PlatformArgs.PointerRoutedEventArgs;
+        OnGlobalPointerPressed(sender, arggs);
+    }
+    private void OnToggleTopViewClicked(object sender, EventArgs e)
+    {
+        TopExpander.IsExpanded = !TopExpander.IsExpanded;
+        
+    }
+    private  void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        var properties = e.GetCurrentPoint(nativeElement).Properties;
+
+        if (properties.IsRightButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        {
+            
+            TopExpander.IsExpanded = false;
+            // Handle mouse button 4
+        }
+    }
+
+
+    private async void TransferSession_Clicked(object sender, EventArgs e)
+    {
+        bool isOkToTransfer = await MyViewModel.IsUserOkayForTransfer();
+        if (isOkToTransfer)
+        {
+            await Task.WhenAll(GridSongsColView.DimmOutCompletelyAndHide(), ShareSongView.DimmInCompletelyAndShow());
+        }
+        else
+        {
+            var result = await DisplayAlert("No Account found", "Log in to use Dimmer session transfer?", "OK", "Cancel");
+            if (result)
+            {
+                await DisplayAlert("title","Now performing sign up","OK");
+            }
+
+        }
+    }
+
+    private async void SearchBtn_Clicked(object sender, EventArgs e)
+    {
+        if(!QuickSearchBar.IsVisible)
+        {
+            await QuickSearchBar.BounceIn(500);
+            
+            QuickSearchBar.Focus();
+        }
+        else
+        {
+            await QuickSearchBar.BounceOut(500);
+            QuickSearchBar.Unfocus();
+        }
+    }
+
 }

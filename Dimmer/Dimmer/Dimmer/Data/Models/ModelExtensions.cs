@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 public static class ModelExtensions
 {
     public static SongModelView ToViewModel(this SongModel src)
@@ -55,6 +49,9 @@ public static class ModelExtensions
             DiscTotal = src.DiscTotal,
             UserIDOnline = src.UserIDOnline,
             IsNew = src.IsNew
+            ,
+            UserNotes = src.UserNotes.Select(x=> new UserNoteModelView() { UserMessageText=x.UserMessageText,
+            CreatedAt=x.CreatedAt,ModifiedAt=x.ModifiedAt}).ToObservableCollection()
         };
 
         dest.PrecomputeSearchableText();

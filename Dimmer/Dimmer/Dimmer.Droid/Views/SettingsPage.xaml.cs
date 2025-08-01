@@ -38,6 +38,12 @@ public partial class SettingsPage : ContentPage
     //    var selectedFolder = (string)((DXButton)sender).CommandParameter;
     //    await MyViewModel.AddMusicFolderViaPickerAsync(selectedFolder);
     //}
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        await MyViewModel.InitializeDimmerLiveData();
+    }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.AddMusicFolderViaPickerAsync();
@@ -127,5 +133,16 @@ public partial class SettingsPage : ContentPage
     {
 
         await MyViewModel.BaseVM.LoginToLastfm();
+    }
+
+    private void AcceptBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.DimmerLiveViewModel.AcceptFriendRequestCommand.Execute(null);
+    }
+
+    private void RejectBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.DimmerLiveViewModel.RejectFriendRequestCommand.Execute(null);
+
     }
 }

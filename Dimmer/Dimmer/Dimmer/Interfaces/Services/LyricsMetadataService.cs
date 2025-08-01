@@ -169,7 +169,7 @@ public class LyricsMetadataService : ILyricsMetadataService
             // Deserialize the response into an array of LrcLibSearchResult
             var con = await ress.Content.ReadAsStringAsync();
 
-            Debug.WriteLine(con);
+            //Debug.WriteLine(con);
             var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
             return results ?? Enumerable.Empty<LrcLibSearchResult>();
         }

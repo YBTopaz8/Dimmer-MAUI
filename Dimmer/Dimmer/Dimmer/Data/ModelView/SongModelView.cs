@@ -32,7 +32,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial GenreModelView Genre { get; set; } = new();
     [ObservableProperty]
-    public partial string? GenreName { get; set; } 
+    public partial string GenreName { get; set; } = string.Empty; 
     [ObservableProperty]
     public partial string FilePath { get; set; } 
     [ObservableProperty]
@@ -123,7 +123,7 @@ public partial class SongModelView : ObservableObject
 
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView>? UserNote { get; set; }
+    public partial ObservableCollection<UserNoteModelView>? UserNotes { get; set; } = new();
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
@@ -148,8 +148,11 @@ public partial class SongModelView : ObservableObject
     // This method is called after the object is created and its properties are set.
     public void PrecomputeSearchableText()
     {
-        var allNotes = UserNote?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
-
+        //var allNotes = UserNotes?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
+        //if (!string.IsNullOrEmpty(allNotes))
+        //{
+        //    Debug.WriteLine(allNotes);
+        //}
         var sb = new StringBuilder();
         sb.Append(Title?.ToLowerInvariant()).Append(' ');
         sb.Append(OtherArtistsName?.ToLowerInvariant()).Append(' ');
@@ -157,8 +160,8 @@ public partial class SongModelView : ObservableObject
         sb.Append(UnSyncLyrics?.ToLowerInvariant()).Append(' ');
         sb.Append(SyncLyrics?.ToLowerInvariant()).Append(' ');
         sb.Append(Genre?.Name?.ToLowerInvariant()).Append(' '); // Example of adding more
-        sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
-        sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
+        //sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
+        //sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
 
         SearchableText = sb.ToString();
         if (string.IsNullOrEmpty(SearchableText) || string.IsNullOrWhiteSpace(SearchableText))
@@ -175,8 +178,8 @@ public partial class SongModelView : ObservableObject
 
     }
     public string UserNoteAggregatedText =>
-        UserNote != null && UserNote.Any()
-        ? string.Join(" ", UserNote.Select(n => n.UserMessageText))
+        UserNotes != null && UserNotes.Any()
+        ? string.Join(" ", UserNotes.Select(n => n.UserMessageText))
         : string.Empty;
 
     public SongModelView()
@@ -187,12 +190,36 @@ public partial class SongModelView : ObservableObject
     {
         return HashCode.Combine(Id);
     }
+
+    [Indexed]
+    [ObservableProperty]
+    public partial int SongTypeValue { get; set; } = (int)SongType.Track;
+
+    public SongType SongType { get => (SongType)SongTypeValue; set => SongTypeValue = (int)value; }
+
+    [ObservableProperty]
+    public partial ObjectId? ParentSongId { get; set; }
+    [ObservableProperty]
+    public partial double? SegmentStartTime { get; set; }
+    [ObservableProperty]
+    public partial double? SegmentEndTime { get; set; }
+    [ObservableProperty]
+    public partial int SegmentEndBehaviorValue { get; set; } = (int)SegmentEndBehavior.Stop;
+
+    public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
+
 }
 
 public partial class UserNoteModelView : ObservableObject
 {
     [ObservableProperty]
     public partial string? UserMessageText { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset CreatedAt { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset ModifiedAt { get; set; }
+    [ObservableProperty]
+    public partial string? Id{ get; set; }
     [ObservableProperty]
     public partial string? UserMessageImagePath { get; set; }
     [ObservableProperty]
@@ -204,7 +231,7 @@ public partial class UserNoteModelView : ObservableObject
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
 }
-public class SyncLyricsView
+public partial class SyncLyricsView : ObservableObject
 {
     public int TimestampMs { get; set; }
     public string? Text { get; set; }
@@ -252,4 +279,7 @@ public class SyncLyricsView
         TimestampMs = syncLyricsDB.TimestampMs;
 
     }
+
 }
+public enum SongType { Track, Segment }
+public enum SegmentEndBehavior { Stop, LoopSegment, PlayThrough }

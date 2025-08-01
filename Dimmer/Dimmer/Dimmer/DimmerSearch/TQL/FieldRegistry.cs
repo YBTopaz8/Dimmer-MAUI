@@ -1,13 +1,4 @@
-﻿using Microsoft.Maui.Platform;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQL;
+﻿namespace Dimmer.DimmerSearch.TQL;
 public enum FieldType { Text, Numeric, Boolean, Duration, Date }
 
 public record FieldDefinition(
@@ -32,7 +23,7 @@ public static class FieldRegistry
             new("Title", FieldType.Text, new[]{"t"}, "The song's title", nameof(SongModelView.Title)),
             new("OtherArtistsName", FieldType.Text, new[]{"ar", "artist"}, "The song's artist(s)", nameof(SongModelView.OtherArtistsName)),
             new("AlbumName", FieldType.Text, new[]{"al", "album"}, "The album name", nameof(SongModelView.AlbumName )),
-            new("GenreName", FieldType.Text, new[]{"genre"}, "The song's genre", nameof(SongModelView.GenreName)),
+            new("GenreName", FieldType.Text, new[]{"genre","g"}, "The song's genre", nameof(SongModelView.GenreName)),
             new("Composer", FieldType.Text, new[]{"comp"}, "The composer", nameof(SongModelView.Composer)),
             new("FilePath", FieldType.Text, new[]{"path"}, "The file path", nameof(SongModelView.FilePath)),
 
@@ -51,14 +42,14 @@ public static class FieldRegistry
             new("HasLyrics", FieldType.Boolean, new[]{"synced","ssingable","syncsingable"}, "Does the song have synced lyrics?", nameof(SongModelView.HasSyncedLyrics)),
 
             // --- Duration Field ---
-            new("DurationInSeconds", FieldType.Duration, new[]{"len","length","time", "duration"}, "The song's duration", nameof(SongModelView.DurationInSeconds)),
+            new("DurationInSeconds", FieldType.Duration, new[]{"len","length","time", "duration","dur"}, "The song's duration", nameof(SongModelView.DurationInSeconds)),
             
             // --- Date Fields ---
             new("DateCreated", FieldType.Date, new[]{"added"}, "Date the song was added", nameof(SongModelView.DateCreated)),
             new("LastPlayed", FieldType.Date, new[]{"played"}, "The last time the song was played", nameof(SongModelView.LastPlayed)),
 
             // --- Advanced Text Fields ---
-            new("UserNoteAggregatedText", FieldType.Text, new[]{"note", "comment"}, "Text in user notes", nameof(SongModelView.UserNoteAggregatedText)),
+            new("UserNoteAggregatedText", FieldType.Text, new[]{"note","notes","playlist","pl", "comment"}, "Text in user notes", nameof(SongModelView.UserNoteAggregatedText)),
             new("LyricsText", FieldType.Text, new[]{"lyrics"}, "Full text of all lyrics", nameof(SongModelView.SyncLyrics )),
 
         }.AsReadOnly();

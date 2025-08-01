@@ -1,23 +1,9 @@
-﻿using AutoMapper;
-
-using CommunityToolkit.Mvvm.ComponentModel;
-
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView;
-
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 
 using ReactiveUI;
 
-using Realms;
-
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel; // Required for this new pattern
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 
 namespace Dimmer.ViewModel;
 

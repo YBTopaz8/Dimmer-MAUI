@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQL;
+﻿namespace Dimmer.DimmerSearch.TQL;
 
 public class AutocompleteEngine
 {
@@ -13,6 +7,15 @@ public class AutocompleteEngine
     private readonly ReadOnlyObservableCollection<string> _distinctAlbums;
     private readonly ReadOnlyObservableCollection<string> _distinctGenres;
 
+    // The "Free Search" sources (all data)
+    private readonly ReadOnlyObservableCollection<string> _masterArtists;
+    private readonly ReadOnlyObservableCollection<string> _masterAlbums;
+    private readonly ReadOnlyObservableCollection<string> _masterGenres;
+
+    // The "Firm Search" sources (live, filtered data)
+    private readonly ReadOnlyObservableCollection<string> _liveArtists;
+    private readonly ReadOnlyObservableCollection<string> _liveAlbums;
+    private readonly ReadOnlyObservableCollection<string> _liveGenres;
     public AutocompleteEngine(
         ReadOnlyObservableCollection<string> artists,
         ReadOnlyObservableCollection<string> albums,
@@ -23,7 +26,22 @@ public class AutocompleteEngine
         _distinctGenres = genres;
     }
 
-    public ObservableCollection<string> GetSuggestions(string queryText, int cursorPosition)
+    public AutocompleteEngine(
+        ReadOnlyObservableCollection<string> masterArtists,
+        ReadOnlyObservableCollection<string> masterAlbums,
+        ReadOnlyObservableCollection<string> masterGenres,
+        ReadOnlyObservableCollection<string> liveArtists,
+        ReadOnlyObservableCollection<string> liveAlbums,
+        ReadOnlyObservableCollection<string> liveGenres)
+    {
+        _masterArtists = masterArtists;
+        _masterAlbums = masterAlbums;
+        _masterGenres = masterGenres;
+        _liveArtists = liveArtists;
+        _liveAlbums = liveAlbums;
+        _liveGenres = liveGenres;
+    }
+    public ObservableCollection<string> GetSuggestions(string queryText, int cursorPosition, bool isFirmSearch)
     {
         if (cursorPosition == 0 || string.IsNullOrWhiteSpace(queryText))
         {
@@ -55,24 +73,28 @@ public class AutocompleteEngine
         {
             return new ObservableCollection<string>(); // Invalid field, no suggestions
         }
+        // Determine which data source to use for suggestions
+        var artistSource = isFirmSearch ? _liveArtists : _masterArtists;
+        var albumSource = isFirmSearch ? _liveAlbums : _masterAlbums;
+        var genreSource = isFirmSearch ? _liveGenres : _masterGenres;
 
         // Provide suggestions based on the field's type
         switch (fieldDef.PrimaryName)
         {
             case "OtherArtistsName":
-                return _distinctArtists
+                return artistSource
                     .Where(a => a != null && a.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
                     .Select(a => a.Contains(' ') ? $"\"{a}\"" : a) // Quote if it has spaces
                     .Take(10).ToObservableCollection();
 
             case "AlbumName":
-                return _distinctAlbums
+                return albumSource
                     .Where(a => a != null && a.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
                     .Select(a => a.Contains(' ') ? $"\"{a}\"" : a)
                     .Take(10).ToObservableCollection();
 
             case "GenreName":
-                return _distinctGenres
+                return genreSource
                    .Where(g => g != null && g.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
                    .Take(10).ToObservableCollection();
 

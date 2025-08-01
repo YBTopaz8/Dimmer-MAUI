@@ -1,9 +1,4 @@
-﻿using Realms;
-
-using System;
-using System.Linq;
-
-namespace Dimmer.Data.RealmStaticFilters;
+﻿namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicArtistryService
 {

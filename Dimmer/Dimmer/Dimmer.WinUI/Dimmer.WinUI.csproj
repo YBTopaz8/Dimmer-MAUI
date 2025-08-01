@@ -55,7 +55,9 @@
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <None Remove="Views\ArtistWindow.xaml" />
     <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <None Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
     <None Remove="Views\DimmerSongWindow.xaml" />
+    <None Remove="Views\ExperimentsPage.xaml" />
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
@@ -78,7 +80,9 @@
     <Page Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <Page Remove="Views\ArtistWindow.xaml" />
     <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <Page Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
     <Page Remove="Views\DimmerSongWindow.xaml" />
+    <Page Remove="Views\ExperimentsPage.xaml" />
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
     <Page Remove="Views\PlaylistWindow.xaml" />
@@ -179,7 +183,13 @@
     <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\DimmerLiveUI\DimmerLivePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\DimmerSongWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\ExperimentsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\HomePage.xaml">
