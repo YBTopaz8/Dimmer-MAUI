@@ -60,13 +60,13 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     private readonly ILogger<BaseViewModel> logger;
     private readonly IWindowManagerService winMgrService;
 
-    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, 
+    public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService,
         LoginViewModel loginViewModel,
         DimmerLiveViewModel dimmerLiveViewModel
         , IFolderPicker _folderPicker, IWindowManagerService windowManager,
         IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDeviceConnectivityService deviceConnectivityService, IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, lastfmService, artistRepo, albumModel, genreModel, logger)
     {
-    
+
 
 
         _mapper=mapper;
@@ -143,24 +143,24 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
             if (!string.IsNullOrEmpty(selectedFolderPath))
             {
-                
+
 
                 AddMusicFolderByPassingToService(selectedFolderPath);
             }
             else
             {
-                
+
             }
         }
         else
         {
-            
+
         }
     }
     [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; } 
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
     [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; } 
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
     public async Task PickFolderToScan()
     {
         await AddMusicFolderViaPickerAsync();
@@ -175,7 +175,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
         SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName,SelectedSong.AlbumName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
 
     }
 
@@ -189,13 +189,13 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     }
     internal async Task LoadSongLastFMMoreData()
     {
-        if (SelectedSong is null )
+        if (SelectedSong is null)
         {
             return;
         }
-         SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
-     var   LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-        IEnumerable<LrcLibSearchResult>? s =await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
+        SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        var LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
         AllLyricsResultsLrcLib = s.ToObservableCollection();
     }
 
@@ -212,9 +212,28 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     public partial SongModelView SelectedSongOnPage { get; set; }
 
 
-    public async Task InitializeDimmerLiveData()
+    public async Task<bool> InitializeLoginUserData()
     {
         loginViewModel.Username=base.UserLocal.Username;
-        await loginViewModel.InitializeAsync();
+        return await loginViewModel.InitializeAsync();
+    }
+
+    public async Task<bool> IsUserOkayForTransfer()
+    {
+        if (loginViewModel.CurrentUser is not null)
+        {
+            return true;
+
+        }
+        else
+        {
+
+            if (await InitializeLoginUserData())
+            {
+                DimmerLiveViewModel.FindAllMessagesInconvo
+                return true;
+            }
+            return false;
+        }
     }
 }

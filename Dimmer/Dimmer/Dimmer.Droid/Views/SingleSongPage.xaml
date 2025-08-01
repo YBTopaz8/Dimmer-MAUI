@@ -119,7 +119,7 @@
 
                 <!-- User Note Section -->
                 <Label Text="My Notes" Style="{StaticResource SectionHeader}"/>
-                <Label Text="{Binding BaseVM.SelectedSong.UserNote.Count}" LineBreakMode="WordWrap"/>
+                <Label Text="{Binding BaseVM.SelectedSong.UserNotes.Count}" LineBreakMode="WordWrap"/>
                 <Button Text="Add / Edit Note" Command="{Binding EditNoteCommand}" CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
 
                 <!-- File Properties -->
@@ -132,7 +132,7 @@
                     <Label Grid.Row="1" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
 
                     <Label Grid.Row="2" Grid.Column="0" Text="Format:" Style="{StaticResource FieldLabel}"/>
-                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.FileFormat, StringFormat='{0}, {1} kbps'}">
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.FileFormat, StringFormat='{0} kbps'}">
                         <!--<Label.BindingContext>
                             <MultiBinding>
                                 <Binding Path="BaseVM.SelectedSong.FileFormat"/>
@@ -178,7 +178,7 @@
 
                                 <Label Grid.Row="6" Grid.Column="0" Text="Tags" VerticalOptions="Start" Style="{StaticResource FieldLabel}"/>
                                 <VerticalStackLayout Grid.Row="6" Grid.Column="1">
-                                    <FlexLayout BindableLayout.ItemsSource="{Binding BaseVM.SelectedSong.UserNote}" Wrap="Wrap">
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding BaseVM.SelectedSong.UserNotes}" Wrap="Wrap">
                                         <!-- Similar to display, but with a delete button -->
                                     </FlexLayout>
                                     <HorizontalStackLayout>
@@ -282,37 +282,7 @@
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
-            <!-- TAB 4: STATISTICS & HISTORY -->
-            <syncf:SfTabItem Header="Statistics">
-                <syncf:SfTabItem.Content>
-                    <ScrollView>
-                        <VerticalStackLayout Padding="15">
-                            <Label Text="Charts" Style="{StaticResource SectionHeader}"/>
-
-                            <Label Text="Key Metrics" Style="{StaticResource SectionHeader}"/>
-                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="5">
-                                <Label Grid.Row="0" Grid.Column="0" Text="Total Plays:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSongStats.TotalPlays}"/>
-
-                                <Label Grid.Row="1" Grid.Column="0" Text="Last Played:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSongStats.LastPlayed, Converter={StaticResource DateTimeConverter}}"/>
-
-                                <Label Grid.Row="2" Grid.Column="0" Text="Skips:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSongStats.SkipCount}"/>
-
-                                <Label Grid.Row="3" Grid.Column="0" Text="Playtime:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSongStats.TotalPlayTime, StringFormat='{0} hours'}"/>
-                            </Grid>
-
-                            <Label Text="Recent Play History" Style="{StaticResource SectionHeader}"/>
-                            <CollectionView ItemsSource="{Binding BaseVM.SelectedSong.PlayEvents}">
-                                <!-- DataTemplate to show EventDate and EventType -->
-                            </CollectionView>
-                        </VerticalStackLayout>
-                    </ScrollView>
-                </syncf:SfTabItem.Content>
-            </syncf:SfTabItem>
-
+    
         </syncf:SfTabView>
     </Grid>
 </ContentPage>

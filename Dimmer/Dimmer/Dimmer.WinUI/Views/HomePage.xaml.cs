@@ -41,8 +41,6 @@ namespace Dimmer.WinUI.Views;
 public partial class HomePage : ContentPage
 {
 
-    private List<DataTemplate> _availableLayouts;
-    private int _currentLayoutIndex = 0;
 
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
@@ -72,10 +70,8 @@ public partial class HomePage : ContentPage
         };
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
-    {
-
-    }
+    private List<DataTemplate> _availableLayouts;
+    private int _currentLayoutIndex = 0;
     private void ChangeLayout_Clicked(object sender, EventArgs e)
     {
         // Move to the next layout index
@@ -86,14 +82,35 @@ public partial class HomePage : ContentPage
         {
             _currentLayoutIndex = 0;
         }
+        if (_currentLayoutIndex == 1)
+        {
+            SongsColView.ItemsLayout = new GridItemsLayout(ItemsLayoutOrientation.Vertical)
+            {
+                VerticalItemSpacing =10,
+                Span = 6
+            };
+
+        }
+        if (_currentLayoutIndex == 0)
+        {
+            SongsColView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical)
+            {
+                
+            };
+
+        }
         var tem = _availableLayouts[_currentLayoutIndex];
         // Apply the new layout to the CollectionView
         SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
+
     }
 
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+
+    }
     private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
     {
-        return;
         var view = (Microsoft.Maui.Controls.View)sender;
         var gestRec = view.GestureRecognizers[0] as PointerGestureRecognizer;
         MyViewModel.SelectedSong=gestRec.PointerPressedCommandParameter as SongModelView;
@@ -208,8 +225,6 @@ public partial class HomePage : ContentPage
     }
 
     private bool isOnFocusMode;
-    private bool _isThrottling = false;
-    private readonly int throttleDelay = 300; // Time in milliseconds
 
     List<SongModelView> songsToDisplay = new();
 
@@ -368,6 +383,8 @@ public partial class HomePage : ContentPage
     }
 
 
+    private bool _isThrottling = false;
+    private readonly int throttleDelay = 300; // Time in milliseconds
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
         var send = (Slider)sender;
@@ -702,7 +719,8 @@ public partial class HomePage : ContentPage
     {
 
         var topView = TopExpander.Header;
-        await topView.DimmOut(1000,0.05);
+        await Task.WhenAll(topView.DimmOut(1000,0.05),
+        TopViewBtmpart.BounceOut(500));
     }
 
     private void CloseTopExpander_PointerPressed(object sender, PointerEventArgs e)
@@ -734,12 +752,30 @@ public partial class HomePage : ContentPage
         var topView = TopExpander.Header;
        
 
-            await topView.DimmInCompletelyAndShow(700);
+            await Task.WhenAll( topView.DimmInCompletelyAndShow(700),TopViewBtmpart.BounceIn(200));
 
     }
 
     private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
     {
 
+    }
+
+    private async void TransferSession_Clicked(object sender, EventArgs e)
+    {
+        bool isOkToTransfer = await MyViewModel.IsUserOkayForTransfer();
+        if (isOkToTransfer)
+        {
+            await Task.WhenAll(GridSongsColView.DimmOutCompletelyAndHide(), ShareSongView.DimmInCompletelyAndShow());
+        }
+        else
+        {
+            var result = await DisplayAlert("No Account found", "Log in to use Dimmer session transfer?", "OK", "Cancel");
+            if (result)
+            {
+                await DisplayAlert("title","Now performing sign up","OK");
+            }
+
+        }
     }
 }

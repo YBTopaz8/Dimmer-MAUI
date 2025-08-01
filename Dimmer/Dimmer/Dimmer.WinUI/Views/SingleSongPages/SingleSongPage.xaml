@@ -8,7 +8,8 @@
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
              x:DataType="vm:BaseViewModelWin" Shell.NavBarIsVisible="False"
-             >
+       xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+         >
 
     <ContentPage.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
@@ -30,6 +31,55 @@
             x:Key="FieldLabel">
             <Setter Property="FontAttributes" Value="Bold"/>
         </Style>
+
+        <DataTemplate x:Key="SimpleTemplate" x:DataType="models:SongModelView">
+            <Label Text="{Binding Title}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
+            <Grid ColumnDefinitions="180" HorizontalOptions="Center">
+                <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="View"
+                                                            CommandParameter="{Binding .}"
+                                                            Clicked="ViewSongMFI_Clicked"
+                                                            x:Name="ViewSongMFI"/>
+                                            
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
+                <Grid.GestureRecognizers>
+                    <PointerGestureRecognizer
+                        PointerEntered="SongViewPointer_PointerEntered"
+                        x:Name="SongViewPointer"
+                        PointerExited="SongViewPointer_PointerExited"/>
+                </Grid.GestureRecognizers>
+                <Image Source="{Binding CoverImagePath}" 
+                       Opacity="0.3" 
+                       HorizontalOptions="Start" >
+                    <Image.GestureRecognizers>
+                        <DragGestureRecognizer
+                            CanDrag="True"
+                            DragStarting="SongDrag_DragStarting"
+                            x:Name="SongDrag"
+                            DragStartingCommandParameter="{Binding .}"/>
+                    </Image.GestureRecognizers>
+                </Image>
+                <Border BackgroundColor="#2C2C2C" VerticalOptions="End" 
+                        StrokeShape="RoundRectangle 5,5,0,0" Padding="5,5,5,0">
+                    
+                <VerticalStackLayout >
+                        <VerticalStackLayout.Resources>
+                            <Style TargetType="Label">
+                                <Setter Property="TextColor" Value="#999999"/>
+                            </Style>
+                        </VerticalStackLayout.Resources>
+                    <Label Text="{Binding Title}"/>
+                    <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                </VerticalStackLayout>
+
+                </Border>
+            </Grid>
+        </DataTemplate>
         <DataTemplate x:Key="tooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
                 <Label
@@ -81,48 +131,292 @@
         <!-- =============================================================== -->
         <!-- LEFT COLUMN: At-a-Glance Info, Quick Actions, and File Properties -->
         <!-- =============================================================== -->
-        <ScrollView Grid.Column="0">
+        <ScrollView Grid.Column="0" x:Name="LeftView">
             <VerticalStackLayout Spacing="10" Padding="15">
+                
+                <VerticalStackLayout.GestureRecognizers>
+                    <DropGestureRecognizer
+                        AllowDrop="True"
+                        DragOver="SidePage_DragOver"
+                        Drop="SidePage_Drop"
+                        x:Name="SidePage" />
+                </VerticalStackLayout.GestureRecognizers>
+
+                <syncf:SfExpander>
+                    <syncf:SfExpander.Header>
+                        <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" >
+                            <VerticalStackLayout>
+                                <HorizontalStackLayout>
+                                    
+                                <Button Text="{Binding CurrentPlayingSongView.Title}" BackgroundColor="Transparent"
+                                        Command="{Binding PlayPauseToggleCommand}"
+                                        
+                                        windows:VisualElement.AccessKey="P"/>
+                                <Button Text="{Binding CurrentPlayingSongView.ArtistName}" BackgroundColor="Transparent"/>
+                                    <Button Text="{Binding CurrentPlayingSongView.AlbumName}" BackgroundColor="Transparent" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout HorizontalOptions="Center">
+                                    <Label Grid.Column="0" 
+                                           TextColor="DarkSlateBlue"
+                                           Text="{Binding CurrentTrackPositionPercentage, StringFormat='{0:n1}'}" />
+                                    <Label Text="%"/>
+
+                                </HorizontalStackLayout>
+                                <Slider Maximum="100"
+                                Minimum="0" HorizontalOptions="Center"
+                                        ThumbColor="Transparent"
+                                        BackgroundColor="Transparent"
+                           MinimumTrackColor="DarkSlateBlue" WidthRequest="300"
+                                        Value="{Binding CurrentTrackPositionPercentage}"/>
+                                
+                            </VerticalStackLayout>
+                        </Border>
+                    </syncf:SfExpander.Header>
+
+                    <syncf:SfExpander.Content>
+                        <VerticalStackLayout>
+
+                            <Grid
+                   x:Name="SecondA"
+                   Grid.Row="1"
+                   ColumnDefinitions="auto,*,auto"
+                   ColumnSpacing="5"
+                   VerticalOptions="Center">
+
+                                <HorizontalStackLayout
+                       x:Name="MediaBtns"
+                       Grid.Row="0"
+                       HeightRequest="50"
+                       Spacing="10"
+                       VerticalOptions="Center">
+                                    <syncf:SfChip
+                           x:Name="SkipPrev"
+                           windows:VisualElement.AccessKey="B"
+                           windows:VisualElement.AccessKeyPlacement="Right"
+                           Background="Transparent"
+                           Command="{Binding PreviousTrackCommand}"
+                           ImageSource="skipprevious.png"
+                           StyleClass="MediaBtnChip" />
+                                    <syncf:SfChip
+                           x:Name="PlayPauseBtn"
+                           windows:VisualElement.AccessKey="P"
+                           windows:VisualElement.AccessKeyPlacement="Right"
+                           Background="Transparent"
+                           Command="{Binding PlayPauseToggleCommand}"
+                           ImageSource="play.png"
+                           StyleClass="MediaBtnChip">
+                                        <syncf:SfChip.Triggers>
+                                            <DataTrigger
+                                   Binding="{Binding IsPlaying}"
+                                   TargetType="syncf:SfChip"
+                                   Value="true">
+                                                <Setter Property="ImageSource" Value="pause.png" />
+                                            </DataTrigger>
+
+                                            <DataTrigger
+                                   Binding="{Binding IsPlaying}"
+                                   TargetType="syncf:SfChip"
+                                   Value="false">
+                                                <Setter Property="ImageSource" Value="play.png" />
+                                            </DataTrigger>
+                                        </syncf:SfChip.Triggers>
+                                    </syncf:SfChip>
+                                    <syncf:SfChip
+                           x:Name="SkipNext"
+                           windows:VisualElement.AccessKey="N"
+                           windows:VisualElement.AccessKeyPlacement="Right"
+                           Background="Transparent"
+                           Command="{Binding NextTrackCommand}"
+                           ImageSource="skipnext.png"
+                           StyleClass="MediaBtnChip" />
+
+
+                                </HorizontalStackLayout>
+
+                                <Grid
+                       Grid.Column="1"
+                       ColumnDefinitions="auto,*,auto"
+                       ColumnSpacing="10"
+                       ToolTipProperties.Text="{Binding CurrentTrackPositionSeconds, StringFormat='Currently at {0}', Converter={StaticResource DurationConverter}}"
+                       VerticalOptions="Center">
+                                    <Label Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
+                                    <Slider
+                           x:Name="TrackProgressSlider"
+                           Grid.Column="1"
+                           DragCompleted="Slider_DragCompleted"
+                           Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
+                           Minimum="0"
+                           MinimumTrackColor="DarkSlateBlue"
+                           ThumbColor="DarkSlateBlue"
+                           Value="{Binding CurrentTrackPositionSeconds}" />
+                                    <Label Grid.Column="2" Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                                </Grid>
+                                <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
+                                    <syncf:SfChip
+                           Background="Transparent"
+                           Command="{Binding ToggleShuffleModeCommand}"
+                           ImageSource="shuffle.png"
+                           StyleClass="MediaBtnChip">
+                                        <syncf:SfChip.Triggers>
+                                            <DataTrigger
+                                   Binding="{Binding IsShuffleActive}"
+                                   TargetType="syncf:SfChip"
+                                   Value="True">
+                                                <Setter Property="Stroke" Value="DarkSlateBlue" />
+
+
+                                            </DataTrigger>
+                                        </syncf:SfChip.Triggers>
+                                    </syncf:SfChip>
+                                    <syncf:SfChip
+                           Background="Transparent"
+                           Command="{Binding ToggleRepeatModeCommand}"
+                           ImageSource="repeat.png"
+                           StyleClass="MediaBtnChip"
+                           ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
+                                        <syncf:SfChip.Triggers>
+                                            <DataTrigger
+                                   Binding="{Binding CurrentRepeatMode}"
+                                   TargetType="syncf:SfChip"
+                                   Value="0">
+                                                <Setter Property="Stroke" Value="DarkSlateBlue" />
+
+
+                                            </DataTrigger>
+                                            <DataTrigger
+                                   Binding="{Binding CurrentRepeatMode}"
+                                   TargetType="syncf:SfChip"
+                                   Value="1">
+                                                <Setter Property="Stroke" Value="DarkSlateBlue" />
+
+
+                                            </DataTrigger>
+                                            <DataTrigger
+                                   Binding="{Binding CurrentRepeatMode}"
+                                   TargetType="syncf:SfChip"
+                                   Value="2">
+                                                <Setter Property="Stroke" Value="Orange" />
+
+
+                                            </DataTrigger>
+                                            <DataTrigger
+                                   Binding="{Binding CurrentRepeatMode}"
+                                   TargetType="syncf:SfChip"
+                                   Value="3">
+                                                <Setter Property="Stroke" Value="DarkBlue" />
+
+
+                                            </DataTrigger>
+                                        </syncf:SfChip.Triggers>
+                                    </syncf:SfChip>
+                                    <Slider
+                           Minimum="0"
+                           MinimumTrackColor="DarkSlateBlue"
+                           VerticalOptions="Center"
+                           WidthRequest="140"
+                           Value="{Binding DeviceVolumeLevel}" />
+                                </HorizontalStackLayout>
+
+
+
+                            </Grid>
+                        <Grid ColumnDefinitions="180" HorizontalOptions="Center">
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="View"
+                                                 CommandParameter="{Binding CurrentPlayingSongView}"
+                                                 Clicked="ViewSongMFI_Clicked"
+                                                 x:Name="ViewSongMFI"/>
+
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                            <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}" 
+            Opacity="0.3" 
+            HorizontalOptions="Start" >
+                                <Image.GestureRecognizers>
+                                    <DragGestureRecognizer
+                 CanDrag="True"
+                 DragStarting="SongDrag_DragStarting"
+                 x:Name="SongDrag"
+                 DragStartingCommandParameter="{Binding .}"/>
+                                </Image.GestureRecognizers>
+                            </Image>
+                            <Border BackgroundColor="#2C2C2C" VerticalOptions="End" 
+             StrokeShape="RoundRectangle 5,5,0,0" Padding="5,5,5,0">
+
+                                <VerticalStackLayout >
+                                    <VerticalStackLayout.Resources>
+                                        <Style TargetType="Label">
+                                            <Setter Property="TextColor" Value="#999999"/>
+                                        </Style>
+                                    </VerticalStackLayout.Resources>
+                                    <Label Text="{Binding CurrentPlayingSongView.Title}"/>
+                                    <Label Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                                </VerticalStackLayout>
+
+                            </Border>
+                        </Grid>
+
+                        </VerticalStackLayout>
+                    </syncf:SfExpander.Content>
+                    
+                </syncf:SfExpander>
                 <!-- Cover Art and Main Info -->
-                <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" HeightRequest="320" WidthRequest="320" HorizontalOptions="Center">
+                <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center">
                     <Image Aspect="AspectFill" Source="{Binding SelectedSong.CoverImagePath}"/>
                 </Border>
 
-                <Label Text="{Binding SelectedSong.Title}" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
-                <Label Text="{Binding SelectedSong.OtherArtistsName}" FontSize="20" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
+                <Label Text="{Binding SelectedSong.Title}"
+                       
+                       FontSize="38" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                <syncf:SfChip
+                    TextColor="White"
+                    Clicked="ViewArtist_Clicked"
+                    x:Name="ViewArtist" StrokeThickness="0.4"
+                    CommandParameter="{Binding SelectedSong}"
+                    Text="{Binding SelectedSong.OtherArtistsName}" FontSize="20" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
+
+             <Label
+                    TextColor="White"
+                 FontAttributes="Italic"
+                 x:Name="ViewAlbum"
+                 LineBreakMode="TailTruncation"
+                    Text="{Binding SelectedSong.AlbumName}" FontSize="20" HorizontalOptions="Center" 
+                 HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
 
                 <!-- Quick Actions -->
-                <Button Text="Toggle Fav" Command="{Binding ToggleFavSongCommand}" 
-                        
+                <syncf:SfChip Command="{Binding ToggleFavSongCommand}" 
+                        ShowIcon="True" 
                         CommandParameter="{Binding SelectedSong}"
+                              ImageSize="50"
+                              WidthRequest="65"
+                              StrokeThickness="0"
                         >
-                    <Button.Triggers>
+                    <syncf:SfChip.Triggers>
                         <DataTrigger Binding="{Binding SelectedSong.IsFavorite}"
-                                     Value="True" TargetType="Button">
+                                     Value="True" TargetType="syncf:SfChip">
                             <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                            <Setter Property="ImageSource" Value="heart.png"/>
                         </DataTrigger>
                         <DataTrigger Binding="{Binding SelectedSong.IsFavorite}"
-                                     Value="False" TargetType="Button">
+                                     Value="False" TargetType="syncf:SfChip">
+                            <Setter Property="ImageSource" Value="heart.png"/>
                             <Setter Property="BackgroundColor" Value="Transparent"/>
                         </DataTrigger>
-                    </Button.Triggers>
-                </Button>
+                    </syncf:SfChip.Triggers>
+                </syncf:SfChip>
                 <Button Text="Share..." Command="{Binding ShareSongCommand}" CommandParameter="{Binding SelectedSong}"/>
 
                 <!-- Tags Section -->
-                <Label Text="Tags" Style="{StaticResource SectionHeader}"/>
-                <!--<FlexLayout BindableLayout.ItemsSource="{Binding SelectedSong}" Wrap="Wrap">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="models:TagModelView">
-                            <syncf:SfChip Text="{Binding Name}" Margin="0,0,5,5"/>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </FlexLayout>-->
 
                 <!-- User Note Section -->
-                <Label Text="My Notes" Style="{StaticResource SectionHeader}"/>
-                <Label Text="{Binding SelectedSong.UserNotes.Count}" LineBreakMode="WordWrap"/>
-                <Button Text="Add / Edit Note" Command="{Binding EditNoteCommand}" CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
+                <Label Text="{Binding SelectedSong.TrackNumber, StringFormat='# : {0}'}" Style="{StaticResource SectionHeader}"/>
+                <Label Text="{Binding SelectedSong.ReleaseYear, StringFormat='Release Year : {0}'}" Style="{StaticResource SectionHeader}"/>
+                <Label Text="{Binding SelectedSong.DateCreated, StringFormat='Created on : {0: ddd, MM yyy - hh:mm}'}" Style="{StaticResource SectionHeader}"/>
+                <Label Text="{Binding SelectedSong.PlayCount, StringFormat='Number of Dimms : {0}'}" Style="{StaticResource SectionHeader}"/>
+                <Button 
+                    Text="Delete"
+                        CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
 
                 <!-- File Properties -->
                 <Label Text="File Properties" Style="{StaticResource SectionHeader}"/>
@@ -137,7 +431,7 @@
                     <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
 
                     <Label Grid.Row="2" Grid.Column="0" Text="Format:" Style="{StaticResource SectionHeader}"/>
-                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.FileFormat, StringFormat='{0}, {1} kbps'}">
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.FileFormat, StringFormat='{0} kbps'}">
                         <!--<Label.BindingContext>
                             <MultiBinding>
                                 <Binding Path="SelectedSong.FileFormat"/>
@@ -152,15 +446,33 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- =============================================================== -->
-        <!-- RIGHT COLUMN: The Powerhouse Tab View for Editing and Details   -->
-        <!-- =============================================================== -->
-        <syncf:SfTabView Grid.Column="1" TabBarPlacement="Top" >
+        <Grid Grid.Column="1">
+            <syncf:SfTabView x:Name="ArtistView" IsVisible="False">
+                <syncf:SfTabItem>
+                    <syncf:SfTabItem.Content>
+                        <CollectionView x:Name="SongsColView" 
+                                        ItemTemplate="{StaticResource GridOfFour}"
+                                        ItemsSource="{Binding SearchResults}">
+                            <CollectionView.ItemsLayout
+                                >
+                                <GridItemsLayout Span="4" VerticalItemSpacing="10"
+                                                 HorizontalItemSpacing="10"
+                                                 Orientation="Vertical"/>
+                            </CollectionView.ItemsLayout>
+                        </CollectionView>
+                    </syncf:SfTabItem.Content>
+                </syncf:SfTabItem>
+            </syncf:SfTabView>
+            
+            <syncf:SfTabView x:Name="SongView"  TabBarPlacement="Top" IsVisible="True">
 
             <!-- TAB 1: METADATA EDITOR -->
             <syncf:SfTabItem Header="Edit Metadata">
                 <syncf:SfTabItem.Content>
                     <ScrollView>
+                            <Grid >
+                                <Image Source="{Binding SelectedSong.CoverImagePath}" Opacity="0.18"/>
+                          
                         <VerticalStackLayout Padding="15" Spacing="10">
                             <Label Text="Edit the core information for this song. These changes will be saved directly to the audio file's tags."/>
 
@@ -176,29 +488,43 @@
 
 
                                 <Label Grid.Row="4" Grid.Column="0" Text="Genre" Style="{StaticResource FieldLabel}"/>
-                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding SelectedSong.Genre.Name}"/>
+                                <Entry Grid.Row="4" Grid.Column="1" Text="{Binding SelectedSong.GenreName}"/>
 
                                 <Label Grid.Row="5" Grid.Column="0" Text="Year" Style="{StaticResource FieldLabel}"/>
                                 <Entry Grid.Row="5" Grid.Column="1" Text="{Binding SelectedSong.ReleaseYear}" Keyboard="Numeric"/>
 
                                 <Label Grid.Row="6" Grid.Column="0" Text="Tags" VerticalOptions="Start" Style="{StaticResource FieldLabel}"/>
-                                <VerticalStackLayout Grid.Row="6" Grid.Column="1">
-                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedSong.UserNote}" Wrap="Wrap">
-                                        <!-- Similar to display, but with a delete button -->
-                                    </FlexLayout>
-                                    <HorizontalStackLayout>
+                                <VerticalStackLayout Grid.Row="6" Grid.Column="1" Spacing="10">
+                                    <syncf:SfChipGroup ItemsSource="{Binding SelectedSong.UserNotes}">
+                                        
+                                        <syncf:SfChipGroup.ItemTemplate>
+                                            <DataTemplate x:DataType="models:UserNoteModelView">
+                                                <Label Margin="10" Text="{Binding UserMessageText}">
+                                                            <!--<FlyoutBase.ContextFlyout>
+                                                                <MenuFlyout>
+                                                                    <MenuFlyoutItem Text="Edit"/>
+                                                                    <MenuFlyoutItem IsDestructive="True"
+                        Text="Delete"/>
+                                                                </MenuFlyout>
+                                                            </FlyoutBase.ContextFlyout>-->
+                                                        </Label>
+                                            </DataTemplate>
+                                        </syncf:SfChipGroup.ItemTemplate>
+                                    </syncf:SfChipGroup>
+                                    <HorizontalStackLayout IsVisible="False">
                                         <Entry Placeholder="Add a new tag..." Text="{Binding CurrentNoteToSave}" HorizontalOptions="Fill"/>
-                                        <Button Text="Add" Command="{Binding SaveNotToSong}"/>
+                                       
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Grid>
 
-                            <HorizontalStackLayout HorizontalOptions="End" Spacing="10" Margin="0,20,0,0">
-                                <Button Text="Cancel" Command="{Binding CancelEditCommand}"/>
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" Margin="0,20,0,0">
+                                <Button Text="Reset" Command="{Binding CancelEditCommand}"/>
                                 <Button Text="Save Changes" Command="{Binding SaveMetadataChangesCommand}" FontAttributes="Bold"/>
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
-                    </ScrollView>
+                            </Grid>
+                        </ScrollView>
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
@@ -247,77 +573,8 @@
             </syncf:SfTabItem>
 
             <!-- TAB 3: MANUAL LYRICS SYNCER -->
-            <syncf:SfTabItem Header="Sync Lyrics">
-                <syncf:SfTabItem.Content>
-                    <Grid RowDefinitions="Auto, *, Auto" Padding="15">
-                        <Label Grid.Row="0" Text="Listen and tap 'Set Timestamp' at the start of each line."/>
 
-                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
-                            <!-- List of lyric lines -->
-                            <CollectionView Grid.Column="0" ItemsSource="{Binding ManualSyncLines}" SelectedItem="{Binding SelectedSyncLine}">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <HorizontalStackLayout>
-                                            <Label Text="{Binding Timestamp, StringFormat='{0:mm\\:ss\\.fff}'}" WidthRequest="80"/>
-                                            <Label Text="{Binding Text}"/>
-                                        </HorizontalStackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-
-                            <!-- Timestamping Controls -->
-                            <VerticalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center">
-                                <Label Text="{Binding CurrentSyncPosition, StringFormat='{0:mm\\:ss\\.fff}'}" FontSize="24" HorizontalOptions="Center"/>
-                                <Button Text="Set Timestamp" Command="{Binding SetTimestampForLineCommand}" HeightRequest="60"/>
-                                <Button Text="Clear Timestamp" Command="{Binding ClearTimestampForLineCommand}"/>
-                            </VerticalStackLayout>
-                        </Grid>
-
-                        <!-- Playback and Save Controls -->
-                        <VerticalStackLayout Grid.Row="2">
-                            <Slider Value="{Binding CurrentSyncPosition}" Maximum="{Binding SelectedSong.DurationInSeconds}"/>
-                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
-                                <Button Text="5s" Command="{Binding SeekSyncCommand}" CommandParameter="-5"/>
-                                <Button Text="Play/Pause" Command="{Binding PlayPauseSyncCommand}"/>
-                                <Button Text=">> 5s" Command="{Binding SeekSyncCommand}" CommandParameter="5"/>
-                            </HorizontalStackLayout>
-                            <Button Text="Save Synced Lyrics" Command="{Binding SaveManualSyncCommand}" Margin="0,10,0,0"/>
-                        </VerticalStackLayout>
-                    </Grid>
-                </syncf:SfTabItem.Content>
-            </syncf:SfTabItem>
-
-            <!-- TAB 4: STATISTICS & HISTORY -->
-            <syncf:SfTabItem Header="Statistics">
-                <syncf:SfTabItem.Content>
-                    <ScrollView>
-                        <VerticalStackLayout Padding="15">
-                            <Label Text="Charts" Style="{StaticResource SectionHeader}"/>
-                           
-                            <Label Text="Key Metrics" Style="{StaticResource SectionHeader}"/>
-                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="5">
-                                <Label Grid.Row="0" Grid.Column="0" Text="Total Plays:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSongStats.TotalPlays}"/>
-
-                                <Label Grid.Row="1" Grid.Column="0" Text="Last Played:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSongStats.LastPlayed, Converter={StaticResource DateTimeConverter}}"/>
-
-                                <Label Grid.Row="2" Grid.Column="0" Text="Skips:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSongStats.SkipCount}"/>
-
-                                <Label Grid.Row="3" Grid.Column="0" Text="Playtime:" Style="{StaticResource FieldLabel}"/>
-                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSongStats.TotalPlayTime, StringFormat='{0} hours'}"/>
-                            </Grid>
-
-                            <Label Text="Recent Play History" Style="{StaticResource SectionHeader}"/>
-                            <CollectionView ItemsSource="{Binding SelectedSong.PlayEvents}">
-                                <!-- DataTemplate to show EventDate and EventType -->
-                            </CollectionView>
-                        </VerticalStackLayout>
-                    </ScrollView>
-                </syncf:SfTabItem.Content>
-            </syncf:SfTabItem>
-
-        </syncf:SfTabView>
+            </syncf:SfTabView>
+        </Grid>
     </Grid>
 </ContentPage>
