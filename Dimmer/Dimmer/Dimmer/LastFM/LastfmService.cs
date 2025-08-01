@@ -226,7 +226,7 @@ public class LastfmService : ILastfmService
 
     public async Task ScrobbleAsync(SongModelView song)
     {
-        if (!((ILastfmService)this).IsAuthenticated || song == null)
+        if (!((ILastfmService)this).IsAuthenticated || song == null||song.ArtistName is null )
             return;
 
         // CORRECTED: Use parameterless constructor and set properties.

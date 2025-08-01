@@ -41,6 +41,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<SingleSongPage>();
         builder.Services.AddSingleton<DimmerLivePage>();
+        builder.Services.AddSingleton<ExperimentsPage>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

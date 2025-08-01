@@ -339,7 +339,7 @@ Value="False">
                             windows:VisualElement.AccessKey="H" 
                               Expanded="TopExpander_Expanded"
                               Collapsed="TopExpander_Collapsed"
-                              
+                              Expanding="TopExpander_Expanding"
                               Collapsing="TopExpander_Collapsing">
               
                 <syncf:SfExpander.Header >
@@ -389,7 +389,58 @@ Value="False">
                         </HorizontalStackLayout>
 
                             <HorizontalStackLayout Spacing="15" HorizontalOptions="Center" x:Name="TopViewBtmpart">
+
+                                <HorizontalStackLayout
+                       x:Name="MediaBtns"
+                       Grid.Row="0"
+                       HeightRequest="50"
+                       Spacing="10"
+                       VerticalOptions="Center">
+                                    <Button
+                           x:Name="SkipPrev"
+                           windows:VisualElement.AccessKey="B"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
+                           Background="Transparent"
+                           Command="{Binding PreviousTrackCommand}"
+                           ImageSource="skipprevious.png"
+                           StyleClass="MediaBtnChip" />
+                                    <Button
+                           x:Name="PlayPauseBtn"
+                           windows:VisualElement.AccessKey="P"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
+                           Background="Transparent"
+                           Command="{Binding PlayPauseToggleCommand}"
+                           ImageSource="play.png"
+                           StyleClass="MediaBtnChip">
+                                        <Button.Triggers>
+                                            <DataTrigger
+                                   Binding="{Binding IsPlaying}"
+                                   TargetType="Button"
+                                   Value="true">
+                                                <Setter Property="ImageSource" Value="pause.png" />
+                                            </DataTrigger>
+
+                                            <DataTrigger
+                                   Binding="{Binding IsPlaying}"
+                                   TargetType="Button"
+                                   Value="false">
+                                                <Setter Property="ImageSource" Value="play.png" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                           x:Name="SkipNext"
+                           windows:VisualElement.AccessKey="N"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
+                           Background="Transparent"
+                           Command="{Binding NextTrackCommand}"
+                           ImageSource="skipnext.png"
+                           StyleClass="MediaBtnChip" />
+
+
+                                </HorizontalStackLayout>
                                 <Button Text="Share"
+                                        IsVisible="False"
                                         BackgroundColor="Transparent"
                                         BorderWidth="1"
                                         x:Name="ShareSong"/>
@@ -397,10 +448,11 @@ Value="False">
                                         x:Name="ViewSongPage"
                                         Clicked="NavigateToSelectedSongPageAsync"
                                         windows:VisualElement.AccessKey="V"
+                                        IsVisible="Hidden"
                                         windows:VisualElement.AccessKeyPlacement="Bottom"
                                         BackgroundColor="Transparent"
                                         BorderWidth="1"
-                                        
+                                        Opacity="0"
                                         />
                                 <Button Text="Transfer Session"
                                         BackgroundColor="Transparent"
@@ -472,6 +524,18 @@ Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
                         BackgroundColor="Transparent"
                         ImageSource="eye.png"
                         BorderWidth="1"
+                                    WidthRequest="58"
+                        
+                        />
+                                <Button
+                        x:Name="Xout"
+                        windows:VisualElement.AccessKey="X"
+                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                        Clicked="OnToggleTopViewClicked"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                                    Text="X"
+                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
                                     WidthRequest="58"
                         
                         />
@@ -604,47 +668,48 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                    VerticalOptions="Center">
 
                             <HorizontalStackLayout
-                       x:Name="MediaBtns"
+                       x:Name="MediaBtnssimple"
                        Grid.Row="0"
                        HeightRequest="50"
                        Spacing="10"
                        VerticalOptions="Center">
-                                <syncf:SfChip
-                           x:Name="SkipPrev"
+                                <Button
+                           x:Name="SkipPrevMini"
                            windows:VisualElement.AccessKey="B"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
                            Background="Transparent"
                            Command="{Binding PreviousTrackCommand}"
                            ImageSource="skipprevious.png"
                            StyleClass="MediaBtnChip" />
-                                <syncf:SfChip
-                           x:Name="PlayPauseBtn"
+                                
+                                <Button
+                           x:Name="PlayPauseBtnMini"
                            windows:VisualElement.AccessKey="P"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
                            Background="Transparent"
                            Command="{Binding PlayPauseToggleCommand}"
                            ImageSource="play.png"
                            StyleClass="MediaBtnChip">
-                                    <syncf:SfChip.Triggers>
+                                    <Button.Triggers>
                                         <DataTrigger
                                    Binding="{Binding IsPlaying}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="true">
                                             <Setter Property="ImageSource" Value="pause.png" />
                                         </DataTrigger>
 
                                         <DataTrigger
                                    Binding="{Binding IsPlaying}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="false">
                                             <Setter Property="ImageSource" Value="play.png" />
                                         </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
-                                <syncf:SfChip
-                           x:Name="SkipNext"
+                                    </Button.Triggers>
+                                </Button>
+                                <Button
+                           x:Name="SkipNextMini"
                            windows:VisualElement.AccessKey="N"
-                           windows:VisualElement.AccessKeyPlacement="Right"
+                           windows:VisualElement.AccessKeyPlacement="Bottom"
                            Background="Transparent"
                            Command="{Binding NextTrackCommand}"
                            ImageSource="skipnext.png"
@@ -673,63 +738,65 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                             </Grid>
                             <HorizontalStackLayout Grid.Column="2" 
                                                    VerticalOptions="Center">
-                                <syncf:SfChip
+                                <Button
+                                    WidthRequest="60"
                            Background="Transparent"
                            Command="{Binding ToggleShuffleModeCommand}"
                            ImageSource="shuffle.png"
                            StyleClass="MediaBtnChip">
-                                    <syncf:SfChip.Triggers>
+                                    <Button.Triggers>
                                         <DataTrigger
                                    Binding="{Binding IsShuffleActive}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="True">
-                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                                <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                             
 
                                         </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
-                                <syncf:SfChip
+                                    </Button.Triggers>
+                                </Button>
+                                <Button
+                                    WidthRequest="60"
                            Background="Transparent"
                            Command="{Binding ToggleRepeatModeCommand}"
                            ImageSource="repeat.png"
                            StyleClass="MediaBtnChip"
                            ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
-                                    <syncf:SfChip.Triggers>
+                                    <Button.Triggers>
                                         <DataTrigger
                                    Binding="{Binding CurrentRepeatMode}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="0">
-                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                             
 
                                         </DataTrigger>
                                         <DataTrigger
                                    Binding="{Binding CurrentRepeatMode}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="1">
-                                            <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                            <Setter Property="BorderColor" Value="LightBlue" />
                                             
 
                                         </DataTrigger>
                                         <DataTrigger
                                    Binding="{Binding CurrentRepeatMode}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="2">
-                                            <Setter Property="Stroke" Value="Orange" />
+                                                <Setter Property="BorderColor" Value="Orange" />
                                             
 
                                         </DataTrigger>
                                         <DataTrigger
                                    Binding="{Binding CurrentRepeatMode}"
-                                   TargetType="syncf:SfChip"
+                                   TargetType="Button"
                                    Value="3">
-                                            <Setter Property="Stroke" Value="DarkBlue" />
+                                            <Setter Property="BorderColor" Value="Red" />
                                             
 
                                         </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
+                                    </Button.Triggers>
+                                </Button>
                                 <Slider
                            Minimum="0"
                            MinimumTrackColor="DarkSlateBlue"
@@ -848,8 +915,19 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                         </DataTrigger>
                                     </syncf:SfChip.Triggers>
                                 </syncf:SfChip>
+                                    <Button
+x:Name="XoutTwo"
+windows:VisualElement.AccessKey="X"
+windows:VisualElement.AccessKeyPlacement="Bottom"
+Clicked="OnToggleTopViewClicked"
+BackgroundColor="Transparent"
+BorderWidth="1"
+            Text="X"
+            TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
+            WidthRequest="58"
 
-                                <syncf:SfChip
+/>
+                                    <syncf:SfChip
                            x:Name="AllEventsChip"
                            Clicked="AllEvents_Clicked"
                            ImageSize="40" IsVisible="False"

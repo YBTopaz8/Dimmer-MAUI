@@ -43,12 +43,7 @@ public partial class HomePage : ContentPage
 
 
     public BaseViewModelWin MyViewModel { get; internal set; }
-    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
-        // Optional: Update a summary label
-        //SummaryLabel.Text = query.Humanize();
-    }
+ 
 
 
     public HomePage(BaseViewModelWin vm)
@@ -69,7 +64,10 @@ public partial class HomePage : ContentPage
             (DataTemplate)Resources["OGView"]
         };
     }
-
+    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
+    }
     private List<DataTemplate> _availableLayouts;
     private int _currentLayoutIndex = 0;
     private void ChangeLayout_Clicked(object sender, EventArgs e)
@@ -721,12 +719,31 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void TopExpander_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    private async void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
 
         var topView = TopExpander.Header;
-        await Task.WhenAll(topView.DimmOut(1000,0.05),
+
+
+        await Task.WhenAll(topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
+
+    }
+    private async void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    {
+        
+    }
+    private async void TopExpander_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    {
+        var topView = TopExpander.Header;
+        await Task.WhenAll(topView.SlideOutToRight(1000),
         TopViewBtmpart.BounceOut(500));
+
+    }
+
+    private async void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    {
+     
+
     }
 
     private void CloseTopExpander_PointerPressed(object sender, PointerEventArgs e)
@@ -753,20 +770,6 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private async void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
-    {
-        var topView = TopExpander.Header;
-       
-
-            await Task.WhenAll( topView.DimmInCompletelyAndShow(700),TopViewBtmpart.BounceIn(200));
-
-
-    }
-
-    private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
-    {
-
-    }
 
     private async void TransferSession_Clicked(object sender, EventArgs e)
     {
@@ -800,4 +803,5 @@ public partial class HomePage : ContentPage
             QuickSearchBar.Unfocus();
         }
     }
+
 }

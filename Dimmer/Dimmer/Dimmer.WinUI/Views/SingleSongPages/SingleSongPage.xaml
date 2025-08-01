@@ -151,29 +151,21 @@
                     <syncf:SfExpander.Header>
                         <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" >
                             <VerticalStackLayout>
-                                <HorizontalStackLayout>
+                                <HorizontalStackLayout HorizontalOptions="Center">
 
                                     <Button Text="{Binding CurrentPlayingSongView.Title}" BackgroundColor="Transparent"
                                         Command="{Binding PlayPauseToggleCommand}"
                                         
                                         windows:VisualElement.AccessKey="P"/>
-                                    <Button Text="{Binding CurrentPlayingSongView.ArtistName}" BackgroundColor="Transparent"/>
-                                    <Button Text="{Binding CurrentPlayingSongView.AlbumName}" BackgroundColor="Transparent" />
-                                </HorizontalStackLayout>
-                                <HorizontalStackLayout HorizontalOptions="Center">
+                                  </HorizontalStackLayout>
+                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
                                     <Label Grid.Column="0" 
                                            TextColor="DarkSlateBlue"
                                            Text="{Binding CurrentTrackPositionPercentage, StringFormat='{0:n1}'}" />
                                     <Label Text="%"/>
 
                                 </HorizontalStackLayout>
-                                <Slider Maximum="100"
-                                Minimum="0" HorizontalOptions="Center"
-                                        ThumbColor="Transparent"
-                                        BackgroundColor="Transparent"
-                           MinimumTrackColor="DarkSlateBlue" WidthRequest="300"
-                                        Value="{Binding CurrentTrackPositionPercentage}"/>
-
+                              
                             </VerticalStackLayout>
                         </Border>
                     </syncf:SfExpander.Header>

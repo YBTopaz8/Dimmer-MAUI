@@ -22,6 +22,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(DimmerLivePage), typeof(DimmerLivePage));
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(LibSanityPage), typeof(LibSanityPage));
+        Routing.RegisterRoute(nameof(ExperimentsPage), typeof(ExperimentsPage));
 
 
     }

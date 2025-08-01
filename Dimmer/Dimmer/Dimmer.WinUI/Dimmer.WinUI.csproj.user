@@ -19,6 +19,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\ExperimentsPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\DimmerLiveUI\DimmerLivePage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

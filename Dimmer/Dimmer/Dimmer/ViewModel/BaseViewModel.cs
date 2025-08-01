@@ -1353,6 +1353,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
             return;
         }
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=false;
 
         CurrentPlayingSongView = args.MediaSong;
         _songToScrobble = CurrentPlayingSongView; // This is the next candidate.
