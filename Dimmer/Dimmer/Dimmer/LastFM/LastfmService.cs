@@ -131,7 +131,7 @@ public class LastfmService : ILastfmService
                 // Now, set the state for the new song.
                 _songToScrobble = currentSong;
                 await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
-                _ = ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
+                await ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
                 break;
 
             case DimmerPlaybackState.Resumed:

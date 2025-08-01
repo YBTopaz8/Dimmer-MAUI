@@ -119,6 +119,12 @@ public partial class HomePage : ContentPage
 
     }
 
+    private async void NavigateToSelectedSongPageAsync(object sender, EventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.View)sender;
+        var selectedSec = view.BindingContext as SongModelView;
+        await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
+    }
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
         var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
@@ -754,6 +760,7 @@ public partial class HomePage : ContentPage
 
             await Task.WhenAll( topView.DimmInCompletelyAndShow(700),TopViewBtmpart.BounceIn(200));
 
+
     }
 
     private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
@@ -776,6 +783,21 @@ public partial class HomePage : ContentPage
                 await DisplayAlert("title","Now performing sign up","OK");
             }
 
+        }
+    }
+
+    private async void SearchBtn_Clicked(object sender, EventArgs e)
+    {
+        if(!QuickSearchBar.IsVisible)
+        {
+            await QuickSearchBar.BounceIn(500);
+            
+            QuickSearchBar.Focus();
+        }
+        else
+        {
+            await QuickSearchBar.BounceOut(500);
+            QuickSearchBar.Unfocus();
         }
     }
 }

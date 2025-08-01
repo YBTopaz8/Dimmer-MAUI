@@ -332,11 +332,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
                     _mediaPlayer.Source = mediaPlaybackItem;
 
-
-                    Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened/MediaFailed.", songModel.Title);
-                    success = true; // Assume success for now; MediaFailed will correct this
+success = true; // Assume success for now; MediaFailed will correct this
 
                     Play();
+
+                    Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened", songModel.Title);
                 }
                 else
                 {
@@ -345,9 +345,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                Debug.WriteLine("[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {SongTitle}.", songModel.Title);
+                Debug.WriteLine($"[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {songModel.Title}. {ex.Message}");
 
             }
             finally
@@ -565,17 +565,23 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
             
             props.MusicProperties.AlbumTrackCount = (uint)media.TrackNumber!;
-
-            IStorageFile coverImageFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
-            using (var stream = await coverImageFile.OpenAsync(FileAccessMode.Read))
+            if (File.Exists(media.CoverImagePath))
             {
-                // Create the thumbnail from the stream
-                props.Thumbnail = RandomAccessStreamReference.CreateFromStream(stream);
-            }
+
+                IStorageFile coverImageFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
+                using (var stream = await coverImageFile.OpenAsync(FileAccessMode.Read))
+                {
+                    // Create the thumbnail from the stream
+                    props.Thumbnail = RandomAccessStreamReference.CreateFromStream(stream);
+                }
             
+              
+
+            }
             mediaPlaybackItem.ApplyDisplayProperties(props);
             Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");
             return mediaPlaybackItem;
+            
         }
         catch (OperationCanceledException)
         {

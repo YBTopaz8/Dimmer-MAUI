@@ -4,6 +4,8 @@ using Microsoft.Maui.Platform;
 
 using Syncfusion.Maui.Toolkit.Charts;
 
+using System.Xml.Linq;
+
 namespace Dimmer.WinUI.Views.SingleSongPages;
 
 public partial class SingleSongPage : ContentPage
@@ -22,9 +24,8 @@ public partial class SingleSongPage : ContentPage
     {
         base.OnAppearing();
 
-        await MyViewModel.LoadSongLastFMData();
-        await MyViewModel.LoadSongLastFMMoreData();
-        MyViewModel.LoadStatsForSelectedSong(null);
+        //await MyViewModel.LoadSongLastFMData();
+        //await MyViewModel.LoadSongLastFMMoreData();
 
         _availableLayouts = new List<DataTemplate>
         {
@@ -114,33 +115,51 @@ public partial class SingleSongPage : ContentPage
 
     private async void ViewArtist_Clicked(object sender, EventArgs e)
     {
-        if (!SongView.IsVisible)
+        // It's generally better practice to check for visibility before proceeding.
+        if (SongView.IsVisible)
         {
-            await Task.WhenAll(ArtistView.DimmOutCompletelyAndHide(), SongView.DimmInCompletelyAndShow());
-
-            return;
+            // If the SongView is already visible, maybe you want to do nothing or something else.
+            // Based on your original logic, it seems you want to hide SongView and show ArtistView
+            // when an artist is selected from the action sheet later.
+            // The original return here might have been a bug if the intent was to always show the artist list.
         }
 
         var send = (SfChip)sender;
-        var song = send.CommandParameter as SongModelView;
+        if (send.CommandParameter is not SongModelView song)
+            return; // Modern C# pattern matching
+
         var val = song.OtherArtistsName;
+        if (string.IsNullOrWhiteSpace(val))
+            return; // No artists to show
+
         char[] dividers = new char[] { ',', ';', ':', '|', '-' };
 
         var namesList = val
-            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-            .Select(name => name.Trim())                           // Trim whitespace from each name
-            .ToArray();                                             // Convert to a List
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers
+            .Select(name => name.Trim())                            // Trim whitespace from each name
+            .Where(name => !string.IsNullOrWhiteSpace(name))        // Keep names that are NOT null or whitespace
+            .ToArray();                                             // Convert to an array
 
-
-        var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
-
-        if (string.IsNullOrEmpty(res))
+        // If after all filtering there are no names, there is no need to show the action sheet.
+        if (namesList.Length == 0)
         {
             return;
         }
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
-        await Task.WhenAll(SongView.DimmOutCompletelyAndHide(), ArtistView.DimmInCompletelyAndShow());
-        return;
+
+        var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+        if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+        {
+            return;
+        }
+
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+
+        // You might want to ensure ArtistView is visible before this animation.
+        if (!ArtistView.IsVisible)
+        {
+            await Task.WhenAll(SongView.DimmOutCompletelyAndHide(), ArtistView.DimmInCompletelyAndShow());
+        }
     }
 
     private void SidePage_DragOver(object sender, DragEventArgs e)
@@ -166,7 +185,7 @@ public partial class SingleSongPage : ContentPage
     private async    void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.FadeOut(300, 0.3);
+        await send.FadeOut(300, 0.5);
     }
 
     private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
@@ -201,5 +220,50 @@ public partial class SingleSongPage : ContentPage
 
         await Task.Delay(throttleDelay);
         _isThrottling = false;
+    }
+
+    private async void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        var contxt = send.BindingContext as SongModelView;
+
+        await this.FadeOut(200, 0.7);
+        MyViewModel.SelectedSong = contxt;
+        await this.FadeIn(350, 1);
+    }
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        if(MyViewModel.SelectedSong is null)
+        {
+            Debug.WriteLine("is null");
+        }
+        base.OnNavigatedTo(args);
+    }
+
+    private async void ViewSongDetails_Clicked(object sender, EventArgs e)
+    {
+
+        await Task.WhenAll(ArtistView.DimmOutCompletelyAndHide(), SongView.DimmInCompletelyAndShow());
+
+    }
+
+    private async void TopExpanderView_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    {
+        await RestOfLeftUI.FadeOut(300, 0.4);
+    }
+
+    private async void TopExpanderView_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    {
+        await RestOfLeftUI.FadeIn(300, 1);
+    }
+
+    private void SearchSongOnline_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SaveImageFromLastFM_Clicked(object sender, EventArgs e)
+    {
+
     }
 }

@@ -60,14 +60,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        IRepository<SongModel> songRepo,
        IDeviceConnectivityService deviceConnectivityService,
        IDuplicateFinderService duplicateFinderService,
-        ILastfmService lastfmService,
+        ILastfmService _lastfmService,
        IRepository<ArtistModel> artistRepo,
        IRepository<AlbumModel> albumModel,
        IRepository<GenreModel> genreModel,
        ILogger<BaseViewModel> logger)
     {
 
-        _lastfmService = lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
+        this.lastfmService = _lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
@@ -305,21 +305,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         //SearchSongSB_TextChanged("random");
 
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
-        _lastfmService.IsAuthenticatedChanged
+        lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
            .Subscribe( isAuthenticated =>
            {
                IsLastfmAuthenticated = isAuthenticated;
-               LastfmUsername = _lastfmService.AuthenticatedUser ?? "Not Logged In";
+               LastfmUsername = lastfmService.AuthenticatedUser ?? "Not Logged In";
                if (isAuthenticated)
                {
 
 
                    if (string.IsNullOrEmpty(UserLocal.Username))
                    {
-                       if ((!string.IsNullOrEmpty(_lastfmService.AuthenticatedUser)))
+                       if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)))
                        {
-                           UserLocal.Username=_lastfmService.AuthenticatedUser;
+                           UserLocal.Username=lastfmService.AuthenticatedUser;
                            var db = realmFactory.GetRealmInstance();
                            db.Write(() =>
                            {
@@ -328,7 +328,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                            if (usrs is not null && usrs.Count>0)
                            {
                                UserModel usr = usrs.First();
-                               usr.UserName=_lastfmService.AuthenticatedUser;
+                               usr.UserName=lastfmService.AuthenticatedUser;
 
 
 
@@ -342,7 +342,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                }
            })
            .DisposeWith(Disposables); // Assuming you have a reactive disposables manager
-        _lastfmService.Start();
+        this.lastfmService.Start();
 
 
         //UIQueryComponents.CollectionChanged += (s, e) => RebuildAndExecuteQuery();
@@ -709,16 +709,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
     }
-    protected readonly ILastfmService _lastfmService;
+    protected readonly ILastfmService lastfmService;
 
     [RelayCommand]
     public async Task LoadUserLastFMInfo()
     {
-        if (!_lastfmService.IsAuthenticated)
+        if (!lastfmService.IsAuthenticated)
         {
             return;
         }
-        var usr = await _lastfmService.GetUserInfoAsync();
+        var usr = await lastfmService.GetUserInfoAsync();
         if (usr is null)
         {
             _logger.LogWarning("Failed to load Last.fm user info.");
@@ -808,7 +808,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             // 1. Get the URL from our service
-            string url = await _lastfmService.GetAuthenticationUrlAsync();
+            string url = await lastfmService.GetAuthenticationUrlAsync();
             await Shell.Current.DisplayAlert(
                "Authorize in Browser",
                "Please authorize Dimmer in the browser window that will open, then return here and press 'Complete Login'.",
@@ -834,11 +834,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             // Call the second-step method in your service
-            bool success = await _lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
+            bool success = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
 
             if (success)
             {
-                await Shell.Current.DisplayAlert("Success!", $"Successfully logged in as {_lastfmService.AuthenticatedUser}.", "Awesome!");
+                await Shell.Current.DisplayAlert("Success!", $"Successfully logged in as {lastfmService.AuthenticatedUser}.", "Awesome!");
             }
             else
             {
@@ -859,7 +859,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     private void LogoutFromLastfm()
     {
-        _lastfmService.Logout();
+        lastfmService.Logout();
     }
 
     [RelayCommand]
@@ -1120,9 +1120,138 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial CurrentPage CurrentPageContext { get; set; }
 
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
 
     [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
+
+    partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue is not null)
+        {
+            SelectedSongLastFMData = null;
+            CorrectedSelectedSongLastFMData = null;
+            //LoadSongLastFMData().ConfigureAwait(false);
+            //LoadSongLastFMMoreData().ConfigureAwait(false);
+        }
+    }
+
+    public async Task LoadSongLastFMData()
+    {
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
+
+    }
+ 
+    public async Task LoadSongLastFMMoreData()
+    {
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        //var LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
+        //AllLyricsResultsLrcLib = s.ToObservableCollection();
+
+    }
+
+    [RelayCommand]
+    public async Task PickSongImageFromFolderAsync()
+    {
+        var result = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select an image for the song",
+            FileTypes = FilePickerFileType.Images,
+        });
+        if (result is null)
+        {
+            _logger.LogWarning("No image file was selected.");
+            return;
+        }
+        var file = result.FullPath;
+        if (string.IsNullOrEmpty(file))
+        {
+            _logger.LogWarning("Selected file path is empty.");
+            return;
+        }
+        // now save to realm db async
+
+        if (SelectedSong is null)
+        {
+            _logger.LogWarning("No song is currently selected to update the image.");
+            return;
+        }
+        try
+        {
+            
+            SelectedSong.CoverImagePath = file;
+            // Save changes to Realm
+            var realm = realmFactory.GetRealmInstance();
+            await realm.WriteAsync(() =>
+            {
+
+                var existingSong = realm.Find<SongModel>(SelectedSong.Id);
+                if (existingSong is null)
+                {
+                    _logger.LogWarning("Selected song with ID {SongId} not found in Realm database.", SelectedSong.Id);
+                    return;
+                }
+                // Update the cover image path
+                existingSong.CoverImagePath = file;
+                // save song to realm
+
+                realm.Add(existingSong, update: true);
+            });
+            _logger.LogInformation("Successfully updated cover image for song '{Title}'", SelectedSong.Title);
+
+            SelectedSong.CoverImageBytes = ImageResizer.ResizeImage(File.ReadAllBytes(file));
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update cover image for song '{Title}'", SelectedSong?.Title);
+        }
+    }
+    public async Task FetchAndLoadSelectedSongFromLastFMToSelectedSongLastFMObject()
+    {
+        Hqub.Lastfm.Entities.Track? trackInfo = await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        if (trackInfo is not null)
+        {
+            SelectedSongLastFMData = trackInfo;
+            CorrectedSelectedSongLastFMData = await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
+            SimilarTracks = await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+            if (SimilarTracks is not null)
+            {
+                SimilarSongs = SimilarTracks.ToObservableCollection();
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Failed to load Last.fm track info for song '{Title}' by '{Artist}'", SelectedSong.Title, SelectedSong.ArtistName);
+        }
+    }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
+    [ObservableProperty]
+    public partial List<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
+    [ObservableProperty]
+    public partial bool IsSearching { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<LrcLibSearchResult>? AllLyricsResultsLrcLib { get; set; }
+    [ObservableProperty]
+    public partial SongModelView SelectedSongOnPage { get; set; }
+
 
     [ObservableProperty]
     public partial bool IsLoadingSongs { get; set; }
@@ -1255,19 +1384,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-    async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
-    {
-        if (newValue is not null)
-
-        {
-            PrepareForEditing(newValue);
-
-            await LoadAndCacheCoverArtAsync(newValue);
-            // Efficiently load related data
-            newValue.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
-                songRepo.GetById(newValue.Id)?.PlayHistory);
-        }
-    }
     /// <summary>
     /// Creates a deep, unmanaged copy of the selected song for safe editing.
     /// </summary>
@@ -1342,7 +1458,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             CurrentCoverImagePath= finalImagePath;
             // Load the image bytes for the UI
-            song.CoverImageBytes = await File.ReadAllBytesAsync(finalImagePath);
+            song.CoverImageBytes = ImageResizer.ResizeImage( await File.ReadAllBytesAsync(finalImagePath), 1200);
             _logger.LogTrace("Loaded cover art from new/cached path: {ImagePath}", finalImagePath);
 
             // If the path is new, update our song model and save it to the database.
@@ -1613,7 +1729,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (IsPlaying && _songToScrobble != null && IsLastfmAuthenticated)
         {
-            await _lastfmService.ScrobbleAsync(_songToScrobble);
+            await lastfmService.ScrobbleAsync(_songToScrobble);
         }
     }
 
@@ -1633,7 +1749,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await StartAudioForSongAtIndex(prevIndex);
         if (IsPlaying && _songToScrobble != null && IsLastfmAuthenticated)
         {
-            await _lastfmService.ScrobbleAsync(_songToScrobble);
+            await lastfmService.ScrobbleAsync(_songToScrobble);
         }
     }
 
@@ -2619,11 +2735,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (songModel.IsFavorite)
         {
-            _= await _lastfmService.LoveTrackAsync(songModel);
+            _= await lastfmService.LoveTrackAsync(songModel);
         }
         else
         {
-            _= await _lastfmService.UnloveTrackAsync(songModel);
+            _= await lastfmService.UnloveTrackAsync(songModel);
 
         }
     }

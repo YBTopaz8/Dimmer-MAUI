@@ -64,7 +64,18 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
         LoginViewModel loginViewModel,
         DimmerLiveViewModel dimmerLiveViewModel
         , IFolderPicker _folderPicker, IWindowManagerService windowManager,
-        IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDeviceConnectivityService deviceConnectivityService, IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService, dimmerLiveStateService, audioServ, stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, lastfmService, artistRepo, albumModel, genreModel, logger)
+        IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ,
+        IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, 
+        LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, 
+        IRepository<SongModel> songRepo, IDeviceConnectivityService deviceConnectivityService, 
+        IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService,
+        IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel,
+        IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) :
+        base(mapper, appInitializerService, dimmerLiveStateService, audioServ,
+            stateService, settingsService, subsManager, lyricsMgtFlow, coverArtService, 
+            folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, 
+            lastfmService, artistRepo, albumModel, genreModel, logger)
+
     {
 
 
@@ -105,6 +116,7 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
     [ObservableProperty]
     public partial int MediaBarGridRowPosition { get; set; }
+    public CollectionView SongColView { get; internal set; }
 
     [RelayCommand]
     public void SwapMediaBarPosition()
@@ -157,60 +169,10 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
         }
     }
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
     public async Task PickFolderToScan()
     {
         await AddMusicFolderViaPickerAsync();
     }
-
-    internal async Task LoadSongLastFMData()
-    {
-        if (SelectedSong is null)
-        {
-            return;
-        }
-        SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
-
-    }
-
-    partial void OnSelectedSongLastFMDataChanged(Track? oldValue, Track? newValue)
-    {
-
-        if (newValue is null)
-        {
-
-        }
-    }
-    internal async Task LoadSongLastFMMoreData()
-    {
-        if (SelectedSong is null)
-        {
-            return;
-        }
-        SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        var LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-        IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
-        AllLyricsResultsLrcLib = s.ToObservableCollection();
-    }
-
-
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
-    [ObservableProperty]
-    public partial List<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
-    [ObservableProperty]
-    public partial bool IsSearching { get; set; }
-    [ObservableProperty]
-    public partial ObservableCollection<LrcLibSearchResult>? AllLyricsResultsLrcLib { get; set; }
-    [ObservableProperty]
-    public partial SongModelView SelectedSongOnPage { get; set; }
-
 
     public async Task<bool> InitializeLoginUserData()
     {
@@ -230,10 +192,29 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
             if (await InitializeLoginUserData())
             {
-                DimmerLiveViewModel.FindAllMessagesInconvo
+
                 return true;
             }
             return false;
         }
+    }
+
+    public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
+    {
+        if (selectedSec is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong=CurrentPlayingSongView;
+            }
+            else
+            {
+                SelectedSong = SongColView.SelectedItem as SongModelView;
+
+            }
+
+
+        }
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
 }
