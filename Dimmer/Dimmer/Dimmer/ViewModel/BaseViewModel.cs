@@ -268,14 +268,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-
-        IReadOnlyCollection<DimmerPlayEvent>? allPlayEvents = dimmerPlayEventRepo.GetAll();
-        DimmerPlayEvent? evt = allPlayEvents?.MaxBy(x => x.EventDate);
-
-
-        ActiveFilters.CollectionChanged += (s, e) => RebuildAndExecuteQuery();
-
-
+        var evt = realm.All<DimmerPlayEvent>().MaxBy(x => x.EventDate);
 
         if (evt?.SongId is ObjectId songId && songId != ObjectId.Empty)
         {
@@ -294,15 +287,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // Handle the case where there's no valid event or the event has no valid song.
             CurrentPlayingSongView = new();
         }
-        //// Step 2: Map them to the ViewModel type.
-        //var allPlayEventViews = _mapper.Map<IEnumerable<DimmerPlayEventView>>(allPlayEvents);
-
-        //// Step 3: Load them into our source list. This fires one big "add" change,
-        //// which is exactly what our stats pipeline needs to get its initial data.
-        //_playEventSource.AddRange(allPlayEventViews);
-
-
-        //SearchSongSB_TextChanged("random");
+    
+        SearchSongSB_TextChanged("random");
 
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
         lastfmService.IsAuthenticatedChanged
@@ -345,17 +331,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.lastfmService.Start();
 
 
-        //UIQueryComponents.CollectionChanged += (s, e) => RebuildAndExecuteQuery();
-
 
         _deviceConnectivityService = deviceConnectivityService;
         MyDeviceId = LoadOrGenerateDeviceId();
 
-        // Setup the listeners
-        //SetupPlayerModeListeners();
-        //SetupRemoteModeListeners();
-
-        // Bind the UI collection to the service's collection
+          // Bind the UI collection to the service's collection
         _deviceConnectivityService.AvailablePlayers
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _availablePlayers) // _availablePlayers is your ReadOnlyObservableCollection
@@ -366,12 +346,72 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-
+        
 
 
 
     }
+    // You'll want a property to bind a loading indicator to in your UI
+    // [ObservableProperty]
+    // private bool _isLoadingSongs;
 
+    async Task LoadAllSongsEventsASync()
+    {
+        // Consider having a loading indicator for the UI
+        // IsLoadingSongs = true; 
+        _logger.LogInformation("Starting to load play events for all songs...");
+
+        try
+        {
+            // --- 1. Asynchronously fetch data ---
+            // Assume your repository has an async method. If not, you should create one.
+            var allEvents = await dimmerPlayEventRepo.GetAllAsync();
+            var allSongs = _songSource.Items;
+
+            if (allEvents is null || allEvents.Count == 0 || allSongs is null || allSongs.Count == 0)
+            {
+                _logger.LogWarning("No events or songs found to process.");
+                return;
+            }
+
+            // --- 2. Offload the heavy processing to a background thread ---
+            // This prevents the UI from freezing while we group and assign events.
+            var eventsBySongId = await Task.Run(() =>
+            {
+                // --- 3. Group events by SongId ONCE. This is the key performance gain. ---
+                // This creates a lookup where the key is the SongId and the value is a list of its events.
+                // This is dramatically faster than your original nested loop approach.
+                return allEvents
+                    .Where(e => e.SongId.HasValue)
+                    .GroupBy(e => e.SongId.Value)
+                    .ToDictionary(g => g.Key, g => g.Select(ev => new DimmerPlayEventView(ev)).ToObservableCollection());
+            });
+
+            // --- 4. Now that the hard work is done, update the songs on the UI thread ---
+            foreach (var song in allSongs)
+            {
+                // This is now a super-fast dictionary lookup
+                if (eventsBySongId.TryGetValue(song.Id, out var songEvents))
+                {
+                    song.PlayEvents = songEvents;
+                }
+                else
+                {
+                    // Ensure the collection is empty if no events were found, avoiding old data
+                    song.PlayEvents.Clear();
+                }
+            }
+            _logger.LogInformation("Finished loading play events for {Count} songs.", allSongs.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while loading song events.");
+        }
+        finally
+        {
+            // IsLoadingSongs = false;
+        }
+    }
 
     [RelayCommand]
     private async Task RemoteNextTrackAsync()
@@ -570,6 +610,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
+    
     private ReadOnlyObservableCollection<SongModelView> _searchResults;
 
     protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
@@ -1128,17 +1169,35 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
 
-    partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
+    async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
         if (newValue is not null)
         {
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
-            //LoadSongLastFMData().ConfigureAwait(false);
-            //LoadSongLastFMMoreData().ConfigureAwait(false);
-        }
-    }
 
+            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == newValue.Title);
+
+
+            var playEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(res);
+            newValue.PlayEvents=playEvents;
+             _ = Task.Run(()=>   LoadStatsForSelectedSong(newValue));
+     
+
+
+            SelectedSecondSongCoverBytes = await ImageFilterUtils.ApplyFilter(SelectedSong.CoverImagePath, ImageFilterUtils.FilterType.Blur);
+            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
+            await LoadSongLastFMData();
+
+        }
+        //LoadSongLastFMData().ConfigureAwait(false);
+        //LoadSongLastFMMoreData().ConfigureAwait(false);
+
+    }
+    [ObservableProperty]
+    public partial Color? SelectedSecondDomColor { get; set; } 
+    [ObservableProperty]
+    public partial byte[]? SelectedSecondSongCoverBytes { get; set; } = Array.Empty<byte>();
     public async Task LoadSongLastFMData()
     {
         if (SelectedSong is null)
@@ -1146,7 +1205,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSongLastFMData.Artist.Name, SelectedSong.Title);
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
         SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
 
@@ -1611,7 +1670,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // Efficiently load related data
         CurrentPlayingSongView.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
-            dimmerPlayEventRepo.GetAll().Where(x=>x.SongName == songView.Title)
+            dimmerPlayEventRepo.GetAll().Where(x=>x.Id == songView.Id)
         );
 
 
@@ -1628,7 +1687,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
 
             _songSource.AddRange(newSongs);
-            
+            SearchSongSB_TextChanged("desc added");
             _ = EnsureCoverArtCachedForSongsAsync(newSongs);
 
             var _lyricsCts = new CancellationTokenSource();
@@ -2309,10 +2368,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _folderMgtService.AddFolderToWatchListAndScan(folderPath);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, folderPath, null, null));
     }
-    public void AddMusicFoldersByPassingToService(List<string> folderPath)
+    public void AddMusicFoldersByPassingToService(List<string> folderPaths)
     {
         _logger.LogInformation("User requested to add music folder.");
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.PlaySongFrommOutsideApp, folderPath, null, null));
+        _folderMgtService.AddManyFoldersToWatchListAndScan(folderPaths);
     }
 
     public void ViewAlbumDetails(AlbumModelView albumView)
@@ -2549,7 +2608,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// <summary>
     /// Loads ALL statistics for a single song. Call this when a song is selected.
     /// </summary>
-    public void LoadStatsForSelectedSong(SongModelView? song)
+    public async Task LoadStatsForSelectedSong(SongModelView? song)
     {
         song ??= SelectedSong;
 
@@ -2569,9 +2628,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // Use the song's own PlayHistory if it's reliably populated.
         // This is VASTLY more performant than scanning all events in the database.
-        var songEvents = songDb.PlayHistory.ToList().AsReadOnly();
-
-        if (songEvents.Count==0)
+        //var songEvents = songDb.PlayHistory.ToList().AsReadOnly();
+        var songEventsROCol = await dimmerPlayEventRepo.GetAllAsync();
+        var songEvents = songEventsROCol.Where(x => x.SongName == song.Title).ToList();
+        if (songEvents.Count()==0)
         {
             ClearSingleSongStats();
             return;
@@ -2590,11 +2650,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SongDropOffPoints = ChartSpecificStats.GetSongDropOffPoints(songEvents).ToObservableCollection();
         SongWeeklyOHLC = ChartSpecificStats.GetSongWeeklyOHLC(songEvents).ToObservableCollection();
 
-        // FROM NEW METHODS in Part 1 (previous response)
-        // Note: You'll need to add these methods to either TopStats or ChartSpecificStats
         SongListeningStreak = TopStats.GetListeningStreak(songEvents);
-        //SongEvergreenScore = TopStats.GetEvergreenScore(songEvents);
-        //SongWeekdayVsWeekend = TopStats.GetWeekdayVsWeekendDistribution(songEvents).ToObservableCollection();
     }
 
     /// <summary>
@@ -2957,7 +3013,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         // Get the list of songs you want to process
         var songsToRefresh = _songSource.Items.AsEnumerable(); // Or your full master list
-        var lryServ = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        ILyricsMetadataService lryServ = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
         // --- Call our static, background-safe method ---
         await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
     }
@@ -3071,7 +3127,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             // 1. Run the service on a background thread to keep the UI responsive.
-            var validationResult = await Task.Run(() => _duplicateFinderService.ValidateFilePresenceAsync(_mapper.Map<List<SongModelView>>(songRepo.GetAll())));
+            var validationResult = await Task.Run(async () => await _duplicateFinderService.ValidateFilePresenceAsync(_mapper.Map<List<SongModelView>>(await songRepo.GetAllAsync())));
 
             if (validationResult.MissingCount == 0)
             {
@@ -3765,7 +3821,25 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
 
+    public async Task LoadUserLastFMDataAsync()
+    {
+        var info1 = await lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50);
+        CollectionOfUserRecentTracks = info1.ToObservableCollection();
 
+        LastFMUserInfo = await lastfmService.GetUserInfoAsync();
+
+        CollectionUserTopTracks = await lastfmService.GetUserTopTracksAsync();
+
+    }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? CollectionOfUserRecentTracks { get; set; }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.User? LastFMUserInfo { get; set; }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.PagedResponse<Hqub.Lastfm.Entities.Track>? CollectionUserTopTracks { get; set; }
 }
 
 

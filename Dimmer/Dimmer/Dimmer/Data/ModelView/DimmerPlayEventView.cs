@@ -28,6 +28,32 @@ public class DimmerPlayEventView
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
 
+    public DimmerPlayEventView()
+    {
+        
+    }
+    public DimmerPlayEventView(DimmerPlayEvent dbEvt)
+    {
+        Id = dbEvt.Id;
+        SongName = dbEvt.SongName;
+        SongId = dbEvt.SongId;
+        PlayType = dbEvt.PlayType;
+        PlayTypeStr = dbEvt.PlayTypeStr;
+        DatePlayed = dbEvt.DatePlayed;
+        DateFinished = dbEvt.DateFinished;
+        WasPlayCompleted = dbEvt.WasPlayCompleted;
+        PositionInSeconds = dbEvt.PositionInSeconds;
+        EventDate = dbEvt.EventDate;
+        DeviceName = dbEvt.DeviceName;
+        DeviceFormFactor = dbEvt.DeviceFormFactor;
+        DeviceModel = dbEvt.DeviceModel;
+        DeviceManufacturer = dbEvt.DeviceManufacturer;
+        DeviceVersion = dbEvt.DeviceVersion;
+            
+
+
+    }
+
 }
 public partial class PlayEventGroup : ObservableCollection<DimmerPlayEventView>
 {

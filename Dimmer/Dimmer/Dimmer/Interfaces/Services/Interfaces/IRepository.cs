@@ -23,4 +23,12 @@ public interface IRepository<T> where T : new()
     T? FirstOrDefaultWithRQL(string rqlQuery, params QueryArgument[] args);
     List<T> QueryWithRQL(string rqlQuery, params QueryArgument[] args);
     T? FindByTitleAndDuration(string title, double duration);
+    Task<T> CreateAsync(T entity);
+    Task<T> UpsertAsync(T entity);
+    Task<bool> UpdateAsync(ObjectId id, Action<T> updateAction);
+    Task DeleteAsync(ObjectId id);
+    Task<IReadOnlyCollection<T>> GetAllAsync(bool IsShuffled = false);
+    Task<List<T>> QueryAsync(Expression<Func<T, bool>> predicate);
+    Task<List<T>> QueryWithRQLAsync(string rqlQuery, params QueryArgument[] args);
+    Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
 }

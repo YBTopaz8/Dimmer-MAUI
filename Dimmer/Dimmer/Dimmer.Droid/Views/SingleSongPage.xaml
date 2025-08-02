@@ -35,7 +35,7 @@
               FontSize="19"
               HorizontalOptions="Center"
               Text="{Binding Item.Name, StringFormat='{0}'}"
-              TextColor="White"
+              TextColor="{AppThemeBinding Dark=White, Light=Black}"
               VerticalOptions="Center" />
 
 

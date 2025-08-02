@@ -123,6 +123,13 @@ public partial class HomePage : ContentPage
         var selectedSec = view.BindingContext as SongModelView;
         await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
     }
+
+    private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.MenuFlyoutItem)sender;
+        var selectedSec = view.BindingContext as SongModelView;
+        await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
+    }
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
         var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
@@ -725,7 +732,7 @@ public partial class HomePage : ContentPage
         var topView = TopExpander.Header;
 
 
-        await Task.WhenAll(topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
+        await Task.WhenAll(Task.Delay(1500),topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
 
     }
     private async void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
@@ -804,4 +811,72 @@ public partial class HomePage : ContentPage
         }
     }
 
+    private async void OnNavigateToExperimentalPage(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(ExperimentsPage), true);
+    }
+
+    private async void SongDropRecognizer_DragLeave(object sender, Microsoft.Maui.Controls.DragEventArgs e)
+    {
+await this.FadeIn(500, 1.0);
+  }
+
+    private async void SongDropRecognizer_DragOver(object sender, Microsoft.Maui.Controls.DragEventArgs e)
+    {
+        await this.FadeOut(500, 0.8);
+        var dragData = e.PlatformArgs.DragEventArgs.DataView;
+        var dataa = await dragData.GetStorageItemsAsync();
+      var  SupportedAudioExtensions = new HashSet<string>(
+          new[] { ".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus" },
+          StringComparer.OrdinalIgnoreCase
+      );
+        if (dataa.Count < 1)
+        {
+            return;
+        }
+        // keep to internal list to show unsupported file type in alert later
+        if (MyViewModel.DraggedAudioFiles is null)
+        {
+            MyViewModel.DraggedAudioFiles = new List<string>();
+        }
+
+        MyViewModel.DraggedAudioFiles.Clear();
+        
+        // Check if the dragged items are audio files
+        foreach (var item in dataa)
+        {
+            
+            if (item is StorageFile file)
+            {
+                var fileExtension = Path.GetExtension(file.Path);
+                if (!SupportedAudioExtensions.Contains(fileExtension))
+                {
+                    
+                    await DisplayAlert("Unsupported File Type", $"The file '{file.Name}' is not a supported audio format.", "OK");
+                    // Set the accepted operation to None to reject the drop
+                    e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                    return;
+                }
+                else
+                {
+                    // store all audio files in a list for process in drop event
+                    MyViewModel.DraggedAudioFiles.Add(file.Path);
+                }
+            }
+        }
+        // If all files are audio files, accept the drop
+        e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+     
+    }
+
+    private void SongDropRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        // songs dropped so we can load in viewmodel
+        if (MyViewModel.DraggedAudioFiles is null || MyViewModel.DraggedAudioFiles.Count < 1)
+        {
+            return; // No files to process
+        }
+        // Process the dropped audio files
+        MyViewModel.AddMusicFoldersByPassingToService(MyViewModel.DraggedAudioFiles);
+    }
 }

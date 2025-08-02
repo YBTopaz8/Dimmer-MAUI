@@ -147,7 +147,7 @@ Command="{Binding BaseVM.ValidateLibraryCommand}"
                 <syncf:SfTabItem.Content>
                     <VerticalStackLayout Margin="10" Spacing="10">
                         <Editor Placeholder="UserName" 
-                              PlaceholderColor="White"
+                              PlaceholderColor="{AppThemeBinding Dark=White,Light=Black}"
                               Text="{Binding BaseVM.UserLocal.LastFMAccountInfo.Name}">
                             <Editor.Triggers>
                                 <DataTrigger TargetType="Editor" Binding="{Binding BaseVM.IsLastfmAuthenticated}" Value="True">

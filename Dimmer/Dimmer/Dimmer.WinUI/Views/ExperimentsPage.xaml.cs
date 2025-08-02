@@ -9,4 +9,10 @@ public partial class ExperimentsPage : ContentPage
         BindingContext = vm;
         MyViewModel = vm;
     }
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        await MyViewModel.LoadUserLastFMDataAsync();
+    }
 }

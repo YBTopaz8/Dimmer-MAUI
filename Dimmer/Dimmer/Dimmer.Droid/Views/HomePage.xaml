@@ -63,7 +63,7 @@
                 <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
                 <Setter Property="IconColor" Value="DarkSlateBlue" />
                 <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue" />
-                <Setter Property="PressedIconColor" Value="White" />
+                <Setter Property="PressedIconColor" Value="{AppThemeBinding Dark=White,Light=Black}" />
             </Style>
 
             <Style x:Key="LittleBtn" TargetType="dx:DXButton">
@@ -165,7 +165,7 @@
                                                             FontAttributes="Bold"
                                                             HorizontalTextAlignment="Center"
                                                             Text="{Binding Text}"
-                                                            TextColor="White" />
+                                                            TextColor="{AppThemeBinding Dark=White, Light=Black}" />
 
                                                     </dx:DXBorder>
                                                 </DataTemplate>
@@ -460,7 +460,7 @@ FontAttributes="Bold"
                                                 Command="{Binding BaseVM.PlayPauseToggleCommand}"
                                                 HeightRequest="120"
                                                 Icon="play.png"
-                                                IconColor="White"
+                                                IconColor="{AppThemeBinding Dark=White,Light=Black}"
                                                 IconHeight="60"
                                                 IconWidth="60"
                                                 Opacity="0.8"

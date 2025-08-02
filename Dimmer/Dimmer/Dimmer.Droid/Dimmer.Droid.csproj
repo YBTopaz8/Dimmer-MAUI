@@ -28,8 +28,10 @@
     <EnableLLVM>False</EnableLLVM>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
-    <TrimMode>link</TrimMode>
+    <TrimMode>copyused</TrimMode>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <IsTrimmable>True</IsTrimmable>
+    <IsAotCompatible>True</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -42,9 +44,11 @@
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
     <EnableLLVM>True</EnableLLVM>
-    <TrimMode>link</TrimMode>
+    <TrimMode>copyused</TrimMode>
     <AndroidLinkTool>r8</AndroidLinkTool>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <IsTrimmable>True</IsTrimmable>
+    <IsAotCompatible>True</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

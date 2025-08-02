@@ -221,7 +221,7 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                                  BackgroundColor="DarkSlateBlue"
                                  Command="{Binding BaseVM.PlayPauseToggleCommand}"
                                  HeightRequest="120" Icon="play.png"
-                                 IconColor="White" IconHeight="50"
+                                 IconColor="{AppThemeBinding Dark=White,Light=Black}" IconHeight="50"
                                  IconWidth="50" Opacity="0.7"
                                  PressedBackgroundColor="Purple"
                                  >

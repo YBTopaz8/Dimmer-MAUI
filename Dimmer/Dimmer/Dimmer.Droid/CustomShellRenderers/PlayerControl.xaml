@@ -34,11 +34,11 @@
             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
                 <Label FontAttributes="Bold"
                        Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
-                       TextColor="White"
+                       TextColor="{AppThemeBinding Dark=White, Light=Black}"
                        />
                 <Label FontSize="Micro"
                        Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
-                       TextColor="White"
+                       TextColor="{AppThemeBinding Dark=White, Light=Black}"
                        />
             </VerticalStackLayout>
             <Button Grid.Column="2"
@@ -65,7 +65,7 @@
                        />
                 <Label FontSize="Title" HorizontalOptions="Center"
                        Text="{Binding CurrentTrackTitle}"
-                       TextColor="White"
+                       TextColor="{AppThemeBinding Dark=White, Light=Black}"
                        />
                 <Label FontSize="Body" HorizontalOptions="Center"
                        Text="{Binding CurrentTrackArtist}"

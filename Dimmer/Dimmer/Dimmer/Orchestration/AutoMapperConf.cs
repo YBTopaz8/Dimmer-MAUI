@@ -113,7 +113,6 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
                 .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
 
- .ForMember(dest => dest.LyricsText, opt => opt.Ignore())
 
  .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore())
                 .ForMember(dest => dest.LyricsText, opt => opt.Ignore())
@@ -129,15 +128,15 @@ public static class AutoMapperConf
             cfg.CreateMap<AlbumModel, AlbumModel>()
             .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore())
               .ForMember(dest => dest.ArtistIds, opt => opt.Ignore()) // Handle this manually
-                    .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Ignore backlink
               .ForMember(dest => dest.UserNotes, opt => opt.Ignore());
 
 
 
             cfg.CreateMap<ArtistModel, ArtistModel>()
-            .ForMember(x => x.Songs, opt => opt.Ignore())
-            .ForMember(dest => dest.Albums, opt => opt.Ignore())
-            .ForMember(dest => dest.Songs, opt => opt.Ignore()).ForMember(dest => dest.Albums, opt => opt.Ignore());
+            .ForMember(dest => dest.Songs, opt => opt.Ignore())
+            .ForMember(dest => dest.Albums, opt => opt.Ignore());
+
+
             cfg.CreateMap<GenreModel, GenreModel>().ForMember(dest => dest.Songs, opt => opt.Ignore());
             cfg.CreateMap<SongModel, SongModel>(); // Add others as needed
             cfg.CreateMap<AppStateModel, AppStateModel>();

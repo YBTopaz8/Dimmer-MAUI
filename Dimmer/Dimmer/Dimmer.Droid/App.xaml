@@ -14,7 +14,7 @@
 
             <Style x:Key="MyDirectButtonStyle" TargetType="dx:DXButton">
                 <Setter Property="BackgroundColor" Value="{StaticResource MyDirectColor}" />
-                <Setter Property="TextColor" Value="White" />
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}" />
                 <Setter Property="FontSize" Value="20" />
             </Style>
 

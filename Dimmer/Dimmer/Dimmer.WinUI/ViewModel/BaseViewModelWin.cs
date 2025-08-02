@@ -118,6 +118,10 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
     public partial int MediaBarGridRowPosition { get; set; }
     public CollectionView SongColView { get; internal set; }
 
+
+    [ObservableProperty]
+    public partial List<string> DraggedAudioFiles { get; internal set; }
+
     [RelayCommand]
     public void SwapMediaBarPosition()
     {
@@ -215,6 +219,12 @@ public partial class BaseViewModelWin : BaseViewModel // BaseViewModel is in Dim
 
 
         }
-        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+        else
+        {
+            SelectedSong=selectedSec;
+        }
+            await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
+
+    
 }

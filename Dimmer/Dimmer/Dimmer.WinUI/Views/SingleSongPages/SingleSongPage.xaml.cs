@@ -32,6 +32,8 @@ public partial class SingleSongPage : ContentPage
 
             (DataTemplate)Resources["GridOfFour"]
         };
+
+
     }
 
 

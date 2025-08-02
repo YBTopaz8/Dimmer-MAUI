@@ -23,10 +23,21 @@ Shell.FlyoutBehavior="Disabled"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="Transparent"
     Shell.NavBarIsVisible="False">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="itemTemplate" x:DataType="models:SongModelView">
+                <Image Source="{Binding CoverImagePath}" 
+                        Aspect="AspectFit"/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <Grid HeightRequest="400" WidthRequest="400" VerticalOptions="Center"
+          HorizontalOptions="Center">
+        <syncf:SfCarousel
+            ItemsSource="{Binding SearchResults}"
+            ItemTemplate="{StaticResource itemTemplate}"
             VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+            HorizontalOptions="Center" >
+        </syncf:SfCarousel>
+    </Grid>
 </ContentPage>
