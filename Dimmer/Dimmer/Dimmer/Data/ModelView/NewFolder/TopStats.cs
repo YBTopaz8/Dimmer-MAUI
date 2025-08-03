@@ -224,7 +224,7 @@ public static class TopStats
             return new DimmerStats { Name = "Listen-Through %", Value = 0 };
 
         var listenDurations = songEvents
-            .Where(e => e.PlayType is PlayType_Completed or PlayType_Skipped && e.PositionInSeconds > 0)
+            .Where(e => e.PlayType is PlayType_Completed)
             .Select(e =>
             {
                 var listenPercent = (e.PositionInSeconds / songDurationSeconds) * 100.0;

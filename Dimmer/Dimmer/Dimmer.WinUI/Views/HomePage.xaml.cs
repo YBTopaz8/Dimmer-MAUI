@@ -35,6 +35,9 @@ using Syncfusion.Maui.Toolkit.Charts;
 using Label = Microsoft.Maui.Controls.Label;
 using Dimmer.DimmerLive;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
+using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
+using View = Microsoft.Maui.Controls.View;
+using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
 
 namespace Dimmer.WinUI.Views;
 
@@ -59,8 +62,8 @@ public partial class HomePage : ContentPage
         //MyViewModel.SongsCountLabel = SongsCountLabel;
         _availableLayouts = new List<DataTemplate>
         {
+            (DataTemplate)Resources["OGView"],
             (DataTemplate)Resources["GridOfFour"],
-            (DataTemplate)Resources["OGView"]
         };
     }
     private async void ViewSongMFI_Clicked(object sender, EventArgs e)
@@ -95,15 +98,17 @@ public partial class HomePage : ContentPage
             SongsColView.ItemsLayout = new GridItemsLayout(ItemsLayoutOrientation.Vertical)
             {
                 VerticalItemSpacing =10,
+                HorizontalItemSpacing=5,
                 Span = 6
             };
 
         }
         if (_currentLayoutIndex == 0)
         {
+
             SongsColView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical)
             {
-                
+                ItemSpacing=5
             };
 
         }
@@ -695,6 +700,38 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void SidePage_DragOver(object sender, DragEventArgs e)
+    {
+
+    }
+
+    private void SidePage_Drop(object sender, DropEventArgs e)
+    {
+        var dd = e.Data;
+        var s = dd.Properties.Values;
+        var ss = dd.Properties.Keys;
+    }
+
+    private void SongDrag_DragStarting(object sender, DragStartingEventArgs e)
+    {
+        var dd = e.Data;
+        var ee = dd.View;
+        var re = dd.Properties;
+        dd.Text = "Drop at the to view";
+    }
+
+    private async void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.FadeOut(300, 0.5);
+    }
+
+    private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.FadeIn(300, 0.3);
+    }
+
     private async void OnAddQuickNoteClicked(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
@@ -889,5 +926,10 @@ await this.FadeIn(500, 1.0);
         }
         // Process the dropped audio files
         MyViewModel.AddMusicFoldersByPassingToService(MyViewModel.DraggedAudioFiles);
+    }
+
+    private void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
+    {
+
     }
 }

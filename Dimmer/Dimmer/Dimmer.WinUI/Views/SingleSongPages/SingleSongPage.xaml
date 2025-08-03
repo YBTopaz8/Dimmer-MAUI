@@ -72,14 +72,7 @@
                         </MenuFlyoutSubItem>
 
 
-                        <MenuFlyoutItem Text="Toggle Top View"
-                                        Clicked="OnToggleTopViewClicked">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator
-                                    Key="O" 
-                                    Modifiers="Ctrl"/>
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
+                       
                         <MenuFlyoutItem Text="{Binding Title, StringFormat='View Song'}"
                                         Clicked="NavigateToSelectedSongPageContextMenuAsync">
                             <MenuFlyoutItem.KeyboardAccelerators>
@@ -327,7 +320,7 @@ Value="False">
                         PointerExited="SongViewPointer_PointerExited"/>
                 </Grid.GestureRecognizers>
                 <Image Source="{Binding CoverImagePath}" 
-                       Opacity="0.5" 
+                       Opacity="0.7" 
                        HorizontalOptions="Start" >
                     <Image.GestureRecognizers>
                         <DragGestureRecognizer
@@ -502,7 +495,7 @@ ToolTipProperties.Text="Save To Playlist">
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding SelectedSong.PlayCompletedCount}"/>
+                                                        Text="{Binding SelectedSong.PlayEvents.Count}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
@@ -878,7 +871,7 @@ ToolTipProperties.Text="Save To Playlist">
 
                                                         <Label
                                                             Text="{Binding SelectedSong.SyncLyrics.Length,
-                                                StringFormat='{0} lines'}"/>
+                                                StringFormat='{0} Xters'}"/>
                                                         <ImageButton 
                                                             HeightRequest="30"
                                                             x:Name="ViewLyricsIndex"
@@ -922,8 +915,8 @@ ToolTipProperties.Text="Save To Playlist">
                                                         </syncf:SfCircularChart>
 
                                                         <syncf:SfPolarChart
-                                                              HeightRequest="500"
-WidthRequest="500"
+                                                              HeightRequest="700"
+WidthRequest="700" 
                                                     GridLineType="Circle">
 
                                                     <chart:SfPolarChart.Title>

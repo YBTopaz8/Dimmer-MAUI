@@ -179,6 +179,11 @@ public partial class SingleSongPage : ContentPage
         }
     }
 
+    private void OnLabelClicked(object sender, EventArgs e)
+    {
+
+    }
+
     private void SidePage_DragOver(object sender, DragEventArgs e)
     {
         
@@ -202,20 +207,23 @@ public partial class SingleSongPage : ContentPage
     private async    void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.FadeOut(300, 0.5);
+        await send.FadeOut(300, 0.7);
     }
 
     private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.FadeIn(300, 0.3);
+        await send.FadeIn(300, 1);
     }
 
     private async void ViewSongMFI_Clicked(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
         var song = send.CommandParameter as SongModelView;
-
+        if (song is null)
+        {
+            return;
+        }
         await this.FadeOut(200, 0.7);
         MyViewModel.SelectedSong = song;
         await this.FadeIn(350, 1);
@@ -324,5 +332,29 @@ public partial class SingleSongPage : ContentPage
         var prop = send.Text;
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(prop)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
+    }
+
+    private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
+    {
+
+        var view = (Microsoft.Maui.Controls.MenuFlyoutItem)sender;
+        var selectedSec = view.BindingContext as SongModelView;
+        if (selectedSec is null)
+        {
+            return;
+        }
+        MyViewModel.SelectedSong = selectedSec;
+        MyViewModel.CurrentPageContext = CurrentPage.SingleSongPage;
+        await MyViewModel.LoadSelectedSongLastFMData();
+    }
+
+    private void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+
     }
 }

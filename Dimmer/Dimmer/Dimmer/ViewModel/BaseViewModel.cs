@@ -1256,7 +1256,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (newValue is null)
         {
-            if (CurrentPageContext == CurrentPage.SetupPage)
+            if (CurrentPageContext == CurrentPage.SingleSongPage)
             {
                 newValue=oldValue;
                 return;
