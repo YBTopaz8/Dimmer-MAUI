@@ -2,6 +2,7 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
+    <AppIconSource>C:\Users\MCS\Music\dimm\Dimmer\Dimmer\Dimmer\Resources\Images\appicon.png</AppIconSource>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>

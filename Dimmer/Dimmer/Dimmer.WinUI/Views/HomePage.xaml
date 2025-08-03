@@ -171,7 +171,7 @@ Shell.FlyoutBehavior="Flyout"
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
                 <Grid RowDefinitions="55"
-                                ColumnDefinitions="2.1*,1.9*,1.9*,*,*,*,0.7*"
+                                ColumnDefinitions="2.3*,1.9*,1.9*,*,*,*,0.7*"
                                 ColumnSpacing="5">
 
                     <Grid.GestureRecognizers>
@@ -243,10 +243,17 @@ Value="False">
                 x:Name="ViewSongDetails" PointerPressed="ViewSongDetails_PointerPressed"
                 PointerReleasedCommandParameter="title" />
                             </Border.GestureRecognizers>
-                            <Image Source="{Binding CoverImagePath}"
+
+
+                            <Grid>
+
+                                <Image Source="heart.png"
+                                       IsVisible="{Binding IsFavorite}"/>
+                                <Image Source="{Binding CoverImagePath}"
                                            WidthRequest="50"
                                            HeightRequest="50"/>
 
+                            </Grid>
 
 
                         </Border>
@@ -390,6 +397,7 @@ Value="False">
     
     
     <Grid RowDefinitions="auto,*">
+  
         <Grid.GestureRecognizers>
             <DropGestureRecognizer
                 x:Name="SongDropRecognizer"
@@ -399,7 +407,9 @@ Value="False">
                 Drop="SongDropRecognizer_Drop"
                 />
         </Grid.GestureRecognizers>
-
+        <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+Opacity="0.10" ZIndex="-1" Grid.RowSpan="2"
+/>
         <VerticalStackLayout Grid.Row="0" ZIndex="0" >
 
             <syncf:SfExpander x:Name="TopExpander" IsExpanded="False" HeaderIconPosition="Start"
@@ -416,6 +426,7 @@ Value="False">
                                 PointerPressed="CloseTopExpander_PointerPressed"
                                 x:Name="CloseTopExpander"/>
                         </Grid.GestureRecognizers>
+                        
                         <VerticalStackLayout>
                             
                             
@@ -531,93 +542,6 @@ Value="False">
                                        >
                                    
                                 </Button>
-                            </HorizontalStackLayout>
-                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
-                                <Label FontSize="21" 
-HorizontalOptions="Center" FontAttributes="Italic"
-Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
-                                <Button ImageSource="searchalta.png"
-                                   Clicked="SearchBtn_Clicked"
-                                        windows:VisualElement.AccessKey="F"
-                                        
-                                        BackgroundColor="Transparent"
-                                      x:Name="SearchBtn"  WidthRequest="58">
-                                    
-                                </Button>
-                                <Button
-                        Command="{Binding ToggleFavSongCommand}"
-                        CommandParameter="{Binding CurrentPlayingSongView}"
-                        BackgroundColor="Transparent"
-                                    BorderWidth="1"
-                                    
-                                    windows:VisualElement.AccessKey="H"
-                        ImageSource="heart.png"
-                        WidthRequest="58"
-                        ToolTipProperties.Text="Save To Playlist">
-                                    <Button.Triggers>
-                                        <DataTrigger
-                                Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                TargetType="Button"
-                                Value="False">
-                                            <Setter Property="ImageSource" Value="heartbroken.png" />
-
-                                        </DataTrigger>
-                                        <DataTrigger
-                                Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                TargetType="Button"
-                                Value="True">
-                                            <Setter Property="ImageSource" Value="heartlock.png" />
-
-
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
-
-                                <ProgressBar
-                        x:Name="MyProgressBar"
-                        IsVisible="False"
-                        WidthRequest="80" />
-                                <Label
-                        x:Name="MyProgressLabel"
-                        IsVisible="False"
-                        WidthRequest="180" />
-
-
-                                <Button
-                        x:Name="ScrollToSong"
-                        windows:VisualElement.AccessKey="S"
-                        windows:VisualElement.AccessKeyPlacement="Bottom"
-                        Clicked="ScrollToSong_Clicked"
-                        BackgroundColor="Transparent"
-                        ImageSource="eye.png"
-                        BorderWidth="1"
-                                    WidthRequest="58"
-                        
-                        />
-                                <Button
-                        x:Name="Xout"
-                        windows:VisualElement.AccessKey="X"
-                        windows:VisualElement.AccessKeyPlacement="Bottom"
-                        Clicked="OnToggleTopViewClicked"
-                        BackgroundColor="Transparent"
-                        BorderWidth="1"
-                                    Text="X"
-                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
-                                    WidthRequest="58"
-                        
-                        />
-                                <Button
-                        x:Name="EXout"
-                        windows:VisualElement.AccessKey="E"
-                        windows:VisualElement.AccessKeyPlacement="Bottom"
-                        Clicked="OnNavigateToExperimentalPage"
-                        BackgroundColor="Transparent"
-                        BorderWidth="1"
-                                    Text="E"
-                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
-                                    WidthRequest="58"
-                        
-                        />
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
                         <Grid
@@ -818,8 +742,10 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                             </Grid>
                             <HorizontalStackLayout Grid.Column="2" 
                                                    VerticalOptions="Center">
+                                
                                 <Button
                                     WidthRequest="60"
+                                    BorderWidth="0"
                            Background="Transparent"
                            Command="{Binding ToggleShuffleModeCommand}"
                            ImageSource="shuffle.png"
@@ -830,11 +756,13 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                    TargetType="Button"
                                    Value="True">
                                                 <Setter Property="BorderColor" Value="DarkSlateBlue" />
-                                            
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
+                                            </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
+                                
+                                
                                 <Button
                                     WidthRequest="60"
                            Background="Transparent"
@@ -848,6 +776,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                    TargetType="Button"
                                    Value="0">
                                             <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                            <Setter Property="BorderWidth" Value="2" />
                                             
 
                                         </DataTrigger>
@@ -856,25 +785,25 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                                    TargetType="Button"
                                    Value="1">
                                             <Setter Property="BorderColor" Value="LightBlue" />
-                                            
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
+                                            </DataTrigger>
                                         <DataTrigger
                                    Binding="{Binding CurrentRepeatMode}"
                                    TargetType="Button"
                                    Value="2">
                                                 <Setter Property="BorderColor" Value="Orange" />
-                                            
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
+                                            </DataTrigger>
                                         <DataTrigger
                                    Binding="{Binding CurrentRepeatMode}"
                                    TargetType="Button"
                                    Value="3">
                                             <Setter Property="BorderColor" Value="Red" />
-                                            
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
+                                            </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
                                 <Slider
@@ -973,28 +902,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
 
 
                                 </syncf:SfChip>
-                                <syncf:SfChip
-                           x:Name="ViewUtilsBtn"
-                           Clicked="ViewUtilsBtn_Clicked"
-                          
-                           ShowIcon="False"
-                           StrokeThickness="1"
-                           Text="View Utilities">
-                                    <syncf:SfChip.Triggers>
-                                        <DataTrigger
-                                   Binding="{Binding IsVisible, Source={x:Reference UtilitiesHSL}}"
-                                   TargetType="syncf:SfChip"
-                                   Value="True">
-                                            <Setter Property="Text" Value="Hide Utilities" />
-                                        </DataTrigger>
-                                        <DataTrigger
-                                   Binding="{Binding IsVisible, Source={x:Reference UtilitiesHSL}}"
-                                   TargetType="syncf:SfChip"
-                                   Value="false">
-                                            <Setter Property="Text" Value="Show Utilities" />
-                                        </DataTrigger>
-                                    </syncf:SfChip.Triggers>
-                                </syncf:SfChip>
+                              
                                     <Button
 x:Name="XoutTwo"
 windows:VisualElement.AccessKey="X"
@@ -1082,9 +990,7 @@ BorderWidth="1"
     </VerticalStackLayout>
 
         <Grid Grid.Row="1"  ZIndex="0" BackgroundColor="Transparent">
-            <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-        Opacity="0.19" ZIndex="-1"
-        />
+           
             <Grid x:Name="ShareSongView" ColumnDefinitions="auto,*" IsVisible="False"
                   >
                 <Border Grid.Column="0" StrokeShape="RoundRectangle 20,20,0,0">
@@ -1130,8 +1036,28 @@ BorderWidth="1"
 
             <Grid RowDefinitions="auto,auto,*" x:Name="GridSongsColView">
 
-                <Grid Grid.Row="0">
-                    <Border x:Name="LyricsBoxView">
+                <Grid Grid.Row="0" ColumnDefinitions="auto,*,auto">
+
+                    <VerticalStackLayout
+                        
+                        x:Name="LeftUtilSide"
+                        Grid.Column="0">
+
+
+                        <Button ImageSource="searchalta.png"
+                                   Clicked="SearchBtn_Clicked"
+                                        windows:VisualElement.AccessKey="F"
+                                        
+                                        BackgroundColor="Transparent"
+                                      x:Name="SearchBtn"  WidthRequest="58">
+
+                        </Button>
+                        <Label FontSize="21" 
+HorizontalOptions="Center" FontAttributes="Italic"
+                                       TextColor="{AppThemeBinding Light=Black, Dark=#999999}"
+Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
+                    </VerticalStackLayout>
+                    <Border HorizontalOptions="Center" x:Name="LyricsBoxView" Grid.Column="1">
                         
                     <VerticalStackLayout
 x:Name="LyricsSection"
@@ -1183,11 +1109,98 @@ IsVisible="True">
 
 
                     </Border>
+
+                    <HorizontalStackLayout
+                        x:Name="RightUtilSide"
+                        Grid.Column="2" HorizontalOptions="Center" Spacing="10">
+
+                        <VerticalStackLayout>
+
+                            <Button
+                        Command="{Binding ToggleFavSongCommand}"
+                        CommandParameter="{Binding CurrentPlayingSongView}"
+                        BackgroundColor="Transparent"
+                                    BorderWidth="1"
+                                    
+                                    windows:VisualElement.AccessKey="H"
+                        ImageSource="heart.png"
+                        WidthRequest="58"
+                        ToolTipProperties.Text="Save To Playlist">
+                            <Button.Triggers>
+                                <DataTrigger
+                                Binding="{Binding CurrentPlayingSongView.IsFavorite}"
+                                TargetType="Button"
+                                Value="False">
+                                    <Setter Property="ImageSource" Value="heartbroken.png" />
+
+                                </DataTrigger>
+                                <DataTrigger
+                                Binding="{Binding CurrentPlayingSongView.IsFavorite}"
+                                TargetType="Button"
+                                Value="True">
+                                    <Setter Property="ImageSource" Value="heartlock.png" />
+
+
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <Button
+                        x:Name="ScrollToSong"
+                        windows:VisualElement.AccessKey="S"
+                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                        Clicked="ScrollToSong_Clicked"
+                        BackgroundColor="Transparent"
+                        ImageSource="eye.png"
+                        BorderWidth="1"
+                                    WidthRequest="58"
+                        
+                        />
+                        </VerticalStackLayout>
+                        <ProgressBar
+                        x:Name="MyProgressBar"
+                        IsVisible="False"
+                        WidthRequest="80" />
+                        <Label
+                        x:Name="MyProgressLabel"
+                        IsVisible="False"
+                        WidthRequest="180" />
+
+
+                        <VerticalStackLayout>
+
+                            <Button
+                        x:Name="Xout"
+                        windows:VisualElement.AccessKey="X"
+                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                        Clicked="OnToggleTopViewClicked"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                                    Text="X"
+                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
+                                    WidthRequest="58"
+                        
+                        />
+                            <Button
+                        x:Name="EXout"
+                        windows:VisualElement.AccessKey="E"
+                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                        Clicked="OnNavigateToExperimentalPage"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                                    Text="E"
+                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
+                                    WidthRequest="58"
+                        
+                        />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+
                 </Grid>
                 <VerticalStackLayout Grid.Row="1" >
                 
                     
-                    <Grid  ColumnDefinitions="2.1*,1.9*,1.9*,*,*,*,0.7*"
+                    <Grid  ColumnDefinitions="2.3*,1.9*,1.9*,*,*,*,0.7*"
                                       Margin="10,0"
                               ColumnSpacing="10">
                     <Grid.Resources>

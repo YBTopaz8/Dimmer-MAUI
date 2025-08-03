@@ -16,7 +16,6 @@
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
     <OptimizationPreference>Speed</OptimizationPreference>
-    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
   </PropertyGroup>
 
 
@@ -47,14 +46,6 @@
     <IsTrimmable>False</IsTrimmable>
     <IsAotCompatible>False</IsAotCompatible>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\drawable\loggo.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="dimmicoo.ico" />
-  </ItemGroup>
 
   <!--<ItemGroup>
     <None Remove="AndroidManifest.xml" />
@@ -279,9 +270,7 @@
     <Folder Include="Utils\NativeViewAnimations\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <MauiImage Include="Resources\drawable\loggo.ico" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <None Include="..\Dimmer\Resources\Images\appicona.png">

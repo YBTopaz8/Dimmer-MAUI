@@ -23,7 +23,7 @@ public partial class SingleSongPage : ContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-
+        MyViewModel.CurrentPageContext=CurrentPage.SingleSongPage;
         //await MyViewModel.LoadSongLastFMData();
         //await MyViewModel.LoadSongLastFMMoreData();
 
@@ -38,8 +38,19 @@ public partial class SingleSongPage : ContentPage
     private async void PlaySongGestRec_Tapped(object sender, EventArgs e)
     {
         var send = (Microsoft.Maui.Controls.View)sender;
-        var song = send.BindingContext as SongModelView;
-        await MyViewModel.PlaySong(song);
+        var song = MyViewModel.SelectedSong;
+        if (song is null)
+        {
+            return;
+        }
+        if (MyViewModel.CurrentPlayingSongView == song)
+        {
+            await MyViewModel.PlayPauseToggle();
+        }
+        else
+        {
+            await MyViewModel.PlaySong(song);
+        }
     }
     private List<DataTemplate> _availableLayouts;
     private int _currentLayoutIndex = 0;
@@ -162,9 +173,9 @@ public partial class SingleSongPage : ContentPage
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
         // You might want to ensure ArtistView is visible before this animation.
-        if (!ArtistView.IsVisible)
+        if (!ArtistAlbumView.IsVisible)
         {
-            await Task.WhenAll(SongView.DimmOutCompletelyAndHide(), ArtistView.DimmInCompletelyAndShow());
+            await Task.WhenAll(SongView.DimmOutCompletelyAndHide(), ArtistAlbumView.DimmInCompletelyAndShow());
         }
     }
 
@@ -249,7 +260,7 @@ public partial class SingleSongPage : ContentPage
     private async void ViewSongDetails_Clicked(object sender, EventArgs e)
     {
 
-        await Task.WhenAll(ArtistView.DimmOutCompletelyAndHide(), SongView.DimmInCompletelyAndShow());
+        await Task.WhenAll(ArtistAlbumView.DimmOutCompletelyAndHide(), SongView.DimmInCompletelyAndShow());
 
     }
 
@@ -271,5 +282,33 @@ public partial class SingleSongPage : ContentPage
     private void SaveImageFromLastFM_Clicked(object sender, EventArgs e)
     {
 
+    }
+
+    private async void ToggleViewArtist_Clicked(object sender, EventArgs e)
+    {
+        if (!SongView.IsVisible)
+        {
+            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+            return;
+        }
+
+        Button send = (Button)sender;
+        var prop = send.Text;
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(prop));
+        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
+    }
+
+    private async void ToggleViewAlbum_Clicked(object sender, EventArgs e)
+    {
+        if (!SongView.IsVisible)
+        {
+            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+            return;
+        }
+
+        Button send = (Button)sender;
+        var prop = send.Text;
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(prop)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
+        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
     }
 }

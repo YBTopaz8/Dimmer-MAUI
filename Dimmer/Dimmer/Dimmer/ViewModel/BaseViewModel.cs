@@ -800,9 +800,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
     [ObservableProperty]
-    public partial string AppTitle { get; set; } = "Dimmer";
+    public partial string AppTitle { get; set; } = "Dimmer v1.91 Theta";
 
-    public const string CurrentAppVersion = "Dimmer v1.9heta";
+    public const string CurrentAppVersion = "Dimmer v1.91 Theta";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
@@ -1253,7 +1253,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
      partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
-       
+
+        if (newValue is null)
+        {
+            if (CurrentPageContext == CurrentPage.SetupPage)
+            {
+                newValue=oldValue;
+                return;
+            }
+        }
         //LoadSongLastFMData().ConfigureAwait(false);
         //LoadSongLastFMMoreData().ConfigureAwait(false);
 
@@ -1289,22 +1297,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             return;
         }
-        var corrected =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        if (corrected is null)
+      
+
+
+            var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        artistName ??=string.Empty;
+            SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
+        if (SelectedSongLastFMData is null)
         {
-            SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
-            SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
-            SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
-
+            return;
         }
-        else
-        {
+            SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
+            SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
 
-            SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(corrected.Artist.Name, corrected.Name);
-        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
-
-        }
     }
  
     public async Task LoadSongLastFMMoreData()
@@ -1379,12 +1384,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     public async Task FetchAndLoadSelectedSongFromLastFMToSelectedSongLastFMObject()
     {
-        Hqub.Lastfm.Entities.Track? trackInfo = await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        if (SelectedSong is null)
+        {
+            _logger.LogWarning("No song is currently selected to fetch Last.fm data.");
+            return;
+        }
+        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
+        Hqub.Lastfm.Entities.Track? trackInfo = await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
         if (trackInfo is not null)
         {
             SelectedSongLastFMData = trackInfo;
-            CorrectedSelectedSongLastFMData = await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
-            SimilarTracks = await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+            CorrectedSelectedSongLastFMData = await lastfmService.GetCorrectionAsync(artistName, SelectedSong.Title);
+            SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSong.Title);
             if (SimilarTracks is not null)
             {
                 SimilarSongs = SimilarTracks.ToObservableCollection();
@@ -3364,7 +3376,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
             if (string.IsNullOrEmpty(LyricsArtistNameSearch))
             {
-                LyricsArtistNameSearch = SelectedSong.ArtistName;
+
+
+                var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                if (artistName != null)
+                {
+                    LyricsArtistNameSearch = artistName;
+                }
+                else
+                {
+                    LyricsArtistNameSearch = SelectedSong.ArtistName;
+                }
             }
             var query = $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
             ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;

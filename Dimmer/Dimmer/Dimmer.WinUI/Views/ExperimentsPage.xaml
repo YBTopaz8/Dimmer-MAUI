@@ -38,33 +38,41 @@ Shell.FlyoutBehavior="Disabled"
 
 
             <VerticalStackLayout Margin="10" Spacing="15" Grid.Row="0">
-                <Border HorizontalOptions="Start" 
+                <HorizontalStackLayout Margin="10" Spacing="15" Grid.Row="0">
+                    <Border HorizontalOptions="Start" 
                        HeightRequest="200"
                        WidthRequest="200"
                        StrokeShape="RoundRectangle 120">
-                    <HorizontalStackLayout>
-                        
-                    <Image Source="{Binding LastFMUserInfo.Images[3].Url}"/>
+                        <HorizontalStackLayout>
+
+                            <Image Source="{Binding LastFMUserInfo.Images[3].Url}"/>
+
+
+                        </HorizontalStackLayout>
+                    </Border>
+                    <VerticalStackLayout Spacing="20">
+
+                        <Label FontSize="Medium" Text="{Binding LastFMUserInfo.Name}" TextColor="{AppThemeBinding Dark=White, Light=Black}"/>
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+
+                            <Label FontSize="Subtitle" Text="{Binding LastFMUserInfo.RealName}"/>
+
+                            <Label FontSize="Subtitle" Text="{Binding LastFMUserInfo.Registered
+,StringFormat='Scrobbling since {0: dd MMM yyy}'}"/>
+
+                        </HorizontalStackLayout>
                         <VerticalStackLayout>
+                            
+                        <Label Text="Scrobbles"/>
+                        <Label Text="{Binding LastFMUserInfo.Playcount}"
+   TextColor="White"/>
+                    </VerticalStackLayout>
 
-                            <Label FontSize="Medium" Text="{Binding LastFMUserInfo.Name}" TextColor="{AppThemeBinding Dark=White, Light=Black}"/>
-                            <HorizontalStackLayout Spacing="10">
-
-                                <Label FontSize="Subtitle" Text="{Binding LastFMUserInfo.RealName}"/>
-
-                                <Label FontSize="Subtitle" Text="{Binding LastFMUserInfo.Registered
-                ,StringFormat='Scrobbling since {0: dd MMM yyy}'}"/>
-
-                            </HorizontalStackLayout>
-
-                            <Label Text="Scrobbles"/>
-                            <Label Text="{Binding LastFMUserInfo.Playcount}"
-                   TextColor="White"/>
-                        </VerticalStackLayout>
-
-                    </HorizontalStackLayout>
-                </Border>
-
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+                <Label Text="Recent Tracks" 
+                       HorizontalTextAlignment="Center"
+                       FontSize="Header"/>
             </VerticalStackLayout>
 
 
@@ -77,7 +85,7 @@ Shell.FlyoutBehavior="Disabled"
                     Grid.Row="1">
                     <CollectionView.ItemsLayout>
                         <GridItemsLayout Orientation="Vertical"
-                                         Span="3"
+                                         Span="2"
                                          VerticalItemSpacing="5"
                                          HorizontalItemSpacing="5"/>
                     </CollectionView.ItemsLayout>
@@ -86,9 +94,14 @@ Shell.FlyoutBehavior="Disabled"
                         <DataTemplate x:DataType="lastfmmodels:Track">
                             <Grid 
                               RowSpacing="10" ColumnSpacing="10"
-                                ColumnDefinitions="0.10*,*,auto">
-                                <Image Source="{Binding Images[3].Url}"
-                                       Grid.Column="0"/>
+                                ColumnDefinitions="0.40*,*,auto">
+                                <Border
+                                    StrokeShape="RoundRectangle 20"
+                                    Grid.Column="0">
+                                                                    <Image Source="{Binding Images[3].Url}"
+                                       />
+
+                                </Border>
                                 <VerticalStackLayout Grid.Column="1" Spacing="10">
                                     <HorizontalStackLayout>
                                         <Label Text="{Binding Name}" TextColor="White"
@@ -96,7 +109,6 @@ Shell.FlyoutBehavior="Disabled"
                                         <Image Source="heart.png" IsVisible="{Binding UserLoved}"/>
                                     </HorizontalStackLayout>
                                     <Label Text="{Binding Artist.Name}" TextColor="#999999"/>
-                                    <Label Text="{Binding Album.Name}" TextColor="#999999"/>
                                     <Label Text="{Binding Date,
                                         StringFormat='{0:hh:mm, dd MMM}'}"/>
                                 </VerticalStackLayout>

@@ -183,7 +183,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        MyViewModel.CurrentPageContext = CurrentPage.HomePage;
     }
 
 
@@ -732,7 +732,8 @@ public partial class HomePage : ContentPage
         var topView = TopExpander.Header;
 
 
-        await Task.WhenAll(Task.Delay(1500),topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
+        await Task.WhenAll(Task.Delay(200),topView.SlideInFromLeft(700), 
+            TopViewBtmpart.BounceIn(200), LeftUtilSide.BounceIn(200),RightUtilSide.BounceIn(200));
 
     }
     private void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
@@ -743,7 +744,7 @@ public partial class HomePage : ContentPage
     {
         var topView = TopExpander.Header;
         await Task.WhenAll(topView.SlideOutToRight(1000),
-        TopViewBtmpart.BounceOut(500));
+        TopViewBtmpart.BounceOut(500), LeftUtilSide.BounceOut(200), RightUtilSide.BounceOut(200));
 
     }
 
