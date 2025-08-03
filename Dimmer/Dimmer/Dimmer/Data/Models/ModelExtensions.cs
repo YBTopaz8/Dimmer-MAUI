@@ -27,7 +27,7 @@ public static class ModelExtensions
             HasLyrics = src.HasLyrics,
             HasSyncedLyrics = src.HasSyncedLyrics,
             SyncLyrics = src.SyncLyrics ?? string.Empty,
-            CoverImagePath = src.CoverImagePath is null ? "musicnote.png" : src.CoverImagePath,
+            CoverImagePath = src.CoverImagePath is null ? string.Empty : src.CoverImagePath,
             UnSyncLyrics = src.UnSyncLyrics,
             IsFavorite = src.IsFavorite,
             Achievement = src.Achievement,

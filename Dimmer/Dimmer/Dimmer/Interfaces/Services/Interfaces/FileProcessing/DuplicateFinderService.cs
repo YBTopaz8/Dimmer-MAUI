@@ -114,12 +114,14 @@ public class DuplicateFinderService : IDuplicateFinderService
         var missingSongs = new ConcurrentBag<SongModelView>();
 
         // Use Parallel.ForEachAsync for a massive performance boost.
-        await Parallel.ForEachAsync(allSongs, async (song, cancellationToken) =>
+        await Parallel.ForEachAsync(allSongs, (song, cancellationToken) =>
         {
             if (string.IsNullOrEmpty(song.FilePath) || !File.Exists(song.FilePath))
             {
                 missingSongs.Add(song);
             }
+
+            return new ValueTask();
         });
 
         _logger.LogInformation("Validation complete. Found {Count} missing files.", missingSongs.Count);

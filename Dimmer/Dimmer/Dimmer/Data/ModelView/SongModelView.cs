@@ -1,4 +1,5 @@
-﻿using static ATL.LyricsInfo;
+﻿
+using static ATL.LyricsInfo;
 
 namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
@@ -116,14 +117,14 @@ public partial class SongModelView : ObservableObject
     public partial bool IsNew { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerPlayEventView>? PlayEvents { get; set; }
+    public partial ObservableCollection<DimmerPlayEventView> PlayEvents { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<SyncLyricsView> EmbeddedSync { get; set; } = new();
 
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView>? UserNotes { get; set; } = new();
+    public partial ObservableCollection<UserNoteModelView> UserNotes { get; set; } = new();
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
@@ -135,6 +136,8 @@ public partial class SongModelView : ObservableObject
         return false;
     }
     public int PlayCount => PlayEvents?.Count ?? 0;
+    public int PlayCompletedCount => PlayEvents
+        .Where(x => x.PlayType == (int)PlayType.Completed).Count();
     public DateTimeOffset LastPlayed =>
        PlayEvents?
            .Where(x => x.PlayType == (int)PlayType.Completed)
@@ -207,7 +210,8 @@ public partial class SongModelView : ObservableObject
     public partial int SegmentEndBehaviorValue { get; set; } = (int)SegmentEndBehavior.Stop;
 
     public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
-
+    [ObservableProperty]
+    public partial Color? CurrentPlaySongDominantColor { get; internal set; }
 }
 
 public partial class UserNoteModelView : ObservableObject

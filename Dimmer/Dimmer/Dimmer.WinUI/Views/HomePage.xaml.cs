@@ -203,11 +203,11 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (Grid)sender;
+        var send = (Microsoft.Maui.Controls.View)sender;
         var song = send.BindingContext as SongModelView;
-        MyViewModel.PlaySong(song);
+      await  MyViewModel.PlaySong(song);
     }
 
     private void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
@@ -735,7 +735,7 @@ public partial class HomePage : ContentPage
         await Task.WhenAll(Task.Delay(1500),topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
 
     }
-    private async void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    private void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
     {
         
     }
@@ -747,7 +747,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
     {
      
 

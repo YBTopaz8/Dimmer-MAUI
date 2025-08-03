@@ -32,11 +32,15 @@ public partial class SingleSongPage : ContentPage
 
             (DataTemplate)Resources["GridOfFour"]
         };
-
+        await MyViewModel.LoadSelectedSongLastFMData();
 
     }
-
-
+    private async void PlaySongGestRec_Tapped(object sender, EventArgs e)
+    {
+        var send = (Microsoft.Maui.Controls.View)sender;
+        var song = send.BindingContext as SongModelView;
+        await MyViewModel.PlaySong(song);
+    }
     private List<DataTemplate> _availableLayouts;
     private int _currentLayoutIndex = 0;
     private void ChangeLayout_Clicked(object sender, EventArgs e)

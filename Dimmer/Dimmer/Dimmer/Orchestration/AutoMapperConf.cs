@@ -33,6 +33,7 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.IsPlaying, opt => opt.Ignore())
                 .ForMember(dest => dest.IsCurrentPlayingHighlight, opt => opt.Ignore())
                 .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
+                .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap
                 .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
                 .AfterMap((src, dest) =>
                 {

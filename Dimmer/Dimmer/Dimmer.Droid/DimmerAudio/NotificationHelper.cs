@@ -107,7 +107,7 @@ public static class NotificationHelper
             )
             .SetMediaDescriptionAdapter(descrAdapter)!
             .SetNotificationListener(new NotificationListener(service))!
-            .SetSmallIconResourceId(Resource.Drawable.dimmicoo)!
+            .SetSmallIconResourceId(Resource.Drawable.appicon)!
 
             .Build()!;
 
@@ -186,7 +186,7 @@ public static class NotificationHelper
         var builder = new Notification.Builder(context, ChannelId)!
             .SetContentTitle("Dimmer Music Player")!
             .SetContentText("Preparing playback...")!
-            .SetSmallIcon(Resource.Drawable.dimmicoo)!
+            .SetSmallIcon(Resource.Drawable.appicon)!
             .SetOngoing(true)!
             .SetPriority(0)!
 

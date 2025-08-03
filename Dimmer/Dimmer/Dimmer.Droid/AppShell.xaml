@@ -20,6 +20,7 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
 
                 <syncf:SfTabItem.Content>
                     <VerticalStackLayout Margin="10">
+                        <Label Text="{Binding BaseVM.LatestAppLog.Log}" HorizontalOptions="Center"/>
                         <dx:DXButton 
      BorderThickness="1"
      BorderColor="DarkSlateBlue" BackgroundColor="Transparent"

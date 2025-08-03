@@ -171,7 +171,7 @@ Shell.FlyoutBehavior="Flyout"
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
                 <Grid RowDefinitions="55"
-                                ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*"
+                                ColumnDefinitions="2.1*,1.9*,1.9*,*,*,*,0.7*"
                                 ColumnSpacing="5">
 
                     <Grid.GestureRecognizers>
@@ -195,11 +195,17 @@ Shell.FlyoutBehavior="Flyout"
                   VerticalOptions="Center">
                             <Label.Triggers>
                                 <DataTrigger
+                          Binding="{Binding IsFavorite}"
+                          TargetType="Label"
+                          Value="True">
+                                    <Setter Property="TextColor" Value="LightPink"/>
+                                </DataTrigger>
+                                <DataTrigger
                           Binding="{Binding IsCurrentPlayingHighlight}"
                           TargetType="Label"
                           Value="True">
                                     <Setter Property="FontSize" Value="19" />
-                                    <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                    <Setter Property="TextColor" Value="{Binding }" />
                                     <Setter Property="FontAttributes" Value="Bold" />
                                 </DataTrigger>
                                 <DataTrigger
@@ -335,7 +341,11 @@ Value="False">
                                         VerticalOptions="Center" />
 
                     </syncf:SfEffectsView>
-                    <syncf:SfEffectsView Grid.Column="5">
+                    <Label Grid.Column="5"
+                  HorizontalTextAlignment="Center"
+                  Text="{Binding PlayCompletedCount}"
+                  VerticalOptions="Center" />
+                    <syncf:SfEffectsView Grid.Column="6">
 
                         <Label
                                         HorizontalOptions="Center"
@@ -1177,7 +1187,7 @@ IsVisible="True">
                 <VerticalStackLayout Grid.Row="1" >
                 
                     
-                    <Grid  ColumnDefinitions="2.1*,1.9*,1.9*,*,*,0.7*"
+                    <Grid  ColumnDefinitions="2.1*,1.9*,1.9*,*,*,*,0.7*"
                                       Margin="10,0"
                               ColumnSpacing="10">
                     <Grid.Resources>
@@ -1234,9 +1244,14 @@ IsVisible="True">
                            Text="Year" />
                     <syncf:SfChip
                            Grid.Column="5"
+                           Clicked="Sort_Clicked"
+                           CommandParameter="plays"
+                           Text="Dimms" />
+                    <syncf:SfChip
+                           Grid.Column="6"
                            CommandParameter="len"
                            HorizontalTextAlignment="Center"
-                           Text="Duration" />
+                           Text="Length" />
 
                 </Grid>
 

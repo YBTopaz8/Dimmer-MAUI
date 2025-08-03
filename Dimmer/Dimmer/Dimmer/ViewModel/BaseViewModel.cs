@@ -32,6 +32,8 @@ using Parse.LiveQuery;
 
 using ReactiveUI;
 
+using Realms;
+
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
@@ -268,8 +270,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-        var evt = realm.All<DimmerPlayEvent>().MaxBy(x => x.EventDate);
+         string rql = "TRUEPREDICATE SORT(EventDate DESC)";
 
+        // 2. Execute the query and use the LINQ FirstOrDefault() to get just the top one.
+        var evtt = realm.All<DimmerPlayEvent>().Filter(rql).ToList();
+        if (evtt is null || evtt.Count == 0)
+        {
+            // No events found, set default values
+            CurrentPlayingSongView = new SongModelView();
+            return;
+        }
+        var evt = evtt.FirstOrDefault();
         if (evt?.SongId is ObjectId songId && songId != ObjectId.Empty)
         {
 
@@ -355,7 +366,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     // [ObservableProperty]
     // private bool _isLoadingSongs;
 
-    async Task LoadAllSongsEventsASync()
+    public async Task LoadAllSongsEventsASync()
     {
         // Consider having a loading indicator for the UI
         // IsLoadingSongs = true; 
@@ -397,6 +408,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
                 else
                 {
+                    song.PlayEvents ??=new();
                     // Ensure the collection is empty if no events were found, avoiding old data
                     song.PlayEvents.Clear();
                 }
@@ -412,7 +424,77 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // IsLoadingSongs = false;
         }
     }
+    /// <summary>
+    /// Sanitizes the play events in the database by removing duplicate "skipped" events
+    /// that were logged erroneously within a short time frame for the same song.
+    /// </summary>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    public async Task SanitizeSkippedEventsAsync()
+    {
+        _logger.LogInformation("Starting sanitization of skipped play events...");
 
+        try
+        {
+            var _realm = realmFactory.GetRealmInstance();
+            // --- 1. Fetch all "skipped" events ---
+            // PlayType 5 corresponds to "Skipped"
+            var allSkippedEvents = 
+                _realm.All<DimmerPlayEvent>().Where(e => e.PlayType == 5).ToList();
+
+            if (allSkippedEvents is null || !allSkippedEvents.Any())
+            {
+                _logger.LogInformation("No skipped events found to sanitize.");
+                return;
+            }
+
+            // --- 2. Group events by the song they belong to ---
+            var skippedEventsBySong = allSkippedEvents
+                .Where(e => e.SongId.HasValue )
+                .GroupBy(e => e.SongId.Value)
+                .ToDictionary(g => g.Key, g => g.OrderBy(e => e.DatePlayed).ToList());
+
+            var eventsToRemove = new List<DimmerPlayEvent>();
+
+            // --- 3. Identify duplicate events within a time threshold ---
+            foreach (var songGroup in skippedEventsBySong.Values)
+            {
+                for (int i = 0; i < songGroup.Count - 1; i++)
+                {
+                    var currentEvent = songGroup[i];
+                    var nextEvent = songGroup[i + 1];
+
+                    // Check if the next event is a duplicate within a 3-minute window
+                    if ((nextEvent.DatePlayed - currentEvent.DatePlayed).TotalMinutes < 5)
+                    {
+                        // Mark the subsequent event for removal
+                        eventsToRemove.Add(nextEvent);
+                    }
+                }
+            }
+
+            // --- 4. Remove the identified duplicate events ---
+            if (eventsToRemove.Count!=0)
+            {
+                _logger.LogInformation("Found {Count} duplicate skipped events to remove.", eventsToRemove.Count);
+                await _realm.WriteAsync(() =>
+                {
+                    foreach (var eventToRemove in eventsToRemove)
+                    {
+                        _realm.Remove(eventToRemove);
+                    }
+                });
+                _logger.LogInformation("Successfully removed duplicate skipped events.");
+            }
+            else
+            {
+                _logger.LogInformation("No duplicate skipped events found to remove.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred during the sanitization of skipped events.");
+        }
+    }
     [RelayCommand]
     private async Task RemoteNextTrackAsync()
     {
@@ -1169,30 +1251,33 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
 
-    async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
+     partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
-        if (newValue is not null)
+       
+        //LoadSongLastFMData().ConfigureAwait(false);
+        //LoadSongLastFMMoreData().ConfigureAwait(false);
+
+    }
+    public async Task LoadSelectedSongLastFMData()
+    {
+        if (SelectedSong is not null)
         {
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
 
-            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == newValue.Title);
+            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == SelectedSong.Title);
 
 
             var playEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(res);
-            newValue.PlayEvents=playEvents;
-             _ = Task.Run(()=>   LoadStatsForSelectedSong(newValue));
-     
+            SelectedSong.PlayEvents=playEvents;
+            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
 
 
-            SelectedSecondSongCoverBytes = await ImageFilterUtils.ApplyFilter(SelectedSong.CoverImagePath, ImageFilterUtils.FilterType.Blur);
+
             SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
             await LoadSongLastFMData();
 
         }
-        //LoadSongLastFMData().ConfigureAwait(false);
-        //LoadSongLastFMMoreData().ConfigureAwait(false);
-
     }
     [ObservableProperty]
     public partial Color? SelectedSecondDomColor { get; set; } 
@@ -1200,15 +1285,26 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial byte[]? SelectedSecondSongCoverBytes { get; set; } = Array.Empty<byte>();
     public async Task LoadSongLastFMData()
     {
-        if (SelectedSong is null)
+        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
         {
             return;
         }
-        SelectedSongLastFMData =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSongLastFMData.Artist.Name, SelectedSong.Title);
+        var corrected =  await lastfmService.GetCorrectionAsync(SelectedSong.ArtistName, SelectedSong.Title);
+        if (corrected is null)
+        {
+            SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(SelectedSong.ArtistName, SelectedSong.Title);
+            SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
+            SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
+
+        }
+        else
+        {
+
+            SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(corrected.Artist.Name, corrected.Name);
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(SelectedSong.ArtistName);
         SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(SelectedSong.ArtistName, SelectedSong.AlbumName);
 
+        }
     }
  
     public async Task LoadSongLastFMMoreData()
@@ -1303,7 +1399,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
     [ObservableProperty]
-    public partial List<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
     [ObservableProperty]
     public partial bool IsSearching { get; set; }
     [ObservableProperty]
@@ -1392,6 +1488,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
         await EnsureAllCoverArtCachedForSongsAsync();
+
+        //await SanitizeSkippedEventsAsync();
+        await LoadAllSongsEventsASync();
     }
 
     public void InitializeApp()
@@ -1479,6 +1578,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     public async Task LoadAndCacheCoverArtAsync(SongModelView song)
     {
+        if (song.CoverImagePath=="musicnote.png")
+        {
+            song.CoverImagePath=string.Empty;
+        }
         // Don't start the process if the image is already loaded in the UI object.
         if (song.CoverImageBytes != null && song.CoverImageBytes.Length>1 || !string.IsNullOrEmpty(song.CoverImagePath))
         {
@@ -1658,8 +1761,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
 
     }
-
-    private void OnCurrentSongChanged(SongModelView? songView)
+    [ObservableProperty]
+    public partial Color? CurrentPlaySongDominantColor { get; set; }
+    private async void OnCurrentSongChanged(SongModelView? songView)
     {
         if (songView is null)
             return;
@@ -1667,7 +1771,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPlayingSongView = songView;
         CurrentTrackDurationSeconds = songView.DurationInSeconds > 0 ? songView.DurationInSeconds : 1;
         AppTitle = $"{CurrentAppVersion} | {songView.Title} - {songView.ArtistName} ";
-
+        CurrentPlayingSongView.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
+        CurrentPlaySongDominantColor = CurrentPlayingSongView.CurrentPlaySongDominantColor;
         // Efficiently load related data
         CurrentPlayingSongView.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
             dimmerPlayEventRepo.GetAll().Where(x=>x.Id == songView.Id)
@@ -2626,8 +2731,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        // Use the song's own PlayHistory if it's reliably populated.
-        // This is VASTLY more performant than scanning all events in the database.
+        
+        
         //var songEvents = songDb.PlayHistory.ToList().AsReadOnly();
         var songEventsROCol = await dimmerPlayEventRepo.GetAllAsync();
         var songEvents = songEventsROCol.Where(x => x.SongName == song.Title).ToList();
@@ -2637,25 +2742,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        // --- Calling ALL Single-Song Stat Methods ---
+        
 
-        // FROM TopStats (or original methods)
+        
         SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
         SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
         SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
         SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
 
-        // FROM ChartSpecificStats
-        SongPlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(songEvents).ToObservableCollection();
-        SongDropOffPoints = ChartSpecificStats.GetSongDropOffPoints(songEvents).ToObservableCollection();
-        SongWeeklyOHLC = ChartSpecificStats.GetSongWeeklyOHLC(songEvents).ToObservableCollection();
+        
+        //SongDropOffPoints = ChartSpecificStats.GetSongDropOffPoints(songEvents).ToObservableCollection();
+        //SongWeeklyOHLC = ChartSpecificStats.GetSongWeeklyOHLC(songEvents).ToObservableCollection();
 
         SongListeningStreak = TopStats.GetListeningStreak(songEvents);
     }
 
-    /// <summary>
-    /// Helper method to clear all properties related to a single song's stats.
-    /// </summary>
+   
     private void ClearSingleSongStats()
     {
         SongPlayTypeDistribution = null;
@@ -2666,7 +2768,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SongBingeFactor = null;
         SongAverageListenThrough = null;
 
-        // Clear the new properties too
+        
         SongListeningStreak = null;
     }
     public async Task SaveNoteToListOfSongs(IEnumerable<SongModelView> songs)
@@ -2697,7 +2799,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         songWithNote.UserNotes = new();
         songWithNote.UserNotes.Add(userNote);
 
-        // The rest of your logic for database persistence follows...
+        
         try
         {
             realm ??= realmFactory.GetRealmInstance();
@@ -2711,7 +2813,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     {
                         existingSong.UserNotes.Add(userNoteDb);
 
-                        // Use the proven pattern of an explicit update
+                        
                         realm.Add(existingSong, true);
 
                         _logger.LogInformation("Successfully persisted user note for song: {SongTitle}", existingSong.Title);
@@ -3220,7 +3322,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [ObservableProperty]
-    public partial string LyricsSearchQuery { get; set; }
+    public partial string LyricsAlbumNameSearch{ get; set; }
+
+    [ObservableProperty]
+    public partial string LyricsTrackNameSearch { get; set; }
+
+    [ObservableProperty]
+    public partial string LyricsArtistNameSearch { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLyricsSearchResults))]
@@ -3246,16 +3354,48 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         try
         {
-
+            if (string.IsNullOrEmpty(LyricsTrackNameSearch))
+            {
+                LyricsTrackNameSearch = SelectedSong.Title;
+            }
+            if (string.IsNullOrEmpty(LyricsAlbumNameSearch))
+            {
+                LyricsAlbumNameSearch = SelectedSong.AlbumName;
+            }
+            if (string.IsNullOrEmpty(LyricsArtistNameSearch))
+            {
+                LyricsArtistNameSearch = SelectedSong.ArtistName;
+            }
+            var query = $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
             ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
             // Use the manual search from the service. Use the query if provided, otherwise the song's tags.
-            string query = string.IsNullOrWhiteSpace(LyricsSearchQuery) ? SelectedSong.Title : LyricsSearchQuery;
-            var results = await _lyricsMetadataService.SearchOnlineManualParamsAsync(query, SelectedSong.ArtistName, SelectedSong.AlbumName);
+            IEnumerable<LrcLibSearchResult>? results = await _lyricsMetadataService.SearchOnlineManualParamsAsync(LyricsTrackNameSearch, LyricsArtistNameSearch,LyricsAlbumNameSearch);
 
             foreach (var result in results)
             {
                 LyricsSearchResults.Add(result);
             }
+            _logger.LogInformation("Successfully fetched {Count} lyrics search results for '{Query}'", LyricsSearchResults.Count, query);
+            // Optionally show a message if no results were found
+            if (LyricsSearchResults.Count == 0)
+            {
+                _logger.LogInformation("No lyrics found for the search query: {Query}", query);
+                await Shell.Current.DisplayAlert("No Results", "No lyrics found for the specified search criteria.", "OK");
+            }
+            else
+            {
+                _logger.LogInformation("Found {Count} lyrics results for query: {Query}", LyricsSearchResults.Count, query);
+            }
+
+            await Shell.Current.DisplayAlert("Search Complete", $"Found {LyricsSearchResults.Count} results for '{query}'", "OK");
+
+
+            LyricsArtistNameSearch = string.Empty; // Clear the search fields after search
+            LyricsAlbumNameSearch = string.Empty;
+            LyricsTrackNameSearch = string.Empty;
+                
+
+
         }
         catch (Exception ex)
         {
@@ -3413,7 +3553,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Assigning song '{SongTitle}' to artist '{ArtistName}'", context.Song.Title, context.TargetArtist.Name);
 
         // Update the database
-        songRepo.Update(context.Song.Id, songInDb =>
+       await songRepo.UpdateAsync(context.Song.Id, songInDb =>
         {
             var artistInDb = artistRepo.GetById(context.TargetArtist.Id);
             if (artistInDb == null)
@@ -3823,23 +3963,34 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task LoadUserLastFMDataAsync()
     {
-        var info1 = await lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50);
-        CollectionOfUserRecentTracks = info1.ToObservableCollection();
+        ListOfUserRecentTracks = await lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50);
 
         LastFMUserInfo = await lastfmService.GetUserInfoAsync();
 
         CollectionUserTopTracks = await lastfmService.GetUserTopTracksAsync();
 
+        ListOfUserLovedTracks = await lastfmService.GetLovedTracksAsync();
+        ListOfGetTopArtistsChart = await lastfmService.GetTopArtistsChartAsync();
+        ListOfSimilarTracks = await lastfmService.GetSimilarAsync(CurrentPlayingSongView.ArtistName, CurrentPlayingSongView.Title);
     }
 
     [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? CollectionOfUserRecentTracks { get; set; }
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? ListOfUserRecentTracks { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? ListOfSimilarTracks { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Artist>? ListOfGetTopArtistsChart { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? ListOfUserLovedTracks { get; set; }
 
     [ObservableProperty]
     public partial Hqub.Lastfm.Entities.User? LastFMUserInfo { get; set; }
 
     [ObservableProperty]
-    public partial Hqub.Lastfm.PagedResponse<Hqub.Lastfm.Entities.Track>? CollectionUserTopTracks { get; set; }
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? CollectionUserTopTracks { get; set; }
 }
 
 

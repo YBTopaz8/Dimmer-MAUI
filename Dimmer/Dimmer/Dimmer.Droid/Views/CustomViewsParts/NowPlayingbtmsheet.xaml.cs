@@ -96,7 +96,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
         }
     }
 
-    private async void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
+    private void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
     {
         
     }
