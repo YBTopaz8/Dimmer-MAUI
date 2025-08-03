@@ -3,6 +3,7 @@
 public enum CurrentPage
 {
     SetupPage,
+    SingleSongPage,
     HomePage,
     SettingsPage,
     NowPlayingPage,

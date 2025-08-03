@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net9.0-android35.0</TargetFramework>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">29.0</SupportedOSPlatformVersion>
-    <OutputType>Exe</OutputType>
     <RootNamespace>Dimmer</RootNamespace>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
@@ -16,44 +15,37 @@
 
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
-    <OptimizationPreference>Size</OptimizationPreference>
-    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
-    <PublishTrimmed>True</PublishTrimmed>
-    <RunAOTCompilation>True</RunAOTCompilation>
+    <PublishTrimmed>False</PublishTrimmed>
+    <RunAOTCompilation>False</RunAOTCompilation>
     <EnableLLVM>False</EnableLLVM>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
-    <TrimMode>link</TrimMode>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <IsTrimmable>False</IsTrimmable>
+    <IsAotCompatible>False</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <!-- Keep your <OptimizationPreference> if it was in the original Release group, or add it if you want it -->
-    <!-- <OptimizationPreference>Speed</OptimizationPreference> -->
-    <PublishTrimmed>True</PublishTrimmed>
-    <RunAOTCompilation>True</RunAOTCompilation>
+    <OptimizationPreference>Speed</OptimizationPreference> 
+    <PublishTrimmed>False</PublishTrimmed>
+    <RunAOTCompilation>False</RunAOTCompilation>
     <EnableLLVM Condition="'$(RunAOTCompilation)'=='true'">False</EnableLLVM>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
     <EnableLLVM>True</EnableLLVM>
-    <TrimMode>link</TrimMode>
     <AndroidLinkTool>r8</AndroidLinkTool>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <IsTrimmable>False</IsTrimmable>
+    <IsAotCompatible>False</IsAotCompatible>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\drawable\loggo.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="dimmicoo.ico" />
-  </ItemGroup>
 
   <!--<ItemGroup>
     <None Remove="AndroidManifest.xml" />
@@ -278,9 +270,7 @@
     <Folder Include="Utils\NativeViewAnimations\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <MauiImage Include="Resources\drawable\loggo.ico" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <None Include="..\Dimmer\Resources\Images\appicona.png">

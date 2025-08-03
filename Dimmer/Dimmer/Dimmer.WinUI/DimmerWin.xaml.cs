@@ -11,6 +11,7 @@ public partial class DimmerWin : Window
         Page = IPlatformApplication.Current!.Services.GetService<IAppUtil>()?.GetShell();
         MyViewModel= vm;
         BindingContext=vm;
+        
     }
     protected async override void OnDestroying()
     {

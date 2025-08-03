@@ -563,20 +563,26 @@ success = true; // Assume success for now; MediaFailed will correct this
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
             props.MusicProperties.Artist = media.OtherArtistsName ?? "Unknown Artist";
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            
-            props.MusicProperties.AlbumTrackCount = (uint)media.TrackNumber!;
-            if (File.Exists(media.CoverImagePath))
+                
+            props.MusicProperties.TrackNumber = (uint)media.TrackNumber!;
+            if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
             {
-
-                IStorageFile coverImageFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
-                using (var stream = await coverImageFile.OpenAsync(FileAccessMode.Read))
+                try
                 {
-                    // Create the thumbnail from the stream
-                    props.Thumbnail = RandomAccessStreamReference.CreateFromStream(stream);
+                    var coverFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
+                    props.Thumbnail = RandomAccessStreamReference.CreateFromFile(coverFile);
+                    Debug.WriteLine($"[AudioService] Successfully created thumbnail reference for '{media.Title}'.");
                 }
-            
-              
-
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[AudioService] Error creating thumbnail for '{media.Title}' from path '{media.CoverImagePath}': {ex.Message}");
+                    // Optionally, set a default placeholder image here
+                }
+            }
+            else
+            {
+                Debug.WriteLine($"[AudioService] Cover image path is missing or file does not exist for '{media.Title}'. Path: '{media.CoverImagePath}'");
+                // Optionally, set a default placeholder image here
             }
             mediaPlaybackItem.ApplyDisplayProperties(props);
             Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");

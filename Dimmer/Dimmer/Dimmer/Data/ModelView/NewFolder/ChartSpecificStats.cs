@@ -221,11 +221,15 @@ public static List<DimmerStats> GetSongDropOffPoints(IReadOnlyCollection<DimmerP
     {
         return songEvents
             .Where(e => e.PlayType == PlayType_Skipped && e.PositionInSeconds > 0)
-            .Select(e => new DimmerStats
+            .Select(e =>
             {
-                // For a scatter plot of drop-off points over time
-                XValue = e.EventDate ?? DateTimeOffset.MinValue, // X-Axis: Date of Skip
-                YValue = e.PositionInSeconds                    // Y-Axis: Position in song
+                var dateTime = e.EventDate is null? DateTime.MinValue:e.EventDate.Value.DateTime;
+                return new DimmerStats
+                {
+                    // For a scatter plot of drop-off points over time
+                    XValue =  dateTime, // X-Axis: Date of Skip
+                    YValue = e.PositionInSeconds                    // Y-Axis: Position in song
+                };
             })
             .OrderBy(s => (DateTimeOffset)s.XValue)
             .ToList();

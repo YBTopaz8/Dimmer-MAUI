@@ -146,7 +146,7 @@
                                     <Label BackgroundColor="Transparent" FontSize="12"
                                            Opacity="0.9"
                                            Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
-                                           TextColor="White" VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Dark=White, Light=Black}" VerticalOptions="Center"
                                            />
                                     <dx:DXImage Rotation="90" Source="more1.png"
                                                 TintColor="#585858" WidthRequest="35"
@@ -264,7 +264,7 @@
                                 <dx:Chip BackgroundColor="Transparent" BorderColor="Transparent"
                                          Icon="roundaltarrowup.png" IconSize="30,30"
                                          IsIconVisible="True" PressedBackgroundColor="DarkSlateBlue"
-                                         PressedBorderColor="DarkSlateBlue" PressedIconColor="White"
+                                         PressedBorderColor="DarkSlateBlue" PressedIconColor="{AppThemeBinding Dark=White,Light=Black}"
                                          Text="{Binding BaseVM.CurrentSortProperty, StringFormat='Current Sorting Cateogy: {0}'}"
                                          >
                                     <dx:Chip.Triggers>
@@ -290,7 +290,7 @@
 
                                 <dx:DXButton Clicked="SortChoose_Clicked" CommandParameter="Title"
                                              Content=" Sort by Title" FontSize="24"
-                                             PressedTextColor="White"
+                                             PressedTextColor="{AppThemeBinding Dark=White, Light=Black}"
                                              />
                                 <dx:DXButton Clicked="SortChoose_Clicked" CommandParameter="Artist"
                                              Content="Sort by Artist" FontSize="24"

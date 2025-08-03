@@ -125,6 +125,29 @@ public class FolderMgtService : IFolderMgtService
         Task.Run(async () => await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false));
     }
 
+    public void AddManyFoldersToWatchListAndScan(List<string> paths)
+    {
+        foreach (var path in paths)
+        {
+
+            if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+            {
+
+                StartWatchingConfiguredFolders();
+                _settingsService.AddMusicFolder(path);
+            }
+
+            _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
+
+
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));
+
+            _logger.LogInformation("Triggering scan for newly added folder: {Path}", path);
+        }
+        Task.Run(async () => await _libraryScanner.ScanSpecificPaths(paths , isIncremental: false));
+    
+
+    }
     public void RemoveFolderFromWatchListAsync(string path)
     {
         if (string.IsNullOrWhiteSpace(path))

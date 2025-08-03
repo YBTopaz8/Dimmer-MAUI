@@ -81,7 +81,7 @@ public partial class BtmBar : DXBorder
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.BaseVM.NextTrack();
+                             await   MyViewModel.BaseVM.NextTrack();
 
                                 Task<bool> bounceTask = this.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -90,7 +90,7 @@ public partial class BtmBar : DXBorder
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                MyViewModel.BaseVM.PreviousTrack();
+                              await  MyViewModel.BaseVM.PreviousTrack();
 
                                 Task<bool> bounceTask = this.TranslateTo(0, 0, 250, Easing.BounceOut);
 

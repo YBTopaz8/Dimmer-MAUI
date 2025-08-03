@@ -17,8 +17,8 @@ public interface ILastfmService
     Task<Track> GetTrackInfoAsync(string artistName, string trackName);
     Task<Album> GetAlbumInfoAsync(string artistName, string albumName);
     Task<Artist> GetArtistInfoAsync(string artistName);
-    Task<List<Artist>> GetTopArtistsChartAsync(int limit = 20);
-    Task<List<Track>> GetUserRecentTracksAsync(string username, int limit = 20);
+    Task<ObservableCollection<Artist>> GetTopArtistsChartAsync(int limit = 20);
+    Task<ObservableCollection<Track>> GetUserRecentTracksAsync(string username, int limit = 20);
 
     Task<bool> LoveTrackAsync(SongModelView song);
     Task<bool> UnloveTrackAsync(SongModelView song);
@@ -50,11 +50,16 @@ public interface ILastfmService
     Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since);
     void Start();
     Task<User> GetUserInfoAsync();
-    Task<List<Tag>> GetTagsAsync(string artistName, string trackName);
-    Task<List<Track>> GetSimilarAsync(string artistName, string trackName);
+    Task<ObservableCollection<Tag>> GetTagsAsync(string artistName, string trackName);
+    Task<ObservableCollection<Track>> GetSimilarAsync(string artistName, string trackName);
     Task<Track> GetCorrectionAsync(string artistName, string trackName);
-    Task<List<ChartTimeSpan>> GetWeeklyUserChartListAsync();
-    Task<PagedResponse<Track>> GetLovedTracksAsync();
-    Task<PagedResponse<Track>> GetUserTopTracksAsync();
+    Task<ObservableCollection<ChartTimeSpan>> GetWeeklyUserChartListAsync();
+    Task<ObservableCollection<Track>> GetLovedTracksAsync();
+    Task<ObservableCollection<Track>> GetUserTopTracksAsync();
+    Task<ObservableCollection<Track>> GetUserWeeklyTrackChartAsync();
+    Task<ObservableCollection<Album>> GetTopUserAlbumsAsync();
+    Task<ObservableCollection<Album>> GetUserWeeklyAlbumChartAsync();
+    Task<ObservableCollection<Artist>> GetTopCountryArtistAsync(string country);
+    Task<ObservableCollection<Artist>> GetUserLibArtistsAsync(string country);
 }
 

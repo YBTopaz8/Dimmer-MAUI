@@ -128,7 +128,7 @@
                 <syncf:SfTabItem.Content>
                     <VerticalStackLayout Margin="10" Spacing="10">
                         <Editor Placeholder="UserName" 
-                                PlaceholderColor="White"
+                                PlaceholderColor="{AppThemeBinding Dark=White,Light=Black}"
                                 Text="{Binding UserLocal.LastFMAccountInfo.Name}">
                             <Editor.Triggers>
                                 <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="True">

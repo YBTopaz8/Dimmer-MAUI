@@ -96,7 +96,55 @@ public static class ImageResizer
         var palette = GetVibrantPalette(imageData, 1);
         return palette.Count!=0 ? palette.First() : (defaultColor ?? SKColors.Gray);
     }
+    /// <summary>
+    /// Asynchronously extracts the dominant color from an image file.
+    /// This is the recommended version to avoid blocking the UI thread.
+    /// </summary>
+    /// <param name="coverfilePath">The full path to the image file.</param>
+    /// <returns>A MAUI Color object, or null if a color cannot be determined.</returns>
+    public static async Task<Color?> GetDomminantMauiColorAsync(string coverfilePath)
+    {
+        // --- Step 1: Validate the input ---
+        if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
+        {
+            // Log an error or warning here if you want
+            return null;
+        }
 
+        try
+        {
+            // --- Step 2: Read the file data asynchronously ---
+            var imageData = await File.ReadAllBytesAsync(coverfilePath);
+
+            // If GetVibrantPalette also has an async version, you should use that here!
+            var palette = GetVibrantPalette(imageData, 1);
+
+            // --- Step 4: Check the result and convert the color ---
+            if (palette != null && palette.Count > 0)
+            {
+                var dominantColorFromPalette = palette.First();
+
+                // Create the MAUI color from the standard byte values.
+                var mauiColor = Color.FromRgb(
+                    dominantColorFromPalette.Red,
+                    dominantColorFromPalette.Green,
+                    dominantColorFromPalette.Blue
+                );
+
+                return mauiColor;
+            }
+
+            // If no dominant color was found, return null.
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // --- Step 5: Handle potential errors gracefully ---
+            // This could happen if the file is not a valid image, is corrupted, etc.
+            Debug.WriteLine($"Error getting dominant color for {coverfilePath}: {ex.Message}");
+            return null; // Always return a fallback value on error.
+        }
+    }
     /// <summary>
     /// Extracts a palette of the most common vibrant colors from an image.
     /// </summary>
@@ -119,6 +167,8 @@ public static class ImageResizer
             using var bitmap = original.Resize(info, SKSamplingOptions.Default);
 
             var colorCounts = new Dictionary<SKColor, int>();
+            var distinctColors = new Dictionary<uint, SKColor>();
+
             for (int x = 0; x < bitmap.Width; x++)
             {
                 for (int y = 0; y < bitmap.Height; y++)
@@ -127,22 +177,26 @@ public static class ImageResizer
 
                     // --- Filter out non-vibrant colors ---
                     color.ToHsv(out _, out float saturation, out float value);
-                    // Ignore blacks, whites, and grays
-                    if (saturation < 0.3f || value < 0.2f || value > 0.95f)
+                    if ((saturation < 0.05f && value > 0.95f) || value < 0.05f) // Ignore near-whites and near-blacks
                     {
                         continue;
                     }
 
-                    // --- Group similar colors (Quantization) ---
-                    // This reduces the number of unique colors to a manageable amount.
-                    var quantizedColor = new SKColor(
-                        (byte)(color.Red & 0xF0),
-                        (byte)(color.Green & 0xF0),
-                        (byte)(color.Blue & 0xF0)
-                    );
+                    int r = (color.Red >> 3) << 3;
+                    int g = (color.Green >> 3) << 3;
+                    int b = (color.Blue >> 3) << 3;
 
-                    colorCounts.TryGetValue(quantizedColor, out int currentCount);
-                    colorCounts[quantizedColor] = currentCount + 1;
+                    // Create a unique key for this quantized color
+                    uint colorKey = (uint)((r << 16) | (g << 8) | b);
+
+                    colorCounts.TryGetValue(colorKey, out int currentCount);
+                    colorCounts[colorKey] = currentCount + 1;
+
+                    // Store the original average color for this quantized group
+                    if (!distinctColors.ContainsKey(colorKey))
+                    {
+                        distinctColors[colorKey] = new SKColor((byte)r, (byte)g, (byte)b);
+                    }
                 }
             }
 
@@ -249,6 +303,156 @@ public static class ImageResizer
 
 }
 
+public static class ImageFilterUtils
+{
+    // Your FilterType enum from the previous question
+    public enum FilterType
+    {
+        None,
+        Blur,
+        Grayscale,
+        Sepia,
+        DarkAcrylic, // A blur with a dark tint
+        Glassy,      // A blur with a bright, semi-transparent overlay
+        Mauve,       // A color tint
+        Ocean        // Another color tint
+    }
+
+    /// <summary>
+    /// Applies a specified filter effect to an image.
+    /// </summary>
+    /// <param name="imageData">The original image data in bytes.</param>
+    /// <param name="filterType">The filter effect to apply.</param>
+    /// <returns>A new byte array representing the filtered image, or the original if the filter is None or fails.</returns>
+    public async static Task<byte[]?>? ApplyFilter(string coverfilePath, FilterType filterType)
+    {
+        // --- Step 1: Validate the input ---
+        if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
+        {
+            // Log an error or warning here if you want
+            return null;
+        }
+
+        try
+        {
+            // --- Step 2: Read the file data asynchronously ---
+            var imageData = await File.ReadAllBytesAsync(coverfilePath);
+            if (imageData == null || imageData.Length == 0 || filterType == FilterType.None)
+        {
+            return imageData;
+        }
+
+        try
+        {
+            using var original = SKBitmap.Decode(imageData);
+            if (original == null)
+                return imageData;
+
+            using var surface = SKSurface.Create(new SKImageInfo(original.Width, original.Height));
+            using var canvas = surface.Canvas;
+            using var paint = new SKPaint();
+
+            // Apply the filter using an SKImageFilter
+            paint.ImageFilter = CreateFilter(filterType);
+
+            // Draw the original bitmap onto the canvas with the filter applied
+            canvas.DrawBitmap(original, 0, 0, paint);
+            canvas.Flush();
+
+            using var image = surface.Snapshot();
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90); // Encode as JPEG for web/app use
+
+            return data.ToArray();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to apply image filter {filterType}: {ex.Message}");
+            return imageData; // Return original on failure
+        }
+    }
+        catch (Exception ex)
+        {
+            // --- Step 5: Handle potential errors gracefully ---
+            // This could happen if the file is not a valid image, is corrupted, etc.
+            Debug.WriteLine($"Error applying filter {filterType} to {coverfilePath}: {ex.Message}");
+            return null; // Always return a fallback value on error.
+        }
+    }
+
+    private static SKImageFilter? CreateFilter(FilterType filterType)
+    {
+        switch (filterType)
+        {
+            case FilterType.Blur:
+                // A simple Gaussian blur
+                return SKImageFilter.CreateBlur(15.0f, 15.0f);
+
+            case FilterType.Grayscale:
+                // A color matrix that converts colors to their grayscale equivalent
+                float[] grayscaleMatrix =
+                {
+                    0.21f, 0.72f, 0.07f, 0, 0,
+                    0.21f, 0.72f, 0.07f, 0, 0,
+                    0.21f, 0.72f, 0.07f, 0, 0,
+                    0,     0,     0,     1, 0
+                };
+                return SKImageFilter.CreateColorFilter(SKColorFilter.CreateColorMatrix(grayscaleMatrix));
+
+            case FilterType.Sepia:
+                // A classic sepia tone color matrix
+                float[] sepiaMatrix =
+                {
+                    0.393f, 0.769f, 0.189f, 0, 0,
+                    0.349f, 0.686f, 0.168f, 0, 0,
+                    0.272f, 0.534f, 0.131f, 0, 0,
+                    0,      0,      0,      1, 0
+                };
+                return SKImageFilter.CreateColorFilter(SKColorFilter.CreateColorMatrix(sepiaMatrix));
+
+            case FilterType.DarkAcrylic:
+                { // Use braces to create a new scope for the variables
+                  // --- Step 1: Create the color filter for the dark tint ---
+                    var colorFilter = SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 120), SKBlendMode.SrcOver);
+                    // --- FIX: Create an ImageFilter FROM the ColorFilter ---
+                    var darkTintFilter = SKImageFilter.CreateColorFilter(colorFilter);
+
+                    // --- Step 2: Create the blur filter ---
+                    var blurFilter = SKImageFilter.CreateBlur(25.0f, 25.0f);
+
+                    // --- Step 3: Compose the two ImageFilters correctly ---
+                    // The outer filter is applied last. So we put the blur as the outer filter,
+                    // and the tint as the inner filter. This tints the image FIRST, then blurs it.
+                    // For a more "frosted glass" look, you might swap them.
+                    return SKImageFilter.CreateCompose(blurFilter, darkTintFilter);
+                }
+
+            case FilterType.Glassy:
+                {
+                    // --- Step 1: Create the color filter for the bright tint ---
+                    var colorFilter = SKColorFilter.CreateBlendMode(new SKColor(255, 255, 255, 80), SKBlendMode.SrcOver);
+                    // --- FIX: Create an ImageFilter FROM the ColorFilter ---
+                    var brightTintFilter = SKImageFilter.CreateColorFilter(colorFilter);
+
+                    // --- Step 2: Create the blur filter ---
+                    var glassyBlurFilter = SKImageFilter.CreateBlur(20.0f, 20.0f);
+
+                    // --- Step 3: Compose them ---
+                    return SKImageFilter.CreateCompose(glassyBlurFilter, brightTintFilter);
+                }
+
+            case FilterType.Mauve:
+                // A color blend mode to tint the image with a mauve color
+                return SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(224, 176, 255, 100), SKBlendMode.Modulate));
+
+            case FilterType.Ocean:
+                // A color blend mode to tint the image with a blue/green color
+                return SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 128, 128, 90), SKBlendMode.Overlay));
+
+            default:
+                return null;
+        }
+    }
+}
 public enum FilterType
 {
     None,
@@ -258,4 +462,73 @@ public enum FilterType
     DarkAcrylic,
     Mauve,
     Ocean
+}
+
+public static class TimeUtils
+{
+    /// <summary>
+    /// Formats a duration in seconds into a "mm:ss" or "hh:mm:ss" string.
+    /// </summary>
+    /// <param name="totalSeconds">The duration in seconds.</param>
+    /// <returns>A formatted time string.</returns>
+    public static string FormatDuration(double totalSeconds)
+    {
+        if (totalSeconds < 0)
+            totalSeconds = 0;
+        var timeSpan = TimeSpan.FromSeconds(totalSeconds);
+
+        // If longer than an hour, include the hours. Otherwise, just minutes and seconds.
+        return timeSpan.TotalHours >= 1
+            ? timeSpan.ToString(@"h\:mm\:ss")
+            : timeSpan.ToString(@"m\:ss");
+    }
+
+    /// <summary>
+    /// Converts a DateTimeOffset into a relative, human-friendly string like "5 minutes ago".
+    /// </summary>
+    /// <param name="dateTime">The timestamp to format.</param>
+    /// <returns>A human-readable relative time string.</returns>
+    public static string HumanizeDate(DateTimeOffset dateTime)
+    {
+        const int SECOND = 1;
+        const int MINUTE = 60 * SECOND;
+        const int HOUR = 60 * MINUTE;
+        const int DAY = 24 * HOUR;
+        const int MONTH = 30 * DAY;
+
+        var ts = new TimeSpan(DateTimeOffset.UtcNow.Ticks - dateTime.Ticks);
+        double delta = Math.Abs(ts.TotalSeconds);
+
+        if (delta < 1 * MINUTE)
+            return ts.Seconds == 1 ? "one second ago" : ts.Seconds + " seconds ago";
+
+        if (delta < 2 * MINUTE)
+            return "a minute ago";
+
+        if (delta < 45 * MINUTE)
+            return ts.Minutes + " minutes ago";
+
+        if (delta < 90 * MINUTE)
+            return "an hour ago";
+
+        if (delta < 24 * HOUR)
+            return ts.Hours + " hours ago";
+
+        if (delta < 48 * HOUR)
+            return "yesterday";
+
+        if (delta < 30 * DAY)
+            return ts.Days + " days ago";
+
+        if (delta < 12 * MONTH)
+        {
+            int months = Convert.ToInt32(Math.Floor((double)ts.Days / 30));
+            return months <= 1 ? "one month ago" : months + " months ago";
+        }
+        else
+        {
+            int years = Convert.ToInt32(Math.Floor((double)ts.Days / 365));
+            return years <= 1 ? "one year ago" : years + " years ago";
+        }
+    }
 }

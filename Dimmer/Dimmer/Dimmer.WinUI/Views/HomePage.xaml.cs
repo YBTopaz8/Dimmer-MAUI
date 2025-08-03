@@ -35,6 +35,9 @@ using Syncfusion.Maui.Toolkit.Charts;
 using Label = Microsoft.Maui.Controls.Label;
 using Dimmer.DimmerLive;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
+using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
+using View = Microsoft.Maui.Controls.View;
+using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
 
 namespace Dimmer.WinUI.Views;
 
@@ -59,11 +62,21 @@ public partial class HomePage : ContentPage
         //MyViewModel.SongsCountLabel = SongsCountLabel;
         _availableLayouts = new List<DataTemplate>
         {
-            (DataTemplate)Resources["SimpleListAndArtist"],
-            (DataTemplate)Resources["SimpleList"],
-            (DataTemplate)Resources["OGView"]
+            (DataTemplate)Resources["OGView"],
+            (DataTemplate)Resources["GridOfFour"],
         };
     }
+    private async void ViewSongMFI_Clicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.CommandParameter as SongModelView;
+
+        await this.FadeOut(200, 0.7);
+        MyViewModel.SelectedSong = song;
+        await this.FadeIn(350, 1);
+
+    }
+
     private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
         MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
@@ -85,15 +98,17 @@ public partial class HomePage : ContentPage
             SongsColView.ItemsLayout = new GridItemsLayout(ItemsLayoutOrientation.Vertical)
             {
                 VerticalItemSpacing =10,
+                HorizontalItemSpacing=5,
                 Span = 6
             };
 
         }
         if (_currentLayoutIndex == 0)
         {
+
             SongsColView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical)
             {
-                
+                ItemSpacing=5
             };
 
         }
@@ -120,6 +135,13 @@ public partial class HomePage : ContentPage
     private async void NavigateToSelectedSongPageAsync(object sender, EventArgs e)
     {
         var view = (Microsoft.Maui.Controls.View)sender;
+        var selectedSec = view.BindingContext as SongModelView;
+        await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
+    }
+
+    private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
+    {
+        var view = (Microsoft.Maui.Controls.MenuFlyoutItem)sender;
         var selectedSec = view.BindingContext as SongModelView;
         await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
     }
@@ -176,7 +198,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        MyViewModel.CurrentPageContext = CurrentPage.HomePage;
     }
 
 
@@ -196,11 +218,11 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (Grid)sender;
+        var send = (Microsoft.Maui.Controls.View)sender;
         var song = send.BindingContext as SongModelView;
-        MyViewModel.PlaySong(song);
+      await  MyViewModel.PlaySong(song);
     }
 
     private void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
@@ -678,6 +700,38 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void SidePage_DragOver(object sender, DragEventArgs e)
+    {
+
+    }
+
+    private void SidePage_Drop(object sender, DropEventArgs e)
+    {
+        var dd = e.Data;
+        var s = dd.Properties.Values;
+        var ss = dd.Properties.Keys;
+    }
+
+    private void SongDrag_DragStarting(object sender, DragStartingEventArgs e)
+    {
+        var dd = e.Data;
+        var ee = dd.View;
+        var re = dd.Properties;
+        dd.Text = "Drop at the to view";
+    }
+
+    private async void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.FadeOut(300, 0.5);
+    }
+
+    private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.FadeIn(300, 0.3);
+    }
+
     private async void OnAddQuickNoteClicked(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
@@ -725,10 +779,11 @@ public partial class HomePage : ContentPage
         var topView = TopExpander.Header;
 
 
-        await Task.WhenAll(topView.SlideInFromLeft(700), TopViewBtmpart.BounceIn(200));
+        await Task.WhenAll(Task.Delay(200),topView.SlideInFromLeft(700), 
+            TopViewBtmpart.BounceIn(200), LeftUtilSide.BounceIn(200),RightUtilSide.BounceIn(200));
 
     }
-    private async void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    private void TopExpander_Expanding(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
     {
         
     }
@@ -736,11 +791,11 @@ public partial class HomePage : ContentPage
     {
         var topView = TopExpander.Header;
         await Task.WhenAll(topView.SlideOutToRight(1000),
-        TopViewBtmpart.BounceOut(500));
+        TopViewBtmpart.BounceOut(500), LeftUtilSide.BounceOut(200), RightUtilSide.BounceOut(200));
 
     }
 
-    private async void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
+    private void TopExpander_Collapsing(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandingAndCollapsingEventArgs e)
     {
      
 
@@ -804,4 +859,77 @@ public partial class HomePage : ContentPage
         }
     }
 
+    private async void OnNavigateToExperimentalPage(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(ExperimentsPage), true);
+    }
+
+    private async void SongDropRecognizer_DragLeave(object sender, Microsoft.Maui.Controls.DragEventArgs e)
+    {
+await this.FadeIn(500, 1.0);
+  }
+
+    private async void SongDropRecognizer_DragOver(object sender, Microsoft.Maui.Controls.DragEventArgs e)
+    {
+        await this.FadeOut(500, 0.8);
+        var dragData = e.PlatformArgs.DragEventArgs.DataView;
+        var dataa = await dragData.GetStorageItemsAsync();
+      var  SupportedAudioExtensions = new HashSet<string>(
+          new[] { ".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus" },
+          StringComparer.OrdinalIgnoreCase
+      );
+        if (dataa.Count < 1)
+        {
+            return;
+        }
+        // keep to internal list to show unsupported file type in alert later
+        if (MyViewModel.DraggedAudioFiles is null)
+        {
+            MyViewModel.DraggedAudioFiles = new List<string>();
+        }
+
+        MyViewModel.DraggedAudioFiles.Clear();
+        
+        // Check if the dragged items are audio files
+        foreach (var item in dataa)
+        {
+            
+            if (item is StorageFile file)
+            {
+                var fileExtension = Path.GetExtension(file.Path);
+                if (!SupportedAudioExtensions.Contains(fileExtension))
+                {
+                    
+                    await DisplayAlert("Unsupported File Type", $"The file '{file.Name}' is not a supported audio format.", "OK");
+                    // Set the accepted operation to None to reject the drop
+                    e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                    return;
+                }
+                else
+                {
+                    // store all audio files in a list for process in drop event
+                    MyViewModel.DraggedAudioFiles.Add(file.Path);
+                }
+            }
+        }
+        // If all files are audio files, accept the drop
+        e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+     
+    }
+
+    private void SongDropRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        // songs dropped so we can load in viewmodel
+        if (MyViewModel.DraggedAudioFiles is null || MyViewModel.DraggedAudioFiles.Count < 1)
+        {
+            return; // No files to process
+        }
+        // Process the dropped audio files
+        MyViewModel.AddMusicFoldersByPassingToService(MyViewModel.DraggedAudioFiles);
+    }
+
+    private void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
+    {
+
+    }
 }

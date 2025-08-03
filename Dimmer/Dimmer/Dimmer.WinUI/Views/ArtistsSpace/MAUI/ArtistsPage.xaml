@@ -59,7 +59,7 @@
                                  EnableSwiping="True"
                                  >
                     <syncf:SfTabItem BackgroundColor="Transparent" Header="AllSongs"
-                                     TextColor="White"
+                                     TextColor="{AppThemeBinding Dark=White, Light=Black}"
                                      >
 
                         <syncf:SfTabItem.Content>
@@ -180,7 +180,7 @@
 
                         </syncf:SfTabItem.Content>
                     </syncf:SfTabItem>
-                    <syncf:SfTabItem Header="Info" TextColor="White">
+                    <syncf:SfTabItem Header="Info" TextColor="{AppThemeBinding Dark=White, Light=Black}">
                         <syncf:SfTabItem.Content>
                             <Label Text="ss" />
                         </syncf:SfTabItem.Content>

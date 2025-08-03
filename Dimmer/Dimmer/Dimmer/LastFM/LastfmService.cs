@@ -94,7 +94,7 @@ public class LastfmService : ILastfmService
         Observable.FromEventPattern<PlaybackEventArgs>(
                     h => audioService.PlayEnded += h,
                     h => audioService.PlayEnded -= h)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(SynchronizationContext.Current)
                 .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"));
 
     }
@@ -131,7 +131,7 @@ public class LastfmService : ILastfmService
                 // Now, set the state for the new song.
                 _songToScrobble = currentSong;
                 await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
-                await ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
+                //await ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
                 break;
 
             case DimmerPlaybackState.Resumed:
@@ -224,25 +224,28 @@ public class LastfmService : ILastfmService
 
     #region Core Features
 
-    public async Task ScrobbleAsync(SongModelView song)
+    public async Task ScrobbleAsync(SongModelView songV)
     {
-        if (!((ILastfmService)this).IsAuthenticated || song == null||song.ArtistName is null )
+        if (!((ILastfmService)this).IsAuthenticated || songV == null||songV.ArtistName is null )
             return;
+
+        var artistName = songV.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
 
         // CORRECTED: Use parameterless constructor and set properties.
         var scrobble = new Scrobble
         {
-            Artist = song.ArtistName,
-            Track = song.Title,
+            Artist = artistName,
+            Track = songV.Title,
             Date = DateTime.UtcNow, // Timestamp is required for a scrobble
-            Album = song.AlbumName,
-            AlbumArtist = song.ArtistName
+            Album = songV.AlbumName,
+            
         };
 
         try
         {
             // The API takes a single scrobble or an IEnumerable<Scrobble>
-            var response = await _client.Track.ScrobbleAsync(new[] { scrobble });
+            var result=await _client.Track.ScrobbleAsync(new[] { scrobble });
             // Log response.Accepted/Ignored if needed
         }
         catch (Exception ex)
@@ -388,7 +391,20 @@ public class LastfmService : ILastfmService
 
         try
         {
-         var isUpdated=   await _client.Track.UpdateNowPlayingAsync(song.Title, song.OtherArtistsName, album: song.AlbumName);
+            // i can have songs like "artst | artst2 | artst3 - title"
+            // We need to split the artist names correctly.
+            // and get only the first artist name.
+            // This is a workaround for the fact that Last.fm API does not handle multiple artists in the same way.
+            if (string.IsNullOrEmpty(song.ArtistName))
+            {
+                await Shell.Current.DisplayAlert("Error", "Artist name is empty. Cannot update now playing.", "OK");
+                return;
+            }
+            
+            var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
+         var isUpdated=   await _client.Track.UpdateNowPlayingAsync(song.Title, artistName, album: song.AlbumName
+             );
         }
         catch (Exception ex)
         {
@@ -425,15 +441,42 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<PagedResponse<Track>> GetTopTracksAsync(string country)
+    public async Task<ObservableCollection<Track>> GetTopCountryTracksAsync(string country)
     {
         try
         { 
-            return await _client.Geo.GetTopTracksAsync(country); 
+            var res = await _client.Geo.GetTopTracksAsync(country);
+            return res.ToObservableCollection();
         }
         catch 
         {
-            return new PagedResponse<Track>();
+            return new ObservableCollection<Track>();
+        }
+    }
+
+    public async Task<ObservableCollection<Artist>> GetTopCountryArtistAsync(string country)
+    {
+        try
+        { 
+            var res = await _client.Geo.GetTopArtistsAsync(country);
+            return res.ToObservableCollection();
+        }
+        catch 
+        {
+            return new ObservableCollection<Artist>();
+        }
+    }
+
+    public async Task<ObservableCollection<Artist>> GetUserLibArtistsAsync(string country)
+    {
+        try
+        {
+            var res = await _client.Library.GetArtistsAsync(_username, 250);
+            return res.ToObservableCollection();
+        }
+        catch 
+        {
+            return new ObservableCollection<Artist>();
         }
     }
 
@@ -464,136 +507,144 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<List<Track>> GetSimilarAsync(string artistName, string trackName)
+    public async Task<ObservableCollection<Track>> GetSimilarAsync(string artistName, string trackName)
     {
         try
         { 
           
-            return await _client.Track.GetSimilarAsync(trackName, artistName); 
+            var res= await _client.Track.GetSimilarAsync(trackName, artistName,40,true);
+            return res.ToObservableCollection();
         }
         catch 
         { 
-            return Enumerable.Empty<Track>().ToList();
+            return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
 
-    public async Task<List<Tag>> GetTagsAsync(string artistName, string trackName)
+    public async Task<ObservableCollection<Tag>> GetTagsAsync(string artistName, string trackName)
     {
         try
         { 
           
-            return await _client.Track.GetTagsAsync(_username, trackName, artistName); 
+            var res= await _client.Track.GetTagsAsync(_username, trackName, artistName); 
+            return res.ToObservableCollection(); 
         }
         catch 
         { 
-            return Enumerable.Empty<Tag>().ToList();
+            return Enumerable.Empty<Tag>().ToObservableCollection();
         }
     }
 
-    public async Task<PagedResponse<Track>> GetLovedTracksAsync()
+    public async Task<ObservableCollection<Track>> GetLovedTracksAsync()
     {
         try
         {
 
-            return await _client.User.GetLovedTracksAsync(_username);
+            var res = await _client.User.GetLovedTracksAsync(_username);
+            return res.ToObservableCollection();
         }
         catch 
         {
-            return new PagedResponse<Track>();
+            return new ObservableCollection<Track>();
         }
     }
 
-    public async Task<ChartResponse<Album>> GetUserWeeklyAlbumChartAsync( )
+    public async Task<ObservableCollection<Album>> GetUserWeeklyAlbumChartAsync( )
     {
         try
         {
 
-            return await _client.User.GetWeeklyAlbumChartAsync(_username);
-        }
-        catch 
-        {
-            return new ChartResponse<Album>();
-        }
-    }
-
-    public async Task<List<ChartTimeSpan>> GetWeeklyUserChartListAsync( )
-    {
-        try
-        {
-
-            return await _client.User.GetWeeklyChartListAsync(_username);
-        }
-        catch 
-        {
-            return new List<ChartTimeSpan>();
-        }
-    }
-
-    public async Task<PagedResponse<Album>> GetTopUserAlbumsAsync()
-    {
-        try
-        {
-
-            return await _client.User.GetTopAlbumsAsync(_username);
-        }
-        catch 
-        {
-            return new PagedResponse<Album>();
-        }
-    }
-
-    public async Task<PagedResponse<Track>> GetUserTopTracksAsync( )
-    {
-        try
-        {
-
-            return await _client.User.GetTopTracksAsync(_username);
-        }
-        catch 
-        {
-            return new PagedResponse<Track>();
-        }
-    }
-
-    public async Task<ChartResponse<Track>> GetUserWeeklyTrackChartAsync( )
-    {
-        try
-        {
-
-            return await _client.User.GetWeeklyTrackChartAsync(_username);
-        }
-        catch 
-        {
-            return new ChartResponse<Track>();
-        }
-    }
-
-
-    public async Task<List<Artist>> GetTopArtistsChartAsync(int limit)
-    {
-        try
-        {
-            // The method returns a PagedResponse<Artist>, we need the Items.
-            var pagedResponse = await _client.Chart.GetTopArtistsAsync(1, limit);
-            return pagedResponse.Items.ToList();
+            var res= await _client.User.GetWeeklyAlbumChartAsync(_username);
+            return res.ToObservableCollection();
         }
         catch
         {
-            return new List<Artist>();
+            return new ObservableCollection<Album>();
+        }
+    }
+
+    public async Task<ObservableCollection<ChartTimeSpan>> GetWeeklyUserChartListAsync( )
+    {
+        try
+        {
+
+            var res  = await _client.User.GetWeeklyChartListAsync(_username);
+            return res.ToObservableCollection();
+        }
+        catch 
+        {
+            return new ObservableCollection<ChartTimeSpan>();
+        }
+    }
+
+    public async Task<ObservableCollection<Album>> GetTopUserAlbumsAsync()
+    {
+        try
+        {
+
+            var res = await _client.User.GetTopAlbumsAsync(_username);
+            return res.ToObservableCollection();
+        }
+        catch 
+        {
+            return new ObservableCollection<Album>();
+        }
+    }
+
+    public async Task<ObservableCollection<Track>> GetUserTopTracksAsync( )
+    {
+        try
+        {
+
+            var res= await _client.User.GetTopTracksAsync(_username);
+            return res.ToObservableCollection();
+        }
+        catch 
+        {
+            return new ObservableCollection<Track>();
+        }
+    }
+
+    public async Task<ObservableCollection<Track>> GetUserWeeklyTrackChartAsync( )
+    {
+        try
+        {
+
+            var res = await _client.User.GetWeeklyTrackChartAsync(_username);
+            return res.ToObservableCollection();
+        }
+        catch 
+        {
+            return new ObservableCollection<Track>();
+        }
+    }
+
+
+    public async Task<ObservableCollection<Artist>> GetTopArtistsChartAsync(int limit)
+    {
+        try
+        {
+            // The method returns a ObservableCollection<Artist>, we need the Items.
+            var pagedResponse = await _client.Chart.GetTopArtistsAsync(1, limit);
+            return pagedResponse.Items.ToObservableCollection();
+        }
+        catch
+        {
+            return new ObservableCollection<Artist>();
         }
     }
 
     #endregion
-    public async Task<List<Track>> GetUserRecentTracksAsync(string username, int limit)
+    public async Task<ObservableCollection<Track>> GetUserRecentTracksAsync(string username, int limit)
     {
         if (string.IsNullOrEmpty(username))
-            return new List<Track>();
+            return new ObservableCollection<Track>();
         try
         {
             var pagedResponse = await _client.User.GetRecentTracksAsync(username, page: 1, limit: limit);
-            return pagedResponse.Items.ToList();
+            return pagedResponse.Items.ToObservableCollection();
         }
-        catch (Exception ex) { _logger.LogWarning(ex, "Failed to get recent tracks for user {User}", username); return new List<Track>(); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to get recent tracks for user {User}", username); return new ObservableCollection<Track>(); }
     }
 
     public async Task<bool> LoveTrackAsync(SongModelView song)
@@ -602,7 +653,11 @@ public class LastfmService : ILastfmService
             return false;
         try
         {
-            await _client.Track.LoveAsync(song.Title, song.OtherArtistsName );
+
+
+            var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
+            var isUpdated = await _client.Track.LoveAsync(song.Title, artistName);
             
             return true;
         }
@@ -619,7 +674,11 @@ public class LastfmService : ILastfmService
             return false;
         try
         {
-            await _client.Track.UnloveAsync(song.Title, song.OtherArtistsName);
+
+            var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
+            var isUpdated = await _client.Track.UnloveAsync(song.Title, artistName);
+
             
             return true;
         }
@@ -701,10 +760,10 @@ public class LastfmService : ILastfmService
             return 0;
         }
 
-        var newEvents = new List<DimmerPlayEvent>();
+        var newEvents = new ObservableCollection<DimmerPlayEvent>();
         foreach (var track in recentTracks.Where(t => t.Date.HasValue))
         {
-            var song = _songRepo.Query(s => s.Title == track.Name && s.ArtistName == track.Artist.Name).FirstOrDefault();
+            var song = _songRepo.Query(s => s.Title == track.Name && s.DurationInSeconds == (track.Duration/1000)).FirstOrDefault();
 
             // Only add a play event if we know about the song locally.
             // A more advanced version could create stub song entries.

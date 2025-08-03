@@ -299,11 +299,11 @@ public class QuickSettingsTileService : TileService
             if (isPlaying)
             {
 
-                newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.atom); // <<< CREATE THIS ICON
+                newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.appicon); // <<< CREATE THIS ICON
             }
             else
             {
-                newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.atom); // <<< CREATE THIS ICON
+                newIcon = Icon.CreateWithResource(Platform.AppContext, Resource.Drawable.appicon); // <<< CREATE THIS ICON
 
             }
             tile.Subtitle = song?.ArtistName ?? "Unknown Artist"; // Set subtitle to song title

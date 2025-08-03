@@ -360,4 +360,129 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         return FirstOrDefaultWithRQL(rql, key);
     }
 
+
+    // ========================================================================
+    #region Public API - ASYNCHRONOUS Methods
+    // ========================================================================
+
+    /// <summary>
+    /// Asynchronously creates a new object in the database. Ideal for UI threads.
+    /// </summary>
+    /// <returns>A Task representing the asynchronous operation, with the frozen, thread-safe copy of the new object.</returns>
+    public async Task<T> CreateAsync(T entity)
+    {
+        if (entity.Id == ObjectId.Empty)
+        {
+            entity.Id = ObjectId.GenerateNewId();
+        }
+
+        // Realm's WriteAsync handles its own background thread and transaction.
+        using var realm = _factory.GetRealmInstance();
+        var frozenEntity = await realm.WriteAsync(()=>
+        {
+            var managedEntity = realm.Add(entity);
+            // We must freeze the object inside the transaction to return it.
+            return managedEntity.Freeze();
+        });
+        Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Created entity with Id: {entity.Id}");
+        return frozenEntity;
+    }
+
+    /// <summary>
+    /// Asynchronously updates an existing object or inserts it if it doesn't exist. Ideal for UI threads.
+    /// </summary>
+    /// <returns>A Task with the frozen, thread-safe copy of the upserted object.</returns>
+    public async Task<T> UpsertAsync(T entity)
+    {
+        if (entity.Id == ObjectId.Empty)
+        {
+            return await CreateAsync(entity);
+        }
+
+        using var realm = _factory.GetRealmInstance();
+        var frozenEntity = await realm.WriteAsync(()=>
+        {
+            var managedEntity = realm.Add(entity, update: true);
+            return managedEntity.Freeze();
+        });
+        Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Upserted entity with Id: {entity.Id}");
+        return frozenEntity;
+    }
+
+    /// <summary>
+    /// Asynchronously and safely updates a specific object identified by its primary key.
+    /// </summary>
+    /// <returns>A Task with a boolean result: true if updated, false if not found.</returns>
+    public async Task<bool> UpdateAsync(ObjectId id, Action<T> updateAction)
+    {
+        using var realm = _factory.GetRealmInstance();
+        bool success = false;
+        await realm.WriteAsync(()=>
+        {
+            var liveEntity = realm.Find<T>(id);
+            if (liveEntity != null)
+            {
+                updateAction(liveEntity);
+                success = true;
+                Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Updated entity with Id: {id}");
+            }
+        });
+        return success;
+    }
+
+    /// <summary>
+    /// Asynchronously deletes an object from the database using its primary key.
+    /// </summary>
+    public async Task DeleteAsync(ObjectId id)
+    {
+        using var realm = _factory.GetRealmInstance();
+        await realm.WriteAsync(()=>
+        {
+            var liveEntity = realm.Find<T>(id);
+            if (liveEntity != null)
+            {
+                realm.Remove(liveEntity);
+                Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Deleted entity with Id: {id}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves all objects of type T. This operation is performed on a background thread.
+    /// </summary>
+    /// <returns>A Task with a thread-safe, frozen, read-only collection of all objects.</returns>
+    public Task<IReadOnlyCollection<T>> GetAllAsync(bool IsShuffled = false)
+    {
+        // For read operations without a native async API, we use Task.Run
+        // to push the synchronous work to a background thread.
+        return Task.Run(() => GetAll(IsShuffled));
+    }
+
+    /// <summary>
+    /// Asynchronously finds all objects matching a LINQ predicate on a background thread.
+    /// </summary>
+    /// <returns>A Task with a thread-safe, frozen list of matching objects.</returns>
+    public Task<List<T>> QueryAsync(Expression<Func<T, bool>> predicate)
+    {
+        return Task.Run(() => Query(predicate));
+    }
+
+    /// <summary>
+    /// Asynchronously finds all objects matching a native RQL query on a background thread.
+    /// </summary>
+    /// <returns>A Task with a thread-safe, frozen list of matching objects.</returns>
+    public Task<List<T>> QueryWithRQLAsync(string rqlQuery, params Realms.QueryArgument[] args)
+    {
+        return Task.Run(() => QueryWithRQL(rqlQuery, args));
+    }
+
+    /// <summary>
+    /// Asynchronously gets the total count of objects on a background thread.
+    /// </summary>
+    public Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
+    {
+        return Task.Run(() => Count(predicate));
+    }
+
+    #endregion
 }

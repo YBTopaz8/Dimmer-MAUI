@@ -186,9 +186,9 @@ public partial class MyShellRenderer : ShellRenderer
         // If you want to use a custom navigation icon (hamburger or back arrow)
         //MauiContext.Context
         //var context = Android.App.Application.Context;
-        var navIcon = toolbar.Context.GetDrawable(Resource.Drawable.hamburgermenu);
-        navIcon.SetTint(PublicStats.ToolbarNavigationIconColor.ToPlatform().ToArgb());
-        toolbar.NavigationIcon = navIcon;
+        //var navIcon = toolbar.Context.GetDrawable(Resource.Drawable.);
+        //navIcon.SetTint(PublicStats.ToolbarNavigationIconColor.ToPlatform().ToArgb());
+        //toolbar.NavigationIcon = navIcon;
 
 
         toolbar.SetSubtitleTextColor(PublicStats.ToolbarSubtitleColor.ToPlatform());

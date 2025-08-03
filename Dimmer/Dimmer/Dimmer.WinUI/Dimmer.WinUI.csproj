@@ -18,7 +18,7 @@
     <!-- We do not want XAML files to be processed as .NET MAUI XAML, but rather WinUI XAML. -->
     <EnableDefaultMauiItems>false</EnableDefaultMauiItems>
     <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
-    <WindowsPackageType>None</WindowsPackageType>
+   
     <PublishAot>false</PublishAot>
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
@@ -41,6 +41,28 @@
   <ItemGroup>
     <Compile Remove="Utils\StaticUtils\TaskBarSection\TaskbarThumbnailManager.cs" />
     <Compile Remove="Views\SettingWindow.xaml.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-16.png" />
+    <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-24.png" />
+    <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-256.png" />
+    <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-32.png" />
+    <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-48.png" />
+    <Content Remove="Assets\dimmerIcon.altform-unplated_targetsize-16.png" />
+    <Content Remove="Assets\dimmerIcon.altform-unplated_targetsize-24.png" />
+    <Content Remove="Assets\dimmerIcon.altform-unplated_targetsize-256.png" />
+    <Content Remove="Assets\dimmerIcon.altform-unplated_targetsize-32.png" />
+    <Content Remove="Assets\dimmerIcon.altform-unplated_targetsize-48.png" />
+    <Content Remove="Assets\dimmerIcon.scale-100.png" />
+    <Content Remove="Assets\dimmerIcon.scale-125.png" />
+    <Content Remove="Assets\dimmerIcon.scale-150.png" />
+    <Content Remove="Assets\dimmerIcon.scale-200.png" />
+    <Content Remove="Assets\dimmerIcon.scale-400.png" />
+    <Content Remove="Assets\dimmerIcon.targetsize-16.png" />
+    <Content Remove="Assets\dimmerIcon.targetsize-24.png" />
+    <Content Remove="Assets\dimmerIcon.targetsize-256.png" />
+    <Content Remove="Assets\dimmerIcon.targetsize-32.png" />
+    <Content Remove="Assets\dimmerIcon.targetsize-48.png" />
   </ItemGroup>
 
 

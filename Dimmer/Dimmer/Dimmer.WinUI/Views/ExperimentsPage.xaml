@@ -17,16 +17,110 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:Name="myPage"
+              xmlns:lastfmmodels="clr-namespace:Hqub.Lastfm.Entities;assembly=Hqub.Lastfm"  
+             
                     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
 Shell.FlyoutBehavior="Disabled"
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="Transparent"
     Shell.NavBarIsVisible="False">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="itemTemplate" x:DataType="models:SongModelView">
+                <Image Source="{Binding CoverImagePath}" 
+                        Aspect="AspectFit"/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <Grid>   
+        <Grid RowDefinitions="auto,*">
+
+
+            <VerticalStackLayout Margin="10" Spacing="15" Grid.Row="0">
+                <HorizontalStackLayout Margin="10" Spacing="15" Grid.Row="0">
+                    <Border HorizontalOptions="Start" 
+                       HeightRequest="200"
+                       WidthRequest="200"
+                       StrokeShape="RoundRectangle 120">
+                        <HorizontalStackLayout>
+
+                            <Image Source="{Binding LastFMUserInfo.Images[3].Url}"/>
+
+
+                        </HorizontalStackLayout>
+                    </Border>
+                    <VerticalStackLayout Spacing="20">
+
+                        <Label FontSize="Medium" Text="{Binding LastFMUserInfo.Name}" TextColor="{AppThemeBinding Dark=White, Light=Black}"/>
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+
+                            <Label FontSize="Subtitle" Text="{Binding LastFMUserInfo.RealName}"/>
+
+                            <Label FontSize="Subtitle" Text="{Binding LastFMUserInfo.Registered
+,StringFormat='Scrobbling since {0: dd MMM yyy}'}"/>
+
+                        </HorizontalStackLayout>
+                        <VerticalStackLayout>
+                            
+                        <Label Text="Scrobbles"/>
+                        <Label Text="{Binding LastFMUserInfo.Playcount}"
+   TextColor="White"/>
+                    </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+                <Label Text="Recent Tracks" 
+                       HorizontalTextAlignment="Center"
+                       FontSize="Header"/>
+            </VerticalStackLayout>
+
+
+
+            <Grid RowDefinitions="auto,*" Grid.Row="1" ColumnDefinitions="*">
+                <VerticalStackLayout Grid.Row="0">
+                </VerticalStackLayout>
+                <CollectionView Grid.Column="0"
+                    ItemsSource="{Binding ListOfUserRecentTracks}"
+                    Grid.Row="1">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical"
+                                         Span="2"
+                                         VerticalItemSpacing="5"
+                                         HorizontalItemSpacing="5"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        
+                        <DataTemplate x:DataType="lastfmmodels:Track">
+                            <Grid 
+                              RowSpacing="10" ColumnSpacing="10"
+                                ColumnDefinitions="0.40*,*,auto">
+                                <Border
+                                    StrokeShape="RoundRectangle 20"
+                                    Grid.Column="0">
+                                                                    <Image Source="{Binding Images[3].Url}"
+                                       />
+
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                                    <HorizontalStackLayout>
+                                        <Label Text="{Binding Name}" TextColor="White"
+                                               FontSize="Medium"/>
+                                        <Image Source="heart.png" IsVisible="{Binding UserLoved}"/>
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding Artist.Name}" TextColor="#999999"/>
+                                    <Label Text="{Binding Date,
+                                        StringFormat='{0:hh:mm, dd MMM}'}"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                
+
+            </Grid>
+        </Grid>
+        
+    </Grid>
 </ContentPage>

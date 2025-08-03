@@ -1,4 +1,6 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿using DynamicData;
+
+namespace Dimmer.DimmerSearch.TQL;
 public enum FieldType { Text, Numeric, Boolean, Duration, Date }
 
 public record FieldDefinition(
@@ -34,7 +36,8 @@ public static class FieldRegistry
             new("BPM", FieldType.Numeric, new[]{"beats"}, "Beats per minute", nameof(SongModelView.BPM)),
             new("BitRate", FieldType.Numeric, new[]{"bit"}, "The audio bitrate in kbps", nameof(SongModelView.BitRate)),
             new("FileSize", FieldType.Numeric, new[]{"size"}, "File size in bytes", nameof(SongModelView.FileSize)),
-            new("PlayCount", FieldType.Numeric, new[]{"plays"}, "Total number of plays", nameof(SongModelView.PlayCount)),
+            new("PlayCount", FieldType.Numeric,new[]{"plays"}, "Total number of plays", nameof(SongModelView.PlayCount)),
+            new("PlayCompletedCount", FieldType.Numeric, new[]{"dimms","dims",}, "Total number of plays", nameof(SongModelView.PlayCompletedCount)),
 
             // --- Boolean Fields ---
             new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", nameof(SongModelView.IsFavorite)),

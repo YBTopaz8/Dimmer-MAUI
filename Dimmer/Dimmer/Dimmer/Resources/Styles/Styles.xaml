@@ -451,7 +451,6 @@
         <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource Background}}" />
 
         <!--  Foreground color for the Shell  -->
-        <Setter Property="Shell.ForegroundColor" Value="{OnPlatform WinUI={StaticResource Primary}, Default={StaticResource PrimaryText}}" />
 
         <!--  Title color for the Shell  -->
         <Setter Property="Shell.TitleColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource SecondaryText}}" />

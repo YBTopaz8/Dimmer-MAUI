@@ -10,6 +10,8 @@ public partial class DimmerStats : ObservableObject
     [ObservableProperty]
     public partial int? Count { get; set; }
     [ObservableProperty]
+    public partial int? YValueInt { get; set; }
+    [ObservableProperty]
     public partial int NumberOfTracks { get; set; }
     [ObservableProperty]
     public partial string? TotalSeconds { get; set; }
