@@ -221,7 +221,21 @@ public partial class SingleSongPage : ContentPage
         await this.FadeIn(350, 1);
 
     }
+    private async void OnAddQuickNoteClicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        // Prompt the user for a note
 
+
+        await MyViewModel.SaveUserNoteToDbLegacy(song);
+
+
+    }
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
     private async void Slider_DragCompleted(object sender, EventArgs e)

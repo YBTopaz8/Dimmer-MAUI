@@ -41,6 +41,56 @@ Shell.FlyoutBehavior="Flyout"
         <Style TargetType="syncf:SfChip">
             
         </Style>
+        <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
+            <Grid ColumnDefinitions="180" HorizontalOptions="Center">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem 
+                     Text="View"
+                     CommandParameter="{Binding .}"
+                     Clicked="ViewSongMFI_Clicked"
+                     x:Name="ViewSongMFI"/>
+
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.GestureRecognizers>
+                    <PointerGestureRecognizer
+                 PointerEntered="SongViewPointer_PointerEntered"
+                 x:Name="SongViewPointer"
+                 PointerPressed="SongViewPointer_PointerPressed"
+                  PointerPressedCommandParameter="{Binding .}"
+
+                 PointerExited="SongViewPointer_PointerExited"/>
+                </Grid.GestureRecognizers>
+                <Image Source="{Binding CoverImagePath}" 
+                Opacity="0.5" 
+                HorizontalOptions="Start" >
+                    <Image.GestureRecognizers>
+                        <DragGestureRecognizer
+                     CanDrag="True"
+                     DragStarting="SongDrag_DragStarting"
+                     x:Name="SongDrag"
+                     DragStartingCommandParameter="{Binding .}"/>
+                    </Image.GestureRecognizers>
+                </Image>
+                <Border BackgroundColor="#2C2C2C" VerticalOptions="End" 
+                 StrokeShape="RoundRectangle 5,5,0,0" Padding="5,5,5,0">
+
+                    <VerticalStackLayout >
+                        <VerticalStackLayout.Resources>
+                            <Style TargetType="Label">
+                                <Setter Property="TextColor" Value="#999999"/>
+                            </Style>
+                        </VerticalStackLayout.Resources>
+                        <Label Text="{Binding Title}"/>
+                        <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                    </VerticalStackLayout>
+
+                </Border>
+            </Grid>
+
+
+        </DataTemplate>
         <DataTemplate x:Key="tooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
                 <Label
@@ -408,7 +458,7 @@ Value="False">
                 />
         </Grid.GestureRecognizers>
         <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-Opacity="0.10" ZIndex="-1" Grid.RowSpan="2"
+Opacity="0.15" ZIndex="-1" Grid.RowSpan="2"
 />
         <VerticalStackLayout Grid.Row="0" ZIndex="0" >
 
@@ -457,11 +507,8 @@ Opacity="0.10" ZIndex="-1" Grid.RowSpan="2"
                                 </Label.Triggers>
                             </Label>
 
-                            <Button Grid.Column="2" 
-                                    Clicked="OnToggleTopViewClicked"
+                            <Label Grid.Column="2" 
                                    BackgroundColor="Transparent"
-                                    windows:VisualElement.AccessKey="O"
-                                    windows:VisualElement.AccessKeyPlacement="Bottom"
                                    Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
                         </HorizontalStackLayout>
@@ -474,6 +521,15 @@ Opacity="0.10" ZIndex="-1" Grid.RowSpan="2"
                        HeightRequest="50"
                        Spacing="10"
                        VerticalOptions="Center">
+                                    
+                                    <HorizontalStackLayout.Resources>
+                                        <Style TargetType="Button">
+                                            <Setter Property="HeightRequest" 
+                                                    Value="50"/>
+                                            <Setter Property="WidthRequest" 
+                                                    Value="60"/>
+                                        </Style>
+                                    </HorizontalStackLayout.Resources>
                                     <Button
                            x:Name="SkipPrev"
                            windows:VisualElement.AccessKey="B"
@@ -1034,15 +1090,18 @@ BorderWidth="1"
             </Grid>
 
 
-            <Grid RowDefinitions="auto,auto,*" x:Name="GridSongsColView">
+            <Grid RowDefinitions="auto,auto,*" RowSpacing="5" x:Name="GridSongsColView">
 
-                <Grid Grid.Row="0" ColumnDefinitions="auto,*,auto">
+                <Grid Grid.Row="0"
+                       Margin="10,0"
+                      ColumnDefinitions="auto,*,auto">
 
                     <VerticalStackLayout
-                        
+                        Spacing="10"
                         x:Name="LeftUtilSide"
                         Grid.Column="0">
-
+                        <HorizontalStackLayout>
+                            
 
                         <Button ImageSource="searchalta.png"
                                    Clicked="SearchBtn_Clicked"
@@ -1051,7 +1110,15 @@ BorderWidth="1"
                                         BackgroundColor="Transparent"
                                       x:Name="SearchBtn"  WidthRequest="58">
 
-                        </Button>
+                            </Button>
+
+                            <Button ImageSource="hamburgermenu.png"
+                                    HeightRequest="50"
+                                    WidthRequest="50"
+                                    Clicked="ChangeLayout_Clicked"
+                                    windows:VisualElement.AccessKey="C"
+                                    BackgroundColor="Transparent"/>
+                        </HorizontalStackLayout>
                         <Label FontSize="21" 
 HorizontalOptions="Center" FontAttributes="Italic"
                                        TextColor="{AppThemeBinding Light=Black, Dark=#999999}"
@@ -1114,7 +1181,7 @@ IsVisible="True">
                         x:Name="RightUtilSide"
                         Grid.Column="2" HorizontalOptions="Center" Spacing="10">
 
-                        <VerticalStackLayout>
+                        <VerticalStackLayout Spacing="10">
 
                             <Button
                         Command="{Binding ToggleFavSongCommand}"
@@ -1167,7 +1234,7 @@ IsVisible="True">
                         WidthRequest="180" />
 
 
-                        <VerticalStackLayout>
+                        <VerticalStackLayout Spacing="10">
 
                             <Button
                         x:Name="Xout"
@@ -1179,7 +1246,7 @@ IsVisible="True">
                                     Text="X"
                                     TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
                                     WidthRequest="58"
-                        
+                        HeightRequest="50"
                         />
                             <Button
                         x:Name="EXout"
@@ -1190,14 +1257,15 @@ IsVisible="True">
                         BorderWidth="1"
                                     Text="E"
                                     TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
-                                    WidthRequest="58"
+                                                WidthRequest="58"
+HeightRequest="50"
                         
                         />
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
 
                 </Grid>
-                <VerticalStackLayout Grid.Row="1" >
+                <VerticalStackLayout Grid.Row="1">
                 
                     
                     <Grid  ColumnDefinitions="2.3*,1.9*,1.9*,*,*,*,0.7*"
@@ -1284,6 +1352,7 @@ Unfocused="SearchSongSB_Unfocused" />
 
 
                 </VerticalStackLayout>
+                
             <CollectionView Grid.Row="2"
                         x:Name="SongsColView"
                         EmptyView="No Songs.." 

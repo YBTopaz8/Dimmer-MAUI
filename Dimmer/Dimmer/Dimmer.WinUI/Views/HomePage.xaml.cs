@@ -59,11 +59,21 @@ public partial class HomePage : ContentPage
         //MyViewModel.SongsCountLabel = SongsCountLabel;
         _availableLayouts = new List<DataTemplate>
         {
-            (DataTemplate)Resources["SimpleListAndArtist"],
-            (DataTemplate)Resources["SimpleList"],
+            (DataTemplate)Resources["GridOfFour"],
             (DataTemplate)Resources["OGView"]
         };
     }
+    private async void ViewSongMFI_Clicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.CommandParameter as SongModelView;
+
+        await this.FadeOut(200, 0.7);
+        MyViewModel.SelectedSong = song;
+        await this.FadeIn(350, 1);
+
+    }
+
     private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
         MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
