@@ -12,9 +12,18 @@ public partial class DimmerWin : Window
         MyViewModel= vm;
         BindingContext=vm;
         
+
     }
+
+    private void AppShell_Loaded(object? sender, EventArgs e)
+    {
+        
+    }
+
+
     protected async override void OnDestroying()
     {
+        
         MyViewModel.OnAppClosing();
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
@@ -62,7 +71,43 @@ public partial class DimmerWin : Window
     protected override void OnActivated()
     {
         base.OnActivated();
-        Debug.WriteLine("OnActivated");
+        var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+        if (nativeElement != null)
+        {
+            
+            nativeElement.PointerPressed += OnGlobalPointerPressed;
+        }
+    }
+    protected override void OnBackgrounding(IPersistedState state)
+    {
+        base.OnBackgrounding(state);
+    }
+
+    protected override void OnDeactivated()
+    {
+        base.OnDeactivated();
+        var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+        if (nativeElement != null)
+        {
+            nativeElement.PointerPressed -= OnGlobalPointerPressed;
+        }
+        //PlatUtils.ToggleFullScreenMode(false, PlatUtils.AppWinPresenter);
+        //PlatUtils.ShowWindow(PlatUtils.DimmerHandle, 0); // Hide window (SW_HIDE)
+    }
+    private async void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+
+
+        if (properties.IsXButton1Pressed)
+        {
+            // Handle Back Navigation
+            await Shell.Current.GoToAsync("..");
+        }
+        else if (properties.IsXButton2Pressed)
+        {
+            
+        }
     }
     protected override void OnCreated()
     {

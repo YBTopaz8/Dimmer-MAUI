@@ -1,7 +1,10 @@
 using Dimmer.DimmerLive;
+using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
+
+using Realms;
 
 using System.Threading.Tasks;
 
@@ -32,8 +35,11 @@ public partial class AppShell : Shell
         base.OnAppearing();
 
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        await MyViewModel.Initialize();
         this.BindingContext = MyViewModel;
+
+        await MyViewModel.InitializeAllVMCoreComponentsAsync();
+        
+
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }

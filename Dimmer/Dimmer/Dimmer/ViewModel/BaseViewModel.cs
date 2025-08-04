@@ -33,6 +33,7 @@ using Parse.LiveQuery;
 using ReactiveUI;
 
 using Realms;
+using System.Reactive.Linq;
 
 using System.ComponentModel;
 using System.Reactive.Disposables;
@@ -47,7 +48,7 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
 {
-    private readonly IDuplicateFinderService _duplicateFinderService;
+    private IDuplicateFinderService _duplicateFinderService;
     public BaseViewModel(
        IMapper mapper,
        IAppInitializerService appInitializerService,
@@ -59,7 +60,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        LyricsMgtFlow lyricsMgtFlow,
        ICoverArtService coverArtService,
        IFolderMgtService folderMgtService,
-       IRepository<SongModel> songRepo,
+       IRepository<SongModel> _songRepo,
        IDeviceConnectivityService deviceConnectivityService,
        IDuplicateFinderService duplicateFinderService,
         ILastfmService _lastfmService,
@@ -78,7 +79,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _subsManager = subsManager ?? new SubscriptionManager();
         _folderMgtService = folderMgtService;
-        this.songRepo=songRepo;
+        this.songRepo=_songRepo;
         this.artistRepo=artistRepo;
         _coverArtService = coverArtService ?? throw new ArgumentNullException(nameof(coverArtService));
         this.albumRepo=albumModel;
@@ -119,7 +120,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
         _limiterClause = new BehaviorSubject<LimiterClause?>(null); // We DO need this to distinguish between limiter types.
 
+       
+    }
 
+
+    SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
+    public async Task InitializeAllVMCoreComponentsAsync()
+    {
+
+        var songRep = songRepo;
+
+        var realm = realmFactory.GetRealmInstance();
         var initialSongs = realm.All<SongModel>().ToList().Select(song => song.ToViewModel());
         _songSource.AddRange(initialSongs);
         Debug.WriteLine($"[LOAD] Manually loaded {_songSource.Count} songs into SourceList.");
@@ -196,7 +207,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
       (predicate, comparer, limiter) => new { predicate, comparer, limiter }
   );
 
-        var searchResultsHolder = new SourceList<SongModelView>();
+
+
+
+
 
         // 2. The pipeline now reads from the master list and populates the results holder.
         _songSource.Connect()
@@ -238,6 +252,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     // IMPORTANT: We are editing the NEW holder, NOT the original _songSource.
                     searchResultsHolder.Edit(updater =>
                     {
+
                         updater.Clear();
                         updater.AddRange(newList);
                     });
@@ -270,7 +285,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-         string rql = "TRUEPREDICATE SORT(EventDate DESC)";
+        string rql = "TRUEPREDICATE SORT(EventDate DESC)";
 
         // 2. Execute the query and use the LINQ FirstOrDefault() to get just the top one.
         var evtt = realm.All<DimmerPlayEvent>().Filter(rql).ToList();
@@ -298,14 +313,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // Handle the case where there's no valid event or the event has no valid song.
             CurrentPlayingSongView = new();
         }
-    
+
         SearchSongSB_TextChanged("random");
 
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
 
         lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
-           .Subscribe( isAuthenticated =>
+           .Subscribe(isAuthenticated =>
            {
                IsLastfmAuthenticated = isAuthenticated;
                LastfmUsername = lastfmService.AuthenticatedUser ?? "Not Logged In";
@@ -322,17 +337,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                            db.Write(() =>
                            {
 
-                           var usrs = db.All<UserModel>().ToList();
-                           if (usrs is not null && usrs.Count>0)
-                           {
-                               UserModel usr = usrs.First();
-                               usr.UserName=lastfmService.AuthenticatedUser;
+                               var usrs = db.All<UserModel>().ToList();
+                               if (usrs is not null && usrs.Count>0)
+                               {
+                                   UserModel usr = usrs.First();
+                                   usr.UserName=lastfmService.AuthenticatedUser;
 
 
 
 
-                               db.Add(usr,true);
-                                }
+                                   db.Add(usr, true);
+                               }
 
                            });
                        }
@@ -344,25 +359,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-        _deviceConnectivityService = deviceConnectivityService;
         MyDeviceId = LoadOrGenerateDeviceId();
-
-          // Bind the UI collection to the service's collection
-        _deviceConnectivityService.AvailablePlayers
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out _availablePlayers) // _availablePlayers is your ReadOnlyObservableCollection
-            .Subscribe();
-
-        InitializeConnectivity();
-
-
 
 
         
 
-
-
+        SubscribeToStateServiceEvents();
+        SubscribeToAudioServiceEvents();
+        SubscribeToLyricsFlow();
+        await Task.WhenAll( EnsureAllCoverArtCachedForSongsAsync(),LoadAllSongsEventsASync());
+        return;
     }
+
     // You'll want a property to bind a loading indicator to in your UI
     // [ObservableProperty]
     // private bool _isLoadingSongs;
@@ -425,6 +433,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             // IsLoadingSongs = false;
         }
     }
+
+    private Subject<List<SongModelView>> _searchResultsChangedSubject = new();
+
+
+
     /// <summary>
     /// Sanitizes the play events in the database by removing duplicate "skipped" events
     /// that were logged erroneously within a short time frame for the same song.
@@ -504,28 +517,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await _deviceConnectivityService.SendCommandAsync(ControlledDeviceState.DeviceId, "NEXT");
     }
 
-    private async void InitializeConnectivity()
-    {
-
-
-
-        await _deviceConnectivityService.InitializeAsync();
-
-        // Subscribe to the commands from the service
-        _deviceConnectivityService.IncomingCommands
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(HandleIncomingDeviceCommand); // Your existing handler is perfect
-
-
-        _deviceConnectivityService.StartListeners();
-    }
     private string _myDeviceId; // A unique ID stored in app settings
     private DeviceState _myDeviceState; // The ParseObject representing this device's state
 
 
     private ParseClient ParseClient { get; set; }
     private ParseLiveQueryClient LiveClient { get; set; }
-    public string MyDeviceId { get; }
+    public string MyDeviceId { get; set; }
 
     // ==========================================================
     // REMOTE MODE LOGIC (Sends commands, listens for state)
@@ -582,10 +580,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial DeviceState? ControlledDeviceState { get; set; }
 
 
-    private readonly ReadOnlyObservableCollection<DeviceState> _availablePlayers;
+    private ReadOnlyObservableCollection<DeviceState> _availablePlayers;
     public ReadOnlyObservableCollection<DeviceState> AvailablePlayers => _availablePlayers;
 
-    private readonly IDeviceConnectivityService _deviceConnectivityService;
+    private IDeviceConnectivityService _deviceConnectivityService;
 
 
     [RelayCommand]
@@ -640,11 +638,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentQuery= searchText;
 
     }
-    private readonly BehaviorSubject<string> _searchQuerySubject;
+    private BehaviorSubject<string> _searchQuerySubject;
 
-    private readonly BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
-    private readonly BehaviorSubject<IComparer<SongModelView>> _sortComparer;
-    //private readonly BehaviorSubject<LimiterClause?> _limiterClause;
+    private BehaviorSubject<Func<SongModelView, bool>> _filterPredicate;
+    private BehaviorSubject<IComparer<SongModelView>> _sortComparer;
+    //private BehaviorSubject<LimiterClause?> _limiterClause;
 
     [ObservableProperty]
     public partial string DebugMessage { get; set; } = string.Empty;
@@ -673,14 +671,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentQuery= "random";
     }
 
-    private readonly SourceList<DimmerPlayEventView> _playEventSource = new();
-    private readonly CompositeDisposable _disposables = new();
+    private SourceList<DimmerPlayEventView> _playEventSource = new();
+    private CompositeDisposable _disposables = new();
     private IDisposable? _realmSubscription;
     private bool _isDisposed;
 
     [ObservableProperty]
     public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
-    private readonly BehaviorSubject<ValidationResult> _validationResultSubject = new(new(true));
+    private BehaviorSubject<ValidationResult> _validationResultSubject = new(new(true));
     public IObservable<ValidationResult> ValidationResult => _validationResultSubject;
 
 
@@ -701,29 +699,29 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     #region privte fields
-    private readonly ICoverArtService _coverArtService;
+    private ICoverArtService _coverArtService;
 
-    public readonly IMapper _mapper;
-    private readonly IAppInitializerService appInitializerService;
-    private readonly IDimmerLiveStateService _dimmerLiveStateService;
-    protected readonly IDimmerStateService _stateService;
-    protected readonly ISettingsService _settingsService;
-    protected readonly SubscriptionManager _subsManager;
-    protected readonly IFolderMgtService _folderMgtService;
-    private readonly IRepository<SongModel> songRepo;
-    private readonly IRepository<ArtistModel> artistRepo;
-    private readonly IRepository<PlaylistModel> _playlistRepo;
-    private readonly IRepository<AlbumModel> albumRepo;
-    private readonly IFolderMonitorService folderMonitorService;
-    private readonly IRepository<GenreModel> genreRepo;
-    private readonly IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
-    public readonly LyricsMgtFlow _lyricsMgtFlow;
-    private readonly MusicRelationshipService musicRelationshipService;
-    private readonly MusicArtistryService musicArtistryService;
-    private readonly MusicStatsService musicStatsService;
-    protected readonly ILogger<BaseViewModel> _logger;
-    private readonly IDimmerAudioService audioService;
-    private readonly ILibraryScannerService libService;
+    public IMapper _mapper;
+    private IAppInitializerService appInitializerService;
+    private IDimmerLiveStateService _dimmerLiveStateService;
+    protected IDimmerStateService _stateService;
+    protected ISettingsService _settingsService;
+    protected SubscriptionManager _subsManager;
+    protected IFolderMgtService _folderMgtService;
+    private IRepository<SongModel> songRepo;
+    private IRepository<ArtistModel> artistRepo;
+    private IRepository<PlaylistModel> _playlistRepo;
+    private IRepository<AlbumModel> albumRepo;
+    private IFolderMonitorService folderMonitorService;
+    private IRepository<GenreModel> genreRepo;
+    private IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
+    public LyricsMgtFlow _lyricsMgtFlow;
+    private MusicRelationshipService musicRelationshipService;
+    private MusicArtistryService musicArtistryService;
+    private MusicStatsService musicStatsService;
+    protected ILogger<BaseViewModel> _logger;
+    private IDimmerAudioService audioService;
+    private ILibraryScannerService libService;
 
     #endregion
     [ObservableProperty]
@@ -826,7 +824,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
     }
-    protected readonly ILastfmService lastfmService;
+    protected ILastfmService lastfmService;
 
     [RelayCommand]
     public async Task LoadUserLastFMInfo()
@@ -1101,7 +1099,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         });
     }
 
-    private readonly SourceList<SongModelView> _songSource = new SourceList<SongModelView>();
+    private SourceList<SongModelView> _songSource = new SourceList<SongModelView>();
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? CurrentSynchronizedLyrics { get; set; }
 
@@ -1300,7 +1298,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
 
-    private readonly BaseAppFlow _baseAppFlow;
+    private BaseAppFlow _baseAppFlow;
 
 
 
@@ -1342,7 +1340,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial string CurrentQuery { get; set; }
     public string QueryBeforePlay { get; private set; }
 
-    readonly IRealmFactory realmFactory;
+    IRealmFactory realmFactory;
     private Realm realm;
 
     [ObservableProperty]
@@ -1363,23 +1361,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public IObservable<bool> AudioEngineIsPlayingObservable { get; }
     public IObservable<double> AudioEnginePositionObservable { get; }
     public IObservable<double> AudioEngineVolumeObservable { get; }
-    public async Task Initialize()
-    {
-        InitializeApp();
-
-        SubscribeToStateServiceEvents();
-        SubscribeToAudioServiceEvents();
-        SubscribeToLyricsFlow();
-        await EnsureAllCoverArtCachedForSongsAsync();
-
-        //await SanitizeSkippedEventsAsync();
-        await LoadAllSongsEventsASync();
-    }
-
-    public void InitializeApp()
-    {
-
-    }
+   
+   
     #region Subscription Event Handlers (The Reactive Logic)
 
     [ObservableProperty]
@@ -2320,7 +2303,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    private readonly Random _random = new();
+    private Random _random = new();
 
 
     [RelayCommand]
@@ -2994,8 +2977,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public ReadOnlyObservableCollection<InteractiveChartPoint> PlayEventsByHourChartData { get; private set; }
     public ReadOnlyObservableCollection<DimmerPlayEventView> PlaysByDurationChartData { get; private set; }
 
-    private readonly ObservableCollectionExtended<InteractiveChartPoint> _topSkipsList = new();
-    private readonly BehaviorSubject<LimiterClause?> _limiterClause;
+    private ObservableCollectionExtended<InteractiveChartPoint> _topSkipsList = new();
+    private BehaviorSubject<LimiterClause?> _limiterClause;
 
     public ReadOnlyObservableCollection<InteractiveChartPoint> TopSkipsChartData { get; }
 
@@ -3082,10 +3065,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     );
 
 
-    private readonly SourceList<DuplicateSetViewModel> _duplicateSource = new();
+    private SourceList<DuplicateSetViewModel> _duplicateSource = new();
 
     // 2. THE DESTINATION: This is the read-only collection for the UI.
-    private readonly ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
+    private  ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
 
     // 3. THE PUBLIC PROPERTY: The UI will bind to this.
     public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;

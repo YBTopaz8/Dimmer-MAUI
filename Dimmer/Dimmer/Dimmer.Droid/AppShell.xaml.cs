@@ -36,7 +36,8 @@ public partial class AppShell : Shell
             return;
         }
         this.BindingContext = MyViewModel;
-        await  MyViewModel.BaseVM.Initialize();
+        await MyViewModel.BaseVM.InitializeAllVMCoreComponentsAsync();
+        
     }
 
     public BaseViewModelAnd MyViewModel { get; internal set; }

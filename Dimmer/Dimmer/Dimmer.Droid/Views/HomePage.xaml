@@ -819,6 +819,7 @@ FontAttributes="Bold"
 IconSize="70,70" CornerRadius="40" HorizontalOptions="Center"
                                                      Grid.Column="0" TapCommandParameter="{Binding .}"
                                                Icon="{Binding CoverImagePath}"
+                                                      IconIndent="10"
                                             x:Name="ViewSongOnly"         Tap="ViewSongOnly_Tap">
                                                 <dx:Chip.Triggers>
                                                     <DataTrigger
@@ -840,6 +841,7 @@ Value="False">
                                             </dx:Chip>
 
                                             <dx:DXButton
+                                                CornerRadius="5"
                                                     x:Name="TitleAndArtists"
                                                     Grid.Column="1" Padding="0"
                                                 HorizontalContentAlignment="Start"

@@ -805,6 +805,7 @@ ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName, StringFormat
                            Background="Transparent"
                            Command="{Binding ToggleShuffleModeCommand}"
                            ImageSource="shuffle.png"
+                                    
                            StyleClass="MediaBtnChip">
                                     <Button.Triggers>
                                         <DataTrigger

@@ -754,11 +754,11 @@ public partial class HomePage : ContentPage
     {
         if (this.QuickPanelBtmSheet.State != BottomSheetState.Hidden)
         {
-            this.QuickPanelBtmSheet.State= BottomSheetState.HalfExpanded;
+            this.QuickPanelBtmSheet.State= BottomSheetState.Hidden;
         }
         else
         {
-            this.QuickPanelBtmSheet.State= BottomSheetState.Hidden;
+            this.QuickPanelBtmSheet.State= BottomSheetState.HalfExpanded;
         }
     }
 
