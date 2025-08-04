@@ -45,7 +45,7 @@ public static class AutoMapperConf
                     if (!string.IsNullOrEmpty(dest.Title) && dest.Title.Length > maxTitleLength)
                     {
                         // Truncate the string and add an ellipsis
-                        dest.Title = dest.Title.Substring(0, maxTitleLength) + "...";
+                        dest.Title = string.Concat(dest.Title.AsSpan(0, maxTitleLength), "...");
                     }
                     });
 
@@ -169,9 +169,9 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.IsManaged, opt => opt.Ignore()) // Ignore relationships
                 .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()) // Ignore relationships
             ;
-            }); 
+            });
 
-            
+
             // This should now pass without errors.
             config.AssertConfigurationIsValid();
 

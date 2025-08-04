@@ -5,6 +5,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Maui.LifecycleEvents;
 
 using SkiaSharp.Views.Maui.Controls.Hosting;
 
@@ -133,6 +134,8 @@ public static class MauiProgramExtensions
 
         // Register LastfmSettings
         builder.Services.Configure<LastfmSettings>(builder.Configuration.GetSection("Lastfm"));
+
+       
 
         return builder;
     }

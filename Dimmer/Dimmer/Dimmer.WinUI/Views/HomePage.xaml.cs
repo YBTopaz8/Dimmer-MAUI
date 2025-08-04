@@ -65,6 +65,37 @@ public partial class HomePage : ContentPage
             (DataTemplate)Resources["OGView"],
             (DataTemplate)Resources["GridOfFour"],
         };
+        _availableItemsLayouts = new List<IItemsLayout>
+        {
+            new LinearItemsLayout(ItemsLayoutOrientation.Vertical) { ItemSpacing = 5 },
+            new GridItemsLayout(ItemsLayoutOrientation.Vertical) { Span = 6, VerticalItemSpacing = 10, HorizontalItemSpacing = 5 }
+        };
+    }
+  
+    private List<DataTemplate> _availableLayouts; 
+    private readonly List<IItemsLayout> _availableItemsLayouts; 
+
+    private int _currentLayoutIndex = 0;
+    
+      private void ChangeLayout_Clicked(object sender, EventArgs e)
+    {
+        // 1. Cycle to the next layout index
+        _currentLayoutIndex = (_currentLayoutIndex + 1) % _availableLayouts.Count;
+
+        // 2. Get the current ItemsSource and hold onto it
+        var items = SongsColView.ItemsSource;
+
+        // 3. IMPORTANT: Set ItemsSource to null to force a hard reset
+        SongsColView.ItemsSource = null;
+
+        // 4. Apply the new layout AND the new template
+        SongsColView.ItemsLayout = _availableItemsLayouts[_currentLayoutIndex];
+        SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
+
+        // 5. Restore the ItemsSource. The CollectionView will now rebuild
+        //    itself using the new layout and template.
+        SongsColView.ItemsSource = items;
+    
     }
     private async void ViewSongMFI_Clicked(object sender, EventArgs e)
     {
@@ -81,43 +112,6 @@ public partial class HomePage : ContentPage
     {
         MyViewModel.SearchSongSB_TextChanged(e.NewTextValue);
     }
-    private List<DataTemplate> _availableLayouts;
-    private int _currentLayoutIndex = 0;
-    private void ChangeLayout_Clicked(object sender, EventArgs e)
-    {
-        // Move to the next layout index
-        _currentLayoutIndex++;
-
-        // If the index goes beyond the list of layouts, cycle back to the start
-        if (_currentLayoutIndex >= _availableLayouts.Count)
-        {
-            _currentLayoutIndex = 0;
-        }
-        if (_currentLayoutIndex == 1)
-        {
-            SongsColView.ItemsLayout = new GridItemsLayout(ItemsLayoutOrientation.Vertical)
-            {
-                VerticalItemSpacing =10,
-                HorizontalItemSpacing=5,
-                Span = 6
-            };
-
-        }
-        if (_currentLayoutIndex == 0)
-        {
-
-            SongsColView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical)
-            {
-                ItemSpacing=5
-            };
-
-        }
-        var tem = _availableLayouts[_currentLayoutIndex];
-        // Apply the new layout to the CollectionView
-        SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
-
-    }
-
     private void Button_Clicked(object sender, EventArgs e)
     {
 

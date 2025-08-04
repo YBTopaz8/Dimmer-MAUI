@@ -11,6 +11,7 @@
     <PublishAot>False</PublishAot>
     <PublishTrimmed>False</PublishTrimmed>
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+    <PackageIcon>appicon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -171,6 +172,13 @@
     <ProjectReference Include="..\atldotnet-main\ATL\ATL.csproj" />
     <ProjectReference Include="..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
     <ProjectReference Include="..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Images\appicon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

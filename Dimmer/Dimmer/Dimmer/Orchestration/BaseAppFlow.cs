@@ -76,7 +76,6 @@ public class BaseAppFlow : IDisposable
     }
 
 
-    private PlaybackStateInfo? _previousPlaybackStateForLogging;
 
 
     private void InitializeFolderEventReactions()

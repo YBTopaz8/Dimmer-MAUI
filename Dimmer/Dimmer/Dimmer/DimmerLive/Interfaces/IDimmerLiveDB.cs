@@ -17,7 +17,6 @@ public interface ILiveRealmService : IDisposable
 public class LiveRealmService : ILiveRealmService
 {
     private readonly Realm _realm; // This instance stays open for the lifetime of the service
-    private readonly IDisposable _realmSubscription;
 
     public IObservable<IChangeSet<SongModel, ObjectId>> Songs { get; }
     public IObservable<IChangeSet<ArtistModel, ObjectId>> Artists { get; }

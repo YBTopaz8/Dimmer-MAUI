@@ -77,7 +77,7 @@ public partial class LyricPhraseModel : ObservableObject
     /// <summary>
     /// Text
     /// </summary>
-    public List<LyricsPhrase> Beats { get; }
+    public List<LyricsPhrase>? Beats { get; }
 
 
     [ObservableProperty]

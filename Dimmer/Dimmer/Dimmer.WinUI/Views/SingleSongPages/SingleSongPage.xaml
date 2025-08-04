@@ -299,7 +299,8 @@ Value="False">
         </DataTemplate>
 
         <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
-            <Grid ColumnDefinitions="180" HorizontalOptions="Center">
+            <Grid ColumnDefinitions="*"
+                  HorizontalOptions="Center">
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem 
@@ -314,6 +315,7 @@ Value="False">
                     <PointerGestureRecognizer
                         PointerEntered="SongViewPointer_PointerEntered"
                         x:Name="SongViewPointer"
+                        
                         PointerPressed="SongViewPointer_PointerPressed"
                          PointerPressedCommandParameter="{Binding .}"
 
@@ -339,8 +341,33 @@ Value="False">
                                 <Setter Property="TextColor" Value="#999999"/>
                             </Style>
                         </VerticalStackLayout.Resources>
-                    <Label Text="{Binding Title}"/>
+                    <Label Text="{Binding Title}" FontSize="Title" TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                     <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                        <Label Text="{Binding PlayCompletedCount, StringFormat='{0} Dimms'}"
+                           TextColor="SlateBlue"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="End">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding PlayCompletedCount}"
+                                             Value="0">
+                                    <Setter Property="FontAttributes"
+                                            Value="None"/>
+                                    <Setter Property="TextColor"
+                                            Value="White"/>
+                                    <Setter Property="Text"
+                                            Value="0 Dimm"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding PlayCompletedCount}"
+                                             Value="1">
+                                    <Setter Property="FontAttributes"
+                                            Value="Italic"/>
+                                    <Setter Property="TextColor"
+                                            Value="MediumSlateBlue"/>
+                                    <Setter Property="Text"
+                                            Value="1 Dimm"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
                 </VerticalStackLayout>
 
                 </Border>
@@ -410,7 +437,7 @@ VerticalOptions="Center" />
                                               windows:VisualElement.AccessKey="A"
                         Clicked="ToggleViewArtist_Clicked"                      windows:VisualElement.AccessKeyPlacement="Bottom"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"
-                                            Text="{Binding SelectedSong.ArtistName}" FontSize="19"/>
+                                            Text="{Binding SelectedSong.OtherArtistsName}" FontSize="19"/>
                     <Button
                         x:Name="ToggleViewAlbum"
                         Clicked="ToggleViewAlbum_Clicked"
@@ -495,7 +522,7 @@ ToolTipProperties.Text="Save To Playlist">
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding SelectedSong.PlayEvents.Count}"/>
+                                                        Text="{Binding SelectedSong.PlayCompletedCount}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
@@ -508,6 +535,7 @@ ToolTipProperties.Text="Save To Playlist">
                                                         FontSize="19"
                                                         Text="{Binding   SongListeningStreak.Count  }"/>
                     </VerticalStackLayout>
+
                 </HorizontalStackLayout>
             </VerticalStackLayout>
             <Grid Grid.Column="1" >
@@ -794,14 +822,26 @@ ToolTipProperties.Text="Save To Playlist">
                   RowDefinitions="auto,*" >
 
                 <VerticalStackLayout Grid.Row="0">
-                    <Label Text="DD"/>
+                    <HorizontalStackLayout 
+                        Spacing="10"
+                        HorizontalOptions="Center">
+
+                        <Label IsVisible="True" Text="{Binding SelectedSong.ArtistName}"
+                           HorizontalTextAlignment="Center"
+                           FontSize="Header"/>
+
+                        <Label Text="{Binding SearchResults.Count,StringFormat='{0} Songs'}"
+                               VerticalOptions="Center"
+                               HorizontalOptions="End"/>
+                    </HorizontalStackLayout>
+
                 </VerticalStackLayout>
                 <CollectionView x:Name="SongsColView" 
                                  Grid.Row="1"   ItemTemplate="{StaticResource GridOfFour}"
                                     ItemsSource="{Binding SearchResults}">
                         <CollectionView.ItemsLayout
                             >
-                            <GridItemsLayout Span="4" VerticalItemSpacing="10"
+                            <GridItemsLayout Span="6" VerticalItemSpacing="10"
                                                 HorizontalItemSpacing="10"
                                                 Orientation="Vertical"/>
                         </CollectionView.ItemsLayout>
@@ -1007,8 +1047,8 @@ WidthRequest="700"
                                 </Grid>
 
                                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" Margin="0,20,0,0">
-                                    <Button Text="Reset" Command="{Binding CancelEditCommand}"/>
-                                    <Button Text="Save Changes" Command="{Binding SaveMetadataChangesCommand}" FontAttributes="Bold"/>
+                                    <Button Text="Reset" />
+                                    <Button Text="Save Changes" FontAttributes="Bold"/>
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                                 </Grid>

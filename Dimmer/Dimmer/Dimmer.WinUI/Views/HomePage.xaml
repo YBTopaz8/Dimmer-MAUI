@@ -1116,6 +1116,7 @@ BorderWidth="1"
                                     HeightRequest="50"
                                     WidthRequest="50"
                                     Clicked="ChangeLayout_Clicked"
+                                    IsVisible="False"
                                     windows:VisualElement.AccessKey="C"
                                     BackgroundColor="Transparent"/>
                         </HorizontalStackLayout>

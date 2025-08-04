@@ -4,14 +4,12 @@ namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IDimmerAudioService
 {
 
-    void Play();
 
     void Pause();
 
 
     void Seek(double positionSeconds);
 
-    Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage = null);
 
     void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels);
 
@@ -70,4 +68,6 @@ public interface IDimmerAudioService
     void Stop();
     List<AudioOutputDevice>? GetAllAudioDevices();
     bool SetPreferredOutputDevice(AudioOutputDevice dev);
+    void Play(double pos);
+    Task InitializeAsync(SongModelView songModel, double pos);
 }

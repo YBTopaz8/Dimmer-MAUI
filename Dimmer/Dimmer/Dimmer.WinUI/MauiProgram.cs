@@ -94,7 +94,11 @@ public static class MauiProgram
                         window.Activate();
                     }
                 });
+
+                
             });
+
+            
         });
 
         //if (ParseSetup.InitializeParseClient())

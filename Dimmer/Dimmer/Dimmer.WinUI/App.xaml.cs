@@ -111,7 +111,10 @@ public partial class App : MauiWinUIApplication
 
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
         HandleActivation(activatedArgs);
+        
     }
+
+    
 
     /// <summary>
     /// A unified handler for all app activations.

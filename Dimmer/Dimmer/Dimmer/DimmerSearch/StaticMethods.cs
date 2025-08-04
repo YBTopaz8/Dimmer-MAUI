@@ -28,7 +28,9 @@ public static class StaticMethods
     {
         // --- Simple Sorts ---
         public static string SortByTitleAsc() => "asc title";
+        public static string SortByTrackAsc() => "asc track";
         public static string SortByTitleDesc() => "desc title";
+        public static string SortByTrackDesc() => "desc track";
         public static string SortByArtistAsc() => "asc artist";
         public static string SortByArtistDesc() => "desc artist";
         public static string SortByAlbumAsc() => "asc album";

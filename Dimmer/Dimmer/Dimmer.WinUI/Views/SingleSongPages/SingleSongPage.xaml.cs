@@ -212,7 +212,17 @@ public partial class SingleSongPage : ContentPage
 
     private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
     {
+        //if (MyViewModel.SelectedSong is null)
+        //{
+        //    MyViewModel.SelectedSong= songToRestore;
+        //}
         var send = (View)sender;
+        var songBindingContext = send.BindingContext as SongModelView;
+        if (songBindingContext is null)
+        {
+            return;
+        }
+        MyViewModel.SelectedSong = songBindingContext;
         await send.FadeIn(300, 1);
     }
 
@@ -267,8 +277,15 @@ public partial class SingleSongPage : ContentPage
         var contxt = send.BindingContext as SongModelView;
 
         await this.FadeOut(200, 0.7);
-        MyViewModel.SelectedSong = contxt;
+        if (!SongView.IsVisible)
+        {
+            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+
+            await MyViewModel.LoadSelectedSongLastFMData();
+            return;
+        }
         await this.FadeIn(350, 1);
+
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
@@ -308,30 +325,82 @@ public partial class SingleSongPage : ContentPage
 
     private async void ToggleViewArtist_Clicked(object sender, EventArgs e)
     {
+        // Handle the case where the user wants to go back to the song view
         if (!SongView.IsVisible)
         {
             await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+
+            await MyViewModel.LoadSelectedSongLastFMData();
             return;
         }
 
-        Button send = (Button)sender;
-        var prop = send.Text;
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(prop));
-        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
-    }
+        // --- SOLUTION IMPLEMENTATION ---
 
+        // 1. Preserve the currently selected song BEFORE you change the filter.
+        songToRestore = MyViewModel.SelectedSong;
+
+        // This is a safety check in case no song was selected.
+        if (songToRestore is null)
+            return;
+
+        // 2. Get the artist name and trigger the filter.
+        //    This is the action that causes SelectedSong to become null.
+        Button send = (Button)sender;
+        var artistName = send.Text;
+        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
+
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
+
+        // 3. Animate the UI views as you were doing before.
+      
+        // 4. IMPORTANT: Restore the selection.
+        //    The list is now filtered, but we can set the selection from the ViewModel.
+        //    We check if the song still exists in the newly filtered list before selecting.
+        if (MyViewModel.SearchResults.Contains(songToRestore))
+        {
+            MyViewModel.SelectedSong = songToRestore;
+        }
+    }
+    SongModelView? songToRestore { get; set; }
     private async void ToggleViewAlbum_Clicked(object sender, EventArgs e)
     {
+  
+        // Handle the case where the user wants to go back to the song view
         if (!SongView.IsVisible)
         {
             await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+
+            await MyViewModel.LoadSelectedSongLastFMData();
             return;
         }
 
+        // --- SOLUTION IMPLEMENTATION ---
+
+        // 1. Preserve the currently selected song BEFORE you change the filter.
+        songToRestore = MyViewModel.SelectedSong;
+
+        // This is a safety check in case no song was selected.
+        if (songToRestore is null)
+            return;
+
+        // 2. Get the artist name and trigger the filter.
+        //    This is the action that causes SelectedSong to become null.
         Button send = (Button)sender;
-        var prop = send.Text;
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(prop)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
+        var artistName = send.Text;
+
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
+
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(artistName)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
+
+        // 3. Animate the UI views as you were doing before.
+       
+        // 4. IMPORTANT: Restore the selection.
+        //    The list is now filtered, but we can set the selection from the ViewModel.
+        //    We check if the song still exists in the newly filtered list before selecting.
+        if (MyViewModel.SearchResults.Contains(songToRestore))
+        {
+            MyViewModel.SelectedSong = songToRestore;
+        }
     }
 
     private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)

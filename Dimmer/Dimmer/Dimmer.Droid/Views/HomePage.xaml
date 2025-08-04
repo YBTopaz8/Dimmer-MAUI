@@ -884,7 +884,7 @@ VerticalOptions="Center" >
                                                         LongPress="ArtistsChip_LongPress"
                                                         LongPressCommandParameter="{Binding ArtistName}"
                                                         Opacity="0.6"
-                                                        Text="{Binding OtherArtistsName}"
+                                                        Text="{Binding ArtistName}"
                                                         TextColor="{AppThemeBinding Dark=White,
                                                                                     Light=black}"
                                                         VerticalOptions="Center" />

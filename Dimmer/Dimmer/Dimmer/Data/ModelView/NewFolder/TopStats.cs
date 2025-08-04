@@ -100,7 +100,6 @@ public static class TopStats
     public static List<DimmerStats> GetPlayDistributionByHour(IReadOnlyCollection<DimmerPlayEvent> songEvents)
     {
         return songEvents
-            .Where(e => e.PlayType is PlayType_Play or PlayType_Completed)
             .GroupBy(e => e.EventDate?.Hour)
             .Where(g => g.Key.HasValue)
             .Select(g => new DimmerStats
@@ -719,13 +718,13 @@ public static class TopStats
     /// (SURPRISE) (Chart: CandleStick/Stock) Visualizes a song's play count trajectory over its first 7 days.
     /// Insight: "How did I react to this song in its first week? Was it instant love or a slow burn?"
     /// </summary>
-    public static DimmerStats GetSongsFirstImpression(IReadOnlyCollection<DimmerPlayEvent> songEvents, SongModel song)
+    public static DimmerStats GetSongsFirstImpression(IReadOnlyCollection<DimmerPlayEvent> songEvents)
     {
         var firstPlayDate = songEvents
         .Where(e => e.EventDate.HasValue)
         .Min(e => e.EventDate?.Date);
         if (!firstPlayDate.HasValue)
-            return new DimmerStats { StatTitle = "No Play History", Song = song.ToModelView() };
+            return new DimmerStats { StatTitle = "No Play History"};
 
         var firstWeekEvents = songEvents
             .Where(e => e.PlayType == PlayType_Completed && e.EventDate.HasValue &&
@@ -739,14 +738,13 @@ public static class TopStats
 
         // If no plays in the first week, return a specific status
         if (firstWeekEvents.Count == 0)
-            return new DimmerStats { StatTitle = "Not played in its first week", Song = song.ToModelView() };
+            return new DimmerStats { StatTitle = "Not played in its first week" };
 
         var highPlays = firstWeekEvents.Values.Max();
         var lowPlays = firstWeekEvents.Values.Min();
 
         return new DimmerStats
         {
-            Song = song.ToModelView(),
             StatTitle = "First Week Impression",
             Open = day1Plays,     // Day 1 play count
             High = highPlays,     // Peak play count during the week

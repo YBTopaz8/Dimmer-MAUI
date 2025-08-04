@@ -22,6 +22,7 @@ public static class AppSettingsService
             return ShowCloseConfirmation;
         }
     }
+    
 
     public static class VolumeSettingsPreference
     {

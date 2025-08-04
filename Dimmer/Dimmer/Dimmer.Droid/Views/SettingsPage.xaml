@@ -138,28 +138,7 @@
                         </CollectionView>
 
                         <!-- Message Display and Input for Selected Chat -->
-                        <Grid Grid.Row="1" IsVisible="{Binding DimmerLiveViewModel.SelectedConversation, Converter={converters:IsNotNullOrEmptyConverter}}">
-                            <Grid RowDefinitions="*, Auto">
-                                <CollectionView Grid.Row="0" ItemsSource="{Binding DimmerLiveViewModel.MessagesForSelectedConversation}">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ChatMessage">
-                                            <Border Margin="5">
-                                                <VerticalStackLayout>
-                                                    <Label Text="{Binding Sender.Username}" FontAttributes="Bold" />
-                                                    <Label Text="{Binding Text}" />
-                                                    <!-- Add Image for file attachments, etc. -->
-                                                </VerticalStackLayout>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-
-                                <VerticalStackLayout Grid.Row="1" Padding="10">
-                                    <Entry Placeholder="Type a message..." Text="{Binding DimmerLiveViewModel.NewMessageText}" />
-                                    <Button Text="Send" Command="{Binding DimmerLiveViewModel.SendMessageCommand}" />
-                                </VerticalStackLayout>
-                            </Grid>
-                        </Grid>
+                       
                     </Grid>
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
@@ -218,7 +197,7 @@ x:Name="AcceptBtn"
                     </VerticalStackLayout>
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
-            <syncf:SfTabItem>
+            <syncf:SfTabItem Header="Folders">
                 <syncf:SfTabItem.Content>
 
                     <dx:DXDockLayout StretchLastItem="True" >

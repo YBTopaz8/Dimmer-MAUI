@@ -15,6 +15,7 @@ public partial class DimmerWin : Window
     }
     protected async override void OnDestroying()
     {
+        MyViewModel.OnAppClosing();
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
             SubscriptionManager subMgr = IPlatformApplication.Current!.Services.GetService<SubscriptionManager>()!;
@@ -45,9 +46,15 @@ public partial class DimmerWin : Window
     }
     private void CloseAllWindows()
     {
+        if (Application.Current!.Windows.Count <2)
+        {
+            return;
+        }
+
         // make a copy since closing mutates the collection
         foreach (var window in Application.Current!.Windows.ToList())
         {
+            //REWORK THIS
             // this will completely close the window
             Application.Current.CloseWindow(window);
         }
@@ -68,9 +75,14 @@ public partial class DimmerWin : Window
         {
             return;
         }
+        MyViewModel.OnAppOpening();
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
 
+    }
+    protected override void OnStopped()
+    {
+        base.OnStopped();
     }
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {

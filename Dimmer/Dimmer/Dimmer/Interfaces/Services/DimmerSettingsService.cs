@@ -101,6 +101,18 @@ public partial class DimmerSettingsService : ISettingsService
         }
     }
 
+    public double LastKnownPosition
+    {
+        get
+        {
+            return _model.LastKnownPosition;
+        }
+        set
+        {
+            _realm.Write(() => _model.LastKnownPosition = value);
+        }
+    }
+
     public string LastPlayedSong
     {
         get

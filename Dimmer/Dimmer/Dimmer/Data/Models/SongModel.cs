@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace Dimmer.Data.Models;
+
 public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 
@@ -90,7 +91,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// This acts as our "composite primary key" for business logic.
     /// </summary>
     [Indexed]
-    public string TitleDurationKey { get; private set; }
+    public string? TitleDurationKey { get; private set; }
 
 
     // This is a "setter" method that should ALWAYS be used to set the title or duration
