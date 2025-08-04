@@ -56,3 +56,5 @@ obj (2)/
 /Dimmer/Dimmer.Tests
 /Dimmer/Dimmer/atldotnet-main
 /Dimmer/Dimmer/Dimmer/DimmerLive/Orchestration/ApiKeys.cs
+/Dimmer/Dimmer/Dimmer.Tests/bin
+/Dimmer/Dimmer/Dimmer.Tests/obj
