@@ -1063,6 +1063,19 @@ VerticalOptions="Center" >
                 </Grid>
             </dx:DXDockLayout>
         </dx:SafeKeyboardAreaView>
+
+        <dx:BottomSheet x:Name="QuickPanelBtmSheet"
+                        AllowDismiss="True" State="FullExpanded"
+                        AllowedState="All"
+                        BackgroundColor="Red"
+                        GrabberHeight="300"
+                        HeightRequest="500">
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout>
+                    <Label Text="yvan"/>
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 
     <!--</dx:DXScrollView>-->
