@@ -45,3 +45,5 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 # Disclaimer:
 Running the included sideloading PowerShell script to install will collect usage data on the device where it's run. This is by default set by MS, I'll find a way to remove it.
 I don't need anyone's info 🙂
+
+<!-- GitAds-Verify: 1LEGJVTYP9H67R4RA3D5F5PN85BIRWJE -->
