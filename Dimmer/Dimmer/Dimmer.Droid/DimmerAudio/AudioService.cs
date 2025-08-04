@@ -79,11 +79,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region IDimmerAudioService Implementation (Commands)
 
-    public Task InitializeAsync(SongModelView songModel, byte[]? songCoverImage)
+    public Task InitializeAsync(SongModelView songModel, double pos)
     {
         _currentSongModel = songModel;
         // Tell the native service to prepare the track.
-        Service?.Prepare(songModel.FilePath, songModel.Title, songModel.ArtistName, songModel.AlbumName, songModel);
+        long positionMs = (long)(pos * 1000.0);
+        Service?.Prepare(songModel.FilePath, songModel.Title, songModel.ArtistName, songModel.AlbumName, songModel,startPositionMs: positionMs);
 
         return Task.CompletedTask;
     }
@@ -94,7 +95,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         //Service?.PreparePlaylist(song, songModels);
     }
 
-    public void Play() => Player?.Play();
+    public void Play(double pos)
+    {
+        Player?.Play();
+        Seek(pos);
+    }
+
     public void Pause() => Player?.Pause();
     public void Stop() => Player?.Stop();
 

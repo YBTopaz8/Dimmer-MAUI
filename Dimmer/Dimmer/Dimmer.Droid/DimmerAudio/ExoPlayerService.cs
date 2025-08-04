@@ -497,6 +497,7 @@ public class ExoPlayerService : MediaSessionService
             player.Prepare();
 
             player.Play();
+            player.SeekTo(startPositionMs);
             var awDT = player.CurrentMediaItem.MediaMetadata.ArtworkUri;
             var awDTT = player.CurrentMediaItem.MediaMetadata.ArtworkData;
             if (awDT is not null)

@@ -267,7 +267,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// </summary>
     /// <param name="metadata">The metadata of the track to load.</param>
     /// <returns>Task indicating completion.</returns>
-    public async Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage)
+    public async Task InitializeAsync(SongModelView songModel,double pos)
     {
 
         {
@@ -311,14 +311,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer paused and source nulled.");
 
 
-
-            _dispatcherQueue.TryEnqueue(() =>
-            {
-                CurrentPosition = 0;
-                Duration = 0;
-            });
-
-
             MediaPlaybackItem? mediaPlaybackItem = null;
             bool success = false;
 
@@ -334,7 +326,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
 success = true; // Assume success for now; MediaFailed will correct this
 
-                    Play();
+                    Play(pos);
 
                     Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened", songModel.Title);
                 }
@@ -396,7 +388,7 @@ success = true; // Assume success for now; MediaFailed will correct this
     /// Starts or resumes playback.
     /// </summary>
     /// <returns>Task indicating completion.</returns>
-    public void Play()
+    public void Play(double pos)
     {
         ThrowIfDisposed();
         if (_mediaPlayer.Source == null)
@@ -409,7 +401,7 @@ success = true; // Assume success for now; MediaFailed will correct this
         {
             Debug.WriteLine("[AudioService] PlayAsync executing.");
             _mediaPlayer.Play();
-
+            _mediaPlayer.Position = TimeSpan.FromSeconds(pos);
 
         }
         catch (Exception ex)
@@ -493,6 +485,7 @@ success = true; // Assume success for now; MediaFailed will correct this
         }
         else
         {
+            CurrentPosition= positionSeconds;
             Debug.WriteLine("[AudioService] SeekAsync requested but cannot seek.");
         }
     }
@@ -701,7 +694,7 @@ success = true; // Assume success for now; MediaFailed will correct this
         {
             if (_mediaPlayer.Source != null)
             {
-                Play();
+                Play(CurrentPosition);
                 args.Handled = true;
             }
             else
@@ -1079,7 +1072,7 @@ success = true; // Assume success for now; MediaFailed will correct this
         try
         {
 
-            Task.Run(async () => await InitializeAsync(songModelView, null));
+            Task.Run(async () => await InitializeAsync(songModelView,0));
         }
         catch (Exception ex)
         {

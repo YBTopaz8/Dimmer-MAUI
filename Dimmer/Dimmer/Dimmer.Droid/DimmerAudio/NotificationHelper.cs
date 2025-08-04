@@ -56,8 +56,8 @@ public static class NotificationHelper
         }
 
 
-        var channelName = ctx.GetString(Resource.String.playback_channel_name);
-        var channelDesc = ctx.GetString(Resource.String.playback_channel_desc);
+        var channelName = "Dimmer Playback";
+        var channelDesc = "Media Playback Controls For Dimmer";
         var importance = NotificationImportance.Low;
 
         var chan = new NotificationChannel(ChannelId, channelName, importance)
