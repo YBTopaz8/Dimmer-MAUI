@@ -3,7 +3,10 @@
 	<uses-permission android:name="android.permission.BIND_QUICK_SETTINGS_TILE" />
 	<application android:allowBackup="true" android:enableOnBackInvokedCallback="true" android:supportsRtl="true" android:label="Dimmer">
 		<meta-data android:name="NothingKey" android:value="test" />
-		<activity android:name="com.yvanbrunel.dimmer.MainActivity" android:exported="true" android:launchMode="singleTask" android:theme="@style/Maui.SplashTheme">
+		<activity android:name="com.yvanbrunel.dimmer.MainActivity"
+              android:directBootAware="true"
+              android:exported="true" android:launchMode="singleTask" 
+              android:theme="@style/Maui.SplashTheme">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -21,8 +24,15 @@
 			</intent-filter>
 		</activity>
 		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" android:allowEmbedded="true" android:resizeableActivity="true" android:documentLaunchMode="always" android:exported="false" android:taskAffinity="" android:launchMode="singleInstance" android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
-		<service android:name="com.yvanbrunel.dimmer.ExoPlayerService" android:exported="false" android:foregroundServiceType="mediaPlayback" />
-		<service android:name="com.yvanbrunel.dimmer.QuickSettingsTileService" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:label="@string/qs_tile_label" android:icon="@drawable/exo_icon_circular_play" android:exported="true">
+    <service android:name="com.yvanbrunel.dimmer.ExoPlayerService"
+             android:directBootAware="true"
+             android:exported="true" android:foregroundServiceType="mediaPlayback" >
+
+      <intent-filter>
+        <action android:name="android.media.browse.MediaBrowserService" />
+      </intent-filter>
+    </service>
+		<service android:name="com.yvanbrunel.dimmer.QuickSettingsTileService" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:icon="@drawable/exo_icon_circular_play" android:exported="true">
 			<intent-filter>
 				<action android:name="android.service.quicksettings.action.QS_TILE" />
 			</intent-filter>
@@ -41,11 +51,9 @@
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-	<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="com.nothing.ketchum.permission.ENABLE" />
 	<uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-	<uses-permission android:name="android.permission.BATTERY_STATS" />
 	<uses-permission android:name="android.permission.BIND_APPWIDGET" />
 	<uses-permission android:name="android.permission.BLUETOOTH" />
 	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
@@ -53,6 +61,5 @@
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.SET_WALLPAPER" />
-	<uses-permission android:name="android.permission.STATUS_BAR" />
-	<uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 </manifest>

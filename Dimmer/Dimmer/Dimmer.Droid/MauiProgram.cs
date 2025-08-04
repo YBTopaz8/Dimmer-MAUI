@@ -10,7 +10,7 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
         ThemeManager.UseAndroidSystemColor = true;
-
+        
         builder
               .ConfigureEssentials(essentials =>
               {
