@@ -6,8 +6,6 @@
 
 # Dimmer now Has a Proper WearOs App [Here](https://github.com/YBTopaz8/DimmerWatchCompanion) ⌚
 Building this as a hobby and also because the music app I use on Windows (Dopamine) and on Android (Retro Music Player) are discontinued.
-
-
 ## GitAds Sponsored
 [![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=ybtopaz8/dimmer-maui@github)](https://gitads.dev/v1/ad-track?source=ybtopaz8/dimmer-maui@github)
 
