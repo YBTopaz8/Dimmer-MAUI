@@ -1883,8 +1883,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         // Get the song DIRECTLY from our private, frozen queue.
         // No need to search, no need to touch SearchResults, no UI flickering.
-        var songToPlay = _playbackQueue[_playbackQueueIndex];
-        if (songToPlay != CurrentPlayingSongView)
+        SongModelView? songToPlay = _playbackQueue[_playbackQueueIndex];
+        if (songToPlay.TitleDurationKey != CurrentPlayingSongView.TitleDurationKey)
         {
             CurrentTrackPositionSeconds=0;
         }

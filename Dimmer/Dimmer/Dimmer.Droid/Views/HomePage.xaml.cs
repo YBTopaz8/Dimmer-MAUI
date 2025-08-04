@@ -61,7 +61,7 @@ public partial class HomePage : ContentPage
     string SearchParam = string.Empty;
 
     SongModelView selectedSongPopUp = new SongModelView();
-    private void MoreIcon_Clicked(object sender, EventArgs e)
+    private void MoreIcosn_Clicked(object sender, EventArgs e)
     {
         var send = (Chip)sender;
         if (send.BindingContext is not SongModelView paramss)
@@ -732,12 +732,39 @@ public partial class HomePage : ContentPage
         return base.OnBackButtonPressed();
     }
 
-    private async void MoreIcon_Clicked(object sender, HandledEventArgs e)
+    private async void MoreaIcon_Clicked(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
         SongModelView song = send.BindingContext as SongModelView;
         MyViewModel.BaseVM.SelectedSong=song;
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
+    }
+
+    private void DXButton_Clicked_4(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ViewSongOnly_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ViewSongOnly_Tap(object sender, HandledEventArgs e)
+    {
+        if (this.QuickPanelBtmSheet.State != BottomSheetState.Hidden)
+        {
+            this.QuickPanelBtmSheet.State= BottomSheetState.HalfExpanded;
+        }
+        else
+        {
+            this.QuickPanelBtmSheet.State= BottomSheetState.Hidden;
+        }
+    }
+
+    private void MoreIcon_Tap(object sender, HandledEventArgs e)
+    {
+
     }
 }
 
