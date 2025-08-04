@@ -1772,7 +1772,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (songToPlay == null)
             return;
-
+        
         // --- Step 1: Get the current UI results and FREEZE them into a new list ---
         // .ToList() creates a brand new list in memory, a perfect snapshot.
         var baseQueue = _searchResults.ToList();
@@ -1884,7 +1884,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // Get the song DIRECTLY from our private, frozen queue.
         // No need to search, no need to touch SearchResults, no UI flickering.
         var songToPlay = _playbackQueue[_playbackQueueIndex];
-
+        if (songToPlay != CurrentPlayingSongView)
+        {
+            CurrentTrackPositionSeconds=0;
+        }
 
 
         if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
