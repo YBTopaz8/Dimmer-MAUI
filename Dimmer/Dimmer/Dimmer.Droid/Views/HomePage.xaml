@@ -796,16 +796,14 @@ FontAttributes="Bold"
                                 AllowDragDropItems="False"
                                 AllowFixedGroupHeaders="True"
                                 AllowGroupCollapse="True"
-                                                 UseRippleEffect="True"
-                                                 RippleColor="DarkSlateBlue"
-                                                 RippleEffectPosition="Foreground"
+                                                 UseRippleEffect="False"
                                 AllowLiveDataShaping="True"
                                 BackgroundColor="Transparent"
                                 FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
-                                ItemSpacing="5"
+                                ItemSpacing="10"
                                 ItemsSource="{Binding BaseVM.SearchResults}"
                                 Loaded="SongsColView_Loaded"
-                                Tap="SongsColView_Tap">
+                                >
                                 <dx:DXCollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:SongModelView">
 
@@ -817,41 +815,39 @@ FontAttributes="Bold"
                                                 ColumnDefinitions="0.25*,*,0.35*"
                                                 
                                                 VerticalOptions="Center">
-                                                <dx:DXBorder CornerRadius="10" 
-                                               Grid.Column="0">
-                                                    <dx:DXBorder.Triggers>
-                                                        <DataTrigger
+                                            <dx:Chip  IsIconVisible="True"
+IconSize="70,70" CornerRadius="40" HorizontalOptions="Center"
+                                                     Grid.Column="0" TapCommandParameter="{Binding .}"
+                                               Icon="{Binding CoverImagePath}"
+                                            x:Name="ViewSongOnly"         Tap="ViewSongOnly_Tap">
+                                                <dx:Chip.Triggers>
+                                                    <DataTrigger
 Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
-TargetType="dx:DXBorder"
+TargetType="dx:Chip"
 Value="True">
-                                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
-                                                            <Setter Property="BorderThickness" Value="1" />
-                                                        </DataTrigger>
-                                                        <DataTrigger
+                                                        <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                    </DataTrigger>
+                                                    <DataTrigger
 Binding="{Binding HasSyncedLyrics}"
-TargetType="dx:DXBorder"
+TargetType="dx:Chip"
 Value="False">
-                                                            <Setter Property="BorderColor" Value="Transparent" />
-                                                            <Setter Property="BorderThickness" Value="1" />
-                                                        </DataTrigger>
-                                                    </dx:DXBorder.Triggers>
+                                                        <Setter Property="BorderColor" Value="Transparent" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                    </DataTrigger>
+                                                </dx:Chip.Triggers>
 
-                                                    <dx:DXImage
-BackgroundColor="Transparent" 
-Source="{Binding CoverImagePath}"
-IsVisible="True" Opacity="0.8"
-                HorizontalOptions="Fill"                               
-VerticalOptions="Center" >
-                                                    </dx:DXImage>
-                                                </dx:DXBorder>
+                                            </dx:Chip>
 
-                                                <dx:DXStackLayout
+                                            <dx:DXButton
                                                     x:Name="TitleAndArtists"
-                                                    Grid.Column="1"
+                                                    Grid.Column="1" Padding="0"
+                                                HorizontalContentAlignment="Start"
                                                     BackgroundColor="Transparent"
                                                     VerticalOptions="Center">
-
-                                                <Label
+                                                <dx:DXButton.Content>
+                                                    <dx:DXStackLayout>
+                                                                                                        <Label
       x:Name="SongTitleChip"
       Padding="10,0"
       BackgroundColor="Transparent"
@@ -872,7 +868,7 @@ VerticalOptions="Center" >
                                                         </DataTrigger>
                                                     </Label.Triggers>
                                                 </Label>
-                                                <dx:Chip
+                                                        <dx:Chip
                                                         x:Name="ArtistsChip"
                                                               Padding="10,0"
 
@@ -922,7 +918,10 @@ VerticalOptions="Center" >
                                                             UseRippleEffect="True"
                                                             VerticalOptions="Center" />
 
-                                                </dx:DXStackLayout>
+                                                    </dx:DXStackLayout>
+
+                                                </dx:DXButton.Content>
+                                                </dx:DXButton>
 
 
                                             <dx:Chip
@@ -937,7 +936,7 @@ VerticalOptions="Center" >
                                                     LongPress="MoreIcon_LongPress"
                                                     PressedBackgroundColor="DarkSlateBlue"
                                                     PressedBorderColor="DarkSlateBlue"
-                                                    Tap="MoreIcon_Clicked"
+                                                    Tap="MoreIcon_Tap"
                                                     TapCommandParameter="{Binding .}"
                                                   Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
                                                     

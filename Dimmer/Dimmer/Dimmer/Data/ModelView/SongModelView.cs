@@ -10,7 +10,6 @@ public partial class SongModelView : ObservableObject
     public partial string Title { get; set; }
 
     [ObservableProperty]
-
     public partial string TitleDurationKey { get; set; }
 
 
@@ -128,9 +127,22 @@ public partial class SongModelView : ObservableObject
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
+        if (string.IsNullOrEmpty(this.Title))
+        {
+            return false;
+        }
         if (obj is SongModelView other)
         {
-            return this.Id == other.Id;
+
+            if(this.TitleDurationKey is null)
+            {
+                SetTitleAndDuration(Title, DurationInSeconds);
+            }
+            if (other.TitleDurationKey is null)
+            {
+                other.SetTitleAndDuration(other.Title, other.DurationInSeconds);
+            }
+            return this.TitleDurationKey == other.TitleDurationKey;
         }
 
         return false;
