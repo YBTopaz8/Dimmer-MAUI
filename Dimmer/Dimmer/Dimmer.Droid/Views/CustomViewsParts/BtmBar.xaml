@@ -15,7 +15,8 @@
     Padding="5"
     x:DataType="vm:BaseViewModelAnd"
     CornerRadius="20"
-    HeightRequest="90">
+    xmlns:custHandler="clr-namespace:Dimmer.Utils.CustomHandlers"
+    HeightRequest="490">
 
 
     <dx:DXBorder.Resources>
@@ -34,8 +35,9 @@
         <PanGestureRecognizer x:Name="PanGesture" PanUpdated="PanGesture_PanUpdated" />
     </dx:DXBorder.GestureRecognizers>
     <dx:DXBorder.Content>
-        <StackLayout Padding="0,0" BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#242629}">
-
+        <StackLayout x:FieldModifier="Public" x:Name="BtmBarStackLayout" Padding="0,0" BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#242629}">
+            <custHandler:MorphingButtonView 
+                               />
             <Grid
                 Padding="0,0"
                 BackgroundColor="Transparent"

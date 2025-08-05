@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "Dimmer\Last.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "Dimmer\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AndroidBindBtn", "AndroidBindBtn\AndroidBindBtn.csproj", "{0C7814BE-4EEF-4296-B2B7-2B3A5EE9EAB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C7814BE-4EEF-4296-B2B7-2B3A5EE9EAB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C7814BE-4EEF-4296-B2B7-2B3A5EE9EAB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C7814BE-4EEF-4296-B2B7-2B3A5EE9EAB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C7814BE-4EEF-4296-B2B7-2B3A5EE9EAB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

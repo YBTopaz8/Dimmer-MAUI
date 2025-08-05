@@ -67,8 +67,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService,
 
         LoginViewModel loginViewModel,
-        DimmerLiveViewModel dimmerLiveViewModel,
-        IDimmerLiveStateService dimmerLiveStateService, IFolderPicker folderPicker, IAnimationService animService,
+        DimmerLiveViewModel dimmerLiveViewModel, IFolderPicker folderPicker, IAnimationService animService,
        IDimmerAudioService _audioService, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
@@ -77,7 +76,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.appInitializerService=appInitializerService;
         this.loginViewModel=loginViewModel;
         this.dimmerLiveViewModel=dimmerLiveViewModel;
-        this.dimmerLiveStateService=dimmerLiveStateService;
         this.folderPicker=folderPicker;
         this.animService=animService;
         audioService=_audioService;
