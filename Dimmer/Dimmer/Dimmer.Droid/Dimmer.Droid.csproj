@@ -34,12 +34,6 @@
     <PublishTrimmed>False</PublishTrimmed>
     <RunAOTCompilation>False</RunAOTCompilation>
     <EnableLLVM Condition="'$(RunAOTCompilation)'=='true'">False</EnableLLVM>
-    <ApplicationTitle>Dimmer</ApplicationTitle>
-    <AndroidKeyStore>False</AndroidKeyStore>
-    <EnableLLVM>False</EnableLLVM>
-    <AndroidLinkMode>None</AndroidLinkMode>
-    <AndroidLinkTool>r8</AndroidLinkTool>
-    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
   </PropertyGroup>
 
   <ItemGroup>

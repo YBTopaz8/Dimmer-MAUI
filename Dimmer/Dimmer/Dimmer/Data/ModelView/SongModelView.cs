@@ -184,10 +184,6 @@ public partial class SongModelView : ObservableObject
         {
             SearchableText=string.Empty;
         }
-        else if (!string.IsNullOrEmpty(SearchableText) && !string.IsNullOrWhiteSpace(SearchableText))
-        {
-
-        }
         HasSyncedLyrics= !string.IsNullOrEmpty(SyncLyrics) && SyncLyrics.Length > 1;
         HasLyrics = !string.IsNullOrEmpty(UnSyncLyrics) && UnSyncLyrics.Length > 1;
         IsFileExists = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
