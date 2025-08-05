@@ -16,7 +16,7 @@
 
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
-    <OptimizationPreference>Speed</OptimizationPreference>
+    <OptimizationPreference>Size</OptimizationPreference>
     <PublishAot>false</PublishAot>
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
@@ -36,7 +36,8 @@
     <EnableLLVM Condition="'$(RunAOTCompilation)'=='true'">False</EnableLLVM>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
-    <EnableLLVM>True</EnableLLVM>
+    <EnableLLVM>False</EnableLLVM>
+    <AndroidLinkMode>None</AndroidLinkMode>
     <AndroidLinkTool>r8</AndroidLinkTool>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
   </PropertyGroup>

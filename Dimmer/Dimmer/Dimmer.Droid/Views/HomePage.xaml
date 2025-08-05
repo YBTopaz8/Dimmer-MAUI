@@ -102,6 +102,7 @@
                     x:Name="SearchContentView"
                     x:DataType="vm:BaseViewModelAnd"
                     IsVisible="True" RowSpacing="5"
+                    Margin="5,0"
                     RowDefinitions="auto,auto,*,auto">
 
                     <dx:DXExpander
@@ -811,41 +812,50 @@ FontAttributes="Bold"
 
                                             <Grid
                                                 BackgroundColor="Transparent"
-                                                RowDefinitions="70"
-                                                ColumnDefinitions="0.25*,*,0.35*"
+                                                RowDefinitions="60" ColumnSpacing="1"
+                                                ColumnDefinitions="0.18*,*,auto"
                                                 
                                                 VerticalOptions="Center">
-                                            <dx:Chip  IsIconVisible="True"
-IconSize="70,70" CornerRadius="40" HorizontalOptions="Center"
-                                                     Grid.Column="0" TapCommandParameter="{Binding .}"
-                                               Icon="{Binding CoverImagePath}"
-                                                      IconIndent="10"
-                                            x:Name="ViewSongOnly"         Tap="ViewSongOnly_Tap">
-                                                <dx:Chip.Triggers>
-                                                    <DataTrigger
+                                            <syncf:SfEffectsView Grid.Column="0"
+                                                      
+                                            x:Name="ViewSongOnly"                    
+                                                                 TouchDown="ViewSongOnly_TouchDown"
+                                                           TouchDownCommandParameter="{Binding .}">
+                                                <dx:DXBorder
+                                                   CornerRadius="15" >
+                                                    <dx:DXBorder.Triggers>
+                                                        <DataTrigger
 Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
-TargetType="dx:Chip"
+TargetType="dx:DXBorder"
 Value="True">
-                                                        <Setter Property="BorderColor" Value="DarkSlateBlue" />
-                                                        <Setter Property="BorderThickness" Value="1" />
-                                                    </DataTrigger>
-                                                    <DataTrigger
+                                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                        </DataTrigger>
+                                                        <DataTrigger
 Binding="{Binding HasSyncedLyrics}"
-TargetType="dx:Chip"
+TargetType="dx:DXBorder"
 Value="False">
-                                                        <Setter Property="BorderColor" Value="Transparent" />
-                                                        <Setter Property="BorderThickness" Value="1" />
-                                                    </DataTrigger>
-                                                </dx:Chip.Triggers>
+                                                            <Setter Property="BorderColor" Value="Transparent" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                        </DataTrigger>
+                                                    </dx:DXBorder.Triggers>
 
-                                            </dx:Chip>
 
+                                                    <dx:DXImage  
+                                                         
+                                               Source="{Binding CoverImagePath}"/>
+
+                                                </dx:DXBorder>
+
+
+                                            </syncf:SfEffectsView>
                                             <dx:DXButton
                                                 CornerRadius="5"
                                                     x:Name="TitleAndArtists"
                                                     Grid.Column="1" Padding="0"
                                                 HorizontalContentAlignment="Start"
                                                     BackgroundColor="Transparent"
+                                                Clicked="PlaySongClicked"
                                                     VerticalOptions="Center">
                                                 <dx:DXButton.Content>
                                                     <dx:DXStackLayout>
@@ -903,22 +913,7 @@ Value="False">
                                                             UseRippleEffect="True"
                                                             VerticalOptions="Center" />
 
-                                                        <dx:Chip
-                                                            x:Name="QuickFilterYears"
-                                                            BackgroundColor="Transparent"
-                                                            BorderThickness="0"
-                                                                  Padding="10,0"
-
-                                                            FontSize="10"
-                                                            HorizontalOptions="Start"
-                                                            LongPress="QuickFilterYears_LongPress"
-                                                            LongPressCommandParameter="{Binding ReleaseYear}"
-                                                            Opacity="0.5"
-                                                            Tap="QuickFilterYears_Tap"
-                                                            TapCommandParameter="{Binding ., Source={x:Reference SongExpander}}"
-                                                            Text="{Binding ReleaseYear}"
-                                                            UseRippleEffect="True"
-                                                            VerticalOptions="Center" />
+                                                       
 
                                                     </dx:DXStackLayout>
 
@@ -930,6 +925,7 @@ Value="False">
                                                     x:Name="MoreIcon"
                                                     Grid.Column="2"
                                                     Padding="20"
+                                                FontSize="15"
                                                     BorderColor="DarkSlateBlue"
                                                     BorderThickness="0.7"
                                                     CornerRadius="25"
@@ -1068,9 +1064,8 @@ Value="False">
         <dx:BottomSheet x:Name="QuickPanelBtmSheet"
                         AllowDismiss="True" State="FullExpanded"
                         AllowedState="All"
-                        BackgroundColor="Red"
-                        GrabberHeight="300"
-                        HeightRequest="500">
+                        BackgroundColor="{AppThemeBinding Dark=#999999,Light=#F5F5F5}"
+                        >
             <dx:BottomSheet.Content>
                 <dx:DXStackLayout>
                     <Label Text="yvan"/>

@@ -140,4 +140,25 @@ public partial class AppShell : Shell
     {
         this.NavTab.SelectedIndex = NavTab.Items.Count - 1;
     }
+
+    private void ThemeToggleBtn_Clicked(object sender, EventArgs e)
+    {
+
+        var currentAppTheme = Application.Current?.UserAppTheme;
+        if (currentAppTheme == AppTheme.Dark)
+        {
+            Application.Current?.UserAppTheme = AppTheme.Light;
+        }
+        else if (currentAppTheme == AppTheme.Light)
+        {
+
+
+            Application.Current?.UserAppTheme = AppTheme.Dark;
+        }
+        else if(currentAppTheme  == AppTheme.Unspecified)
+        {
+            Application.Current?.UserAppTheme = AppTheme.Light;
+        }
+
+    }
 }

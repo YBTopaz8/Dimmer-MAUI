@@ -15,6 +15,7 @@ public partial class SongModelView : ObservableObject
 
     public void SetTitleAndDuration(string title, double duration)
     {
+       
         Title = title;
         DurationInSeconds = duration;
         TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
@@ -134,11 +135,11 @@ public partial class SongModelView : ObservableObject
         if (obj is SongModelView other)
         {
 
-            if(this.TitleDurationKey is null)
+            if(this.TitleDurationKey is null && !string.IsNullOrEmpty(Title) && DurationInSeconds != 0)
             {
-                SetTitleAndDuration(Title, DurationInSeconds);
+                SetTitleAndDuration(Title,DurationInSeconds);
             }
-            if (other.TitleDurationKey is null)
+            if (other.TitleDurationKey is null && !string.IsNullOrEmpty(other.Title) && other.DurationInSeconds != 0)
             {
                 other.SetTitleAndDuration(other.Title, other.DurationInSeconds);
             }

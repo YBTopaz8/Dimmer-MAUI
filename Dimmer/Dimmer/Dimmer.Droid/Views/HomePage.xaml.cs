@@ -96,8 +96,6 @@ public partial class HomePage : ContentPage
 
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
-        var song = e.Item as SongModelView;
-      await  MyViewModel.BaseVM.PlaySong(song);
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
         //DetailView.IsVisible=true;
@@ -750,7 +748,27 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void ViewSongOnly_Tap(object sender, HandledEventArgs e)
+    private void ViewSongOnly_Tap(object sender, DXTapEventArgs e)
+    {
+        
+    }
+
+    private void MoreIcon_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ViewSongOnly_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ViewSongOnly_TouchDown(object sender, EventArgs e)
     {
         if (this.QuickPanelBtmSheet.State != BottomSheetState.Hidden)
         {
@@ -762,9 +780,11 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void MoreIcon_Tap(object sender, HandledEventArgs e)
+    private async void PlaySongClicked(object sender, EventArgs e)
     {
-
+        var send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        await MyViewModel.BaseVM.PlaySong(song);
     }
 }
 

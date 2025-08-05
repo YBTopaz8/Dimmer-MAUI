@@ -5,7 +5,9 @@
       
         xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
 xmlns:vm="clr-namespace:Dimmer.ViewModels"
-       FlyoutBehavior="Disabled"
+       FlyoutBehavior="Flyout"
+       
+       
     xmlns:dx="http://schemas.devexpress.com/maui"
        Shell.TabBarBackgroundColor="{AppThemeBinding Dark=#1e1e1e,
                                                      Light=White}"
@@ -263,7 +265,15 @@ Command="{Binding BaseVM.ValidateLibraryCommand}"
         <VerticalStackLayout
           x:Name="BottomLeft"
           Grid.Row="1"
-          Margin="0,10">
+          Margin="10,10">
+            <dx:DXButton
+                x:Name="ThemeToggleBtn"
+                Content="Toggle Theme"
+                Clicked="ThemeToggleBtn_Clicked"
+                HorizontalOptions="Start"
+                BackgroundColor="{AppThemeBinding Light=Black, Dark=White}">
+                
+            </dx:DXButton>
             <syncf:SfChip
               x:Name="SettingsChip"
               CommandParameter="Settings"
