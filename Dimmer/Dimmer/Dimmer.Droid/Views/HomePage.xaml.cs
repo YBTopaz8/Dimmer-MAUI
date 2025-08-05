@@ -9,11 +9,15 @@ using Dimmer.Utilities.CustomAnimations;
 using Dimmer.Utilities.ViewsUtils;
 using Dimmer.ViewModel;
 
+using Microsoft.Maui.Controls.Compatibility.Platform.Android;
+using Microsoft.Maui.Controls.Embedding;
+
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Color = Microsoft.Maui.Graphics.Color;
+using Platform = Microsoft.Maui.ApplicationModel.Platform;
 
 namespace Dimmer.Views;
 
@@ -40,8 +44,23 @@ public partial class HomePage : ContentPage
 
         //MyViewModel.FiniInit();
 
-        //var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
-
+        ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+        //AndMorphingButton.MorphingButton morph = new AndMorphingButton.MorphingButton(Platform.AppContext);
+        //morph.SetText("TestYB", TextView.BufferType.Normal);
+        //morph.Click += (s, e) =>
+        //{
+        //    Debug.WriteLine("Button Clicked");
+        //    //morph.SetText("Clicked", TextView.BufferType.Normal);
+        //    //morph.SetBackgroundColor(Android.Graphics.Color.Red);
+        //    //morph.SetTextColor(Android.Graphics.Color.White);
+        //};
+        
+        //var ss = morph.ToView();
+        //ss.HeightRequest = 180;
+        //ss.BackgroundColor = Colors.Red;
+        
+        //MyBtmBar.BtmBarStackLayout.Children.Add(ss);
+        
     }
 
     private void SearchBy_TextChanged(object sender, EventArgs e)

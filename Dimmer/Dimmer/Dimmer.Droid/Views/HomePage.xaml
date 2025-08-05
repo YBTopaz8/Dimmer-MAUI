@@ -981,7 +981,7 @@ Value="False">
                                     <customViewParts:BtmBar
                     RequestFocusNowPlayingUI="BtmBar_RequestFocusNowPlayingUI"
                     RequestFocusOnMainView="BtmBar_RequestFocusOnMainView"
-                    ScrollToStart="BtmBar_ScrollToStart"
+                    ScrollToStart="BtmBar_ScrollToStart" x:Name="MyBtmBar"
                     ToggleAdvanceFilters="BtmBar_ToggleAdvanceFilters" />
                                     <dx:DXStackLayout
                     x:Name="BelowBtmBar"

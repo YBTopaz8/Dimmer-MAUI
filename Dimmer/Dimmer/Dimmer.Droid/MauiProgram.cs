@@ -1,4 +1,5 @@
-﻿using Dimmer.Utils.CustomHandlers.CollectionView;
+﻿using Dimmer.Utils.CustomHandlers;
+using Dimmer.Utils.CustomHandlers.CollectionView;
 using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
 
@@ -49,7 +50,7 @@ public static class MauiProgram
         {
             handlers.AddHandler<Shell, MyShellRenderer>();
             handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-
+            handlers.AddHandler<MorphingButtonView, MorphingButtonHandler>();
         });
         builder.Services.AddSingleton<PlayerViewModel>();
 

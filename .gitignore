@@ -59,3 +59,5 @@ obj (2)/
 /Dimmer/Dimmer/Dimmer.Tests/bin
 /Dimmer/Dimmer/Dimmer.Tests/obj
 /Dimmer.tar
+/Dimmer/AndroidBindBtn/obj
+/Dimmer/AndroidBindBtn/bin/Debug/net9.0-android

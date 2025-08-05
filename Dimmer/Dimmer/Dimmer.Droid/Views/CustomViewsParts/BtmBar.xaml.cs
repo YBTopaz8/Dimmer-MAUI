@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core.Internal;
@@ -25,13 +26,13 @@ public partial class BtmBar : DXBorder
 
     public BaseViewModelAnd MyViewModel { get; set; }
 
-
-    private void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
+    
+    private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
         //DXBorder send = (DXBorder)sender;
 
 
-        MyViewModel.BaseVM.PlayPauseToggle();
+       await MyViewModel.BaseVM.PlayPauseToggle();
 
     }
 
