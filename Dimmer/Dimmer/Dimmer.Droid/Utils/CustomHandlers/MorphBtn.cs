@@ -47,7 +47,7 @@ public class MorphingButtonHandler : ViewHandler<MorphingButtonView, TheRealNati
     // Event handler for the native click
     private void OnPlatformViewClicked(object? sender, System.EventArgs e)
     {
-
+        
         this.PlatformView.Text = "Clicked! YB" + count++;
         
         System.Diagnostics.Debug.WriteLine("Native Button was clicked via the HANDLER!");

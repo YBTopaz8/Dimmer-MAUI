@@ -71,6 +71,7 @@ public partial class HomePage : ContentPage
 
     private void ClosePopup(object sender, EventArgs e)
     {
+        
 
         //SongsMenuPopup.Close();
     }
