@@ -22,3 +22,7 @@
 /Dimmer.tar
 /Dimmer/atldotnet-main/ATL/bin
 /Dimmer/atldotnet-main/ATL/obj
+/Dimmer/Dimmer.WinUI/releaseDoc/Output
+*.pfx
+*.json
+/Dimmer/Dimmer/DimmerLive/Orchestration/ApiKeys.cs
