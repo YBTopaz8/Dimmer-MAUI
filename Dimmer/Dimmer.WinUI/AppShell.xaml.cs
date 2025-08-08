@@ -206,13 +206,20 @@ public partial class AppShell : Shell
                 .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
                 .Select(name => name.Trim())                           // Trim whitespace from each name
                 .ToArray();                                             // Convert to a List
+            string res =string.Empty;
+            if (namesList.Length>1)
+            { 
+              res   = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
+                if (string.IsNullOrEmpty(res) || res == "Cancel")
+                {
+                    return;
+                }
 
-            var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
-
-            if (string.IsNullOrEmpty(res))
+            }
+            if(namesList.Length==1)
             {
-                return;
+                res=namesList[0];
             }
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
 

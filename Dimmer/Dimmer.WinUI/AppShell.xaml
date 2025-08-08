@@ -90,7 +90,28 @@ Value="{Binding DeviceVolumeLevel}" />
                 </Grid>
             </VerticalStackLayout>
 
-            <VerticalStackLayout Grid.Row="1" x:Name="NavTab">
+            <Border 
+                Margin="10,0"
+                
+                Stroke="{Binding CurrentPlaySongDominantColor}" Grid.Row="1" x:Name="NavTab">
+                <Border.Triggers>
+
+                    <DataTrigger
+Binding="{Binding IsPlaying}"
+TargetType="Border"
+Value="true">
+                        <Setter Property="StrokeThickness" Value="2" />
+                    </DataTrigger>
+
+                    <DataTrigger
+Binding="{Binding IsPlaying}"
+TargetType="Border"
+Value="false">
+                        <Setter Property="StrokeThickness" Value="0" />
+                    </DataTrigger>
+
+
+                </Border.Triggers>
                 <VerticalStackLayout
 x:Name="LyricsSection"
 HorizontalOptions="Center"
@@ -138,7 +159,7 @@ IsVisible="True">
     Text="{Binding NextLine.Text}" />
                 </VerticalStackLayout>
 
-            </VerticalStackLayout>
+            </Border>
    
 
         </Grid>
@@ -171,18 +192,13 @@ IsVisible="True">
             </VerticalStackLayout >
 
             <Grid ColumnDefinitions="*,auto">
-                <syncf:SfChip HorizontalOptions="Center"
+                <Label HorizontalOptions="Center"
                      HorizontalTextAlignment="Start"
-                              Clicked="NavigateToSelectedSongPageContextMenuAsync"
-                              
-                StrokeThickness="1.5"
-                Stroke="{Binding CurrentPlaySongDominantColor}"
-               ImageSource="song.png"      
                               FontAttributes="Bold"
                   Text="{Binding CurrentPlayingSongView.Title}" FontSize="21">
 
 
-                </syncf:SfChip>
+                </Label>
                 <HorizontalStackLayout Grid.Column="1">
                     <Button 
                         Command="{Binding ToggleFavSongCommand}"

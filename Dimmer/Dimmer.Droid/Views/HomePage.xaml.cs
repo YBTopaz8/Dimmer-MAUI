@@ -443,11 +443,11 @@ public partial class HomePage : ContentPage
 
     private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
     {
-        NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+        //NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        //MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
 
-        BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
+        //BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        //TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
     }
 
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
@@ -543,14 +543,14 @@ public partial class HomePage : ContentPage
 
     private async void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
     {
-        if (BelowBtmBar.IsVisible)
-        {
-            await BelowBtmBar.DimmOutCompletelyAndHide();
-        }
-        else
-        {
-            await BelowBtmBar.DimmInCompletelyAndShow();
-        }
+        //if (BelowBtmBar.IsVisible)
+        //{
+        //    await BelowBtmBar.DimmOutCompletelyAndHide();
+        //}
+        //else
+        //{
+        //    await BelowBtmBar.DimmInCompletelyAndShow();
+        //}
     }
 
     private void BtmBar_ScrollToStart_1(object sender, EventArgs e)
@@ -560,7 +560,7 @@ public partial class HomePage : ContentPage
 
     private async void am_DoubleTap(object sender, HandledEventArgs e)
     {
-        await BelowBtmBar.DimmOutCompletelyAndHide();
+        //await BelowBtmBar.DimmOutCompletelyAndHide();
     }
 
     private void PingGest_PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
@@ -593,11 +593,11 @@ public partial class HomePage : ContentPage
     {
        
 
-           this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+        //   this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        //this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
 
-            BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
+        //    BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        //TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
 
 
             return true;
@@ -630,7 +630,7 @@ public partial class HomePage : ContentPage
     private void MoreIcon_Tap(object sender, HandledEventArgs e)
     {
 
-        MoreModal.IsOpen=true;
+        //MoreModal.IsOpen=true;
 
     }
 
@@ -646,14 +646,14 @@ public partial class HomePage : ContentPage
 
     private void ViewSongOnly_TouchDown(object sender, EventArgs e)
     {
-        if (this.QuickPanelBtmSheet.State != BottomSheetState.Hidden)
-        {
-            this.QuickPanelBtmSheet.State= BottomSheetState.Hidden;
-        }
-        else
-        {
-            this.QuickPanelBtmSheet.State= BottomSheetState.HalfExpanded;
-        }
+        //if (this.QuickPanelBtmSheet.State != BottomSheetState.Hidden)
+        //{
+        //    this.QuickPanelBtmSheet.State= BottomSheetState.Hidden;
+        //}
+        //else
+        //{
+        //    this.QuickPanelBtmSheet.State= BottomSheetState.HalfExpanded;
+        //}
     }
 
     private async void PlaySongClicked(object sender, EventArgs e)

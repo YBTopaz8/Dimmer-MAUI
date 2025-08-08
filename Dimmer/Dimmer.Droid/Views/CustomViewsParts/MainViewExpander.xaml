@@ -171,11 +171,11 @@ Value="False">
 
                             </dx:Chip>
                         </Grid>
-                        
+
 
                     </dx:DXStackLayout>
                 </DataTemplate>
             </dx:DXCollectionView.ItemTemplate>
         </dx:DXCollectionView>
-    </>
+    </dx:DXStackLayout>
 </dx:DXExpander>

@@ -67,7 +67,8 @@ x:Name="myPage"
                           PointerPressed="TableView_PointerPressed"
                            AutoGenerateColumns="False"
                               DoubleTapped="TableView_DoubleTapped"
-                              
+                              IsRightTapEnabled="True"
+                                  
                               BringIntoViewRequested="TableView_BringIntoViewRequested"
                               CellContextFlyoutOpening="TableView_CellContextFlyoutOpening"
                               ExportSelectedContent="TableView_ExportSelectedContent"

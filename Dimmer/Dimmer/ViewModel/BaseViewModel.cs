@@ -159,7 +159,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                try
                {
-                   var orchestrator = new MetaParser(query);
+                   // 1. Process the raw query with the NLP engine first.
+                   var tqlQuery = NaturalLanguageProcessor.Process(query);
+
+                   // 2. Pass the processed TQL query to the MetaParser.
+                   var orchestrator = new MetaParser(tqlQuery);
+
                    var components = new QueryComponents(
                       orchestrator.CreateMasterPredicate(),
                       orchestrator.CreateSortComparer(),
@@ -1652,7 +1657,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
 
         AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName} ";
-        value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath,0.8f);
+        value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath,1f);
         CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
         // Efficiently load related data
         value.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
@@ -1779,54 +1784,69 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (songToPlay == null)
             return;
-        
+
         // --- Step 1: Get the current UI results and FREEZE them into a new list ---
-        // .ToList() creates a brand new list in memory, a perfect snapshot.
-        var baseQueue = _searchResults;
+        var baseQueue = _searchResults.ToList(); // Important: .ToList() to create a snapshot
+
+        // Find the index of the clicked song in the *current* visual list.
+        int initialIndex = baseQueue.IndexOf(songToPlay);
+        if (initialIndex == -1)
+        {
+            _logger.LogError("Could not find song '{Title}' in the current search results.", songToPlay.Title);
+            return;
+        }
 
         List<SongModelView> finalQueue;
         int startIndex;
-        // --- Step 2: Set the private _playbackQueue to this frozen snapshot ---
+
+        // --- Step 2: Build the final playback queue (shuffled or not) ---
         if (IsShuffleActive)
         {
+            // Your shuffle logic is correct.
             var otherSongs = baseQueue.Where(s => s != songToPlay);
-
-            // 2. Shuffle the *other* songs
             var shuffledSongs = otherSongs.OrderBy(x => _random.Next()).ToList();
 
-            // 3. Create the final queue with the clicked song at the very beginning
             finalQueue = new List<SongModelView> { songToPlay };
             finalQueue.AddRange(shuffledSongs);
 
-            // 4. The starting index is now always 0.
+            // The starting index is now always 0.
             startIndex = 0;
-
         }
         else
         {
-            finalQueue = baseQueue.ToList();
-            startIndex = finalQueue.IndexOf(songToPlay);
-
-            if (startIndex == -1)
-            {
-                _logger.LogError("Could not find song '{Title}' in the final queue.", songToPlay.Title);
-                return;
-            }
+            // If not shuffling, the final queue is the same as the base queue.
+            finalQueue = baseQueue;
+            startIndex = initialIndex;
         }
 
-        // First, update the DynamicData source.
-        StartNewQueue(finalQueue);
+        // --- Step 3: ATOMICALLY update the state and start playback ---
+        // This is the most critical part of the fix.
 
-        // Then, save your context.
+        // Stop any current playback. This prevents weird audio overlaps.
+        if (audioService.IsPlaying)
+        {
+            audioService.Stop();
+        }
+
+        // Update the playback queue source.
+        _playbackQueueSource.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddRange(finalQueue);
+        });
+
+        // NOW that the source is updated, the public `_playbackQueue` will update.
+        // We can now safely set the index and start the audio.
+        _playbackQueueIndex = startIndex;
+
+        // Save context *after* establishing the new queue
         CurrentPlaybackQuery = CurrentQuery;
         SavePlaybackContext(CurrentPlaybackQuery);
-
         PlaybackManager.ClearSessionHistory();
         PlaybackManager.AddSongToHistory(songToPlay);
 
-        // Finally, call the playback method with the index we *know* is correct
-        // for the queue we just created.
-        await StartAudioForSongAtIndex(startIndex);
+        // Call the audio playback method. It will use the now-correct `_playbackQueue` and `_playbackQueueIndex`.
+        await StartAudioForSongAtIndex(_playbackQueueIndex);
     }
 
     [RelayCommand]
@@ -2313,6 +2333,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 h => audioService.MediaKeyPreviousPressed -= h)
             .Subscribe(async _ => await PreviousTrack(), ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
+
     [RelayCommand]
     private async Task StartRadioStation(SongModelView? seedSong)
     {
@@ -2419,7 +2440,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// If the queue is empty, it starts playback with this song.
     /// </summary>
     [RelayCommand]
-    public async Task PlayNext(SongModelView? song)
+    public void PlayNext(SongModelView? song)
     {
         if (song == null)
             return;
@@ -2431,28 +2452,37 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// Inserts a list of songs to play immediately after the current one.
     /// If the queue is empty, it starts playback with this new list.
     /// </summary>
-    
     public async Task PlayNextSongsImmediately(IEnumerable<SongModelView>? songs)
     {
         if (songs == null || !songs.Any())
             return;
 
+        var distinctSongs = songs.Distinct().ToList();
 
-        var distinctSongs = songs.Distinct();
-        // If nothing is playing, these songs become the new queue and we start immediately.
+        // If nothing is playing, these songs become the new queue.
         if (!_playbackQueue.Any() || CurrentPlayingSongView.Title == null)
         {
-            _playbackQueueSource.AddRange(distinctSongs);
-            await StartAudioForSongAtIndex(0);
+            // --- APPLY THE ROBUST PLAYBACK PATTERN ---
+            if (audioService.IsPlaying)
+                audioService.Stop();
+
+            _playbackQueueSource.Edit(updater =>
+            {
+                updater.Clear();
+                updater.AddRange(distinctSongs);
+            });
+
+            _playbackQueueIndex = 0;
+            await StartAudioForSongAtIndex(_playbackQueueIndex);
             return;
         }
 
+        // Otherwise, insert them into the existing queue.
         var insertIndex = _playbackQueueIndex + 1;
         _playbackQueueSource.InsertRange(distinctSongs, insertIndex);
-        
-        _logger.LogInformation("Added {Count} song(s) to play next.", songs.Count());
-    }
 
+        _logger.LogInformation("Added {Count} song(s) to play next.", distinctSongs.Count());
+    }
     /// <summary>
     /// Adds a single song to the end of the current playback queue.
     /// If the queue is empty, it starts playback with this song.
