@@ -6,6 +6,8 @@ using AndroidX.Lifecycle;
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
+using DevExpress.Maui.Controls;
+
 using Dimmer.Data.Models;
 using Dimmer.DimmerLive;
 using Dimmer.ViewModel;
@@ -283,4 +285,21 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         loginViewModel.Username=baseVM.UserLocal.Username;
         await loginViewModel.InitializeAsync();
     }
+
+    internal void ScrollColViewToStart(SongModelView? songModelView=null)
+    {
+        if (songModelView is not null)
+        {
+            songModelView = BaseVM.CurrentPlayingSongView ;
+        }
+        int itemHandle = SongsColView.FindItemHandle(songModelView);
+        SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+    }
+
+    [ObservableProperty]
+    public partial BottomSheet QuickPanelBtmSht { get; set; } 
+
+    [ObservableProperty]
+    public partial DXExpander MainViewExp { get; set; } 
+
 }

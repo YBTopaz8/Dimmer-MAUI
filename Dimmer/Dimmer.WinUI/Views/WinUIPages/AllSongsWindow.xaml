@@ -24,7 +24,6 @@ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
 xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
 xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
 x:Name="myPage"
-    
     xmlns:dgView="using:WinUI.TableView">
 
     <Window.SystemBackdrop>
@@ -32,9 +31,78 @@ x:Name="myPage"
     </Window.SystemBackdrop>
     <Page x:Name="MyPageGrid" d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin, IsDesignTimeCreatable=True}">
         
-    <Grid >
+    <Grid RowSpacing="10">
+            <Grid.Resources>
+               
+            </Grid.Resources>
+            <Grid.RowDefinitions>
+                <!-- Row 0: This will take up all available vertical space -->
+                <RowDefinition Height="Auto" />
 
-        <dgView:TableView ItemsSource="{Binding SearchResults}" />
+                <!-- Row 1: This will take up just enough height for the controls inside it -->
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+
+            <StackPanel Grid.Row="0" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title}" 
+                           HorizontalTextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           FontSize="24" FontWeight="Bold" Margin="10"/>
+
+                <Button Content="Scroll To Song"
+                        x:Name="ScrollToSongBtn"
+                        Click="ScrollToSong_Click"
+                        ClickMode="Press"/>
+
+                <TextBox TextChanged="SearchSongSB_TextChanged"
+                    
+                            AutomationProperties.Name="multi-line TextBox"
+    TextWrapping="Wrap" AcceptsReturn="True" IsSpellCheckEnabled="True"
+    SelectionHighlightColor="DarkSlateBlue" MinWidth="400" 
+                             x:Name="SearchSongSB" />
+            </StackPanel>
+                <dgView:TableView Grid.Row="1" x:Name="MySongsTableView" ItemsSource="{x:Bind MyViewModel.SearchResults}"
+                          RightTapped="TableView_RightTapped"
+                          PointerPressed="TableView_PointerPressed"
+                           AutoGenerateColumns="False"
+                              DoubleTapped="TableView_DoubleTapped"
+                              
+                              BringIntoViewRequested="TableView_BringIntoViewRequested"
+                              CellContextFlyoutOpening="TableView_CellContextFlyoutOpening"
+                              ExportSelectedContent="TableView_ExportSelectedContent"
+                              >
+                <dgView:TableView.Columns>
+
+                    <!-- Column for the Cover Art -->
+                    <dgView:TableViewTemplateColumn Header="Cover">
+                        <dgView:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <!-- You can even overlay a "favorite" icon like in your example -->
+                                    <Image Source="{Binding CoverImagePath}"
+                                       Width="80"
+                                       Height="80"
+                                       Stretch="UniformToFill"/>
+
+                                   
+                                </Grid>
+                            </DataTemplate>
+                        </dgView:TableViewTemplateColumn.CellTemplate>
+                    </dgView:TableViewTemplateColumn>
+
+                    <!-- Other columns for Title, Artist, etc. -->
+                    <dgView:TableViewTextColumn Header="Title" Binding="{Binding Title}" IsReadOnly="True"/>
+                    
+                    <dgView:TableViewTextColumn Header="Artist" Binding="{Binding ArtistName}" IsReadOnly="True"/>
+                    
+                    <dgView:TableViewTextColumn Header="Album" Binding="{Binding AlbumName}" IsReadOnly="True"/>
+                    
+                    <dgView:TableViewTextColumn Header="Year" Binding="{Binding ReleaseYear}" IsReadOnly="True"/>
+
+                </dgView:TableView.Columns>
+            </dgView:TableView>
+
         </Grid>
     </Page>
 </Window>

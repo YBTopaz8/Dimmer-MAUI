@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:DXExpander xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.Views.CustomViewsParts.MainViewExpander"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+xmlns:customViewParts="clr-namespace:Dimmer.Views.CustomViewsParts"
+xmlns:dx="http://schemas.devexpress.com/maui"
+xmlns:helper="clr-namespace:Dimmer.Utils.AnimsStatics"
+xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+xmlns:navDrawer="clr-namespace:Syncfusion.Maui.Toolkit.NavigationDrawer;assembly=Syncfusion.Maui.Toolkit"
+xmlns:progressBar="clr-namespace:Syncfusion.Maui.Toolkit;assembly=Syncfusion.Maui.Toolkit"
+xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+xmlns:viewUtils="clr-namespace:Dimmer.Utilities.ViewsUtils;assembly=Dimmer"
+xmlns:vm="clr-namespace:Dimmer.ViewModels"
+x:Name="myPage"
+x:DataType="vm:BaseViewModelAnd"
+x:FieldModifier="Public">
+    <dx:DXStackLayout>
+
+        <dx:DXCollectionView 
+                            
+                            x:Name="SongsColView"
+                            Grid.Row="0"
+                                x:FieldModifier="public"
+                                AllowDragDropItems="False"
+                                AllowFixedGroupHeaders="True"
+                                AllowGroupCollapse="True"
+                                
+                                                 UseRippleEffect="False"
+                                AllowLiveDataShaping="True"
+                                BackgroundColor="Transparent"
+                                FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
+                                ItemSpacing="10"
+                                ItemsSource="{Binding BaseVM.SearchResults}"
+                                Loaded="SongsColView_Loaded"
+                                >
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongModelView">
+
+                    <dx:DXStackLayout>
+
+                        <Grid
+                                                BackgroundColor="Transparent"
+                                                RowDefinitions="60" ColumnSpacing="1"
+                                                ColumnDefinitions="auto,*,auto"
+                                                
+                                                VerticalOptions="Center">
+                            <syncf:SfEffectsView Grid.Column="0"
+                                                      
+                                            x:Name="ViewSongOnly"                    
+                                                                 TouchDown="ViewSongOnly_TouchDown"
+                                                           TouchDownCommandParameter="{Binding .}">
+                                <dx:DXBorder CornerRadius="15" 
+                                                             BorderThickness="2">
+                                    <dx:DXBorder.Triggers>
+                                        <DataTrigger
+Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
+TargetType="dx:DXBorder"
+Value="True">
+                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
+
+                                        </DataTrigger>
+                                        <DataTrigger
+Binding="{Binding HasSyncedLyrics}"
+TargetType="dx:DXBorder"
+Value="False">
+                                            <Setter Property="BorderColor" Value="Transparent" />
+
+                                        </DataTrigger>
+                                    </dx:DXBorder.Triggers>
+                                    <Image  
+                                                         
+                                               Source="{Binding CoverImagePath}"/>
+
+                                </dx:DXBorder>
+
+                            </syncf:SfEffectsView>
+                            <dx:DXButton
+                                                CornerRadius="5"
+                                                    x:Name="TitleAndArtists"
+                                                    Grid.Column="1" Padding="0"
+                                                HorizontalContentAlignment="Start"
+                                                    BackgroundColor="Transparent"
+                                                Clicked="PlaySongClicked"
+                                                PressedTextColor="White"
+                                                CommandParameter="{Binding .}"
+                                                    VerticalOptions="Center">
+                                <dx:DXButton.Content>
+                                    <dx:DXStackLayout>
+                                        <Label
+      x:Name="SongTitleChip"
+      Padding="10,0"
+      BackgroundColor="Transparent"
+      FontAttributes="Bold"
+      FontSize="16"
+      HorizontalOptions="Start"
+      Opacity="0.8"
+      LineBreakMode="TailTruncation"
+      Text="{Binding Title}"
+      TextColor="{AppThemeBinding Dark=White,
+                                  Light=black}"
+      VerticalOptions="Center" >
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsCurrentPlayingHighlight}"
+               Value="True">
+                                                    <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                                    <Setter Property="FontSize" Value="18"/>
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <dx:Chip
+                                                        x:Name="ArtistsChip"
+                                                              Padding="10,0"
+
+                                                        BackgroundColor="Transparent"
+                                                        BorderThickness="0"
+                                                        
+                                                        FontSize="12"
+                                                        HorizontalOptions="Start"
+                                                        LongPress="ArtistsChip_LongPress"
+                                                        LongPressCommandParameter="{Binding ArtistName}"
+                                                        Opacity="0.6"
+                                                        Text="{Binding ArtistName}"
+                                                        TextColor="{AppThemeBinding Dark=White,
+                                                                                    Light=black}"
+                                                        VerticalOptions="Center" />
+
+                                        <dx:Chip
+                                                            x:Name="AlbumFilter"
+                                                            BackgroundColor="Transparent"
+                                                            BorderThickness="0"
+                                                            FontAttributes="Italic"
+                                                            FontSize="10"
+                                                                  Padding="10,0"
+
+                                                            HorizontalOptions="Start"
+                                                            LongPress="AlbumFilter_LongPress"
+                                                            LongPressCommandParameter="{Binding AlbumName}"
+                                                            Opacity="0.5"
+                                                            Text="{Binding AlbumName}"
+                                                            UseRippleEffect="True"
+                                                            VerticalOptions="Center" />
+
+
+
+                                    </dx:DXStackLayout>
+
+                                </dx:DXButton.Content>
+                            </dx:DXButton>
+
+
+                            <dx:Chip
+                                                    x:Name="MoreIcon"
+                                                    Grid.Column="2"
+                                                    Padding="20"
+                                                FontSize="15"
+                                                    BorderColor="DarkSlateBlue"
+                                                    BorderThickness="0.7"
+                                                    CornerRadius="25"
+                                                    HorizontalOptions="End"
+                                                    IsIconVisible="False"
+                                                    LongPress="MoreIcon_LongPress"
+                                                    PressedBackgroundColor="DarkSlateBlue"
+                                                    PressedBorderColor="DarkSlateBlue"
+                                                    Tap="MoreIcon_Tap"
+                                                  Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
+                                                    
+                                                TextColor="{AppThemeBinding Dark=White,
+                                                                                Light=black}" >
+
+                            </dx:Chip>
+                        </Grid>
+                        
+
+                    </dx:DXStackLayout>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+    </>
+</dx:DXExpander>

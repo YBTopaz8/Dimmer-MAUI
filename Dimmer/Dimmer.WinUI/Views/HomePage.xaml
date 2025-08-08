@@ -735,13 +735,13 @@ HeightRequest="50"
                         Loaded="MainSongsColView_Loaded"
                         SelectionMode="Single"
                             SelectedItem="{Binding SelectedSong}"
-            ItemTemplate="{StaticResource GridOfFour}"
+            ItemTemplate="{StaticResource OGView}"
                         VerticalOptions="Start">
                     <CollectionView.ItemsLayout>
-                        <GridItemsLayout Span="6"
+                        <LinearItemsLayout 
                                          Orientation="Vertical"
-                                         VerticalItemSpacing="10"
-                                         HorizontalItemSpacing="10"/>
+                            SnapPointsAlignment="End"
+                                         SnapPointsType="MandatorySingle"/>
                     </CollectionView.ItemsLayout>
 
         </CollectionView>

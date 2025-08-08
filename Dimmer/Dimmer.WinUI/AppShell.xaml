@@ -50,9 +50,9 @@
                                     Text="{Binding LatestAppLog.Log}" />
 
                 <Button
-x:Name="ViewNPQ"  windows:VisualElement.AccessKey="Q"
+ windows:VisualElement.AccessKey="Q"
                     windows:VisualElement.AccessKeyPlacement="Bottom"
-Clicked="ViewNPQ_Clicked"
+Clicked="ViewNPQ_Clicked" x:Name="ViewNPQ" 
 BorderWidth="1" BorderColor="{Binding CurrentPlaySongDominantColor}"
                     BackgroundColor="Transparent"
 Text="View Now Playing Queue">
@@ -178,11 +178,13 @@ IsVisible="True">
                 StrokeThickness="1.5"
                 Stroke="{Binding CurrentPlaySongDominantColor}"
                ImageSource="song.png"      
-                  Text="{Binding CurrentPlayingSongView.Title}" FontSize="16">
+                              FontAttributes="Bold"
+                  Text="{Binding CurrentPlayingSongView.Title}" FontSize="21">
 
 
                 </syncf:SfChip>
-                <Button Grid.Column="1"
+                <HorizontalStackLayout Grid.Column="1">
+                    <Button 
                         Command="{Binding ToggleFavSongCommand}"
                         CommandParameter="{Binding CurrentPlayingSongView}"
                         BackgroundColor="Transparent"
@@ -212,6 +214,9 @@ IsVisible="True">
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
+                    <syncf:SfChip 
+                        Text="{Binding CurrentPlayingSongView.PlayCompletedCount}"/>
+                </HorizontalStackLayout>
 
             </Grid>
 

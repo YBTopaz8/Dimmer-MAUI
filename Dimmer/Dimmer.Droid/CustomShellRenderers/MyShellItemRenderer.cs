@@ -14,7 +14,7 @@ namespace Dimmer.CustomShellRenderers;
 public partial class MyShellItemRenderer : ShellItemRenderer
 {
     private BottomSheetDialog? _moreBottomSheetDialogInstance; // Keep a reference
-    private BottomNavigationView _theBottomViewInstance;
+    private BottomNavigationView? _theBottomViewInstance;
     private FrameLayout _theNavigationAreaInstance;
     public MyShellItemRenderer(IShellContext context)
         : base(context)
@@ -158,6 +158,7 @@ public partial class MyShellItemRenderer : ShellItemRenderer
             base.OnShellSectionChanged();
         }
     }
+
     public override void OnDestroy() // Or protected override void Dispose(bool disposing)
     {
         ShellStylingBridge.BackgroundColorChanged -= OnBridgeBackgroundColorChanged;

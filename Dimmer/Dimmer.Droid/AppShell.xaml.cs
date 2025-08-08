@@ -133,12 +133,10 @@ public partial class AppShell : Shell
     }
     private void FindDuplicatesBtn_Clicked(object sender, EventArgs e)
     {
-        this.NavTab.SelectedIndex = NavTab.Items.Count - 1;
     }
 
     private void FindDupes_Clicked(object sender, EventArgs e)
     {
-        this.NavTab.SelectedIndex = NavTab.Items.Count - 1;
     }
 
     private void ThemeToggleBtn_Clicked(object sender, EventArgs e)

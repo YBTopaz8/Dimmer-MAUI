@@ -63,12 +63,7 @@ public partial class HomePage : ContentPage
         
     }
 
-    private void SearchBy_TextChanged(object sender, EventArgs e)
-    {
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(SearchBy.Text);
-
-    }
-
+  
     private void ClosePopup(object sender, EventArgs e)
     {
         
@@ -121,19 +116,7 @@ public partial class HomePage : ContentPage
         //DetailView.IsVisible=true;
 
     }
-    private void ByTitle()
-    {
-        if (!string.IsNullOrEmpty(SearchBy.Text))
-        {
-            if (SearchBy.Text.Length >= 1)
-            {
-
-                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
-            }
-
-        }
-    }
-
+   
     List<SongModelView> songsToDisplay = new();
     private void SortChoose_Clicked(object sender, EventArgs e)
     {
@@ -231,7 +214,7 @@ public partial class HomePage : ContentPage
 
     private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
     {
-        SongsColView.Commands.ShowFilteringUIForm.Execute(null);
+        //SongsColView.Commands.ShowFilteringUIForm.Execute(null);
     }
 
     private void DXButton_Clicked_1(object sender, EventArgs e)
@@ -241,8 +224,9 @@ public partial class HomePage : ContentPage
 
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
-        MyViewModel.LoadTheCurrentColView(SongsColView);
+        //MyViewModel.LoadTheCurrentColView(SongsColView);
     }
+
     private async void ArtistChip_Tap(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
@@ -435,16 +419,13 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void SearchBy_Focused(object sender, FocusEventArgs e)
-    {
-        
-    }
+   
 
     private async void myPageSKAV_Closed(object sender, EventArgs e)
     {
         
 
-        await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
+        //await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
     }
 
     private void Sort_Clicked(object sender, HandledEventArgs e)
@@ -454,28 +435,11 @@ public partial class HomePage : ContentPage
 
     private void OpenDevExpressFilter_LongPress(object sender, HandledEventArgs e)
     {
-        SongsColView.Commands.ShowFilteringUIForm.Execute(null);
+        //SongsColView.Commands.ShowFilteringUIForm.Execute(null);
     }
 
-    private void SongsColView_FilteringUIFormShowing(object sender, FilteringUIFormShowingEventArgs e)
-    {
-
-    }
-
-    private async void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
-    {
-        if (!TopBeforeColView.IsExpanded)
-        {
-            TopBeforeColView.IsExpanded= !TopBeforeColView.IsExpanded;
-
-            SearchBy.Focus();
-            await OpenedKeyboardToolbar.DimmInCompletelyAndShow();
-        }
-        else
-        {
-            TopBeforeColView.IsExpanded=false;
-        }
-    }
+   
+   
 
     private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
     {
@@ -485,115 +449,6 @@ public partial class HomePage : ContentPage
         BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
         TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
     }
-
-    private async void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
-    {
-        //myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
-        SearchBy.Unfocus();
-        await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
-
-    }
-
-    private CancellationTokenSource _lyricsCts;
-    private bool _isLyricsProcessing = false;
-    private async void RefreshLyrics_Clicked(object sender, EventArgs e)
-    {
-        if (_isLyricsProcessing)
-        {
-            // Optionally, offer to cancel the running process
-            bool cancel = await DisplayAlert("Processing...", "Lyrics are already being processed. Cancel the current operation?", "Yes, Cancel", "No");
-            if (cancel)
-            {
-                _lyricsCts?.Cancel();
-            }
-            return;
-        }
-
-        _isLyricsProcessing = true;
-        MyProgressBar.IsVisible = true; // Show a progress bar
-        MyProgressLabel.IsVisible = true; // Show a label
-
-        // Create a new CancellationTokenSource for this operation
-        _lyricsCts = new CancellationTokenSource();
-
-        // The IProgress<T> object automatically marshals calls to the UI thread.
-        var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
-        {
-            // This code runs on the UI thread safely!
-            MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
-            MyProgressLabel.Text = $"Processing: {progress.CurrentFile}";
-        });
-
-        try
-        {
-            
-           await MyViewModel.LoadSongDataAsync(progressReporter,_lyricsCts);
-            await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
-
-        }
-        catch (OperationCanceledException)
-        {
-            await DisplayAlert("Cancelled", "The operation was cancelled.", "OK");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"An unexpected error occurred: {ex.Message}", "OK");
-        }
-        finally
-        {
-            // Clean up and hide UI elements
-            _isLyricsProcessing = false;
-            MyProgressBar.IsVisible = false;
-            MyProgressLabel.IsVisible = false;
-        }
-    }
-
-    private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
-    {
-        int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
-        SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-
-    }
-    private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)
-    {
-        var send = (Chip)sender;
-        string inputString = send.LongPressCommandParameter as string;
-
-        char[] dividers = new char[] { ',', ';', ':', '|', '-' };
-
-        var namesList = inputString
-            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-            .Select(name => name.Trim())                           // Trim whitespace from each name
-            .ToArray();                                             // Convert to a List
-
-
-        var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
-
-        if (string.IsNullOrEmpty(res))
-        {
-            return;
-        }
-        var ss = StaticMethods.SetQuotedSearch("artist", res);
-
-        SearchBy.Text =ss;
-    }
-
-    private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
-    {
-        var send = (Chip)sender;
-        SearchBy.Text=
-        StaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
-    }
-
-    // The "Years" methods remain unchanged.
-    private void QuickFilterYears_LongPress(object sender, HandledEventArgs e)
-    {
-
-        var send = (Chip)sender;
-        SearchBy.Text=
-        StaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
-    }
-
 
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
     {
@@ -628,8 +483,8 @@ public partial class HomePage : ContentPage
     private void DXButton_Clicked(object sender, EventArgs e)
     {
         //BottomExpander.IsExpanded = !BottomExpander.IsExpanded;
-        MediaControlView.IsExpanded = false;
-        UtilsTabView.IsVisible=true;
+        //MediaControlView.IsExpanded = false;
+        //UtilsTabView.IsVisible=true;
     }
     private void SongTitleChip_LongPress(object sender, HandledEventArgs e)
     {
@@ -670,21 +525,20 @@ public partial class HomePage : ContentPage
 
     private void ClearSearch_LongPress(object sender, HandledEventArgs e)
     {
-        SearchBy.Text=string.Empty;
+        //SearchBy.Text=string.Empty;
     }
 
     private void AddSearchFilter_Tap(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
         var paramss = send.TapCommandParameter as string;
-        SearchBy.Text=SearchBy.Text + " " +paramss;
+        //SearchBy.Text=SearchBy.Text + " " +paramss;
     }
 
     private void BtmBar_ScrollToStart(object sender, EventArgs e)
     {
-
-        int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
-        SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+        MyViewModel.ScrollColViewToStart(new SongModelView());
+       
     }
 
     private async void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
@@ -739,8 +593,8 @@ public partial class HomePage : ContentPage
     {
        
 
-            NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-            MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+           this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
 
             BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
         TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
@@ -776,6 +630,8 @@ public partial class HomePage : ContentPage
     private void MoreIcon_Tap(object sender, HandledEventArgs e)
     {
 
+        MoreModal.IsOpen=true;
+
     }
 
     private void ViewSongOnly_Clicked_1(object sender, EventArgs e)
@@ -805,6 +661,77 @@ public partial class HomePage : ContentPage
         var send = (DXButton)sender;
         var song = send.CommandParameter as SongModelView;
         await MyViewModel.BaseVM.PlaySong(song);
+    }
+
+    private void Chip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ViewNPQ_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(MyViewModel.BaseVM.CurrentPlaybackQuery);
+        return;
+
+    }
+
+    private async void GoToAlbumPage(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        var val = song.AlbumName;
+        if (string.IsNullOrWhiteSpace(val))
+            return; // No album to show
+        await Shell.Current.GoToAsync(nameof(AlbumPage), true);
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+    }
+
+
+    private async void GoToArtistPage(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        var val = song.OtherArtistsName;
+        if (string.IsNullOrWhiteSpace(val))
+            return; // No artists to show
+
+        char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+        var namesList = val
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers
+            .Select(name => name.Trim())                            // Trim whitespace from each name
+            .Where(name => !string.IsNullOrWhiteSpace(name))        // Keep names that are NOT null or whitespace
+            .ToArray();                                             // Convert to an array
+
+        // If after all filtering there are no names, there is no need to show the action sheet.
+        if (namesList.Length == 0)
+        {
+            return;
+        }
+
+        var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+        if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+        {
+            return;
+        }
+
+        await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+
+    }
+
+    private void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
+    {
+
     }
 }
 

@@ -88,7 +88,8 @@
         <dx:DXCollectionView x:Name="SongsColView"
                              AllowDragDropItems="False" AllowFixedGroupHeaders="True"
                              BackgroundColor="Transparent" ItemSpacing="5"
-                             ItemsSource="{Binding BaseVM.QueueOfSongsLive}"
+                        
+                             
                              Tap="SongsColView_Tap"
                              >
 

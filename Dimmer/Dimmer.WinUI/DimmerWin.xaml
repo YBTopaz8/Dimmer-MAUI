@@ -38,6 +38,11 @@
              x:Name="SettingsBtn"
                                  Clicked="SettingsBtn_Clicked"
              />
+                    <ImageButton Source="settingssliders.png"
+             x:Name="SettingsBtnn"
+                                 
+                                 Clicked="SettingsBtnn_Clicked"
+             />
                     <ImageButton
                         x:Name="StickTopImgBtn"
                         BackgroundColor="Black"

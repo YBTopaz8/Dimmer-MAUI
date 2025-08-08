@@ -17,14 +17,15 @@ public partial class BtmBar : DXBorder
     public BtmBar()
     {
         InitializeComponent();
-        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>();
+        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>()??throw new NullReferenceException("BaseViewModelAnd is not registered in the service collection.");
         this.BindingContext =vm;
+
         this.MyViewModel =vm;
     }
+    public BaseViewModelAnd MyViewModel { get; set; }
     public event EventHandler RequestFocusOnMainView;
 
 
-    public BaseViewModelAnd MyViewModel { get; set; }
 
     
     private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)

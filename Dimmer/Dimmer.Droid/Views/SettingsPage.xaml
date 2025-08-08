@@ -21,6 +21,7 @@
                                                Light=White}"
              Shell.TabBarIsVisible="False"
              Shell.NavBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
              >
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -47,7 +48,7 @@
 
 
         <syncf:SfTabView SelectedIndex="{Binding LoginViewModel.SelectedIndex}">
-            <syncf:SfTabItem Header="Login">
+            <syncf:SfTabItem Header="Login" IsVisible="False">
                 <syncf:SfTabItem.Content>
                     <ScrollView x:Name="TabA">
                         <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Start">
@@ -119,7 +120,7 @@
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
-            <syncf:SfTabItem Header="Conversations">
+            <syncf:SfTabItem Header="Conversations" IsVisible="False">
                 <syncf:SfTabItem.Content>
                     <Grid RowDefinitions="*, Auto">
                         <!-- List of Conversations -->
@@ -143,7 +144,7 @@
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
-            <syncf:SfTabItem Header="Friends">
+            <syncf:SfTabItem Header="Friends" IsVisible="False">
                 <syncf:SfTabItem.Content>
                     <CollectionView ItemsSource="{Binding DimmerLiveViewModel.Friends}"
                                     EmptyView="NO Friends">
@@ -159,7 +160,7 @@
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
-            <syncf:SfTabItem Header="Requests">
+            <syncf:SfTabItem Header="Requests" IsVisible="False">
                 <syncf:SfTabItem.Content>
                     <VerticalStackLayout Spacing="10">
                         <!-- Section to Send a New Request -->
@@ -202,11 +203,7 @@ x:Name="AcceptBtn"
 
                     <dx:DXDockLayout StretchLastItem="True" >
                         <VerticalStackLayout Grid.Row="0" Spacing="10" dx:DXDockLayout.Dock="Top">
-                            <Label
-            Grid.Row="0"
-            FontAttributes="Bold"
-            FontSize="16" HorizontalOptions="Center"
-            Text="{Binding BaseVM.LatestAppLog.Log}" />
+                           
 
                         </VerticalStackLayout>
                         <syncf:SfTabView x:Name="NavTab" TabBarPlacement="Bottom"
@@ -218,31 +215,29 @@ x:Name="AcceptBtn"
 
                                     <Grid Grid.Row="1" RowDefinitions="*,0.4*" Margin="10">
 
-                                        <CollectionView
+                                        <dx:DXCollectionView
                                  x:Name="ListOfFolders"
                                  Grid.Row="0"
-                                 Header="List of Folders"
                                  ItemsSource="{Binding BaseVM.FolderPaths}"
                                  >
-                                            <CollectionView.EmptyView>
-                                                <VerticalStackLayout>
-                                                    <Label
-                                             Margin="0,40,0,0"
-                                             FontAttributes="Italic"
-                                             Text="No Folders In Preferences.." />
-                                                </VerticalStackLayout>
-                                            </CollectionView.EmptyView>
-                                            <CollectionView.ItemTemplate>
+                                            <dx:DXCollectionView.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <VerticalStackLayout>
+                                                        <Label Text="List of Folders" HorizontalOptions="Center"/>
+                                                    </VerticalStackLayout>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.HeaderTemplate>
+                                            <dx:DXCollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="x:String">
-                                                    <Grid RowDefinitions="*,*">
-
-                                                        <Label Grid.Row="0" Text="{Binding .}" />
+                                                    <Grid RowDefinitions="*,*" RowSpacing="10">
+<dx:Chip 
+         Grid.Row="0" Text="{Binding .}" />
 
 
                                                     </Grid>
                                                 </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
+                                            </dx:DXCollectionView.ItemTemplate>
+                                        </dx:DXCollectionView>
                                         <VerticalStackLayout
                                  Grid.Row="1" VerticalOptions="Start"
                                  BackgroundColor="Transparent"

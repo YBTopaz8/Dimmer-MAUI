@@ -266,10 +266,6 @@ public partial class AppShell : Shell
 
     private void ViewAllSongsWindow_Clicked(object sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-      var win=   winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
-        Debug.WriteLine(win.Visible);
-        Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+       
     }
 }

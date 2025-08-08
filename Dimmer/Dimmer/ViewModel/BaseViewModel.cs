@@ -1641,7 +1641,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void OnPositionChanged(double positionSeconds)
     {
         CurrentTrackPositionSeconds = positionSeconds;
-        CurrentTrackPositionPercentage = CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0;
+        CurrentTrackPositionPercentage = (CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0)*100;
 
     }
     [ObservableProperty]
@@ -1764,7 +1764,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #region Playback Commands (User Intent)
 
     #region Playback Commands (User Intent)
-
+   
     private void StartNewQueue(IEnumerable<SongModelView> songs)
     {
         _playbackQueueSource.Edit(updater =>
@@ -1782,37 +1782,50 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         
         // --- Step 1: Get the current UI results and FREEZE them into a new list ---
         // .ToList() creates a brand new list in memory, a perfect snapshot.
-        var baseQueue = _searchResults.ToList();
-        int startIndex = baseQueue.IndexOf(songToPlay);
+        var baseQueue = _searchResults;
 
-        if (startIndex == -1)
-        {
-            _logger.LogError("Could not find song '{Title}' to start playback.", songToPlay.Title);
-            return;
-        }
-
+        List<SongModelView> finalQueue;
+        int startIndex;
         // --- Step 2: Set the private _playbackQueue to this frozen snapshot ---
         if (IsShuffleActive)
         {
-            var shuffledQueue = baseQueue.OrderBy(x => _random.Next());
-            
-            StartNewQueue(shuffledQueue);
-            startIndex = 0;
+            var otherSongs = baseQueue.Where(s => s != songToPlay);
 
+            // 2. Shuffle the *other* songs
+            var shuffledSongs = otherSongs.OrderBy(x => _random.Next()).ToList();
+
+            // 3. Create the final queue with the clicked song at the very beginning
+            finalQueue = new List<SongModelView> { songToPlay };
+            finalQueue.AddRange(shuffledSongs);
+
+            // 4. The starting index is now always 0.
+            startIndex = 0;
 
         }
         else
         {
-            StartNewQueue(baseQueue);
+            finalQueue = baseQueue.ToList();
+            startIndex = finalQueue.IndexOf(songToPlay);
+
+            if (startIndex == -1)
+            {
+                _logger.LogError("Could not find song '{Title}' in the final queue.", songToPlay.Title);
+                return;
+            }
         }
 
-        // --- Step 3: Save the context for the FUTURE (e.g., if the app restarts) ---
-        CurrentPlaybackQuery = CurrentQuery;
-        SavePlaybackContext(CurrentPlaybackQuery); // Your smart save context method
+        // First, update the DynamicData source.
+        StartNewQueue(finalQueue);
 
-        // --- Step 4: Start playback using the now-independent queue ---
+        // Then, save your context.
+        CurrentPlaybackQuery = CurrentQuery;
+        SavePlaybackContext(CurrentPlaybackQuery);
+
         PlaybackManager.ClearSessionHistory();
         PlaybackManager.AddSongToHistory(songToPlay);
+
+        // Finally, call the playback method with the index we *know* is correct
+        // for the queue we just created.
         await StartAudioForSongAtIndex(startIndex);
     }
 
@@ -1853,21 +1866,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             await lastfmService.ScrobbleAsync(_songToScrobble);
         }
 
-        var nextSong = PlaybackManager.FindNextSong(_playbackQueue);
 
-        if (nextSong != null)
+        int nextIndex = GetNextIndexInQueue(1);
+
+        // Check if we have just looped from the end back to the beginning.
+        bool hasLooped = (_playbackQueueIndex == _playbackQueue.Count - 1) && nextIndex == 0;
+
+        // We ONLY reshuffle if we have looped AND shuffle is on.
+        if (hasLooped && IsShuffleActive && CurrentRepeatMode == RepeatMode.All)
         {
-            // We found a song. Find its index in the original queue to maintain consistency.
-            var nextIndex = _playbackQueue.IndexOf(nextSong);
-            PlaybackManager.AddSongToHistory(nextSong);
-            await StartAudioForSongAtIndex(nextIndex);
+            _logger.LogInformation("End of shuffled queue reached. Reshuffling for Repeat All.");
+
+            // Your reshuffling logic is now safely here.
+            var lastSong = _playbackQueueSource.Items.Last();
+            var tempQueue = _playbackQueueSource.Items.ToList();
+            tempQueue.Remove(lastSong);
+            var newShuffledPart = tempQueue.OrderBy(x => _random.Next()).ToList();
+            newShuffledPart.Insert(0, lastSong);
+
+            // This call will dispatch the update.
+            StartNewQueue(newShuffledPart);
+
+            // At this point, the queue is being updated.
+            // `StartAudioForSongAtIndex` MUST have a safety check.
+       
+
+        // Now call the playback method.
         }
         else
         {
             // Stop playback if the manager returns null (e.g., empty queue)
-            audioService.Stop();
-            UpdateSongSpecificUi(null);
+            //audioService.Stop();
+            //UpdateSongSpecificUi(null);
         }
+
+        await StartAudioForSongAtIndex(nextIndex);
     }
     [RelayCommand]
     private void AddNewPlaybackRule()
@@ -1896,12 +1929,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
-        var prevIndex = GetNextIndexInQueue(-1);
-        await StartAudioForSongAtIndex(prevIndex);
         if (IsPlaying && _songToScrobble != null && IsLastfmAuthenticated)
         {
             await lastfmService.ScrobbleAsync(_songToScrobble);
         }
+        var prevIndex = GetNextIndexInQueue(-1);
+        await StartAudioForSongAtIndex(prevIndex);
     }
 
     #endregion
@@ -1910,6 +1943,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private async Task StartAudioForSongAtIndex(int index)
     {
+        if (_playbackQueue == null || index < 0 || index >= _playbackQueue.Count)
+        {
+            _logger.LogInformation("Playback stopped: Queue is empty or index is invalid.");
+            audioService.Stop();
+            UpdateSongSpecificUi(null);
+            return;
+        }
+
         _playbackQueueIndex = index;
 
         if (_playbackQueueIndex == -1)
@@ -1946,76 +1987,35 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    /// <summary>
-    /// Calculates the next valid index in the queue, correctly handling all Repeat and Shuffle modes.
-    /// </summary>
-    /// <param name="direction">1 for next, -1 for previous.</param>
-    /// <returns>The next index to play, or -1 to stop.</returns>
     private int GetNextIndexInQueue(int direction)
     {
         if (_playbackQueue.Count == 0)
-            return -1;
+            return -1; // No items, stop.
 
-        // --- Mode 1: Repeat One ---
-        // If user presses next/prev, we still give them the same song.
         if (CurrentRepeatMode == RepeatMode.One)
         {
-            return _playbackQueueIndex;
+            return _playbackQueueIndex; // Always stay on the same song.
         }
 
-        // --- Mode 2: Shuffle ---
-        // In shuffle mode, we just move to the next item in our pre-shuffled list.
-        // The "randomness" was already decided when playback started.
-        // Next/Prev simply moves linearly through this shuffled queue.
         int nextIndex = _playbackQueueIndex + direction;
 
-        // --- Boundary and Repeat Logic ---
+        // --- Boundary Checks ---
+
         if (nextIndex >= _playbackQueue.Count)
         {
-            // Reached the end of the queue
-            if (CurrentRepeatMode == RepeatMode.All)
-            {
-                if (IsShuffleActive)
-                {
-
-                    var lastSong = _playbackQueueSource.Items.Last();
-
-                    // Create a temporary list to shuffle
-                    var tempQueue = _playbackQueueSource.Items.ToList();
-                    tempQueue.Remove(lastSong);
-
-                    var newShuffledPart = tempQueue.OrderBy(x => _random.Next()).ToList();
-                    newShuffledPart.Insert(0, lastSong);
-
-                    // Update the source with the newly shuffled order
-                    _playbackQueueSource.Edit(updater => {
-                        updater.Clear();
-                        // Ensure no duplicates, just in case.
-                        updater.AddRange(newShuffledPart.Distinct());
-                    });
-                }
-                return 0; // Loop back to the beginning
-            }
-            else
-            {
-                return -1; // Stop playback
-            }
+            // We've gone past the end.
+            // If we should repeat, the next index is 0. Otherwise, stop (-1).
+            return CurrentRepeatMode == RepeatMode.All ? 0 : -1;
         }
 
         if (nextIndex < 0)
         {
-            // Reached the beginning of the queue
-            if (CurrentRepeatMode == RepeatMode.All)
-            {
-                return _playbackQueue.Count - 1; // Loop back to the end
-            }
-            else
-            {
-                // Can't go back further if not repeating
-                return 0; // Or -1 if you want it to stop. Restarting at 0 is common.
-            }
+            // We've gone before the beginning.
+            // If we should repeat, loop to the end. Otherwise, stop (-1).
+            return CurrentRepeatMode == RepeatMode.All ? _playbackQueue.Count - 1 : -1;
         }
 
+        // If we're within the bounds, just return the calculated index.
         return nextIndex;
     }
     // This is much more reliable than parsing names like "Playback Session: ..."

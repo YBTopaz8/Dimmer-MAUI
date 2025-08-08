@@ -15,6 +15,19 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
         BindingContext = vm;
 
     }
+    private void ByTitle()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+
+                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
+            }
+
+        }
+    }
+
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(SearchBy.Text))
@@ -89,18 +102,7 @@ public partial class BtmSheetSearchFilterAndSongsColViewUI : DXStackLayout
         //DetailView.IsVisible=true;
 
     }
-    private void ByTitle()
-    {
-        if (!string.IsNullOrEmpty(SearchBy.Text))
-        {
-            if (SearchBy.Text.Length >= 1)
-            {
 
-                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
-            }
-
-        }
-    }
 
     List<SongModelView> songsToDisplay = new();
     private void SortChoose_Clicked(object sender, EventArgs e)

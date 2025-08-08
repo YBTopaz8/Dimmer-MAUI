@@ -126,6 +126,9 @@
       <Generator>MSBuild:Compile</Generator>
       <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
     </MauiXaml>
+    <MauiXaml Update="Views\AlbumPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\ArtistsSpace\ArtistsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -135,7 +138,19 @@
     <MauiXaml Update="Views\CustomViewsParts\BtmSheetSearchFilterAndSongsColViewUI.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViewsParts\SearchFilterAndSongsColViewUI.xaml">
+    <MauiXaml Update="Views\CustomViewsParts\MainViewExpander.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\MoreModal.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\NowPlayingUISection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\QuickPanelBtmSheet.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\TopBeforeColView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\DetailSongPage.xaml">

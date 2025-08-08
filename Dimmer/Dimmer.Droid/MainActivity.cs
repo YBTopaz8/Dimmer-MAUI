@@ -3,6 +3,8 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Transitions;
 using Android.Window;
+
+using Dimmer.ViewModel;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
@@ -14,6 +16,10 @@ namespace Dimmer;
          Categories = new[] { Intent.CategoryDefault },
          DataMimeType = "audio/*" // Or more specific MIME types/schemes/paths
         )]
+[IntentFilter(new[] { "android.media.action.MEDIA_PLAY_FROM_SEARCH" },
+              Categories = new[] { Intent.CategoryDefault })]
+[IntentFilter(new[] { "android.intent.action.MUSIC_PLAYER" },
+              Categories = new[] { Intent.CategoryDefault, "android.intent.category.APP_MUSIC" })]
 [Activity(Theme = "@style/Maui.SplashTheme",
     MainLauncher = true,
         Name = "com.yvanbrunel.dimmer.MainActivity",
@@ -42,7 +48,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnNewIntent(intent);
 
-
+        ProcessIntent(Intent);
     }
 
     private static void HandleIntent(Intent? intent)
@@ -69,27 +75,27 @@ public class MainActivity : MauiAppCompatActivity
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
         {
-            Window.RequestFeature(WindowFeatures.ContentTransitions); // Crucial for enabling transitions
+            Window?.RequestFeature(WindowFeatures.ContentTransitions); // Crucial for enabling transitions
 
             // Define Enter Transition (how this activity appears when started)
             Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
             if (enterTransition != null)
             {
-                Window.EnterTransition = enterTransition;
+                Window?.EnterTransition = enterTransition;
             }
 
             // Define Exit Transition (how this activity disappears when finishing)
             Transition? exitTransition = CreateTransition(PublicStats.ExitTransition);
             if (exitTransition != null)
             {
-                Window.ExitTransition = exitTransition;
+                Window?.ExitTransition = exitTransition;
             }
 
             // Define Reenter Transition (how this activity appears when returning from a subsequent activity)
             Transition? reenterTransition = CreateTransition(PublicStats.ReenterTransition);
             if (reenterTransition != null)
             {
-                Window.ReenterTransition = reenterTransition;
+                Window?.ReenterTransition = reenterTransition;
             }
 
             // Define Return Transition (how this activity disappears when it's the one returning to a previous activity)
@@ -97,18 +103,19 @@ public class MainActivity : MauiAppCompatActivity
             Transition? returnTransition = CreateTransition(PublicStats.ReturnTransition);
             if (returnTransition != null)
             {
-                Window.ReturnTransition = returnTransition;
+                Window?.ReturnTransition = returnTransition;
             }
 
             // Optional: Allow overlap for smoother transitions between activities
-            Window.AllowEnterTransitionOverlap = true;
-            Window.AllowReturnTransitionOverlap = true;
+            Window?.AllowEnterTransitionOverlap = true;
+            Window?.AllowReturnTransitionOverlap = true;
 
         }
 
 
 
         base.OnCreate(savedInstanceState);
+        ProcessIntent(Intent);
 
         SetupBackNavigation();
 
@@ -296,7 +303,52 @@ public class MainActivity : MauiAppCompatActivity
             }
         }
     }
+    private void ProcessIntent(Android.Content.Intent? intent)
+    {
+        // First, check if the intent and action are what we expect
+        if (intent == null || string.IsNullOrEmpty(intent.Action))
+        {
+            return;
+        }
 
+        // Handle "Open With..." or "Share" for a single file
+        if (intent.Action == Android.Content.Intent.ActionView || intent.Action == Android.Content.Intent.ActionSend)
+        {
+            var uri = intent.Data;
+            if (uri != null)
+            {
+                // TODO: Pass this URI to your audio service to be played
+                System.Diagnostics.Debug.WriteLine($"Received file to play: {uri}");
+            }
+            return;
+        }
+
+        // *** THIS IS THE KEY PART FOR SearchManager.Query ***
+        // Handle a search request from Google Assistant or Android Search
+        if (intent.Action == "android.media.action.MEDIA_PLAY_FROM_SEARCH")
+        {
+            // Use the constant SearchManager.Query to get the search string
+            // It's just a key to look inside the Intent's "extras" data.
+            string searchQuery = intent.GetStringExtra(SearchManager.Query);
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                System.Diagnostics.Debug.WriteLine($"Voice Search Query Received: '{searchQuery}'");
+
+
+                MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    var audioService = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+                    if (audioService != null)
+                    {
+                        // You would define a method like this on your service interface
+                        Console.WriteLine($"Searching and playing: {searchQuery}");
+                        //audioService.SearchAndPlayAsync(searchQuery);
+                    }
+                });
+            }
+        }
+    }
     // This is a helper class for the OnBackInvokedCallback
     sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
     {

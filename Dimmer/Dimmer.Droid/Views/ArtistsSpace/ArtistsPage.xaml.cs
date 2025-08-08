@@ -93,13 +93,13 @@ public partial class ArtistsPage : ContentPage
         }
         selectedSongPopUp = paramss;
         MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
-        SongsMenuPopup.Show();
+        //SongsMenuPopup.Show();
 
     }
 
     private void ClosePopup(object sender, EventArgs e)
     {
-        SongsMenuPopup.Close();
+        //SongsMenuPopup.Close();
     }
 
     ObservableCollection<SongModelView> songsToDisplay = new();
@@ -110,8 +110,12 @@ public partial class ArtistsPage : ContentPage
     SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
     {
-        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>
-        ;
+        ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        if (songs == null || songs.Count == 0)
+        {
+            MyViewModel.BaseVM.CurrentTotalSongsOnDisplay = 0;
+            return false;
+        }
         if (songs == null || !songs.Any())
             return false;
         internalOrder =  internalOrder== SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;

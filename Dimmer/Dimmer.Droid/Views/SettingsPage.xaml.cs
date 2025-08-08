@@ -43,7 +43,7 @@ public partial class SettingsPage : ContentPage
         base.OnAppearing();
 
         Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
-        await MyViewModel.InitializeDimmerLiveData();
+        //await MyViewModel.InitializeDimmerLiveData();
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {

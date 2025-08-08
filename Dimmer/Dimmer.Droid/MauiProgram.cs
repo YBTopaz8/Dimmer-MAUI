@@ -42,8 +42,13 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<BaseViewModelAnd>();
         builder.Services.AddSingleton<BtmBar>();
+        builder.Services.AddSingleton<QuickPanelBtmSheet>();
+        builder.Services.AddSingleton<MoreModal>();
+        builder.Services.AddSingleton<MainViewExpander>();
+        builder.Services.AddSingleton<TopBeforeColView>();
+        builder.Services.AddSingleton<NowPlayingUISection>();
         builder.Services.AddSingleton<NowPlayingbtmsheet>();
-        builder.Services.AddSingleton<SearchFilterAndSongsColViewUI>();
+        //builder.Services.AddSingleton<SearchFilterAndSongsColViewUI>();
         builder.Services.AddSingleton<PlayHistoryPage>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
         .ConfigureMauiHandlers(handlers =>

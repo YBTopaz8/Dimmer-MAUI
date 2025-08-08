@@ -103,6 +103,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        UISection.Commands.ToggleExpandState.Execute(null);
+        ToggleNowPlayingUI?.Invoke(this, EventArgs.Empty);
     }
+    public event EventHandler? ToggleNowPlayingUI;
 }
