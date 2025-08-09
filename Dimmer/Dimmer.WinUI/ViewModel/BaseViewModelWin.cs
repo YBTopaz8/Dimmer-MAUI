@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
 using Dimmer.Data.RealmStaticFilters;
+using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
@@ -26,7 +27,7 @@ namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel nam
 
 public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService,
     LoginViewModel loginViewModel,
-    DimmerLiveViewModel dimmerLiveViewModel
+    DimmerLiveViewModel dimmerLiveViewModel,CommandEvaluator commandEval
         , IFolderPicker _folderPicker, IWindowManagerService windowManager,
     IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ,
     IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
@@ -35,7 +36,7 @@ public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService app
     IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService,
     IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel,
     IDialogueService dialogueService, ILyricsMetadataService lyricsMetadataService,
-    IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : BaseViewModel(mapper, appInitializerService, dimmerLiveStateService, audioServ,
+    IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : BaseViewModel(mapper, commandEval,appInitializerService, dimmerLiveStateService, audioServ,
         stateService, settingsService,lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, 
         folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, 
         lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger) // BaseViewModel is in Dimmer.MyViewModel

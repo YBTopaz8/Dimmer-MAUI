@@ -1,5 +1,6 @@
 ﻿using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerLive.Interfaces.Services;
+using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
@@ -105,6 +106,8 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
+        builder.Services.AddSingleton<CommandEvaluator>();
+            
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
         var assembly = Assembly.GetExecutingAssembly();
 

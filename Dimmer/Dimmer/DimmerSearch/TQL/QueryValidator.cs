@@ -1,4 +1,6 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿using Fastenshtein;
+
+namespace Dimmer.DimmerSearch.TQL;
 public record ValidationResult(bool IsValid, string Message = "", int Position = -1);
 
 public static class QueryValidator
@@ -72,5 +74,25 @@ public static class QueryValidator
                 break;
         }
         return new(true);
+    }
+
+    public static string? SuggestCorrectField(string invalidField)
+    {
+        const int threshold = 2; // Suggest if distance is 1 or 2
+
+        string? bestMatch = null;
+        int bestDistance = int.MaxValue;
+
+        // Check against all known aliases
+        foreach (var alias in FieldRegistry.FieldsByAlias.Keys)
+        {
+            int distance = Levenshtein.Distance(invalidField.ToLower(), alias.ToLower());
+            if (distance <= threshold && distance < bestDistance)
+            {
+                bestDistance = distance;
+                bestMatch = alias;
+            }
+        }
+        return bestMatch;
     }
 }

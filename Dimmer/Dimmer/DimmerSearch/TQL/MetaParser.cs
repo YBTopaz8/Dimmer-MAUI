@@ -1,4 +1,6 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿using Dimmer.DimmerSearch.Exceptions;
+
+namespace Dimmer.DimmerSearch.TQL;
 
 public class QuerySegment
 {
@@ -30,11 +32,157 @@ public class MetaParser
 
     private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
+    public IQueryNode? ParsedCommand { get; private set; }
+
+    
 
     public MetaParser(string rawQuery)
     {
         var allTokens = Lexer.Tokenize(rawQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-        ParseSegmentsFromTokens(allTokens);
+
+        int commandStartFenceIndex = -1;
+        int commandEndFenceIndex = -1;
+        for (int i = 0; i < allTokens.Count; i++)
+        {
+            if (allTokens[i].Type == TokenType.GreaterThan) 
+            {
+                commandStartFenceIndex = i;
+                // Once we find the start, look for the end from this point forward.
+                for (int j = i + 1; j < allTokens.Count; j++)
+                {
+                    if (allTokens[j].Type == TokenType.Bang) // Using '!' as the end fence
+                    {
+                        commandEndFenceIndex = j;
+                        break;
+                    }
+                }
+            }
+        }
+
+        List<Token> filterAndDirectiveTokens;
+
+        // 2. If a command was found, split the token list
+        if (commandStartFenceIndex != -1 && commandEndFenceIndex != -1)
+        {
+            // The tokens FOR the command are the ones BETWEEN the fences.
+            int commandContentStartIndex = commandStartFenceIndex + 1;
+            int commandContentCount = commandEndFenceIndex - commandContentStartIndex;
+
+            if (commandContentCount < 0) // Case: >!
+            {
+                throw new ParsingException("Command cannot be empty.", commandStartFenceIndex);
+            }
+
+            var commandTokens = allTokens.GetRange(commandContentStartIndex, commandContentCount);
+            ParsedCommand = ParseAsFencedCommand(commandTokens);
+
+            // The tokens for the filter are everything BEFORE and AFTER the fence.
+            filterAndDirectiveTokens = allTokens.GetRange(0, commandStartFenceIndex);
+            if (commandEndFenceIndex + 1 < allTokens.Count)
+            {
+                filterAndDirectiveTokens.AddRange(allTokens.GetRange(commandEndFenceIndex + 1, allTokens.Count - (commandEndFenceIndex + 1)));
+            }
+        }
+        else
+        {
+            // No command fence found, all tokens are for filtering/sorting.
+            filterAndDirectiveTokens = allTokens;
+        }
+
+        // 3. Parse the filter/directive part as before.
+        ParseSegmentsFromTokens(filterAndDirectiveTokens);
+    }
+    private IQueryNode? ParseAsFencedCommand(List<Token> commandTokens)
+    {
+        if (commandTokens.Count == 0)
+        {
+            throw new ParsingException("Command cannot be empty.", -1); // Position can be improved if needed
+        }
+
+        var commandToken = commandTokens[0];
+        if (commandToken.Type != TokenType.Identifier)
+        {
+            throw new ParsingException($"Expected a command keyword (like 'save') but found '{commandToken.Text}'.", commandToken.Position);
+        }
+
+        var commandName = commandToken.Text.ToLowerInvariant();
+        var arguments = new Dictionary<string, object>();
+        var argTokens = commandTokens.Skip(1).ToList();
+
+        // This parsing logic becomes more powerful. It can handle more complex arguments.
+        switch (commandName)
+        {
+            case "save":
+                // The argument is the rest of the tokens, joined together.
+                // This allows for names with spaces without needing quotes inside the fence.
+                // > save my awesome playlist ! is now valid.
+                if (argTokens.Any())
+                {
+                    // Reconstruct the argument string from the tokens.
+                    var playlistName = string.Join(" ", argTokens.Select(t => t.Text));
+                    arguments["playlistName"] = playlistName;
+                }
+                else
+                {
+                    throw new ParsingException("The 'save' command requires a playlist name.", commandToken.Position);
+                }
+                break;
+
+            case "addtonext":
+                // A command with no arguments
+                if (argTokens.Any())
+                {
+                    throw new ParsingException("The 'addtonext' command does not take arguments.", argTokens[0].Position);
+                }
+                // No arguments to add, just the command itself is enough.
+                break;
+
+            // Add other commands like 'delete', 'addtoqueue' here
+            default:
+                throw new ParsingException($"Unknown command '{commandName}'.", commandToken.Position);
+        }
+
+        return new CommandNode(commandName, arguments);
+    }
+    private IQueryNode? ParseAsCommand(List<Token> commandTokens)
+    {
+        if (commandTokens.Count == 0)
+        {
+            // This is an error, e.g., "artist:tool > "
+            // You could throw a ParsingException here.
+            throw new ParsingException("Command expected after '>'.", commandTokens.LastOrDefault()?.Position ?? -1);
+        }
+
+        var commandToken = commandTokens[0];
+        // The command itself must be an Identifier (e.g., 'save')
+        if (commandToken.Type != TokenType.Identifier)
+        {
+            throw new ParsingException($"Expected a command keyword (like 'save') but found '{commandToken.Text}'.", commandToken.Position);
+        }
+
+        var commandName = commandToken.Text.ToLowerInvariant();
+        var arguments = new Dictionary<string, object>();
+        var argTokens = commandTokens.Skip(1).ToList();
+
+        // Improved argument parsing
+        switch (commandName)
+        {
+            case "save":
+                if (argTokens.Count == 1 && (argTokens[0].Type == TokenType.Identifier || argTokens[0].Type == TokenType.StringLiteral))
+                {
+                    arguments["playlistName"] = argTokens[0].Text;
+                }
+                else
+                {
+                    throw new ParsingException("The 'save' command requires a single playlist name.", commandToken.Position);
+                }
+                break;
+            // Add other commands like 'delete', 'addtoqueue' here
+            default:
+                throw new ParsingException($"Unknown command '{commandName}'.", commandToken.Position);
+        }
+
+        return new CommandNode(commandName, arguments);
     }
 
     private void ParseSegmentsFromTokens(List<Token> allTokens)

@@ -62,7 +62,7 @@ public class AstEvaluator
                         break;
                     case "~":
 
-                        const int levenshteinThreshold = 4;
+                        const int levenshteinThreshold = 2;
                         if (Math.Abs(songValue.Length - queryValue.Length) > levenshteinThreshold)
                         {
                             result = false;
@@ -141,7 +141,7 @@ public class AstEvaluator
         // Finally, apply negation if it exists.
         return node.IsNegated ? !result : result;
     }
-    private static double ParseDuration(string text)
+    private static double ParseDuration(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return 0;
