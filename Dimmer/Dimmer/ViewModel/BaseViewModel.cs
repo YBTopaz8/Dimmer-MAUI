@@ -1675,6 +1675,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (value.Title is null)
             return;
 
+        if (audioService.IsPlaying)
+        {
+            value.IsCurrentPlayingHighlight = true;
+        
         AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName} ";
         value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath,1f);
         CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
@@ -1682,14 +1686,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         value.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
             dimmerPlayEventRepo.GetAll().Where(x=>x.Id == value.Id)
         );
-
+        }
+        else
+        {
+            value.IsCurrentPlayingHighlight=false;
+        }
 
     }
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
-        // This logic was okay, just moved to a dedicated handler.
+       
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
-        // ... >r existing logic to refresh FolderPaths and trigger metadata scan ...
+       
         IsAppScanning = false;
         var newSongs = stateInfo.ExtraParameter as List<SongModelView>;
         if (newSongs != null && newSongs.Count > 0)
@@ -1892,32 +1900,105 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         
         await StartNewPlaybackQueue(newQueue, startIndex, CurrentTqlQuery);
     }
+
+    private async Task PlaySongAtIndexAsync(int index)
+    {
+        if (_playbackQueue == null || index < 0 || index >= _playbackQueue.Count)
+        {
+            _logger.LogInformation("Playback stopped: Index {Index} is out of bounds for the current queue.", index);
+            if (audioService.IsPlaying)
+                audioService.Stop();
+            UpdateSongSpecificUi(null);
+            return;
+        }
+
+        _playbackQueueIndex = index;
+        var songToPlay = _playbackQueue[_playbackQueueIndex];
+
+        if (_playbackQueueIndex == -1)
+     
+        PlaybackManager.AddSongToHistory(songToPlay);
+        if (songToPlay.TitleDurationKey != CurrentPlayingSongView.TitleDurationKey)
+        {
+            CurrentTrackPositionSeconds=0;
+        }
+
+
+        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
+
+            await ValidateSongAsync(songToPlay);
+            await NextTrackAsync();
+            return;
+        }
+        if (audioService.IsPlaying)
+        {
+            audioService.Stop();
+
+        }
+        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
+    }
+
+
+    private int GetNextIndexInQueue(int direction)
+    {
+        if (_playbackQueue.Count == 0)
+            return -1;
+
+        if (CurrentRepeatMode == RepeatMode.One)
+        {
+            return _playbackQueueIndex;
+        }
+
+        int nextIndex = _playbackQueueIndex + direction;
+
+
+
+        if (nextIndex >= _playbackQueue.Count)
+        {
+
+
+            return CurrentRepeatMode == RepeatMode.All ? 0 : -1;
+        }
+
+        if (nextIndex < 0)
+        {
+
+
+            return CurrentRepeatMode == RepeatMode.All ? _playbackQueue.Count - 1 : -1;
+        }
+
+
+        return nextIndex;
+    }
     private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
     {
         List<SongModelView> finalQueue;
+        int finalStartIndex;
 
-        
         if (IsShuffleActive)
         {
             var songToStartWith = songs.ElementAt(startIndex);
-            var otherSongs = songs.Where(s => s.Id != songToStartWith.Id);
+            var otherSongs = songs.Where(s => s.Id != songToStartWith.Id).ToList();
             var shuffledSongs = otherSongs.OrderBy(x => _random.Next()).ToList();
 
             finalQueue = new List<SongModelView> { songToStartWith };
             finalQueue.AddRange(shuffledSongs);
-            _playbackQueueIndex = 0; 
+            finalStartIndex = 0;
         }
         else
         {
             finalQueue = songs.ToList();
-            _playbackQueueIndex = startIndex;
+            finalStartIndex = startIndex;
         }
 
-        
         if (audioService.IsPlaying)
         {
             audioService.Stop();
         }
+
+        
 
         
         _playbackQueueSource.Edit(updater =>
@@ -1928,12 +2009,72 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         
         CurrentPlaybackQuery = contextQuery;
-        SavePlaybackContext(CurrentPlaybackQuery); 
+        SavePlaybackContext(CurrentPlaybackQuery);
         PlaybackManager.ClearSessionHistory();
 
         
-        await StartAudioForSongAtIndex(_playbackQueueIndex);
+
+        
+        if (finalQueue == null || finalStartIndex < 0 || finalStartIndex >= finalQueue.Count)
+        {
+            _logger.LogError("Could not start playback. Invalid start index for the new queue.");
+            UpdateSongSpecificUi(null);
+            return;
+        }
+
+        
+        _playbackQueueIndex = finalStartIndex;
+        var songToPlay = finalQueue[_playbackQueueIndex];
+
+        
+        PlaybackManager.AddSongToHistory(songToPlay);
+        CurrentTrackPositionSeconds = 0; 
+
+        
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'. Skipping...", songToPlay.Title);
+            await ValidateSongAsync(songToPlay);
+            
+            
+            return;
+        }
+
+        
+        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
     }
+    [RelayCommand]
+    private void ToggleShuffle()
+    {
+        IsShuffleActive = !IsShuffleActive;
+        _logger.LogInformation("Shuffle mode toggled to: {ShuffleState}", IsShuffleActive);
+
+        if (IsShuffleActive && _playbackQueue.Any() && _playbackQueueIndex >= 0)
+        {
+           
+            var playedPart = _playbackQueue.Take(_playbackQueueIndex + 1).ToList();
+
+            
+            var upcomingPart = _playbackQueue.Skip(_playbackQueueIndex + 1).ToList();
+
+            
+            var shuffledUpcoming = upcomingPart.OrderBy(x => _random.Next()).ToList();
+
+            
+            var newQueue = new List<SongModelView>();
+            newQueue.AddRange(playedPart);
+            newQueue.AddRange(shuffledUpcoming);
+
+            
+            _playbackQueueSource.Edit(updater =>
+            {
+                updater.Clear();
+                updater.AddRange(newQueue);
+            });
+        }
+    }
+
+    #endregion
     [RelayCommand]
     public async Task PlayPauseToggle()
     {
@@ -1965,8 +2106,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
-        //var nextIndex = GetNextIndexInQueue(1);
-        //await StartAudioForSongAtIndex(nextIndex);
+
 
         if (IsPlaying && _songToScrobble != null && IsLastfmAuthenticated)
         {
@@ -1992,14 +2132,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         }
-        else
-        {
-            
-            //audioService.Stop();
-            //UpdateSongSpecificUi(null);
-        }
 
-        await StartAudioForSongAtIndex(nextIndex);
+        await PlaySongAtIndexAsync(nextIndex);
     }
     [RelayCommand]
     private void AddNewPlaybackRule()
@@ -2033,92 +2167,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             await lastfmService.ScrobbleAsync(_songToScrobble);
         }
         var prevIndex = GetNextIndexInQueue(-1);
-        await StartAudioForSongAtIndex(prevIndex);
+        await PlaySongAtIndexAsync(prevIndex);
     }
 
     #endregion
 
     #region Private Playback Helper Methods
 
-    private async Task StartAudioForSongAtIndex(int index)
-    {
-        if (_playbackQueue == null || index < 0)
-        {
-            _logger.LogInformation("Playback stopped: Queue is empty or index is invalid.");
-            audioService.Stop();
-            UpdateSongSpecificUi(null);
-            return;
-        }
-
-        _playbackQueueIndex = index;
-
-        if (_playbackQueueIndex == -1)
-        {
-            _logger.LogInformation("Playback queue finished. Stopping playback.");
-            audioService.Stop();
-            UpdateSongSpecificUi(null);
-            return;
-        }
-
-        if (_playbackQueue.Count==0)
-        {
-
-        }
-        SongModelView? songToPlay = _playbackQueue[_playbackQueueIndex];
-        PlaybackManager.AddSongToHistory(songToPlay);
-        if (songToPlay.TitleDurationKey != CurrentPlayingSongView.TitleDurationKey)
-        {
-            CurrentTrackPositionSeconds=0;
-        }
-
-
-        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
-        {
-            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
-            await NextTrackAsync();
-            await ValidateSongAsync(songToPlay);
-            return;
-        }
-        if (audioService.IsPlaying)
-        {
-            audioService.Stop();
-
-        }
-        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
-    }
-
-
-    private int GetNextIndexInQueue(int direction)
-    {
-        if (_playbackQueue.Count == 0)
-            return -1; 
-
-        if (CurrentRepeatMode == RepeatMode.One)
-        {
-            return _playbackQueueIndex; 
-        }
-
-        int nextIndex = _playbackQueueIndex + direction;
-
-        
-
-        if (nextIndex >= _playbackQueue.Count)
-        {
-            
-            
-            return CurrentRepeatMode == RepeatMode.All ? 0 : -1;
-        }
-
-        if (nextIndex < 0)
-        {
-            
-            
-            return CurrentRepeatMode == RepeatMode.All ? _playbackQueue.Count - 1 : -1;
-        }
-
-        
-        return nextIndex;
-    }
     
     private const string LastSessionPlaylistName = "__LastPlaybackSession";
 
@@ -2147,7 +2202,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             
             if (_playbackQueue.Any())
             {
-                StartAudioForSongAtIndex(0).ConfigureAwait(false);
+                PlaySongAtIndexAsync(0).ConfigureAwait(false);
             }
         }
         else
@@ -2267,7 +2322,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     public record PlaylistSongContext(PlaylistModelView Playlist, SongModelView SongToPlay);
     #endregion
-    #endregion
    
     [RelayCommand]
     private async Task StartRadioStation(SongModelView? seedSong)
@@ -2291,7 +2345,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var newQueue = new List<SongModelView> { seedSong };
         newQueue.AddRange(radioSongs);
 
-        // --- USE THE HELPER ---
+        
         var contextQuery = $"radio:\"{seedSong.Title}\"";
         _logger.LogInformation("Started radio station based on '{Title}' with {Count} songs.", seedSong.Title, newQueue.Count);
         await StartNewPlaybackQueue(newQueue, 0, contextQuery);
@@ -2386,7 +2440,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var distinctSongs = songs.Distinct().ToList();
 
-        // If nothing is playing, these songs become the new queue.
+       
         if (!_playbackQueue.Any() || CurrentPlayingSongView.Title == null)
         {
             if (audioService.IsPlaying)
@@ -2399,11 +2453,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             });
 
             _playbackQueueIndex = 0;
-            await StartAudioForSongAtIndex(_playbackQueueIndex);
+            await PlaySongAtIndexAsync(_playbackQueueIndex);
             return;
         }
 
-        // Otherwise, insert them into the existing queue.
+       
         var insertIndex = _playbackQueueIndex + 1;
         _playbackQueueSource.InsertRange(distinctSongs, insertIndex);
 
@@ -2419,7 +2473,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (song == null)
             return;
 
-        // This just calls the collection version.
+       
         AddToQueueEnd(new List<SongModelView> { song });
     }
 
@@ -2446,16 +2500,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void HandlePlaybackStateChange(PlaybackEventArgs args)
     {
 
-        // You might need to adjust 'args.State' to whatever property holds the enum.
-        // e.g., if PlaybackEventArgs holds a DimmerPlayEvent, it might be args.PlayEvent.PlayType
-        PlayType? state = StatesMapper.Map(args.EventType); // Assuming > have a way to get the enum state
+       
+       
+        PlayType? state = StatesMapper.Map(args.EventType);
 
         switch (state)
         {
             case PlayType.Play:
-                // This case might be handled by PlayEnded -> NextTrackAsync -> StartAudioForSongAtIndex
-                // which then calls InitializeAsync and Play. The audio service might raise
-                // a 'Playing' state change at that point. We can simply log it.
+               
+               
+               
                 OnPlaybackStarted(args);
                 break;
 
@@ -2484,7 +2538,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _subsManager.Add(_stateService.DeviceVolume
             .Subscribe(volume => DeviceVolumeLevel = volume, ex => _logger.LogError(ex, "Error in DeviceVolume subscription")));
 
-        // This handles special cases like when a scan completes.
+       
         var playbackStateObservable = _stateService.CurrentPlayBackState.Publish().RefCount();
 
         _subsManager.Add(playbackStateObservable
@@ -2495,7 +2549,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .Where(s => s.Log is not null)
             .Subscribe(LatestDeviceLog, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
 
-        // PlaylistExhausted is now handled by the PlaybackEnded event from the audio service, making this obsolete.
+       
     }
 
     private void OnCurrentSongChanged(SongModelView? view)
@@ -2538,7 +2592,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         audioService.Seek(positionSeconds);
         //_baseAppFlow.UpdateDatabaseWithPlayEvent( realmFactory,CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
 
-        // If > want to log this as a play event, > can do so here.
+       
 
         //_songsMgtFlow.RequestSeek(positionSeconds);
 
@@ -2837,17 +2891,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     public void GetStatsGeneral()
     {
-        // It's more efficient to get these once and pass them around.
+       
         var allSongs = songRepo.GetAll();
         var allEvents = dimmerPlayEventRepo.GetAll();
         int topCount = 10;
 
-        // --- Time-based Filters ---
+       
         var endDate = DateTimeOffset.UtcNow;
         var monthStartDate = endDate.AddMonths(-1);
         var yearStartDate = endDate.AddYears(-1);
 
-        // --- Basic Rankings (from TopStats) ---
+       
         TopSongsLastMonth = TopStats.GetTopCompletedSongs(allSongs, allEvents, topCount, monthStartDate, endDate).ToObservableCollection();
         MostSkippedSongs = TopStats.GetTopSkippedSongs(allSongs, allEvents, topCount).ToObservableCollection();
         ArtistsByHighestSkipRate = TopStats.GetArtistsByHighestSkipRate(allEvents, allSongs, topCount).ToObservableCollection();
@@ -2856,16 +2910,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         TopArtistsByVariety = TopStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
         TopGenresByListeningTime = TopStats.GetTopGenresByListeningTime(allEvents, allSongs, topCount).ToObservableCollection();
 
-        // --- Populating Chart-Specific Properties ---
+       
         OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(allEvents, allSongs).ToObservableCollection();
-        DeviceUsageByTopArtists = TopStats.GetDeviceUsageByTopArtists(allEvents, allSongs, 5).ToObservableCollection(); // Using TopStats method
+        DeviceUsageByTopArtists = TopStats.GetDeviceUsageByTopArtists(allEvents, allSongs, 5).ToObservableCollection();
         GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(allEvents, allSongs).ToObservableCollection();
         DailyListeningTimeRange = ChartSpecificStats.GetDailyListeningTimeRange(allEvents, allSongs, monthStartDate, endDate).ToObservableCollection();
         SongProfileBubbleChart = ChartSpecificStats.GetSongProfileBubbleChartData(allEvents, allSongs).ToObservableCollection();
         DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(allEvents, allSongs, monthStartDate, endDate).ToObservableCollection();
 
-        // Note: Waterfall, Histogram, BoxPlot might require more specific logic or different data shaping
-        // depending on the exact chart component API. These are placeholders for that future implementation.
+       
+       
     }
 
     /// <summary>
@@ -2881,7 +2935,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        // It's much more efficient to get the full song model once with its relations.
+       
         var songDb = songRepo.GetById(song.Id);
         if (songDb == null)
         {
@@ -3072,41 +3126,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("Attempting to add {Count} songs to playlist '{PlaylistName}'.", songsToAdd.Count, playlistName);
 
-        // Step 1: Find the playlist by name. We need its ID.
-        // The Query method returns a frozen list.
+       
+       
         var matchingPlaylists = _playlistRepo.Query(p => p.PlaylistName == playlistName);
         var targetPlaylist = matchingPlaylists.FirstOrDefault();
 
-        // If the playlist doesn't exist, create it as a NEW MANUAL playlist.
+       
         if (targetPlaylist == null)
         {
             _logger.LogInformation("Playlist '{PlaylistName}' not found. Creating it as a new manual playlist.", playlistName);
             var newPlaylistModel = new PlaylistModel
             {
                 PlaylistName = playlistName,
-                IsSmartPlaylist = false // Crucial! It's a manual playlist.
+                IsSmartPlaylist = false
             };
             targetPlaylist = _playlistRepo.Create(newPlaylistModel);
         }
 
-        // If we found an existing playlist but it's a SMART playlist, we can't add songs manually.
+       
         if (targetPlaylist.IsSmartPlaylist)
         {
             _logger.LogWarning("Cannot manually add songs to the smart playlist '{PlaylistName}'. Change its query instead.", playlistName);
-            // Optionally, show a message to the user here.
+           
             return;
         }
 
-        // Step 2: Use the safe Update method to modify the playlist.
+       
         var songIdsToAdd = songsToAdd.Select(s => s.Id).ToHashSet();
 
         _playlistRepo.Update(targetPlaylist.Id, livePlaylist =>
         {
-            // 'livePlaylist' is the managed object inside the transaction.
+           
             int songsAddedCount = 0;
             foreach (var songId in songIdsToAdd)
             {
-                // Check if the song is already in the list to avoid duplicates.
+               
                 if (!livePlaylist.SongsIdsInPlaylist.Contains(songId))
                 {
                     livePlaylist.SongsIdsInPlaylist.Add(songId);
@@ -3274,10 +3328,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task LoadSongDataAsync(Progress<LyricsProcessingProgress>? progressReporter, CancellationTokenSource _lyricsCts)
     {
-        // Get the list of songs > want to process
-        var songsToRefresh = _songSource.Items.AsEnumerable(); // Or >r full master list
+       
+        var songsToRefresh = _songSource.Items.AsEnumerable();
         ILyricsMetadataService lryServ = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
-        // --- Call our static, background-safe method ---
+       
         await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
     }
 
@@ -3290,10 +3344,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private SourceList<DuplicateSetViewModel> _duplicateSource = new();
 
-    // 2. THE DESTINATION: This is the read-only collection for the UI.
+   
     private  ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
 
-    // 3. THE PUBLIC PROPERTY: The UI will bind to this.
+   
     public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
 
     public bool HasDuplicates => _duplicateSets.Any();
@@ -3305,20 +3359,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         IsFindingDuplicates = true;
 
-        // We can clear the source directly. DynamicData will update the UI.
+       
         _duplicateSource.Clear();
 
         try
         {
-            // Offload the finding of data to a background thread so the UI never freezes.
+           
             var results = await Task.Run(() => _duplicateFinderService.FindDuplicates());
 
             if (results.Count!=0)
             {
                 
-                // Use .Edit() to perform a highly efficient bulk update.
-                // This replaces the slow foreach loop and prevents the UI from freezing.
-                // It calculates all the changes and sends ONE notification to the UI.
+               
+               
+               
                 _duplicateSource.Edit(updater =>
                 {
                     updater.Clear();
@@ -3327,7 +3381,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
             else
             {
-                // Optionally show a "No duplicates found" message
+               
             }
         }
         catch (Exception ex)
@@ -3350,23 +3404,23 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (itemsToDelete.Count==0)
             return;
 
-        // ... (Confirmation dialog logic here) ...
+       
 
         var deletedCount = await _duplicateFinderService.ResolveDuplicatesAsync(itemsToDelete);
 
-        // --- Clean up the UI using Dynamic Data ---
+       
 
-        // 1. Remove the deleted songs from the main song source list
+       
         var idsToDelete = itemsToDelete.Select(i => i.Song.Id).ToHashSet();
         _songSource.RemoveMany(_songSource.Items.Where(s => idsToDelete.Contains(s.Id)));
 
-        // 2. Identify which duplicate sets are now fully resolved
+       
         var resolvedSets = DuplicateSets
             .Where(set => set.Items.All(item => item.Action == DuplicateAction.Keep || item.Action == DuplicateAction.Ignore))
             .ToList();
 
-        // 3. Remove these resolved sets from the duplicate source list.
-        //    DynamicData will automatically remove them from the UI.
+       
+       
         _duplicateSource.RemoveMany(resolvedSets);
 
         _logger.LogInformation("Successfully resolved duplicates, deleting {Count} items.", deletedCount);
@@ -3376,7 +3430,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsCheckingFilePresence { get; set; }
 
-    // --- Add the new command ---
+   
     [RelayCommand]
     private async Task ValidateLibraryAsync()
     {
@@ -3385,40 +3439,40 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         IsCheckingFilePresence = true;
         _logger.LogInformation("Starting library validation...");
-        // Optionally show a status message to the user
+       
 
         try
         {
-            // 1. Run the service on a background thread to keep the UI responsive.
+           
             var validationResult = await Task.Run(async () => await _duplicateFinderService.ValidateFilePresenceAsync(_mapper.Map<List<SongModelView>>(await songRepo.GetAllAsync())));
 
             if (validationResult.MissingCount == 0)
             {
                 _logger.LogInformation("Library validation complete. No missing files found.");
-                // Show a "Library is clean!" message
+               
                 return;
             }
 
             _logger.LogInformation("Found {Count} songs with missing files. Removing from UI and database.", validationResult.MissingCount);
 
-            // 2. Get the IDs of the songs to remove. A HashSet is fastest for lookups.
+           
             var missingIds = validationResult.MissingSongs.Select(s => s.Id).ToHashSet();
 
-            // 3. Find the corresponding items currently in our UI's SourceList.
+           
             var itemsInUiToRemove = _songSource.Items.Where(s => missingIds.Contains(s.Id)).ToList();
 
-            // 4. Use the high-performance RemoveMany to update the UI just once.
+           
             _songSource.RemoveMany(itemsInUiToRemove);
 
-            // 5. CRITICAL: Clean up the database as well.
+           
             await _duplicateFinderService.RemoveSongsFromDbAsync(missingIds);
 
-            // Show a final "Cleanup complete" message
+           
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred during library validation.");
-            // Show an error message to the user
+           
         }
         finally
         {
@@ -3434,11 +3488,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         IsCheckingFilePresence = true;
         _logger.LogInformation("Starting library validation...");
-        // Optionally show a status message to the user
+       
 
         try
         {
-            // 1. Run the service on a background thread to keep the UI responsive.
+           
             var listSong = new List<SongModelView>();
             listSong.Add(song);
             var validationResult = await Task.Run(() => _duplicateFinderService.ValidateFilePresenceAsync(
@@ -3446,30 +3500,30 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             if (validationResult.MissingCount == 0)
             {
                 _logger.LogInformation("Library validation complete. No missing files found.");
-                // Show a "Library is clean!" message
+               
                 return;
             }
 
             _logger.LogInformation("Found {Count} songs with missing files. Removing from UI and database.", validationResult.MissingCount);
 
-            // 2. Get the IDs of the songs to remove. A HashSet is fastest for lookups.
+           
             var missingIds = validationResult.MissingSongs.Select(s => s.Id).ToHashSet();
 
-            // 3. Find the corresponding items currently in our UI's SourceList.
+           
             var itemsInUiToRemove = _songSource.Items.Where(s => missingIds.Contains(s.Id)).ToList();
 
-            // 4. Use the high-performance RemoveMany to update the UI just once.
+           
             _songSource.RemoveMany(itemsInUiToRemove);
 
-            // 5. CRITICAL: Clean up the database as well.
+           
             await _duplicateFinderService.RemoveSongsFromDbAsync(missingIds);
 
-            // Show a final "Cleanup complete" message
+           
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred during library validation.");
-            // Show an error message to the user
+           
         }
         finally
         {
@@ -3511,7 +3565,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
 
         IsLyricsSearchBusy = true;
-        LyricsSearchResults.Clear(); // Clear old results
+        LyricsSearchResults.Clear();
 
         try
         {
@@ -3539,7 +3593,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
             var query = $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
             ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
-            // Use the manual search from the service. Use the query if provided, otherwise the song's tags.
+           
             IEnumerable<LrcLibSearchResult>? results = await _lyricsMetadataService.SearchOnlineManualParamsAsync(LyricsTrackNameSearch, LyricsArtistNameSearch,LyricsAlbumNameSearch);
 
             foreach (var result in results)
@@ -3547,7 +3601,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 LyricsSearchResults.Add(result);
             }
             _logger.LogInformation("Successfully fetched {Count} lyrics search results for '{Query}'", LyricsSearchResults.Count, query);
-            // Optionally show a message if no results were found
+           
             if (LyricsSearchResults.Count == 0)
             {
                 _logger.LogInformation("No lyrics found for the search query: {Query}", query);
@@ -3561,7 +3615,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             await Shell.Current.DisplayAlert("Search Complete", $"Found {LyricsSearchResults.Count} results for '{query}'", "OK");
 
 
-            LyricsArtistNameSearch = string.Empty; // Clear the search fields after search
+            LyricsArtistNameSearch = string.Empty;
             LyricsAlbumNameSearch = string.Empty;
             LyricsTrackNameSearch = string.Empty;
                 
@@ -3571,7 +3625,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search for lyrics online.");
-            // Optionally show a user-facing error message
+           
 
             await Shell.Current.DisplayAlert("Error", "Failed to search for lyrics. Please try again later.", "OK");
         }
@@ -3591,24 +3645,24 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         try
         {
-            // Step 1: Tell the real-time flow to use these lyrics NOW.
+           
             _lyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
 
-            // Step 2: Tell the metadata service to SAVE these lyrics for the future.
-            // The service needs a LyricsInfo object, so we create one.
+           
+           
             var lyricsInfo = new LyricsInfo();
             lyricsInfo.Parse(selectedResult.SyncedLyrics);
             var _lyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
 
             await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong, selectedResult.SyncedLyrics, lyricsInfo);
 
-            // Step 3: Update the local ViewModel state so the UI reacts instantly.
+           
             SelectedSong.SyncLyrics = selectedResult.SyncedLyrics;
             SelectedSong.HasLyrics = true;
             SelectedSong.HasSyncedLyrics = true;
 
-            // Step 4: Clean up the UI
-            LyricsSearchResults.Clear(); // Hide the search results
+           
+            LyricsSearchResults.Clear();
         }
         catch (Exception ex)
         {
@@ -3622,7 +3676,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (SelectedSong == null)
             return;
 
-        // Optional: Add a confirmation dialog here!
+       
 
         bool confirm = await Shell.Current.DisplayAlert(
             "Unlink Lyrics",
@@ -3632,21 +3686,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         );
 
         if (!confirm)
-            return; // User cancelled the unlinking
+            return;
 
         var _lyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
 
-        // Clear the lyrics from the song object
-        var emptyLyricsInfo = new LyricsInfo(); // An empty object to clear data
+       
+        var emptyLyricsInfo = new LyricsInfo();
         await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong, string.Empty, emptyLyricsInfo);
 
-        // Update the local ViewModel state
+       
         SelectedSong.SyncLyrics = string.Empty;
         SelectedSong.UnSyncLyrics = string.Empty;
         SelectedSong.HasLyrics = false;
         SelectedSong.HasSyncedLyrics = false;
 
-        // Tell the flow to clear its current state
+       
         _lyricsMgtFlow.LoadLyrics(string.Empty);
     }
 
@@ -3658,11 +3712,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         IsReconcilingLibrary = true;
         _logger.LogInformation("Starting library reconciliation...");
-        // Show a status message to the user
+       
 
         try
         {
-            // 1. Run the service on a background thread. Pass the current UI song list.
+           
             var result = await Task.Run(() => _duplicateFinderService.ReconcileLibraryAsync(_songSource.Items.ToList()));
 
             if (result.MigratedCount == 0 && result.UnresolvedCount == 0)
@@ -3671,37 +3725,37 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 return;
             }
 
-            // 2. Prepare the changeset for the UI update.
-            // We need a list of all items to remove from the source list.
+           
+           
             var songsToRemove = new List<SongModelView>();
 
-            // Add all the truly missing songs.
+           
             songsToRemove.AddRange(result.UnresolvedMissingSongs);
 
-            // Add the OLD version of the migrated songs.
+           
             songsToRemove.AddRange(result.MigratedSongs.Select(m => m.From));
 
-            // We also need to remove the UN-UPDATED version of the replacement songs,
-            // because we will add the UPDATED version back in.
+           
+           
             songsToRemove.AddRange(result.MigratedSongs.Select(m => m.To));
 
-            // This is the list of songs with fresh, migrated data to add back.
+           
             var songsToAdd = result.MigratedSongs.Select(m => m.To).ToList();
 
-            // 3. Use Dynamic Data's .Edit() for a single, high-performance UI update.
+           
             _songSource.Edit(updater =>
             {
                 updater.Remove(songsToRemove);
-                updater.AddRange(songsToAdd); // Add the updated versions back.
+                updater.AddRange(songsToAdd);
             });
 
-            // Show a final "Cleanup complete" message to the user
+           
             _logger.LogInformation("UI updated. Removed {RemoveCount} entries, added back {AddCount} updated entries.", songsToRemove.Count, songsToAdd.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred during library reconciliation.");
-            // Show an error message to the user
+           
         }
         finally
         {
@@ -3723,22 +3777,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("Assigning song '{SongTitle}' to artist '{ArtistName}'", context.Song.Title, context.TargetArtist.Name);
 
-        // Update the database
+       
        await songRepo.UpdateAsync(context.Song.Id, songInDb =>
         {
             var artistInDb = artistRepo.GetById(context.TargetArtist.Id);
             if (artistInDb == null)
                 return;
 
-            // This is a full replacement of the artist list
+           
             songInDb.ArtistToSong.Clear();
             songInDb.ArtistToSong.Add(artistInDb);
             songInDb.Artist = artistInDb;
             songInDb.ArtistName = artistInDb.Name;
         });
 
-        // --- Refresh UI ---
-        // Fetch the updated song and replace it in the main source list
+       
+       
         var updatedSong = _mapper.Map<SongModelView>(songRepo.GetById(context.Song.Id));
         _songSource.Edit(updater =>
         {
@@ -3758,8 +3812,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (songsToAssign == null || !songsToAssign.Any())
             return;
 
-        // --- Step 1: Get the new artist name from the user ---
-        // This is a perfect use case for a simple popup input dialog.
+       
+       
         string? newArtistName = await Shell.Current.DisplayPromptAsync(
             "Create New Artist",
             "Enter the name for the new artist:");
@@ -3769,11 +3823,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("Creating new artist '{ArtistName}' and assigning {Count} songs.", newArtistName, songsToAssign.Count);
 
-        // --- Step 2: Create the new artist in the database ---
+       
         var newArtist = new ArtistModel { Name = newArtistName };
-        var createdArtist = artistRepo.Create(newArtist); // This returns the managed object with a new ID
+        var createdArtist = artistRepo.Create(newArtist);
 
-        // --- Step 3: Loop through songs and update them ---
+       
         var songIds = songsToAssign.Select(s => s.Id).ToList();
         foreach (var songId in songIds)
         {
@@ -3786,7 +3840,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             });
         }
 
-        // --- Step 4: Refresh UI (High-performance version) ---
+       
         var updatedSongs = _mapper.Map<List<SongModelView>>(songRepo.Query(s => songIds.Contains(s.Id)));
         _songSource.Edit(updater =>
         {
@@ -3795,9 +3849,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         });
     }
 
-    // =================================================================
-    // ALBUM LINKING COMMANDS
-    // =================================================================
+   
+   
+   
 
     /// <summary>
     /// Merges multiple songs into a single album, creating the album if it doesn't exist.
@@ -3810,30 +3864,30 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (songsToAlbumize == null || !songsToAlbumize.Any())
             return;
 
-        // --- Step 1: Get Album Name and Album Artist from User ---
+       
         string? albumName = await Shell.Current.DisplayPromptAsync("Group into Album", "Enter the album name:");
         if (string.IsNullOrWhiteSpace(albumName))
             return;
 
-        // Use the artist of the first song as a default suggestion
+       
         string? albumArtistName = await Shell.Current.DisplayPromptAsync("Group into Album", "Enter the album artist name:", initialValue: songsToAlbumize.First().ArtistName);
         if (string.IsNullOrWhiteSpace(albumArtistName))
             return;
 
-        // --- Step 2: Find or Create the Album and Album Artist ---
+       
         var albumArtist = artistRepo.Query(a => a.Name == albumArtistName).FirstOrDefault() ?? artistRepo.Create(new ArtistModel { Name = albumArtistName });
         var album = albumRepo.Query(a => a.Name == albumName).FirstOrDefault() ?? albumRepo.Create(new AlbumModel { Name = albumName, Artist = albumArtist });
 
-        // --- Step 3: Update all selected songs ---
+       
         var songIds = songsToAlbumize.Select(s => s.Id).ToList();
-        songRepo.UpdateMany(songIds, songInDb => // Assuming IRepository has an UpdateMany
+        songRepo.UpdateMany(songIds, songInDb =>
         {
             songInDb.Album = album;
             songInDb.AlbumName = album.Name;
-            songInDb.OtherArtistsName = albumArtist.Name; // Set Album Artist
+            songInDb.OtherArtistsName = albumArtist.Name;
         });
 
-        // --- Step 4: Refresh UI ---
+       
         var updatedSongs = _mapper.Map<List<SongModelView>>(songRepo.Query(s => songIds.Contains(s.Id)));
         _songSource.Edit(updater =>
         {
@@ -3842,9 +3896,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         });
     }
 
-    // =================================================================
-    // GENRE AND TAGGING COMMANDS
-    // =================================================================
+   
+   
+   
 
     /// <summary>
     /// Applies a single genre to a batch of selected songs.
@@ -3869,7 +3923,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             songInDb.GenreName = genre.Name;
         });
 
-        // Refresh UI
+       
         var updatedSongs = _mapper.Map<List<SongModelView>>(songRepo.Query(s => songIds.Contains(s.Id)));
         _songSource.Edit(updater =>
         {
@@ -3899,17 +3953,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             foreach (var tagName in tagNames)
             {
-                // Avoid adding duplicate tags
+               
                 if (!songInDb.Tags.Any(t => t.Name.Equals(tagName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    // For simplicity, we assume tags are not shared objects.
-                    // If they were, > would find-or-create them like genres.
+                   
+                   
                     songInDb.Tags.Add(new TagModel { Name = tagName });
                 }
             }
         });
 
-        // Refresh UI
+       
         var updatedSongs = _mapper.Map<List<SongModelView>>(songRepo.Query(s => songIds.Contains(s.Id)));
         _songSource.Edit(updater =>
         {
@@ -3929,12 +3983,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var currentQuery = _searchQuerySubject.Value.Trim();
         if (string.IsNullOrWhiteSpace(currentQuery))
         {
-            // If the search is empty, the new clause is the whole query.
+           
             _searchQuerySubject.OnNext(clause);
         }
         else
         {
-            // Otherwise, intelligently add it with an "and".
+           
             _searchQuerySubject.OnNext($"{currentQuery} and {clause}");
         }
     }
@@ -3946,8 +4000,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void SetSortForSearch(string sortClause)
     {
         var currentQuery = _searchQuerySubject.Value;
-        // This is a simplified regex to remove existing sort/limit directives.
-        // Your MetaParser is the source of truth, but this is good for a quick UI-driven change.
+       
+       
         var queryWithoutDirectives = Regex.Replace(currentQuery, @"(asc|desc|random|shuffle|first|last)\s*\w*\s*", "", RegexOptions.IgnoreCase).Trim();
 
         _searchQuerySubject.OnNext($"{queryWithoutDirectives} {sortClause}");
@@ -3959,13 +4013,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void RebuildAndExecuteQuery()
     {
         var clauses = new List<string>();
-        LogicalOperator nextJoiner = LogicalOperator.And; // Default joiner
+        LogicalOperator nextJoiner = LogicalOperator.And;
 
         foreach (var component in UIQueryComponents)
         {
             if (component is ActiveFilterViewModel filter)
             {
-                // If the last thing added was a filter, we need to add the joiner first.
+               
                 if (clauses.Count!=0)
                 {
                     clauses.Add(nextJoiner.ToString().ToLower());
@@ -3974,15 +4028,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
             else if (component is LogicalJoinerViewModel joiner)
             {
-                // Store the joiner for the NEXT filter.
+               
                 nextJoiner = joiner.Operator;
             }
         }
 
         var fullQueryString = string.Join(" ", clauses);
 
-        // Push the newly built string into >r existing TQL engine pipeline.
-        // The rest of >r app (parser, evaluator) works exactly as before!
+       
+       
         _searchQuerySubject.OnNext(fullQueryString);
     }
     [ObservableProperty]
@@ -4001,8 +4055,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        // Uniqueness Check: If a field can only appear once (like 'fav'),
-        // and it's already in our active list, do nothing.
+       
+       
         if (fieldDef.Type == FieldType.Boolean && ActiveFilters.Any(f => f.Field == tqlField))
         {
             _logger.LogWarning("Cannot add duplicate unique filter: {Field}", tqlField);
@@ -4012,14 +4066,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         string? tqlClause = null;
         string? displayText = null;
 
-        // Ask for user input based on the field type
+       
         switch (fieldDef.Type)
         {
             case FieldType.Text:
                 string? value = await Shell.Current.DisplayPromptAsync($"Filter by {fieldDef.PrimaryName}", "Enter the text to search for:");
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    // Quote the value if it contains spaces
+                   
                     string formattedValue = value.Contains(' ') ? $"\"{value}\"" : value;
                     tqlClause = $"{tqlField}:{formattedValue}";
                     displayText = $"{fieldDef.PrimaryName}: {value}";
@@ -4027,14 +4081,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
 
             case FieldType.Boolean:
-                // For booleans, we just add the "true" state. The UI can have a toggle for negation.
+               
                 tqlClause = $"{tqlField}:true";
                 displayText = fieldDef.Description;
                 break;
 
             case FieldType.Numeric:
             case FieldType.Duration:
-                // This could be expanded with a more complex UI for operators (>, <, etc.)
+               
                 string? numValue = await Shell.Current.DisplayPromptAsync($"Filter by {fieldDef.PrimaryName}", "Enter the value (e.g., >2000 or 3:30):");
                 if (!string.IsNullOrWhiteSpace(numValue))
                 {
@@ -4044,8 +4098,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
 
             case FieldType.Date:
-                // Here > would show a calendar control or a set of predefined ranges.
-                // For simplicity, we'll use a prompt.
+               
+               
                 string? dateValue = await Shell.Current.DisplayPromptAsync($"Filter by {fieldDef.PrimaryName}", "Enter a date or range (e.g., today, last month, 2023-12-25):");
                 if (!string.IsNullOrWhiteSpace(dateValue))
                 {
@@ -4055,7 +4109,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
         }
 
-        // If the user provided input and we created a clause, add the new Lego brick!
+       
         if (tqlClause != null && displayText != null)
         {
             ActiveFilters.Add(new ActiveFilterViewModel(tqlField, displayText, tqlClause, RemoveFilter));
@@ -4110,7 +4164,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             AlbumName = CurrentPlayingSongView.AlbumName,
             SegmentStartTime = NewSegmentStart,
             SegmentEndTime = NewSegmentEnd,
-            SegmentEndBehavior = SegmentEndBehavior.LoopSegment, // Default to loop
+            SegmentEndBehavior = SegmentEndBehavior.LoopSegment,
             DurationInSeconds = NewSegmentEnd - NewSegmentStart,
         };
 
@@ -4126,7 +4180,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public async Task UpdateSongToDB(SongModelView song)
     {
         //this is going to be a bit complex because 
-        // i have to handle artist changes, album changes or actually, any change.
+       
 
         //i'll think of a system of it, i can only think of listening to onpropertychanged to save the latest state.
 
@@ -4169,7 +4223,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-    // --- File Operation Methods ---
+   
 
     /// <summary>
     /// Deletes the source files and database entries for a list of selected songs after user confirmation.
@@ -4180,7 +4234,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (songsToDelete == null || !songsToDelete.Any())
             return;
 
-        // CRITICAL: Always confirm a destructive action.
+       
         var confirmed = await _dialogueService.ShowConfirmationAsync(
             "Confirm Deletion",
             $"Are > sure > want to permanently delete {songsToDelete.Count()} song(s)? This will remove the files from >r disk and cannot be undone.",
@@ -4190,7 +4244,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (!confirmed)
             return;
 
-        // Perform the operation
+       
         await PerformFileOperationAsync(songsToDelete, string.Empty, FileOperation.Delete);
     }
 
@@ -4203,7 +4257,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (songsToCopy == null || !songsToCopy.Any() || string.IsNullOrWhiteSpace(destinationPath))
             return;
 
-        // You might want a folder picker dialog to set destinationPath
+       
         await PerformFileOperationAsync(songsToCopy, destinationPath, FileOperation.Copy);
     }
 
@@ -4219,7 +4273,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await PerformFileOperationAsync(songsToMove, destinationPath, FileOperation.Move);
     }
 
-    // --- Metadata Editing Methods ---
+   
 
     /// <summary>
     /// Updates a single song's artist. It intelligently handles whether the new artist
@@ -4237,7 +4291,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         await realm.WriteAsync(() =>
         {
-            // 1. Find the managed SongModel in the database.
+           
             var songInDb = realm.Find<SongModel>(songToUpdate.Id);
             if (songInDb == null)
             {
@@ -4245,41 +4299,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 return;
             }
 
-            // 2. Check if the new artist already exists.
+           
             var existingArtist = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == newArtistName);
 
             ArtistModel artistToAssign;
             if (existingArtist != null)
             {
-                // --- PATH A: Artist already exists ---
+               
                 _logger.LogInformation("Assigning existing artist '{ArtistName}' to song '{SongTitle}'.", newArtistName, songInDb.Title);
                 artistToAssign = existingArtist;
             }
             else
             {
-                // --- PATH B: Artist is new, so create it ---
+               
                 _logger.LogInformation("Creating new artist '{ArtistName}' and assigning to song '{SongTitle}'.", newArtistName, songInDb.Title);
                 artistToAssign = new ArtistModel { Name = newArtistName };
-                realm.Add(artistToAssign); // Add the new artist to the database
+                realm.Add(artistToAssign);
             }
 
-            // 3. Update the song's relationships.
+           
             songInDb.ArtistToSong.Clear();
             songInDb.ArtistToSong.Add(artistToAssign);
-            songInDb.Artist = artistToAssign; // Update the primary artist field
+            songInDb.Artist = artistToAssign;
         });
 
         _logger.LogInformation("Successfully updated artist for song ID {SongId}.", songToUpdate.Id);
 
-        // 4. Update the UI model instantly for a responsive feel.
-        // This assumes > have a way to create an ArtistModelView.
+       
+       
         songToUpdate.ArtistToSong.Clear();
         songToUpdate.ArtistToSong.Add(_mapper.Map<ArtistModelView>(new ArtistModel { Name = newArtistName }));
-        songToUpdate.OtherArtistsName = newArtistName; // Update the aggregated string property
+        songToUpdate.OtherArtistsName = newArtistName;
     }
 
 
-    // --- Library Curation Methods ---
+   
 
     /// <summary>
     /// Flags a song as "hidden". This requires a change to >r core filtering logic to be effective.
@@ -4298,13 +4352,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var songInDb = realm.Find<SongModel>(songToBlacklist.Id);
             if (songInDb != null)
             {
-                // IMPORTANT: You need to add this 'IsHidden' property to >r SongModel class.
+               
                 songInDb.IsHidden = true;
             }
         });
 
-        // The song will be automatically removed from the UI if >r core
-        // data pipeline is updated to filter out hidden songs (see note below).
+       
+       
         _logger.LogInformation("Blacklisted song '{Title}'. It will be hidden from view.", songToBlacklist.Title);
     }
 
@@ -4339,14 +4393,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 {
                     File.Delete(sourcePath);
                 }
-                else // Copy or Move
+                else
                 {
                     string destFileName = Path.Combine(destinationPath, Path.GetFileName(sourcePath));
                     if (operation == FileOperation.Copy)
                     {
                         File.Copy(sourcePath, destFileName, overwrite: true);
                     }
-                    else // Move
+                    else
                     {
                         File.Move(sourcePath, destFileName, overwrite: true);
                     }
@@ -4360,7 +4414,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
         }
 
-        // --- Post-Operation Database Cleanup & Update ---
+       
         if (processedSongIds.Count==0)
             return;
 
@@ -4379,19 +4433,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
                 else if (operation == FileOperation.Move)
                 {
-                    // Update the file path for moved files
+                   
                     songInDb.FilePath = Path.Combine(destinationPath, Path.GetFileName(songInDb.FilePath));
                 }
             }
         });
 
-        // --- Post-Operation UI Update ---
-        // Remove deleted songs from the main source list
+       
+       
         if (operation == FileOperation.Delete)
         {
             _songSource.RemoveMany(songs.Where(s => processedSongIds.Contains(s.Id)));
         }
-        // Update file paths for moved songs
+       
         else if (operation == FileOperation.Move)
         {
             foreach (var song in songs.Where(s => processedSongIds.Contains(s.Id)))
@@ -4411,7 +4465,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public int _currentLineIndexToTimestamp = 0;
 
-    // --- Lyrics Editor Commands ---
+   
 
     /// <summary>
     /// Takes plain text, splits it into lines, and prepares the editor UI.
@@ -4448,7 +4502,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        // 1. Get current time from the audio service
+       
         var currentTime = TimeSpan.FromSeconds(audioService.CurrentPosition);
         var timestampString = currentTime.ToString(@"mm\:ss\.ff");
 
