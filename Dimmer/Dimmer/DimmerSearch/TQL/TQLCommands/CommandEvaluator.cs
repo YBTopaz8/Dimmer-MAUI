@@ -5,29 +5,57 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch.TQL.TQLCommands;
+
+
 public class CommandEvaluator
 {
-    public void Execute(IQueryNode node, IEnumerable<SongModelView>? currentResultsSet=null)
+    // Define constants for command names and argument keys to avoid magic strings.
+    public static class CommandKeys
     {
-        if (node is CommandNode cmdNode)
-        {
-            switch (cmdNode.Command.ToLowerInvariant())
-            {
-                case "save":
-                    Debug.WriteLine(currentResultsSet is null);
-                    SavePlaylist(cmdNode.Arguments["playlistName"].ToString());
-                    break;
-                case "addtoqueue":
-                    AddToQueue((int)cmdNode.Arguments["id"]);
-                    break;
-                case "delete":
-                    DeleteSong((int)cmdNode.Arguments["id"]);
-                    break;
-            }
-        }
+        public const string Save = "save";
+        public const string AddNext = "addnext";
+        public const string AddEnd = "addend";
+        public const string PlaylistNameArg = "playlistName";
     }
 
-    private void SavePlaylist(string? name) { Debug.WriteLine("save!"); }
-    private void AddToQueue(int id) { Debug.WriteLine("Add to Q!"); }
-    private void DeleteSong(int id) { Debug.WriteLine("delete!"); }
+    // --- Subjects for publishing events ---
+    private readonly Subject<(string Name, IEnumerable<SongModelView> Songs)> _savePlaylistSubject = new();
+    private readonly Subject<IEnumerable<SongModelView>> _addToNextSubject = new();
+    private readonly Subject<IEnumerable<SongModelView>> _addToEndSubject = new();
+
+    // --- Public-facing observables for subscribers ---
+    public IObservable<(string Name, IEnumerable<SongModelView> Songs)> SavePlaylistRequested => _savePlaylistSubject.AsObservable();
+    public IObservable<IEnumerable<SongModelView>> AddToNextRequested => _addToNextSubject.AsObservable();
+    public IObservable<IEnumerable<SongModelView>> AddToEndRequested => _addToEndSubject.AsObservable();
+
+    public void Execute(IQueryNode node, IEnumerable<SongModelView>? currentResultsSet)
+    {
+
+        if (node is not CommandNode cmdNode || currentResultsSet == null || !currentResultsSet.Any())
+        {
+            return;
+        }
+
+        switch (cmdNode.Command.ToLowerInvariant())
+        {
+            case CommandKeys.Save:
+                // Safely get the playlist name from the arguments.
+                if (cmdNode.Arguments.TryGetValue(CommandKeys.PlaylistNameArg, out object? value) &&
+                    value is string playlistName &&
+                    !string.IsNullOrWhiteSpace(playlistName))
+                {
+                    _savePlaylistSubject.OnNext((playlistName, currentResultsSet));
+                }
+
+                break;
+
+            case CommandKeys.AddNext:
+                _addToNextSubject.OnNext(currentResultsSet);
+                break;
+
+            case CommandKeys.AddEnd:
+                _addToEndSubject.OnNext(currentResultsSet);
+                break;
+        }
+    }
 }

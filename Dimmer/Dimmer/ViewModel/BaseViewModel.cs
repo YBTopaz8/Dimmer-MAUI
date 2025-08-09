@@ -38,6 +38,7 @@ using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 
@@ -125,7 +126,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _searchQuerySubject = new BehaviorSubject<string>("");
         _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
-        _limiterClause = new BehaviorSubject<LimiterClause?>(null); // We DO need this to distinguish between limiter types.
+        _limiterClause = new BehaviorSubject<LimiterClause?>(null);
         PlaybackManager = new RuleBasedPlaybackManager();
 
 
@@ -140,11 +141,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var realm = realmFactory.GetRealmInstance();
         var initialSongs = realm.All<SongModel>().ToList().Select(song => song.ToViewModel());
         _songSource.AddRange(initialSongs);
-        Debug.WriteLine($"[LOAD] Manually loaded {_songSource.Count} songs into SourceList.");
+
+
+        SubscribeToCommandEvaluatorEvents();
 
         _playbackQueueSource.Connect()
-    .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates are on the main thread
-    .Bind(out _playbackQueue) // Bind the results to our public property
+    .ObserveOn(RxApp.MainThreadScheduler)
+    .Bind(out _playbackQueue)
     .Subscribe()
     .DisposeWith(Disposables);
 
@@ -174,7 +177,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                catch (ParsingException ex)
                {
                    TQLUserSearchErrorMessage = ex.Message;
-                   // Example: ex.Message might be "Unknown field 'artst'."
+                  
                    var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
                    if (match.Success)
                    {
@@ -208,9 +211,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _limiterClause.OnNext(result.Components.Limiter);
         }
 
+        TQLParsedCommand = result.Command;
         if (result.Command is not null)
         {
             this.commandEvaluator.Execute(result.Command, searchResultsHolder.Items);
+
+
+            var filterPart = CurrentTqlQuery.Substring(0, CurrentTqlQuery.IndexOf(" >"));
+            CurrentTqlQuery = filterPart;
 
             DebugMessage = $"Executed command.";
         }
@@ -231,11 +239,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-        // 2. The pipeline now reads from the master list and populates the results holder.
+       
         _songSource.Connect()
-            .Filter(song => !song.IsHidden) // Filter out hidden songs
+            .Filter(song => !song.IsHidden)
             .ToCollection()
-            .ObserveOn(RxApp.TaskpoolScheduler) // Heavy lifting on background thread
+            .ObserveOn(RxApp.TaskpoolScheduler)
             .CombineLatest(controlPipeline, (songs, controls) => new { songs, controls })
             .Select(data =>
             {
@@ -264,7 +272,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 var limited = sorted.Take(limiter?.Count ?? int.MaxValue);
                 return limited.ToList();
             })
-            .ObserveOn(RxApp.MainThreadScheduler) // Switch to UI thread before editing the list
+            .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(
                 newList =>
                 {
@@ -279,7 +287,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .DisposeWith(Disposables);
 
         searchResultsHolder.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler) // Binding should always be on the UI thread
+            .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _searchResults)
             .Subscribe(
                 cs =>
@@ -292,23 +300,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-    //    _duplicateSource.Connect()
-    //.Sort(SortExpressionComparer<DuplicateSetViewModel>.Ascending(d => d.Title)) // Keep the list sorted
-    //.ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates are on the main thread
-    //.Bind(out _duplicateSets) // Bind the results to our public property
-    //.Subscribe() // Activate the pipeline
-    //.DisposeWith(Disposables);
-
-
-
-
         string rql = "TRUEPREDICATE SORT(EventDate DESC)";
 
-        // 2. Execute the query and use the LINQ FirstOrDefault() to get just the top one.
+       
         var evtt = realm.All<DimmerPlayEvent>().Filter(rql).ToList();
         if (evtt is null || evtt.Count == 0)
         {
-            // No events found, set default values
+           
             CurrentPlayingSongView = new SongModelView();
         }
         var evt = evtt?.FirstOrDefault();
@@ -325,7 +323,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         else
         {
-            // Handle the case where there's no valid event or the event has no valid song.
+           
             CurrentPlayingSongView = new();
         }
 
@@ -334,7 +332,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
 
         lastfmService.IsAuthenticatedChanged
-           .ObserveOn(RxApp.MainThreadScheduler) // Ensure UI updates on the main thread
+           .ObserveOn(RxApp.MainThreadScheduler)
            .Subscribe(isAuthenticated =>
            {
                IsLastfmAuthenticated = isAuthenticated;
@@ -369,7 +367,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                    }
                }
            })
-           .DisposeWith(Disposables); // Assuming > have a reactive disposables manager
+           .DisposeWith(Disposables);
         this.lastfmService.Start();
 
 
@@ -385,23 +383,81 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await Task.WhenAll( EnsureAllCoverArtCachedForSongsAsync(),LoadAllSongsEventsASync());
         return;
     }
+    private void SubscribeToCommandEvaluatorEvents()
+    {
+        
+        
+
+        
+        commandEvaluator.SavePlaylistRequested
+            .ObserveOn(RxApp.MainThreadScheduler) 
+            .Subscribe(async data =>
+            {
+                var (playlistName, songsToSave) = data;
+
+                
+                
+                Debug.WriteLine($"UI Request: Save {songsToSave.Count()} songs to playlist '{playlistName}'");
+
+                
+                
+
+                
+              await  ShowNotification($"Playlist '{playlistName}' saved successfully!");
+            })
+            .DisposeWith(Disposables); 
+
+        
+        commandEvaluator.AddToNextRequested
+            .Subscribe(async songsToAdd =>
+            {
+                
+                
+                Debug.WriteLine($"UI Request: Adding {songsToAdd.Count()} songs to the top of the queue.");
+
+                
+                _playbackQueueSource.InsertRange(songsToAdd, 0);
+
+                await ShowNotification($"Added {songsToAdd.Count()} songs to the queue.");
+            })
+            .DisposeWith(Disposables);
+
+        
+        commandEvaluator.AddToEndRequested
+            .Subscribe(async songsToAdd =>
+            {
+                
+                
+                Debug.WriteLine($"UI Request: Adding {songsToAdd.Count()} songs to the end of the queue.");
+
+                _playbackQueueSource.AddRange(songsToAdd);
+
+                await ShowNotification($"Added {songsToAdd.Count()} songs to the end of the queue.");
+            })
+            .DisposeWith(Disposables);
+    }
+
+    private async Task ShowNotification(string v)
+    {
+       await Shell.Current.DisplayAlert("Notification", v, "OK");
+    }
 
     public RuleBasedPlaybackManager PlaybackManager { get; }
-    // You'll want a property to bind a loading indicator to in >r UI
-    // [ObservableProperty]
-    // private bool _isLoadingSongs;
+   
+   
+   
 
     SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
     public async Task LoadAllSongsEventsASync()
     {
-        // Consider having a loading indicator for the UI
-        // IsLoadingSongs = true; 
+       
+       
         _logger.LogInformation("Starting to load play events for all songs...");
 
         try
         {
-            // --- 1. Asynchronously fetch data ---
-            // Assume >r repository has an async method. If not, > should create one.
+           
+           
             var allEvents = await dimmerPlayEventRepo.GetAllAsync();
             var allSongs = _songSource.Items;
 
@@ -411,23 +467,23 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 return;
             }
 
-            // --- 2. Offload the heavy processing to a background thread ---
-            // This prevents the UI from freezing while we group and assign events.
+           
+           
             var eventsBySongId = await Task.Run(() =>
             {
-                // --- 3. Group events by SongId ONCE. This is the key performance gain. ---
-                // This creates a lookup where the key is the SongId and the value is a list of its events.
-                // This is dramatically faster than >r original nested loop approach.
+               
+               
+               
                 return allEvents
                     .Where(e => e.SongId.HasValue)
                     .GroupBy(e => e.SongId.Value)
                     .ToDictionary(g => g.Key, g => g.Select(ev => new DimmerPlayEventView(ev)).ToObservableCollection());
             });
 
-            // --- 4. Now that the hard work is done, update the songs on the UI thread ---
+           
             foreach (var song in allSongs)
             {
-                // This is now a super-fast dictionary lookup
+               
                 if (eventsBySongId.TryGetValue(song.Id, out var songEvents))
                 {
                     song.PlayEvents = songEvents;
@@ -435,7 +491,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 else
                 {
                     song.PlayEvents ??=new();
-                    // Ensure the collection is empty if no events were found, avoiding old data
+                   
                     song.PlayEvents.Clear();
                 }
             }
@@ -447,7 +503,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         finally
         {
-            // IsLoadingSongs = false;
+           
         }
     }
 
@@ -467,8 +523,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             var _realm = realmFactory.GetRealmInstance();
-            // --- 1. Fetch all "skipped" events ---
-            // PlayType 5 corresponds to "Skipped"
+           
+           
             var allSkippedEvents = 
                 _realm.All<DimmerPlayEvent>().Where(e => e.PlayType == 5).ToList();
 
@@ -478,7 +534,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 return;
             }
 
-            // --- 2. Group events by the song they belong to ---
+           
             var skippedEventsBySong = allSkippedEvents
                 .Where(e => e.SongId.HasValue )
                 .GroupBy(e => e.SongId.Value)
@@ -486,7 +542,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             var eventsToRemove = new List<DimmerPlayEvent>();
 
-            // --- 3. Identify duplicate events within a time threshold ---
+           
             foreach (var songGroup in skippedEventsBySong.Values)
             {
                 for (int i = 0; i < songGroup.Count - 1; i++)
@@ -494,16 +550,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     var currentEvent = songGroup[i];
                     var nextEvent = songGroup[i + 1];
 
-                    // Check if the next event is a duplicate within a 3-minute window
+                   
                     if ((nextEvent.DatePlayed - currentEvent.DatePlayed).TotalMinutes < 5)
                     {
-                        // Mark the subsequent event for removal
+                       
                         eventsToRemove.Add(nextEvent);
                     }
                 }
             }
 
-            // --- 4. Remove the identified duplicate events ---
+           
             if (eventsToRemove.Count!=0)
             {
                 _logger.LogInformation("Found {Count} duplicate skipped events to remove.", eventsToRemove.Count);
@@ -534,21 +590,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         
     }
 
-    private string _myDeviceId; // A unique ID stored in app settings
-    private DeviceState _myDeviceState; // The ParseObject representing this device's state
+    private string _myDeviceId;
+    private DeviceState _myDeviceState;
 
 
     private ParseClient ParseClient { get; set; }
     private ParseLiveQueryClient LiveClient { get; set; }
     public string MyDeviceId { get; set; }
 
-    // ==========================================================
-    // REMOTE MODE LOGIC (Sends commands, listens for state)
-    // ==========================================================
+   
+   
+   
     private void SetupRemoteModeListeners()
     {
-        // For simplicity, let's just watch all devices for now.
-        // In a real app, the user would select a device to control.
+       
+       
         var stateQuery = new ParseQuery<DeviceState>(ParseClient);
         var stateSub = LiveClient.Subscribe(stateQuery);
 
@@ -556,14 +612,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     private void SetupPlayerModeListeners()
     {
-        // Subscribe to commands targeted at THIS device
+       
         var commandQuery = new ParseQuery<DeviceCommand>(ParseClient)
             .WhereEqualTo("targetDeviceId", _myDeviceId)
             .WhereEqualTo("isHandled", false);
 
         var commandSub = LiveClient.Subscribe(commandQuery);
 
-        // When a new command is CREATED for us...
+       
         commandSub.Events
             .Where(e => e.EventType == Subscription.Event.Create)
             .Subscribe(e => HandleIncomingDeviceCommand(e.Object));
@@ -573,7 +629,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         _logger.LogInformation("Received remote command: {Command}", command.CommandName);
 
-        // Execute the command by calling our existing RelayCommands
+       
         switch (command.CommandName)
         {
             case "PLAY_PAUSE":
@@ -585,10 +641,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             case "PREVIOUS":
                 await PreviousTrack();
                 break;
-                // ... add cases for SEEK, SET_VOLUME, etc. ...
+               
         }
 
-        // Mark the command as handled so we don't process it again
+       
         command.IsHandled = true;
         await command.SaveAsync();
     }
@@ -618,7 +674,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var fileUri = new Uri(songToView.FilePath);
             if (fileUri.IsFile)
             {
-                // Use Launcher to open the file in its default application
+               
                 await Launcher.Default.OpenAsync(fileUri);
             }
             else
@@ -653,17 +709,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         string processedNewText = NaturalLanguageProcessor.Process(searchText);
 
-        // Check for refinement keywords
+       
         if ((searchText.StartsWith("and ", StringComparison.OrdinalIgnoreCase) ||
              searchText.StartsWith("with ", StringComparison.OrdinalIgnoreCase)) &&
              !string.IsNullOrWhiteSpace(currentText))
         {
-            // Append to the existing query
+           
             CurrentTqlQuery = $"{currentText} {processedNewText}";
         }
         else
         {
-            // Replace the query
+           
             CurrentTqlQuery = processedNewText;
         }
 
@@ -724,7 +780,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private readonly SourceList<SongModelView> _playbackQueueSource = new();
     private ReadOnlyObservableCollection<SongModelView> _playbackQueue; 
-    public ReadOnlyObservableCollection<SongModelView> PlaybackQueue => _playbackQueue; // This is the public property for binding
+    public ReadOnlyObservableCollection<SongModelView> PlaybackQueue => _playbackQueue;
     protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 
@@ -828,7 +884,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         double newVolume = Math.Clamp(newValue, 0.0, 1.0);
         _logger.LogDebug("AudioEngine: UI Requesting SetVolume to {Volume}", newVolume);
 
-        audioService.Volume = newVolume; // Update audio service volume
+        audioService.Volume = newVolume;
 
     }
     [ObservableProperty]
@@ -943,7 +999,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         });
     }
 
-    // Properties for UI binding
+   
     [ObservableProperty]
     public partial bool IsLastfmAuthenticated { get; set; }
     [ObservableProperty]
@@ -964,17 +1020,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsBusy = true;
         try
         {
-            // 1. Get the URL from our service
+           
             string url = await lastfmService.GetAuthenticationUrlAsync();
             await Shell.Current.DisplayAlert(
                "Authorize in Browser",
                "Please authorize Dimmer in the browser window that will open, then return here and press 'Complete Login'.",
                "OK");
-            // 2. Open it in the browser
+           
             await Launcher.Default.OpenAsync(new Uri(url));
 
-            // 3. Update UI to prompt user to finish
-            // e.g., Show a message: "Please authorize in >r browser, then click 'Finish Login'."
+           
+           
         }
         catch (Exception ex)
         {
@@ -990,7 +1046,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsBusy = true;
         try
         {
-            // Call the second-step method in >r service
+           
             bool success = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
 
             if (success)
@@ -1012,7 +1068,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             IsBusy = false;
         }
     }
-    // Example command for logging out
+   
     [RelayCommand]
     private void LogoutFromLastfm()
     {
@@ -1255,7 +1311,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogWarning("Selected file path is empty.");
             return;
         }
-        // now save to realm db async
+       
 
         if (SelectedSong is null)
         {
@@ -1266,7 +1322,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             
             SelectedSong.CoverImagePath = file;
-            // Save changes to Realm
+           
             var realm = realmFactory.GetRealmInstance();
             await realm.WriteAsync(() =>
             {
@@ -1277,9 +1333,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     _logger.LogWarning("Selected song with ID {SongId} not found in Realm database.", SelectedSong.Id);
                     return;
                 }
-                // Update the cover image path
+               
                 existingSong.CoverImagePath = file;
-                // save song to realm
+               
 
                 realm.Add(existingSong, update: true);
             });
@@ -1420,7 +1476,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPlayingSongView.IsCurrentPlayingHighlight=false;
 
         CurrentPlayingSongView = args.MediaSong;
-        _songToScrobble = CurrentPlayingSongView; // This is the next candidate.
+        _songToScrobble = CurrentPlayingSongView;
         CurrentPlayingSongView.IsCurrentPlayingHighlight=true;
 
 
@@ -1434,15 +1490,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (song is null)
         {
-            // What should the UI show when nothing is playing?
-            AppTitle = "Dimmer - 1.3Theta"; // Reset the title
-            CurrentTrackDurationSeconds = 1; // Prevent division by zero
+           
+            AppTitle = "Dimmer - 1.3Theta";
+            CurrentTrackDurationSeconds = 1;
             return;
         }
 
         AppTitle = $"{song.Title} - {song.OtherArtistsName} | {song.AlbumName} ({song.ReleaseYear}) | {CurrentAppVersion}";
         CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
-        // Trigger the new, evolved cover art loading process
+       
 
         _=  LoadAndCacheCoverArtAsync(song);
     }
@@ -1454,9 +1510,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     private void PrepareForEditing(SongModelView song)
     {
-        // Use >r mapper to create a clean copy. This assumes > have a
-        // SongModelView -> SongModelView mapping configured in AutoMapper.
-        // If not, > can manually create a new SongModelView and copy properties.
+       
+       
+       
         EditableSongView = _mapper.Map<SongModelView>(song);
     }
 
@@ -1465,7 +1521,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     private async Task LoadAllArtistsAsync()
     {
-        // Run on a background thread to not block UI
+       
         var artists = await Task.Run(() => artistRepo.GetAll());
         var artistViews = _mapper.Map<List<ArtistModelView>>(artists);
 
@@ -1488,14 +1544,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             song.CoverImagePath=string.Empty;
         }
-        // Don't start the process if the image is already loaded in the UI object.
+       
         if (song.CoverImageBytes != null && song.CoverImageBytes.Length>1 || !string.IsNullOrEmpty(song.CoverImagePath))
         {
             CurrentCoverImagePath= song.CoverImagePath;
             return;
         }
 
-        // --- Stage 2: Extract picture info from the audio file using ATL ---
+       
         PictureInfo? embeddedPicture = null;
         try
         {
@@ -1509,28 +1565,28 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to read audio file with ATL: {FilePath}", song.FilePath);
-            return; // Can't proceed without reading the file.
+            return;
         }
 
-        // --- Stage 3: Use the CoverArtService to save or get the image path ---
-        // This will either return an existing cached path or save the new one.
+       
+       
         string? finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.FilePath, embeddedPicture);
 
         if (finalImagePath == null)
         {
             _logger.LogTrace("No cover art found or could be saved for {FilePath}", song.FilePath);
-            return; // No cover art available.
+            return;
         }
 
-        // --- Stage 4: Update the UI and the Database ---
+       
         try
         {
             CurrentCoverImagePath= finalImagePath;
-            // Load the image bytes for the UI
+           
             song.CoverImageBytes = ImageResizer.ResizeImage( await File.ReadAllBytesAsync(finalImagePath), 1200);
             _logger.LogTrace("Loaded cover art from new/cached path: {ImagePath}", finalImagePath);
 
-            // If the path is new, update our song model and save it to the database.
+           
             if (song.CoverImagePath != finalImagePath)
             {
                 song.CoverImagePath= finalImagePath;
@@ -1540,7 +1596,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     _logger.LogError("Failed to get Realm instance from RealmFactory.");
                     return;
                 }
-                // Update the song in the database with the new cover image path.
+               
                 await realm.WriteAsync(() =>
                 {
                     var songToUpdate = realm.Find<SongModel>(song.Id);
@@ -1561,17 +1617,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
-        // Get a copy of the current list to avoid issues if it changes during the process.
+       
 
         _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count());
 
-        // This is a great use case for parallel processing.
+       
         await Parallel.ForEachAsync(songsToProcess, async (song, cancellationToken) =>
         {
-            // We only need to process songs that don't already have a valid path.
+           
             if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
             {
-                // We re-use the same core logic, but we don't need to load the bytes into the UI here.
+               
                 await LoadAndCacheCoverArtAsync(song);
 
             }
@@ -1582,16 +1638,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
-        // Get a copy of the current list to avoid issues if it changes during the process.
+       
         IEnumerable<SongModelView> songsToProcess = _songSource.Items.AsEnumerable();
 
-        // This is a great use case for parallel processing.
+       
         await Parallel.ForEachAsync(songsToProcess, async (song, cancellationToken) =>
         {
-            // We only need to process songs that don't already have a valid path.
+           
             if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
             {
-                // We re-use the same core logic, but we don't need to load the bytes into the UI here.
+               
                 await LoadAndCacheCoverArtAsync(song);
 
             }
@@ -1608,11 +1664,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
             return;
         }
-        var isAtEnd = Math.Abs(CurrentTrackDurationSeconds - CurrentTrackPositionSeconds) < 0.5; // Within 0.5s of the end
+        var isAtEnd = Math.Abs(CurrentTrackDurationSeconds - CurrentTrackPositionSeconds) < 0.5;
         if (isAtEnd && CurrentTrackDurationSeconds > 0)
         {
             _logger.LogTrace("Ignoring Paused event at the end of the track, waiting for Completed event.");
-            return; // Do not log the pause
+            return;
         }
 
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
@@ -1651,7 +1707,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentTrackPositionSeconds = 0;
         CurrentTrackPositionPercentage = 0;
-        // Automatically play the next song in the queue.
+       
         await NextTrackAsync();
     }
 
@@ -1682,7 +1738,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName} ";
         value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath,1f);
         CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
-        // Efficiently load related data
+       
         value.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
             dimmerPlayEventRepo.GetAll().Where(x=>x.Id == value.Id)
         );
@@ -4506,16 +4562,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var currentTime = TimeSpan.FromSeconds(audioService.CurrentPosition);
         var timestampString = currentTime.ToString(@"mm\:ss\.ff");
 
-        // 2. Update the ViewModel for the current line
+       
         var currentLine = LyricsInEditor[_currentLineIndexToTimestamp];
         currentLine.Timestamp = $"[{timestampString}]";
         currentLine.IsTimed = true;
         currentLine.IsCurrentLine = false;
 
-        // 3. Move to the next line
+       
         _currentLineIndexToTimestamp++;
 
-        // 4. If there's a next line, mark it as the new current line for the UI
+       
         if (_currentLineIndexToTimestamp < LyricsInEditor.Count)
         {
             LyricsInEditor[_currentLineIndexToTimestamp].IsCurrentLine = true;
@@ -4523,7 +4579,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         else
         {
             _logger.LogInformation("All lyric lines have been timestamped.");
-            // Optionally, > can automatically trigger the save command here.
+           
         }
     }
 
@@ -4550,11 +4606,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("Saving newly timestamped lyrics for '{Title}'", songToUpdate.Title);
 
-        // Reuse >r existing service!
-        // We pass 'null' for the LyricsInfo because the service can parse it from the lrcContent.
+       
+       
         await _lyricsMetadataService.SaveLyricsForSongAsync(songToUpdate, finalLrcContent, null);
 
-        // Clean up the session
+       
         IsLyricEditorActive = false;
         LyricsInEditor.Clear();
     }
@@ -4579,15 +4635,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial string InvalidField { get; private set; }
     [ObservableProperty]
     public partial string? NewFieldSuggestion { get; private set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInCommandMode))]
+    public partial IQueryNode TQLParsedCommand { get; private set; }
 
-    // 2. Create a command that the UI will call when a song is tapped
+    public bool IsInCommandMode => TQLParsedCommand is not null;
     [RelayCommand]
     private void HandleSongTap(SongModelView tappedSong)
     {
         if (tappedSong is null)
             return;
         string songTitleQueryPart = $"\"{tappedSong.Title}\"";
-        // ---
+       
 
         string newQuerySegment;
         if (CurrentEditMode == PlaylistEditMode.Add)
@@ -4596,21 +4655,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         else
         {
-            // Use 'exclude' (or 'remove')
+           
             newQuerySegment = $" exclude title:{songTitleQueryPart}";
         }
 
-        // Append to the existing query and update the subject
+       
         var newFullQuery = $"{CurrentTqlQuery}{newQuerySegment}".Trim();
 
-        // Update the property bound to the UI text box
+       
         CurrentTqlQuery = newFullQuery;
 
-        // And push the change into the reactive pipeline
+       
         _searchQuerySubject.OnNext(newFullQuery);
     }
 
-    // 4. A command to toggle the mode
+   
     [RelayCommand]
     private void ToggleEditMode()
     {

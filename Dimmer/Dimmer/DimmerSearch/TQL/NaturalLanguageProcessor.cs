@@ -25,6 +25,7 @@ public static class NaturalLanguageProcessor
 
     // "favorite songs" or "my favorites"
     (new Regex(@"favorite songs|my favorites|my favs|loved songs", RegexOptions.IgnoreCase), "fav:true"),
+    (new Regex(@"has lyrics|have lyrics", RegexOptions.IgnoreCase), "haslyrics:true"),
         
     // "from the 90s" or "in the 80s" - handles 2 or 4 digit decades
     (new Regex(@"from the (\d{2,4})s", RegexOptions.IgnoreCase), "year:$10-$19"),

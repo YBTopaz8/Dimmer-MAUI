@@ -32,93 +32,69 @@ public class MetaParser
 
     private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
-    public IQueryNode? ParsedCommand { get; private set; }
 
-    
+    public IQueryNode? ParsedCommand { get; private set; }
 
     public MetaParser(string rawQuery)
     {
-        var allTokens = Lexer.Tokenize(rawQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
+        
+        const string commandInitiator = " >";
+        int commandInitiatorIndex = rawQuery.IndexOf(commandInitiator);
 
-        int commandStartFenceIndex = -1;
-        int commandEndFenceIndex = -1;
-        for (int i = 0; i < allTokens.Count; i++)
+        string filterQuery;
+        string commandQuery = string.Empty;
+
+        if (commandInitiatorIndex != -1)
         {
-            if (allTokens[i].Type == TokenType.GreaterThan) 
-            {
-                commandStartFenceIndex = i;
-                // Once we find the start, look for the end from this point forward.
-                for (int j = i + 1; j < allTokens.Count; j++)
-                {
-                    if (allTokens[j].Type == TokenType.Bang) // Using '!' as the end fence
-                    {
-                        commandEndFenceIndex = j;
-                        break;
-                    }
-                }
-            }
-        }
-
-        List<Token> filterAndDirectiveTokens;
-
-        // 2. If a command was found, split the token list
-        if (commandStartFenceIndex != -1 && commandEndFenceIndex != -1)
-        {
-            // The tokens FOR the command are the ones BETWEEN the fences.
-            int commandContentStartIndex = commandStartFenceIndex + 1;
-            int commandContentCount = commandEndFenceIndex - commandContentStartIndex;
-
-            if (commandContentCount < 0) // Case: >!
-            {
-                throw new ParsingException("Command cannot be empty.", commandStartFenceIndex);
-            }
-
-            var commandTokens = allTokens.GetRange(commandContentStartIndex, commandContentCount);
-            ParsedCommand = ParseAsFencedCommand(commandTokens);
-
-            // The tokens for the filter are everything BEFORE and AFTER the fence.
-            filterAndDirectiveTokens = allTokens.GetRange(0, commandStartFenceIndex);
-            if (commandEndFenceIndex + 1 < allTokens.Count)
-            {
-                filterAndDirectiveTokens.AddRange(allTokens.GetRange(commandEndFenceIndex + 1, allTokens.Count - (commandEndFenceIndex + 1)));
-            }
+            
+            filterQuery = rawQuery.Substring(0, commandInitiatorIndex);
+            
+            commandQuery = rawQuery.Substring(commandInitiatorIndex + commandInitiator.Length);
         }
         else
         {
-            // No command fence found, all tokens are for filtering/sorting.
-            filterAndDirectiveTokens = allTokens;
+            
+            filterQuery = rawQuery;
         }
 
-        // 3. Parse the filter/directive part as before.
+        
+        var filterAndDirectiveTokens = Lexer.Tokenize(filterQuery)
+                                            .Where(t => t.Type != TokenType.EndOfFile).ToList();
         ParseSegmentsFromTokens(filterAndDirectiveTokens);
-    }
-    private IQueryNode? ParseAsFencedCommand(List<Token> commandTokens)
-    {
-        if (commandTokens.Count == 0)
-        {
-            throw new ParsingException("Command cannot be empty.", -1); // Position can be improved if needed
-        }
 
-        var commandToken = commandTokens[0];
-        if (commandToken.Type != TokenType.Identifier)
+        
+        if (!string.IsNullOrWhiteSpace(commandQuery))
         {
-            throw new ParsingException($"Expected a command keyword (like 'save') but found '{commandToken.Text}'.", commandToken.Position);
+            var commandTokens = Lexer.Tokenize(commandQuery)
+                                     .Where(t => t.Type != TokenType.EndOfFile).ToList();
+            if (commandTokens.Any())
+            {
+                ParsedCommand = ParseAsCommand(commandTokens);
+            }
+        }
+    }
+
+    private IQueryNode? ParseAsCommand(List<Token> commandTokens)
+    {
+        var commandToken = commandTokens.FirstOrDefault();
+        if (commandToken?.Type != TokenType.Identifier)
+        {
+            
+            
+            return null;
         }
 
         var commandName = commandToken.Text.ToLowerInvariant();
         var arguments = new Dictionary<string, object>();
         var argTokens = commandTokens.Skip(1).ToList();
 
-        // This parsing logic becomes more powerful. It can handle more complex arguments.
         switch (commandName)
         {
             case "save":
-                // The argument is the rest of the tokens, joined together.
-                // This allows for names with spaces without needing quotes inside the fence.
-                // > save my awesome playlist ! is now valid.
                 if (argTokens.Any())
                 {
-                    // Reconstruct the argument string from the tokens.
+                    
+                    
                     var playlistName = string.Join(" ", argTokens.Select(t => t.Text));
                     arguments["playlistName"] = playlistName;
                 }
@@ -127,59 +103,17 @@ public class MetaParser
                     throw new ParsingException("The 'save' command requires a playlist name.", commandToken.Position);
                 }
                 break;
-
-            case "addtonext":
-                // A command with no arguments
-                if (argTokens.Any())
-                {
-                    throw new ParsingException("The 'addtonext' command does not take arguments.", argTokens[0].Position);
-                }
-                // No arguments to add, just the command itself is enough.
+            case "addnext":
+                arguments["position"] = "next";
                 break;
+            case "addend":
+                arguments["position"] = "end";
+                break;  
 
-            // Add other commands like 'delete', 'addtoqueue' here
             default:
-                throw new ParsingException($"Unknown command '{commandName}'.", commandToken.Position);
-        }
-
-        return new CommandNode(commandName, arguments);
-    }
-    private IQueryNode? ParseAsCommand(List<Token> commandTokens)
-    {
-        if (commandTokens.Count == 0)
-        {
-            // This is an error, e.g., "artist:tool > "
-            // You could throw a ParsingException here.
-            throw new ParsingException("Command expected after '>'.", commandTokens.LastOrDefault()?.Position ?? -1);
-        }
-
-        var commandToken = commandTokens[0];
-        // The command itself must be an Identifier (e.g., 'save')
-        if (commandToken.Type != TokenType.Identifier)
-        {
-            throw new ParsingException($"Expected a command keyword (like 'save') but found '{commandToken.Text}'.", commandToken.Position);
-        }
-
-        var commandName = commandToken.Text.ToLowerInvariant();
-        var arguments = new Dictionary<string, object>();
-        var argTokens = commandTokens.Skip(1).ToList();
-
-        // Improved argument parsing
-        switch (commandName)
-        {
-            case "save":
-                if (argTokens.Count == 1 && (argTokens[0].Type == TokenType.Identifier || argTokens[0].Type == TokenType.StringLiteral))
-                {
-                    arguments["playlistName"] = argTokens[0].Text;
-                }
-                else
-                {
-                    throw new ParsingException("The 'save' command requires a single playlist name.", commandToken.Position);
-                }
-                break;
-            // Add other commands like 'delete', 'addtoqueue' here
-            default:
-                throw new ParsingException($"Unknown command '{commandName}'.", commandToken.Position);
+                
+                
+                return null;
         }
 
         return new CommandNode(commandName, arguments);
@@ -194,27 +128,21 @@ public class MetaParser
         }
 
         int segmentStartIndex = 0;
-        // FIX: The type is now correctly SegmentType enum.
         SegmentType currentSegmentType = SegmentType.Main;
 
         for (int i = 0; i < allTokens.Count; i++)
         {
             var token = allTokens[i];
 
-            // Check if the current token is a keyword that starts a new segment.
             if (_segmentTypeMap.TryGetValue(token.Type, out var newSegmentType))
             {
-                // Process the segment that just ended.
                 var segmentTokens = allTokens.GetRange(segmentStartIndex, i - segmentStartIndex);
                 ProcessSegment(segmentTokens, currentSegmentType);
-
-                // Set up for the next segment.
                 currentSegmentType = newSegmentType;
                 segmentStartIndex = i + 1;
             }
         }
 
-        // Process the final segment after the loop.
         var lastSegmentTokens = allTokens.GetRange(segmentStartIndex, allTokens.Count - segmentStartIndex);
         ProcessSegment(lastSegmentTokens, currentSegmentType);
     }
@@ -229,13 +157,12 @@ public class MetaParser
             var token = segmentTokens[i];
             bool isDirective = false;
 
-            // Logic to separate filter tokens from directive tokens
             if ((token.Type == TokenType.Asc || token.Type == TokenType.Desc) && i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Identifier)
             {
                 isDirective = true;
                 directiveTokens.Add(token);
                 directiveTokens.Add(segmentTokens[i + 1]);
-                i++; // Skip field token
+                i++;
             }
             else if (_directiveTokens.Contains(token.Type) && !isDirective)
             {
@@ -244,7 +171,7 @@ public class MetaParser
                 if (i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Number)
                 {
                     directiveTokens.Add(segmentTokens[i + 1]);
-                    i++; // Skip number token
+                    i++;
                 }
             }
 
@@ -306,7 +233,7 @@ public class MetaParser
                     {
                         sortDescriptions.Add(new SortDescription(fieldDef, direction));
                     }
-                    i++; // Consume the field token
+                    i++; 
                 }
             }
         }
@@ -342,7 +269,7 @@ public class MetaParser
                     if (int.TryParse(allDirectives[i + 1].Text, out int count) && count > 0)
                     {
                         limiter = new LimiterClause(limiterType.Value, count);
-                        i++; // Consume the number token
+                        i++; 
                     }
                 }
                 continue;
@@ -356,7 +283,7 @@ public class MetaParser
                     if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
                     {
                         count = parsedCount;
-                        i++; // Consume the number token
+                        i++; 
                     }
                 }
                 limiter = new LimiterClause(LimiterType.Random, count);
