@@ -269,7 +269,7 @@ IsVisible="True">
          WidthRequest="60"
          BorderWidth="0"
 Background="Transparent"
-Command="{Binding ToggleShuffleModeCommand}"
+Command="{Binding ToggleShuffleCommand}"
 ImageSource="shuffle.png"
 ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
          

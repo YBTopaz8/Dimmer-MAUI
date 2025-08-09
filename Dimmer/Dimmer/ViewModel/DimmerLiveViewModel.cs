@@ -588,7 +588,7 @@ public partial class DimmerLiveViewModel :ObservableObject, IReactiveObject, IAc
                 AlbumName=song.AlbumName,
                 GenreName=song.GenreName,
                 IsFavorite=song.IsFavorite,
-                IsPlaying=song.IsPlaying,
+                IsPlaying=song.IsCurrentPlayingHighlight,
             };
 
 

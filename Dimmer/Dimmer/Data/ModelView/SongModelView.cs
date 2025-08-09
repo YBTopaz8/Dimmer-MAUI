@@ -66,8 +66,8 @@ public partial class SongModelView : ObservableObject
     public partial string CoverImagePath { get; set; }
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
-    [ObservableProperty]
-    public partial bool IsPlaying { get; set; }
+    //[ObservableProperty]
+    //public partial bool IsPlaying { get; set; }
     [ObservableProperty]
     public partial bool IsCurrentPlayingHighlight { get; set; } = false;
     [ObservableProperty]

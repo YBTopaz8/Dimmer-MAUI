@@ -27,7 +27,7 @@ public class SongTemplateSelector : DataTemplateSelector
             return DefaultTemplate;
 
         // 2. Apply our logic in order of priority.
-        if (song.IsPlaying)
+        if (song.IsCurrentPlayingHighlight)
         {
             return PlayingTemplate;
         }
