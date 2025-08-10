@@ -39,8 +39,10 @@
     using View = Microsoft.Maui.Controls.View;
     using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
     using Syncfusion.Maui.Toolkit.Expander;
+using Microsoft.Maui.Platform;
+using Microsoft.Maui.Controls.Embedding;
 
-    namespace Dimmer.WinUI.Views;
+namespace Dimmer.WinUI.Views;
 
     public partial class HomePage : ContentPage
     {
@@ -142,11 +144,11 @@
     }
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
-        var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
-        if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
-        {
-            return;
-        }
+        //var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+        //if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
+        //{
+        //    return;
+        //}
         var send = (Microsoft.Maui.Controls.View)sender;
         var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
         if (gest is null)
@@ -261,12 +263,11 @@
 
     private void Sort_Clicked(object sender, EventArgs e)
     {
-
-        var chip = sender as SfChip; // Or whatever your SfChip type is
-        if (chip == null || chip.CommandParameter == null)
+        // Or whatever your SfChip type is
+        if (sender is not SfChip chip || chip.CommandParameter == null)
             return;
 
-        string sortProperty = chip.CommandParameter.ToString();
+        string sortProperty = chip.CommandParameter.ToString()!;
         if (string.IsNullOrEmpty(sortProperty))
             return;
 
@@ -371,12 +372,36 @@
         SearchSongSB.Focus();
     }
 
-    private void QuickSearchArtist_Clicked(object sender, EventArgs e)
+    private async void QuickSearchArtist_Clicked(object sender, EventArgs e)
     {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+        var val = song.OtherArtistsName;
+        char[] dividers = [',', ';', ':', '|', '-'];
 
+        var namesList = val
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+            .Select(name => name.Trim())                           // Trim whitespace from each name
+            .ToArray();                                             // Convert to a List
+        if (namesList  is not null && namesList.Length==1)
+        {
+
+            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", namesList[0]);
+            return;
+        }
+        var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+        if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+        {
+            return;
+        }
+
+        SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", selectedArtist);
+
+        return;
     }
 
-    private async void PointerRecog_PointerEntered(object sender, PointerEventArgs e)
+    private void PointerRecog_PointerEntered(object sender, PointerEventArgs e)
     {
         SearchSongSB.Focus();
         
@@ -639,7 +664,7 @@
     }
     
     */
-    private async void LyricsChip_Clicked(object sender, EventArgs e)
+    private void LyricsChip_Clicked(object sender, EventArgs e)
     {
         //await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsGrid.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
     }
@@ -699,13 +724,13 @@
     private async void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.FadeOut(300, 0.5);
+        await send.FadeOut(700, 0.7);
     }
 
     private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.FadeIn(300, 0.3);
+        await send.FadeIn(300, 0.7);
     }
 
     private async void OnAddQuickNoteClicked(object sender, EventArgs e)
@@ -719,14 +744,39 @@
         // Prompt the user for a note
 
        
-      await  MyViewModel.SaveUserNoteToDbLegacy(song);
+      await  MyViewModel.SaveUserNoteToSong(song);
 
 
     }
 
-    private void OnLabelClicked(object sender, EventArgs e)
+    private async void OnLabelClicked(object sender, EventArgs e)
     {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
 
+        var param = send.CommandParameter as string;
+
+        if (song is null && param is not null)
+        {
+            return;
+        }
+
+        switch (param)
+        {
+            case "DeleteSys":
+
+                var listOfSongsToDelete = new List<SongModelView> { song };
+
+                await MyViewModel.DeleteSongs(listOfSongsToDelete);
+                break;
+            case "OpenFileExp":
+
+                await MyViewModel.OpenFileInFolder(song);
+                break;
+
+            default:
+                break;
+        }
     }
 
     private void Button_Clicked_2(object sender, EventArgs e)
@@ -749,7 +799,7 @@
 
     }
 
-    private async void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    private  void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
 
 
@@ -758,7 +808,7 @@
     {
         
     }
-    private async void TopExpander_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    private  void TopExpander_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
       
 
@@ -770,12 +820,7 @@
 
     }
 
-    private void CloseTopExpander_PointerPressed(object sender, PointerEventArgs e)
-    {
-
-        var arggs = e.PlatformArgs.PointerRoutedEventArgs;
-        OnGlobalPointerPressed(sender, arggs);
-    }
+  
     private void OnToggleTopViewClicked(object sender, EventArgs e)
     {
         
@@ -812,7 +857,7 @@
         }
     }
 
-    private async void SearchBtn_Clicked(object sender, EventArgs e)
+    private void SearchBtn_Clicked(object sender, EventArgs e)
     {
        
     }
@@ -833,7 +878,7 @@ await this.FadeIn(500, 1.0);
         var dragData = e.PlatformArgs.DragEventArgs.DataView;
         var dataa = await dragData.GetStorageItemsAsync();
       var  SupportedAudioExtensions = new HashSet<string>(
-          new[] { ".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus" },
+          [".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus"],
           StringComparer.OrdinalIgnoreCase
       );
         if (dataa.Count < 1)
@@ -888,18 +933,60 @@ await this.FadeIn(500, 1.0);
 
     private async void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
     {
+        this.IsEnabled=false;
         var send = (View)sender;
 
         
         var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
 
         var pointerParamPressed = gest.PointerPressedCommandParameter as SongModelView;
+        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
 
+
+        if (properties.IsRightButtonPressed)
+        {
+            this.IsEnabled=true;
+            return; // Do not process right-clicks here, let the context menu handle it
+            
+        }
+        else if (properties.IsMiddleButtonPressed)
+        {
+            // Handle Middle Click
+           
+                PlaySongGestRec_Tapped(send, null);
+            this.IsEnabled=true;
+            return;
+        }
+        else if (properties.IsXButton2Pressed)
+        {
+
+        }
         await MyViewModel.ProcessAndMoveToViewSong(pointerParamPressed);
+        this.IsEnabled=true;
     }
 
     private void PlayBtn_Clicked(object sender, EventArgs e)
     {
         PlaySongGestRec_Tapped(sender, null);
+    }
+
+    private void SongsColView_Scrolled(object sender, ItemsViewScrolledEventArgs e)
+    {
+        var ee = e.FirstVisibleItemIndex;
+        var eew = e.CenterItemIndex;
+        var eeq = e.LastVisibleItemIndex;
+        
+    }
+
+    private void SongsColView_ScrollToRequested(object sender, ScrollToRequestEventArgs e)
+    {
+        var ee = e.Item;
+        ScrollToMode ww = e.Mode;
+        var www = e.Index;
+    }
+
+    private void ViewGenreMFI_Clicked(object sender, EventArgs e)
+    {
+
     }
 }

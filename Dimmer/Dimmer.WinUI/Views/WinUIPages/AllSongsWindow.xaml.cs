@@ -61,7 +61,7 @@ public sealed partial class AllSongsWindow : Window
 
     }
 
-    private async void TableView_CellContextFlyoutOpening(object sender, global::WinUI.TableView.TableViewCellContextFlyoutEventArgs e)
+    private void TableView_CellContextFlyoutOpening(object sender, global::WinUI.TableView.TableViewCellContextFlyoutEventArgs e)
     {
         
     }

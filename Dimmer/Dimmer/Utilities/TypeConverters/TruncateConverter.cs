@@ -19,7 +19,7 @@ public class TruncateConverter : IValueConverter
 
             if (text.Length > maxLength)
             {
-                return text.Substring(0, maxLength) + "...";
+                return text[..maxLength] + "...";
             }
         }
         return value;

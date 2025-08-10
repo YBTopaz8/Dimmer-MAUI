@@ -51,7 +51,7 @@ public class AutocompleteEngine
 
         // Find the start of the word the cursor is in
         int wordStart = queryText.LastIndexOf(' ', cursorPosition - 1) + 1;
-        string currentWord = queryText.Substring(wordStart, cursorPosition - wordStart);
+        string currentWord = queryText[wordStart..cursorPosition];
 
         // Case 1: The user is typing a field name (e.g., "art|")
         if (!currentWord.Contains(':'))

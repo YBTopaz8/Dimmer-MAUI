@@ -77,7 +77,7 @@ public static class Lexer
                 int start = position;
                 while (position < text.Length && char.IsLetterOrDigit(text[position]))
                 { position++; }
-                string word = text.Substring(start, position - start);
+                string word = text[start..position];
                 if (_keywords.TryGetValue(word, out var keywordType))
                     tokens.Add(new Token(keywordType, word, start));
                 else
@@ -90,7 +90,7 @@ public static class Lexer
                 int start = position;
                 while (position < text.Length && (char.IsDigit(text[position]) || text[position] == '.' || text[position] == ':'))
                 { position++; }
-                string number = text.Substring(start, position - start);
+                string number = text[start..position];
                 tokens.Add(new Token(TokenType.Number, number, start));
                 continue;
             }

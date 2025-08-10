@@ -34,7 +34,7 @@ public static class LyricsParser
                     string[] secParts = lastPart.Split('.');
                     int.TryParse(secParts[0], out seconds);
                     // Pad with zeros for consistency (e.g., "45" becomes 450)
-                    if (secParts.Length > 1 && int.TryParse(secParts[1].PadRight(3, '0').Substring(0, 3), out int ms))
+                    if (secParts.Length > 1 && int.TryParse(secParts[1].PadRight(3, '0')[..3], out int ms))
                     {
                         milliseconds = ms;
                     }

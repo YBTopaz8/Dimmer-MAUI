@@ -52,6 +52,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private IDuplicateFinderService _duplicateFinderService;
     public BaseViewModel(
        IMapper mapper,
+       MusicDataService musicDataService,
        CommandEvaluator commandEvaluator,
        IAppInitializerService appInitializerService,
        IDimmerLiveStateService dimmerLiveStateService,
@@ -77,6 +78,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _dialogueService = dialogueService ?? throw new ArgumentNullException(nameof(dialogueService));
         this.lastfmService = _lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        this._musicDataService=musicDataService;
         this.commandEvaluator=commandEvaluator;
         this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
@@ -217,7 +219,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             this.commandEvaluator.Execute(result.Command, searchResultsHolder.Items);
 
 
-            var filterPart = CurrentTqlQuery.Substring(0, CurrentTqlQuery.IndexOf(" >"));
+            var filterPart = CurrentTqlQuery[..CurrentTqlQuery.IndexOf(" >")];
             CurrentTqlQuery = filterPart;
 
             DebugMessage = $"Executed command.";
@@ -435,6 +437,47 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 await ShowNotification($"Added {songsToAdd.Count()} songs to the end of the queue.");
             })
             .DisposeWith(Disposables);
+
+        commandEvaluator.DeleteAllRequested
+            .Subscribe(async songsToDelete =>
+            {
+                if (songsToDelete is null || !songsToDelete.Any())
+                {
+                    Debug.WriteLine("UI Request: No songs to delete.");
+                    return;
+                }
+                
+                Debug.WriteLine($"UI Request: Deleting {songsToDelete.Count()} songs from the queue.");
+                
+                foreach (var song in songsToDelete)
+                {
+                    _playbackQueueSource.Remove(song);
+                }
+                await ShowNotification($"Deleted {songsToDelete.Count()} songs from the queue.");
+            })
+            .DisposeWith(Disposables);
+        commandEvaluator.DeleteDuplicateRequested
+            .Subscribe(async songsToDelete =>
+            {
+                if (songsToDelete is null || !songsToDelete.Any())
+                {
+                    Debug.WriteLine("UI Request: No songs to delete duplicates from.");
+                    return;
+                }
+                
+                Debug.WriteLine($"UI Request: Deleting duplicates from {songsToDelete.Count()} songs in the queue.");
+                
+                //var uniqueSongs = _duplicateFinderService.ResolveDuplicatesAsync(songsToDelete);
+                //_playbackQueueSource.Edit(updater =>
+                //{
+                //    updater.Clear();
+                //    updater.AddRange(uniqueSongs);
+                //});
+                
+                //await ShowNotification($"Removed duplicates, {uniqueSongs.} unique songs remain in the queue.");
+            })
+            .DisposeWith(Disposables);
+        SearchSongSB_TextChanged("played today");
     }
 
     private async Task ShowNotification(string v)
@@ -490,7 +533,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
                 else
                 {
-                    song.PlayEvents ??=new();
+                    song.PlayEvents ??=[];
                    
                     song.PlayEvents.Clear();
                 }
@@ -660,9 +703,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [RelayCommand]
-    public async Task OpenFieInFolder()
+    public async Task OpenFileInFolder(SongModelView? songToView)
     {
-        var songToView = SelectedSong;
+
         
         if (songToView is null || string.IsNullOrEmpty(songToView.FilePath))
         {
@@ -796,6 +839,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private ICoverArtService _coverArtService;
 
     public IMapper _mapper;
+    private readonly MusicDataService _musicDataService;
     private readonly CommandEvaluator commandEvaluator;
     private IAppInitializerService appInitializerService;
     private IDimmerLiveStateService _dimmerLiveStateService;
@@ -1286,10 +1330,64 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
         //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
-        //var LyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        
         //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
         //AllLyricsResultsLrcLib = s.ToObservableCollection();
 
+    }
+    /// <summary>
+    /// Updates a single song's artist. It intelligently handles whether the new artist
+    /// already exists or needs to be created in the database.
+    /// </summary>
+    /// <param name="songToUpdate">The Song View Model from the UI.</param>
+    /// <param name="newArtistName">The desired name of the new artist.</param>
+
+    public async Task UpdateSongArtist(SongModelView songToUpdate, string newArtistName)
+    {
+        if (songToUpdate == null || string.IsNullOrWhiteSpace(newArtistName))
+            return;
+
+        // Let's assume the user can enter multiple artists separated by a semicolon
+        var artistNames = newArtistName.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+        await _musicDataService.UpdateSongArtists(songToUpdate.Id, artistNames);
+
+        // Now, update the local ViewModel for immediate UI feedback
+        songToUpdate.ArtistName = string.Join(" | ", artistNames);
+    }
+
+    public async Task SaveUserNoteToSong(SongModelView songWithNote)
+    {
+        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Note for {Environment.NewLine}" +
+            $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
+                placeholder: "Tip: Just type this note to search this song through TQL :)",
+                accept: "Done", keyboard: Keyboard.Text);
+        if (result == null)
+        {
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(result))
+        {
+            return;
+        }
+
+        try
+        {
+            var addedNote = await _musicDataService.AddNoteToSong(songWithNote.Id, result);
+
+            if (addedNote != null)
+            {
+                var addedNoteView = _mapper.Map<UserNoteModelView>(addedNote); 
+                songWithNote.UserNotes.Add(addedNoteView);
+
+                await Toast.Make($"Note added to {songWithNote.Title}").Show();
+                _logger.LogInformation("Successfully added user note for song: {SongTitle}", songWithNote.Title);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save user note for song {SongId}", songWithNote.Id);
+        }
     }
 
     [RelayCommand]
@@ -1735,13 +1833,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             value.IsCurrentPlayingHighlight = true;
         
-        AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName} ";
-        value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath,1f);
-        CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
+            AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
+            value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath, 1f);
+
+
+            CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
        
-        value.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(
-            dimmerPlayEventRepo.GetAll().Where(x=>x.Id == value.Id)
-        );
+            value.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(songRepo.GetById(value.Id)?.PlayHistory);
+
         }
         else
         {
@@ -1751,12 +1850,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
-       
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
        
         IsAppScanning = false;
-        var newSongs = stateInfo.ExtraParameter as List<SongModelView>;
-        if (newSongs != null && newSongs.Count > 0)
+        if (stateInfo.ExtraParameter is List<SongModelView> newSongs && newSongs.Count > 0)
         {
             _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
 
@@ -1817,8 +1914,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                 DeviceVolumeLevel=appmodel.VolumeLevelPreference;
 
-            var lastSavedThemeIsDarkMode = appmodel.IsDarkModePreference;
-            if (lastSavedThemeIsDarkMode)
+            IsDarkModeOn= appmodel.IsDarkModePreference;
+            
+            if (IsDarkModeOn)
             {
                 Application.Current?.UserAppTheme = AppTheme.Dark;
             }
@@ -2346,7 +2444,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
       .Where(s => s != null)
       .ToList();
 
-        if (!songsInPlaylist.Any())
+        if (songsInPlaylist.Count==0)
             return;
 
         
@@ -3027,9 +3125,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
         SongsFirstImpression = TopStats.GetSongsFirstImpression(songEvents);
 
-        //SongDropOffPoints = ChartSpecificStats.GetSongDropOffPoints(songEvents).ToObservableCollection();
-        //SongWeeklyOHLC = ChartSpecificStats.GetSongWeeklyOHLC(songEvents).ToObservableCollection();
-
         SongListeningStreak = TopStats.GetListeningStreak(songEvents);
     }
 
@@ -3051,67 +3146,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         foreach (var item in songs)
         {
-            await SaveUserNoteToDbLegacy(item);
+            await SaveUserNoteToSong(item);
         }
         //TODO : make an error handling logic here
-    }
-    public async Task SaveUserNoteToDbLegacy(SongModelView songWithNote)
-    {
-        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Note for {Environment.NewLine}" +
-            $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
-                placeholder: "Tip: Just type this note to search this song through TQL :)",
-                accept: "Done", keyboard: Keyboard.Text);
-        if (result == null)
-        {
-            return;
-        }
-            UserNoteModelView userNote = new()
-            {
-                UserMessageText = result,
-                CreatedAt = DateTime.Now,
-            };
-
-
-        songWithNote.UserNotes = new();
-        songWithNote.UserNotes.Add(userNote);
-
-        
-        try
-        {
-            realm ??= realmFactory.GetRealmInstance();
-            realm.Write(() =>
-            {
-                var existingSong = realm.Find<SongModel>(songWithNote.Id);
-                if (existingSong != null)
-                {
-                    var userNoteDb = _mapper.Map<UserNoteModel>(userNote);
-                    if (userNoteDb != null)
-                    {
-                        existingSong.UserNotes.Add(userNoteDb);
-
-                        
-                        realm.Add(existingSong, true);
-
-                        _logger.LogInformation("Successfully persisted user note for song: {SongTitle}", existingSong.Title);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Could not find song with ID {SongId} to save user note.", songWithNote.Id);
-                }
-            });
-            Toast newToast = new()
-            {
-                Duration= CommunityToolkit.Maui.Core.ToastDuration.Long,
-                Text = $"Added Note {userNote.UserMessageText} to {songWithNote.Title}"
-            };
-           await newToast.Show(CancellationToken.None);
-        }
-
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to save user note for song {SongId}", songWithNote.Id);
-        }
     }
 
 
@@ -3418,44 +3455,50 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial bool IsFindingDuplicates { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseTitleCriteria { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseArtistCriteria { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseAlbumCriteria { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseDurationCriteria { get; set; } = true;
     [RelayCommand]
     private async Task FindDuplicatesAsync()
     {
-        IsFindingDuplicates = true;
+        var criteria = DuplicateCriteria.None;
+        if (UseTitleCriteria)
+            criteria |= DuplicateCriteria.Title;
+        if (UseArtistCriteria)
+            criteria |= DuplicateCriteria.Artist;
+        if (UseAlbumCriteria)
+            criteria |= DuplicateCriteria.Album;
+        if (UseDurationCriteria)
+            criteria |= DuplicateCriteria.Duration;
 
-       
-        _duplicateSource.Clear();
+        if (criteria == DuplicateCriteria.None)
+        {
+            await Shell.Current.DisplayAlert("No Criteria", "Please select at least one field to check for duplicates.", "OK");
+            return;
+        }
 
-        try
+        IsBusy = true;
+        var progress = new Progress<string>(message =>
         {
-           
-            var results = await Task.Run(() => _duplicateFinderService.FindDuplicates());
+            LatestAppLog?.Log = message;
+        });
 
-            if (results.Count!=0)
-            {
-                
-               
-               
-               
-                _duplicateSource.Edit(updater =>
-                {
-                    updater.Clear();
-                    updater.AddRange(results);
-                });
-            }
-            else
-            {
-               
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while finding duplicates.");
-        }
-        finally
-        {
-            IsFindingDuplicates = false;
-        }
+        // 2. Call the new flexible service method
+        var result =  _duplicateFinderService.FindDuplicates(criteria, progress);
+
+        // 3. Update the UI with the results
+        _duplicateSource.Clear(); 
+        _duplicateSource.AddRange(result.DuplicateSets);
+        IsBusy = false;
     }
     [RelayCommand]
     private async Task ApplyDuplicateActionsAsync()
@@ -3716,8 +3759,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
            
             var lyricsInfo = new LyricsInfo();
             lyricsInfo.Parse(selectedResult.SyncedLyrics);
-            var _lyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
-
+            
+            
+            
             await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong, selectedResult.SyncedLyrics, lyricsInfo);
 
            
@@ -3752,7 +3796,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (!confirm)
             return;
 
-        var _lyricsMetadataService = IPlatformApplication.Current.Services.GetService<ILyricsMetadataService>();
+        
 
        
         var emptyLyricsInfo = new LyricsInfo();
@@ -4337,67 +4381,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await PerformFileOperationAsync(songsToMove, destinationPath, FileOperation.Move);
     }
 
-   
-
-    /// <summary>
-    /// Updates a single song's artist. It intelligently handles whether the new artist
-    /// already exists or needs to be created in the database.
-    /// </summary>
-    /// <param name="songToUpdate">The Song View Model from the UI.</param>
-    /// <param name="newArtistName">The desired name of the new artist.</param>
-    
-    public async Task UpdateSongArtist(SongModelView songToUpdate, string newArtistName)
-    {
-        if (songToUpdate == null || string.IsNullOrWhiteSpace(newArtistName))
-            return;
-
-        using var realm = realmFactory.GetRealmInstance();
-
-        await realm.WriteAsync(() =>
-        {
-           
-            var songInDb = realm.Find<SongModel>(songToUpdate.Id);
-            if (songInDb == null)
-            {
-                _logger.LogWarning("Could not find song with ID {SongId} to update artist.", songToUpdate.Id);
-                return;
-            }
-
-           
-            var existingArtist = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == newArtistName);
-
-            ArtistModel artistToAssign;
-            if (existingArtist != null)
-            {
-               
-                _logger.LogInformation("Assigning existing artist '{ArtistName}' to song '{SongTitle}'.", newArtistName, songInDb.Title);
-                artistToAssign = existingArtist;
-            }
-            else
-            {
-               
-                _logger.LogInformation("Creating new artist '{ArtistName}' and assigning to song '{SongTitle}'.", newArtistName, songInDb.Title);
-                artistToAssign = new ArtistModel { Name = newArtistName };
-                realm.Add(artistToAssign);
-            }
-
-           
-            songInDb.ArtistToSong.Clear();
-            songInDb.ArtistToSong.Add(artistToAssign);
-            songInDb.Artist = artistToAssign;
-        });
-
-        _logger.LogInformation("Successfully updated artist for song ID {SongId}.", songToUpdate.Id);
-
-       
-       
-        songToUpdate.ArtistToSong.Clear();
-        songToUpdate.ArtistToSong.Add(_mapper.Map<ArtistModelView>(new ArtistModel { Name = newArtistName }));
-        songToUpdate.OtherArtistsName = newArtistName;
-    }
-
-
-   
 
     /// <summary>
     /// Flags a song as "hidden". This requires a change to >r core filtering logic to be effective.
@@ -4732,7 +4715,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
     }
     [ObservableProperty]
-    public partial bool IsDarkModeOn { get; set; } = Application.Current?.UserAppTheme == AppTheme.Dark;
+    public partial bool IsDarkModeOn { get; set; } 
 }
 
 

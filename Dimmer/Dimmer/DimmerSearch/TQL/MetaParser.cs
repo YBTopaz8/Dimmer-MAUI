@@ -47,9 +47,9 @@ public class MetaParser
         if (commandInitiatorIndex != -1)
         {
             
-            filterQuery = rawQuery.Substring(0, commandInitiatorIndex);
+            filterQuery = rawQuery[..commandInitiatorIndex];
             
-            commandQuery = rawQuery.Substring(commandInitiatorIndex + commandInitiator.Length);
+            commandQuery = rawQuery[(commandInitiatorIndex + commandInitiator.Length)..];
         }
         else
         {
@@ -67,14 +67,14 @@ public class MetaParser
         {
             var commandTokens = Lexer.Tokenize(commandQuery)
                                      .Where(t => t.Type != TokenType.EndOfFile).ToList();
-            if (commandTokens.Any())
+            if (commandTokens.Count!=0)
             {
                 ParsedCommand = ParseAsCommand(commandTokens);
             }
         }
     }
 
-    private IQueryNode? ParseAsCommand(List<Token> commandTokens)
+    private static CommandNode? ParseAsCommand(List<Token> commandTokens)
     {
         var commandToken = commandTokens.FirstOrDefault();
         if (commandToken?.Type != TokenType.Identifier)
@@ -91,7 +91,7 @@ public class MetaParser
         switch (commandName)
         {
             case "save":
-                if (argTokens.Any())
+                if (argTokens.Count!=0)
                 {
                     
                     
@@ -108,8 +108,15 @@ public class MetaParser
                 break;
             case "addend":
                 arguments["position"] = "end";
-                break;  
+                break;
+            case "deletedup":
+                arguments["type"] = "duplicates";
+                break;
 
+            case "deleteall":
+                arguments["type"] = "all";
+                break;
+                
             default:
                 
                 
@@ -183,7 +190,7 @@ public class MetaParser
         _segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
     }
 
-    public Func<SongModelView, bool> CreateMasterPredicate()
+    public Func<SongModelView, bool>? CreateMasterPredicate()
     {
         var predicates = _segments.Select(seg =>
         {

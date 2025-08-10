@@ -153,7 +153,7 @@ public partial class AppShell : Shell
 
         await MyViewModel.ProcessAndMoveToViewSong(null);
     }
-    private async void TogglePanelClicked(object sender, PointerEventArgs e)
+    private  void TogglePanelClicked(object sender, PointerEventArgs e)
     {
         //var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(send).Properties;
 
@@ -313,5 +313,21 @@ public partial class AppShell : Shell
 
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
+    }
+
+    private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)
+    {
+        var currentState = this.FlyoutIsPresented;
+        if (currentState)
+        {
+            this.FlyoutIsPresented = false;
+            this.FlyoutBehavior = FlyoutBehavior.Flyout;
+            //this.FlyoutWidth = 0; // Optionally set width to 0 to hide the flyout completely
+        }
+        else
+        {
+            this.FlyoutIsPresented = true;
+            this.FlyoutBehavior = FlyoutBehavior.Flyout;
+        }
     }
 }

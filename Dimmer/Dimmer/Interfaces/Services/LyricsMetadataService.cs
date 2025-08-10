@@ -189,7 +189,7 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     #region Save Lyrics
 
-    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo lyrics)
+    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo? lyrics)
     {
         if (string.IsNullOrEmpty(song?.FilePath) || string.IsNullOrWhiteSpace(lrcContent))
         {

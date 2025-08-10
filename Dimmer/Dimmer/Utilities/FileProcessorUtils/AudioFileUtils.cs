@@ -5,7 +5,7 @@ public static class AudioFileUtils
     {
         if (string.IsNullOrWhiteSpace(prefix) || prefix.Length < 4)
             prefix = "YBT"; // Default prefix
-        return $"{prefix.Substring(0, 4).ToUpperInvariant()}_{Guid.NewGuid()}";
+        return $"{prefix[..4].ToUpperInvariant()}_{Guid.NewGuid()}";
     }
 
     public static bool IsValidFile(string filePath, HashSet<string> supportedExtensions)

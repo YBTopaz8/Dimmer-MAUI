@@ -67,6 +67,8 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
         builder.Services.AddSingleton<SubscriptionManager>();
+        builder.Services.AddSingleton<MusicDataService>();
+        builder.Services.AddSingleton<IDimmerPlayEventRepository, DimmerPlayEventRepository>();
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
         builder.Services.AddSingleton<ILibraryScannerService, LibraryScannerService>();
@@ -109,13 +111,20 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<CommandEvaluator>();
             
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
+
+        builder.Services.AddSingleton<StatisticsService>();
+        builder.Services.AddSingleton<StatisticsViewModel>();
+
+
+
+
         var assembly = Assembly.GetExecutingAssembly();
 
         const string resourceName = "Dimmer.appsettings.json";
 
         var ress = assembly.GetManifestResourceNames();
 
-        //Debug.WriteLine(ress.ToString());
+
         using var stream = assembly.GetManifestResourceStream(resourceName);
 
         // This null check will prevent the crash and tell you exactly what's wrong.

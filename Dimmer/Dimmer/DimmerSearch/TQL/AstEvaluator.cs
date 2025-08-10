@@ -186,6 +186,9 @@ public class AstEvaluator
             case "last week":
                 var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek - 7);
                 return (startOfLastWeek, startOfLastWeek.AddDays(7).AddTicks(-1));
+            case "last few days":
+                var startOfFewDays = now.AddDays(-(int)now.DayOfWeek - 4);
+                return (startOfFewDays, startOfFewDays.AddDays(4).AddTicks(-1));
             case "this month":
                 var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.TimeOfDay);
                 return (startOfMonth, startOfMonth.AddMonths(1).AddTicks(-1));

@@ -148,16 +148,12 @@ public partial class SongModelView : ObservableObject
 
         return false;
     }
-    public int PlayCount => PlayEvents?.Count ?? 0;
-    public int PlayCompletedCount => PlayEvents
-        .Where(x => x.PlayType == (int)PlayType.Completed).Count();
-    public DateTimeOffset LastPlayed =>
-       PlayEvents?
-           .Where(x => x.PlayType == (int)PlayType.Completed)
-
-           .OrderByDescending(x => x.EventDate)
-           .FirstOrDefault()?
-           .EventDate ?? DateTimeOffset.MinValue;
+    [ObservableProperty]
+    public partial int PlayCount { get; set; }
+    [ObservableProperty]
+    public partial int PlayCompletedCount { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset LastPlayed { get; set; }
     [ObservableProperty]
     public partial string SearchableText { get; private set; }
 
@@ -196,8 +192,48 @@ public partial class SongModelView : ObservableObject
 
     public SongModelView()
     {
+
+        PlayEvents = new ObservableCollection<DimmerPlayEventView>();
+        SubscribeToPlayEvents();
         PrecomputeSearchableText();
+        UpdatePlayEventProps();
     }
+    partial void OnPlayEventsChanging(ObservableCollection<DimmerPlayEventView> value)
+    {
+        // Unsubscribe from old collection
+        if (PlayEvents != null)
+            PlayEvents.CollectionChanged -= PlayEvents_CollectionChanged;
+    }
+
+    partial void OnPlayEventsChanged(ObservableCollection<DimmerPlayEventView> value)
+    {
+        // Subscribe to new collection
+        SubscribeToPlayEvents();
+        UpdatePlayEventProps();
+    }
+
+    private void SubscribeToPlayEvents()
+    {
+        if (PlayEvents != null)
+            PlayEvents.CollectionChanged += PlayEvents_CollectionChanged;
+    }
+
+    private void PlayEvents_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        UpdatePlayEventProps();
+    }
+
+    private void UpdatePlayEventProps()
+    {
+        PlayCount = PlayEvents?.Count ?? 0;
+        PlayCompletedCount = PlayEvents?.Count(x => x.PlayType == (int)PlayType.Completed) ?? 0;
+        LastPlayed = PlayEvents?
+            .Where(x => x.PlayType == (int)PlayType.Completed)
+            .OrderByDescending(x => x.EventDate)
+            .FirstOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
+    }
+
+
     public override int GetHashCode()
     {
         return HashCode.Combine(Id);

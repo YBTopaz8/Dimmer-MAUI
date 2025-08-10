@@ -16,17 +16,22 @@ public class CommandEvaluator
         public const string AddNext = "addnext";
         public const string AddEnd = "addend";
         public const string PlaylistNameArg = "playlistName";
+        public const string DeleteAll = "deleteall";
+        public const string DeleteDuplicate = "deletedup";
     }
 
     // --- Subjects for publishing events ---
     private readonly Subject<(string Name, IEnumerable<SongModelView> Songs)> _savePlaylistSubject = new();
     private readonly Subject<IEnumerable<SongModelView>> _addToNextSubject = new();
     private readonly Subject<IEnumerable<SongModelView>> _addToEndSubject = new();
-
+    private readonly Subject<IEnumerable<SongModelView>> _deleteAllSubject = new();
+    private readonly Subject<IEnumerable<SongModelView>> _deleteDuplicateSubject = new();
     // --- Public-facing observables for subscribers ---
     public IObservable<(string Name, IEnumerable<SongModelView> Songs)> SavePlaylistRequested => _savePlaylistSubject.AsObservable();
     public IObservable<IEnumerable<SongModelView>> AddToNextRequested => _addToNextSubject.AsObservable();
     public IObservable<IEnumerable<SongModelView>> AddToEndRequested => _addToEndSubject.AsObservable();
+    public IObservable<IEnumerable<SongModelView>> DeleteAllRequested => _deleteAllSubject.AsObservable();
+    public IObservable<IEnumerable<SongModelView>> DeleteDuplicateRequested => _deleteDuplicateSubject.AsObservable();
 
     public void Execute(IQueryNode node, IEnumerable<SongModelView>? currentResultsSet)
     {
@@ -56,6 +61,14 @@ public class CommandEvaluator
             case CommandKeys.AddEnd:
                 _addToEndSubject.OnNext(currentResultsSet);
                 break;
+            case CommandKeys.DeleteAll:
+                _deleteAllSubject.OnNext(currentResultsSet);
+                break;
+            case CommandKeys.DeleteDuplicate:
+                _deleteDuplicateSubject.OnNext(currentResultsSet);
+                break;
+                
+
         }
     }
 }

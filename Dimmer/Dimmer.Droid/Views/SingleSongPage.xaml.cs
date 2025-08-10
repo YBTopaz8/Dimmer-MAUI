@@ -120,7 +120,7 @@ public partial class SingleSongPage : ContentPage
         //{
         //    return;
         //}
-        //await MyViewModel.BaseVM.SaveUserNoteToDbLegacy(song);
+        //await MyViewModel.BaseVM.SaveUserNoteToSong(song);
     }
 
     private async void ViewArtist_Clicked(object sender, EventArgs e)

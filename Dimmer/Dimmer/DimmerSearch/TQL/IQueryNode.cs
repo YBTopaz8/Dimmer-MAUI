@@ -61,3 +61,11 @@ public class GroupNode : IQueryNode
     public string Field { get; }
     public GroupNode(string field) => Field = field;
 }
+public class StatsCommandNode : IQueryNode
+{
+    public IQueryNode FilterNode { get; }
+    public StatsCommandNode(IQueryNode filterNode)
+    {
+        FilterNode = filterNode;
+    }
+}

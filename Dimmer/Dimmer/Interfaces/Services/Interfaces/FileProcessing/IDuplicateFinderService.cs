@@ -4,7 +4,6 @@ namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public interface IDuplicateFinderService
 {
 
-    List<DuplicateSetViewModel> FindDuplicates();
     Task RemoveSongsFromDbAsync(IEnumerable<ObjectId> songIds);
 
     /// <summary>
@@ -18,4 +17,5 @@ public interface IDuplicateFinderService
     /// to migrate their data to existing files with the same identity.
     /// </summary>
     Task<LibraryReconciliationResult> ReconcileLibraryAsync(IEnumerable<SongModelView> allSongs);
+    DuplicateSearchResult FindDuplicates(DuplicateCriteria criteria, IProgress<string>? progress = null);
 }

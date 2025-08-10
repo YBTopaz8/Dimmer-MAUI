@@ -35,19 +35,14 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
                 .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap
                 .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
+                .ForMember(dest => dest.PlayCompletedCount, opt => opt.Ignore())
+                .ForMember(dest => dest.PlayCount, opt => opt.Ignore())
+                .ForMember(dest => dest.LastPlayed, opt => opt.Ignore())
                 .AfterMap((src, dest) =>
                 {
                     dest.PrecomputeSearchableText();
-
-                    const int maxTitleLength = 200; // A safe length to avoid path issues. Adjust as needed.
-
-                    // Check if the Title is not null and exceeds the max length
-                    if (!string.IsNullOrEmpty(dest.Title) && dest.Title.Length > maxTitleLength)
-                    {
-                        // Truncate the string and add an ellipsis
-                        dest.Title = string.Concat(dest.Title.AsSpan(0, maxTitleLength), "...");
-                    }
-                    });
+                    //dest.
+                });
 
             cfg.CreateMap<AlbumModel, AlbumModelView>()
               .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
@@ -171,7 +166,7 @@ public static class AutoMapperConf
             ;
             });
 
-
+            
             // This should now pass without errors.
             config.AssertConfigurationIsValid();
 
