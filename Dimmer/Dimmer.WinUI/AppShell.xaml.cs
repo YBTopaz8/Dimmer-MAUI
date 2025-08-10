@@ -275,4 +275,43 @@ public partial class AppShell : Shell
     {
        
     }
+
+    private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+       
+        var send = (Microsoft.Maui.Controls.View)sender;
+        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        if (gest is null)
+        {
+            return;
+        }
+        var field = gest.PointerReleasedCommandParameter as string;
+        var val = gest.PointerPressedCommandParameter as string;
+        if (field is "artist")
+        {
+            char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+            var namesList = val
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+                .Select(name => name.Trim())                           // Trim whitespace from each name
+                .ToArray();                                             // Convert to a List
+
+
+            var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+            {
+                return;
+            }
+
+            MyViewModel.SearchSongSB_TextChanged(
+                StaticMethods.SetQuotedSearch("artist", selectedArtist));
+
+            return;
+        }
+
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+
+    }
 }

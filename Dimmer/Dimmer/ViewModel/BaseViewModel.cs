@@ -1817,7 +1817,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                 DeviceVolumeLevel=appmodel.VolumeLevelPreference;
 
-
+            var lastSavedThemeIsDarkMode = appmodel.IsDarkModePreference;
+            if (lastSavedThemeIsDarkMode)
+            {
+                Application.Current?.UserAppTheme = AppTheme.Dark;
+            }
+            else
+            {
+                Application.Current?.UserAppTheme = AppTheme.Light;
+            }
         }
 
     }
@@ -4677,6 +4685,54 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             ? PlaylistEditMode.Remove
             : PlaylistEditMode.Add;
     }
+
+    [RelayCommand]
+    public void ToggleAppTheme()
+    {
+        var currentAppTheme = Application.Current?.UserAppTheme;
+        if (currentAppTheme == AppTheme.Dark)
+        {
+            Application.Current?.UserAppTheme = AppTheme.Light;
+        }
+        else if (currentAppTheme == AppTheme.Light)
+        {
+
+
+            Application.Current?.UserAppTheme = AppTheme.Dark;
+        }
+        else if (currentAppTheme  == AppTheme.Unspecified)
+        {
+            Application.Current?.UserAppTheme = AppTheme.Dark;
+        }
+        
+        //save to db for next boot
+        using var realm = realmFactory.GetRealmInstance();
+        realm.Write(() =>
+        {
+            var existingSettings = realm.All<AppStateModel>().ToList();
+            if (existingSettings != null)
+            {
+                var setting = existingSettings.FirstOrDefault();
+                if (setting != null)
+                {
+                    setting.IsDarkModePreference 
+                    = Application.Current?.UserAppTheme == AppTheme.Dark;
+                }
+                else
+                {
+                    setting = new AppStateModel
+                    {
+                        IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark
+                    };
+                }
+
+                realm.Add(setting);
+            }
+        });
+        IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
+    }
+    [ObservableProperty]
+    public partial bool IsDarkModeOn { get; set; } = Application.Current?.UserAppTheme == AppTheme.Dark;
 }
 
 

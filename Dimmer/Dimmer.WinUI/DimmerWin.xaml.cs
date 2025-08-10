@@ -198,4 +198,9 @@ public partial class DimmerWin : Window
         Debug.WriteLine(win.Visible);
         Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
+
+    private void SwitchTheme_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleAppTheme();
+    }
 }

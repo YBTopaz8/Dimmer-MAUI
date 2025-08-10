@@ -165,13 +165,14 @@
                 .ToArray();                                             // Convert to a List
 
 
-            var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
+            var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
-            if (string.IsNullOrEmpty(res))
+            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
             {
                 return;
             }
-            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", res);
+
+            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", selectedArtist);
 
             return;
         }
@@ -320,15 +321,6 @@
 
     }
 
-
-    private static async void ViewSong_Clicked(object sender, EventArgs e)
-    {
-
-        var song = (SongModelView)((MenuFlyoutItem)sender).CommandParameter;
-
-        DeviceStaticUtils.SelectedSongOne = song;
-        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
-    }
 
     private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
     {
@@ -894,24 +886,20 @@ await this.FadeIn(500, 1.0);
         MyViewModel.AddMusicFoldersByPassingToService(MyViewModel.DraggedAudioFiles);
     }
 
-    private void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
+    private async void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
+
+        
         var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
 
-        var pointerParamEntered = gest.PointerEnteredCommandParameter as SfExpander;
         var pointerParamPressed = gest.PointerPressedCommandParameter as SongModelView;
 
-        if (pointerParamEntered.IsExpanded)
-        {
-            // Collapse the expander if it is already expanded
-            pointerParamEntered.IsExpanded = false;
-        }
-        else
-        {
-            // Expand the expander and set the selected song
-            pointerParamEntered.IsExpanded = true;
+        await MyViewModel.ProcessAndMoveToViewSong(pointerParamPressed);
+    }
 
-        }
+    private void PlayBtn_Clicked(object sender, EventArgs e)
+    {
+        PlaySongGestRec_Tapped(sender, null);
     }
 }

@@ -32,7 +32,8 @@
             </TitleBar.Resources>
             <TitleBar.TrailingContent>
                 <HorizontalStackLayout BackgroundColor="Transparent">
-
+                    <ImageButton Source="expand.png" x:Name="SwitchTheme"
+                                 Clicked="SwitchTheme_Clicked"/>
                     <!--<ImageButton Clicked="Minimize_Clicked" Source="threesquares.png" />-->
                     <ImageButton Source="settings.png"
              x:Name="SettingsBtn"

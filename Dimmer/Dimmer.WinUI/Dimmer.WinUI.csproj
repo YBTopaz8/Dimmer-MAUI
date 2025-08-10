@@ -132,6 +132,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
     <PackageReference Include="DeftSharp.Windows.Input" Version="0.10.0" />
     <PackageReference Include="DevWinUI" Version="8.9.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />

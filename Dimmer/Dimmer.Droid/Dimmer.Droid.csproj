@@ -74,6 +74,7 @@
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.2" />
 
 
+    <PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
 
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.9.2" />
 

@@ -658,7 +658,7 @@ ToolTipProperties.Text="Save To Playlist">
                                 <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
                                     <syncf:SfChip
                            Background="Transparent"
-                           Command="{Binding ToggleShuffleModeCommand}"
+                           Command="{Binding ToggleShuffleCommand}"
                            ImageSource="shuffle.png"
                            StyleClass="MediaBtnChip">
                                         <syncf:SfChip.Triggers>

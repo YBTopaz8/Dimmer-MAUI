@@ -111,8 +111,6 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
         var assembly = Assembly.GetExecutingAssembly();
 
-        // THE CORRECTED RESOURCE NAME
-        // Use your project's default namespace (likely "Dimmer") + the filename.
         const string resourceName = "Dimmer.appsettings.json";
 
         var ress = assembly.GetManifestResourceNames();

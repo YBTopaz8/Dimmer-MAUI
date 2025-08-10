@@ -84,7 +84,7 @@
     </Style>
 
     <Style TargetType="Button">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
         <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
         <Setter Property="FontFamily" Value="AleySans" />
         <Setter Property="FontSize" Value="14" />
@@ -192,11 +192,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="Frame">
-        <Setter Property="HasShadow" Value="False" />
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
-        <Setter Property="CornerRadius" Value="8" />
-    </Style>
+    
 
     <Style TargetType="ImageButton">
         <Setter Property="Opacity" Value="1" />
@@ -209,7 +205,7 @@
     </Style>
 
     <Style TargetType="Label">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=#999999}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
         <Setter Property="VerticalTextAlignment" Value="Center" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="AleySans" />

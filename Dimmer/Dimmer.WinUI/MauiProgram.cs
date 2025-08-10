@@ -1,6 +1,8 @@
 ﻿
 
 
+using CommunityToolkit.Maui;
+
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
@@ -17,6 +19,13 @@ public static class MauiProgram
 
         builder
             .UseSharedMauiApp()
+            .UseMauiCommunityToolkit(options =>
+            {
+                options.SetShouldSuppressExceptionsInAnimations(true);
+                options.SetShouldSuppressExceptionsInBehaviors(true);
+                options.SetShouldSuppressExceptionsInConverters(true);
+
+            })
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();

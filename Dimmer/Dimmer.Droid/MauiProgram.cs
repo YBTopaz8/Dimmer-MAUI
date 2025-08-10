@@ -1,4 +1,6 @@
-﻿using Dimmer.Utils.CustomHandlers;
+﻿using CommunityToolkit.Maui;
+
+using Dimmer.Utils.CustomHandlers;
 using Dimmer.Utils.CustomHandlers.CollectionView;
 using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
@@ -24,6 +26,13 @@ public static class MauiProgram
               })
             .UseDevExpress(useLocalization: false)
             .UseDevExpressCollectionView()
+            .UseMauiCommunityToolkit(options =>
+            {
+                options.SetShouldSuppressExceptionsInAnimations(true);
+                options.SetShouldSuppressExceptionsInBehaviors(true);
+                options.SetShouldSuppressExceptionsInConverters(true);
+
+            })
             .UseDevExpressControls()
             .UseDevExpressDataGrid()
             .UseDevExpressEditors()

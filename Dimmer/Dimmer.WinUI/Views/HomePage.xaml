@@ -23,7 +23,7 @@
 Shell.FlyoutBehavior="Locked"
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
-    BackgroundColor="Transparent"
+    BackgroundColor="{AppThemeBinding Light=#F5F5F5}"
     
     Shell.NavBarIsVisible="False">
 
@@ -43,10 +43,27 @@ Shell.FlyoutBehavior="Locked"
             
         </Style>
         <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
-            <VerticalStackLayout>
+            <Border StrokeShape="RoundRectangle 10" 
+                    Padding="1"
+                    Opacity="0.7" x:Name="Songborderview">
+                <Border.Triggers>
+                    <DataTrigger
+Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
+TargetType="Border"
+Value="True">
+                        <Setter Property="Stroke" Value="MediumSlateBlue" />
 
-                <Grid ColumnDefinitions="180" RowDefinitions="*,auto" HorizontalOptions="Center"
-                      >
+                    </DataTrigger>
+                </Border.Triggers>
+                <Border.GestureRecognizers>
+                    <PointerGestureRecognizer
+PointerEntered="SongViewPointer_PointerEntered"
+x:Name="SongViewPointer"
+                        
+
+PointerExited="SongViewPointer_PointerExited"/>
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="5" Margin="2">
                     <FlyoutBase.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem 
@@ -57,57 +74,77 @@ Shell.FlyoutBehavior="Locked"
 
                         </MenuFlyout>
                     </FlyoutBase.ContextFlyout>
-                    <Grid.GestureRecognizers>
-                        <PointerGestureRecognizer
-                 PointerEntered="SongViewPointer_PointerEntered"
-                 x:Name="SongViewPointer"
-                            PointerEnteredCommandParameter="{Binding .,Source={x:Reference SongsExpander}}"
-                 PointerPressed="SongViewPointer_PointerPressed"
-                  PointerPressedCommandParameter="{Binding .}"
+                    <Grid>
+                        
+                        <Border BackgroundColor="Transparent">
 
-                 PointerExited="SongViewPointer_PointerExited"/>
-                    </Grid.GestureRecognizers>
+                            <Image Source="{Binding CoverImagePath}" 
+                   MinimumHeightRequest="120"
+                                   
+                           x:Name="SongGridImg"
+                    HorizontalOptions="Center" >
+                                <Image.GestureRecognizers>
+                                    <PointerGestureRecognizer 
+PointerPressed="SongViewPointer_PointerPressed"
+ PointerPressedCommandParameter="{Binding .}"/>
+                                </Image.GestureRecognizers>
 
-                    <Image Source="{Binding CoverImagePath}" 
-                Opacity="0.7" 
-                       x:Name="SongGridImg"
-                HorizontalOptions="Center" >
-                        <Image.GestureRecognizers>
-                            <DragGestureRecognizer
-                     CanDrag="True"
-                     DragStarting="SongDrag_DragStarting"
-                     x:Name="SongDrag"
-                     DragStartingCommandParameter="{Binding .}"/>
-                        </Image.GestureRecognizers>
-                    </Image>
-                    <Border BackgroundColor="#2C2C2C" VerticalOptions="End" 
-                 StrokeShape="RoundRectangle 5,5,0,0" Padding="5,5,5,0">
+                            </Image>
+                        </Border>
 
-                        <VerticalStackLayout >
-                            <VerticalStackLayout.Resources>
-                                <Style TargetType="Label">
-                                    <Setter Property="TextColor" Value="#999999"/>
-                                </Style>
-                            </VerticalStackLayout.Resources>
-                            <Label Text="{Binding Title}"/>
-                            <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,*,auto" VerticalOptions="End" BackgroundColor="#2B2B2B">
 
-                    </Border>
-                </Grid>
-            <syncf:SfExpander  HeaderIconPosition="End"
-                              x:Name="SongsExpander">
-              
-                <syncf:SfExpander.Content>
-                    <VerticalStackLayout>
-                        <Label Text="Yvan"/>
-                        <Label Text="{Binding Title}"/>
-                    </VerticalStackLayout>
-                </syncf:SfExpander.Content>
-            </syncf:SfExpander>
+                            <Label 
+                                
+                                Text="{Binding OtherArtistsName}" Grid.Column="0">
 
-            </VerticalStackLayout>
+                                <Label.GestureRecognizers>
+                                    <PointerGestureRecognizer
+                     PointerPressedCommandParameter="{Binding OtherArtistsName}"
+                     PointerReleased="QuickFilterGest_PointerReleased"
+                     PointerReleasedCommandParameter="artist" />
+                                </Label.GestureRecognizers>
+                            </Label>
 
+                            <Button Grid.Column="1"
+           x:Name="PlayBtn" BorderWidth="0" 
+           Background="Transparent" IsVisible="False"
+                                    HeightRequest="40"      Clicked="PlayBtn_Clicked"
+           ImageSource="play.png">
+                                <Button.Triggers>
+                                    
+
+                                    <DataTrigger
+                   Binding="{Binding Opacity,Source={x:Reference Songborderview}}"
+                   TargetType="Button"
+                   Value="1">
+                                        <Setter Property="IsVisible" Value="true" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Label
+                                HorizontalOptions="End"
+                                Grid.Column="2" Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+
+                        </Grid>
+
+
+                    </Grid>
+                    
+                    <Label Text="{Binding Title}" TextColor="{AppThemeBinding Dark=White,Light=Black}"
+                           FontSize="18"/>
+                    <Label Text="{Binding AlbumName}" LineBreakMode="WordWrap"
+                                   FontSize="10">
+                        <Label.GestureRecognizers>
+                            <PointerGestureRecognizer
+                     PointerPressedCommandParameter="{Binding AlbumName}"
+                     PointerReleased="QuickFilterGest_PointerReleased"
+                     PointerReleasedCommandParameter="album" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    
+                </VerticalStackLayout>
+            </Border>
         </DataTemplate>
         <DataTemplate x:Key="tooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
@@ -308,22 +345,16 @@ TargetType="Border"
 Value="True">
                                     <Setter Property="Stroke" Value="DarkSlateBlue" />
                                     <Setter Property="StrokeThickness" Value="3" />
-                                    
+
                                 </DataTrigger>
                                 <DataTrigger
 Binding="{Binding HasSyncedLyrics}"
 TargetType="Border"
 Value="False">
                                     <Setter Property="Stroke" Value="Transparent" />
-                                    
+
                                 </DataTrigger>
                             </Border.Triggers>
-                            <Border.GestureRecognizers>
-                                <PointerGestureRecognizer
-                PointerPressedCommandParameter="{Binding .}"
-                x:Name="ViewSongDetails" PointerPressed="ViewSongDetails_PointerPressed"
-                PointerReleasedCommandParameter="title" />
-                            </Border.GestureRecognizers>
 
 
                             <Grid>
@@ -339,6 +370,7 @@ Value="False">
 
                         </Border>
                     </HorizontalStackLayout>
+
                     <Label  Grid.Column="1"
                              ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
 
@@ -487,9 +519,9 @@ Value="False">
                 Drop="SongDropRecognizer_Drop"
                 />
         </Grid.GestureRecognizers>
-        <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-Opacity="0.15" ZIndex="-1" Grid.RowSpan="2"
-/>
+        <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}" Grid.RowSpan="2"
+               Opacity="0.06"/>
+
         <VerticalStackLayout Grid.Row="0" ZIndex="0" >
 
               
@@ -582,7 +614,7 @@ Opacity="0.15" ZIndex="-1" Grid.RowSpan="2"
             </Grid>
 
 
-            <Grid RowDefinitions="auto,auto,*" RowSpacing="5" x:Name="GridSongsColView">
+            <Grid RowDefinitions="auto,*" RowSpacing="5" x:Name="GridSongsColView">
 
                 <Grid Grid.Row="0"
                        Margin="10,0"
@@ -665,82 +697,7 @@ HeightRequest="50"
                     </HorizontalStackLayout>
 
                 </Grid>
-                <VerticalStackLayout Grid.Row="1">
-                
-                    
-                    <Grid  ColumnDefinitions="1*,*,1.9*,1.9*,*,*,*,0.7*"
-                                      Margin="10,0"
-                              ColumnSpacing="10">
-                    <Grid.Resources>
-                        <Style TargetType="Label">
-                            <Setter Property="FontSize" Value="18" />
-                        </Style>
-                        <Style TargetType="syncf:SfChip">
-
-                            <Setter Property="FontSize" Value="26" />
-                            <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
-                            <Setter Property="SelectionIndicatorColor" Value="DarkSlateBlue" />
-                        </Style>
-                    </Grid.Resources>
-                        
-                        
-                        
-                    <syncf:SfChip
-                           Grid.Column="1"
-                           Clicked="Sort_Clicked"
-                           CommandParameter="Title"
-                           
-                           Text="Title">
-                        <syncf:SfChip.Triggers>
-                            <DataTrigger
-                                   Binding="{Binding IsPlaying}"
-                                   TargetType="syncf:SfChip"
-                                   Value="true">
-                                <Setter Property="ImageSource" Value="pause.png" />
-                            </DataTrigger>
-                            <DataTrigger
-                                   Binding="{Binding IsPlaying}"
-                                   TargetType="syncf:SfChip"
-                                   Value="false">
-                                <Setter Property="ImageSource" Value="play.png" />
-                            </DataTrigger>
-                        </syncf:SfChip.Triggers>
-                    </syncf:SfChip>
-                    <syncf:SfChip
-                           Grid.Column="2"
-                           Clicked="Sort_Clicked"
-                           CommandParameter="Artist"
-                           Text="Artist" />
-                    <syncf:SfChip
-                           Grid.Column="3"
-                           Clicked="Sort_Clicked"
-                           CommandParameter="Album"
-                           Text="Album" />
-                    <syncf:SfChip
-                           Grid.Column="4"
-                           Clicked="Sort_Clicked"
-                           CommandParameter="Genre"
-                           Text="Genre" />
-                    <syncf:SfChip
-                           Grid.Column="5"
-                           Clicked="Sort_Clicked"
-                           CommandParameter="year"
-                           Text="Year" />
-                    <syncf:SfChip
-                           Grid.Column="6"
-                           Clicked="Sort_Clicked"
-                           CommandParameter="plays"
-                           Text="Dimms" />
-                    <syncf:SfChip
-                           Grid.Column="7"
-                           CommandParameter="len"
-                           HorizontalTextAlignment="Center"
-                           Text="Length" />
-
-                </Grid>
-
-
-                </VerticalStackLayout>
+            
                 
             <CollectionView Grid.Row="2"
                         x:Name="SongsColView"
@@ -750,10 +707,10 @@ HeightRequest="50"
                         Loaded="MainSongsColView_Loaded"
                         SelectionMode="Single"
                             SelectedItem="{Binding SelectedSong}"
-            ItemTemplate="{StaticResource OGView}"
+            ItemTemplate="{StaticResource GridOfFour}"
                         VerticalOptions="Start">
                     <CollectionView.ItemsLayout>
-                        <LinearItemsLayout 
+                        <GridItemsLayout Span="6" VerticalItemSpacing="5" HorizontalItemSpacing="5"
                                          Orientation="Vertical"
                             SnapPointsAlignment="End"
                                          SnapPointsType="MandatorySingle"/>
