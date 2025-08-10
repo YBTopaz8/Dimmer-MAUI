@@ -457,7 +457,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             })
             .DisposeWith(Disposables);
         commandEvaluator.DeleteDuplicateRequested
-            .Subscribe(async songsToDelete =>
+            .Subscribe( songsToDelete =>
             {
                 if (songsToDelete is null || !songsToDelete.Any())
                 {
@@ -501,42 +501,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
            
            
-            var allEvents = await dimmerPlayEventRepo.GetAllAsync();
             var allSongs = _songSource.Items;
 
-            if (allEvents is null || allEvents.Count == 0 || allSongs is null || allSongs.Count == 0)
+            if (allSongs is null || allSongs.Count == 0)
             {
-                _logger.LogWarning("No events or songs found to process.");
+                _logger.LogWarning("No songs found to process.");
                 return;
             }
 
            
-           
-            var eventsBySongId = await Task.Run(() =>
-            {
-               
-               
-               
-                return allEvents
-                    .Where(e => e.SongId.HasValue)
-                    .GroupBy(e => e.SongId.Value)
-                    .ToDictionary(g => g.Key, g => g.Select(ev => new DimmerPlayEventView(ev)).ToObservableCollection());
-            });
-
-           
             foreach (var song in allSongs)
             {
+
+                song.PlayEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(songRepo.GetById(song.Id)?.PlayHistory);
+
                
-                if (eventsBySongId.TryGetValue(song.Id, out var songEvents))
-                {
-                    song.PlayEvents = songEvents;
-                }
-                else
-                {
-                    song.PlayEvents ??=[];
-                   
-                    song.PlayEvents.Clear();
-                }
             }
             _logger.LogInformation("Finished loading play events for {Count} songs.", allSongs.Count);
         }
@@ -626,7 +605,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
     [RelayCommand]
-    private async Task RemoteNextTrackAsync()
+    private void RemoteNextTrackAsync()
     {
         if (ControlledDeviceState == null)
             return;
@@ -1323,7 +1302,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
  
-    public async Task LoadSongLastFMMoreData()
+    public void LoadSongLastFMMoreData()
     {
         if (SelectedSong is null)
         {
@@ -4284,15 +4263,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
 
-    [RelayCommand]
-    public async Task UpdateSongToDB(SongModelView song)
-    {
-        //this is going to be a bit complex because 
-       
-
-        //i'll think of a system of it, i can only think of listening to onpropertychanged to save the latest state.
-
-    }
+   
 
     public async Task LoadUserLastFMDataAsync()
     {

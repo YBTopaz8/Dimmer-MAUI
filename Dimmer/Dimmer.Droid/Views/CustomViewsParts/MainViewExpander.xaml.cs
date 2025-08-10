@@ -26,12 +26,14 @@ public partial class MainViewExpander : DXExpander
 
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
-
+        MyViewModel.SongsColView= SongsColView;
     }
 
-    private void PlaySongClicked(object sender, EventArgs e)
+    private async void PlaySongClicked(object sender, EventArgs e)
     {
-
+        var send = (DXButton)sender;
+        var song = (SongModelView)send.BindingContext;
+        await MyViewModel.BaseVM.PlaySong(song);
     }
 
     private void ArtistsChip_LongPress(object sender, System.ComponentModel.HandledEventArgs e)

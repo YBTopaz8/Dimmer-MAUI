@@ -47,28 +47,29 @@ x:FieldModifier="Public">
                                                 
                                                 VerticalOptions="Center">
                             <syncf:SfEffectsView Grid.Column="0"
-                                                      
+                                                      BackgroundColor="Green"
                                             x:Name="ViewSongOnly"                    
                                                                  TouchDown="ViewSongOnly_TouchDown"
                                                            TouchDownCommandParameter="{Binding .}">
+                                <syncf:SfEffectsView.Triggers>
+                                    <DataTrigger
+Binding="{Binding HasSyncedLyrics}"
+TargetType="syncf:SfEffectsView"
+Value="True">
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+
+                                    </DataTrigger>
+                                    <DataTrigger
+Binding="{Binding HasSyncedLyrics}"
+TargetType="syncf:SfEffectsView"
+Value="False">
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+
+                                    </DataTrigger>
+                                </syncf:SfEffectsView.Triggers>
                                 <dx:DXBorder CornerRadius="15" 
                                                              BorderThickness="2">
-                                    <dx:DXBorder.Triggers>
-                                        <DataTrigger
-Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
-TargetType="dx:DXBorder"
-Value="True">
-                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
-
-                                        </DataTrigger>
-                                        <DataTrigger
-Binding="{Binding HasSyncedLyrics}"
-TargetType="dx:DXBorder"
-Value="False">
-                                            <Setter Property="BorderColor" Value="Transparent" />
-
-                                        </DataTrigger>
-                                    </dx:DXBorder.Triggers>
+                                    
                                     <Image  
                                                          
                                                Source="{Binding CoverImagePath}"/>

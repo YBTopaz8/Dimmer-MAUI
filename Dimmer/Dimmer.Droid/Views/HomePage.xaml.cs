@@ -440,16 +440,6 @@ public partial class HomePage : ContentPage
 
    
    
-
-    private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
-    {
-        //NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        //MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
-
-        //BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        //TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
-    }
-
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
     {
     }
@@ -505,10 +495,6 @@ public partial class HomePage : ContentPage
         //NowPlayingUISection.Commands.ToggleExpandState.Execute(null);
     }
 
-    private void BtmBar_RequestFocusNowPlayingUI_1(object sender, EventArgs e)
-    {
-
-    }
 
     private void DXCollectionView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
@@ -573,12 +559,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void Settings_Tap(object sender, HandledEventArgs e)
-    {
-        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
-        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
-        //await Shell.Current.GoToAsync(nameof(SettingsPage));
-    }
+   
 
     private async void MoreIcon_LongPress(object sender, HandledEventArgs e)
     {
@@ -591,15 +572,15 @@ public partial class HomePage : ContentPage
 
     protected override bool OnBackButtonPressed()
     {
-       
-
-        //   this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        //this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
-
-        //    BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        //TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
 
 
+           this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+
+            BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
+
+        
             return true;
         return base.OnBackButtonPressed();
     }
@@ -731,6 +712,17 @@ public partial class HomePage : ContentPage
 
     private void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
     {
+
+    }
+
+    private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
+    {
+
+        this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+
+        BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
 
     }
 }

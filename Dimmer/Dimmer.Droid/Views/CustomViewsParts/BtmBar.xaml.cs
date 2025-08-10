@@ -116,7 +116,7 @@ public partial class BtmBar : DXBorder
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            MyViewModel.BaseVM.PreviousTrack();
+                            await MyViewModel.BaseVM.PreviousTrack();
                             Debug.WriteLine("Swiped left");
                             Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
                             Task t2 = Task.Delay(500);
@@ -133,28 +133,7 @@ public partial class BtmBar : DXBorder
 
                         try
                         {
-                            //var parent = this.GetParents(null, true);
-                            //var parentplt = this.GetPlatformParents();
-                            //var ee = this.GetChildrenInTree(true);
-                            //foreach (var item in parent)
-                            //{
-                            //    Debug.WriteLine( item.GetType());
-                            //}
-                            //foreach (var item in parentplt)
-                            //{
-                            //    Debug.WriteLine( item.GetType());
-                            //}
-
-                            //foreach (var item in ee)
-                            //{
-                            //    Debug.WriteLine( item.GetType());
-                            //}
-
-                            //DXCollectionView songsView = this.Parent.FindByName<DXCollectionView>("SongsColView");
-                            //int itemHandle = songsView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
-                            //songsView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-                            //MyViewModel.ScrollToSongCommand.Execute(null);
-
+                            
                             RequestFocusOnMainView?.Invoke(this, EventArgs.Empty);
                             HapticFeedback.Perform(HapticFeedbackType.LongPress);
                         }
@@ -164,11 +143,13 @@ public partial class BtmBar : DXBorder
                     {
                         try
                         {
-                            RequestFocusNowPlayingUI?.Invoke(this, EventArgs.Empty);
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+                                MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+                            });
                             btmBarHeight=this.Height;
 
-                            //BottomSheet bottomSheet = this.Parent.FindByName<BottomSheet>("NowPlayingBtmSheet");
-                            //bottomSheet.Show();
 
                         }
                         catch { }
