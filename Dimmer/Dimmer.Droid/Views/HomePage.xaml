@@ -107,7 +107,9 @@
                     <customViewParts:TopBeforeColView x:Name="TopBeforeColView" Grid.Row="0" />
 
 
-                    <customViewParts:MainViewExpander Grid.Row="1" x:Name="MainViewExpander"/>
+                    <customViewParts:MainViewExpander 
+                        ViewSongOnlyEvt="MainViewExpander_ViewSongOnlyEvt"
+                        Grid.Row="1" x:Name="MainViewExpander"/>
                     <!--<customViewParts:NowPlayingUISection x:Name="NowPlayingUISection" IsVisible="False"/>-->
                     <customViewParts:NowPlayingUISection x:Name="NowPlayingUISection"
                                                          
@@ -130,8 +132,8 @@
                 </Grid>
             </dx:DXDockLayout>
         </dx:SafeKeyboardAreaView>
-
-                    <customViewParts:MoreModal x:Name="MoreModal"/>
+        <customViewParts:QuickPanelBtmSheet x:Name="QuickPanelBtmSht"/>
+        <customViewParts:MoreModal x:Name="MoreModal"/>
     </Grid>
 
     <!--</dx:DXScrollView>-->

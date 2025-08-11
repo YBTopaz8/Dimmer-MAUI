@@ -86,7 +86,7 @@
                         </DataTemplate>
                     </dx:DXCollectionView.ItemTemplate>
                 </dx:DXCollectionView>
-                <dx:DXBorder VerticalOptions="End" BackgroundColor="DarkSlateBlue" Opacity="0.8"
+                <dx:DXBorder VerticalOptions="End" BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}" Opacity="0.8"
                                                      CornerRadius="0,0,10,15">
 
                     <Grid ColumnDefinitions="*,*" >
@@ -243,7 +243,7 @@ FontAttributes="Bold"
                                                 IconHeight="40"
                                                 IconWidth="40"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="DarkSlateBlue"
+                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
                                                 ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='{0}'}">
                                 <dx:DXButton.Triggers>
                                     <DataTrigger
@@ -288,7 +288,7 @@ FontAttributes="Bold"
                                                 IconHeight="50"
                                                 IconWidth="50"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="DarkSlateBlue" />
+                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}" />
                             <Grid
                                                 Grid.Column="2"
                                                 BackgroundColor="Transparent"
@@ -359,7 +359,7 @@ FontAttributes="Bold"
                             <dx:DXButton
                                                 Grid.Column="0"
                                                 AnimationDuration="1500"
-                                                BackgroundColor="DarkSlateBlue"
+                                BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
                                                 Command="{Binding BaseVM.PlayPauseToggleCommand}"
                                                 HeightRequest="120"
                                                 Icon="play.png"
@@ -392,7 +392,7 @@ FontAttributes="Bold"
                                                 AnimationDuration="800"
                                                 BackgroundColor="{AppThemeBinding Dark=#343534,
                                                                                   Light=grey}"
-                                                Command="{Binding BaseVM.ToggleShuffleModeCommand}"
+                                                Command="{Binding BaseVM.ToggleShuffleCommand}"
                                                 HeightRequest="120"
                                                 Icon="shuffle.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,
@@ -401,7 +401,7 @@ FontAttributes="Bold"
                                                 IconWidth="40"
                                                 IsChecked="{Binding BaseVM.IsShuffleActive}"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="DarkSlateBlue" />
+                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"/>
 
                             <dx:DXButton
                                                 Grid.Column="2"
@@ -416,7 +416,7 @@ FontAttributes="Bold"
                                                 IconHeight="40"
                                                 IconWidth="40"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="DarkSlateBlue" />
+                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}" />
 
                         </Grid>
 
@@ -493,7 +493,7 @@ FontAttributes="Bold"
                                                                     IconColor="DarkSlateBlue"
                                                                     IconSize="60,60"
                                                                     IsIconVisible="True"
-                                                                    TapCommand="{Binding BaseVM.ToggleShuffleModeCommand}" />
+                                                                    TapCommand="{Binding BaseVM.ToggleShuffleCommand}" />
 
                                 <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}" />
                                 <Label HorizontalOptions="Center" Text="App Volume" />

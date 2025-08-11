@@ -252,6 +252,11 @@ x:Name="AcceptBtn"
                                      BorderColor="DarkSlateBlue"
                                      Command="{Binding BaseVM.RescanSongsCommand}"
                                      Text="Rescan folders" />
+                                            <Button
+                                     x:Name="RescanLyrics"
+                                     BorderColor="DarkSlateBlue"
+                                     Text="Rescan Lyrics" 
+                                                Clicked="RescanLyrics_Clicked"/>
 
                                         </VerticalStackLayout>
                                     </Grid>

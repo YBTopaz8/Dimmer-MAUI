@@ -35,6 +35,22 @@ public partial class SingleSongPage : ContentPage
         await MyViewModel.LoadSelectedSongLastFMData();
 
     }
+    private List<DataTemplate> _availableLayouts;
+    private int _currentLayoutIndex = 0;
+    private void ChangeLayout_Clicked(object sender, EventArgs e)
+    {
+
+        _currentLayoutIndex++;
+
+
+        if (_currentLayoutIndex >= _availableLayouts.Count)
+        {
+            _currentLayoutIndex = 0;
+        }
+        var tem = _availableLayouts[_currentLayoutIndex];
+
+        SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
+    }
     private async void PlaySongGestRec_Tapped(object sender, EventArgs e)
     {
         var send = (Microsoft.Maui.Controls.View)sender;
@@ -52,22 +68,7 @@ public partial class SingleSongPage : ContentPage
             await MyViewModel.PlaySong(song);
         }
     }
-    private List<DataTemplate> _availableLayouts;
-    private int _currentLayoutIndex = 0;
-    private void ChangeLayout_Clicked(object sender, EventArgs e)
-    {
-        
-        _currentLayoutIndex++;
-
-        
-        if (_currentLayoutIndex >= _availableLayouts.Count)
-        {
-            _currentLayoutIndex = 0;
-        }
-        var tem = _availableLayouts[_currentLayoutIndex];
-        
-        SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
-    }
+   
 
 
     private void DataPointSelectionBehavior_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangingEventArgs e)

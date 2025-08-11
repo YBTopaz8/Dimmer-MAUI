@@ -17,26 +17,10 @@ x:Name="myPage"
 x:DataType="vm:BaseViewModelAnd"
 x:FieldModifier="Public">
     <dx:DXStackLayout>
+        <dx:DXStackLayout.Resources>
+            <ResourceDictionary>
 
-        <dx:DXCollectionView 
-                            
-                            x:Name="SongsColView"
-                            Grid.Row="0"
-                                x:FieldModifier="public"
-                                AllowDragDropItems="False"
-                                AllowFixedGroupHeaders="True"
-                                AllowGroupCollapse="True"
-                                
-                                                 UseRippleEffect="False"
-                                AllowLiveDataShaping="True"
-                                BackgroundColor="Transparent"
-                                FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
-                                ItemSpacing="10"
-                                ItemsSource="{Binding BaseVM.SearchResults}"
-                                Loaded="SongsColView_Loaded"
-                                >
-            <dx:DXCollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongModelView">
+                <DataTemplate x:DataType="models:SongModelView" x:Key="OGView">
 
                     <dx:DXStackLayout>
 
@@ -69,7 +53,7 @@ Value="False">
                                 </syncf:SfEffectsView.Triggers>
                                 <dx:DXBorder CornerRadius="15" 
                                                              BorderThickness="2">
-                                    
+
                                     <Image  
                                                          
                                                Source="{Binding CoverImagePath}"/>
@@ -176,7 +160,25 @@ Value="False">
 
                     </dx:DXStackLayout>
                 </DataTemplate>
-            </dx:DXCollectionView.ItemTemplate>
+            </ResourceDictionary>
+        </dx:DXStackLayout.Resources>
+        <dx:DXCollectionView 
+                            
+                            x:Name="SongsColView"
+                            Grid.Row="0"
+                                x:FieldModifier="public"
+                                AllowDragDropItems="False"
+                                AllowFixedGroupHeaders="True"
+                                AllowGroupCollapse="True"
+                                
+                                                 UseRippleEffect="False"
+                                AllowLiveDataShaping="True"
+                                BackgroundColor="Transparent"
+                                FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
+                                ItemSpacing="10"
+                                ItemsSource="{Binding BaseVM.SearchResults}"
+                                Loaded="SongsColView_Loaded"
+                               ItemTemplate="{StaticResource OGView}" >
         </dx:DXCollectionView>
     </dx:DXStackLayout>
 </dx:DXExpander>

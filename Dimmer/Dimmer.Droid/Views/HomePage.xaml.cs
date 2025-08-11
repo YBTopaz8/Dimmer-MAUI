@@ -8,6 +8,7 @@ using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.Utilities.ViewsUtils;
 using Dimmer.ViewModel;
+using Dimmer.Views.CustomViewsParts;
 
 using Microsoft.Maui.Controls.Compatibility.Platform.Android;
 using Microsoft.Maui.Controls.Embedding;
@@ -41,7 +42,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        MyViewModel.BaseVM.ResetSearch();
         //MyViewModel.FiniInit();
 
         ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
@@ -187,10 +188,6 @@ public partial class HomePage : ContentPage
 
         Debug.WriteLine(this.Parent.GetType());
 
-    }
-    private async void DXButton_Clicked_3(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
     SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
@@ -572,17 +569,20 @@ public partial class HomePage : ContentPage
 
     protected override bool OnBackButtonPressed()
     {
+        return SwitchUINowPlayingOrNot();
+        //return base.OnBackButtonPressed();
+    }
 
-
-           this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+    private bool SwitchUINowPlayingOrNot()
+    {
+        this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
         this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
 
-            BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
         TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
 
-        
-            return true;
-        return base.OnBackButtonPressed();
+
+        return true;
     }
 
     private async void MoreaIcon_Clicked(object sender, HandledEventArgs e)
@@ -724,6 +724,15 @@ public partial class HomePage : ContentPage
         BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
         TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
 
+    }
+
+    private void MainViewExpander_ViewSongOnlyEvt(object sender, EventArgs e)
+    {
+
+        QuickPanelBtmSht.Show();
+
+        //var send = (Element)sender;
+        //await MoreModal.ShowAsync(send);
     }
 }
 

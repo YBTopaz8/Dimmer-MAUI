@@ -271,11 +271,9 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.Dispose();
     }
 
-    internal async Task LoadSongDataAsync(Progress<LyricsProcessingProgress> progressReporter, CancellationTokenSource _lyricsCts)
+    internal async Task LoadSongDataAsync(Progress<LyricsProcessingProgress>? progressReporter, CancellationTokenSource _lyricsCts)
     { 
        await baseVM.LoadSongDataAsync(progressReporter, _lyricsCts);
-      
-
     }
     #endregion
 

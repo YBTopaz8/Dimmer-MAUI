@@ -19,11 +19,18 @@ public partial class NowPlayingUISection : DXExpander
 
     private void DXCollectionView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
+        DXCollectionView send = sender as DXCollectionView;
+        var sel = send.SelectedItem;
+
+        var ind = send.FindItemHandle(sel);
+        send.ScrollTo(ind, DXScrollToPosition.Start);
 
     }
 
     private void ArtistChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
     {
+
+        Shell.Current.SendBackButtonPressed();
 
     }
 

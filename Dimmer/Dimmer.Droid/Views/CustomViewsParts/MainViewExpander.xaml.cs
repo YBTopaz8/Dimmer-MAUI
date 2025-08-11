@@ -1,3 +1,5 @@
+using Syncfusion.Maui.Toolkit.EffectsView;
+
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class MainViewExpander : DXExpander
@@ -17,11 +19,18 @@ public partial class MainViewExpander : DXExpander
 
     public BaseViewModelAnd MyViewModel { get; set; }
 
-    public EventHandler? ViewSongOnly_TouchDownEvent;
+    public event EventHandler? ViewSongOnlyEvt;
     private void ViewSongOnly_TouchDown(object sender, EventArgs e)
     {
+        var send = (SfEffectsView)sender;
+        var song = (SongModelView)send.TouchDownCommandParameter;
+        if (song is null)
+        {
+            return;
+        }
+        MyViewModel.BaseVM.SelectedSong = song;
         // raise event to notify the parent view to handle the touch down event
-        ViewSongOnly_TouchDownEvent?.Invoke(this, e);
+        ViewSongOnlyEvt?.Invoke(this, e);
     }
 
     private void SongsColView_Loaded(object sender, EventArgs e)

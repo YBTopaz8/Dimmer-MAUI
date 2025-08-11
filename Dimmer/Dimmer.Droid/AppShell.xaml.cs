@@ -159,4 +159,10 @@ public partial class AppShell : Shell
         }
 
     }
+
+    private async void RescanLyrics_Clicked(object sender, EventArgs e)
+    {
+
+        await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
+    }
 }

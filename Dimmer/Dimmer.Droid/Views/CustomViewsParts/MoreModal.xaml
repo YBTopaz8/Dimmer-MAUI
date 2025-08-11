@@ -12,7 +12,7 @@ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
 xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
 xmlns:viewUtils="clr-namespace:Dimmer.Utilities.ViewsUtils;assembly=Dimmer"
 xmlns:vm="clr-namespace:Dimmer.ViewModels"
-x:Name="myPage"
+x:Name="myPage" AllowScrim="True" ScrimColor="Transparent" CloseOnScrimTap="True"
 x:DataType="vm:BaseViewModelAnd"
 x:FieldModifier="Public">
     <VerticalStackLayout>

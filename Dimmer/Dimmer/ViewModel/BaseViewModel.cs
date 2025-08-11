@@ -382,15 +382,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
-        await Task.WhenAll( EnsureAllCoverArtCachedForSongsAsync(),LoadAllSongsEventsASync());
+        LoadAllSongsEvents();
+        await EnsureAllCoverArtCachedForSongsAsync();
+
+        
         return;
     }
     private void SubscribeToCommandEvaluatorEvents()
     {
-        
-        
 
-        
         commandEvaluator.SavePlaylistRequested
             .ObserveOn(RxApp.MainThreadScheduler) 
             .Subscribe(async data =>
@@ -418,7 +418,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 Debug.WriteLine($"UI Request: Adding {songsToAdd.Count()} songs to the top of the queue.");
 
                 
-                _playbackQueueSource.InsertRange(songsToAdd, 0);
+                _playbackQueueSource.InsertRange(songsToAdd, _playbackQueueIndex+1);
 
                 await ShowNotification($"Added {songsToAdd.Count()} songs to the queue.");
             })
@@ -478,6 +478,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             })
             .DisposeWith(Disposables);
         SearchSongSB_TextChanged("played today");
+       
     }
 
     private async Task ShowNotification(string v)
@@ -491,7 +492,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
    
 
     SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
-    public async Task LoadAllSongsEventsASync()
+    public void LoadAllSongsEvents()
     {
        
        
@@ -645,6 +646,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         commandSub.Events
             .Where(e => e.EventType == Subscription.Event.Create)
             .Subscribe(e => HandleIncomingDeviceCommand(e.Object));
+
     }
 
     private async void HandleIncomingDeviceCommand(DeviceCommand command)
@@ -1840,8 +1842,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             SearchSongSB_TextChanged("desc added");
             _ = EnsureCoverArtCachedForSongsAsync(newSongs);
 
-            var _lyricsCts = new CancellationTokenSource();
-            _ = LoadSongDataAsync(null, _lyricsCts);
+            //var _lyricsCts = new CancellationTokenSource();
+            //_ = LoadSongDataAsync(null, _lyricsCts);
         }
         else
         {
@@ -3410,9 +3412,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
        
         var songsToRefresh = _songSource.Items.AsEnumerable();
-        ILyricsMetadataService lryServ = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
        
-        await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, lryServ, progressReporter, _lyricsCts.Token);
+        await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, _lyricsMetadataService, progressReporter, _lyricsCts.Token);
     }
 
     public record QueryComponents(
@@ -3678,7 +3679,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
             }
             var query = $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
-            ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
+            //ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
            
             IEnumerable<LrcLibSearchResult>? results = await _lyricsMetadataService.SearchOnlineManualParamsAsync(LyricsTrackNameSearch, LyricsArtistNameSearch,LyricsAlbumNameSearch);
 
