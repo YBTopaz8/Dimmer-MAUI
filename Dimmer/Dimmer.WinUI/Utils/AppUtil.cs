@@ -22,7 +22,7 @@ public class AppUtil : IAppUtil
         }
         dimmerWin.MinimumHeight = 750;
         dimmerWin.MinimumWidth = 900;
-        dimmerWin.Height = 850;
+        dimmerWin.Height = 950;
         dimmerWin.Width = 1100;
 
 

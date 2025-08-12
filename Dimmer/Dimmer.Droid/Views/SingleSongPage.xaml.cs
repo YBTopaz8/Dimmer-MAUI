@@ -26,7 +26,30 @@ public partial class SingleSongPage : ContentPage
         base.OnAppearing();
         //MyViewModel.BaseVM.LoadStatsForSong(MyViewModel.BaseVM.SelectedSongForContext!);
         await MyViewModel.BaseVM.LoadSelectedSongLastFMData();
+        MyViewModel.BaseVM.CurrentPageContext=CurrentPage.SingleSongPage;
+        //await MyViewModel.LoadSongLastFMData();
+        //await MyViewModel.LoadSongLastFMMoreData();
 
+        _availableLayouts = new List<DataTemplate>
+        {
+
+            (DataTemplate)Resources["GridOfFour"]
+        };
+
+    }
+    private void ChangeLayout_Clicked(object sender, EventArgs e)
+    {
+
+        _currentLayoutIndex++;
+
+
+        if (_currentLayoutIndex >= _availableLayouts.Count)
+        {
+            _currentLayoutIndex = 0;
+        }
+        var tem = _availableLayouts[_currentLayoutIndex];
+
+        SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
     }
     private async void PlaySongGestRec_Tapped(object sender, EventArgs e)
     {
@@ -47,22 +70,7 @@ public partial class SingleSongPage : ContentPage
     }
     private List<DataTemplate> _availableLayouts;
     private int _currentLayoutIndex = 0;
-    private void ChangeLayout_Clicked(object sender, EventArgs e)
-    {
-        // Move to the next layout index
-        _currentLayoutIndex++;
-
-        // If the index goes beyond the list of layouts, cycle back to the start
-        if (_currentLayoutIndex >= _availableLayouts.Count)
-        {
-            _currentLayoutIndex = 0;
-        }
-        var tem = _availableLayouts[_currentLayoutIndex];
-        // Apply the new layout to the CollectionView
-        //SongsColView.ItemTemplate = _availableLayouts[_currentLayoutIndex];
-    }
-
-
+  
     private void DataPointSelectionBehavior_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangingEventArgs e)
     {
         return;

@@ -136,9 +136,6 @@
     <MauiXaml Update="Views\CustomViewsParts\BtmBar.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViewsParts\BtmSheetSearchFilterAndSongsColViewUI.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="Views\CustomViewsParts\MainViewExpander.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

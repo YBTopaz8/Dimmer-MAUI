@@ -16,10 +16,88 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
 x:Name="myPage"
 x:DataType="vm:BaseViewModelAnd"
 x:FieldModifier="Public">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+
+    <dx:BottomSheet.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="FontFamily" Value="AleySans" />
+            </Style>
+        </ResourceDictionary>
+    </dx:BottomSheet.Resources>
+
+    <Grid>
+        <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.SelectedSongForContext.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+        <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
+            <dx:DXStackLayout.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="dx:DXButton">
+                        <Setter Property="ButtonType" Value="ToolButton" />
+                        <Setter Property="HorizontalContentAlignment" Value="Start" />
+
+                    </Style>
+                    <Style TargetType="Label">
+                        <Setter Property="FontSize" Value="24" />
+                        <Setter Property="FontAttributes" Value="Bold" />
+
+                    </Style>
+                </ResourceDictionary>
+            </dx:DXStackLayout.Resources>
+            <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center"
+                                  ItemSpacing="10" Orientation="Horizontal"
+                                  VerticalOptions="Center"
+                                  >
+                <!--<toolkit:AvatarView ImageSource="{Binding CurrentPlayingSongView.CoverImagePath}"
+                     HeightRequest="100" WidthRequest="100"
+                     CornerRadius="15" BorderWidth="0"/>-->
+                <dx:DXStackLayout Orientation="Vertical" VerticalOptions="Center">
+
+                    <Label FontFamily="AleySans" FontSize="20"
+                               HorizontalTextAlignment="Center" LineBreakMode="NoWrap"
+                               Text="{Binding BaseVM.SelectedSongForContext.Title}"
+                               />
+                    <Label FontFamily="AleySans" FontSize="14"
+                               HorizontalTextAlignment="Center"
+                               Text="{Binding BaseVM.SelectedSongForContext.ArtistName}"
+                               />
+                </dx:DXStackLayout>
+            </dx:DXStackLayout>
+
+            <dx:DXSeparator />
+            <dx:DXButton BackgroundColor="Transparent"
+                             Command="{Binding OpenRepeatSetterPopupCommand}"
+                             Content="Set Play Repeat Count" Icon="repone.png"
+                             />
+            <dx:DXButton x:Name="AddToPlaylist"
+                             Clicked="AddToPlaylist_Clicked" Content="Add to Playlist**"
+                             Icon="playlistminimalistic.png"
+                             />
+            <dx:DXButton x:Name="GoToAlbumBtn"
+                             Command="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}"
+                             CommandParameter="{Binding BaseVM.SelectedSongForContext}"
+                             Content="Go to Album" Icon="album.png"
+                             />
+            <dx:DXButton x:Name="GotoArtistBtn"
+                             Clicked="GotoArtistBtn_Clicked" Content="Go to Artist"
+                             Icon="artist.png"
+                             />
+            <dx:DXButton Command="{Binding OpenEditSongPopupCommand}"
+                             CommandParameter="{Binding BaseVM.SelectedSongForContext}"
+                             Content="Tag Editor" Icon="clapperboardedit.png"
+                             />
+            <dx:DXButton Clicked="DXButton_Clicked_3"
+                             Command="{Binding OpenViewSongDetailsPopupCommand}"
+                             Content="Song Info" Icon="fileinfo.png"
+                             />
+            <dx:DXButton Clicked="ClosePopup"
+                             Command="{Binding NavigateToShareStoryPageCommand}"
+                             Content="Share" Icon="squareforward.png"
+                             />
+            <dx:DXButton Command="{Binding DeleteFileCommand}"
+                             CommandParameter="{Binding CurrentPlayingSongView}"
+                             Content="Delete" Icon="delete.png"
+                             />
+
+        </dx:DXStackLayout>
+    </Grid>
+
 </dx:BottomSheet>

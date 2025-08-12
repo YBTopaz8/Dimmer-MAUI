@@ -146,4 +146,9 @@ public partial class SettingsPage : ContentPage
         MyViewModel.DimmerLiveViewModel.RejectFriendRequestCommand.Execute(null);
 
     }
+
+    private async void RescanLyrics_Clicked(object sender, EventArgs e)
+    {
+       await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
+    }
 }

@@ -160,9 +160,10 @@ public static class SongDataProcessor
                                          song.EmbeddedSync.Add(new SyncLyricsView(phrase));
                                      }
                                  });
-                                 var fileToUpdate = new ATL.Track(song.FilePath);
-                                 fileToUpdate.Lyrics.Add(newLyricsInfo);
-                                 fileToUpdate.Save(); // Persist the changes!
+                                 
+                                 //var fileToUpdate = new ATL.Track(song.FilePath);
+                                 //fileToUpdate.Lyrics.Add(newLyricsInfo);
+                                 //fileToUpdate.Save(); // Persist the changes!
 
 
                              }

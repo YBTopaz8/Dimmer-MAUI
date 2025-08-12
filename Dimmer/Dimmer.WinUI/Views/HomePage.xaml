@@ -332,7 +332,7 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                         </MenuFlyoutItem>
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
-                <Grid RowDefinitions="95"
+                <Grid RowDefinitions="120"
                                 ColumnDefinitions="1*,*,1.9*,1.9*,*,*,*,0.7*"
                                 ColumnSpacing="5">
 
@@ -407,8 +407,8 @@ Value="False">
                                 <Image Source="heart.png"
                                        IsVisible="{Binding IsFavorite}"/>
                                 <Image Source="{Binding CoverImagePath}"
-                                      HeightRequest="80"
-                                       WidthRequest="80" Aspect="AspectFit"/>
+                                      HeightRequest="120"
+                                       WidthRequest="120" Aspect="AspectFit"/>
 
                             </Grid>
 
@@ -752,14 +752,14 @@ HeightRequest="50"
                         Loaded="MainSongsColView_Loaded"
                         SelectionMode="Single"
                             SelectedItem="{Binding SelectedSong}"
-            ItemTemplate="{StaticResource GridOfFour}"
+            ItemTemplate="{StaticResource OGView}"
                         VerticalOptions="Start">
-                    <CollectionView.ItemsLayout>
+                    <!--<CollectionView.ItemsLayout>
                         <GridItemsLayout Span="6" VerticalItemSpacing="5" HorizontalItemSpacing="5"
                                          Orientation="Vertical"
                             SnapPointsAlignment="End"
                                          SnapPointsType="MandatorySingle"/>
-                    </CollectionView.ItemsLayout>
+                    </CollectionView.ItemsLayout>-->
 
         </CollectionView>
 

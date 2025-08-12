@@ -4,7 +4,7 @@ public enum TokenType
 {
     // Single-character tokens
     Colon, Bang, Pipe, LeftParen, RightParen, GreaterThan, LessThan,
-    Equals, Tilde, Caret, Dollar, Minus,
+    Equals, Tilde, Caret, Dollar, Minus, Comma,
 
     // Two-character tokens
     GreaterThanOrEqual, LessThanOrEqual,
@@ -33,7 +33,7 @@ public static class Lexer
         { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove }, { "minus", TokenType.Remove },
         { "asc", TokenType.Asc }, { "desc", TokenType.Desc },
         { "random", TokenType.Random }, { "shuffle", TokenType.Shuffle },
-        { "first", TokenType.First }, { "last", TokenType.Last }
+        { "first", TokenType.First }, { "last", TokenType.Last },{ "chance", TokenType.Identifier }
     };
 
     public static List<Token> Tokenize(string text)
@@ -118,6 +118,7 @@ public static class Lexer
         var type = c switch
         {
             ':' => TokenType.Colon,
+            ',' => TokenType.Comma,
             '!' => TokenType.Bang,
             '|' => TokenType.Or,
             '(' => TokenType.LeftParen,

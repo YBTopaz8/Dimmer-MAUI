@@ -6,7 +6,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 
     [PrimaryKey]
     public ObjectId Id { get; set; }
-    public string? Name { get; set; }
+    public string Name { get; set; }
     public string? Bio { get; set; }
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }

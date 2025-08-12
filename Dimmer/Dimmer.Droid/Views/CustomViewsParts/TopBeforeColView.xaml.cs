@@ -153,6 +153,8 @@ public partial class TopBeforeColView : DXExpander
 
     private void Settings_Tap(object sender, HandledEventArgs e)
     {
-
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+        //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 }

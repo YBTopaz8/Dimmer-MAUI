@@ -104,7 +104,7 @@
                         PointerExited="SongViewPointer_PointerExited"/>
                 </Grid.GestureRecognizers>
                 <Image Source="{Binding CoverImagePath}" 
-                       Opacity="0.5" 
+                       Opacity="0.6" 
                        HorizontalOptions="Start" >
                     <Image.GestureRecognizers>
                         <DragGestureRecognizer
@@ -165,6 +165,9 @@ VerticalOptions="Center" />
         </DataTemplate>
     </ContentPage.Resources>
 
+    <dx:DXScrollView>
+        <dx:DXStackLayout>
+            
     <Grid x:Name="SingleSongView" RowDefinitions="auto,*">
 
         <Grid Grid.Row="0" ColumnDefinitions="*,auto" VerticalOptions="Start" >
@@ -291,7 +294,7 @@ ToolTipProperties.Text="Save To Playlist">
                 </Border>
                 <Image VerticalOptions="Start"
                                         HeightRequest="250"
-                                        WidthRequest="250" Opacity="0.6"
+                                        WidthRequest="250" Opacity="0.8"
                                       
                                         Source="{Binding BaseVM.SelectedSong.CoverImagePath}"/>
 
@@ -404,7 +407,7 @@ ToolTipProperties.Text="Save To Playlist">
                                 <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
                                     <syncf:SfChip
                            Background="Transparent"
-                           Command="{Binding BaseVM.ToggleShuffleModeCommand}"
+                           Command="{Binding BaseVM.ToggleShuffleCommand}"
                            ImageSource="shuffle.png"
                            StyleClass="MediaBtnChip">
                                         <syncf:SfChip.Triggers>
@@ -570,16 +573,12 @@ ToolTipProperties.Text="Save To Playlist">
                 <VerticalStackLayout Grid.Row="0">
                     <Label Text="DD"/>
                 </VerticalStackLayout>
-                <CollectionView x:Name="SongsColView" 
+                <dx:DXCollectionView x:Name="SongsColView" Margin="5"
+                                     ItemSpanCount="3" ItemSpanSpacing="5"
                                  Grid.Row="1"   ItemTemplate="{StaticResource GridOfFour}"
-                                    ItemsSource="{Binding SearchResults}">
-                    <CollectionView.ItemsLayout
-                            >
-                        <GridItemsLayout Span="4" VerticalItemSpacing="10"
-                                                HorizontalItemSpacing="10"
-                                                Orientation="Vertical"/>
-                    </CollectionView.ItemsLayout>
-                </CollectionView>
+                                    ItemsSource="{Binding BaseVM.SearchResults}">
+
+                </dx:DXCollectionView>
 
             </Grid>
 
@@ -608,16 +607,16 @@ ToolTipProperties.Text="Save To Playlist">
                                                     <HorizontalStackLayout Spacing="10">
                                                         <VerticalStackLayout>
 
-                                                            <Label Text="{Binding SongBingeFactor.Name}"/>
-                                                            <Label Text="{Binding SongBingeFactor.Count, StringFormat='{0}'
+                                                            <Label Text="{Binding BaseVM.SongBingeFactor.Name}"/>
+                                                            <Label Text="{Binding BaseVM.SongBingeFactor.Count, StringFormat='{0}'
 ,Converter={converters:NumberToShortStringConverter}}"/>
                                                         </VerticalStackLayout>
 
                                                         <VerticalStackLayout>
 
-                                                            <Label Text="{Binding SongAverageListenThrough.Name}"/>
+                                                            <Label Text="{Binding BaseVM.SongAverageListenThrough.Name}"/>
                                                             <Label 
-   Text="{Binding SongAverageListenThrough.Value, StringFormat='{0:n2}%'}"/>
+   Text="{Binding BaseVM.SongAverageListenThrough.Value, StringFormat='{0:n2}%'}"/>
 
                                                         </VerticalStackLayout>
 
@@ -683,7 +682,7 @@ ToolTipProperties.Text="Save To Playlist">
                                                                 
                                                                 EnableTooltip="True"
                                                                 TooltipTemplate="{StaticResource tooltipTemplateTwo}"
-                                                                ItemsSource="{Binding SongPlayTypeDistribution}">
+                                                                ItemsSource="{Binding BaseVM.SongPlayTypeDistribution}">
 
                                                         </syncf:DoughnutSeries>
                                                     </syncf:SfCircularChart>
@@ -706,7 +705,7 @@ WidthRequest="500"
                                                             <chart:NumericalAxis >
                                                             </chart:NumericalAxis>
                                                         </chart:SfPolarChart.SecondaryAxis>
-                                                        <syncf:PolarLineSeries ItemsSource="{Binding SongPlayDistributionByHour}"
+                                                        <syncf:PolarLineSeries ItemsSource="{Binding BaseVM.SongPlayDistributionByHour}"
                                                    ShowDataLabels="True" 
                                                                            
                                                                            TooltipTemplate="{StaticResource tooltipTemplateTwo}"
@@ -946,4 +945,6 @@ WidthRequest="500"
         </Grid>
     </Grid>
 
+        </dx:DXStackLayout>
+    </dx:DXScrollView>
 </ContentPage>

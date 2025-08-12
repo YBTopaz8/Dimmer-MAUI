@@ -36,7 +36,8 @@
     <dx:DXBorder.Content>
         <StackLayout x:FieldModifier="Public" x:Name="BtmBarStackLayout" Padding="0,0" BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#242629}">
             <syncf:SfLinearProgressBar 
-    Progress="{Binding BaseVM.CurrentTrackPositionPercentage}" />
+    Progress="{Binding BaseVM.CurrentTrackPositionPercentage}" TrackFill="Transparent" BackgroundColor="Transparent"
+                ProgressFill="DarkSlateBlue"/>
             <Grid
                 Padding="0,0"
                 BackgroundColor="Transparent"
@@ -46,7 +47,7 @@
                     <dx:DXImage
                         Aspect="AspectFit"
                         HeightRequest="70"
-                        Source="{Binding BaseVM.CurrentCoverImagePath}" />
+                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
                 </StackLayout>
                 <Grid Grid.Column="1" ColumnDefinitions="*,auto">
 
@@ -60,7 +61,7 @@
                             FontSize="23"
                             LineBreakMode="TailTruncation"
                             Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
-                            TextColor="DarkSlateBlue" />
+                            TextColor="{Binding BaseVM.CurrentPlayingSongView.CurrentPlaySongDominantColor}" />
                         <Label
                             FontAttributes="Italic"
                             FontSize="14"
@@ -89,7 +90,7 @@
                                                 TargetType="Label"
                                                 Value="True">
                                                 <Setter Property="FontAttributes" Value="Bold" />
-                                                <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                                <Setter Property="TextColor" Value="{Binding BaseVM.CurrentPlayingSongView.CurrentPlaySongDominantColor}" />
                                             </DataTrigger>
                                             <DataTrigger
                                                 Binding="{Binding BaseVM.IsPlaying}"
@@ -104,7 +105,7 @@
                                     <Label
                                         FontSize="10"
                                         HorizontalOptions="End"
-                                        Text="{Binding BaseVM.CurrentPlayingSongView.TrackNumber}" />
+                                        Text="{Binding BaseVM.CurrentPlayingSongView.PlayCompletedCount}" />
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </dx:Chip.ContentTemplate>

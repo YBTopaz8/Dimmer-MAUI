@@ -289,7 +289,7 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                                          BorderThickness="1" HeightRequest="90" HorizontalOptions="Start"
                                          Icon="shuffle.png" IconColor="DarkSlateBlue"
                                          IconSize="60,60" IsIconVisible="True"
-                                         TapCommand="{Binding BaseVM.ToggleShuffleModeCommand}"
+                                         TapCommand="{Binding BaseVM.ToggleShuffleCommand}"
                                          />
                                 
                                 <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}"
@@ -339,7 +339,6 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
 
 
                                 </Grid>
-                                <customViewParts:BtmSheetSearchFilterAndSongsColViewUI BackgroundColor="Transparent" HeightRequest="600" />
                             </Grid>
 
                         </dx:DXExpander.Content>

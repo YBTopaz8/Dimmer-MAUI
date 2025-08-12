@@ -8,6 +8,7 @@ using Dimmer.Utilities;
 using Dimmer.Utilities.CustomAnimations;
 using Dimmer.Utilities.ViewsUtils;
 using Dimmer.ViewModel;
+using Dimmer.Views.CustomViewsParts;
 
 using Microsoft.Maui.Controls.Compatibility.Platform.Android;
 using Microsoft.Maui.Controls.Embedding;
@@ -41,7 +42,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        MyViewModel.BaseVM.ResetSearch();
         //MyViewModel.FiniInit();
 
         ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
@@ -187,10 +188,6 @@ public partial class HomePage : ContentPage
 
         Debug.WriteLine(this.Parent.GetType());
 
-    }
-    private async void DXButton_Clicked_3(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
     SortOrder internalOrder = SortOrder.Asc;
     private bool SortIndeed()
@@ -440,16 +437,6 @@ public partial class HomePage : ContentPage
 
    
    
-
-    private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
-    {
-        //NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        //MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
-
-        //BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        //TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
-    }
-
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
     {
     }
@@ -505,10 +492,6 @@ public partial class HomePage : ContentPage
         //NowPlayingUISection.Commands.ToggleExpandState.Execute(null);
     }
 
-    private void BtmBar_RequestFocusNowPlayingUI_1(object sender, EventArgs e)
-    {
-
-    }
 
     private void DXCollectionView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
@@ -541,7 +524,7 @@ public partial class HomePage : ContentPage
        
     }
 
-    private async void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
+    private void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
     {
         //if (BelowBtmBar.IsVisible)
         //{
@@ -573,12 +556,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void Settings_Tap(object sender, HandledEventArgs e)
-    {
-        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
-        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
-        //await Shell.Current.GoToAsync(nameof(SettingsPage));
-    }
+   
 
     private async void MoreIcon_LongPress(object sender, HandledEventArgs e)
     {
@@ -591,17 +569,20 @@ public partial class HomePage : ContentPage
 
     protected override bool OnBackButtonPressed()
     {
-       
+        return SwitchUINowPlayingOrNot();
+        //return base.OnBackButtonPressed();
+    }
 
-        //   this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        //this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+    private bool SwitchUINowPlayingOrNot()
+    {
+        this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
+        this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
 
-        //    BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        //TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
+        BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
+        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
 
 
-            return true;
-        return base.OnBackButtonPressed();
+        return true;
     }
 
     private async void MoreaIcon_Clicked(object sender, HandledEventArgs e)
@@ -732,6 +713,26 @@ public partial class HomePage : ContentPage
     private void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
     {
 
+    }
+
+    private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
+    {
+
+        this.NowPlayingUISection.IsExpanded=!this.NowPlayingUISection.IsExpanded;
+        this.MainViewExpander.IsExpanded = !this.NowPlayingUISection.IsExpanded;
+
+        BtmBarExp.IsExpanded = !this.NowPlayingUISection.IsExpanded;
+        this.TopBeforeColView.IsExpanded = !this.TopBeforeColView.IsExpanded;
+
+    }
+
+    private void MainViewExpander_ViewSongOnlyEvt(object sender, EventArgs e)
+    {
+
+        QuickPanelBtmSht.Show();
+
+        //var send = (Element)sender;
+        //await MoreModal.ShowAsync(send);
     }
 }
 

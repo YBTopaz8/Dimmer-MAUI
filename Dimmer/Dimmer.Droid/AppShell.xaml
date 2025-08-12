@@ -37,6 +37,11 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
                 BackgroundColor="{AppThemeBinding Light=Black, Dark=White}">
                 
             </dx:DXButton>
+            <Button
+x:Name="RescanLyrics"
+BorderColor="DarkSlateBlue"
+Text="Rescan Lyrics" 
+           Clicked="RescanLyrics_Clicked"/>
             <syncf:SfChip
               x:Name="SettingsChip"
               CommandParameter="Settings"

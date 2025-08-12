@@ -53,16 +53,7 @@ public partial class AppInitializerService : IAppInitializerService
             _state.SetDeviceVolume(_settingsService.LastVolume); // Initialize global state volume
             _logger.LogInformation("Initial playback settings (shuffle, repeat, volume) set in global state.");
 
-            // 4. Trigger Initial Full Library Scan
-            _logger.LogInformation("Triggering initial library scan...");
-            // Library scanner will update _stateService.LoadAllSongs upon completion
-
-            //_libraryScanner.LoadInSongsAndEvents();
-            _state.SetCurrentPlaylist(null); // Ensure no playlist is active initially
-
-            // Optionally, load last played song/queue if that's a feature
-            string lastPlayedSongId = _settingsService.LastPlayedSong;
-            // if (!string.IsNullOrEmpty(lastPlayedSongId)) { /* logic to restore state */ }
+           
 
             _logger.LogInformation("Application Initializer: Initialization complete.");
         }
