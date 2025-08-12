@@ -11,6 +11,7 @@ using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.Exceptions;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.DimmerSearch.TQL.TQLCommands;
+using Dimmer.DimmerSearch.TQL.TQLCommands.Interfaces;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services;
 using Dimmer.Interfaces.Services.Interfaces;
@@ -45,15 +46,16 @@ using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 
 
 
+
 namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
 {
+    private readonly CommandEvaluator commandEvaluator = new();
     private IDuplicateFinderService _duplicateFinderService;
     public BaseViewModel(
-       IMapper mapper,
+       IMapper mapper, 
        MusicDataService musicDataService,
-       CommandEvaluator commandEvaluator,
        IAppInitializerService appInitializerService,
        IDimmerLiveStateService dimmerLiveStateService,
        IDimmerAudioService audioServ,
@@ -79,7 +81,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.lastfmService = _lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this._musicDataService=musicDataService;
-        this.commandEvaluator=commandEvaluator;
         this.appInitializerService=appInitializerService;
         _dimmerLiveStateService = dimmerLiveStateService;
         _baseAppFlow= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>() ?? throw new ArgumentNullException(nameof(BaseAppFlow));
@@ -137,16 +138,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task InitializeAllVMCoreComponentsAsync()
     {
-
         var songRep = songRepo;
 
         var realm = realmFactory.GetRealmInstance();
-        var initialSongs = realm.All<SongModel>().ToList().Select(song => song.ToViewModel());
+        var initialSongs = _mapper.Map<IEnumerable<SongModelView>>(realm.All<SongModel>().ToList());
         _songSource.AddRange(initialSongs);
 
 
-        SubscribeToCommandEvaluatorEvents();
-
+        //SubscribeToCommandEvaluatorEvents();
+        
         _playbackQueueSource.Connect()
     .ObserveOn(RxApp.MainThreadScheduler)
     .Bind(out _playbackQueue)
@@ -155,78 +155,54 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         _searchQuerySubject
-            .Throttle(TimeSpan.FromMilliseconds(380), RxApp.TaskpoolScheduler)
-           .Select(query =>
-           {
-               if (string.IsNullOrWhiteSpace(query))
-               {
-                   return (Components: new QueryComponents(p => true, new SongModelViewComparer(null), null), Command: (IQueryNode?)null, ErrorMessage: (string?)null);
-               }
+             .Throttle(TimeSpan.FromMilliseconds(380), RxApp.TaskpoolScheduler)
+             .Select(query =>
+             {
+                 if (string.IsNullOrWhiteSpace(query))
+                 {
+                     // Return a default, "show all" state
+                     return new ParsedQueryResult(s => true, new SongModelViewComparer(null), null, null, null);
+                 }
 
-               try
-               {
-                   var tqlQuery = NaturalLanguageProcessor.Process(query);
-                   var orchestrator = new MetaParser(tqlQuery);
+                 var tqlQuery = NaturalLanguageProcessor.Process(query);
+                 // MetaParser now handles all parsing and error capturing in one call.
+                 return  MetaParser.Parse(tqlQuery);
+             })
+             .ObserveOn(RxApp.MainThreadScheduler)
+             .Subscribe(result =>
+             {
+                 // --- Update UI with any parsing errors ---
+                 string finalErrorMessage = result.ErrorMessage ?? string.Empty;
+                 if (result.ErrorMessage != null && result.ErrorSuggestion != null)
+                 {
+                     finalErrorMessage += $"\nDid you mean '{result.ErrorSuggestion}'?";
+                 }
+                 TQLUserSearchErrorMessage = finalErrorMessage; // Update your error message property
 
-                   var components = new QueryComponents(
-                      orchestrator.CreateMasterPredicate(),
-                      orchestrator.CreateSortComparer(),
-                      orchestrator.CreateLimiterClause()
-                   );
+                 // --- Apply the filter/sort/limit plan ---
+                 _filterPredicate.OnNext(result.Predicate);
+                 _sortComparer.OnNext(result.Comparer);
+                 _limiterClause.OnNext(result.Limiter);
 
-                   return (Components: components, Command: orchestrator.ParsedCommand, ErrorMessage: (string?)null);
-               }
-               catch (ParsingException ex)
-               {
-                   TQLUserSearchErrorMessage = ex.Message;
-                  
-                   var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
-                   if (match.Success)
-                   {
-                       InvalidField = match.Groups[1].Value;
-                       NewFieldSuggestion = QueryValidator.SuggestCorrectField(InvalidField);
-                       if (NewFieldSuggestion != null)
-                       {
-                           TQLUserSearchErrorMessage += $"\nDid you mean '{NewFieldSuggestion}'?";
-                       }
-                   }
+                 // --- Evaluate and Execute the Command Action ---
+                 if (result.CommandNode is not null)
+                 {
+                     // Use our stateless evaluator to get the action plan
+                     var commandAction = commandEvaluator.Evaluate(result.CommandNode, searchResultsHolder.Items);
 
-                   _logger.LogWarning(ex, "User search query failed to parse: {Query}", query);
-                   return (Components: (QueryComponents?)null, Command: (IQueryNode?)null, ErrorMessage: ex.Message);
-               }
-               catch (Exception ex)
-               {
-                   _logger.LogError(ex, "An unexpected error occurred during search parsing for query: {Query}", query);
-                   return (Components: (QueryComponents?)null, Command: (IQueryNode?)null, ErrorMessage: "An unexpected error occurred.");
-               }
-           })
-    .ObserveOn(RxApp.MainThreadScheduler)
-    .Subscribe(result =>
-    {
+                     // The ViewModel executes the plan
+                     HandleCommandAction(commandAction);
 
-        DebugMessage = result.ErrorMessage ?? string.Empty;
-
-        if (result.Components is not null)
-        {
-            _filterPredicate.OnNext(result.Components.Predicate ?? (song => true));
-            _sortComparer.OnNext(result.Components.Comparer ?? new SongModelViewComparer(null));
-            _limiterClause.OnNext(result.Components.Limiter);
-        }
-
-        TQLParsedCommand = result.Command;
-        if (result.Command is not null)
-        {
-            this.commandEvaluator.Execute(result.Command, searchResultsHolder.Items);
-
-
-            var filterPart = CurrentTqlQuery[..CurrentTqlQuery.IndexOf(" >")];
-            CurrentTqlQuery = filterPart;
-
-            DebugMessage = $"Executed command.";
-        }
-    },
-    ex => _logger.LogError(ex, "FATAL: Search control pipeline has crashed."))
-    .DisposeWith(Disposables);
+                     // Clean the command from the search box
+                     var commandIndex = CurrentTqlQuery.IndexOf(" >");
+                     if (commandIndex >= 0)
+                     {
+                         CurrentTqlQuery = CurrentTqlQuery[..commandIndex];
+                     }
+                 }
+             }, 
+             ex => _logger.LogError(ex, "FATAL: Search control pipeline has crashed."))
+             .DisposeWith(Disposables);
 
         var controlPipeline = 
             Observable.CombineLatest(
@@ -236,57 +212,68 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
       (predicate, comparer, limiter) => new { predicate, comparer, limiter }
   );
 
-
-
-
-
-
-       
+        //return;
         _songSource.Connect()
-            .Filter(song => !song.IsHidden)
-            .ToCollection()
-            .ObserveOn(RxApp.TaskpoolScheduler)
-            .CombineLatest(controlPipeline, (songs, controls) => new { songs, controls })
-            .Select(data =>
-            {
-                var predicate = data.controls.predicate;
-                var comparer = data.controls.comparer;
-                var limiter = data.controls.limiter;
+           .Filter(song => !song.IsHidden)
+           .ToCollection()
+           .ObserveOn(RxApp.TaskpoolScheduler)
+           .CombineLatest(controlPipeline, (songs, controls) => new { songs, controls })
+           .Select(data =>
+           {
+               var predicate = data.controls.predicate;
+               var comparer = data.controls.comparer;
+               var limiter = data.controls.limiter;
 
-                var filtered = data.songs.Where(predicate);
+               var filtered = data.songs.Where(predicate);
 
-                IOrderedEnumerable<SongModelView> sorted;
-                if (limiter?.Type == LimiterType.Random)
-                {
-                    var random = new Random();
-                    sorted = filtered.OrderBy(x => random.Next());
-                }
-                else if (limiter?.Type == LimiterType.Last)
-                {
-                    var invertedComparer = (comparer as SongModelViewComparer)?.Inverted() ?? comparer;
-                    sorted = filtered.OrderBy(x => x, invertedComparer);
-                }
-                else
-                {
-                    sorted = filtered.OrderBy(x => x, comparer);
-                }
+               IEnumerable<SongModelView> sorted;
 
-                var limited = sorted.Take(limiter?.Count ?? int.MaxValue);
-                return limited.ToList();
-            })
+               // Check if the comparer has any sort descriptions and if the first one is Random.
+               bool isRandomSort = (comparer as SongModelViewComparer)?.SortDescriptions
+                   .FirstOrDefault()?.Direction ==  SortDirection.Random;
+
+               if (isRandomSort)
+               {
+                   // **THE FIX:** Use a single, thread-safe Random instance.
+                   // Or even better, create a temporary, stateless mapping of songs to random keys.
+                   // This is the most robust and performant way to handle random sorting in a hot path.
+                   var random = new Random();
+                   sorted = filtered.OrderBy(x => random.Next());
+               }
+               else if (limiter?.Type == LimiterType.Last)
+               {
+                   var invertedComparer = (comparer as SongModelViewComparer)?.Inverted() ?? comparer;
+                   sorted = filtered.OrderBy(x => x, invertedComparer);
+               }
+               else
+               {
+                   sorted = filtered.OrderBy(x => x, comparer);
+               }
+
+               var limited = sorted.Take(limiter?.Count ?? int.MaxValue);
+               return limited.ToList();
+           })
+           .ObserveOn(RxApp.MainThreadScheduler)
+           .Subscribe(
+               newList =>
+               {
+                   searchResultsHolder.Edit(updater =>
+                   {
+                       updater.Clear();
+                       updater.AddRange(newList);
+                   });
+               },
+               ex => _logger.LogError(ex, "FATAL: Data calculation pipeline crashed!"))
+           .DisposeWith(Disposables);
+
+        searchResultsHolder.Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out _searchResults)
             .Subscribe(
-                newList =>
-                {
-                    searchResultsHolder.Edit(updater =>
-                    {
-
-                        updater.Clear();
-                        updater.AddRange(newList);
-                    });
-                },
-                ex => _logger.LogError(ex, "FATAL: Data calculation pipeline crashed!"))
+                cs => { /* Binding is complete */ },
+                ex => _logger.LogError(ex, "FATAL: Data binding pipeline crashed!"))
             .DisposeWith(Disposables);
+
 
         searchResultsHolder.Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -298,8 +285,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 },
                 ex => _logger.LogError(ex, "FATAL: Data binding pipeline crashed!"))
             .DisposeWith(Disposables);
-
-
 
 
         string rql = "TRUEPREDICATE SORT(EventDate DESC)";
@@ -377,110 +362,70 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         MyDeviceId = LoadOrGenerateDeviceId();
 
 
-        
+
 
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
+
         LoadAllSongsEvents();
         await EnsureAllCoverArtCachedForSongsAsync();
 
         
         return;
     }
-    private void SubscribeToCommandEvaluatorEvents()
+    private void HandleCommandAction(ICommandAction action)
     {
+        if (action is null)
+            return;
 
-        commandEvaluator.SavePlaylistRequested
-            .ObserveOn(RxApp.MainThreadScheduler) 
-            .Subscribe(async data =>
-            {
-                var (playlistName, songsToSave) = data;
-
-                
-                
-                Debug.WriteLine($"UI Request: Save {songsToSave.Count()} songs to playlist '{playlistName}'");
-
-                
-                
-
-                
-              await  ShowNotification($"Playlist '{playlistName}' saved successfully!");
-            })
-            .DisposeWith(Disposables); 
-
-        
-        commandEvaluator.AddToNextRequested
-            .Subscribe(async songsToAdd =>
-            {
-                
-                
-                Debug.WriteLine($"UI Request: Adding {songsToAdd.Count()} songs to the top of the queue.");
-
-                
-                _playbackQueueSource.InsertRange(songsToAdd, _playbackQueueIndex+1);
-
-                await ShowNotification($"Added {songsToAdd.Count()} songs to the queue.");
-            })
-            .DisposeWith(Disposables);
-
-        
-        commandEvaluator.AddToEndRequested
-            .Subscribe(async songsToAdd =>
-            {
-                
-                
-                Debug.WriteLine($"UI Request: Adding {songsToAdd.Count()} songs to the end of the queue.");
-
-                _playbackQueueSource.AddRange(songsToAdd);
-
-                await ShowNotification($"Added {songsToAdd.Count()} songs to the end of the queue.");
-            })
-            .DisposeWith(Disposables);
-
-        commandEvaluator.DeleteAllRequested
-            .Subscribe(async songsToDelete =>
-            {
-                if (songsToDelete is null || !songsToDelete.Any())
+        // Use pattern matching to execute the correct logic
+        switch (action)
+        {
+            case SavePlaylistAction spa:
+                // Your actual implementation here
+                Debug.WriteLine($"Action: Save playlist '{spa.Name}' with {spa.Songs.Count} songs.");
+                // await _playlistService.SavePlaylistAsync(spa.Name, spa.Songs);
+                ShowNotification($"Playlist '{spa.Name}' saved.").FireAndForget(ex =>
                 {
-                    Debug.WriteLine("UI Request: No songs to delete.");
-                    return;
-                }
-                
-                Debug.WriteLine($"UI Request: Deleting {songsToDelete.Count()} songs from the queue.");
-                
-                foreach (var song in songsToDelete)
-                {
-                    _playbackQueueSource.Remove(song);
-                }
-                await ShowNotification($"Deleted {songsToDelete.Count()} songs from the queue.");
-            })
-            .DisposeWith(Disposables);
-        commandEvaluator.DeleteDuplicateRequested
-            .Subscribe( songsToDelete =>
-            {
-                if (songsToDelete is null || !songsToDelete.Any())
-                {
-                    Debug.WriteLine("UI Request: No songs to delete duplicates from.");
-                    return;
-                }
-                
-                Debug.WriteLine($"UI Request: Deleting duplicates from {songsToDelete.Count()} songs in the queue.");
-                
-                //var uniqueSongs = _duplicateFinderService.ResolveDuplicatesAsync(songsToDelete);
-                //_playbackQueueSource.Edit(updater =>
-                //{
-                //    updater.Clear();
-                //    updater.AddRange(uniqueSongs);
-                //});
-                
-                //await ShowNotification($"Removed duplicates, {uniqueSongs.} unique songs remain in the queue.");
-            })
-            .DisposeWith(Disposables);
-        SearchSongSB_TextChanged("played today");
-       
+                    _logger.LogError(ex, "Failed to show notification");
+                });
+                break;
+
+            case AddToNextAction ana:
+                Debug.WriteLine($"Action: Add {ana.Songs.Count} songs to next in queue.");
+                _playbackQueueSource.InsertRange(ana.Songs, _playbackQueueIndex + 1);
+                _= ShowNotification($"Added {ana.Songs.Count} songs to the queue.");
+                break;
+
+            case AddToEndAction aea:
+                Debug.WriteLine($"Action: Add {aea.Songs.Count} songs to end of queue.");
+                _playbackQueueSource.AddRange(aea.Songs);
+                _= ShowNotification($"Added {aea.Songs.Count} songs to the end of the queue.");
+                break;
+
+            case DeleteAllAction daa:
+                Debug.WriteLine($"Action: Delete all {daa.Songs.Count} songs in result set.");
+                // await _musicDataService.DeleteSongsAsync(daa.Songs);
+                break;
+
+            case DeleteDuplicateAction dda:
+                Debug.WriteLine($"Action: Delete duplicates from {dda.Songs.Count} songs.");
+                // var duplicates = _duplicateFinderService.FindDuplicates(dda.Songs);
+                // await _musicDataService.DeleteSongsAsync(duplicates);
+                break;
+
+            case UnrecognizedCommandAction uca:
+                TQLUserSearchErrorMessage = $"Unknown command: '{uca.CommandName}'";
+                break;
+
+            case NoAction:
+                // Command was valid but resulted in no operation (e.g., save with no name).
+                // You might want to show a subtle error message.
+                TQLUserSearchErrorMessage = "Command requires additional parameters.";
+                break;
+        }
     }
-
     private async Task ShowNotification(string v)
     {
        await Shell.Current.DisplayAlert("Notification", v, "OK");
@@ -729,6 +674,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public ObservableCollection<IQueryComponentViewModel> UIQueryComponents { get; } = new();
     public void SearchSongSB_TextChanged(string searchText)
     {
+      
         string currentText = CurrentTqlQuery;
 
         string processedNewText = NaturalLanguageProcessor.Process(searchText);
@@ -821,7 +767,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public IMapper _mapper;
     private readonly MusicDataService _musicDataService;
-    private readonly CommandEvaluator commandEvaluator;
     private IAppInitializerService appInitializerService;
     private IDimmerLiveStateService _dimmerLiveStateService;
     protected IDimmerStateService _stateService;
@@ -3417,7 +3362,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     public record QueryComponents(
-        Func<SongModelView, bool> Predicate,
+        Func<SongModelView, bool>? Predicate,
         IComparer<SongModelView> Comparer,
         LimiterClause? Limiter
     );

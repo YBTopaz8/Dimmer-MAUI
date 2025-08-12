@@ -1,38 +1,54 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿using Dimmer.Interfaces.Services.Interfaces;
+
+namespace Dimmer.DimmerSearch.TQL;
 
 public class AutocompleteEngine
 {
     // These collections are populated by your ViewModel using DynamicData
-    private readonly ReadOnlyObservableCollection<string> _distinctArtists;
-    private readonly ReadOnlyObservableCollection<string> _distinctAlbums;
-    private readonly ReadOnlyObservableCollection<string> _distinctGenres;
+    private readonly ObservableCollection<string> _distinctArtists;
+    private readonly ObservableCollection<string> _distinctAlbums;
+    private readonly ObservableCollection<string> _distinctGenres;
 
     // The "Free Search" sources (all data)
-    private readonly ReadOnlyObservableCollection<string> _masterArtists;
-    private readonly ReadOnlyObservableCollection<string> _masterAlbums;
-    private readonly ReadOnlyObservableCollection<string> _masterGenres;
+    private readonly ObservableCollection<string> _masterArtists;
+    private readonly ObservableCollection<string> _masterAlbums;
+    private readonly ObservableCollection<string> _masterGenres;
 
     // The "Firm Search" sources (live, filtered data)
-    private readonly ReadOnlyObservableCollection<string> _liveArtists;
-    private readonly ReadOnlyObservableCollection<string> _liveAlbums;
-    private readonly ReadOnlyObservableCollection<string> _liveGenres;
+    private readonly ObservableCollection<string> _liveArtists;
+    private readonly ObservableCollection<string> _liveAlbums;
+    private readonly ObservableCollection<string> _liveGenres;
     public AutocompleteEngine(
-        ReadOnlyObservableCollection<string> artists,
-        ReadOnlyObservableCollection<string> albums,
-        ReadOnlyObservableCollection<string> genres)
+        IRepository<ArtistModel> artistRepo,
+        IRepository<AlbumModel> albumRepo,
+        IRepository<GenreModel> genreRepo)
     {
-        _distinctArtists = artists;
-        _distinctAlbums = albums;
-        _distinctGenres = genres;
+
+        var art= artistRepo.GetAll().Select(x => x.Name).ToObservableCollection();
+        if (art is not null)
+        {
+            _liveArtists =art;
+        }
+        var albums = albumRepo.GetAll().Select(x => x.Name).ToObservableCollection();
+        
+        if (albums is not null) {
+            _liveAlbums = albums;
+        }
+
+        var genres = genreRepo.GetAll().Select(x => x.Name).ToObservableCollection();
+        if (genres is not null)
+        {
+            _liveGenres=genres;
+        }
     }
 
     public AutocompleteEngine(
-        ReadOnlyObservableCollection<string> masterArtists,
-        ReadOnlyObservableCollection<string> masterAlbums,
-        ReadOnlyObservableCollection<string> masterGenres,
-        ReadOnlyObservableCollection<string> liveArtists,
-        ReadOnlyObservableCollection<string> liveAlbums,
-        ReadOnlyObservableCollection<string> liveGenres)
+        ObservableCollection<string> masterArtists,
+        ObservableCollection<string> masterAlbums,
+        ObservableCollection<string> masterGenres,
+        ObservableCollection<string> liveArtists,
+        ObservableCollection<string> liveAlbums,
+        ObservableCollection<string> liveGenres)
     {
         _masterArtists = masterArtists;
         _masterAlbums = masterAlbums;
@@ -73,10 +89,25 @@ public class AutocompleteEngine
         {
             return new ObservableCollection<string>(); // Invalid field, no suggestions
         }
+
+
+        if (fieldDef.Type == FieldType.Date)
+        {
+            var dateSuggestions = new List<string>
+    {
+        "today", "yesterday", "this week", "last week",
+        "morning", "afternoon", "evening", "night",
+        "never", "ago(\"\")"
+    };
+            return dateSuggestions
+                .Where(s => s.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
+                .ToObservableCollection();
+        }
+        
         // Determine which data source to use for suggestions
-        var artistSource = isFirmSearch ? _liveArtists : _masterArtists;
-        var albumSource = isFirmSearch ? _liveAlbums : _masterAlbums;
-        var genreSource = isFirmSearch ? _liveGenres : _masterGenres;
+        var artistSource = _liveArtists;
+        var albumSource = _liveAlbums ;
+        var genreSource = _liveGenres ;
 
         // Provide suggestions based on the field's type
         switch (fieldDef.PrimaryName)
@@ -88,6 +119,7 @@ public class AutocompleteEngine
                     .Take(10).ToObservableCollection();
 
             case "AlbumName":
+
                 return albumSource
                     .Where(a => a != null && a.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
                     .Select(a => a.Contains(' ') ? $"\"{a}\"" : a)

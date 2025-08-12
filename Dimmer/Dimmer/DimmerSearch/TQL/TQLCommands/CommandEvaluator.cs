@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Dimmer.DimmerSearch.TQL.TQLCommands.Interfaces;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +11,6 @@ namespace Dimmer.DimmerSearch.TQL.TQLCommands;
 
 public class CommandEvaluator
 {
-    // Define constants for command names and argument keys to avoid magic strings.
     public static class CommandKeys
     {
         public const string Save = "save";
@@ -20,55 +21,48 @@ public class CommandEvaluator
         public const string DeleteDuplicate = "deletedup";
     }
 
-    // --- Subjects for publishing events ---
-    private readonly Subject<(string Name, IEnumerable<SongModelView> Songs)> _savePlaylistSubject = new();
-    private readonly Subject<IEnumerable<SongModelView>> _addToNextSubject = new();
-    private readonly Subject<IEnumerable<SongModelView>> _addToEndSubject = new();
-    private readonly Subject<IEnumerable<SongModelView>> _deleteAllSubject = new();
-    private readonly Subject<IEnumerable<SongModelView>> _deleteDuplicateSubject = new();
-    // --- Public-facing observables for subscribers ---
-    public IObservable<(string Name, IEnumerable<SongModelView> Songs)> SavePlaylistRequested => _savePlaylistSubject.AsObservable();
-    public IObservable<IEnumerable<SongModelView>> AddToNextRequested => _addToNextSubject.AsObservable();
-    public IObservable<IEnumerable<SongModelView>> AddToEndRequested => _addToEndSubject.AsObservable();
-    public IObservable<IEnumerable<SongModelView>> DeleteAllRequested => _deleteAllSubject.AsObservable();
-    public IObservable<IEnumerable<SongModelView>> DeleteDuplicateRequested => _deleteDuplicateSubject.AsObservable();
-
-    public void Execute(IQueryNode node, IEnumerable<SongModelView>? currentResultsSet)
+    // The method is renamed to better reflect its purpose and now returns an action.
+    // It is now STATELESS. No subjects, no observables.
+    public ICommandAction Evaluate(IQueryNode node, IEnumerable<SongModelView>? currentResultsSet)
     {
-
-        if (node is not CommandNode cmdNode || currentResultsSet == null || !currentResultsSet.Any())
+        if (node is not CommandNode cmdNode)
         {
-            return;
+            return new NoAction();
+        }
+
+        // Create a snapshot of the results to prevent issues with the underlying collection changing.
+        var resultsSnapshot = currentResultsSet?.ToList() ?? new List<SongModelView>();
+
+        if (resultsSnapshot.Count==0 && !cmdNode.Command.Equals(CommandKeys.Save, StringComparison.InvariantCultureIgnoreCase)) // Allow saving an empty playlist
+        {
+            return new NoAction(); // Don't execute most commands on empty result sets
         }
 
         switch (cmdNode.Command.ToLowerInvariant())
         {
             case CommandKeys.Save:
-                // Safely get the playlist name from the arguments.
                 if (cmdNode.Arguments.TryGetValue(CommandKeys.PlaylistNameArg, out object? value) &&
                     value is string playlistName &&
                     !string.IsNullOrWhiteSpace(playlistName))
                 {
-                    _savePlaylistSubject.OnNext((playlistName, currentResultsSet));
+                    return new SavePlaylistAction(playlistName, resultsSnapshot);
                 }
-
-                break;
+                return new NoAction(); // Or a specific error action
 
             case CommandKeys.AddNext:
-                _addToNextSubject.OnNext(currentResultsSet);
-                break;
+                return new AddToNextAction(resultsSnapshot);
 
             case CommandKeys.AddEnd:
-                _addToEndSubject.OnNext(currentResultsSet);
-                break;
-            case CommandKeys.DeleteAll:
-                _deleteAllSubject.OnNext(currentResultsSet);
-                break;
-            case CommandKeys.DeleteDuplicate:
-                _deleteDuplicateSubject.OnNext(currentResultsSet);
-                break;
-                
+                return new AddToEndAction(resultsSnapshot);
 
+            case CommandKeys.DeleteAll:
+                return new DeleteAllAction(resultsSnapshot);
+
+            case CommandKeys.DeleteDuplicate:
+                return new DeleteDuplicateAction(resultsSnapshot);
+
+            default:
+                return new UnrecognizedCommandAction(cmdNode.Command);
         }
     }
 }

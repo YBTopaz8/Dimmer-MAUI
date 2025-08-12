@@ -524,7 +524,7 @@ public partial class HomePage : ContentPage
        
     }
 
-    private async void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
+    private void BtmBar_ToggleAdvanceFilters(object sender, EventArgs e)
     {
         //if (BelowBtmBar.IsVisible)
         //{
@@ -718,11 +718,11 @@ public partial class HomePage : ContentPage
     private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
     {
 
-        this.NowPlayingUISection.IsExpanded=!NowPlayingUISection.IsExpanded;
-        this.MainViewExpander.IsExpanded = !NowPlayingUISection.IsExpanded;
+        this.NowPlayingUISection.IsExpanded=!this.NowPlayingUISection.IsExpanded;
+        this.MainViewExpander.IsExpanded = !this.NowPlayingUISection.IsExpanded;
 
-        BtmBarExp.IsExpanded = !NowPlayingUISection.IsExpanded;
-        TopBeforeColView.IsExpanded = !TopBeforeColView.IsExpanded;
+        BtmBarExp.IsExpanded = !this.NowPlayingUISection.IsExpanded;
+        this.TopBeforeColView.IsExpanded = !this.TopBeforeColView.IsExpanded;
 
     }
 

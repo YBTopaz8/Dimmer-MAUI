@@ -27,7 +27,7 @@ namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel nam
 
 public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService,
     LoginViewModel loginViewModel, MusicDataService musicDataService,
-    DimmerLiveViewModel dimmerLiveViewModel,CommandEvaluator commandEval
+    DimmerLiveViewModel dimmerLiveViewModel
         , IFolderPicker _folderPicker, IWindowManagerService windowManager,
     IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ,
     IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
@@ -36,7 +36,7 @@ public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService app
     IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService,
     IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel,
     IDialogueService dialogueService, ILyricsMetadataService lyricsMetadataService,
-    IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : BaseViewModel(mapper,musicDataService, commandEval,appInitializerService, dimmerLiveStateService, audioServ,
+    IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : BaseViewModel(mapper,musicDataService,appInitializerService, dimmerLiveStateService, audioServ,
         stateService, settingsService,lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, 
         folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, 
         lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger) // BaseViewModel is in Dimmer.MyViewModel

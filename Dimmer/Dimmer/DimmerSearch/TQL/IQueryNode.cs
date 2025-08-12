@@ -13,18 +13,43 @@ public class NotNode : IQueryNode
 }
 public enum LogicalOperator { And, Or }
 
-public class CommandNode : IQueryNode
+public class RandomChanceNode : IQueryNode
 {
-    public string Command { get; }
-    public Dictionary<string, object> Arguments { get; }
-
-    public CommandNode(string command, Dictionary<string, object> arguments)
+    public int Percentage { get; }
+    public RandomChanceNode(int percentage)
     {
-        Command = command;
-        Arguments = arguments;
+        Percentage = Math.Clamp(percentage, 0, 100);
     }
 }
 
+public class FuzzyDateNode : IQueryNode
+{
+    public enum Qualifier { Ago, Between, Never }
+    public string DateField { get; }
+    public Qualifier Type { get; }
+    public TimeSpan? OlderThan { get; } // For ago(>1 month) or between(X, Y)
+    public TimeSpan? NewerThan { get; }  // For between(X, Y)
+    public FuzzyDateNode(string dateField, Qualifier type, TimeSpan? olderThan = null, TimeSpan? newerThan = null)
+    {
+        DateField = dateField;
+        Type = type;
+        OlderThan = olderThan;
+        NewerThan = newerThan;
+    }
+}
+
+public class DaypartNode : IQueryNode
+{
+    public string DateField { get; }
+    public TimeSpan StartTime { get; }
+    public TimeSpan EndTime { get; }
+    public DaypartNode(string dateField, TimeSpan startTime, TimeSpan endTime)
+    {
+        DateField = dateField;
+        StartTime = startTime;
+        EndTime = endTime;
+    }
+}
 
 
 public class LogicalNode : IQueryNode
@@ -67,5 +92,15 @@ public class StatsCommandNode : IQueryNode
     public StatsCommandNode(IQueryNode filterNode)
     {
         FilterNode = filterNode;
+    }
+}
+public class CommandNode : IQueryNode
+{
+    public string Command { get; }
+    public Dictionary<string, object> Arguments { get; }
+    public CommandNode(string command, Dictionary<string, object> arguments)
+    {
+        Command = command;
+        Arguments = arguments;
     }
 }

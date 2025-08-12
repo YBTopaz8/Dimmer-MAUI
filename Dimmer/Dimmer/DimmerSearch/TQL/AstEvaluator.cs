@@ -12,11 +12,15 @@ public class AstEvaluator
         return song => Evaluate(rootNode, song);
     }
 
+    private readonly Random _random = new();
     private bool Evaluate(IQueryNode node, SongModelView song) => node switch
     {
         LogicalNode n => EvaluateLogical(n, song),
         NotNode n => !Evaluate(n.NodeToNegate, song),
         ClauseNode n => EvaluateClause(n, song),
+        RandomChanceNode n => _random.Next(100) < n.Percentage,
+        FuzzyDateNode n => EvaluateFuzzyDate(n, song),
+        DaypartNode n => EvaluateDaypart(n, song),
         _ => true
     };
 
@@ -126,14 +130,20 @@ public class AstEvaluator
 
             case FieldType.Date: // This is where our new date logic goes!
                 var songDateValue = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
-                var (start, end)= ParseDateValue(node.Value.ToString()); 
+                if (songDateValue == null)
+                {
+                    result = false; // or handle as needed, e.g. for "played:never" this would be true
+                    break;
+                }
+                // Updated to handle standard date comparisons more cleanly
+                var (start, end) = ParseDateValue(node.Value.ToString());
                 result = node.Operator switch
                 {
                     ">" => songDateValue.Value.Date > end.Date,
-                    "<" => songDateValue.Value.Date< start.Date,
-                    ">=" => songDateValue.Value.Date>= start.Date,
-                    "<=" => songDateValue.Value.Date<= end.Date,
-                    _ => songDateValue.Value.Date>= start.Date && songDateValue.Value.Date <= end.Date
+                    "<" => songDateValue.Value.Date < start.Date,
+                    ">=" => songDateValue.Value.Date >= start.Date,
+                    "<=" => songDateValue.Value.Date <= end.Date,
+                    _ => songDateValue.Value.Date >= start.Date && songDateValue.Value.Date <= end.Date,
                 };
                 break;
         }
@@ -207,5 +217,48 @@ public class AstEvaluator
                 // Could add more complex parsing here like "3 days ago"
                 return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue); // Invalid format
         }
+    }
+    private bool EvaluateFuzzyDate(FuzzyDateNode node, SongModelView song)
+    {
+        var songDate = SemanticQueryHelpers.GetDateProp(song, node.DateField);
+
+        if (node.Type == FuzzyDateNode.Qualifier.Never)
+        {
+            return songDate == null;
+        }
+
+        if (songDate == null)
+            return false; // Must have a date for other qualifiers
+
+        var now = DateTimeOffset.UtcNow;
+        switch (node.Type)
+        {
+            case FuzzyDateNode.Qualifier.Ago:
+                if (node.OlderThan.HasValue)
+                {
+                    // ago("30d") means "played in the last 30 days" -> date > now - 30d
+                    return songDate.Value > now.Subtract(node.OlderThan.Value);
+                }
+                break;
+                // case FuzzyDateNode.Qualifier.Between: ... implement if needed ...
+        }
+        return false;
+    }
+
+    private bool EvaluateDaypart(DaypartNode node, SongModelView song)
+    {
+        var songDate = SemanticQueryHelpers.GetDateProp(song, node.DateField);
+        if (songDate == null)
+            return false;
+
+        var timeOfDay = songDate.Value.TimeOfDay;
+
+        // Handle overnight ranges like "night" (22:00 - 06:00)
+        if (node.StartTime > node.EndTime)
+        {
+            return timeOfDay >= node.StartTime || timeOfDay < node.EndTime;
+        }
+
+        return timeOfDay >= node.StartTime && timeOfDay < node.EndTime;
     }
 }

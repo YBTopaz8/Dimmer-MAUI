@@ -1,8 +1,18 @@
 ﻿using Dimmer.DimmerSearch.Exceptions;
 
-namespace Dimmer.DimmerSearch.TQL;
+using System.Text.RegularExpressions;
 
-public class QuerySegment
+namespace Dimmer.DimmerSearch.TQL;
+public record ParsedQueryResult(
+    Func<SongModelView, bool> Predicate,
+    IComparer<SongModelView> Comparer,
+    LimiterClause? Limiter,
+    IQueryNode? CommandNode, // We pass the node, not the evaluated action yet
+    string? ErrorMessage,
+    string? ErrorSuggestion = null
+);
+
+public  class QuerySegment
 {
     public SegmentType SegmentType { get; }
     public List<Token> FilterTokens { get; }
@@ -17,64 +27,64 @@ public class QuerySegment
 
 public enum SegmentType { Main, Include, Exclude }
 
-public class MetaParser
+public static class MetaParser
 {
-    private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
-    {
-        { TokenType.Include, SegmentType.Include },
-        { TokenType.Add,     SegmentType.Include },
-        { TokenType.Exclude, SegmentType.Exclude },
-        { TokenType.Remove,  SegmentType.Exclude }
-    };
+    /// <summary>
+    /// A stateless utility class that orchestrates the TQL parsing process.
+    /// It takes a raw query string and returns a complete, executable plan (ParsedQueryResult).
+    /// </summary>
+ 
+       private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
+       {
+            { TokenType.Include, SegmentType.Include }, { TokenType.Add, SegmentType.Include },
+            { TokenType.Exclude, SegmentType.Exclude }, { TokenType.Remove, SegmentType.Exclude }
+        };
 
-    public IReadOnlyList<QuerySegment> GetSegments() => _segments.AsReadOnly();
-    private readonly List<QuerySegment> _segments = new();
-
-    private static readonly HashSet<TokenType> _directiveTokens = new()
+        private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
 
-    public IQueryNode? ParsedCommand { get; private set; }
-
-    public MetaParser(string rawQuery)
-    {
-        
-        const string commandInitiator = " >";
-        int commandInitiatorIndex = rawQuery.IndexOf(commandInitiator);
-
-        string filterQuery;
-        string commandQuery = string.Empty;
-
-        if (commandInitiatorIndex != -1)
+        public static ParsedQueryResult Parse(string rawQuery)
         {
-            
-            filterQuery = rawQuery[..commandInitiatorIndex];
-            
-            commandQuery = rawQuery[(commandInitiatorIndex + commandInitiator.Length)..];
-        }
-        else
-        {
-            
-            filterQuery = rawQuery;
-        }
-
-        
-        var filterAndDirectiveTokens = Lexer.Tokenize(filterQuery)
-                                            .Where(t => t.Type != TokenType.EndOfFile).ToList();
-        ParseSegmentsFromTokens(filterAndDirectiveTokens);
-
-        
-        if (!string.IsNullOrWhiteSpace(commandQuery))
-        {
-            var commandTokens = Lexer.Tokenize(commandQuery)
-                                     .Where(t => t.Type != TokenType.EndOfFile).ToList();
-            if (commandTokens.Count!=0)
+            try
             {
-                ParsedCommand = ParseAsCommand(commandTokens);
+                const string commandInitiator = " >";
+                int commandInitiatorIndex = rawQuery.IndexOf(commandInitiator);
+
+                string filterQuery = (commandInitiatorIndex != -1) ? rawQuery[..commandInitiatorIndex] : rawQuery;
+                string commandQuery = (commandInitiatorIndex != -1) ? rawQuery[(commandInitiatorIndex + commandInitiator.Length)..] : string.Empty;
+
+                var filterTokens = Lexer.Tokenize(filterQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
+                var segments = ParseSegmentsFromTokens(filterTokens);
+
+                var predicate = CreateMasterPredicate(segments);
+                var comparer = CreateSortComparer(segments);
+                var limiter = CreateLimiterClause(segments);
+                IQueryNode? commandNode = null;
+
+                if (!string.IsNullOrWhiteSpace(commandQuery))
+                {
+                    var commandTokens = Lexer.Tokenize(commandQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
+                    if (commandTokens.Count!=0)
+                    {
+                        commandNode = ParseAsCommand(commandTokens);
+                    }
+                }
+
+                return new ParsedQueryResult(predicate, comparer, limiter, commandNode, null);
+            }
+            catch (ParsingException ex)
+            {
+                var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
+                string? suggestion = match.Success ? QueryValidator.SuggestCorrectField(match.Groups[1].Value) : null;
+                return new ParsedQueryResult(s => false, new SongModelViewComparer(null), null, null, ex.Message, suggestion);
+            }
+            catch (Exception ex)
+            {
+                // TODO: Log the full exception 'ex' with your logger
+                return new ParsedQueryResult(s => false, new SongModelViewComparer(null), null, null, "An unexpected error occurred during parsing. "+ex.Message, null);
             }
         }
-    }
-
-    private static CommandNode? ParseAsCommand(List<Token> commandTokens)
+        private static CommandNode? ParseAsCommand(List<Token> commandTokens)
     {
         var commandToken = commandTokens.FirstOrDefault();
         if (commandToken?.Type != TokenType.Identifier)
@@ -126,12 +136,13 @@ public class MetaParser
         return new CommandNode(commandName, arguments);
     }
 
-    private void ParseSegmentsFromTokens(List<Token> allTokens)
+    private static List<QuerySegment> ParseSegmentsFromTokens(List<Token> allTokens)
     {
-        if (allTokens.Count == 0)
+        var segments = new List<QuerySegment>();
+        if (allTokens.Count==0)
         {
-            _segments.Add(new QuerySegment(SegmentType.Main, new List<Token>(), new List<Token>()));
-            return;
+            segments.Add(new QuerySegment(SegmentType.Main, new List<Token>(), new List<Token>()));
+            return segments;
         }
 
         int segmentStartIndex = 0;
@@ -140,21 +151,21 @@ public class MetaParser
         for (int i = 0; i < allTokens.Count; i++)
         {
             var token = allTokens[i];
-
             if (_segmentTypeMap.TryGetValue(token.Type, out var newSegmentType))
             {
                 var segmentTokens = allTokens.GetRange(segmentStartIndex, i - segmentStartIndex);
-                ProcessSegment(segmentTokens, currentSegmentType);
+                ProcessSegment(segmentTokens, currentSegmentType, segments);
                 currentSegmentType = newSegmentType;
                 segmentStartIndex = i + 1;
             }
         }
 
         var lastSegmentTokens = allTokens.GetRange(segmentStartIndex, allTokens.Count - segmentStartIndex);
-        ProcessSegment(lastSegmentTokens, currentSegmentType);
+        ProcessSegment(lastSegmentTokens, currentSegmentType, segments);
+        return segments;
     }
 
-    private void ProcessSegment(List<Token> segmentTokens, SegmentType segmentType)
+    private static void ProcessSegment(List<Token> segmentTokens, SegmentType segmentType, List<QuerySegment> segments)
     {
         var filterTokens = new List<Token>();
         var directiveTokens = new List<Token>();
@@ -171,7 +182,7 @@ public class MetaParser
                 directiveTokens.Add(segmentTokens[i + 1]);
                 i++;
             }
-            else if (_directiveTokens.Contains(token.Type) && !isDirective)
+            else if (_directiveTokens.Contains(token.Type))
             {
                 isDirective = true;
                 directiveTokens.Add(token);
@@ -187,38 +198,37 @@ public class MetaParser
                 filterTokens.Add(token);
             }
         }
-        _segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
+        segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
     }
-
-    public Func<SongModelView, bool>? CreateMasterPredicate()
+    private static Func<SongModelView, bool> CreateMasterPredicate(IReadOnlyList<QuerySegment> segments)
     {
-        var predicates = _segments.Select(seg =>
+        var predicates = segments.Select(seg =>
         {
-            if (seg.FilterTokens.Count == 0)
-                return (seg.SegmentType, (Func<SongModelView, bool>)null);
+            if (seg.FilterTokens.Count==0)
+                return (seg.SegmentType, (Func<SongModelView, bool>?)null);
 
             var ast = new AstParser(seg.FilterTokens).Parse();
             return (seg.SegmentType, new AstEvaluator().CreatePredicate(ast));
 
         }).Where(p => p.Item2 != null).ToList();
 
-        var mainIncludes = predicates.Where(p => p.SegmentType == SegmentType.Main || p.SegmentType == SegmentType.Include).Select(p => p.Item2).ToList();
-        var excludes = predicates.Where(p => p.SegmentType == SegmentType.Exclude).Select(p => p.Item2).ToList();
+        var mainIncludes = predicates.Where(p => p.SegmentType == SegmentType.Main || p.SegmentType == SegmentType.Include).Select(p => p.Item2!).ToList();
+        var excludes = predicates.Where(p => p.SegmentType == SegmentType.Exclude).Select(p => p.Item2!).ToList();
 
         return song =>
         {
-            bool isIncluded = mainIncludes.Count == 0 || mainIncludes.Any(p => p(song));
+            bool isIncluded = mainIncludes.Count==0 || mainIncludes.Any(p => p(song));
             if (!isIncluded)
                 return false;
 
-            bool isExcluded = excludes.Count != 0 && excludes.Any(p => p(song));
+            bool isExcluded = excludes.Count!=0 && excludes.Any(p => p(song));
             return !isExcluded;
         };
     }
 
-    public IComparer<SongModelView> CreateSortComparer()
+    private static IComparer<SongModelView> CreateSortComparer(IReadOnlyList<QuerySegment> segments)
     {
-        var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
+        var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
         bool hasRandomSort = false;
 
@@ -240,7 +250,7 @@ public class MetaParser
                     {
                         sortDescriptions.Add(new SortDescription(fieldDef, direction));
                     }
-                    i++; 
+                    i++;
                 }
             }
         }
@@ -254,9 +264,9 @@ public class MetaParser
         return new SongModelViewComparer(sortDescriptions);
     }
 
-    public LimiterClause? CreateLimiterClause()
+    private static LimiterClause? CreateLimiterClause(IReadOnlyList<QuerySegment> segments)
     {
-        var allDirectives = _segments.SelectMany(s => s.DirectiveTokens).ToList();
+        var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
         LimiterClause? limiter = null;
 
         for (int i = 0; i < allDirectives.Count; i++)
@@ -271,14 +281,16 @@ public class MetaParser
 
             if (limiterType.HasValue)
             {
+                int count = 1; // Default for 'first' or 'last'
                 if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Number)
                 {
-                    if (int.TryParse(allDirectives[i + 1].Text, out int count) && count > 0)
+                    if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
                     {
-                        limiter = new LimiterClause(limiterType.Value, count);
-                        i++; 
+                        count = parsedCount;
+                        i++;
                     }
                 }
+                limiter = new LimiterClause(limiterType.Value, count);
                 continue;
             }
 
@@ -290,7 +302,7 @@ public class MetaParser
                     if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
                     {
                         count = parsedCount;
-                        i++; 
+                        i++;
                     }
                 }
                 limiter = new LimiterClause(LimiterType.Random, count);

@@ -1,5 +1,7 @@
 ﻿using Dimmer.DimmerSearch.Exceptions;
 
+using System.Text.RegularExpressions;
+
 namespace Dimmer.DimmerSearch.TQL;
 
 public class AstParser
@@ -22,16 +24,12 @@ public class AstParser
     {
         if (_tokens.All(t => t.Type == TokenType.EndOfFile))
             return new ClauseNode("any", "matchall", "");
-
         var result = ParseExpression();
-
         if (!IsAtEnd())
             throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' after valid expression.", Peek().Position);
-
         return result;
     }
 
-    // Lowest precedence: OR
     private IQueryNode ParseExpression()
     {
         var left = ParseTerm();
@@ -42,43 +40,69 @@ public class AstParser
         return left;
     }
 
-    // Higher precedence: AND (both explicit and implicit)
     private IQueryNode ParseTerm()
     {
         var left = ParseFactor();
         while (!IsAtEnd() && IsImplicitAnd())
         {
-            Match(TokenType.And); // Consume optional "and" keyword
+            Match(TokenType.And);
             left = new LogicalNode(left, LogicalOperator.And, ParseFactor());
         }
         return left;
     }
 
-    // Highest precedence: NOT, parentheses, and individual clauses
     private IQueryNode ParseFactor()
     {
         if (Match(TokenType.Not, TokenType.Bang))
             return new NotNode(ParseFactor());
-
         if (Match(TokenType.LeftParen))
         {
             var expression = ParseExpression();
             Consume(TokenType.RightParen, "Expected ')' after expression.");
             return expression;
         }
-
         return ParseClause();
     }
 
-    // A single unit like `field:value` or just `value`
     private IQueryNode ParseClause()
     {
+        var peekToken = Peek();
         string field = "any";
 
-        if (Peek().Type == TokenType.Identifier && Peek(1).Type == TokenType.Colon)
+        if (peekToken.Type == TokenType.Identifier)
         {
-            field = Consume(TokenType.Identifier).Text;
-            Consume(TokenType.Colon);
+            if (Peek(1).Type == TokenType.Colon)
+            {
+                field = Consume(TokenType.Identifier).Text;
+                Consume(TokenType.Colon, $"Expected ':' after field '{field}'.");
+            }
+            else
+            {
+                if (peekToken.Text.Equals("chance", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ParseChanceClause();
+                }
+            }
+        }
+
+        if (FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDef) && fieldDef.Type == FieldType.Date)
+        {
+            var nextToken = Peek();
+            if (nextToken.Type == TokenType.Identifier)
+            {
+                switch (nextToken.Text.ToLowerInvariant())
+                {
+                    case "ago":
+                    case "between":
+                    case "never":
+                        return ParseFuzzyDateClause(field);
+                    case "morning":
+                    case "afternoon":
+                    case "evening":
+                    case "night":
+                        return ParseDaypartClause(field);
+                }
+            }
         }
 
         string op = "contains";
@@ -106,15 +130,90 @@ public class AstParser
         return new ClauseNode(field, op, valueToken.Text, isNegated);
     }
 
-    // --- Helper Functions ---
+    private RandomChanceNode ParseChanceClause()
+    {
+        Consume(TokenType.Identifier);
+        Consume(TokenType.LeftParen, "Expected '(' after 'chance'.");
+        var numberToken = Consume(TokenType.Number, "Expected a number for chance percentage.");
+        Consume(TokenType.RightParen, "Expected ')' after chance percentage.");
+
+        string numberText = numberToken.Text.Replace("%", "");
+        if (int.TryParse(numberText, out int percentage))
+        {
+            return new RandomChanceNode(percentage);
+        }
+        throw new ParsingException($"Invalid percentage value '{numberToken.Text}'.", numberToken.Position);
+    }
+
+    private IQueryNode ParseFuzzyDateClause(string field)
+    {
+        var typeToken = Consume(TokenType.Identifier);
+        switch (typeToken.Text.ToLowerInvariant())
+        {
+            case "never":
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Never);
+            case "ago":
+                Consume(TokenType.LeftParen, "Expected '(' after 'ago'.");
+                var agoVal = Consume(TokenType.StringLiteral, "Expected a time string like \"30d\" or \"1y\".");
+                Consume(TokenType.RightParen, "Expected ')' after time string.");
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, ParseTimeSpan(agoVal.Text));
+            case "between":
+                Consume(TokenType.LeftParen, "Expected '(' after 'between'.");
+                var olderValToken = Consume(TokenType.StringLiteral, "Expected the 'older' time string.");
+                Consume(TokenType.Comma, "Expected a comma ',' separating the two date ranges.");
+                var newerValToken = Consume(TokenType.StringLiteral, "Expected the 'newer' time string.");
+                Consume(TokenType.RightParen, "Expected ')' after the second time string.");
+                var olderTimeSpan = ParseTimeSpan(olderValToken.Text);
+                var newerTimeSpan = ParseTimeSpan(newerValToken.Text);
+                if (olderTimeSpan < newerTimeSpan)
+                {
+                    throw new ParsingException("The first date in 'between' must be older than the second.", olderValToken.Position);
+                }
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Between, olderTimeSpan, newerTimeSpan);
+            default:
+                throw new ParsingException($"Unknown fuzzy date qualifier '{typeToken.Text}'.", typeToken.Position);
+        }
+    }
+
+    private TimeSpan ParseTimeSpan(string text)
+    {
+        text = text.Replace("ago", "").Trim();
+        var match = Regex.Match(text, @"(\d+)\s*([a-zA-Z]+)");
+        if (!match.Success)
+            throw new ParsingException($"Invalid time span format '{text}'.", 0);
+
+        var value = int.Parse(match.Groups[1].Value);
+        var unit = match.Groups[2].Value.ToLowerInvariant();
+
+        return unit switch
+        {
+            "d" or "day" or "days" => TimeSpan.FromDays(value),
+            "w" or "week" or "weeks" => TimeSpan.FromDays(value * 7),
+            "m" or "month" or "months" => TimeSpan.FromDays(value * 30.44),
+            "y" or "year" or "years" => TimeSpan.FromDays(value * 365.25),
+            _ => throw new ParsingException($"Unknown time unit '{unit}' in '{text}'.", 0)
+        };
+    }
+
+    private DaypartNode ParseDaypartClause(string field)
+    {
+        var daypartToken = Consume(TokenType.Identifier);
+        var (start, end) = daypartToken.Text.ToLowerInvariant() switch
+        {
+            "morning" => (TimeSpan.FromHours(6), TimeSpan.FromHours(12)),
+            "afternoon" => (TimeSpan.FromHours(12), TimeSpan.FromHours(18)),
+            "evening" => (TimeSpan.FromHours(18), TimeSpan.FromHours(22)),
+            "night" => (TimeSpan.FromHours(22), TimeSpan.FromHours(6)),
+            _ => throw new ParsingException("Invalid daypart specified.", daypartToken.Position)
+        };
+        return new DaypartNode(field, start, end);
+    }
+
     private bool IsImplicitAnd()
     {
         if (IsAtEnd())
             return false;
-        var type = Peek().Type;
-        // It's an implicit AND if the next token is a value, NOT, or parenthesis.
-        // It is NOT an implicit AND if it's a boundary like OR, ), etc.
-        return type switch
+        return Peek().Type switch
         {
             TokenType.Or or TokenType.Pipe or TokenType.RightParen => false,
             _ => true

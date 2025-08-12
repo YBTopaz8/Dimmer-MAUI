@@ -1,5 +1,7 @@
 ﻿using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerLive.Interfaces.Services;
+using Dimmer.DimmerSearch.Interfaces;
+using Dimmer.DimmerSearch.Interfaces.Implementations;
 using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
@@ -66,6 +68,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();
         builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
+        builder.Services.AddSingleton<IDeviceSessionService, ParseDeviceSessionService>();
         builder.Services.AddSingleton<SubscriptionManager>();
         builder.Services.AddSingleton<MusicDataService>();
         builder.Services.AddSingleton<IDimmerPlayEventRepository, DimmerPlayEventRepository>();
@@ -108,7 +111,6 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
-        builder.Services.AddSingleton<CommandEvaluator>();
             
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
 
