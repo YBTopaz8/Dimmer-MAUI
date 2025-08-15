@@ -171,6 +171,7 @@ public class LyricsMgtFlow : IDisposable
         else
         {
             // If no stored lyrics, do nothing. The UI will show an empty state.
+            await GetLyricsContentAsync(song);
             ClearLyrics();
         }
     }

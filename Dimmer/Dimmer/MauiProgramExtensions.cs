@@ -6,6 +6,8 @@ using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+using Dimmer.Interfaces.Services.Lyrics;
+using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.LastFM;
 
 using Microsoft.Extensions.Configuration;
@@ -91,7 +93,9 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddSingleton<DeviceConnectivityService>();
-        builder.Services.AddSingleton<DimmerLiveViewModel>();
+        builder.Services.AddSingleton<SessionTransferViewModel>();
+        builder.Services.AddSingleton<IPresenceService, ParsePresenceService>();
+        builder.Services.AddSingleton<SessionTransferViewModel>();
 
 
 
@@ -149,7 +153,13 @@ public static class MauiProgramExtensions
         // Register LastfmSettings
         builder.Services.Configure<LastfmSettings>(builder.Configuration.GetSection("Lastfm"));
 
-       
+
+        //builder.Services.AddSingleton<ILocalLyricsProvider, EmbeddedLyricsProvider>();
+        //builder.Services.AddSingleton<ILocalLyricsProvider, LocalLrcFileProvider>();
+        builder.Services.AddSingleton<IOnlineLyricsProvider, LrcLibProvider>();
+
+        // 2. Register the persistence service.
+        builder.Services.AddSingleton<ILyricsPersistenceService, LyricsPersistenceService>();
 
         return builder;
     }

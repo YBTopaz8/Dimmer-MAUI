@@ -10,6 +10,9 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     x:Name="myPage"
+    xmlns:behv="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+    
+    xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:DataType="vm:BaseViewModelWin">
 
     <Window.TitleBar>
@@ -38,7 +41,11 @@
                     <ImageButton Source="settings.png"
              x:Name="SettingsBtn"
                                  Clicked="SettingsBtn_Clicked"
-             />
+             >
+                        <ImageButton.Behaviors>
+                            <toolkit:TouchBehavior InteractionStatusChanged="TouchBehavior_InteractionStatusChanged"/>
+                        </ImageButton.Behaviors>
+                    </ImageButton>
                     <ImageButton Source="settingssliders.png"
              x:Name="SettingsBtnn"
                                  

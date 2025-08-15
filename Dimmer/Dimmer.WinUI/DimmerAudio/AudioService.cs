@@ -263,7 +263,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     #region Core Playback Methods (Async)
 
     /// <summary>
-    /// Initializes the player with the specified track metadata. Stops any current playback.
+    /// Initializes the player with the specified track metadata and plays at the speficified position. Stops any current playback.
     /// </summary>
     /// <param name="metadata">The metadata of the track to load.</param>
     /// <returns>Task indicating completion.</returns>
@@ -324,7 +324,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
                     _mediaPlayer.Source = mediaPlaybackItem;
 
-success = true; // Assume success for now; MediaFailed will correct this
+success = true; 
 
                     Play(pos);
 

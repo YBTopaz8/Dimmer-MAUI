@@ -157,7 +157,7 @@ public static class SongDataProcessor
                                      song.SyncLyrics= newLyricsInfo.SynchronizedLyrics.Any() ? newLyricsInfo.SynchronizedLyrics.ToString()! : string.Empty;
                                      foreach (var phrase in newLyricsInfo.SynchronizedLyrics)
                                      {
-                                         song.EmbeddedSync.Add(new SyncLyricsView(phrase));
+                                         song.EmbeddedSync.Add(new LyricPhraseModelView(phrase));
                                      }
                                  });
                                  

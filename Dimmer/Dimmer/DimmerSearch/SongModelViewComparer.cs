@@ -88,3 +88,12 @@ public class SongModelViewComparer : IComparer<SongModelView>
         return new SongModelViewComparer(invertedDescriptions);
     }
 }
+
+public class RandomSongComparer : IComparer<SongModelView>
+{
+    public int Compare(SongModelView? x, SongModelView? y)
+    {
+        // Guid.NewGuid() is an excellent way to get a random, well-distributed sort key.
+        return Guid.NewGuid().CompareTo(Guid.NewGuid());
+    }
+}

@@ -17,6 +17,7 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    xmlns:behv ="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:Name="myPage"
                     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
@@ -281,14 +282,25 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                     </DataTrigger>
 
                 </Border.Triggers>
-                
 
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
+                       
                         <MenuFlyoutItem 
-                   Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
-                   CommandParameter="Black"
-                                       >
+                IconImageSource="eye.png"
+               Text="{Binding Title, StringFormat='View Song'}"
+    Clicked="NavigateToSelectedSongPageContextMenuAsync">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator
+Key="V" />
+
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+
+                        <MenuFlyoutItem 
+Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNotee"
+CommandParameter="Black" IconImageSource="chatdots.png"
+                    >
                             <MenuFlyoutItem.Text>
                                 <MultiBinding StringFormat="{}Add Quick Note to: {0} by {1}">
                                     <Binding Path="Title" />
@@ -297,43 +309,54 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                             </MenuFlyoutItem.Text>
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator
-                                    Key="N"
-                                    Modifiers="None"
-                                     />
+                 Key="N"
+                 Modifiers="None"
+                  />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
-                        <MenuFlyoutSubItem Text="File Tools">
+
+
+
+
+
+
+                        <MenuFlyoutItem 
+                     Text="{Binding OtherArtistsName,StringFormat='Quick View Artist : {0}'}"
+                               IconImageSource="artist.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="QuickSearchArtist_Clicked"
+                     x:Name="ViewArtistMFI"/>
+                        <MenuFlyoutItem 
+                     Text="{Binding AlbumName,StringFormat='Quick View Album : {0}'}"
+                                IconImageSource="albummm.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="QuickSearchAlbum_Clicked"
+                     x:Name="ViewAlbumMFI"/>
+                        <MenuFlyoutItem 
+                     Text="{Binding GenreName,StringFormat='Quick View Genre : {0}'}"
+                                IconImageSource="albumm.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="ViewGenreMFI_Clicked"
+                     x:Name="ViewGenreMFI"/>
+
+
+                        <MenuFlyoutSubItem Text="File Tools"
+                                               IconImageSource="settingssliders.png">
                             <MenuFlyoutItem Text="Open File in Explorer"
-                       Clicked="OnLabelClicked"
-                       CommandParameter="OpenFileExp" />
+    Clicked="OnLabelClicked"
+    CommandParameter="OpenFileExp" />
                             <MenuFlyoutItem Text="Delete from system"
-                       Clicked="OnLabelClicked"
-                       CommandParameter="DeleteSys" />
+    Clicked="OnLabelClicked" IconImageSource="deletesonginterfacesymbol.png"
+    IsDestructive="True"  CommandParameter="DeleteSys" />
                             <MenuFlyoutItem Text="Sync"
-                       Clicked="OnLabelClicked"
-                       CommandParameter="SyncShare" />
+     IconImageSource="roundtransferhorizontal.png"
+    CommandParameter="SyncShare" />
                         </MenuFlyoutSubItem>
-
-
-                        <MenuFlyoutItem Text="Toggle Top View"
-                                        Clicked="OnToggleTopViewClicked">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator
-                                    Key="O" 
-                                    Modifiers="Ctrl"/>
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem Text="{Binding Title, StringFormat='View Song'}"
-                                        Clicked="NavigateToSelectedSongPageContextMenuAsync">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator
-                                    Key="V" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
+
                 <Grid RowDefinitions="120"
-                                ColumnDefinitions="1*,*,1.9*,1.9*,*,*,*,0.7*"
+                                ColumnDefinitions="auto,*,1.9*,1.9*,*,*,*,0.7*"
                                 ColumnSpacing="5">
 
                     <Grid.GestureRecognizers>
@@ -416,7 +439,7 @@ Value="False">
                         </Border>
                     </HorizontalStackLayout>
 
-                    <Label  Grid.Column="1"
+                    <Label  Grid.Column="1" HorizontalTextAlignment="Justify"
                              ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
 
                         Text="{Binding Title}"
@@ -493,12 +516,7 @@ Value="False">
 
 
                     <syncf:SfEffectsView Grid.Column="5" ToolTipProperties.Text="{Binding GenreName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}">
-                        <syncf:SfEffectsView.GestureRecognizers>
-                            <PointerGestureRecognizer
-                                            PointerPressedCommandParameter="{Binding GenreName}"
-                                            PointerReleased="QuickFilterGest_PointerReleased"
-                                            PointerReleasedCommandParameter="genre" />
-                        </syncf:SfEffectsView.GestureRecognizers>
+                        
                         <Label
                                         HorizontalTextAlignment="Center"
                                         Text="{Binding ReleaseYear}"
@@ -578,7 +596,7 @@ Value="False">
                     ToolTipProperties.Text="Start a Topaz Query using TQL" />
                         <Label FontSize="19" 
                                HorizontalTextAlignment="Center"
-                               Text="{Binding CurrentQuery, StringFormat='Current Query : {0}'}" />
+                               Text="{Binding CurrentTqlQuery, StringFormat='Current Query : {0}'}" />
                              
                         <Grid
                 ColumnDefinitions="*,auto"
@@ -748,7 +766,7 @@ HeightRequest="50"
                         EmptyView="No Songs.." Scrolled="SongsColView_Scrolled"
                             ScrollToRequested="SongsColView_ScrollToRequested"
                         IsVisible="True"
-                        ItemsSource="{Binding SearchResults}"
+                        ItemsSource="{Binding PlaybackQueue}"
                         Loaded="MainSongsColView_Loaded"
                         SelectionMode="Single"
                             SelectedItem="{Binding SelectedSong}"

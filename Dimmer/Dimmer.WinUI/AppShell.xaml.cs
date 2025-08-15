@@ -330,4 +330,82 @@ public partial class AppShell : Shell
             this.FlyoutBehavior = FlyoutBehavior.Flyout;
         }
     }
+
+
+    private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        var newItem = e.CurrentSelection;
+        if (newItem.Count > 0)
+        {
+
+            AllLyricsColView.ScrollTo(item: newItem[0], ScrollToPosition.Start, animate: true);
+        }
+    }
+
+    private void Slider_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void VolumeSlider_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void VolumeSlider_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+    private void SfEffectsView_Loaded(object sender, EventArgs e)
+    {
+#if WINDOWS
+        var send = (SfEffectsView)sender;
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler!.PlatformView!;
+        mainLayout.PointerWheelChanged += MainLayout_PointerWheelChanged;
+#endif
+    }
+
+#if WINDOWS
+    private void MainLayout_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var pointerPoint = e.GetCurrentPoint(null);
+        int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
+
+        if (mouseWheelDelta != 0)
+        {
+            if (mouseWheelDelta > 0)
+            {
+                if (MyViewModel.DeviceVolumeLevel >=1)
+                {
+                    return;
+                }
+                MyViewModel.IncreaseVolumeLevel();
+                // Handle scroll up
+            }
+            else
+            {
+                if (MyViewModel.DeviceVolumeLevel <= 0)
+                {
+                    return;
+                }
+
+                MyViewModel.DecreaseVolumeLevel();
+                // Handle scroll down
+            }
+        }
+
+        e.Handled = true;
+    }
+
+#endif
+
+    private void SfEffectsView_Unloaded(object sender, EventArgs e)
+    {
+#if WINDOWS
+        var send = (SfEffectsView)sender;
+        Microsoft.UI.Xaml.UIElement? mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler!.PlatformView!;
+        mainLayout.PointerWheelChanged -= MainLayout_PointerWheelChanged;
+#endif
+
+    }
 }

@@ -2,6 +2,8 @@
 
 using System.Text.RegularExpressions;
 
+using static ATL.TagData;
+
 namespace Dimmer.DimmerSearch.TQL;
 
 public class AstParser
@@ -63,30 +65,40 @@ public class AstParser
         }
         return ParseClause();
     }
-
     private IQueryNode ParseClause()
     {
         var peekToken = Peek();
         string field = "any";
+        string op = "contains"; // Default operator
+        bool isNegated = false;
 
-        if (peekToken.Type == TokenType.Identifier)
+        // --- Step 1: Check for standalone keywords first ---
+        if (peekToken.Type == TokenType.Identifier && Peek(1).Type != TokenType.Colon)
         {
-            if (Peek(1).Type == TokenType.Colon)
+            if (peekToken.Text.Equals("chance", StringComparison.OrdinalIgnoreCase))
             {
-                field = Consume(TokenType.Identifier).Text;
-                Consume(TokenType.Colon, $"Expected ':' after field '{field}'.");
-            }
-            else
-            {
-                if (peekToken.Text.Equals("chance", StringComparison.OrdinalIgnoreCase))
-                {
-                    return ParseChanceClause();
-                }
+                return ParseChanceClause();
             }
         }
 
+        // --- Step 2: Parse the field name (if it exists) ---
+        if (Peek().Type == TokenType.Identifier && Peek(1).Type == TokenType.Colon)
+        {
+            field = Consume(TokenType.Identifier).Text;
+            Consume(TokenType.Colon, $"Expected ':' after field '{field}'.");
+        }
+
+        // --- Step 3: Check for operators and negation ---
+        if (IsOperator(Peek().Type))
+        {
+            op = Consume(Peek().Type).Text;
+        }
+        isNegated = Match(TokenType.Not, TokenType.Bang);
+
+        // --- Step 4: Context-aware value parsing ---
         if (FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDef) && fieldDef.Type == FieldType.Date)
         {
+            // If the field is a date, check for our special keywords
             var nextToken = Peek();
             if (nextToken.Type == TokenType.Identifier)
             {
@@ -95,7 +107,8 @@ public class AstParser
                     case "ago":
                     case "between":
                     case "never":
-                        return ParseFuzzyDateClause(field);
+                        // --- FIX: Pass the parsed operator to the fuzzy date parser ---
+                        return ParseFuzzyDateClause(field, op);
                     case "morning":
                     case "afternoon":
                     case "evening":
@@ -105,14 +118,7 @@ public class AstParser
             }
         }
 
-        string op = "contains";
-        if (IsOperator(Peek().Type))
-        {
-            op = Consume(Peek().Type).Text;
-        }
-
-        bool isNegated = Match(TokenType.Not, TokenType.Bang);
-
+        // --- Step 5: If it's not a special date keyword, fall back to generic value parsing ---
         if (!IsValueToken(Peek().Type))
             throw new ParsingException($"Expected a value for field '{field}' but found '{Peek().Text}'.", Peek().Position);
 
@@ -145,18 +151,20 @@ public class AstParser
         throw new ParsingException($"Invalid percentage value '{numberToken.Text}'.", numberToken.Position);
     }
 
-    private IQueryNode ParseFuzzyDateClause(string field)
+    private IQueryNode ParseFuzzyDateClause(string field, string op)
     {
         var typeToken = Consume(TokenType.Identifier);
         switch (typeToken.Text.ToLowerInvariant())
         {
             case "never":
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Never);
+                // --- ADD: Pass the operator to the node ---
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Never, op);
             case "ago":
                 Consume(TokenType.LeftParen, "Expected '(' after 'ago'.");
                 var agoVal = Consume(TokenType.StringLiteral, "Expected a time string like \"30d\" or \"1y\".");
                 Consume(TokenType.RightParen, "Expected ')' after time string.");
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, ParseTimeSpan(agoVal.Text));
+                // --- ADD: Pass the operator to the node ---
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, op, ParseTimeSpan(agoVal.Text));
             case "between":
                 Consume(TokenType.LeftParen, "Expected '(' after 'between'.");
                 var olderValToken = Consume(TokenType.StringLiteral, "Expected the 'older' time string.");
@@ -169,7 +177,8 @@ public class AstParser
                 {
                     throw new ParsingException("The first date in 'between' must be older than the second.", olderValToken.Position);
                 }
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Between, olderTimeSpan, newerTimeSpan);
+                // --- ADD: Pass the operator to the node (usually defaults to 'contains') ---
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Between, op, olderTimeSpan, newerTimeSpan);
             default:
                 throw new ParsingException($"Unknown fuzzy date qualifier '{typeToken.Text}'.", typeToken.Position);
         }

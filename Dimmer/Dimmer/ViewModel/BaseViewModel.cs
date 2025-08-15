@@ -26,6 +26,7 @@ using DynamicData;
 using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Maui.Graphics;
 
 using Parse.LiveQuery;
 //using MoreLinq;
@@ -160,19 +161,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
              {
                  if (string.IsNullOrWhiteSpace(query))
                  {
-                     // Return a default, "show all" state
-                     return new ParsedQueryResult(s => true, new SongModelViewComparer(null), null, null, null);
+                     var defaultResult = new ParsedQueryResult(s => true, new SongModelViewComparer(null), null, null, null);
+                     return (Query: string.Empty, Result: defaultResult);
                  }
-
                  var tqlQuery = NaturalLanguageProcessor.Process(query);
-                 // MetaParser now handles all parsing and error capturing in one call.
-                 return  MetaParser.Parse(tqlQuery);
+                 var parsedResult = MetaParser.Parse(tqlQuery);
+                 return (Query: tqlQuery, Result: parsedResult); // Pass the processed query along with the result
              })
-             .ObserveOn(RxApp.MainThreadScheduler)
-             .Subscribe(result =>
-             {
-                 // --- Update UI with any parsing errors ---
-                 string finalErrorMessage = result.ErrorMessage ?? string.Empty;
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(payload =>
+            {
+                var result = payload.Result;
+                // --- Update UI with any parsing errors ---
+                string finalErrorMessage = result.ErrorMessage ?? string.Empty;
                  if (result.ErrorMessage != null && result.ErrorSuggestion != null)
                  {
                      finalErrorMessage += $"\nDid you mean '{result.ErrorSuggestion}'?";
@@ -204,67 +205,71 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
              ex => _logger.LogError(ex, "FATAL: Search control pipeline has crashed."))
              .DisposeWith(Disposables);
 
-        var controlPipeline = 
-            Observable.CombineLatest(
-      _filterPredicate,
-      _sortComparer,
-      _limiterClause,
-      (predicate, comparer, limiter) => new { predicate, comparer, limiter }
-  );
-
-        //return;
+        var finalComparer = Observable.CombineLatest(
+        _sortComparer,
+        _limiterClause,
+        (comparer, limiter) =>
+        {
+            if (limiter?.Type == LimiterType.Random)
+            {
+                // If the limiter is random, ALWAYS use a random sort.
+                return new RandomSongComparer();
+            }
+            // Otherwise, use the deterministic comparer from the parser.
+            return comparer;
+        });
         _songSource.Connect()
-           .Filter(song => !song.IsHidden)
-           .ToCollection()
-           .ObserveOn(RxApp.TaskpoolScheduler)
-           .CombineLatest(controlPipeline, (songs, controls) => new { songs, controls })
-           .Select(data =>
-           {
-               var predicate = data.controls.predicate;
-               var comparer = data.controls.comparer;
-               var limiter = data.controls.limiter;
+        .Filter(song => !song.IsHidden)
+        .Filter(_filterPredicate)
+        .ToCollection()
+        .CombineLatest(_sortComparer, _limiterClause,
+                       (songs, comparer, limiter) => (songs, comparer, limiter))
+        .Select(data =>
+        {
+            var songs = data.songs;
+            var comparer = data.comparer;
+            var limiter = data.limiter;
 
-               var filtered = data.songs.Where(predicate);
+            IEnumerable<SongModelView> sorted;
 
-               IEnumerable<SongModelView> sorted;
+            // Detect a random sort request from the LimiterClause, which is the correct signal.
+            if (limiter?.Type == LimiterType.Random)
+            {
+                // --- THE DEFINITIVE FIX FOR THE ArgumentException ---
+                // This "tags" each item with a stable random key ONCE, then sorts.
+                sorted = songs.OrderBy(x => Guid.NewGuid());
+            }
+            else if (limiter?.Type == LimiterType.Last)
+            {
+                var invertedComparer = (comparer as SongModelViewComparer)!.Inverted();
+                sorted = songs.OrderBy(x => x, invertedComparer);
+            }
+            else
+            {
+                // Standard, stable sorting.
+                sorted = songs.OrderBy(x => x, comparer);
+            }
 
-               // Check if the comparer has any sort descriptions and if the first one is Random.
-               bool isRandomSort = (comparer as SongModelViewComparer)?.SortDescriptions
-                   .FirstOrDefault()?.Direction ==  SortDirection.Random;
+            if (limiter == null)
+            {
+                return sorted.ToList();
+            }
+            // Apply the limit AFTER the sort is complete.
+            return sorted.Take(limiter.Count).ToList();
+        })
+        .ObserveOn(RxApp.MainThreadScheduler)
+        .Subscribe(
+            newList =>
+            {
+                searchResultsHolder.Edit(updater =>
+                {
+                    updater.Clear();
+                    updater.AddRange(newList);
+                });
+            },
+            ex => _logger.LogError(ex, "FATAL: Data calculation pipeline crashed!"))
+        .DisposeWith(Disposables);
 
-               if (isRandomSort)
-               {
-                   // **THE FIX:** Use a single, thread-safe Random instance.
-                   // Or even better, create a temporary, stateless mapping of songs to random keys.
-                   // This is the most robust and performant way to handle random sorting in a hot path.
-                   var random = new Random();
-                   sorted = filtered.OrderBy(x => random.Next());
-               }
-               else if (limiter?.Type == LimiterType.Last)
-               {
-                   var invertedComparer = (comparer as SongModelViewComparer)?.Inverted() ?? comparer;
-                   sorted = filtered.OrderBy(x => x, invertedComparer);
-               }
-               else
-               {
-                   sorted = filtered.OrderBy(x => x, comparer);
-               }
-
-               var limited = sorted.Take(limiter?.Count ?? int.MaxValue);
-               return limited.ToList();
-           })
-           .ObserveOn(RxApp.MainThreadScheduler)
-           .Subscribe(
-               newList =>
-               {
-                   searchResultsHolder.Edit(updater =>
-                   {
-                       updater.Clear();
-                       updater.AddRange(newList);
-                   });
-               },
-               ex => _logger.LogError(ex, "FATAL: Data calculation pipeline crashed!"))
-           .DisposeWith(Disposables);
 
         searchResultsHolder.Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -273,19 +278,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 cs => { /* Binding is complete */ },
                 ex => _logger.LogError(ex, "FATAL: Data binding pipeline crashed!"))
             .DisposeWith(Disposables);
-
-
-        searchResultsHolder.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out _searchResults)
-            .Subscribe(
-                cs =>
-                {
-
-                },
-                ex => _logger.LogError(ex, "FATAL: Data binding pipeline crashed!"))
-            .DisposeWith(Disposables);
-
 
         string rql = "TRUEPREDICATE SORT(EventDate DESC)";
 
@@ -432,9 +424,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     public RuleBasedPlaybackManager PlaybackManager { get; }
-   
-   
-   
+
+    private readonly BehaviorSubject<string> _currentQueryText = new("");
+
 
     SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
     public void LoadAllSongsEvents()
@@ -858,9 +850,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
     [ObservableProperty]
-    public partial string AppTitle { get; set; } = "Dimmer v1.96 Theta";
+    public partial string AppTitle { get; set; } = "Dimmer v1.98 Theta";
 
-    public const string CurrentAppVersion = "Dimmer v1.96 Theta";
+    public const string CurrentAppVersion = "Dimmer v1.98 Theta";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
@@ -1515,7 +1507,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (song is null)
         {
            
-            AppTitle = "Dimmer - 1.3Theta";
+            AppTitle = "Dimmer - 1.97Theta";
             CurrentTrackDurationSeconds = 1;
             return;
         }
@@ -1817,14 +1809,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (appModel is not null && appModel.Count>0)
         {
             var appmodel = appModel[0];
-           
-                //appmodel.LastKnownQuery = CurrentQuery;
-                //appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
-                //appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
-                //appmodel.LastKnownPlaybackQueue = _playbackQueue.ToList();
-                //appmodel.LastKnownShuffleState = IsShuffleActive;
-                //appmodel.LastKnownRepeatState = IsRepeatActive;
-            
+
+            CurrentTqlQuery=appmodel.LastKnownQuery;
+            CurrentPlaybackQuery=appmodel.LastKnownPlaybackQuery ;
+            _playbackQueueIndex=appmodel.LastKnownPlaybackQueueIndex;
+            IsShuffleActive = appmodel.LastKnownShuffleState ;
+            CurrentRepeatMode=(RepeatMode)appmodel.LastKnownRepeatState;
+
             CurrentTrackPositionSeconds= appmodel.LastKnownPosition;
 
             var song=_songSource.Items.FirstOrDefault(x=> x.Id.ToString() == appmodel.CurrentSongId);
@@ -1852,6 +1843,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
         }
 
+        
     }
 
     public  void OnAppClosing()
@@ -1863,12 +1855,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var appmodel = appModel[0];
             realmm.Write(() =>
             {
-                //appmodel.LastKnownQuery = CurrentQuery;
-                //appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
-                //appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
-                //appmodel.LastKnownPlaybackQueue = _playbackQueue.ToList();
-                //appmodel.LastKnownShuffleState = IsShuffleActive;
-                //appmodel.LastKnownRepeatState = IsRepeatActive;
+                appmodel.LastKnownQuery = CurrentTqlQuery;
+                appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
+                appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
+                appmodel.LastKnownShuffleState = IsShuffleActive;
+                appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
                 appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
                 appmodel.CurrentSongId = CurrentPlayingSongView?.Id.ToString();
                 appmodel.VolumeLevelPreference=audioService.Volume;
@@ -1886,11 +1877,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
            .Subscribe(lines => AllLines = lines.ToObservableCollection()));
 
-        _subsManager.Add(_lyricsMgtFlow.CurrentLyric
-            .Subscribe(line => CurrentLine = line));
-
         _subsManager.Add(_lyricsMgtFlow.PreviousLyric
-            .Subscribe(line => PreviousLine = line));
+            .Subscribe(line =>
+            {
+
+                PreviousLine = line;
+                if (PreviousLine is not null)
+                {
+                    PreviousLine.TextColor = Colors.DarkSlateBlue;
+                    PreviousLine.NowPlayingLyricsFontSize= 12;
+                }
+            }));
 
         _subsManager.Add(_lyricsMgtFlow.NextLyric
             .Subscribe(line =>
@@ -2071,8 +2068,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var otherSongs = songs.Where(s => s.Id != songToStartWith.Id).ToList();
             var shuffledSongs = otherSongs.OrderBy(x => _random.Next()).ToList();
 
-            finalQueue = new List<SongModelView> { songToStartWith };
-            finalQueue.AddRange(shuffledSongs);
+            finalQueue = [songToStartWith, .. shuffledSongs];
             finalStartIndex = 0;
         }
         else
@@ -4631,6 +4627,43 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         });
         IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
     }
+
+    /// <summary>
+    /// Plays a song that has just been transferred from another device,
+    /// and immediately seeks to the correct starting position.
+    /// This ensures a seamless handover.
+    /// </summary>
+    /// <param name="transferredSong">The SongModelView representing the downloaded file.</param>
+    /// <param name="startPositionSeconds">The position to seek to.</param>
+    public async Task PlayTransferredSongAsync(SongModelView transferredSong, double startPositionSeconds)
+    {
+        if (transferredSong == null)
+            return;
+
+        // We don't add the transferred song to the main queue, we just play it directly.
+        // Or, you could decide to insert it. For now, let's play it as a one-off.
+
+        // Stop any current playback
+        if (audioService.IsPlaying)
+        {
+            audioService.Stop();
+        }
+
+        _logger.LogInformation("Playing transferred song '{Title}' and seeking to {Position}s.", transferredSong.Title, startPositionSeconds);
+
+        // Set the current song so the UI updates
+        CurrentPlayingSongView = transferredSong;
+
+        // Load and play the new file
+        await audioService.InitializeAsync(transferredSong, startPositionSeconds);
+
+        // Now, seek to the correct position
+        if (startPositionSeconds > 0 && startPositionSeconds < transferredSong.DurationInSeconds)
+        {
+            audioService.Seek(startPositionSeconds);
+        }
+    }
+
     [ObservableProperty]
     public partial bool IsDarkModeOn { get; set; } 
 }

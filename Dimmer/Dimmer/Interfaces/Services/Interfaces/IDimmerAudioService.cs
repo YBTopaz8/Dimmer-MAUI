@@ -69,5 +69,10 @@ public interface IDimmerAudioService
     List<AudioOutputDevice>? GetAllAudioDevices();
     bool SetPreferredOutputDevice(AudioOutputDevice dev);
     void Play(double pos);
+    /// <summary>
+    /// Initializes the player with the specified track metadata. Stops any current playback.
+    /// </summary>
+    /// <param name="metadata">The metadata of the track to load.</param>
+    /// <returns>Task indicating completion.</returns>
     Task InitializeAsync(SongModelView songModel, double pos);
 }

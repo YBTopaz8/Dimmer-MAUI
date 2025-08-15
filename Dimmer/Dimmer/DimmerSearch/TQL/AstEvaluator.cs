@@ -128,24 +128,6 @@ public class AstEvaluator
                 result = songBoolValue == queryBoolValue;
                 break;
 
-            case FieldType.Date: // This is where our new date logic goes!
-                var songDateValue = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
-                if (songDateValue == null)
-                {
-                    result = false; // or handle as needed, e.g. for "played:never" this would be true
-                    break;
-                }
-                // Updated to handle standard date comparisons more cleanly
-                var (start, end) = ParseDateValue(node.Value.ToString());
-                result = node.Operator switch
-                {
-                    ">" => songDateValue.Value.Date > end.Date,
-                    "<" => songDateValue.Value.Date < start.Date,
-                    ">=" => songDateValue.Value.Date >= start.Date,
-                    "<=" => songDateValue.Value.Date <= end.Date,
-                    _ => songDateValue.Value.Date >= start.Date && songDateValue.Value.Date <= end.Date,
-                };
-                break;
         }
 
         // Finally, apply negation if it exists.
@@ -218,9 +200,17 @@ public class AstEvaluator
                 return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue); // Invalid format
         }
     }
+
     private bool EvaluateFuzzyDate(FuzzyDateNode node, SongModelView song)
     {
-        var songDate = SemanticQueryHelpers.GetDateProp(song, node.DateField);
+        // --- FIX: We must look up the real property name from the alias in the node.
+        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.DateField, out var fieldDef))
+        {
+            return false; // Invalid field alias used, e.g., "playedd:ago(...)"
+        }
+        var propertyName = fieldDef.PropertyName;
+        var songDate = SemanticQueryHelpers.GetDateProp(song, propertyName);
+        // --- END FIX ---
 
         if (node.Type == FuzzyDateNode.Qualifier.Never)
         {
@@ -228,7 +218,7 @@ public class AstEvaluator
         }
 
         if (songDate == null)
-            return false; // Must have a date for other qualifiers
+            return false;
 
         var now = DateTimeOffset.UtcNow;
         switch (node.Type)
@@ -236,24 +226,46 @@ public class AstEvaluator
             case FuzzyDateNode.Qualifier.Ago:
                 if (node.OlderThan.HasValue)
                 {
-                    // ago("30d") means "played in the last 30 days" -> date > now - 30d
-                    return songDate.Value > now.Subtract(node.OlderThan.Value);
+                    var boundaryDate = now.Subtract(node.OlderThan.Value);
+                    // Now we use the operator from the node
+                    return node.Operator switch
+                    {
+                        ">" => songDate.Value > boundaryDate,  // "more recent than 1 week ago"
+                        "<" => songDate.Value < boundaryDate,  // "older than 1 week ago"
+                        _ => songDate.Value > boundaryDate,  // Default 'ago' means "within this period"
+                    };
                 }
                 break;
-                // case FuzzyDateNode.Qualifier.Between: ... implement if needed ...
+
+            case FuzzyDateNode.Qualifier.Between:
+                if (node.OlderThan.HasValue && node.NewerThan.HasValue)
+                {
+                    var olderBoundary = now.Subtract(node.OlderThan.Value);
+                    var newerBoundary = now.Subtract(node.NewerThan.Value);
+                    // 'between' is a range, so it ignores other operators and implies an inclusive check.
+                    return songDate.Value >= olderBoundary && songDate.Value <= newerBoundary;
+                }
+                break;
         }
         return false;
     }
 
     private bool EvaluateDaypart(DaypartNode node, SongModelView song)
     {
-        var songDate = SemanticQueryHelpers.GetDateProp(song, node.DateField);
+        // --- FIX: We must look up the real property name from the alias in the node.
+        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.DateField, out var fieldDef))
+        {
+            return false; // Invalid field alias used
+        }
+        var propertyName = fieldDef.PropertyName;
+        var songDate = SemanticQueryHelpers.GetDateProp(song, propertyName);
+        // --- END FIX ---
+
         if (songDate == null)
             return false;
 
         var timeOfDay = songDate.Value.TimeOfDay;
 
-        // Handle overnight ranges like "night" (22:00 - 06:00)
         if (node.StartTime > node.EndTime)
         {
             return timeOfDay >= node.StartTime || timeOfDay < node.EndTime;

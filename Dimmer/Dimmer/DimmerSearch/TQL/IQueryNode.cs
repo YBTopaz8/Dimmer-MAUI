@@ -27,12 +27,15 @@ public class FuzzyDateNode : IQueryNode
     public enum Qualifier { Ago, Between, Never }
     public string DateField { get; }
     public Qualifier Type { get; }
-    public TimeSpan? OlderThan { get; } // For ago(>1 month) or between(X, Y)
-    public TimeSpan? NewerThan { get; }  // For between(X, Y)
-    public FuzzyDateNode(string dateField, Qualifier type, TimeSpan? olderThan = null, TimeSpan? newerThan = null)
+    public string Operator { get; } 
+    public TimeSpan? OlderThan { get; }
+    public TimeSpan? NewerThan { get; }
+
+    public FuzzyDateNode(string dateField, Qualifier type, string op, TimeSpan? olderThan = null, TimeSpan? newerThan = null)
     {
         DateField = dateField;
         Type = type;
+        Operator = op; 
         OlderThan = olderThan;
         NewerThan = newerThan;
     }

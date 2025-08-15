@@ -33,77 +33,77 @@
     </Shell.Resources>
     <Shell.FlyoutContent>
 
+        <syncf:SfTabView EnableSwiping="True" TabBarHeight="0" TabBarPlacement="Bottom">
+            <syncf:SfTabItem x:Name="MediaControlsView">
+                <syncf:SfTabItem.Content>
 
-        <VerticalStackLayout
+
+                    <VerticalStackLayout
             HorizontalOptions="Start"
             x:Name="BottomLeft" Spacing="10"
             Grid.Row="1" BackgroundColor="Transparent"
             Margin="10,10">
-            <HorizontalStackLayout HorizontalOptions="End" IsVisible="False">
-                <Button BackgroundColor="Transparent"
+                        <HorizontalStackLayout HorizontalOptions="End" IsVisible="False">
+                            <Button BackgroundColor="Transparent"
                         windows:VisualElement.AccessKey="E"
                         x:Name="ToggleAppFlyoutState"
                         Clicked="ToggleAppFlyoutState_Clicked"
                         ImageSource="hamburgermenu.png"
                         HeightRequest="80" />
-            </HorizontalStackLayout>
-            
-            <Grid Grid.Row="1" Margin="5">
-                <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-      Opacity="0.2" Aspect="AspectFit" />
-                <Border StrokeShape="RoundRectangle 20"
-                Margin="10,0"
-                
-                  x:Name="NavTab">
-                    <Border.Triggers>
+                        </HorizontalStackLayout>
 
-                        <DataTrigger
-Binding="{Binding IsPlaying}"
+                        <Grid Grid.Row="1" Margin="5">
+                            <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+      Opacity="0.3" Aspect="AspectFit" />
+                            <Border StrokeShape="RoundRectangle 20"
+                Margin="10,0"
+                StrokeThickness="3"
+                  x:Name="NavTab">
+                                <Border.Triggers>
+
+                                    
+
+                                    <DataTrigger
+Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
 TargetType="Border"
 Value="true">
-                            <Setter Property="StrokeThickness" Value="2" />
-                        </DataTrigger>
+                                        <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
+                                    </DataTrigger>
 
-                        <DataTrigger
-Binding="{Binding IsPlaying}"
-TargetType="Border"
-Value="false">
-                            <Setter Property="StrokeThickness" Value="0" />
-                        </DataTrigger>
+                                  
 
+                                </Border.Triggers>
 
-                    </Border.Triggers>
-
-                    <VerticalStackLayout
+                                <VerticalStackLayout
 x:Name="LyricsSection"
 HorizontalOptions="Center" VerticalOptions="Center"
 IsVisible="True">
-                        <VerticalStackLayout.Triggers>
+                                    <VerticalStackLayout.Triggers>
 
-                            <DataTrigger
+                                        <DataTrigger
         Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
         TargetType="VerticalStackLayout"
         Value="true">
-                                <Setter Property="IsVisible" Value="True" />
-                            </DataTrigger>
+                                            <Setter Property="IsVisible" Value="True" />
+                                        </DataTrigger>
 
-                            <DataTrigger
+                                        <DataTrigger
         Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
         TargetType="VerticalStackLayout"
         Value="false">
-                                <Setter Property="IsVisible" Value="False" />
-                            </DataTrigger>
-                        </VerticalStackLayout.Triggers>
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </VerticalStackLayout.Triggers>
 
-                        <Label
+                                    <Label
     FontSize="15"
     HorizontalTextAlignment="Center"
     Opacity="0.7"
     Text="{Binding PreviousLine.Text}" />
-                        <Grid 
+                                    <Grid 
     HorizontalOptions="Center">
-                            <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
-                            <Label
+                                        <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
+                                        <Label
         Margin="10"
         FontAttributes="Bold"
         FontSize="36"
@@ -111,28 +111,28 @@ IsVisible="True">
         Opacity="1"
         Text="{Binding CurrentLine.Text}"
         TextColor="DarkSlateBlue">
-                                <Label.Triggers />
-                            </Label>
-                        </Grid>
-                        <Label
+                                            <Label.Triggers />
+                                        </Label>
+                                    </Grid>
+                                    <Label
     FontSize="17"
     HorizontalTextAlignment="Center"
     Opacity="0.7"
     Text="{Binding NextLine.Text}" />
-                    </VerticalStackLayout>
+                                </VerticalStackLayout>
 
-                </Border>
+                            </Border>
 
-            </Grid>
-            <Label HorizontalOptions="Center"
+                        </Grid>
+                        <Label HorizontalOptions="Center"
         HorizontalTextAlignment="Justify" LineBreakMode="WordWrap"
                  FontAttributes="Bold"
      Text="{Binding CurrentPlayingSongView.Title}" FontSize="21">
 
 
-            </Label>
-                <HorizontalStackLayout HorizontalOptions="Center">
-                    <Button 
+                        </Label>
+                        <HorizontalStackLayout HorizontalOptions="Center">
+                            <Button 
                         Command="{Binding ToggleFavSongCommand}"
                         CommandParameter="{Binding CurrentPlayingSongView}"
                         BackgroundColor="Transparent"
@@ -142,77 +142,77 @@ IsVisible="True">
                                     windows:VisualElement.AccessKey="H"
                         ImageSource="heart.png"
                         WidthRequest="58">
-                        <Button.Triggers>
-                            <DataTrigger
+                                <Button.Triggers>
+                                    <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                 TargetType="Button"
                                 Value="False">
-                                <Setter Property="ImageSource" Value="heartbroken.png" />
-                                <Setter Property="ToolTipProperties.Text" Value="Not Favorite" />
+                                        <Setter Property="ImageSource" Value="heartbroken.png" />
+                                        <Setter Property="ToolTipProperties.Text" Value="Not Favorite" />
 
-                            </DataTrigger>
-                            <DataTrigger
+                                    </DataTrigger>
+                                    <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                 TargetType="Button"
                                 Value="True">
-                                <Setter Property="ImageSource" Value="heartlock.png" />
-                                <Setter Property="ToolTipProperties.Text" Value="Favorite" />
+                                        <Setter Property="ImageSource" Value="heartlock.png" />
+                                        <Setter Property="ToolTipProperties.Text" Value="Favorite" />
 
 
-                            </DataTrigger>
-                        </Button.Triggers>
-                    </Button>
-                    <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
                         Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
                        Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
-                </HorizontalStackLayout>
-            <Grid ColumnDefinitions="*,auto" >
-             
+                        </HorizontalStackLayout>
+                        <Grid ColumnDefinitions="*,auto" >
 
-            </Grid>
 
-            <Label HorizontalTextAlignment="Start" 
+                        </Grid>
+
+                        <Label HorizontalTextAlignment="Start" 
                    Text="{Binding CurrentPlayingSongView.OtherArtistsName}" FontSize="16">
 
-                <Label.GestureRecognizers>
-                    <PointerGestureRecognizer
+                            <Label.GestureRecognizers>
+                                <PointerGestureRecognizer
                      PointerPressedCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
                      PointerReleased="QuickFilterGest_PointerReleased"
                      PointerReleasedCommandParameter="artist" />
-                </Label.GestureRecognizers>
-            </Label>
+                            </Label.GestureRecognizers>
+                        </Label>
 
-            <Label HorizontalTextAlignment="Start"
+                        <Label HorizontalTextAlignment="Start"
                    Text="{Binding CurrentPlayingSongView.AlbumName}" 
                    FontSize="16">
-                <Label.GestureRecognizers>
-                    <PointerGestureRecognizer
+                            <Label.GestureRecognizers>
+                                <PointerGestureRecognizer
 PointerPressedCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
 PointerReleased="QuickFilterGest_PointerReleased"
 PointerReleasedCommandParameter="album" />
-                </Label.GestureRecognizers>
-            </Label>
+                            </Label.GestureRecognizers>
+                        </Label>
 
 
 
-            <HorizontalStackLayout
+                        <HorizontalStackLayout
                        x:Name="MediaBtns"
                        Grid.Row="0"
                        HeightRequest="50"
                        Spacing="10" HorizontalOptions="Center"
                        VerticalOptions="Center">
 
-                <HorizontalStackLayout.Resources>
-                    <Style TargetType="Button">
-                        <Setter Property="HeightRequest" 
+                            <HorizontalStackLayout.Resources>
+                                <Style TargetType="Button">
+                                    <Setter Property="HeightRequest" 
                                                     Value="50"/>
-                        <Setter Property="WidthRequest" 
+                                    <Setter Property="WidthRequest" 
                                                     Value="60"/>
-                    </Style>
-                </HorizontalStackLayout.Resources>
+                                </Style>
+                            </HorizontalStackLayout.Resources>
 
 
-                <Button
+                            <Button
          WidthRequest="60"
          BorderWidth="0"
 Background="Transparent"
@@ -221,20 +221,20 @@ ImageSource="shuffle.png"
 ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
          
 StyleClass="MediaBtnChip">
-                    <Button.Triggers>
-                        <DataTrigger
+                                <Button.Triggers>
+                                    <DataTrigger
         Binding="{Binding IsShuffleActive}"
         TargetType="Button"
         Value="True">
-                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
-                            <Setter Property="BorderWidth" Value="2" />
+                                        <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                        <Setter Property="BorderWidth" Value="2" />
 
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
 
 
-                <Button
+                            <Button
                            x:Name="SkipPrev"
                            windows:VisualElement.AccessKey="B"
                            windows:VisualElement.AccessKeyPlacement="Bottom"
@@ -243,7 +243,7 @@ StyleClass="MediaBtnChip">
                            Command="{Binding PreviousTrackCommand}"
                            ImageSource="skipprevious.png"
                            StyleClass="MediaBtnChip" />
-                <Button
+                            <Button
                            x:Name="PlayPauseBtn" BorderWidth="0"
                            windows:VisualElement.AccessKey="P"
                            windows:VisualElement.AccessKeyPlacement="Bottom"
@@ -252,23 +252,23 @@ StyleClass="MediaBtnChip">
                            ImageSource="play.png"
                            StyleClass="MediaBtnChip">
 
-                    <Button.Triggers>
-                        <DataTrigger
+                                <Button.Triggers>
+                                    <DataTrigger
                                    Binding="{Binding IsPlaying}"
                                    TargetType="Button"
                                    Value="true">
-                            <Setter Property="ImageSource" Value="pause.png" />
-                        </DataTrigger>
+                                        <Setter Property="ImageSource" Value="pause.png" />
+                                    </DataTrigger>
 
-                        <DataTrigger
+                                    <DataTrigger
                                    Binding="{Binding IsPlaying}"
                                    TargetType="Button"
                                    Value="false">
-                            <Setter Property="ImageSource" Value="play.png" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-                <Button BorderWidth="0"
+                                        <Setter Property="ImageSource" Value="play.png" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button BorderWidth="0"
                            x:Name="SkipNext"
                            windows:VisualElement.AccessKey="N"
                            windows:VisualElement.AccessKeyPlacement="Bottom"
@@ -278,51 +278,51 @@ StyleClass="MediaBtnChip">
                            StyleClass="MediaBtnChip" />
 
 
-                <Button
+                            <Button
          WidthRequest="60"
 Background="Transparent"
 Command="{Binding ToggleRepeatModeCommand}"
 ImageSource="repeat.png"
 StyleClass="MediaBtnChip"
 ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
-                    <Button.Triggers>
-                        <DataTrigger
+                                <Button.Triggers>
+                                    <DataTrigger
         Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="0">
-                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
-                            <Setter Property="BorderWidth" Value="1" />
+                                        <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                        <Setter Property="BorderWidth" Value="1" />
 
 
-                        </DataTrigger>
-                        <DataTrigger
+                                    </DataTrigger>
+                                    <DataTrigger
         Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="1">
-                            <Setter Property="BorderColor" Value="LightBlue" />
-                            <Setter Property="BorderWidth" Value="2" />
+                                        <Setter Property="BorderColor" Value="LightBlue" />
+                                        <Setter Property="BorderWidth" Value="2" />
 
-                        </DataTrigger>
-                        <DataTrigger
+                                    </DataTrigger>
+                                    <DataTrigger
         Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="2">
-                            <Setter Property="BorderColor" Value="Orange" />
-                            <Setter Property="BorderWidth" Value="2" />
+                                        <Setter Property="BorderColor" Value="Orange" />
+                                        <Setter Property="BorderWidth" Value="2" />
 
-                        </DataTrigger>
-                        <DataTrigger
+                                    </DataTrigger>
+                                    <DataTrigger
         Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="3">
-                            <Setter Property="BorderColor" Value="Red" />
-                            <Setter Property="BorderWidth" Value="2" />
+                                        <Setter Property="BorderColor" Value="Red" />
+                                        <Setter Property="BorderWidth" Value="2" />
 
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-            </HorizontalStackLayout>
-            <Slider
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </HorizontalStackLayout>
+                        <Slider
 x:Name="TrackProgressSlider"
 Grid.Column="1"
 DragCompleted="Slider_DragCompleted"
@@ -331,27 +331,50 @@ Minimum="0" MaximumTrackColor="{AppThemeBinding Dark=White,Light=Black}"
 MinimumTrackColor="DarkSlateBlue"
 ThumbColor="{Binding CurrentPlaySongDominantColor}"
 Value="{Binding CurrentTrackPositionSeconds}" />
-            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                <Label HorizontalTextAlignment="Start"
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label HorizontalTextAlignment="Start"
                        TextColor="{AppThemeBinding Light=blue,Dark=white}"
                                 Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >
-                    <Label.Triggers>
-                        <DataTrigger Binding="{Binding IsPlaying}"
+                                <Label.Triggers>
+                                    <DataTrigger Binding="{Binding IsPlaying}"
                   Value="True"
                   TargetType="Label">
-                            <Setter Property="TextColor" Value="DarkSlateBlue"/>
-                            <Setter Property="FontAttributes" Value="Bold"/>
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
+                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="FontAttributes" Value="Bold"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
 
-                <Label Grid.Column="2"  HorizontalTextAlignment="Start"
+                            <Label Grid.Column="2"  HorizontalTextAlignment="Start"
                                    BackgroundColor="Transparent"
                                    Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
-            </HorizontalStackLayout>
+                        </HorizontalStackLayout>
 
-        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+            
+            <syncf:SfTabItem x:Name="AllLyricsView" >
+                <syncf:SfTabItem.Content>
+                    <Grid>
+
+                        <CollectionView x:Name="AllLyricsColView" VerticalOptions="Center" ItemsSource="{Binding CurrentPlayingSongView.EmbeddedSync}"
+                                        SelectedItem="{Binding CurrentLine}" 
+                                        
+                                        SelectionMode="Single" SelectionChanged="AllLyricsColView_SelectionChanged"
+                                        SelectionChangedCommand="{Binding }">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                    <Label Text="{Binding Text}" FontSize="{Binding }" HorizontalTextAlignment="Center"/>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                    
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+        </syncf:SfTabView>
        
     </Shell.FlyoutContent>
 
@@ -388,11 +411,9 @@ Value="{Binding CurrentTrackPositionSeconds}" />
  windows:VisualElement.AccessKey="Q"
                     windows:VisualElement.AccessKeyPlacement="Bottom"
 Clicked="ViewNPQ_Clicked" x:Name="ViewNPQ" 
- BorderColor="{Binding CurrentPlaySongDominantColor}"
                     BackgroundColor="Transparent"
-Text="View Now Playing Queue">
-
-
+ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}"
+                    Text="View Now Playing Queue">
 
                 </Button>
 
@@ -401,9 +422,18 @@ Text="View Now Playing Queue">
                 <Grid ColumnDefinitions="auto,*" ColumnSpacing="10">
 
                     <Label Text="Volume"/>
+                    <syncf:SfEffectsView 
+                        x:Name="VolumeSlider"
+                        Loaded="SfEffectsView_Loaded"
+                        Unloaded="SfEffectsView_Unloaded"
+                                         >
+                        
+                    </syncf:SfEffectsView>
                     <Slider
-                        Grid.Column="1"
+                        Grid.Column="1" 
                         Minimum="0"
+                        Loaded="VolumeSlider_Loaded"
+                        Unloaded="VolumeSlider_Unloaded"
                         MinimumTrackColor="DarkSlateBlue"
                         ThumbColor="{Binding CurrentPlaySongDominantColor}"
                         Value="{Binding DeviceVolumeLevel}"

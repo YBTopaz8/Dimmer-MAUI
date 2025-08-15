@@ -129,8 +129,8 @@ public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
             {
                 Text = $"Session transfer for '{currentSongState.Title}'",
                 MessageType = "SessionTransfer",
-                UserSenderId = _authService.CurrentUser.ObjectId,
-                UserName = _authService.CurrentUser.Username,
+                UserSenderId = _authService.CurrentUserValue!.ObjectId,
+                UserName = _authService.CurrentUserValue!.Username,
                 SharedSong = songPointer
             };
 

@@ -1,5 +1,7 @@
 ﻿
 
+
+
 namespace Dimmer.Data.Models;
 public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
@@ -31,7 +33,14 @@ public class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public double LastKnownPosition { get; set; }
     public IList<string> UserMusicFoldersPreference { get; }
     public IList<string> LastOpenedWindows { get; }
+    public string LastKnownQuery { get; internal set; }
+    public string LastKnownPlaybackQuery { get; internal set; }
+    public int LastKnownPlaybackQueueIndex { get; internal set; }
 
+    public IList<SongModel> LastKnownPlaybackQueue { get; }
+    public bool LastKnownShuffleState { get; internal set; }
+    public int CurrentRepeatMode { get; internal set; }
+    public int LastKnownRepeatState { get; internal set; }
 
     public AppStateModel()
     {

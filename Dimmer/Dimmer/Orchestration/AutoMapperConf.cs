@@ -78,9 +78,22 @@ public static class AutoMapperConf
             cfg.CreateMap<DimmerPlayEvent, DimmerPlayEventView>()
 .ForMember(dest => dest.IsNewOrModified, opt => opt.Ignore());
 
-            cfg.CreateMap<SyncLyrics, SyncLyricsView>()
-                .ForMember(dest => dest.TimestampEnd, opt => opt.Ignore())
-                .ForMember(dest => dest.Beats, opt => opt.Ignore())
+            cfg.CreateMap<SyncLyrics, LyricPhraseModelView>()
+                .ForMember(dest => dest.EndTimeMs, opt => opt.Ignore())
+                .ForMember(dest => dest.TimeStampMs, opt => opt.Ignore())
+                .ForMember(dest => dest.Opacity, opt => opt.Ignore())
+                .ForMember(dest => dest.TimeStampText, opt => opt.Ignore())
+                .ForMember(dest => dest.DurationMs, opt => opt.Ignore())
+                .ForMember(dest => dest.Margin, opt => opt.Ignore())
+                .ForMember(dest => dest.NowPlayingLyricsFontSize, opt => opt.Ignore())
+                .ForMember(dest => dest.LyricsFontAttributes, opt => opt.Ignore())
+                .ForMember(dest => dest.LyricsBGColor, opt => opt.Ignore())
+                .ForMember(dest => dest.HighlightColor, opt => opt.Ignore())
+                .ForMember(dest => dest.IsVisible, opt => opt.Ignore())
+                .ForMember(dest => dest.IsNew, opt => opt.Ignore())
+                .ForMember(dest => dest.TimestampStart, opt => opt.Ignore())
+                .ForMember(dest => dest.IsHighlighted, opt => opt.Ignore())
+                .ForMember(dest => dest.TextColor, opt => opt.Ignore())
                 .ForMember(dest => dest.IsLyricSynced, opt => opt.Ignore());
 
             cfg.CreateMap<PlaylistEvent, PlaylistEventView>()

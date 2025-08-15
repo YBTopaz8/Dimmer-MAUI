@@ -144,6 +144,15 @@ namespace Dimmer.WinUI.Views;
     }
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+
+        if (!properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        {
+            return;
+
+            
+        }
         //var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
         //if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
         //{
@@ -523,7 +532,6 @@ namespace Dimmer.WinUI.Views;
             SearchSongSB.Text= StaticMethods.SetQuotedSearch(field.ToString(), valuee);
         }
     }
-
     private void ArtistSfEffectsView_TouchUp(object sender, EventArgs e)
     {
 
@@ -573,15 +581,7 @@ namespace Dimmer.WinUI.Views;
 
     }
 
-    private void AllLyricsColView_SelectionChanged_1(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
-    {
-        var newItem = e.CurrentSelection;
-        if (newItem.Count > 0)
-        {
 
-            AllLyricsColView.ScrollTo(item: newItem[0], ScrollToPosition.Start, animate: true);
-        }
-    }
 
     private async void AllEvents_Clicked(object sender, EventArgs e)
     {

@@ -26,8 +26,7 @@ using System.Threading.Tasks;
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 
 public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService,
-    LoginViewModel loginViewModel, MusicDataService musicDataService,
-    DimmerLiveViewModel dimmerLiveViewModel
+    LoginViewModel loginViewModel, MusicDataService musicDataService
         , IFolderPicker _folderPicker, IWindowManagerService windowManager,
     IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ,
     IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
@@ -43,7 +42,6 @@ public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService app
 {
     public LoginViewModel LoginViewModel => loginViewModel;
 
-    public DimmerLiveViewModel DimmerLiveViewModel => dimmerLiveViewModel;
 
     private readonly IWindowManagerService windowManager;
     private readonly IRepository<SongModel> songRepository;

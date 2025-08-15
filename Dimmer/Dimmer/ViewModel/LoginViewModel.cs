@@ -123,7 +123,7 @@ public partial class LoginViewModel : ObservableObject
         IsBusy = true;
         ErrorMessage = string.Empty;
 
-         var result = await _authService.RequestPasswordResetAsync(Email);
+         //var result = await _authService.RequestPasswordResetAsync(Email);
 
 
         IsBusy = false;
@@ -137,7 +137,7 @@ public partial class LoginViewModel : ObservableObject
     private async Task LogoutAsync()
     {
         IsBusy = true;
-        await _authService.LogoutAsync();
+        //await _authService.LogoutAsync();
         CurrentUser=null;
         // await _navigationService.NavigateToLoginPageAsync();
         IsBusy = false;
@@ -146,32 +146,33 @@ public partial class LoginViewModel : ObservableObject
     [RelayCommand]
     public async Task<bool> InitializeAsync()
     {
-        var res = await _authService.InitializeAsync();
+        return await Task.FromResult(true);
+        //var res = await  _authService.InitializeAsync();
 
-        if (res.IsSuccess)
-        {
-            var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
-                .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
+        //if (res.IsSuccess)
+        //{
+        //    var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
+        //        .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
         
-            var usr = await qr.FirstOrDefaultAsync();
-            if (usr is null)
-            {
+        //    var usr = await qr.FirstOrDefaultAsync();
+        //    if (usr is null)
+        //    {
                 
-                UserModelOnline newUsr = new UserModelOnline(ParseClient.Instance.CurrentUser);
+        //        UserModelOnline newUsr = new UserModelOnline(ParseClient.Instance.CurrentUser);
                 
-                await newUsr.SaveAsync();
-                CurrentUser=newUsr;
-                return true;
-            }
-            CurrentUser = usr;
-            return true;
+        //        await newUsr.SaveAsync();
+        //        CurrentUser=newUsr;
+        //        return true;
+        //    }
+        //    CurrentUser = usr;
+        //    return true;
 
 
-        }
-        else
-        {
-            return false;
-        }
+        //}
+        //else
+        //{
+        //    return false;
+        //}
     }
     [RelayCommand]
     public async Task PickImageFromDevice()
@@ -236,7 +237,7 @@ public partial class LoginViewModel : ObservableObject
 
 
             // 5. Update the local user representation.
-            var userModelView = await _authService.SyncUser(ParseClient.Instance.CurrentUser);
+            //var userModelView = await _authService.SyncUser(ParseClient.Instance.CurrentUser);
 
             // 6. Return a success result with the new image URL.
             return AuthResult.Success();

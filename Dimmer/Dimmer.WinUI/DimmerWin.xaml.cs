@@ -203,4 +203,9 @@ public partial class DimmerWin : Window
     {
         MyViewModel.ToggleAppTheme();
     }
+
+    private void TouchBehavior_InteractionStatusChanged(object sender, CommunityToolkit.Maui.Core.TouchInteractionStatusChangedEventArgs e)
+    {
+
+    }
 }
