@@ -171,6 +171,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(payload =>
             {
+                NLPQuery = payload.Query;
                 var result = payload.Result;
                 // --- Update UI with any parsing errors ---
                 string finalErrorMessage = result.ErrorMessage ?? string.Empty;
@@ -377,7 +378,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             case SavePlaylistAction spa:
                 // Your actual implementation here
                 Debug.WriteLine($"Action: Save playlist '{spa.Name}' with {spa.Songs.Count} songs.");
-                // await _playlistService.SavePlaylistAsync(spa.Name, spa.Songs);
+                AddToPlaylist(spa.Name, spa.Songs.ToList());
                 ShowNotification($"Playlist '{spa.Name}' saved.").FireAndForget(ex =>
                 {
                     _logger.LogError(ex, "Failed to show notification");
@@ -1816,6 +1817,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             IsShuffleActive = appmodel.LastKnownShuffleState ;
             CurrentRepeatMode=(RepeatMode)appmodel.LastKnownRepeatState;
 
+            if (string.IsNullOrEmpty(CurrentPlaybackQuery) || string.IsNullOrWhiteSpace(CurrentPlaybackQuery))
+            {
+                SearchSongSB_TextChanged($"desc played first 40 >addend");
+            }
+            else
+            {
+
+                SearchSongSB_TextChanged($"{CurrentPlaybackQuery} >addend");
+
+            }
             CurrentTrackPositionSeconds= appmodel.LastKnownPosition;
 
             var song=_songSource.Items.FirstOrDefault(x=> x.Id.ToString() == appmodel.CurrentSongId);
@@ -1841,6 +1852,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 Application.Current?.UserAppTheme = AppTheme.Light;
             }
+
+
+
         }
 
         
@@ -1967,8 +1981,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (songToPlay == null)
             return;
 
-        
-        
+        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
+        {
+            _= ShowNotification($"LastSessionPlaylistName, Song file not found for '{songToPlay.Title}'. Skipping to next track.");
+            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
+
+            await ValidateSongAsync(songToPlay);
+            await NextTrackAsync();
+            return;
+        }
+
         var newQueue = _searchResults.ToList();
         int startIndex = newQueue.IndexOf(songToPlay);
 
@@ -3139,15 +3161,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    public void AddToPlaylist(string playlistName, List<SongModelView> songsToAdd)
+    public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd)
     {
-        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || songsToAdd.Count==0)
+        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || songsToAdd.Count()==0)
         {
             _logger.LogWarning("AddToPlaylist called with invalid parameters.");
             return;
         }
 
-        _logger.LogInformation("Attempting to add {Count} songs to playlist '{PlaylistName}'.", songsToAdd.Count, playlistName);
+        _logger.LogInformation("Attempting to add {Count} songs to playlist '{PlaylistName}'.", songsToAdd.Count(), playlistName);
 
        
        
@@ -4534,14 +4556,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial string CurrentTqlQuery {get;set;}= "";
     [ObservableProperty]
-    public partial string TQLUserSearchErrorMessage { get; private set; }
+    public partial string TQLUserSearchErrorMessage { get; set; }
     [ObservableProperty]
-    public partial string InvalidField { get; private set; }
+    public partial string NLPQuery { get; set; }
     [ObservableProperty]
-    public partial string? NewFieldSuggestion { get; private set; }
+    public partial string InvalidField { get; set; }
+    [ObservableProperty]
+    public partial string? NewFieldSuggestion { get; set; }
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInCommandMode))]
-    public partial IQueryNode TQLParsedCommand { get; private set; }
+    public partial IQueryNode TQLParsedCommand { get; set; }
 
     public bool IsInCommandMode => TQLParsedCommand is not null;
     [RelayCommand]
