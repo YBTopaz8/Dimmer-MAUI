@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 
-using Dimmer.DimmerLive.Interfaces.Services;
+using Dimmer.DimmerLive.Interfaces.Implementations;
 
 using ReactiveUI;
 namespace Dimmer.ViewModel;
@@ -10,6 +10,7 @@ public partial class LoginViewModel : ObservableObject
 {
     private readonly IAuthenticationService _authService;
     private readonly IFilePicker filePicker;
+    private readonly IRealmFactory realmFactory;
 
     [ObservableProperty]
     public partial string Username{ get; set; }
@@ -19,7 +20,7 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
-    public bool IsAuthenticated => string.IsNullOrEmpty( ParseClient.Instance.CurrentUser?.SessionToken);
+    public static bool IsAuthenticated => string.IsNullOrEmpty( ParseClient.Instance.CurrentUser?.SessionToken);
 
     [ObservableProperty]
     public partial bool IsLoginEnabled { get; set; } = true;
@@ -38,32 +39,23 @@ public partial class LoginViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ForgotPasswordCommand))]
     public partial bool IsBusy{ get; set; }
 
-    public static UserModelOnline? CurrentUserStatic
-    {
-        get
-        {
-            if (ParseClient.Instance.CurrentUser is null)
-            {
-                return null;
-            }
-            var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
-                .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
-            return qr.FirstOrDefaultAsync().GetAwaiter().GetResult();
-        }
-    }
 
     [ObservableProperty]
     public partial UserModelOnline? CurrentUser { get;  set; }
     [ObservableProperty]
     public partial int SelectedIndex { get;  set; }
 
-    public LoginViewModel(IAuthenticationService authService, IFilePicker _filePicker)
+    public LoginViewModel(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory)
     {
         _authService = authService;
         this.filePicker=_filePicker;
+        this.realmFactory=realmFactory;
     }
 
-    private bool CanLogin() => !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+    public bool CanLogin()
+    {
+        return !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+    }
 
     [RelayCommand]
     private async Task LoginAsync()
@@ -71,6 +63,7 @@ public partial class LoginViewModel : ObservableObject
         IsBusy = true;
         ErrorMessage = string.Empty;
 
+      
         var result = await _authService.LoginAsync(Username, Password);
 
         if (result.IsSuccess)
@@ -122,8 +115,7 @@ public partial class LoginViewModel : ObservableObject
     {
         IsBusy = true;
         ErrorMessage = string.Empty;
-
-         //var result = await _authService.RequestPasswordResetAsync(Email);
+        await ParseClient.Instance.RequestPasswordResetAsync(Email);
 
 
         IsBusy = false;
@@ -137,7 +129,7 @@ public partial class LoginViewModel : ObservableObject
     private async Task LogoutAsync()
     {
         IsBusy = true;
-        //await _authService.LogoutAsync();
+        await _authService.LogoutAsync();
         CurrentUser=null;
         // await _navigationService.NavigateToLoginPageAsync();
         IsBusy = false;
@@ -146,33 +138,49 @@ public partial class LoginViewModel : ObservableObject
     [RelayCommand]
     public async Task<bool> InitializeAsync()
     {
-        return await Task.FromResult(true);
-        //var res = await  _authService.InitializeAsync();
 
-        //if (res.IsSuccess)
-        //{
-        //    var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
-        //        .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
-        
-        //    var usr = await qr.FirstOrDefaultAsync();
-        //    if (usr is null)
-        //    {
-                
-        //        UserModelOnline newUsr = new UserModelOnline(ParseClient.Instance.CurrentUser);
-                
-        //        await newUsr.SaveAsync();
-        //        CurrentUser=newUsr;
-        //        return true;
-        //    }
-        //    CurrentUser = usr;
-        //    return true;
+        var res = await _authService.InitializeAsync();
+
+        if (res)
+        {
+            var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
+                .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
+
+            var usr = await qr.FirstOrDefaultAsync();
+            if (usr is null)
+            {
+
+                UserModelOnline newUsr = new UserModelOnline(ParseClient.Instance.CurrentUser);
+
+                await newUsr.SaveAsync();
+                CurrentUser=newUsr;
+                return true;
+            }
+            CurrentUser = usr;
+            return true;
 
 
-        //}
-        //else
-        //{
-        //    return false;
-        //}
+        }
+        else
+        {
+            try
+            {
+                // This is the correct method.
+                ParseUser anonymousUser = ParseClient.Instance.CreateObject<UserModelOnline>();
+
+                // You can pre-populate data for this new anonymous user if you want
+                anonymousUser["displayName"] = $"Listener_{DeviceInfo.Platform.ToString() } {DeviceInfo.Manufacturer}";
+                anonymousUser["isPremium"] = false;
+                anonymousUser["referralCount"] = 0;
+                await anonymousUser.SaveAsync();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating anonymous user: {ex.Message}");
+            }
+            return false;
+        }
     }
     [RelayCommand]
     public async Task PickImageFromDevice()
@@ -244,7 +252,20 @@ public partial class LoginViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            return AuthResult.Failure("Failed to upload profile image.");
+            return AuthResult.Failure("Failed to upload profile image. "+ex.Message);
         }
+    }
+    [ObservableProperty]
+    public partial bool IsRegisterMode { get; set; } = false;
+
+    public string ToggleText => IsRegisterMode ? "Already have an account? " : "Don't have an account? ";
+    public string ToggleLinkText => IsRegisterMode ? "Login" : "Sign Up";
+    [RelayCommand]
+    private void ToggleMode()
+    {
+        IsRegisterMode = !IsRegisterMode;
+        ErrorMessage = string.Empty; // Clear errors when toggling
+        OnPropertyChanged(nameof(ToggleText));
+        OnPropertyChanged(nameof(ToggleLinkText));
     }
 }

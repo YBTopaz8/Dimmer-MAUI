@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.DimmerSearch.Interfaces;
+
 using DynamicData;
 
 using ReactiveUI;
@@ -14,50 +16,48 @@ using System.Threading.Tasks;
 namespace Dimmer.ViewModel;
 public partial class SessionTransferViewModel : ObservableObject, IDisposable
 {
-    private readonly IPresenceService _presenceService;
-    private readonly ISessionTransferService _sessionTransferService;
+    private readonly ILiveSessionManagerService _sessionManager;
     private readonly BaseViewModel _mainViewModel; // To get current song state
-    private readonly IDisposable _cleanup;
-
     private readonly ILogger<SessionTransferViewModel> _logger;
-    // UI-bound properties
+    private readonly CompositeDisposable _disposables = new();
 
     private readonly ReadOnlyObservableCollection<UserDeviceSession> _otherDevices;
     public ReadOnlyObservableCollection<UserDeviceSession> OtherDevices => _otherDevices;
 
-
     [ObservableProperty]
     public partial string StatusMessage { get; set; }
+
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(TransferToDeviceCommand))] // This will re-evaluate CanExecute when IsTransferInProgress changes
-    public partial bool IsTransferInProgress {get;set;}
+    public partial bool IsTransferInProgress { get; set; }
+
+
     public SessionTransferViewModel(
-        IPresenceService presenceService,
-        ISessionTransferService sessionTransferService,
+        ILiveSessionManagerService sessionManager,
         ILogger<SessionTransferViewModel> logger,
         BaseViewModel mainViewModel)
     {
-        _presenceService = presenceService;
-        _sessionTransferService = sessionTransferService;
+        _sessionManager = sessionManager;
+        _logger = logger;
         _mainViewModel = mainViewModel;
 
-        _logger = logger;
-
         // Bind the list of other devices to our UI property
-        var deviceLoader = _presenceService.OtherActiveDevices
+        _sessionManager.OtherAvailableDevices
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _otherDevices)
-            .Subscribe();
+            .Subscribe()
+            .DisposeWith(_disposables);
 
-        // Listen for incoming transfer requests
-        var requestListener = _sessionTransferService.IncomingTransferRequests
+        // Listen for incoming transfer requests from the service's observable
+        _sessionManager.IncomingTransferRequests
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(HandleIncomingTransferRequest);
+            .Subscribe(HandleIncomingTransferRequest)
+            .DisposeWith(_disposables);
 
-        _cleanup = new CompositeDisposable(deviceLoader, requestListener);
+        // Lifecycle management: Start/stop listeners when the viewmodel is used
+        // In a real app, this would be tied to page appearing/disappearing
+        _sessionManager.StartListeners();
     }
 
-    // Command bound to a button next to each device in the list
     [RelayCommand]
     private async Task TransferToDevice(UserDeviceSession targetDevice)
     {
@@ -68,29 +68,26 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
         }
 
         IsTransferInProgress = true;
-        StatusMessage = $"Uploading and sending session to {targetDevice.DeviceName}...";
+        StatusMessage = $"Sending session to {targetDevice.DeviceName}...";
 
-        await _sessionTransferService.InitiateTransferAsync(
-            targetDevice,
-            _mainViewModel.CurrentPlayingSongView,
-            _mainViewModel.CurrentTrackPositionSeconds
-        );
+        // Create the shared song object
+        var songState = new DimmerSharedSong { /* map properties from _mainViewModel.CurrentPlayingSongView */ };
+
+        await _sessionManager.InitiateSessionTransferAsync(targetDevice, songState);
 
         StatusMessage = "Session transfer initiated!";
-        // You might want a timeout here
-        await Task.Delay(2000); // Give user time to read message
         IsTransferInProgress = false;
     }
 
     // This method is called when this device (Device B) receives a request
-    private async void HandleIncomingTransferRequest(SessionTransferRequest request)
+    private async void HandleIncomingTransferRequest(DimmerSharedSong request)
     {
-        var songInfo = request.SongToTransfer;
+        var songInfo = request;
 
         // Show a UI prompt to the user
         bool accept = await Shell.Current.DisplayAlert(
             "Session Transfer",
-            $"Accept session for '{songInfo.Title}' from {request.FromDeviceName}?",
+            $"Accept session for '{songInfo.Title}' ?",
             "Accept", "Decline"
         );
 
@@ -131,7 +128,7 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
             _mainViewModel.SeekTrackPosition(sharedPosition);
             
             // Let Device A know we got it.
-            await _sessionTransferService.AcknowledgeTransferCompleteAsync(songInfo);
+            await _sessionManager.AcknowledgeTransferCompleteAsync(songInfo);
 
             StatusMessage = "Playback started!";
         }
@@ -141,6 +138,9 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
             _logger.LogError(ex, "Session transfer failed.");
         }
     }
-
-    public void Dispose() => _cleanup.Dispose();
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        _sessionManager.StopListeners(); // Important
+    }
 }

@@ -55,12 +55,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly CommandEvaluator commandEvaluator = new();
     private IDuplicateFinderService _duplicateFinderService;
     public BaseViewModel(
-       IMapper mapper, 
+       IMapper mapper,
+       IDimmerStateService dimmerStateService,
        MusicDataService musicDataService,
        IAppInitializerService appInitializerService,
-       IDimmerLiveStateService dimmerLiveStateService,
        IDimmerAudioService audioServ,
-       IDimmerStateService stateService,
        ISettingsService settingsService,
        ILyricsMetadataService lyricsMetadataService,
        SubscriptionManager subsManager,
@@ -68,7 +67,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        ICoverArtService coverArtService,
        IFolderMgtService folderMgtService,
        IRepository<SongModel> _songRepo,
-       IDeviceConnectivityService deviceConnectivityService,
        IDuplicateFinderService duplicateFinderService,
         ILastfmService _lastfmService,
        IRepository<ArtistModel> artistRepo,
@@ -78,19 +76,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        
        ILogger<BaseViewModel> logger)
     {
+        _stateService = dimmerStateService ?? throw new ArgumentNullException(nameof(dimmerStateService));
         _dialogueService = dialogueService ?? throw new ArgumentNullException(nameof(dialogueService));
         this.lastfmService = _lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this._musicDataService=musicDataService;
         this.appInitializerService=appInitializerService;
-        _dimmerLiveStateService = dimmerLiveStateService;
-        _baseAppFlow= IPlatformApplication.Current?.Services.GetService<BaseAppFlow>() ?? throw new ArgumentNullException(nameof(BaseAppFlow));
-        _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _subsManager = subsManager ?? new SubscriptionManager();
         _folderMgtService = folderMgtService;
         this.songRepo=_songRepo;
-        this.deviceConnectivityService=deviceConnectivityService;
         _lyricsMetadataService= lyricsMetadataService ?? throw new ArgumentNullException(nameof(lyricsMetadataService));
         this.artistRepo=artistRepo;
         _coverArtService = coverArtService ?? throw new ArgumentNullException(nameof(coverArtService));
@@ -118,7 +113,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         folderMonitorService = IPlatformApplication.Current!.Services.GetService<IFolderMonitorService>()!;
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
 
-        var realm = realmFactory.GetRealmInstance();
 
 
         this.musicRelationshipService=new(realmFactory);
@@ -419,6 +413,88 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
         }
     }
+
+    public void OnAppOpening()
+    {
+        var realmm = realmFactory.GetRealmInstance();
+        var appModel = realmm.All<AppStateModel>().ToList();
+        if (appModel is not null && appModel.Count>0)
+        {
+            var appmodel = appModel[0];
+
+            CurrentTqlQuery=appmodel.LastKnownQuery;
+            CurrentPlaybackQuery=appmodel.LastKnownPlaybackQuery;
+            _playbackQueueIndex=appmodel.LastKnownPlaybackQueueIndex;
+            IsShuffleActive = appmodel.LastKnownShuffleState;
+            CurrentRepeatMode=(RepeatMode)appmodel.LastKnownRepeatState;
+
+            //if (string.IsNullOrEmpty(CurrentPlaybackQuery) || string.IsNullOrWhiteSpace(CurrentPlaybackQuery))
+            //{
+            //    SearchSongSB_TextChanged($"desc played first 40 >addend");
+            //}
+            //else
+            //{
+
+            //    SearchSongSB_TextChanged($"{CurrentPlaybackQuery} >addend");
+
+            //}
+            CurrentTrackPositionSeconds= appmodel.LastKnownPosition;
+
+            var song = _songSource.Items.FirstOrDefault(x => x.Id.ToString() == appmodel.CurrentSongId);
+            if (song is not null)
+            {
+                CurrentPlayingSongView = song;
+                //OnCurrentSongChanged(song);
+            }
+            else
+            {
+                CurrentPlayingSongView = new();
+            }
+
+            DeviceVolumeLevel=appmodel.VolumeLevelPreference;
+
+            IsDarkModeOn= appmodel.IsDarkModePreference;
+
+            if (IsDarkModeOn)
+            {
+                Application.Current?.UserAppTheme = AppTheme.Dark;
+            }
+            else
+            {
+                Application.Current?.UserAppTheme = AppTheme.Light;
+            }
+
+
+
+        }
+
+
+    }
+
+    public void OnAppClosing()
+    {
+        var realmm = realmFactory.GetRealmInstance();
+        var appModel = realmm.All<AppStateModel>().ToList();
+        if (appModel is not null && appModel.Count>0)
+        {
+            var appmodel = appModel[0];
+            realmm.Write(() =>
+            {
+                appmodel.LastKnownQuery = CurrentTqlQuery;
+                appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
+                appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
+                appmodel.LastKnownShuffleState = IsShuffleActive;
+                appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
+                appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
+                appmodel.CurrentSongId = CurrentPlayingSongView?.Id.ToString();
+                appmodel.VolumeLevelPreference=audioService.Volume;
+
+            });
+            //FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
+
+        }
+    }
+
     private async Task ShowNotification(string v)
     {
        await Shell.Current.DisplayAlert("Notification", v, "OK");
@@ -761,13 +837,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public IMapper _mapper;
     private readonly MusicDataService _musicDataService;
     private IAppInitializerService appInitializerService;
-    private IDimmerLiveStateService _dimmerLiveStateService;
     protected IDimmerStateService _stateService;
     protected ISettingsService _settingsService;
     protected SubscriptionManager _subsManager;
     protected IFolderMgtService _folderMgtService;
     private IRepository<SongModel> songRepo;
-    private readonly IDeviceConnectivityService deviceConnectivityService;
     private IRepository<ArtistModel> artistRepo;
     private IRepository<PlaylistModel> _playlistRepo;
     private IRepository<AlbumModel> albumRepo;
@@ -801,7 +875,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-    public IDimmerLiveStateService DimmerLiveStateService { get; }
 
 
 
@@ -1803,87 +1876,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-    public void OnAppOpening()
-    {
-        var realmm = realmFactory.GetRealmInstance();
-        var appModel = realmm.All<AppStateModel>().ToList();
-        if (appModel is not null && appModel.Count>0)
-        {
-            var appmodel = appModel[0];
-
-            CurrentTqlQuery=appmodel.LastKnownQuery;
-            CurrentPlaybackQuery=appmodel.LastKnownPlaybackQuery ;
-            _playbackQueueIndex=appmodel.LastKnownPlaybackQueueIndex;
-            IsShuffleActive = appmodel.LastKnownShuffleState ;
-            CurrentRepeatMode=(RepeatMode)appmodel.LastKnownRepeatState;
-
-            if (string.IsNullOrEmpty(CurrentPlaybackQuery) || string.IsNullOrWhiteSpace(CurrentPlaybackQuery))
-            {
-                SearchSongSB_TextChanged($"desc played first 40 >addend");
-            }
-            else
-            {
-
-                SearchSongSB_TextChanged($"{CurrentPlaybackQuery} >addend");
-
-            }
-            CurrentTrackPositionSeconds= appmodel.LastKnownPosition;
-
-            var song=_songSource.Items.FirstOrDefault(x=> x.Id.ToString() == appmodel.CurrentSongId);
-                if (song is not null)
-                {
-                    CurrentPlayingSongView = song;
-                    //OnCurrentSongChanged(song);
-                }
-                else
-                {
-                    CurrentPlayingSongView = new();
-                }
-
-                DeviceVolumeLevel=appmodel.VolumeLevelPreference;
-
-            IsDarkModeOn= appmodel.IsDarkModePreference;
-            
-            if (IsDarkModeOn)
-            {
-                Application.Current?.UserAppTheme = AppTheme.Dark;
-            }
-            else
-            {
-                Application.Current?.UserAppTheme = AppTheme.Light;
-            }
-
-
-
-        }
-
-        
-    }
-
-    public  void OnAppClosing()
-    {
-        var realmm = realmFactory.GetRealmInstance();
-        var appModel = realmm.All<AppStateModel>().ToList();
-        if (appModel is not null && appModel.Count>0)
-        {
-            var appmodel = appModel[0];
-            realmm.Write(() =>
-            {
-                appmodel.LastKnownQuery = CurrentTqlQuery;
-                appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
-                appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
-                appmodel.LastKnownShuffleState = IsShuffleActive;
-                appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
-                appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
-                appmodel.CurrentSongId = CurrentPlayingSongView?.Id.ToString();
-                appmodel.VolumeLevelPreference=audioService.Volume;
-
-            });
-           //FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
-
-        }
-    }
-
     #endregion
     private void SubscribeToLyricsFlow()
     {
@@ -2208,7 +2200,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task NextTrackAsync()
     {
-        if (IsPlaying && CurrentPlayingSongView != null)
+        if (IsPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage <90)
         {
             _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
         }
@@ -3243,37 +3235,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         GC.SuppressFinalize(this);
     }
 
-    private void LoadMusicArtistServiceMethods(ArtistModelView? artist)
-    {
-#if RELEASE
-        return;
-#endif
-        if (artist is null)
-        {
-            return;
-        }
-        var artId = artist.Id;
-        var first = musicArtistryService.GetPrimeNumberSongs();
-        var snd = musicArtistryService.GetParetoPrincipleCheck();
-        var thrd = musicArtistryService.GetNextSongPredictability();
-        var fth = musicArtistryService.FindHiddenConceptAlbum();
-        var fth2 = musicArtistryService.GetGoldenRatioTrackOnFavoriteAlbum();
-
-        var ss = musicStatsService.GetAllTimeMostPlayedSong();
-        var sss = musicStatsService.GetAllTimeTopAlbum();
-        var ssss = musicStatsService.GetAllTimeTopArtist();
-        var topnar = musicStatsService.GetAllTimeTopNArtists(8);
-        var topalb = musicStatsService.GetArtistRankByPlayCount(ssss.Artist.Id);
-        var ssa = musicStatsService.GetTotalListeningHours();
-        var sss2 = musicStatsService.GetTotalUniqueArtistsPlayed();
-        var eqe = musicStatsService.GetTotalUniqueSongsPlayed();
-        ArtistLoyaltyIndex = musicRelationshipService.GetArtistLoyaltyIndex(artId);
-        MyCoreArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(musicRelationshipService.GetMyCoreArtists(10));
-        ArtistBingeScore = musicRelationshipService.GetArtistBingeScore(artId);
-        SongModelView? step4 = musicRelationshipService.GetSongThatHookedMeOnAnArtist(artId).ToModelView(_mapper);
-
-    }
-
     public void RaisePropertyChanging(System.ComponentModel.PropertyChangingEventArgs args)
     {
         OnPropertyChanging(args);
@@ -3821,7 +3782,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     /// <param name="context">A tuple containing the Song to change and the target Artist.</param>
     [RelayCommand]
-    private async Task AssignSongToArtistAsync((SongModelView Song, ArtistModelView TargetArtist) context)
+    public async Task AssignSongToArtistAsync((SongModelView Song, ArtistModelView TargetArtist) context)
     {
         if (context.Song == null || context.TargetArtist == null)
             return;
