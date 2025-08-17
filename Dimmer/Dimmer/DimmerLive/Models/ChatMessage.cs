@@ -20,22 +20,35 @@ public partial class ChatMessage : ParseObject
         get => GetProperty<UserModelOnline>();
         set => SetProperty(value);
     }
+    // This is a client-side only property. The [ParseIgnore] attribute
+    // tells the SDK not to try and save this field to the server.
+    public bool IsSentByMe
+    {
+        get
+        {
+            // Compare the sender's ObjectId with the current logged-in user's ObjectId.
+            // It's important to handle the case where either might be null.
+            var currentUserId = ParseUser.CurrentUser?.ObjectId;
+            var senderId = Sender?.ObjectId;
+            return !string.IsNullOrEmpty(currentUserId) && currentUserId == senderId;
+        }
+    }
 
-    [ParseFieldName("text")]
+    [ParseFieldName("Text")]
     public string Text
     {
         get => GetProperty<string>();
         set => SetProperty(value);
     }
 
-    [ParseFieldName("messageType")]
+    [ParseFieldName("MessageType")]
     public string MessageType
     {
         get => GetProperty<string>();
         set => SetProperty(value); // Use constants from MessageTypes class
     }
 
-    [ParseFieldName("attachmentFile")]
+    [ParseFieldName("AttachmentFile")]
     public ParseFile AttachmentFile
     {
         get => GetProperty<ParseFile>();
@@ -113,5 +126,5 @@ public partial class ChatMessage : ParseObject
         set => SetProperty(value);
     }
    
-
+    public string TargetDeviceSessionId { get; internal set; }
 }
