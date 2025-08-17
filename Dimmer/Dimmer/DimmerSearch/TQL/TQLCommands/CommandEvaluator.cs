@@ -13,6 +13,7 @@ public class CommandEvaluator
 {
     public static class CommandKeys
     {
+        public const string Play = "play";
         public const string Save = "save";
         public const string AddNext = "addnext";
         public const string AddEnd = "addend";
@@ -25,13 +26,16 @@ public class CommandEvaluator
     // It is now STATELESS. No subjects, no observables.
     public ICommandAction Evaluate(IQueryNode node, IEnumerable<SongModelView>? currentResultsSet)
     {
+        var resultsSnapshot = currentResultsSet?.ToList() ?? new List<SongModelView>();
         if (node is not CommandNode cmdNode)
         {
+            if (resultsSnapshot.Count==0)
+            {
+                return new ReplaceQueueAction(resultsSnapshot);
+            }
             return new NoAction();
         }
 
-        // Create a snapshot of the results to prevent issues with the underlying collection changing.
-        var resultsSnapshot = currentResultsSet?.ToList() ?? new List<SongModelView>();
 
         if (resultsSnapshot.Count==0 && !cmdNode.Command.Equals(CommandKeys.Save, StringComparison.InvariantCultureIgnoreCase)) // Allow saving an empty playlist
         {
@@ -60,9 +64,12 @@ public class CommandEvaluator
 
             case CommandKeys.DeleteDuplicate:
                 return new DeleteDuplicateAction(resultsSnapshot);
+            case CommandKeys.Play: 
+                return new ReplaceQueueAction(resultsSnapshot);
 
             default:
                 return new UnrecognizedCommandAction(cmdNode.Command);
+
         }
     }
 }

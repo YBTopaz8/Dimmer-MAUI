@@ -14,3 +14,4 @@ public record DeleteAllAction(IReadOnlyList<SongModelView> Songs) : ICommandActi
 public record DeleteDuplicateAction(IReadOnlyList<SongModelView> Songs) : ICommandAction;
 public record UnrecognizedCommandAction(string CommandName) : ICommandAction;
 public record NoAction : ICommandAction; // Represents a command that did nothing (e.g., save with no name)
+public record ReplaceQueueAction(IReadOnlyList<SongModelView> Songs) : ICommandAction;

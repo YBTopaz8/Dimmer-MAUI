@@ -84,7 +84,7 @@
     </Style>
 
     <Style TargetType="Button">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
         <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
         <Setter Property="FontFamily" Value="AleySans" />
         <Setter Property="FontSize" Value="14" />

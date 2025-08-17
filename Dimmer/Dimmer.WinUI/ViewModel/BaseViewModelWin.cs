@@ -1,4 +1,5 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
+
 using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
@@ -25,40 +26,25 @@ using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
 
-public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService,
-    LoginViewModel loginViewModel, MusicDataService musicDataService
-        , IFolderPicker _folderPicker, IWindowManagerService windowManager,
-    IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ,
-    IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
-    LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService,
-    IRepository<SongModel> songRepo, IDeviceConnectivityService deviceConnectivityService,
-    IDuplicateFinderService duplicateFinderService, ILastfmService lastfmService,
-    IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel,
-    IDialogueService dialogueService, ILyricsMetadataService lyricsMetadataService,
-    IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : BaseViewModel(mapper,musicDataService,appInitializerService, dimmerLiveStateService, audioServ,
-        stateService, settingsService,lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, 
-        folderMgtService, songRepo, deviceConnectivityService, duplicateFinderService, 
-        lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger) // BaseViewModel is in Dimmer.MyViewModel
+public partial class BaseViewModelWin: BaseViewModel
+
 {
-    public LoginViewModel LoginViewModel => loginViewModel;
-
-
     private readonly IWindowManagerService windowManager;
     private readonly IRepository<SongModel> songRepository;
     private readonly IRepository<ArtistModel> artistRepository;
     private readonly IRepository<AlbumModel> albumRepository;
     private readonly IRepository<GenreModel> genreRepository;
     private readonly IWindowManagerService winMgrService;
+    private readonly LoginViewModel loginViewModel;
+    private readonly IFolderPicker _folderPicker;
+    public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService,LoginViewModel _loginViewModel,
+         IDimmerStateService dimmerStateService, IFolderPicker _folderPicker, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,  IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService,musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+    {
+        this.loginViewModel=_loginViewModel;
+        this._folderPicker = _folderPicker;
+    }
 
-    //public BaseViewModelWin(IMapper mapper, IAppInitializerService appInitializerService, 
-    //    IFolderPicker _folderPicker, IWindowManagerService windowManager,
-    //    ILyricsMetadataService lyricsMetadataService,
-    //    IDimmerLiveStateService dimmerLiveStateService, IDimmerAudioService audioServ, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, ILastfmService lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, ILogger<BaseViewModel> logger) : base(mapper, appInitializerService,  dimmerLiveStateService, audioServ, stateService,  settingsService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, lastfmService, artistRepo, albumModel, genreModel, logger)
-    //{
-
-
-
-
+  
 
     [ObservableProperty]
     public partial int MediaBarGridRowPosition { get; set; }
@@ -124,31 +110,6 @@ public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService app
         await AddMusicFolderViaPickerAsync();
     }
 
-    public async Task<bool> InitializeLoginUserData()
-    {
-        loginViewModel.Username=base.UserLocal.Username;
-        return await loginViewModel.InitializeAsync();
-    }
-
-    public async Task<bool> IsUserOkayForTransfer()
-    {
-        if (loginViewModel.CurrentUser is not null)
-        {
-            return true;
-
-        }
-        else
-        {
-
-            if (await InitializeLoginUserData())
-            {
-
-                return true;
-            }
-            return false;
-        }
-    }
-
     public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
     {
         if (selectedSec is null)
@@ -170,6 +131,11 @@ public partial class BaseViewModelWin(IMapper mapper, IAppInitializerService app
             SelectedSong=selectedSec;
         }
             await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+    }
+
+    public async Task InitializeParseUser()
+    {
+       await loginViewModel.InitializeAsync();
     }
 
     
