@@ -1,7 +1,6 @@
 ﻿using Dimmer.Data.RealmStaticFilters;
-using Dimmer.DimmerLive.Interfaces.Services;
+using Dimmer.DimmerLive.Interfaces.Implementations;
 using Dimmer.DimmerSearch.Interfaces;
-using Dimmer.DimmerSearch.Interfaces.Implementations;
 using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
@@ -9,6 +8,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.LastFM;
+using Dimmer.ViewModel.DimmerLiveVM;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Maui.LifecycleEvents;
@@ -63,14 +63,12 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
 
-        builder.Services.AddSingleton<IDeviceConnectivityService, DeviceConnectivityService>();
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IDimmerStateService, DimmerStateService>();
         builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
-        builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();
         builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
-        builder.Services.AddSingleton<IDeviceSessionService, ParseDeviceSessionService>();
+        builder.Services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
         builder.Services.AddSingleton<SubscriptionManager>();
         builder.Services.AddSingleton<MusicDataService>();
         builder.Services.AddSingleton<IDimmerPlayEventRepository, DimmerPlayEventRepository>();
@@ -92,9 +90,7 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
         builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddSingleton<DeviceConnectivityService>();
         builder.Services.AddSingleton<SessionTransferViewModel>();
-        builder.Services.AddSingleton<IPresenceService, ParsePresenceService>();
         builder.Services.AddSingleton<SessionTransferViewModel>();
 
 
@@ -115,7 +111,6 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
-            
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
 
         builder.Services.AddSingleton<StatisticsService>();
@@ -160,6 +155,19 @@ public static class MauiProgramExtensions
 
         // 2. Register the persistence service.
         builder.Services.AddSingleton<ILyricsPersistenceService, LyricsPersistenceService>();
+
+
+        // Singletons for services that manage state and connections
+        builder.Services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
+        builder.Services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
+        builder.Services.AddSingleton<IFriendshipService, ParseFriendshipService>();
+        builder.Services.AddSingleton<IChatService, ParseChatService>();
+
+        // Transients for ViewModels
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<SocialViewModel>();
+        builder.Services.AddTransient<SessionTransferViewModel>();
+        builder.Services.AddTransient<ChatViewModel>(); // You'll create this next
 
         return builder;
     }

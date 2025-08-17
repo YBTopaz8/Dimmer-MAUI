@@ -71,7 +71,6 @@ public static class AutoMapperConf
 
             cfg.CreateMap<UserModel, UserModelView>()
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.UserEmail))
-                .ForMember(dest => dest.UserHasAccount, opt => opt.Ignore())
                 .ForMember(dest => dest.ProfileImageFile, opt => opt.Ignore())
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.UserPassword));
 
