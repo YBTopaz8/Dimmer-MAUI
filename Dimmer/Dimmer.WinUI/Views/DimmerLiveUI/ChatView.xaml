@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.DimmerLiveUI.ChatView"
+             Title="ChatView"
+             
+                          xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             x:DataType="vm:ChatViewModelWin"
+              xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+ xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+ xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+             xmlns:modelOnline ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+ xmlns:behv ="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+ xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+ x:Name="myPage"
+                 xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
+BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1F1F1F}"
+
+Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+    </ContentPage.Resources>
+
+    <Grid ColumnDefinitions="250, *">
+
+        <!-- Column 0: Conversation List -->
+        <VerticalStackLayout Grid.Column="0" Spacing="5">
+            <Label Text="Conversations" FontSize="Medium" Padding="10" FontAttributes="Bold" />
+            <Button Text="General Chat" Command="{Binding GoToGeneralChatCommand}" Margin="5" />
+            <CollectionView ItemsSource="{Binding Conversations}"
+                            SelectedItem="{Binding SelectedConversation, Mode=TwoWay}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="{x:Type modelOnline:ChatConversation}">
+                        <Border Padding="10" Margin="5" StrokeShape="RoundRectangle 5">
+                            <Label Text="{Binding Name}" />
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <!-- Column 1: Message Area -->
+        <Grid Grid.Column="1" RowDefinitions="auto,*, Auto">
+            <VerticalStackLayout Grid.Row="1">
+                <Label Text="{Binding SelectedConversation.Name}" HorizontalTextAlignment="Center"
+                       FontSize="40"/>
+            </VerticalStackLayout>
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Messages}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="{x:Type modelOnline:ChatMessage}">
+                        <Border Padding="8" Margin="5" StrokeShape="RoundRectangle 8" HorizontalOptions="{Binding IsSentByMe, Converter={StaticResource ChatBubbleAlignmentConverter}}">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Sender.Username}" FontSize="Micro" FontAttributes="Bold" />
+                                <Label Text="{Binding Text}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Message Input Box -->
+            <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Padding="5" BackgroundColor="Transparent">
+                <Entry Grid.Column="0" Placeholder="Type a message..." Text="{Binding NewMessageText}" ReturnType="Send" ReturnCommand="{Binding SendMessageCommand}"/>
+                <Button Grid.Column="1" Text="Send" Command="{Binding SendMessageCommand}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

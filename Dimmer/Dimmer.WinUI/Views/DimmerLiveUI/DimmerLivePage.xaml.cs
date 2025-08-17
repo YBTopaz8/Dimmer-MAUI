@@ -27,7 +27,6 @@ public partial class DimmerLivePage : ContentPage
     {
         base.OnAppearing();
 
-     await   ViewModel.InitializeLoginUserData();
     }
 
     private void OnLoginClicked(object sender, EventArgs e)

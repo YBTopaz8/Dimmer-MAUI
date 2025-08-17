@@ -47,10 +47,6 @@
 
                         <Border x:Name="LoginSignUp" StyleClass="Elevation2">
 
-                            <syncf:SfTabView
-                 x:Name="LoginSignUpTab">
-                                <syncf:SfTabItem>
-                                    <syncf:SfTabItem.Content>
                                         <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
                                             <Label 
                                  Text="Login"
@@ -110,9 +106,6 @@
 
 
                                         </VerticalStackLayout>
-                                    </syncf:SfTabItem.Content>
-                                </syncf:SfTabItem>
-                            </syncf:SfTabView>
 
                         </Border>
 

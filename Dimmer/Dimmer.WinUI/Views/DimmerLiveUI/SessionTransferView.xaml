@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.DimmerLiveUI.SessionTransferView"
+             Title="SessionTransferView"
+             
+             
+                          xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             x:DataType="vm:SessionTransferVMWin"
+              xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+ xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+ xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+             xmlns:modelOnline ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+ xmlns:behv ="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+ xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+ x:Name="myPage"
+                 xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
+BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1F1F1F}"
+
+Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+    </ContentPage.Resources>
+    <syncf:SfTabView EnableSwiping="True" x:Name="MainView">
+        <syncf:SfTabItem>
+            <syncf:SfTabItem.Content>
+                
+    <VerticalStackLayout Spacing="10" Padding="20" x:Name="TransferView">
+        <Label Text="Transfer Playback" FontSize="Header" HorizontalOptions="Center" />
+        <Label Text="{Binding StatusMessage}" HorizontalOptions="Center" />
+        <ActivityIndicator IsRunning="{Binding IsTransferInProgress}" />
+
+        <Label Text="Available Devices:" FontAttributes="Bold" Margin="0,20,0,0"/>
+        <CollectionView ItemsSource="{Binding OtherDevices}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Type modelOnline:UserDeviceSession}">
+                    <Grid Padding="10" ColumnDefinitions="*, Auto">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding DeviceName}" FontAttributes="Bold" />
+                            <Label Text="{Binding DeviceIdiom}" FontSize="Small" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1" 
+                                Text="Transfer Here" 
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=TransferToDeviceCommand}"
+                                CommandParameter="{Binding .}"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+
+
+            </syncf:SfTabItem.Content>
+        </syncf:SfTabItem>
+
+        <syncf:SfTabItem>
+            <syncf:SfTabItem.Content>
+
+                <Border x:Name="LoginSignUp" StyleClass="Elevation2">
+
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
+                        <Label 
+                                 Text="Login"
+                                 FontSize="24"
+                                 HorizontalOptions="Center" />
+                        <Label Text="{Binding  LoginViewModel.CurrentUser.Username}"/>
+                        <Label Text="{Binding LoginViewModel.CurrentUser.Email}"/>
+                        <Label
+                                 Text="Please login to continue"
+                                 FontSize="16"
+                                 HorizontalOptions="Center" />
+
+
+                        <Entry
+                                 Text="{Binding LoginViewModel.Username}"
+                                 x:Name="UsernameEntry"
+                                 Placeholder="Enter your username"
+                                 FontSize="16"
+                                 HorizontalOptions="Fill" />
+                        <Entry
+                                 Text="{Binding LoginViewModel.Email}"
+                                 x:Name="EmailEntry"
+                                 Placeholder="Enter your Email"
+                                 FontSize="16"
+                                 HorizontalOptions="Fill" />
+
+
+                        <Entry
+                                 x:Name="PasswordEntry"
+                                 Placeholder="Enter your password"
+                                 IsPassword="True"
+                                 Text="{Binding LoginViewModel.Password}"
+                                 FontSize="16"
+                                 HorizontalOptions="Fill" />
+
+                        <HorizontalStackLayout
+                                 Spacing="10"
+                                 HorizontalOptions="Center">
+
+                            <Button
+                                 Text="Login"
+                                 FontSize="16"
+                                 Command="{Binding LoginViewModel.LoginCommand}"
+                                 HorizontalOptions="Center"
+                                />
+
+
+                            <Button
+                                 Command="{Binding LoginViewModel.RegisterCommand}"
+                                 Text="Sign Up"
+                                 FontSize="16"
+                                 HorizontalOptions="Center"
+                                 />
+
+                        </HorizontalStackLayout>
+
+
+
+                    </VerticalStackLayout>
+
+                </Border>
+            </syncf:SfTabItem.Content>
+        </syncf:SfTabItem>
+    </syncf:SfTabView>
+</ContentPage>
