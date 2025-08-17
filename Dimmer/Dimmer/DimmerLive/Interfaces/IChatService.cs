@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace Dimmer.DimmerLive.Interfaces;
 public interface IChatService
 {
+    Task<ChatConversation?> GetGeneralChatAsync();
     IObservable<IChangeSet<ChatConversation, string>> Conversations { get; }
 
     // Get a live stream of messages for a specific conversation

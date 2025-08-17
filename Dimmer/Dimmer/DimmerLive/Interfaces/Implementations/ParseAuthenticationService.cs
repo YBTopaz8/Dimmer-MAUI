@@ -6,7 +6,7 @@ using Parse.Infrastructure;
 
 using Realms;
 
-namespace Dimmer.DimmerLive.Interfaces.Services;
+namespace Dimmer.DimmerLive.Interfaces.Implementations;
 
 
 public class ParseAuthenticationService : IAuthenticationService

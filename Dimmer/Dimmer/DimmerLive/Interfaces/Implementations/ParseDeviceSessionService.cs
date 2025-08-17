@@ -1,4 +1,6 @@
-﻿using DynamicData;
+﻿using Dimmer.DimmerSearch.Interfaces;
+
+using DynamicData;
 
 using Parse.LiveQuery;
 
@@ -8,20 +10,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.DimmerSearch.Interfaces.Implementations;
-public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
+namespace Dimmer.DimmerLive.Interfaces.Implementations;
+public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 {
     private readonly ILogger<ParseDeviceSessionService> _logger;
     private readonly IAuthenticationService _authService;
     private readonly ParseLiveQueryClient _liveQueryClient;
     private Subscription<ChatMessage> _messageSubscription;
-    private UserDeviceSession _thisDeviceSession;
+    private UserDeviceSession _thisDeviceSession; 
+    private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
+
+    public IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices => _otherDevicesCache.Connect();
+    public IObservable<DimmerSharedSong> IncomingTransferRequests => _incomingTransfers.AsObservable();
+
 
     // The source cache for other devices
     private readonly SourceCache<UserDeviceSession, string> _otherDevicesCache = new(session => session.ObjectId);
 
     // Public observable property from the interface
-    public IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices => _otherDevicesCache.AsObservableCache().Connect();
 
     public ParseDeviceSessionService(ILogger<ParseDeviceSessionService> logger, IAuthenticationService authService, ParseLiveQueryClient liveQueryClient)
     {
@@ -32,7 +38,7 @@ public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
 
     public async Task RegisterCurrentDeviceAsync()
     {
-        if (_authService.CurrentUser is null)
+        if (_authService.CurrentUserValue == null)
         {
             _logger.LogWarning("Cannot register device, user is not logged in.");
             return;
@@ -43,20 +49,16 @@ public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
             var parameters = new Dictionary<string, object>
             {
                 { "currentDeviceName", DeviceInfo.Name },
-                { "currentDeviceId", Preferences.Get("MyDeviceId", Guid.NewGuid().ToString()) }, // Ensure you have a unique ID
+                { "currentDeviceId", Preferences.Get("MyDeviceId", Guid.NewGuid().ToString()) },
                 { "currentDeviceIdiom", DeviceInfo.Idiom.ToString() },
                 { "currentDeviceOSVersion", DeviceInfo.VersionString }
             };
 
-            // This cloud function now handles find-or-create AND sets this device as active
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("setActiveChatDevice", parameters);
-
-            // Store this device's session object for later use
-            _thisDeviceSession = ParseClient.Instance.CreateObjectWithoutData<UserDeviceSession>(result["activeSessionId"].ToString());
+            // This now returns the full object, not just a dictionary
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>("setActiveChatDevice", parameters);
+            _thisDeviceSession = result;
 
             _logger.LogInformation("Successfully registered and activated this device session: {SessionId}", _thisDeviceSession.ObjectId);
-
-            // Now, fetch other devices
             await FetchOtherDevicesAsync();
         }
         catch (Exception ex)
@@ -67,27 +69,25 @@ public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
 
     private async Task FetchOtherDevicesAsync()
     {
-        if (_authService.CurrentUser is null)
+        if (_authService.CurrentUserValue == null)
             return;
         try
         {
             var otherDevices = await ParseClient.Instance.CallCloudCodeFunctionAsync<IList<UserDeviceSession>>("getMyDeviceSessions", new Dictionary<string, object>());
 
-            // Exclude the current device from the list
-            var filteredDevices = otherDevices.Where(d => d.ObjectId != _thisDeviceSession.ObjectId);
-
+            // The cloud function getMyDeviceSessions should already exclude the current device if we modify it.
+            // Or we can filter client-side.
             _otherDevicesCache.Edit(update => {
                 update.Clear();
-                update.AddOrUpdate(filteredDevices);
+                update.AddOrUpdate(otherDevices);
             });
-            _logger.LogInformation("Fetched {Count} other device sessions.", filteredDevices.Count());
+            _logger.LogInformation("Fetched {Count} other device sessions.", otherDevices.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch other device sessions.");
         }
     }
-
     public async Task MarkCurrentDeviceInactiveAsync()
     {
         if (_thisDeviceSession is null)
@@ -131,7 +131,8 @@ public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
                 MessageType = "SessionTransfer",
                 UserSenderId = _authService.CurrentUserValue!.ObjectId,
                 UserName = _authService.CurrentUserValue!.Username,
-                SharedSong = songPointer
+                SharedSong = songPointer,
+                TargetDeviceSessionId = targetDevice.ObjectId, 
             };
 
             // IMPORTANT: Set an ACL so ONLY the target user (which is ourself) can read it.
@@ -153,52 +154,80 @@ public class ParseDeviceSessionService : IDeviceSessionService, IDisposable
         }
     }
 
-    public void StartListening()
+    public void StartListeners()
     {
-        // This is where you'll listen for incoming SessionTransfer messages.
-        // It's part of the chat system, so it makes sense to handle it here.
+        if (_thisDeviceSession == null)
+        {
+            _logger.LogWarning("Cannot start session listeners, current device session is not registered.");
+            return;
+        }
+
         var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-            .WhereEqualTo("messageType", "SessionTransfer"); // Only listen for transfers
+            .WhereEqualTo("messageType", "SessionTransfer")
+            .WhereEqualTo("targetDeviceSessionId", _thisDeviceSession.ObjectId); // **Listen only for messages targeting this specific device**
 
         _messageSubscription = _liveQueryClient.Subscribe(messageQuery);
         _messageSubscription.On(Subscription.Event.Create, OnSessionTransferMessageReceived);
     }
 
+
     private async void OnSessionTransferMessageReceived(ChatMessage message)
     {
-        _logger.LogInformation("Received potential SessionTransfer message.");
+        _logger.LogInformation("Received targeted SessionTransfer message.");
 
-        // First, refresh our own device session status from the server
-        await _thisDeviceSession.FetchAsync();
-
-        if (_thisDeviceSession.Get<bool>("isActive"))
+        var songPointer = message.Get<ParseObject>("SharedSong");
+        if (songPointer != null)
         {
-            _logger.LogInformation("This device IS the active target. Processing transfer.");
-            // We need to pass this event back up to the ViewModel to act on it.
-            // We can use a simple event or a Subject<T>.
-            var songPointer = message.Get<ParseObject>("SharedSong");
-            if (songPointer != null)
+            try
             {
                 var sharedSong = await songPointer.FetchAsync() as DimmerSharedSong;
-                // !!! This is where you'd trigger an event to tell the UI to play the song.
-                // For simplicity, we'll log for now. In a full app, you'd use a MessageBus or event.
-                Debug.WriteLine($"EVENT: Play this song -> {sharedSong.Title} at {sharedSong.SharedPositionInSeconds}s");
+                if (sharedSong != null)
+                {
+                    // Fire the observable for the ViewModel to catch
+                    _incomingTransfers.OnNext(sharedSong);
+                }
             }
-        }
-        else
-        {
-            _logger.LogInformation("This device is not the active target. Ignoring transfer message.");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch shared song from transfer message.");
+            }
         }
     }
 
-    public void StopListening()
+    public void StopListeners()
     {
         _messageSubscription?.UnsubscribeNow();
     }
 
     public void Dispose()
     {
-        StopListening();
+        StopListeners();
         _otherDevicesCache?.Dispose();
+        _incomingTransfers?.Dispose();
+    }
+
+    public async Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong)
+    {
+        _logger.LogInformation("Acknowledging transfer complete for {SongTitle}", transferredSong.Title);
+
+        // We can notify the original device by sending a simple "system" message.
+        // We need to know who the original uploader/sender was.
+        var originalSender = transferredSong.Get<ParseUser>("uploader");
+        if (originalSender == null)
+            return;
+
+        var message = new ChatMessage
+        {
+            MessageType = "SessionTransferAck", // Acknowledgment message type
+            Text = $"Device '{DeviceInfo.Name}' has started playing '{transferredSong.Title}'.",
+            // This needs a target user/device, but for simplicity, we can just send it
+            // and the original device can listen for ACKs related to songs it uploaded.
+        };
+        // Set an ACL so only the original sender can read it.
+        var acl = new ParseACL();
+        acl.SetReadAccess(originalSender.ObjectId, true);
+        message.ACL = acl;
+
+        await message.SaveAsync();
     }
 }

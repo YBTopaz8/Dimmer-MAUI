@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.DimmerLive.Interfaces.Services;
+namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseFriendshipService : IFriendshipService, IDisposable
 {
     private readonly IAuthenticationService _authService;

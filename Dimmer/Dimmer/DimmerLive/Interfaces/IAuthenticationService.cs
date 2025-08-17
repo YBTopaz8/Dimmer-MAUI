@@ -1,4 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces.Services;
+﻿using Dimmer.DimmerLive.Interfaces.Implementations;
 
 namespace Dimmer.DimmerLive.Interfaces;
 
@@ -10,5 +10,7 @@ public interface IAuthenticationService
 
     Task<bool> InitializeAsync();
     Task<AuthResult> LoginAsync(string username, string password);
-    Task<AuthResult> RegisterAsync(string username, string email, string password);
+    Task<AuthResult> RegisterAsync(string username, string email, string password); 
+    Task LogoutAsync();
+
 }

@@ -1,4 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces.Services;
+﻿using Dimmer.DimmerLive.Interfaces.Implementations;
 
 using DynamicData;
 

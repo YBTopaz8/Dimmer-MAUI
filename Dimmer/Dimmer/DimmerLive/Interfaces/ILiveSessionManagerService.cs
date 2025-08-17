@@ -8,23 +8,17 @@ using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch.Interfaces;
 
-public interface IDeviceSessionService
+public interface ILiveSessionManagerService
 {
     // A property to observe the user's other available devices
     IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices { get; }
+    // An observable that fires when a new session transfer request arrives for this device
+    IObservable<DimmerSharedSong> IncomingTransferRequests { get; }
 
-    // Call this on app startup to register the device with Parse
     Task RegisterCurrentDeviceAsync();
-
-    // Call this when the app is closing or going to the background
     Task MarkCurrentDeviceInactiveAsync();
-
-    // Call this to initiate the transfer
     Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerSharedSong currentSongState);
-
-    // Call this to start listening for device changes
-    void StartListening();
-
-    // Call this to stop listening
-    void StopListening();
+    void StartListeners();
+    void StopListeners();
+    Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong);
 }

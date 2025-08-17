@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DimmerLive.Interfaces.Services;
+﻿namespace Dimmer.DimmerLive.Interfaces.Implementations;
 
 
 /// <summary>
