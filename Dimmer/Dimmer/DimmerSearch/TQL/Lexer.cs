@@ -33,7 +33,9 @@ public static class Lexer
         { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove }, { "minus", TokenType.Remove },
         { "asc", TokenType.Asc }, { "desc", TokenType.Desc },
         { "random", TokenType.Random }, { "shuffle", TokenType.Shuffle },
-        { "first", TokenType.First }, { "last", TokenType.Last },{ "chance", TokenType.Identifier }
+        { "first", TokenType.First }, { "last", TokenType.Last },
+        { "chance", TokenType.Identifier },
+        { "chancef", TokenType.Identifier }
     };
 
     public static List<Token> Tokenize(string text)

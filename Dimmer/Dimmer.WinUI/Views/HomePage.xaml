@@ -24,7 +24,7 @@
 Shell.FlyoutBehavior="Locked"
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
-    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1F1F1F}"
+    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=transparent}"
     
     Shell.NavBarIsVisible="False">
 
@@ -38,10 +38,9 @@ Shell.FlyoutBehavior="Locked"
         <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
         <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
         <converters:VolumeConverter x:Key="VolConverter" />
-        <ResourceDictionary >
-        </ResourceDictionary>
-        <Style TargetType="syncf:SfChip">
-            
+     
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=Black,Dark=White}"/>
         </Style>
         <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
             <Border StrokeShape="RoundRectangle 10"  
@@ -478,6 +477,7 @@ Value="False">
                         <Label
                                         HorizontalTextAlignment="Center"
                                         LineBreakMode="WordWrap"
+                            TextColor="{AppThemeBinding Light=Black,Dark=White}"
                                         Text="{Binding OtherArtistsName}"
                                         VerticalOptions="Center" />
                     </syncf:SfEffectsView>
@@ -491,7 +491,7 @@ Value="False">
                         <Label
                                         LineBreakMode="TailTruncation"
                                         Text="{Binding AlbumName}"
-                                        
+                                        TextColor="{AppThemeBinding Light=Black,Dark=White}"
                                         HorizontalTextAlignment="Center"
                                         ToolTipProperties.Text="{Binding AlbumName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}"
                                         VerticalOptions="Center" />
@@ -506,7 +506,7 @@ Value="False">
                                             PointerReleasedCommandParameter="genre" />
                         </syncf:SfEffectsView.GestureRecognizers>
                         <Label
-                                        
+                                        TextColor="{AppThemeBinding Light=Black,Dark=White}"
                                         HorizontalTextAlignment="Center"
                                         LineBreakMode="TailTruncation"
                                         Text="{Binding GenreName}"
@@ -523,13 +523,13 @@ Value="False">
                                         VerticalOptions="Center" />
 
                     </syncf:SfEffectsView>
-                    <Label Grid.Column="6"
+                    <Label Grid.Column="6" TextColor="{AppThemeBinding Light=Black,Dark=White}"
                   HorizontalTextAlignment="Center"
                   Text="{Binding PlayCompletedCount}"
                   VerticalOptions="Center" />
                     <syncf:SfEffectsView Grid.Column="7">
 
-                        <Label
+                        <Label TextColor="{AppThemeBinding Light=Black,Dark=White}"
                                         HorizontalOptions="Center"
                                         Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
                                         VerticalOptions="Center" />
@@ -599,9 +599,11 @@ Value="False">
                                Text="{Binding CurrentTqlQuery, StringFormat='Current Query : {0}'}" />
                              
                         <Grid
-                ColumnDefinitions="*,auto"
+                ColumnDefinitions="*,auto,auto"
                 ColumnSpacing="5">
-                            <Editor
+
+                    <VerticalStackLayout x:Name="TqlView" Grid.Row="1">
+                        <Editor
                     x:Name="SearchSongSB"
                     windows:SearchBar.IsSpellCheckEnabled="True"
                     windows:VisualElement.AccessKey="F"
@@ -614,7 +616,11 @@ Value="False">
                                                         Light=Black}"
                     TextChanged="SearchSongSB_TextChanged"
                     Unfocused="SearchSongSB_Unfocused" />
-                            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                        <HorizontalStackLayout>
+                            
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                            <HorizontalStackLayout Grid.Column="2" Spacing="10">
 
                                 <Button
                         Command="{Binding RandomizeCommand}"
@@ -649,29 +655,6 @@ Value="False">
 
                 </Border>
 
-                    <syncf:SfTabView Grid.Column="1" BackgroundColor="Transparent">
-                        <syncf:SfTabItem>
-                            <syncf:SfTabItem.Content>
-                                
-                <Grid ColumnDefinitions="*,*" >
-                                <VerticalStackLayout Grid.Column="0">
-                                    <VerticalStackLayout.Resources>
-                                        <ResourceDictionary>
-                                            <Style TargetType="Label">
-                                                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}"/>
-                                                <Setter Property="FontSize" Value="19"/>
-                                            </Style>
-                                        </ResourceDictionary>
-                                    </VerticalStackLayout.Resources>
-                                    <Label Text="Your Current Device" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding LoginViewModel.CurrentUser.Username}"/>
-
-                                    
-                                </VerticalStackLayout>
-                </Grid>
-                            </syncf:SfTabItem.Content>
-                        </syncf:SfTabItem>
-                    </syncf:SfTabView>
                 
             </Grid>
 
@@ -766,7 +749,7 @@ HeightRequest="50"
                         EmptyView="No Songs.." Scrolled="SongsColView_Scrolled"
                             ScrollToRequested="SongsColView_ScrollToRequested"
                         IsVisible="True"
-                        ItemsSource="{Binding PlaybackQueue}"
+                        
                         Loaded="MainSongsColView_Loaded"
                         SelectionMode="Single"
                             SelectedItem="{Binding SelectedSong}"

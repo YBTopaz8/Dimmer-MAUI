@@ -30,7 +30,7 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
                 .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
                 .ForMember(dest => dest.EmbeddedSync, opt => opt.MapFrom(src => src.EmbeddedSync))
-                //.ForMember(dest => dest.IsPlaying, opt => opt.Ignore())
+                .ForMember(dest => dest.SkipCount, opt => opt.Ignore())
                 .ForMember(dest => dest.IsCurrentPlayingHighlight, opt => opt.Ignore())
                 .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
                 .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap

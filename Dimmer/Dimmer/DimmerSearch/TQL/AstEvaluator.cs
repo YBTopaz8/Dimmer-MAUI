@@ -128,6 +128,42 @@ public class AstEvaluator
                 result = songBoolValue == queryBoolValue;
                 break;
 
+            case FieldType.Date: 
+                var songDate = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
+                if (songDate == null)
+                {
+                    result = false; // Song doesn't have a date for this field, so it can't match.
+                    break;
+                }
+
+                var (startRange, endRange) = ParseDateValue(node.Value.ToString());
+
+                // Check if the query was a simple range check like ">" or "<"
+                switch (node.Operator)
+                {
+                    case ">":
+                        result = songDate.Value.Date > startRange.Date;
+                        break;
+                    case "<":
+                        result = songDate.Value.Date < startRange.Date;
+                        break;
+                    case ">=":
+                        result = songDate.Value.Date >= startRange.Date;
+                        break;
+                    case "<=":
+                        result = songDate.Value.Date <= startRange.Date;
+                        break;
+                    case "-": // Handle explicit date ranges like added:2022-2023
+                        var (upperStart, upperEnd) = ParseDateValue(node.UpperValue?.ToString());
+                        result = songDate.Value.Date >= startRange.Date && songDate.Value.Date <= upperEnd.Date;
+                        break;
+                    default:
+                        // Default behavior for date fields is "is within this date range"
+                        result = songDate.Value >= startRange && songDate.Value <= endRange;
+                        break;
+                }
+                break;
+
         }
 
         // Finally, apply negation if it exists.
@@ -161,7 +197,18 @@ public class AstEvaluator
     {
         if (string.IsNullOrWhiteSpace(text))
             return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
-
+        char firstChar = text[0];
+        if (firstChar == '>' || firstChar == '<')
+        {
+            string datePart = text[1..];
+            if (DateTimeOffset.TryParse(datePart, out var boundaryDate))
+            {
+                if (firstChar == '>')
+                    return (boundaryDate, DateTimeOffset.MaxValue);
+                if (firstChar == '<')
+                    return (DateTimeOffset.MinValue, boundaryDate);
+            }
+        }
         var now = DateTimeOffset.UtcNow.Date; // Use start of day for consistency
         text = text.ToLowerInvariant();
 

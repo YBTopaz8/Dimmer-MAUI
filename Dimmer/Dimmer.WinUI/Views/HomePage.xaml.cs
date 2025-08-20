@@ -202,12 +202,13 @@ namespace Dimmer.WinUI.Views;
 
 
 
-    protected override void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
         MyViewModel.CurrentPageContext = CurrentPage.HomePage;
         MyViewModel.SongColView = SongsColView;
 
+       await MyViewModel.InitializeParseUser();
     }
 
 
@@ -839,23 +840,7 @@ namespace Dimmer.WinUI.Views;
     }
 
 
-    private async void TransferSession_Clicked(object sender, EventArgs e)
-    {
-        bool isOkToTransfer = await MyViewModel.IsUserOkayForTransfer();
-        if (isOkToTransfer)
-        {
-            await Task.WhenAll(GridSongsColView.DimmOutCompletelyAndHide(), ShareSongView.DimmInCompletelyAndShow());
-        }
-        else
-        {
-            var result = await DisplayAlert("No Account found", "Log in to use Dimmer session transfer?", "OK", "Cancel");
-            if (result)
-            {
-                await DisplayAlert("title","Now performing sign up","OK");
-            }
-
-        }
-    }
+  
 
     private void SearchBtn_Clicked(object sender, EventArgs e)
     {

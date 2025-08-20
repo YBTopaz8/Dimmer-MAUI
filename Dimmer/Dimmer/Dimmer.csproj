@@ -42,11 +42,14 @@
   <ItemGroup>
     <Compile Remove="DimmerLive\Interfaces\IPresenceService.cs" />
     <Compile Remove="DimmerLive\Interfaces\ISessionTransferService.cs" />
+    <Compile Remove="DimmerSearch\ISearchOrchestratorService.cs" />
     <Compile Remove="DimmerSearch\QueryAnalysisService.cs" />
+    <Compile Remove="DimmerSearch\QueryModel.cs" />
     <Compile Remove="DimmerSearch\QueryTokenizer.cs" />
     <Compile Remove="DimmerSearch\SearchClass.cs" />
     <Compile Remove="DimmerSearch\SemanticModel.cs" />
     <Compile Remove="DimmerSearch\SemanticParser.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\SearchResult.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
   </ItemGroup>
 
@@ -167,6 +170,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DimmerSearch\TQLActions\" />
     <Folder Include="Resources\AppIcon\NewFolder\" />
     <Folder Include="Utilities\UIHelpers\" />
   </ItemGroup>

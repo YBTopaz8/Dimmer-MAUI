@@ -1,5 +1,6 @@
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.DimmerLiveUI;
 using Dimmer.WinUI.Views.WinUIPages;
 
 namespace Dimmer.WinUI;
@@ -207,5 +208,20 @@ public partial class DimmerWin : Window
     private void TouchBehavior_InteractionStatusChanged(object sender, CommunityToolkit.Maui.Core.TouchInteractionStatusChangedEventArgs e)
     {
 
+    }
+
+    private async void DimmerChat_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(ChatView), true);
+    }
+
+    private async void ShareBtn_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SessionTransferView),true);
+    }
+
+    private async void SocialBtn_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SocialView),true);
     }
 }

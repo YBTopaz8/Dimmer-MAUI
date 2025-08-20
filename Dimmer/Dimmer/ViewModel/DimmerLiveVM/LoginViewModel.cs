@@ -163,6 +163,7 @@ public partial class LoginViewModel : ObservableObject
         }
         else
         {
+            /*
             try
             {
                 // This is the correct method.
@@ -178,7 +179,7 @@ public partial class LoginViewModel : ObservableObject
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating anonymous user: {ex.Message}");
-            }
+            }*/
             return false;
         }
     }

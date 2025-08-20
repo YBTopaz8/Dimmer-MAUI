@@ -17,7 +17,7 @@
     FlyoutWidth="380"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     Shell.FlyoutBehavior="Flyout"  xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
-  FlyoutBackgroundColor="{AppThemeBinding Light=#F5F5F5,Dark=#1F1F1F}"
+  FlyoutBackgroundColor="Transparent"
     x:DataType="vm:BaseViewModelWin">
     <Shell.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
@@ -52,27 +52,36 @@
                         HeightRequest="80" />
                         </HorizontalStackLayout>
 
-                        <Grid Grid.Row="1" Margin="5">
-                            <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-      Opacity="0.3" Aspect="AspectFit" />
-                            <Border StrokeShape="RoundRectangle 20"
-                Margin="10,0"
+                        <Border StrokeShape="RoundRectangle 15"
+                Margin="10,0"  Grid.Row="1"
                 StrokeThickness="3"
                   x:Name="NavTab">
-                                <Border.Triggers>
+                            <Border.Triggers>
 
-                                    
 
-                                    <DataTrigger
+
+                                <DataTrigger
 Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
 TargetType="Border"
 Value="true">
-                                        <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
+                                    <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
+                                </DataTrigger>
+
+
+
+                            </Border.Triggers>
+                            <Grid>
+                            <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+      Opacity="0.3" Aspect="AspectFit" >
+                                <Image.Triggers>
+                                    <DataTrigger TargetType="Image" Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                                 Value="True">
+                                        <Setter Property="Opacity" Value="1"/>
                                     </DataTrigger>
-
-                                  
-
-                                </Border.Triggers>
+                                                 
+                                </Image.Triggers>
+                            </Image>
+                        
 
                                 <VerticalStackLayout
 x:Name="LyricsSection"
@@ -121,9 +130,10 @@ IsVisible="True">
     Text="{Binding NextLine.Text}" />
                                 </VerticalStackLayout>
 
-                            </Border>
 
                         </Grid>
+
+                        </Border>
                         <Label HorizontalOptions="Center"
         HorizontalTextAlignment="Justify" LineBreakMode="WordWrap"
                  FontAttributes="Bold"
@@ -333,7 +343,7 @@ ThumbColor="{Binding CurrentPlaySongDominantColor}"
 Value="{Binding CurrentTrackPositionSeconds}" />
                         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                             <Label HorizontalTextAlignment="Start"
-                       TextColor="{AppThemeBinding Light=blue,Dark=white}"
+                       TextColor="{AppThemeBinding Light=DarkSlateblue,Dark=white}"
                                 Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >
                                 <Label.Triggers>
                                     <DataTrigger Binding="{Binding IsPlaying}"
@@ -363,10 +373,12 @@ Value="{Binding CurrentTrackPositionSeconds}" />
                                         SelectedItem="{Binding CurrentLine}" 
                                         
                                         SelectionMode="Single" SelectionChanged="AllLyricsColView_SelectionChanged"
-                                        SelectionChangedCommand="{Binding }">
+                                        >
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                    <Label Text="{Binding Text}" FontSize="{Binding }" HorizontalTextAlignment="Center"/>
+                                    
+                                    <Label Text="{Binding Text}" FontSize="{Binding NowPlayingLyricsFontSize}"
+                                           HorizontalTextAlignment="Center"/>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
@@ -380,7 +392,7 @@ Value="{Binding CurrentTrackPositionSeconds}" />
 
 
     <Shell.FlyoutFooter>
-        <Grid RowDefinitions="*,*" BackgroundColor="{AppThemeBinding Light=#F5F5F5,Dark=#1F1F1F}"
+        <Grid RowDefinitions="*,*" BackgroundColor="{AppThemeBinding Light=#F5F5F5,Dark=transparent}"
              x:Name="TopLeft" >
             <Grid.GestureRecognizers>
                 <PointerGestureRecognizer

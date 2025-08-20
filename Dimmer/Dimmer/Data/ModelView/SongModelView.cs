@@ -151,6 +151,8 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int PlayCompletedCount { get; set; }
     [ObservableProperty]
+    public partial int SkipCount { get; set; }
+    [ObservableProperty]
     public partial DateTimeOffset LastPlayed { get; set; }
     [ObservableProperty]
     public partial string SearchableText { get; private set; }
@@ -225,6 +227,8 @@ public partial class SongModelView : ObservableObject
     {
         PlayCount = PlayEvents?.Count ?? 0;
         PlayCompletedCount = PlayEvents?.Count(x => x.PlayType == (int)PlayType.Completed) ?? 0;
+        SkipCount = PlayEvents?.Count(x => x.PlayType == (int)PlayType.Skipped) ?? 0;
+
         LastPlayed = PlayEvents?
             .Where(x => x.PlayType == (int)PlayType.Completed)
             .OrderByDescending(x => x.EventDate)

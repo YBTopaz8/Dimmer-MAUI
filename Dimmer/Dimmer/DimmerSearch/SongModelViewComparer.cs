@@ -56,24 +56,17 @@ public class SongModelViewComparer : IComparer<SongModelView>
             var valueX = SemanticQueryHelpers.GetComparableProp(x, desc.PropertyName);
             var valueY = SemanticQueryHelpers.GetComparableProp(y, desc.PropertyName);
 
-            int result;
-            if (valueX is null && valueY is null)
-                result = 0;
-            else if (valueX is null)
-                result = -1;
-            else if (valueY is null)
-                result = 1;
-            else if (valueX is IComparable comparableX)
-                result = comparableX.CompareTo(valueY);
-            else
-                result = string.Compare(valueX.ToString(), valueY.ToString(), StringComparison.OrdinalIgnoreCase);
+            int result = Comparer<IComparable>.Default.Compare(valueX, valueY);
 
             if (result != 0)
             {
+                // Ternary expression is cleaner here
                 return desc.Direction == SortDirection.Ascending ? result : -result;
             }
         }
-        return 0;
+
+        // As a final tie-breaker, sort by title to ensure a stable sort order.
+        return string.Compare(x.Title, y.Title, StringComparison.OrdinalIgnoreCase);
     }
 
     public SongModelViewComparer Inverted()

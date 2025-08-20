@@ -9,6 +9,8 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 
+using Parse.LiveQuery;
+
 namespace Dimmer.WinUI;
 
 public static class MauiProgram
@@ -52,6 +54,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SingleSongPage>();
         builder.Services.AddSingleton<DimmerLivePage>();
         builder.Services.AddSingleton<ExperimentsPage>();
+        builder.Services.AddSingleton<SessionTransferVMWin>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
@@ -123,8 +126,12 @@ public static class MauiProgram
 
 
         //IMapper? mapperWin = AutoMapperConfWinUI.ConfigureAutoMapper();
-        //builder.Services.AddSingleton(mapperWin);
-
+        builder.Services.AddSingleton<ChatView>();
+        builder.Services.AddSingleton<SessionTransferView>();
+        builder.Services.AddSingleton<SocialView>();
+        builder.Services.AddSingleton<SocialViewModelWin>();
+        builder.Services.AddSingleton<ChatViewModelWin>();
+        builder.Services.AddSingleton<ParseLiveQueryClient>();
 
         return builder.Build();
     }

@@ -999,7 +999,9 @@ WidthRequest="700"
                     <syncf:SfTabItem.Content>
                         <ScrollView>
                                 <Grid >
-                                    <Image Source="{Binding SelectedSong.CoverImagePath}" Opacity="0.18"/>
+                                    <Image Source="{Binding SelectedSong.CoverImagePath}"
+                                           Aspect="AspectFit" IsVisible="False"
+                                           Opacity="0.10"/>
                           
                             <VerticalStackLayout Padding="15" Spacing="10">
                                 <Label Text="Edit the core information for this song. These changes will be saved directly to the audio file's tags."/>

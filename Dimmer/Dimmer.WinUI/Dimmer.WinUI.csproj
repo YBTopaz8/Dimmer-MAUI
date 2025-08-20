@@ -77,7 +77,10 @@
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <None Remove="Views\ArtistWindow.xaml" />
     <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <None Remove="Views\DimmerLiveUI\ChatView.xaml" />
     <None Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
+    <None Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
+    <None Remove="Views\DimmerLiveUI\SocialView.xaml" />
     <None Remove="Views\DimmerSongWindow.xaml" />
     <None Remove="Views\ExperimentsPage.xaml" />
     <None Remove="Views\HomePage.xaml" />
@@ -103,7 +106,10 @@
     <Page Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <Page Remove="Views\ArtistWindow.xaml" />
     <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <Page Remove="Views\DimmerLiveUI\ChatView.xaml" />
     <Page Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
+    <Page Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
+    <Page Remove="Views\DimmerLiveUI\SocialView.xaml" />
     <Page Remove="Views\DimmerSongWindow.xaml" />
     <Page Remove="Views\ExperimentsPage.xaml" />
     <Page Remove="Views\HomePage.xaml" />
@@ -132,11 +138,10 @@
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-    <PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
     <PackageReference Include="DeftSharp.Windows.Input" Version="0.10.0" />
-    <PackageReference Include="DevWinUI" Version="8.9.0" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.90" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.100" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.100" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
@@ -149,11 +154,11 @@
     <PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.6" />
     <PackageReference Include="Vanara.PInvoke.User32" Version="4.1.6" />
     <PackageReference Include="Vanara.Windows.Shell" Version="4.1.6" />
-    <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3351.48" />
+    <PackageReference Include="WindowsAPICodePack" Version="8.0.9" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3405.78" />
 
 
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
 
 
     <PackageReference Include="WinUI.TableView" Version="1.3.2" />
@@ -212,7 +217,16 @@
     <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Include="Views\DimmerLiveUI\ChatView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Include="Views\DimmerLiveUI\DimmerLivePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\DimmerLiveUI\SessionTransferView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\DimmerLiveUI\SocialView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\DimmerSongWindow.xaml">

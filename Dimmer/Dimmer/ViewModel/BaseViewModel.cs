@@ -125,7 +125,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _filterPredicate = new BehaviorSubject<Func<SongModelView, bool>>(song => true);
         _sortComparer = new BehaviorSubject<IComparer<SongModelView>>(new SongModelViewComparer(null));
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
-        PlaybackManager = new RuleBasedPlaybackManager();
+        //PlaybackManager = new RuleBasedPlaybackManager();
 
 
     }
@@ -1975,12 +1975,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
         {
-            _= ShowNotification($"LastSessionPlaylistName, Song file not found for '{songToPlay.Title}'. Skipping to next track.");
+            _= ShowNotification($"Song file not found for '{songToPlay.Title}'. Skipping to next track.");
             _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
 
             await ValidateSongAsync(songToPlay);
             await NextTrackAsync();
-            return;
+             return;
         }
 
         var newQueue = _searchResults.ToList();
@@ -2203,13 +2203,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (IsPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage <90)
         {
             _baseAppFlow.UpdateDatabaseWithPlayEvent(realmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Skipped), CurrentTrackPositionSeconds);
+            if (IsPlaying && _songToScrobble != null && IsLastfmAuthenticated)
+            {
+                await lastfmService.ScrobbleAsync(_songToScrobble);
+            }
+            _stateService.SetCurrentLogMsg(new AppLogModel() { Log="Ended manually" });
         }
 
 
-        if (IsPlaying && _songToScrobble != null && IsLastfmAuthenticated)
-        {
-            await lastfmService.ScrobbleAsync(_songToScrobble);
-        }
+       
 
 
         int nextIndex = GetNextIndexInQueue(1);

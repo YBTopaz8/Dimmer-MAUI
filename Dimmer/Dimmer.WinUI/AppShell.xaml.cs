@@ -28,8 +28,11 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(LibSanityPage), typeof(LibSanityPage));
         Routing.RegisterRoute(nameof(ExperimentsPage), typeof(ExperimentsPage));
-
-
+        Routing.RegisterRoute(nameof(SocialView), typeof(SocialView));
+        Routing.RegisterRoute(nameof(AllArtistsPage), typeof(AllArtistsPage));
+        
+        Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
+        Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
     }
 
     protected async override void OnAppearing()
@@ -334,13 +337,28 @@ public partial class AppShell : Shell
 
     private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-        var newItem = e.CurrentSelection;
-        if (newItem.Count > 0)
-        {
+                var current = e.CurrentSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
 
-            AllLyricsColView.ScrollTo(item: newItem[0], ScrollToPosition.Start, animate: true);
+        var past = e.PreviousSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
+
+            if (past is not null)
+            {
+
+                past.NowPlayingLyricsFontSize = 25;
+
+
+            }
+        
+            if (current != null)
+            {
+
+
+                    current.NowPlayingLyricsFontSize = 30;
+                
+            }
+            AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
         }
-    }
+    
 
     private void Slider_Loaded(object sender, EventArgs e)
     {

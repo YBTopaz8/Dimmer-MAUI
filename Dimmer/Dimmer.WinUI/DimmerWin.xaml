@@ -35,21 +35,45 @@
             </TitleBar.Resources>
             <TitleBar.TrailingContent>
                 <HorizontalStackLayout BackgroundColor="Transparent">
-                    <ImageButton Source="expand.png" x:Name="SwitchTheme"
-                                 Clicked="SwitchTheme_Clicked"/>
+                    <ImageButton
+                       Source="chatdimmer.png"
+                      Clicked="DimmerChat_Clicked"
+                        x:Name="DimmerChat"
+                        />
+
+                    <ImageButton Source="sharefd.png"
+                                 x:Name="ShareSong"
+                                    Clicked="ShareBtn_Clicked"
+                    />
+
+                    <ImageButton Source="usersgrouprounded.png"
+                                 x:Name="SocialBtn"
+                                    Clicked="SocialBtn_Clicked"
+                    />
+                    <ImageButton Source="{AppThemeBinding Light=darkmoon.png, Dark=lightmodde.png}" x:Name="SwitchTheme"
+                                 Clicked="SwitchTheme_Clicked"
+                                 >
+                        <ImageButton.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue"/>
+                            <toolkit:TouchBehavior InteractionStatusChanged="TouchBehavior_InteractionStatusChanged"/>
+                        </ImageButton.Behaviors>
+                    </ImageButton>
+                                 
+                                 
                     <!--<ImageButton Clicked="Minimize_Clicked" Source="threesquares.png" />-->
-                    <ImageButton Source="settings.png"
+                    <ImageButton Source="searchalta.png"
              x:Name="SettingsBtn"
-                                 Clicked="SettingsBtn_Clicked"
+                                
+                                 Clicked="SettingsBtnn_Clicked"
              >
                         <ImageButton.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue"/>
                             <toolkit:TouchBehavior InteractionStatusChanged="TouchBehavior_InteractionStatusChanged"/>
                         </ImageButton.Behaviors>
                     </ImageButton>
                     <ImageButton Source="settingssliders.png"
              x:Name="SettingsBtnn"
-                                 
-                                 Clicked="SettingsBtnn_Clicked"
+                                  Clicked="SettingsBtn_Clicked"
              />
                     <ImageButton
                         x:Name="StickTopImgBtn"
