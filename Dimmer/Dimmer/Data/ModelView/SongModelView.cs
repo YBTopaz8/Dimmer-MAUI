@@ -153,87 +153,75 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int SkipCount { get; set; }
     [ObservableProperty]
-    public partial DateTimeOffset LastPlayed { get; set; }
+    public partial DateTimeOffset? LastPlayed { get; set; }
     [ObservableProperty]
-    public partial string SearchableText { get; private set; }
+    public partial string? SearchableText { get; private set; } = string.Empty;
 
-    // This method is called after the object is created and its properties are set.
-    public void PrecomputeSearchableText()
+    [ObservableProperty]
+    public partial string? UserNoteAggregatedText { get; private set; }=string.Empty;   
+
+
+    public void RefreshDenormalizedProperties()
     {
-        //var allNotes = UserNotes?.Select(note => note.UserMessageText ?? string.Empty).ToString()?? string.Empty;
-        //if (!string.IsNullOrEmpty(allNotes))
-        //{
-        //    Debug.WriteLine(allNotes);
-        //}
-        var sb = new StringBuilder();
-        sb.Append(Title?.ToLowerInvariant()).Append(' ');
-        sb.Append(OtherArtistsName?.ToLowerInvariant()).Append(' ');
-        sb.Append(AlbumName?.ToLowerInvariant()).Append(' ');
-        sb.Append(UnSyncLyrics?.ToLowerInvariant()).Append(' ');
-        sb.Append(SyncLyrics?.ToLowerInvariant()).Append(' ');
-        sb.Append(Genre?.Name?.ToLowerInvariant()).Append(' '); // Example of adding more
-        //sb.Append(allNotes?.ToLowerInvariant()).Append(' '); // Example of adding more
-        //sb.Append(UserNoteAggregatedText?.ToLowerInvariant()).Append(' ');
 
-        SearchableText = sb.ToString();
-        if (string.IsNullOrEmpty(SearchableText) || string.IsNullOrWhiteSpace(SearchableText))
+        // 1. Update Play Counts and Last Played
+        if (PlayEvents.Any())
         {
-            SearchableText=string.Empty;
+            PlayCount = PlayEvents.Count;
+            PlayCompletedCount = PlayEvents.Count(p => p.PlayType == (int)PlayType.Completed);
+
+            var lastPlayEvent = PlayEvents
+                .Where(p => p.PlayType == (int)PlayType.Completed)
+                .OrderByDescending(p => p.EventDate)
+                .FirstOrDefault();
+            if (lastPlayEvent is not null)
+            {
+                LastPlayed = lastPlayEvent.EventDate.Value;
+            }
+
+            SkipCount = PlayEvents?.Count(x => x.PlayType == (int)PlayType.Skipped) ?? 0;
         }
-        HasSyncedLyrics= !string.IsNullOrEmpty(SyncLyrics) && SyncLyrics.Length > 1;
-        HasLyrics = !string.IsNullOrEmpty(UnSyncLyrics) && UnSyncLyrics.Length > 1;
-        IsFileExists = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
+        else
+        {
+            PlayCount = 0;
+            PlayCompletedCount = 0;
+            LastPlayed = DateTimeOffset.MinValue;
+        }
 
+        // 2. Update Aggregated Notes
+        if (UserNotes.Any())
+        {
+            UserNoteAggregatedText = string.Join(" ", UserNotes.Select(n => n.UserMessageText));
+        }
+        else
+        {
+            UserNoteAggregatedText = null;
+        }
+
+
+
+        // 3. Update the main SearchableText field
+        var sb = new StringBuilder();
+        sb.Append(Title).Append(' ');
+        sb.Append(OtherArtistsName).Append(' ');
+        sb.Append(AlbumName).Append(' ');
+        sb.Append(GenreName).Append(' ');
+        sb.Append(SyncLyrics).Append(' ');
+        sb.Append(UnSyncLyrics).Append(' ');
+        sb.Append(Composer).Append(' ');
+        sb.Append(UserNoteAggregatedText); // Include the notes in the "any" search
+
+        SearchableText = sb.ToString().ToLowerInvariant();
     }
-    public string UserNoteAggregatedText =>
-        UserNotes != null && UserNotes.Any()
-        ? string.Join(" ", UserNotes.Select(n => n.UserMessageText))
-        : string.Empty;
-
     public SongModelView()
     {
-
-        PlayEvents = new ObservableCollection<DimmerPlayEventView>();
-        SubscribeToPlayEvents();
-        PrecomputeSearchableText();
-        UpdatePlayEventProps();
+        PlayEvents.CollectionChanged += (s, e) => UpdateSkipCount();
     }
-    partial void OnPlayEventsChanging(ObservableCollection<DimmerPlayEventView> value)
+    private void UpdateSkipCount()
     {
-        // Unsubscribe from old collection
-        if (PlayEvents != null)
-            PlayEvents.CollectionChanged -= PlayEvents_CollectionChanged;
     }
 
-    partial void OnPlayEventsChanged(ObservableCollection<DimmerPlayEventView> value)
-    {
-        // Subscribe to new collection
-        SubscribeToPlayEvents();
-        UpdatePlayEventProps();
-    }
 
-    private void SubscribeToPlayEvents()
-    {
-        if (PlayEvents != null)
-            PlayEvents.CollectionChanged += PlayEvents_CollectionChanged;
-    }
-
-    private void PlayEvents_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
-        UpdatePlayEventProps();
-    }
-
-    private void UpdatePlayEventProps()
-    {
-        PlayCount = PlayEvents?.Count ?? 0;
-        PlayCompletedCount = PlayEvents?.Count(x => x.PlayType == (int)PlayType.Completed) ?? 0;
-        SkipCount = PlayEvents?.Count(x => x.PlayType == (int)PlayType.Skipped) ?? 0;
-
-        LastPlayed = PlayEvents?
-            .Where(x => x.PlayType == (int)PlayType.Completed)
-            .OrderByDescending(x => x.EventDate)
-            .FirstOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
-    }
 
 
     public override int GetHashCode()

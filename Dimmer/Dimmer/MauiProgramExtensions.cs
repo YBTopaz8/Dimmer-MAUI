@@ -8,6 +8,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.LastFM;
+using Dimmer.Utils.SmartPlaylist;
 using Dimmer.ViewModel.DimmerLiveVM;
 
 using Microsoft.Extensions.Configuration;
@@ -81,7 +82,7 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
         builder.Services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
-
+        builder.Services.AddSingleton<NarrativeGeminiService>();
 
         IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();
 

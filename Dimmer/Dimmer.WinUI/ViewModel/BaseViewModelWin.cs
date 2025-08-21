@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using System.Threading.Tasks;
 
-namespace Dimmer.WinUI.ViewModel; // Assuming this is your WinUI MyViewModel namespace
+namespace Dimmer.WinUI.ViewModel; 
 
 public partial class BaseViewModelWin: BaseViewModel
 

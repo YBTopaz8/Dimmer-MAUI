@@ -303,7 +303,7 @@ internal class WindowManagerService : IWindowManagerService
         if (IsWindowOpen(window))
         {
             // The native WinUI Window object itself is the one to activate
-
+            
             Application.Current!.ActivateWindow(window);
             Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
 

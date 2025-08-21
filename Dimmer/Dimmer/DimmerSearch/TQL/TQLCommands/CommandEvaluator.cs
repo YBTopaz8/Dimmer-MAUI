@@ -66,10 +66,34 @@ public class CommandEvaluator
                 return new DeleteDuplicateAction(resultsSnapshot);
             case CommandKeys.Play: 
                 return new ReplaceQueueAction(resultsSnapshot);
+            case "addall":
+                if (cmdNode.Arguments.TryGetValue("indices", out object? idxValue) && idxValue is HashSet<int> indices &&
+                    cmdNode.Arguments.TryGetValue("position", out object? posValued) && posValued is string positiond)
+                {
+                    return new AddIndexedToQueueAction(indices, positiond, resultsSnapshot);
+                }
+                return new NoAction();
+            case "addto":
+            case "addtopos":
+                if (cmdNode.Arguments.TryGetValue("position", out object? posValue) && posValue is int position)
+                {
+                    // We subtract 1 because queues are 0-indexed, but users think 1-indexed.
+                    return new AddToPositionAction(Math.Max(0, position - 1), resultsSnapshot);
+                }
+                return new NoAction(); // Or an error action
+
+            case "viewal":
+                if (cmdNode.Arguments.TryGetValue("albumIndex", out object? idxValued) && idxValued is int albumIndex)
+                {
+                    return new ViewAlbumAction(Math.Max(0, albumIndex - 1));
+                }
+                return new NoAction();
+
+            case "scrollto":
+                return new ScrollToPlayingAction();
 
             default:
                 return new UnrecognizedCommandAction(cmdNode.Command);
-
         }
     }
 }

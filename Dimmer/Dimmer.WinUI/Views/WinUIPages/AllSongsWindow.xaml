@@ -24,6 +24,7 @@ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
 xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
 xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
 x:Name="myPage"
+    
     xmlns:dgView="using:WinUI.TableView">
 
     <Window.SystemBackdrop>
@@ -82,8 +83,8 @@ x:Name="myPage"
                                 <Grid>
                                     <!-- You can even overlay a "favorite" icon like in your example -->
                                     <Image Source="{Binding CoverImagePath}"
-                                       Width="80"
-                                       Height="80"
+                                       Width="100"
+                                       Height="100"
                                        Stretch="UniformToFill"/>
 
                                    
@@ -93,13 +94,16 @@ x:Name="myPage"
                     </dgView:TableViewTemplateColumn>
 
                     <!-- Other columns for Title, Artist, etc. -->
-                    <dgView:TableViewTextColumn Header="Title" Binding="{Binding Title}" IsReadOnly="True"/>
-                    
-                    <dgView:TableViewTextColumn Header="Artist" Binding="{Binding ArtistName}" IsReadOnly="True"/>
-                    
-                    <dgView:TableViewTextColumn Header="Album" Binding="{Binding AlbumName}" IsReadOnly="True"/>
-                    
-                    <dgView:TableViewTextColumn Header="Year" Binding="{Binding ReleaseYear}" IsReadOnly="True"/>
+                    <dgView:TableViewTextColumn  Header="Title"  IsReadOnly="True" Binding="{Binding Title}"/>
+
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Artist" MaxWidth="300" Binding="{Binding ArtistName}"/>
+
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Album" Binding="{Binding AlbumName}" MaxWidth="200"/> 
+
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Year" Binding="{Binding ReleaseYear}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Dims" Binding="{Binding PlayCompletedCount}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Skip Count" Binding="{Binding SkipCount}"/>
 
                 </dgView:TableView.Columns>
             </dgView:TableView>

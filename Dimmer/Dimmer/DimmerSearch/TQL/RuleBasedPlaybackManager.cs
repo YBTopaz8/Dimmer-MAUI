@@ -1,84 +1,77 @@
 ﻿using Dimmer.Data.ModelView.DimmerSearch;
-
+using System.Linq.Dynamic.Core;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch.TQL;
-
 public class RuleBasedPlaybackManager
 {
-
+    private readonly IRealmFactory _realmFactory;
+    private readonly IMapper _mapper;
     private readonly Random _random = new();
-
-    // The list of rules defined by the user
-    public ObservableCollection<PlaybackRule> Rules { get; } = new();
-
-    // A history of songs played in this session to avoid repeats
     private readonly HashSet<ObjectId> _sessionPlayHistory = new();
 
-    public RuleBasedPlaybackManager()
+    public RuleBasedPlaybackManager(IRealmFactory realmFactory, IMapper mapper)
     {
+        _realmFactory = realmFactory;
+        _mapper = mapper;
     }
 
     /// <summary>
-    /// The core method. Finds the next song to play based on the rule set.
+    /// The core method. Finds the next song to play based on the provided rule set.
     /// </summary>
-    /// <param name="currentQueue">The full list of songs available for playback (the frozen snapshot).</param>
+    /// <param name="rules">The collection of playback rules to evaluate.</param>
     /// <returns>The SongModelView to play next, or null if no song matches any rule.</returns>
-    public SongModelView? FindNextSong(IList<SongModelView> currentQueue)
+    public SongModelView? FindNextSong(IEnumerable<PlaybackRule> rules) // <-- MODIFIED SIGNATURE
     {
-        if (currentQueue == null || !currentQueue.Any())
-            return null;
+        var realm = _realmFactory.GetRealmInstance();
 
-        // --- Iterate through rules by priority ---
-        foreach (var rule in Rules.Where(r => r.IsEnabled).OrderBy(r => r.Priority))
+        // --- FIXED: The loop now iterates over the 'rules' parameter ---
+        foreach (var rule in rules.Where(r => r.IsEnabled).OrderBy(r => r.Priority))
         {
             try
             {
-                // 1. Parse the rule's query into a predicate
-                var ast = new AstParser(rule.Query).Parse();
-                var predicate = new AstEvaluator().CreatePredicate(ast);
+                var plan = MetaParser.Parse(rule.Query);
+                if (plan.ErrorMessage != null)
+                    continue;
 
-                // 2. Find all candidate songs in the entire queue that match this rule
-                var candidateSongs = currentQueue.Where(predicate).ToList();
+                IQueryable<SongModel> candidatesQuery = realm.All<SongModel>().Filter(plan.RqlFilter);
 
-                // 3. Filter out songs that have already been played in this session
-                var unplayedCandidates = candidateSongs
+                var candidateSongs = candidatesQuery.ToList()
                     .Where(s => !_sessionPlayHistory.Contains(s.Id))
                     .ToList();
 
-                if (unplayedCandidates.Count!=0)
+                if (candidateSongs.Count!=0)
                 {
-                    // 4. We found a match! Pick one and return it.
-                    var songToPlay = unplayedCandidates[_random.Next(unplayedCandidates.Count)];
-
-                    return songToPlay;
+                    var songToPlayModel = candidateSongs[_random.Next(candidateSongs.Count)];
+                    return _mapper.Map<SongModelView>(songToPlayModel);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
                 // Silently continue to the next rule
             }
         }
 
-        // --- Fallback: If no rules match, play any random unplayed song ---
-        var anyUnplayed = currentQueue.Where(s => !_sessionPlayHistory.Contains(s.Id)).ToList();
-        if (anyUnplayed.Count!=0)
-        {
-            var songToPlay = anyUnplayed[_random.Next(anyUnplayed.Count)];
+        var anyUnplayedIds = realm.All<SongModel>()
+            .Select(s => s.Id)
+            .ToList()
+            .Except(_sessionPlayHistory)
+            .ToList();
 
-            return songToPlay;
+        if (anyUnplayedIds.Count!=0)
+        {
+            var randomId = anyUnplayedIds[_random.Next(anyUnplayedIds.Count)];
+            var songToPlay = realm.Find<SongModel>(randomId);
+            return _mapper.Map<SongModelView>(songToPlay);
         }
 
-        // If all songs have been played, clear the history to allow for a new "session"
-
         ClearSessionHistory();
-        // And try one last time
-        return FindNextSong(currentQueue);
+        return FindNextSong(rules); // Pass the rules along in the recursive call
     }
 
     public void AddSongToHistory(SongModelView song)

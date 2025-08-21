@@ -12,8 +12,31 @@ global using Syncfusion.Maui.Toolkit.Hosting;
 global using CommunityToolkit.Maui.Views;
 
 global using Parse;
-
 global using System.Globalization;
+
+global using ATL;
+
+global using CommunityToolkit.Maui.Alerts;
+global using CommunityToolkit.Mvvm.Input;
+global using System.Linq.Dynamic.Core;
+global using Dimmer.Data.ModelView.DimmerSearch;
+global using Dimmer.Data.ModelView.LibSanityModels;
+global using Dimmer.Data.ModelView.NewFolder;
+global using Dimmer.Data.RealmStaticFilters;
+global using Dimmer.DimmerSearch;
+global using Dimmer.DimmerSearch.Exceptions;
+global using Dimmer.DimmerSearch.TQL;
+global using Dimmer.DimmerSearch.TQL.TQLCommands;
+global using Dimmer.DimmerSearch.TQL.TQLCommands.Interfaces;
+global using Dimmer.Interfaces.IDatabase;
+global using Dimmer.Interfaces.Services;
+global using Dimmer.Interfaces.Services.Interfaces;
+global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+global using Dimmer.LastFM;
+global using Dimmer.Utilities.Events;
+global using Dimmer.Utilities.Extensions;
+global using Dimmer.Utilities.StatsUtils;
+global using Dimmer.Utilities.ViewsUtils;
 global using CommunityToolkit.Maui.Core.Extensions;
 global using Dimmer.Data.Models;
 global using Dimmer.Orchestration;

@@ -126,6 +126,46 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     [Ignored]
     public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
     public string CoverArtHash { get;  set; }
+
+    /// <summary>
+    /// A pre-computed, concatenated string of all searchable text fields for this song.
+    /// This is used for the 'any:' TQL query.
+    /// Decorating with [FullText] enables high-performance text searches.
+    /// </summary>
+    [Indexed(IndexType.FullText)]
+    public string? SearchableText { get; set; }
+
+    /// <summary>
+    /// The aggregated text from all user notes. Used for 'note:' TQL query.
+    /// This avoids complex and slow queries over embedded objects.
+    /// </summary>
+    [Indexed]
+    public string? UserNoteAggregatedText { get; set; }
+
+    /// <summary>
+    /// The date and time this song was last played to completion.
+    /// This is essential for fast sorting and filtering by 'played:'.
+    /// </summary>
+    [Indexed]
+    public DateTimeOffset LastPlayed { get; set; }
+
+    /// <summary>
+    /// A simple count of total plays. Faster than querying PlayHistory.Count() every time.
+    /// </summary>
+    [Indexed]
+    public int PlayCount { get; set; }
+
+    /// <summary>
+    /// A simple count of completed plays. Faster than querying PlayHistory.Count(p => ...).
+    /// </summary>
+    [Indexed]
+    public int PlayCompletedCount { get; set; }
+
+    [Ignored]
+    public int SkipCount { get; set; }
+
+
+
 }
 public partial class SyncLyrics : EmbeddedObject
 {
@@ -145,6 +185,8 @@ public partial class SyncLyrics : EmbeddedObject
         TimestampMs = timestampMs;
         Text = text;
     }
+
+
 }
 public partial class UserNoteModel : EmbeddedObject
 {

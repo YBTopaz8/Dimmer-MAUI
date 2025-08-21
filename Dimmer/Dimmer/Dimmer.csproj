@@ -50,6 +50,7 @@
     <Compile Remove="DimmerSearch\SemanticModel.cs" />
     <Compile Remove="DimmerSearch\SemanticParser.cs" />
     <Compile Remove="DimmerSearch\TQLActions\SearchResult.cs" />
+    <Compile Remove="DimmerSearch\TQL\AstEvaluator.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
   </ItemGroup>
 
@@ -79,6 +80,10 @@
 
 
     <PackageReference Include="Fastenshtein" Version="1.0.10" />
+
+
+
+    <PackageReference Include="Google.Cloud.AIPlatform.V1" Version="3.45.0" />
 
 
 
@@ -128,6 +133,9 @@
 
 
     <PackageReference Include="ReactiveUI.Maui" Version="20.4.1" />
+
+
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.7" />
 
     <PackageReference Include="System.Reactive" Version="6.0.1" />
 

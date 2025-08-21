@@ -100,8 +100,7 @@ public static class TopStats
     public static List<DimmerStats> GetPlayDistributionByHour(IReadOnlyCollection<DimmerPlayEvent> songEvents)
     {
         return songEvents
-            .GroupBy(e => e.EventDate?.Hour)
-            .Where(g => g.Key.HasValue)
+            .GroupBy(e => e.EventDate.Hour)
             .Select(g => new DimmerStats
             {
                 Name = $"{g.Key:00}:00", // "09:00"
@@ -144,8 +143,8 @@ public static class TopStats
     public static List<DimmerStats> GetPlayHistoryOverTime(IReadOnlyCollection<DimmerPlayEvent> songEvents)
     {
         return songEvents
-            .Where(e => e.PlayType == PlayType_Completed && e.EventDate.HasValue)
-            .GroupBy(e => new { e.EventDate!.Value.Year, e.EventDate!.Value.Month })
+            .Where(e => e.PlayType == PlayType_Completed)
+            .GroupBy(e => new { e.EventDate.Year, e.EventDate.Month })
             .Select(g => new DimmerStats
             {
                 Name = $"{g.Key.Year}-{g.Key.Month:D2}", // "2023-11"
@@ -166,7 +165,7 @@ public static class TopStats
             .Where(e => e.PlayType == PlayType_Skipped && e.PositionInSeconds > 0)
             .Select(e => new DimmerStats
             {
-                Date = e.EventDate ?? DateTimeOffset.MinValue,
+                Date = e.EventDate,
                 Value = e.PositionInSeconds // X-Axis: Position in song
             })
             .OrderBy(s => s.Date)
@@ -277,10 +276,8 @@ public static class TopStats
             .Select(g =>
             {
                 var firstPlay = g.Min(e => e.EventDate);
-                if (!firstPlay.HasValue)
-                    return null;
-
-                var playsInFirstMonth = g.Count(e => e.EventDate < firstPlay.Value.AddDays(30));
+              
+                var playsInFirstMonth = g.Count(e => e.EventDate < firstPlay.AddDays(30));
                 var totalPlays = g.Count();
 
                 // Avoid division by zero and ensure the song is not new
@@ -360,7 +357,7 @@ public static class TopStats
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
-            .Where(e => e.SongId.HasValue && e.EventDate.HasValue)
+            .Where(e => e.SongId.HasValue )
             .GroupBy(e => e.SongId.Value)
             .Select(g =>
             {
@@ -374,10 +371,10 @@ public static class TopStats
                 for (int i = 0; i < orderedPlays.Count - 1; i++)
                 {
                     var gap = orderedPlays[i + 1].EventDate - orderedPlays[i].EventDate;
-                    if (gap.HasValue && (!longestGap.HasValue || gap.Value > longestGap.Value))
+                    if ((!longestGap.HasValue || gap > longestGap.Value))
                     {
                         longestGap = gap;
-                        rediscoveryDate = orderedPlays[i + 1].EventDate.Value.DateTime;
+                        rediscoveryDate = orderedPlays[i + 1].EventDate .DateTime;
                     }
                 }
 
@@ -662,8 +659,8 @@ public static class TopStats
         }
 
         var completionDates = songEvents
-            .Where(e => e.PlayType == PlayType_Completed && e.EventDate.HasValue)
-            .Select(e => e.EventDate.Value.Date)
+            .Where(e => e.PlayType == PlayType_Completed)
+            .Select(e => e.EventDate.Date)
             .Distinct()
             .OrderBy(d => d)
             .ToList();
@@ -721,20 +718,17 @@ public static class TopStats
     public static DimmerStats GetSongsFirstImpression(IReadOnlyCollection<DimmerPlayEvent> songEvents)
     {
         var firstPlayDate = songEvents
-        .Where(e => e.EventDate.HasValue)
-        .Min(e => e.EventDate?.Date);
-        if (!firstPlayDate.HasValue)
-            return new DimmerStats { StatTitle = "No Play History"};
-
+        .Min(e => e.EventDate.Date);
+       
         var firstWeekEvents = songEvents
-            .Where(e => e.PlayType == PlayType_Completed && e.EventDate.HasValue &&
-                        e.EventDate.Value.Date >= firstPlayDate.Value && e.EventDate.Value.Date < firstPlayDate.Value.AddDays(7))
-            .GroupBy(e => e.EventDate!.Value.Date)
+            .Where(e => e.PlayType == PlayType_Completed  &&
+                        e.EventDate.Date >= firstPlayDate && e.EventDate.Date < firstPlayDate.AddDays(7))
+            .GroupBy(e => e.EventDate!.Date)
             .ToDictionary(g => g.Key, g => g.Count());
 
         // Get plays for each of the 7 days, defaulting to 0
-        var day1Plays = firstWeekEvents.GetValueOrDefault(firstPlayDate.Value, 0);
-        var day7Plays = firstWeekEvents.GetValueOrDefault(firstPlayDate.Value.AddDays(6), 0);
+        var day1Plays = firstWeekEvents.GetValueOrDefault(firstPlayDate, 0);
+        var day7Plays = firstWeekEvents.GetValueOrDefault(firstPlayDate.AddDays(6), 0);
 
         // If no plays in the first week, return a specific status
         if (firstWeekEvents.Count == 0)
@@ -750,7 +744,7 @@ public static class TopStats
             High = highPlays,     // Peak play count during the week
             Low = lowPlays,       // Lowest play count during the week
             Close = day7Plays,    // Day 7 play count
-            Date = firstPlayDate.Value
+            Date = firstPlayDate
         };
 
     }
@@ -762,15 +756,15 @@ public static class TopStats
 public static List<DimmerStats> GetDailyListeningRhythm(IReadOnlyCollection<DimmerPlayEvent> songEvents, SongModel song)
 {
     var recentEvents = songEvents
-        .Where(e => e.EventDate.HasValue && e.EventDate > DateTimeOffset.UtcNow.AddDays(-30));
+        .Where(e =>e.EventDate > DateTimeOffset.UtcNow.AddDays(-30));
 
     return recentEvents
-        .GroupBy(e => e.EventDate!.Value.Date)
+        .GroupBy(e => e.EventDate.Date)
         .Select(g => new
         {
             Date = g.Key,
-            MinHour = g.Min(ev => ev.EventDate!.Value.Hour),
-            MaxHour = g.Max(ev => ev.EventDate!.Value.Hour)
+            MinHour = g.Min(ev => ev.EventDate.Hour),
+            MaxHour = g.Max(ev => ev.EventDate.Hour)
         })
         .OrderBy(x => x.Date)
         .Select(x => new DimmerStats

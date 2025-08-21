@@ -1,6 +1,8 @@
 ﻿using Hqub.Lastfm;
 using Hqub.Lastfm.Entities;
 
+using Track = Hqub.Lastfm.Entities.Track;
+
 namespace Dimmer.LastFM;
 public interface ILastfmService
 {

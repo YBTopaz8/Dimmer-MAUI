@@ -16,35 +16,40 @@ public static class AutoMapperConf
 
             var config = new MapperConfiguration(cfg =>
             {
-            // =====================================================================
-            // SECTION 1: MAPPINGS FROM REALM MODELS TO VIEWMODELS
-            // =====================================================================
-            // These are explicit to prevent threading issues and silent failures.
+                // =====================================================================
+                // SECTION 1: MAPPINGS FROM REALM MODELS TO VIEWMODELS
+                // =====================================================================
+                // These are explicit to prevent threading issues and silent failures.
 
-            cfg.CreateMap<SongModel, SongModelView>()
-                .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.OtherArtistsName))
-                .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.AlbumName))
-                .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
-                .ForMember(dest => dest.Album, opt => opt.Ignore()) // Must ignore RealmObject properties
-                .ForMember(dest => dest.Genre, opt => opt.Ignore())
-                .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
-                .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
-                .ForMember(dest => dest.EmbeddedSync, opt => opt.MapFrom(src => src.EmbeddedSync))
-                .ForMember(dest => dest.SkipCount, opt => opt.Ignore())
-                .ForMember(dest => dest.IsCurrentPlayingHighlight, opt => opt.Ignore())
-                .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
-                .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap
-                .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
-                .ForMember(dest => dest.PlayCompletedCount, opt => opt.Ignore())
-                .ForMember(dest => dest.PlayCount, opt => opt.Ignore())
-                .ForMember(dest => dest.LastPlayed, opt => opt.Ignore())
-                .AfterMap((src, dest) =>
-                {
-                    dest.PrecomputeSearchableText();
-                    //dest.
-                });
+                cfg.CreateMap<SongModel, SongModelView>()
+                    .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.OtherArtistsName))
+                    .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.AlbumName))
+                    .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
+                    .ForMember(dest => dest.Album, opt => opt.Ignore()) // Must ignore RealmObject properties
+                    .ForMember(dest => dest.Genre, opt => opt.Ignore())
+                    .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
+                    .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
+                    .ForMember(dest => dest.EmbeddedSync, opt => opt.MapFrom(src => src.EmbeddedSync))
+                    .ForMember(dest => dest.SkipCount, opt => opt.Ignore())
+                    .ForMember(dest => dest.IsCurrentPlayingHighlight, opt => opt.Ignore())
+                    .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
+                    .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap
+                    .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
+                    .ForMember(dest => dest.PlayCount, opt => opt.MapFrom(src => src.PlayCount))
+                    .ForMember(dest => dest.PlayCompletedCount, opt => opt.MapFrom(src => src.PlayCompletedCount))
+                    .ForMember(dest => dest.LastPlayed, opt => opt.MapFrom(src => src.LastPlayed))
+                    .AfterMap(
+                    
+                        (src, dest) =>
+                        {
+                            // calculate play counts and last played and skip count
+                            dest.RefreshDenormalizedProperties();
+                            
+                            })
+                    
+                    ;
 
-            cfg.CreateMap<AlbumModel, AlbumModelView>()
+                cfg.CreateMap<AlbumModel, AlbumModelView>()
               .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
                     .ForMember(dest => dest.Songs, opt => opt.Ignore()) // Ignore backlink
               .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());

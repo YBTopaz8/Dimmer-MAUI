@@ -76,7 +76,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The event date.
     /// </value>
-    public DateTimeOffset? EventDate { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset EventDate { get; set; } = DateTimeOffset.MinValue;
     /// <summary>
     /// Gets or sets the name of the device.
     /// </summary>

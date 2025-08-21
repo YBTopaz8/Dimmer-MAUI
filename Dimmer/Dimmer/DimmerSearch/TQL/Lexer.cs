@@ -30,7 +30,7 @@ public static class Lexer
     {
         { "and", TokenType.And }, { "or", TokenType.Or }, { "not", TokenType.Not },
         { "include", TokenType.Include }, { "add", TokenType.Add }, { "plus", TokenType.Add },
-        { "exclude", TokenType.Exclude }, { "remove", TokenType.Remove }, { "minus", TokenType.Remove },
+        { "exclude", TokenType.Exclude }, { "remove", TokenType.Exclude }, { "minus", TokenType.Exclude },
         { "asc", TokenType.Asc }, { "desc", TokenType.Desc },
         { "random", TokenType.Random }, { "shuffle", TokenType.Shuffle },
         { "first", TokenType.First }, { "last", TokenType.Last },

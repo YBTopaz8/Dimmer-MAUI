@@ -1,16 +1,17 @@
 ﻿using Dimmer.DimmerSearch.Exceptions;
+using Dimmer.DimmerSearch.TQL.RealmSection;
 
 using System.Text.RegularExpressions;
 
 namespace Dimmer.DimmerSearch.TQL;
-public record ParsedQueryResult(
-    Func<SongModelView, bool> Predicate,
-    IComparer<SongModelView> Comparer,
-    LimiterClause? Limiter,
-    IQueryNode? CommandNode, // We pass the node, not the evaluated action yet
-    string? ErrorMessage,
-    string? ErrorSuggestion = null
-);
+//public record ParsedQueryResult(
+//    Func<SongModelView, bool> Predicate,
+//    IComparer<SongModelView> Comparer,
+//    LimiterClause? Limiter,
+//    IQueryNode? CommandNode, // We pass the node, not the evaluated action yet
+//    string? ErrorMessage,
+//    string? ErrorSuggestion = null
+//);
 
 public  class QuerySegment
 {
@@ -36,106 +37,192 @@ public static class MetaParser
  
        private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
        {
+           
             { TokenType.Include, SegmentType.Include }, { TokenType.Add, SegmentType.Include },
-            { TokenType.Exclude, SegmentType.Exclude }, { TokenType.Remove, SegmentType.Exclude }
+            { TokenType.Exclude, SegmentType.Exclude }
         };
 
         private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
 
-        public static ParsedQueryResult Parse(string rawQuery)
-        {
-            try
-            {
-                const string commandInitiator = " >";
-                int commandInitiatorIndex = rawQuery.IndexOf(commandInitiator);
-
-                string filterQuery = (commandInitiatorIndex != -1) ? rawQuery[..commandInitiatorIndex] : rawQuery;
-                string commandQuery = (commandInitiatorIndex != -1) ? rawQuery[(commandInitiatorIndex + commandInitiator.Length)..] : string.Empty;
-
-                var filterTokens = Lexer.Tokenize(filterQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-                var segments = ParseSegmentsFromTokens(filterTokens);
-
-                var predicate = CreateMasterPredicate(segments);
-                var comparer = CreateSortComparer(segments);
-                var limiter = CreateLimiterClause(segments);
-                IQueryNode? commandNode = null;
-
-                if (!string.IsNullOrWhiteSpace(commandQuery))
-                {
-                    var commandTokens = Lexer.Tokenize(commandQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-                    if (commandTokens.Count!=0)
-                    {
-                        commandNode = ParseAsCommand(commandTokens);
-                    }
-                }
-
-                return new ParsedQueryResult(predicate, comparer, limiter, commandNode, null);
-            }
-            catch (ParsingException ex)
-            {
-                var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
-                string? suggestion = match.Success ? QueryValidator.SuggestCorrectField(match.Groups[1].Value) : null;
-                return new ParsedQueryResult(s => false, new SongModelViewComparer(null), null, null, ex.Message, suggestion);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Log the full exception 'ex' with your logger
-                return new ParsedQueryResult(s => false, new SongModelViewComparer(null), null, null, "An unexpected error occurred during parsing. "+ex.Message, null);
-            }
-        }
-        private static CommandNode? ParseAsCommand(List<Token> commandTokens)
+    public static RealmQueryPlan Parse(string rawQuery)
     {
-        var commandToken = commandTokens.FirstOrDefault();
-        if (commandToken?.Type != TokenType.Identifier)
+        try
         {
-            
-            
-            return null;
+            const string commandStart = " >";
+            const string commandEnd = "!";
+
+            string filterQuery = rawQuery;
+            string commandQuery = string.Empty;
+
+            // Find the LAST command end token
+            int commandEndIndex = rawQuery.LastIndexOf(commandEnd);
+            if (commandEndIndex == rawQuery.Length - 1)
+            {
+                int commandStartIndex = rawQuery.LastIndexOf(commandStart, commandEndIndex);
+
+                if (commandStartIndex != -1)
+                {
+                    // We found a valid command block.
+                    filterQuery = rawQuery.Substring(0, commandStartIndex);
+                    commandQuery = rawQuery.Substring(commandStartIndex + commandStart.Length, commandEndIndex - (commandStartIndex + commandStart.Length));
+                }
+            }
+
+
+            var filterTokens = Lexer.Tokenize(filterQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
+            var segments = ParseSegmentsFromTokens(filterTokens);
+
+            // --- REPLACED: Swapped AstEvaluator for RqlGenerator ---
+            var rqlFilter = CreateMasterRqlPredicate(segments);
+            var sortDescriptions = CreateSortDescriptions(segments); // Renamed from CreateSortComparer
+            var limiter = CreateLimiterClause(segments);
+            IQueryNode? commandNode = null;
+
+            if (!string.IsNullOrWhiteSpace(commandQuery))
+            {
+                var commandTokens = Lexer.Tokenize(commandQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
+                if (commandTokens.Count != 0)
+                {
+                    commandNode = ParseAsCommand(commandTokens);
+                }
+            }
+
+            return new RealmQueryPlan(rqlFilter, sortDescriptions, limiter, commandNode, null);
+        }
+        catch (ParsingException ex)
+        {
+            var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
+            string? suggestion = match.Success ? QueryValidator.SuggestCorrectField(match.Groups[1].Value) : null;
+            // --- MODIFIED: Return the new plan record on error ---
+            return new RealmQueryPlan("FALSEPREDICATE", new List<SortDescription>(), null, null, ex.Message, suggestion);
+        }
+        catch (Exception ex)
+        {
+            return new RealmQueryPlan("FALSEPREDICATE", new List<SortDescription>(), null, null, "An unexpected error occurred during parsing. " + ex.Message, null);
+        }
+    }
+    private static CommandNode? ParseAsCommand(List<Token> commandTokens)
+    {
+        if (commandTokens.Count == 0 || commandTokens.First().Type != TokenType.Identifier)
+        {
+            return null; // Not a valid command structure
         }
 
+        var commandToken = commandTokens.First();
         var commandName = commandToken.Text.ToLowerInvariant();
         var arguments = new Dictionary<string, object>();
-        var argTokens = commandTokens.Skip(1).ToList();
+        var argTokens = commandTokens.Skip(1).ToList(); // All tokens after the command name
 
-        switch (commandName)
+        try
         {
-            case "save":
-                if (argTokens.Count!=0)
-                {
-                    
-                    
-                    var playlistName = string.Join(" ", argTokens.Select(t => t.Text));
-                    arguments["playlistName"] = playlistName;
-                }
-                else
-                {
-                    throw new ParsingException("The 'save' command requires a playlist name.", commandToken.Position);
-                }
-                break;
-            case "addnext":
-                arguments["position"] = "next";
-                break;
-            case "addend":
-                arguments["position"] = "end";
-                break;
-            case "deletedup":
-                arguments["type"] = "duplicates";
-                break;
+            switch (commandName)
+            {
+                case "save":
+                case "savepl": // Add alias
+                    if (argTokens.Count!=0)
+                    {
+                        // Join all remaining tokens to form the playlist name
+                        var playlistName = string.Join(" ", argTokens.Select(t => t.Text));
+                        arguments["playlistName"] = playlistName;
+                    }
+                    else
+                    {
+                        throw new ParsingException("The 'save' command requires a playlist name.", commandToken.Position);
+                    }
+                    break;
 
-            case "deleteall":
-                arguments["type"] = "all";
-                break;
-                
-            default:
-                
-                
-                return null;
+                case "addnext":
+                    // No arguments needed
+                    break;
+
+                case "addend":
+                    // No arguments needed
+                    break;
+
+                case "addto":
+                case "addtopos": // Add alias
+                    if (argTokens.Count == 1 && argTokens[0].Type == TokenType.Number)
+                    {
+                        if (int.TryParse(argTokens[0].Text, out int position))
+                        {
+                            arguments["position"] = position;
+                        }
+                        else
+                        {
+                            throw new ParsingException($"Invalid position '{argTokens[0].Text}' for 'addto' command.", argTokens[0].Position);
+                        }
+                    }
+                    else
+                    {
+                        throw new ParsingException("The 'addto' command requires a single number argument (e.g., '> addto 6').", commandToken.Position);
+                    }
+                    break;
+                case "addall":
+                    if (argTokens.Count < 2)
+                    {
+                        throw new ParsingException("The 'addall' command requires indices and a position (e.g., '> addall (1,3) next').", commandToken.Position);
+                    }
+
+                    // Find the opening parenthesis of the index set.
+                    int openParenIndex = argTokens.FindIndex(t => t.Type == TokenType.LeftParen);
+                    if (openParenIndex == -1)
+                    {
+                        throw new ParsingException("Missing index set for 'addall' command.", commandToken.Position);
+                    }
+
+                    // Find the matching closing parenthesis.
+                    int closeParenIndex = argTokens.FindIndex(openParenIndex, t => t.Type == TokenType.RightParen);
+                    if (closeParenIndex == -1)
+                    {
+                        throw new ParsingException("Mismatched parentheses in 'addall' command.", openParenIndex);
+                    }
+                    if (closeParenIndex + 1 >= argTokens.Count)
+                    {
+                        throw new ParsingException("Missing position (e.g., 'next', 'end') after index set for 'addall'.", argTokens[closeParenIndex].Position);
+                    }
+                    // Extract the tokens for the index set and the final argument.
+                    var indexTokens = argTokens.GetRange(openParenIndex, closeParenIndex - openParenIndex + 1);
+
+                    var positionToken = argTokens[closeParenIndex + 1];
+
+                    // Parse the indices using our new helper.
+                    var parsedIndices = ParseIndexSet(indexTokens);
+                    arguments["indices"] = parsedIndices;
+                    arguments["position"] = positionToken.Text.ToLowerInvariant();
+                    break;
+                case "viewal":
+                    // Default to the first album if no number is given
+                    int albumIndex = 1;
+                    if (argTokens.Count == 1 && argTokens[0].Type == TokenType.Number)
+                    {
+                        int.TryParse(argTokens[0].Text, out albumIndex);
+                    }
+                    arguments["albumIndex"] = Math.Max(1, albumIndex); // Ensure index is at least 1
+                    break;
+
+                case "scrollto":
+                    // No arguments needed
+                    break;
+
+                case "deletedup":
+                case "deleteall":
+                    // No changes needed for these
+                    break;
+
+                default:
+                    // Let the evaluator handle it as an unrecognized command
+                    break;
+            }
+
+            return new CommandNode(commandName, arguments);
         }
-
-        return new CommandNode(commandName, arguments);
+        catch (ParsingException)
+        {
+            // Re-throw to be caught by the main parser error handler
+            throw;
+        }
     }
-
     private static List<QuerySegment> ParseSegmentsFromTokens(List<Token> allTokens)
     {
         var segments = new List<QuerySegment>();
@@ -200,33 +287,39 @@ public static class MetaParser
         }
         segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
     }
-    private static Func<SongModelView, bool> CreateMasterPredicate(IReadOnlyList<QuerySegment> segments)
+    private static string CreateMasterRqlPredicate(IReadOnlyList<QuerySegment> segments)
     {
-        var predicates = segments.Select(seg =>
+        var mainIncludes = segments
+       .Where(s => s.SegmentType is SegmentType.Main or SegmentType.Include && s.FilterTokens.Any())
+       .Select(s => new AstParser(s.FilterTokens).Parse())
+       .Select(ast => {
+           var generated = RqlGenerator.Generate(ast);
+               return generated.Trim().StartsWith("(") ? generated : $"({generated})";
+       })
+       .ToList();
+
+        var excludes = segments
+            .Where(s => s.SegmentType is SegmentType.Exclude && s.FilterTokens.Any())
+            .Select(s => new AstParser(s.FilterTokens).Parse())
+            .Select(ast => {
+                var generated = RqlGenerator.Generate(ast);
+                return generated.Trim().StartsWith("(") ? generated : $"({generated})";
+            })
+            .ToList();
+
+        string includeQuery = mainIncludes.Count!=0 ? string.Join(" OR ", mainIncludes) : "TRUEPREDICATE";
+
+        if (excludes.Count==0)
         {
-            if (seg.FilterTokens.Count==0)
-                return (seg.SegmentType, (Func<SongModelView, bool>?)null);
+            return includeQuery;
+        }
 
-            var ast = new AstParser(seg.FilterTokens).Parse();
-            return (seg.SegmentType, new AstEvaluator().CreatePredicate(ast));
-
-        }).Where(p => p.Item2 != null).ToList();
-
-        var mainIncludes = predicates.Where(p => p.SegmentType == SegmentType.Main || p.SegmentType == SegmentType.Include).Select(p => p.Item2!).ToList();
-        var excludes = predicates.Where(p => p.SegmentType == SegmentType.Exclude).Select(p => p.Item2!).ToList();
-
-        return song =>
-        {
-            bool isIncluded = mainIncludes.Count==0 || mainIncludes.Any(p => p(song));
-            if (!isIncluded)
-                return false;
-
-            bool isExcluded = excludes.Count!=0 && excludes.Any(p => p(song));
-            return !isExcluded;
-        };
+        // Combine all exclude clauses with OR, then negate the whole block.
+        string excludeBlock = string.Join(" OR ", excludes);
+        return $"({includeQuery}) AND NOT ({excludeBlock})";
     }
 
-    private static IComparer<SongModelView> CreateSortComparer(IReadOnlyList<QuerySegment> segments)
+    private static List<SortDescription> CreateSortDescriptions(IReadOnlyList<QuerySegment> segments)
     {
         var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
         var sortDescriptions = new List<SortDescription>();
@@ -253,16 +346,12 @@ public static class MetaParser
                     i++;
                 }
             }
+
         }
 
-        if (hasRandomSort)
-        {
-            var randomFieldDef = new FieldDefinition("RandomSort", FieldType.Text, Array.Empty<string>(), "A placeholder for random sorting", "random");
-            return new SongModelViewComparer(new List<SortDescription> { new SortDescription(randomFieldDef, SortDirection.Random) });
-        }
-
-        return new SongModelViewComparer(sortDescriptions);
+        return sortDescriptions;
     }
+
 
     private static LimiterClause? CreateLimiterClause(IReadOnlyList<QuerySegment> segments)
     {
@@ -310,4 +399,65 @@ public static class MetaParser
         }
         return limiter;
     }
+
+
+    private static HashSet<int> ParseIndexSet(List<Token> tokens)
+    {
+        var indices = new HashSet<int>();
+        if (tokens.Count < 3 || tokens[0].Type != TokenType.LeftParen || tokens.Last().Type != TokenType.RightParen)
+        {
+            throw new ParsingException("Invalid index format. Expected format like (1,3,5-9).", tokens.FirstOrDefault()?.Position ?? 0);
+        }
+
+        // We only care about the tokens inside the parentheses.
+        var innerTokens = tokens.Skip(1).Take(tokens.Count - 2).ToList();
+
+        // Use a simple loop to process numbers, commas, and hyphens.
+        for (int i = 0; i < innerTokens.Count; i++)
+        {
+            var currentToken = innerTokens[i];
+
+            if (currentToken.Type == TokenType.Number)
+            {
+                if (!int.TryParse(currentToken.Text, out int index))
+                {
+                    throw new ParsingException($"Invalid number '{currentToken.Text}' in index set.", currentToken.Position);
+                }
+
+                // Check if the next token is a hyphen for a range.
+                if (i + 2 < innerTokens.Count && innerTokens[i + 1].Type == TokenType.Minus && innerTokens[i + 2].Type == TokenType.Number)
+                {
+                    if (!int.TryParse(innerTokens[i + 2].Text, out int endIndex))
+                    {
+                        throw new ParsingException($"Invalid end range number '{innerTokens[i+2].Text}'.", innerTokens[i+2].Position);
+                    }
+
+                    for (int j = index; j <= endIndex; j++)
+                    {
+                        // Convert from 1-based (user input) to 0-based (list index).
+                        indices.Add(j - 1);
+                    }
+                    i += 2; // Skip the hyphen and the end number.
+                }
+                else
+                {
+                    // It's a single number.
+                    indices.Add(index - 1);
+                }
+            }
+            else if (currentToken.Type == TokenType.Comma)
+            {
+                // Commas are separators, we can just continue.
+                continue;
+            }
+            else
+            {
+                throw new ParsingException($"Unexpected token '{currentToken.Text}' in index set.", currentToken.Position);
+            }
+        }
+
+        return indices;
+    }
+
 }
+

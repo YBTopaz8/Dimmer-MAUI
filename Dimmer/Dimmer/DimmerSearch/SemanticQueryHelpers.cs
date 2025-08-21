@@ -23,102 +23,80 @@ public static class SemanticQueryHelpers
     /// <typeparam name="TResult">The expected return type of the property (we use 'object' for flexibility).</typeparam>
     /// <param name="propertyName">The name of the property, supporting nesting like "Genre.Name".</param>
     /// <returns>A compiled function that gets the property value.</returns>
+    // Step 1: Modify GetAccessor to build the chain and collect the parts.
     private static Func<T, TResult> GetAccessor<T, TResult>(string propertyName)
     {
-        // 1. Create a unique key for our cache.
         string cacheKey = $"{typeof(T).FullName}.{propertyName}";
-
-        // 2. Try to get the pre-compiled function from our cache. If it exists, we're done!
         if (_accessorCache.TryGetValue(cacheKey, out Delegate? cachedAccessor))
         {
             return (Func<T, TResult>)cachedAccessor;
         }
 
-        // 3. If it's not in the cache, we must build it. This is the "slow" part that only runs once per property.
+        var parameter = Expression.Parameter(typeof(T), "model");
 
-        // Create a parameter for our function. This is equivalent to `song => ...` where `song` is the parameter.
-        ParameterExpression parameter = Expression.Parameter(typeof(T), "model");
-        Expression body = parameter;
+        // --- REFACTORED PART ---
+        var propertyAccessors = new List<Expression>();
+        Expression currentExpression = parameter;
+        propertyAccessors.Add(currentExpression); // Add the root object itself (e.g., song)
 
-        // Handle nested properties. For a name like "Genre.Name", this loop will first
-        // create `song.Genre` and then create `song.Genre.Name`.
         foreach (var member in propertyName.Split('.'))
         {
-            // We need to handle nulls gracefully. `Expression.Property` would crash if Genre is null.
-            // So we build a null-check.
-            PropertyInfo propertyInfo = body.Type.GetProperty(member) ?? throw new ArgumentException($"Property '{member}' not found on type '{body.Type.Name}'");
-            body = Expression.Property(body, propertyInfo);
+            var propertyInfo = currentExpression.Type.GetProperty(member)
+                ?? throw new ArgumentException($"Property '{member}' not found on type '{currentExpression.Type.Name}'");
+
+            currentExpression = Expression.Property(currentExpression, propertyInfo);
+            propertyAccessors.Add(currentExpression);
         }
 
-        // The final property might not be the exact TResult type (e.g., it might be an 'int' but we want 'object').
-        // We create a conversion to make sure the function signature is correct.
-        var bodyAsObject = Expression.Convert(body, typeof(TResult));
+        // --- END REFACTORED PART ---
 
-        // This builds a "conditional" expression. It's the C# equivalent of:
-        // song => (song == null || song.Genre == null) ? default(TResult) : (TResult)song.Genre.Name
-        // This prevents NullReferenceExceptions if an intermediate property is null.
-        Expression finalBody = AddNullChecks<T, TResult>(parameter, propertyName);
+        // Pass the collected parts to the helper to add null checks.
+        var finalBody = AddNullChecks<TResult>(propertyAccessors);
 
-        // 4. Compile the complete expression tree into a real, executable .NET function.
         var lambda = Expression.Lambda<Func<T, TResult>>(finalBody, parameter);
         Func<T, TResult> compiledLambda = lambda.Compile();
-
-        // 5. Store the brand new function in our cache for next time.
         _accessorCache[cacheKey] = compiledLambda;
-
         return compiledLambda;
     }
 
-    /// <summary>
-    /// A helper method to recursively build null-checks into an expression tree.
-    /// This ensures that accessing a nested property like "Genre.Name" doesn't crash if "Genre" is null.
-    /// </summary>
-    private static Expression AddNullChecks<T, TResult>(ParameterExpression parameter, string propertyName)
+    // Step 2: Modify AddNullChecks to simply assemble the parts it's given.
+    private static Expression AddNullChecks<TResult>(List<Expression> propertyAccessors)
     {
-        Expression body = parameter;
-        Expression fullChain = parameter;
+        // The actual final value (e.g., song.Genre.Name)
+        var finalPropertyAccess = propertyAccessors.Last();
+
+        // The parts to check for null (e.g., song, song.Genre)
+        // We don't need to check the final property itself, just the path to it.
+        var chainPartsToTest = propertyAccessors.Take(propertyAccessors.Count - 1);
+
         var nullConditions = new List<Expression>();
-
-        foreach (var member in propertyName.Split('.'))
+        foreach (var part in chainPartsToTest)
         {
-            var propertyInfo = fullChain.Type.GetProperty(member) ?? throw new ArgumentException($"Property '{member}' not found on type '{fullChain.Type.Name}'");
-
-            // For every property in the chain (except the last), add a null check.
-            // e.g., for "Genre.Name", we add a check for "Genre != null".
-            if (propertyInfo.PropertyType.IsClass || Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null)
+            // Only add a null check if the type can be null (a class or Nullable<T>)
+            if (part.Type.IsClass || Nullable.GetUnderlyingType(part.Type) != null)
             {
-                var nullCheck = Expression.Equal(fullChain, Expression.Constant(null, fullChain.Type));
+                var nullCheck = Expression.Equal(part, Expression.Constant(null, part.Type));
                 nullConditions.Add(nullCheck);
             }
-
-            fullChain = Expression.Property(fullChain, propertyInfo);
         }
 
         if (nullConditions.Count == 0)
         {
-            return Expression.Convert(fullChain, typeof(TResult));
+            return Expression.Convert(finalPropertyAccess, typeof(TResult));
         }
 
-        // Combine all null checks with an "Or" condition.
-        // e.g., (song == null || song.Genre == null)
         Expression combinedNullCheck = nullConditions[0];
         for (int i = 1; i < nullConditions.Count; i++)
         {
             combinedNullCheck = Expression.OrElse(combinedNullCheck, nullConditions[i]);
         }
 
-        // The final expression:
-        // if (song == null || song.Genre == null) return default; else return (TResult)song.Genre.Name;
         return Expression.Condition(
             combinedNullCheck,
             Expression.Default(typeof(TResult)),
-            Expression.Convert(fullChain, typeof(TResult))
+            Expression.Convert(finalPropertyAccess, typeof(TResult))
         );
     }
-
-    // --- PUBLIC HELPER METHODS ---
-    // These are the methods your `AsPredicate()` functions will call.
-    // They use the high-speed accessor system internally.
 
     public static string GetStringProp(SongModelView song, string name)
     {
@@ -129,11 +107,13 @@ public static class SemanticQueryHelpers
     }
     public static DateTimeOffset? GetDateProp(SongModelView song, string propertyName)
     {
-        var propInfo = typeof(SongModelView).GetProperty(propertyName);
-        if (propInfo == null)
-            return null;
+        // Get the super-fast accessor for this property.
+        var accessor = GetAccessor<SongModelView, object>(propertyName);
 
-        var value = propInfo.GetValue(song);
+        // Run the fast function.
+        var value = accessor(song);
+
+        // Perform the conversion logic on the result.
         if (value is DateTimeOffset dto)
             return dto;
         if (value is DateTime dt)

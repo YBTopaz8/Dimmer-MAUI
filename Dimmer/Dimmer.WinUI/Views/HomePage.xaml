@@ -749,18 +749,14 @@ HeightRequest="50"
                         EmptyView="No Songs.." Scrolled="SongsColView_Scrolled"
                             ScrollToRequested="SongsColView_ScrollToRequested"
                         IsVisible="True"
-                        
-                        Loaded="MainSongsColView_Loaded"
+                        ItemTemplate="{StaticResource OGView}"
+                        Loaded="MainSongsColView_Loaded" 
                         SelectionMode="Single"
                             SelectedItem="{Binding SelectedSong}"
-            ItemTemplate="{StaticResource OGView}"
+                            ItemsSource="{Binding PlaybackQueue}"
                         VerticalOptions="Start">
-                    <!--<CollectionView.ItemsLayout>
-                        <GridItemsLayout Span="6" VerticalItemSpacing="5" HorizontalItemSpacing="5"
-                                         Orientation="Vertical"
-                            SnapPointsAlignment="End"
-                                         SnapPointsType="MandatorySingle"/>
-                    </CollectionView.ItemsLayout>-->
+                 
+                   
 
         </CollectionView>
 

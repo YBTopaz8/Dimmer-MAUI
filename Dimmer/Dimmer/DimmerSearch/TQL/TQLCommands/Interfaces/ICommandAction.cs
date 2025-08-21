@@ -15,3 +15,12 @@ public record DeleteDuplicateAction(IReadOnlyList<SongModelView> Songs) : IComma
 public record UnrecognizedCommandAction(string CommandName) : ICommandAction;
 public record NoAction : ICommandAction; // Represents a command that did nothing (e.g., save with no name)
 public record ReplaceQueueAction(IReadOnlyList<SongModelView> Songs) : ICommandAction;
+public record AddToPositionAction(int Position, IReadOnlyList<SongModelView> Songs) : ICommandAction;
+
+// Represents > viewal 2
+public record ViewAlbumAction(int AlbumIndex) : ICommandAction;
+
+// Represents > scrollto
+public record ScrollToPlayingAction : ICommandAction;
+
+public record AddIndexedToQueueAction(HashSet<int> Indices, string Position, IReadOnlyList<SongModelView> SearchResults) : ICommandAction;

@@ -21,8 +21,8 @@ private const int PlayType_Skipped = 5;
 public static List<DimmerStats> GetOverallListeningByDayOfWeek(IReadOnlyCollection<DimmerPlayEvent> events, IReadOnlyCollection<SongModel> songs)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
-    return events.Where(e => e.EventDate.HasValue && e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
-        .GroupBy(e => e.EventDate!.Value.DayOfWeek)
+    return events.Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
+        .GroupBy(e => e.EventDate.DayOfWeek)
         .Select(g => new DimmerStats
         {
             StatTitle = "Listening by Day",
@@ -37,7 +37,7 @@ public static List<DimmerStats> GetGenrePopularityOverTime(IReadOnlyCollection<D
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
         .Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value) && e.PlayType == PlayType_Completed && !string.IsNullOrEmpty(songLookup[e.SongId.Value].Genre?.Name))
-        .GroupBy(e => new { Month = new DateTime(e.EventDate!.Value.Year, e.EventDate.Value.Month, 1), Genre = songLookup[e.SongId!.Value].Genre!.Name })
+        .GroupBy(e => new { Month = new DateTime(e.EventDate.Year, e.EventDate.Month, 1), Genre = songLookup[e.SongId!.Value].Genre!.Name })
         .Select(g => new DimmerStats
         {
             StatTitle = "Genre Popularity Over Time",
@@ -52,14 +52,14 @@ public static List<DimmerStats> GetDailyListeningTimeRange(IReadOnlyCollection<D
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.Where(e => e.EventDate >= startDate && e.EventDate < endDate && e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
-        .GroupBy(e => e.EventDate!.Value.Date)
+        .GroupBy(e => e.EventDate.Date)
         .Where(g => g.Any())
         .Select(g => new DimmerStats
         {
             StatTitle = "Daily Listening Window",
             XValue = g.Key,
-            Low = g.Min(ev => ev.EventDate!.Value.Hour),
-            High = g.Max(ev => ev.EventDate!.Value.Hour),
+            Low = g.Min(ev => ev.EventDate.Hour),
+            High = g.Max(ev => ev.EventDate.Hour),
             ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView()).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (DateTime)s.XValue!).ToList();
 }
@@ -92,9 +92,9 @@ public static List<DimmerStats> GetDailyListeningRoutineOHLC(IReadOnlyCollection
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
         .Where(e => e.EventDate >= startDate && e.EventDate < endDate && e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
-        .GroupBy(e => e.EventDate!.Value.Date)
+        .GroupBy(e => e.EventDate.Date)
         .Select(g => {
-            var playsByHour = g.GroupBy(ev => ev.EventDate!.Value.Hour).ToDictionary(h => h.Key, h => h.Count());
+            var playsByHour = g.GroupBy(ev => ev.EventDate.Hour).ToDictionary(h => h.Key, h => h.Count());
             if (playsByHour.Count==0)
                 return null;
             var maxPlayHour = playsByHour.OrderByDescending(kvp => kvp.Value).First().Key;
@@ -104,10 +104,10 @@ public static List<DimmerStats> GetDailyListeningRoutineOHLC(IReadOnlyCollection
                 StatTitle = "Daily Listening Routine",
                 XValue = g.Key,
                 Name = g.Key.DayOfWeek.ToString(),
-                Open = g.Min(ev => ev.EventDate!.Value.Hour),
+                Open = g.Min(ev => ev.EventDate.Hour),
                 High = maxPlayHour,
                 Low = minPlayHour,
-                Close = g.Max(ev => ev.EventDate!.Value.Hour),
+                Close = g.Max(ev => ev.EventDate.Hour),
                 ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView()).DistinctBy(s => s.Id).ToList()
             };
         }).Where(s => s != null).OrderBy(s => (DateTime)s!.XValue!).ToList()!;
@@ -132,7 +132,7 @@ public static List<DimmerStats> GetListeningFingerprint(IReadOnlyCollection<Dimm
     var totalDays = (endDate - startDate).TotalDays;
 
     // 1. Consistency
-    var daysWithPlays = relevantEvents.Select(e => e.EventDate!.Value.Date).Distinct().Count();
+    var daysWithPlays = relevantEvents.Select(e => e.EventDate.Date).Distinct().Count();
     fingerprint.Add(new DimmerStats { StatTitle = "Consistency", StatExplanation = "How regularly you listen. Higher is more consistent.", YValue = Math.Round((double)daysWithPlays / totalDays * 100) });
 
     // 2. Discovery Rate
@@ -184,8 +184,8 @@ public static List<DimmerStats> GetMusicByDecade(IReadOnlyCollection<DimmerPlayE
 public static List<DimmerStats> GetSongPlayHistoryOverTime(IReadOnlyCollection<DimmerPlayEvent> songEvents)
 {
     return songEvents
-        .Where(e => e.PlayType == PlayType_Completed && e.EventDate.HasValue)
-        .GroupBy(e => new { e.EventDate!.Value.Year, e.EventDate!.Value.Month })
+        .Where(e => e.PlayType == PlayType_Completed )
+        .GroupBy(e => new { e.EventDate.Year, e.EventDate.Month })
         .Select(g => new DimmerStats
         {
             StatTitle = "Song Play History",
@@ -197,16 +197,16 @@ public static List<DimmerStats> GetSongPlayHistoryOverTime(IReadOnlyCollection<D
 public static List<DimmerStats> GetSongWeeklyOHLC(IReadOnlyCollection<DimmerPlayEvent> songEvents)
 {
     return songEvents
-        .Where(e => e.PlayType == PlayType_Completed && e.EventDate.HasValue)
-        .GroupBy(e => new { Year = System.Globalization.ISOWeek.GetYear(e.EventDate!.Value.DateTime), Week = System.Globalization.ISOWeek.GetWeekOfYear(e.EventDate!.Value.DateTime) })
+        .Where(e => e.PlayType == PlayType_Completed)
+        .GroupBy(e => new { Year = System.Globalization.ISOWeek.GetYear(e.EventDate.DateTime), Week = System.Globalization.ISOWeek.GetWeekOfYear(e.EventDate.DateTime) })
         .Select(g => {
-            var playsByDay = g.GroupBy(ev => ev.EventDate!.Value.DayOfWeek).ToDictionary(d => d.Key, d => d.Count());
+            var playsByDay = g.GroupBy(ev => ev.EventDate.DayOfWeek).ToDictionary(d => d.Key, d => d.Count());
             return new DimmerStats
             {
                 StatTitle = "Weekly Song Trend",
                 XValue = System.Globalization.ISOWeek.ToDateTime(g.Key.Year, g.Key.Week, DayOfWeek.Monday),
-                Open = playsByDay.TryGetValue(g.Min(ev => ev.EventDate!.Value.DayOfWeek), out var o) ? o : 0,
-                Close = playsByDay.TryGetValue(g.Max(ev => ev.EventDate!.Value.DayOfWeek), out var cl) ? cl : 0,
+                Open = playsByDay.TryGetValue(g.Min(ev => ev.EventDate.DayOfWeek), out var o) ? o : 0,
+                Close = playsByDay.TryGetValue(g.Max(ev => ev.EventDate.DayOfWeek), out var cl) ? cl : 0,
                 High = playsByDay.Values.Count!=0 ? playsByDay.Values.Max() : 0,
                 Low = playsByDay.Values.Count!=0 ? playsByDay.Values.Min() : 0,
             };
@@ -223,7 +223,7 @@ public static List<DimmerStats> GetSongDropOffPoints(IReadOnlyCollection<DimmerP
             .Where(e => e.PlayType == PlayType_Skipped && e.PositionInSeconds > 0)
             .Select(e =>
             {
-                var dateTime = e.EventDate is null? DateTime.MinValue:e.EventDate.Value.DateTime;
+                var dateTime = e.EventDate.DateTime;
                 return new DimmerStats
                 {
                     // For a scatter plot of drop-off points over time

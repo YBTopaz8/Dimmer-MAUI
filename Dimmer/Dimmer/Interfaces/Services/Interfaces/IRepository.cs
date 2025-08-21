@@ -31,4 +31,5 @@ public interface IRepository<T> where T : new()
     Task<List<T>> QueryAsync(Expression<Func<T, bool>> predicate);
     Task<List<T>> QueryWithRQLAsync(string rqlQuery, params QueryArgument[] args);
     Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
+    Task DeleteManyAsync(HashSet<ObjectId> missingIds);
 }

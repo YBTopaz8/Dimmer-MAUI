@@ -11,6 +11,7 @@ using ReactiveUI;
 
 using System.Reactive.Disposables;
 
+using Track = Hqub.Lastfm.Entities.Track;
 namespace Dimmer.LastFM;
 
 public class LastfmService : ILastfmService
@@ -120,16 +121,13 @@ public class LastfmService : ILastfmService
             case DimmerPlaybackState.Playing:
                 if (currentSong is null)
                     return;
-
-                // When a new song starts playing, it implies the previous one finished.
-                // This handles both natural track changes and manual skips.
+                _songToScrobble = currentSong;
+               
                 if (_songToScrobble != null)
                 {
                     await ((ILastfmService)this).ScrobbleAsync(_songToScrobble);
                 }
 
-                // Now, set the state for the new song.
-                _songToScrobble = currentSong;
                 await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
                 //await ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);
                 break;
