@@ -49,7 +49,7 @@ public static class MetaParser
     {
         try
         {
-            const string commandStart = " >";
+            const string commandStart = " >>";
             const string commandEnd = "!";
 
             string filterQuery = rawQuery;
