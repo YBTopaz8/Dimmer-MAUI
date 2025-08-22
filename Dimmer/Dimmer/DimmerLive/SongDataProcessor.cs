@@ -150,7 +150,6 @@ public static class SongDataProcessor
                                  MainThread.BeginInvokeOnMainThread(() =>
                                  {
                                      song.HasLyrics = !string.IsNullOrWhiteSpace(newLyricsInfo.UnsynchronizedLyrics);
-                                     song.HasSyncedLyrics = newLyricsInfo.SynchronizedLyrics.Any();
 
                                      song.UnSyncLyrics = newLyricsInfo.UnsynchronizedLyrics;
                                      song.EmbeddedSync.Clear(); // Ensure it's empty before adding
