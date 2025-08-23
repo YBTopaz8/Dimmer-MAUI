@@ -30,12 +30,27 @@ public enum SegmentType { Main, Include, Exclude }
 
 public static class MetaParser
 {
+    private static T? FindNode<T>(IQueryNode node) where T : class, IQueryNode
+    {
+        if (node is T found)
+            return found;
+
+        if (node is LogicalNode logical)
+        {
+            return FindNode<T>(logical.Left) ?? FindNode<T>(logical.Right);
+        }
+        if (node is NotNode not)
+        {
+            return FindNode<T>(not.NodeToNegate);
+        }
+        return null; // Not found
+    }
     /// <summary>
     /// A stateless utility class that orchestrates the TQL parsing process.
     /// It takes a raw query string and returns a complete, executable plan (ParsedQueryResult).
     /// </summary>
- 
-       private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
+
+    private static readonly Dictionary<TokenType, SegmentType> _segmentTypeMap = new()
        {
            
             { TokenType.Include, SegmentType.Include }, { TokenType.Add, SegmentType.Include },
@@ -44,6 +59,7 @@ public static class MetaParser
 
         private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
+
 
     public static RealmQueryPlan Parse(string rawQuery)
     {
@@ -55,53 +71,70 @@ public static class MetaParser
             string filterQuery = rawQuery;
             string commandQuery = string.Empty;
 
-            // Find the LAST command end token
             int commandEndIndex = rawQuery.LastIndexOf(commandEnd);
             if (commandEndIndex == rawQuery.Length - 1)
             {
                 int commandStartIndex = rawQuery.LastIndexOf(commandStart, commandEndIndex);
-
                 if (commandStartIndex != -1)
                 {
-                    // We found a valid command block.
                     filterQuery = rawQuery.Substring(0, commandStartIndex);
                     commandQuery = rawQuery.Substring(commandStartIndex + commandStart.Length, commandEndIndex - (commandStartIndex + commandStart.Length));
                 }
             }
 
-
             var filterTokens = Lexer.Tokenize(filterQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
+
+            // --- ADDED: Parse the AST once to find all necessary nodes ---
+            var ast = new AstParser(filterTokens).Parse();
+            var chanceNode = FindNode<RandomChanceNode>(ast);
+            var daypartNode = FindNode<DaypartNode>(ast);
+
             var segments = ParseSegmentsFromTokens(filterTokens);
+            var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
 
-            // --- REPLACED: Swapped AstEvaluator for RqlGenerator ---
             var rqlFilter = CreateMasterRqlPredicate(segments);
-            var sortDescriptions = CreateSortDescriptions(segments); // Renamed from CreateSortComparer
-            var limiter = CreateLimiterClause(segments);
-            IQueryNode? commandNode = null;
+            var sortDescriptions = CreateSortDescriptions(segments);
+            var limiter = CreateLimiterClause(allDirectives);
+            var shuffleNode = CreateShuffleNode(allDirectives);
 
+            IQueryNode? commandNode = null;
             if (!string.IsNullOrWhiteSpace(commandQuery))
             {
                 var commandTokens = Lexer.Tokenize(commandQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-                if (commandTokens.Count != 0)
+                if (commandTokens.Any())
                 {
                     commandNode = ParseAsCommand(commandTokens);
                 }
             }
 
-            return new RealmQueryPlan(rqlFilter, sortDescriptions, limiter, commandNode, null);
+            // --- FIXED: The constructor call now provides ALL arguments in the correct order ---
+            return new RealmQueryPlan(
+                rqlFilter,
+                sortDescriptions,
+                limiter,
+                commandNode,
+                chanceNode,
+                daypartNode,
+                shuffleNode,
+                null, // ErrorMessage
+                null  // ErrorSuggestion
+            );
         }
         catch (ParsingException ex)
         {
             var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
             string? suggestion = match.Success ? QueryValidator.SuggestCorrectField(match.Groups[1].Value) : null;
-            // --- MODIFIED: Return the new plan record on error ---
-            return new RealmQueryPlan("FALSEPREDICATE", new List<SortDescription>(), null, null, ex.Message, suggestion);
+
+            // --- FIXED: The error constructor call is also updated to match the signature ---
+            return new RealmQueryPlan("FALSEPREDICATE", new List<SortDescription>(), null, null, null, null, null, ex.Message, suggestion);
         }
         catch (Exception ex)
         {
-            return new RealmQueryPlan("FALSEPREDICATE", new List<SortDescription>(), null, null, "An unexpected error occurred during parsing. " + ex.Message, null);
+            // --- FIXED: The error constructor call is also updated to match the signature ---
+            return new RealmQueryPlan("FALSEPREDICATE", new List<SortDescription>(), null, null, null, null, null, "An unexpected error occurred during parsing. " + ex.Message, null);
         }
     }
+
     private static CommandNode? ParseAsCommand(List<Token> commandTokens)
     {
         if (commandTokens.Count == 0 || commandTokens.First().Type != TokenType.Identifier)
@@ -290,7 +323,7 @@ public static class MetaParser
     private static string CreateMasterRqlPredicate(IReadOnlyList<QuerySegment> segments)
     {
         var mainIncludes = segments
-       .Where(s => s.SegmentType is SegmentType.Main or SegmentType.Include && s.FilterTokens.Any())
+       .Where(s => s.SegmentType is SegmentType.Main or SegmentType.Include && s.FilterTokens.Count!=0)
        .Select(s => new AstParser(s.FilterTokens).Parse())
        .Select(ast => {
            var generated = RqlGenerator.Generate(ast);
@@ -299,7 +332,7 @@ public static class MetaParser
        .ToList();
 
         var excludes = segments
-            .Where(s => s.SegmentType is SegmentType.Exclude && s.FilterTokens.Any())
+            .Where(s => s.SegmentType is SegmentType.Exclude && s.FilterTokens.Count!=0)
             .Select(s => new AstParser(s.FilterTokens).Parse())
             .Select(ast => {
                 var generated = RqlGenerator.Generate(ast);
@@ -318,7 +351,54 @@ public static class MetaParser
         string excludeBlock = string.Join(" OR ", excludes);
         return $"({includeQuery}) AND NOT ({excludeBlock})";
     }
+    private static ShuffleNode? CreateShuffleNode(IReadOnlyList<Token> allDirectives)
+    {
+        // Find the 'shuffle' or 'random' token.
+        var shuffleTokenIndex = allDirectives.ToList().FindIndex(t => t.Type is TokenType.Shuffle or TokenType.Random);
+        if (shuffleTokenIndex == -1)
+        {
+            return null; // No shuffle directive found.
+        }
 
+        var shuffleToken = allDirectives[shuffleTokenIndex];
+        int count = int.MaxValue;
+        int currentIndex = shuffleTokenIndex + 1;
+
+        // Check for a count (e.g., "shuffle 50")
+        if (currentIndex < allDirectives.Count && allDirectives[currentIndex].Type == TokenType.Number)
+        {
+            if (int.TryParse(allDirectives[currentIndex].Text, out int parsedCount) && parsedCount > 0)
+            {
+                count = parsedCount;
+            }
+            currentIndex++;
+        }
+
+        // Check for a bias (e.g., "shuffle by rating desc")
+        if (currentIndex + 1 < allDirectives.Count &&
+            allDirectives[currentIndex].Text.Equals("by", StringComparison.OrdinalIgnoreCase) &&
+            allDirectives[currentIndex + 1].Type == TokenType.Identifier)
+        {
+            string fieldAlias = allDirectives[currentIndex + 1].Text;
+            currentIndex += 2;
+
+            if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
+            {
+                // The bias has been found. Now check for an optional direction.
+                var direction = SortDirection.Ascending; // Default bias direction
+                if (currentIndex < allDirectives.Count && allDirectives[currentIndex].Type == TokenType.Desc)
+                {
+                    direction = SortDirection.Descending;
+                }
+
+                // Return a biased shuffle node
+                return new ShuffleNode(count, fieldDef, direction);
+            }
+        }
+
+        // If no valid bias was found, return a simple, pure random shuffle node.
+        return new ShuffleNode(count);
+    }
     private static List<SortDescription> CreateSortDescriptions(IReadOnlyList<QuerySegment> segments)
     {
         var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
@@ -353,11 +433,9 @@ public static class MetaParser
     }
 
 
-    private static LimiterClause? CreateLimiterClause(IReadOnlyList<QuerySegment> segments)
+    private static LimiterClause? CreateLimiterClause(IReadOnlyList<Token> allDirectives)
     {
-        var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
-        LimiterClause? limiter = null;
-
+        // This method now ONLY looks for 'first' or 'last'.
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
@@ -376,30 +454,16 @@ public static class MetaParser
                     if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
                     {
                         count = parsedCount;
-                        i++;
                     }
                 }
-                limiter = new LimiterClause(limiterType.Value, count);
-                continue;
-            }
-
-            if (token.Type is TokenType.Shuffle or TokenType.Random)
-            {
-                int count = int.MaxValue;
-                if (i + 1 < allDirectives.Count && allDirectives[i + 1].Type == TokenType.Number)
-                {
-                    if (int.TryParse(allDirectives[i + 1].Text, out int parsedCount) && parsedCount > 0)
-                    {
-                        count = parsedCount;
-                        i++;
-                    }
-                }
-                limiter = new LimiterClause(LimiterType.Random, count);
+                // Since we only find the first one, we can return immediately.
+                return new LimiterClause(limiterType.Value, count);
             }
         }
-        return limiter;
-    }
 
+        // No 'first' or 'last' directive was found.
+        return null;
+    }
 
     private static HashSet<int> ParseIndexSet(List<Token> tokens)
     {

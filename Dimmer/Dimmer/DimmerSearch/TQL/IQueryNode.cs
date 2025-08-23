@@ -133,3 +133,31 @@ public class ClauseNode : IQueryNode
         IsNegated = isNegated;
     }
 }
+
+/// <summary>
+/// Represents a shuffle instruction, which can be either pure random
+/// or biased by a specific field and direction.
+/// </summary>
+public class ShuffleNode : IQueryNode
+{
+    public int Count { get; }
+    public FieldDefinition? BiasField { get; }
+    public SortDirection BiasDirection { get; }
+    public bool IsBiased => BiasField != null;
+
+    // Constructor for a simple shuffle (e.g., "shuffle 50")
+    public ShuffleNode(int count)
+    {
+        Count = count;
+        BiasField = null;
+        BiasDirection = SortDirection.Ascending; // Not used
+    }
+
+    // Constructor for a biased shuffle (e.g., "shuffle by rating desc")
+    public ShuffleNode(int count, FieldDefinition biasField, SortDirection biasDirection)
+    {
+        Count = count;
+        BiasField = biasField;
+        BiasDirection = biasDirection;
+    }
+}

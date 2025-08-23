@@ -13,7 +13,14 @@ public record RealmQueryPlan(
     string RqlFilter,
     IReadOnlyList<SortDescription> SortDescriptions,
     LimiterClause? Limiter,
-    IQueryNode? CommandNode,
+    IQueryNode? CommandNode, 
+    RandomChanceNode? ChanceNode,
+    DaypartNode? DaypartNode,
+    ShuffleNode? Shuffle,
     string? ErrorMessage = null,
     string? ErrorSuggestion = null
 );
+
+
+
+public record SavedQuery(string Name, string Tql);
