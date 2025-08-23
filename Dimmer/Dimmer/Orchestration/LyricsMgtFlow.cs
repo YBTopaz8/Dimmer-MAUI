@@ -139,6 +139,11 @@ public class LyricsMgtFlow : IDisposable
     /// </summary>
     private async Task<string?> GetStoredLyricsContentAsync(SongModelView song)
     {
+        var instru = song.IsInstrumental;
+        if (instru )
+        {
+            return string.Empty;
+        }
         if (!string.IsNullOrEmpty(song.SyncLyrics))
         {
             _logger.LogTrace("Found lyrics in database for {SongTitle}", song.Title);
@@ -170,8 +175,10 @@ public class LyricsMgtFlow : IDisposable
         }
         else
         {
-            // If no stored lyrics, do nothing. The UI will show an empty state.
-            await GetLyricsContentAsync(song);
+
+            //get lyrics from online source
+            var res = await GetLyricsContentAsync(song);
+            LoadLyrics(res);
             ClearLyrics();
         }
     }
@@ -184,6 +191,11 @@ public class LyricsMgtFlow : IDisposable
     }
     private async Task<string?> GetLyricsContentAsync(SongModelView song)
     {
+        var instru = song.IsInstrumental;
+        if (instru)
+        {
+            return string.Empty;
+        }
         // Follows the hierarchy: DB -> Local Files -> Online
         if (!string.IsNullOrEmpty(song.SyncLyrics))
         {
@@ -199,6 +211,20 @@ public class LyricsMgtFlow : IDisposable
 
         _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
         var onlineResults = await _lyricsMetadataService.SearchOnlineAsync(song);
+        var onlineLyrics = onlineResults?.FirstOrDefault();
+        if (onlineLyrics != null)
+        {
+            _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
+
+            // Optionally, save to DB or local storage here.
+            await _lyricsMetadataService.SaveLyricsForSongAsync(onlineLyrics.Instrumental!,onlineLyrics.PlainLyrics,song,onlineLyrics.SyncedLyrics,null);
+            return onlineLyrics.SyncedLyrics;
+
+        }
+        else
+        {
+            _logger.LogTrace("LYRICS FINDER :::::: No online lyrics found for {SongTitle}.", song.Title);
+        }
         return onlineResults?.FirstOrDefault()?.SyncedLyrics;
     }
 

@@ -97,7 +97,7 @@ IsVisible="True">
                                         </DataTrigger>
 
                                         <DataTrigger
-        Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+        Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
         TargetType="VerticalStackLayout"
         Value="false">
                                             <Setter Property="IsVisible" Value="False" />
@@ -118,7 +118,7 @@ IsVisible="True">
         FontSize="36"
     HorizontalTextAlignment="Center"
         Opacity="1"
-        Text="{Binding CurrentLine.Text}"
+        Text="{Binding  CurrentLine.Text}"
         TextColor="DarkSlateBlue">
                                             <Label.Triggers />
                                         </Label>
@@ -182,7 +182,7 @@ IsVisible="True">
                         </Grid>
 
                         <Label HorizontalTextAlignment="Start" 
-                   Text="{Binding CurrentPlayingSongView.OtherArtistsName}" FontSize="16">
+                   Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">
 
                             <Label.GestureRecognizers>
                                 <PointerGestureRecognizer
@@ -365,28 +365,7 @@ Value="{Binding CurrentTrackPositionSeconds}" />
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
             
-            <syncf:SfTabItem x:Name="AllLyricsView" >
-                <syncf:SfTabItem.Content>
-                    <Grid>
-
-                        <CollectionView x:Name="AllLyricsColView" VerticalOptions="Center" ItemsSource="{Binding CurrentPlayingSongView.EmbeddedSync}"
-                                        SelectedItem="{Binding CurrentLine}" 
-                                        
-                                        SelectionMode="Single" SelectionChanged="AllLyricsColView_SelectionChanged"
-                                        >
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                    
-                                    <Label Text="{Binding Text}" FontSize="{Binding NowPlayingLyricsFontSize}"
-                                           HorizontalTextAlignment="Center"/>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </Grid>
-                    
-                </syncf:SfTabItem.Content>
-            </syncf:SfTabItem>
-        </syncf:SfTabView>
+          </syncf:SfTabView>
        
     </Shell.FlyoutContent>
 

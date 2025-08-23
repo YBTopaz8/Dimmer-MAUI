@@ -22,9 +22,6 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 {
     public LoginViewModel LoginViewModel => loginViewModel;
     private readonly LoginViewModel loginViewModel;
-    private readonly DimmerLiveViewModel dimmerLiveViewModel;
-
-    public DimmerLiveViewModel DimmerLiveViewModel => dimmerLiveViewModel;
     public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
     protected readonly IDimmerStateService _stateService;
@@ -37,7 +34,6 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     // _subs is inherited from BaseViewModel as _subsManager and should be used for subscriptions here too
     // private readonly SubscriptionManager _subsLocal = new(); // Use _subsManager from base
     private readonly IMapper mapper;
-    private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IFolderPicker folderPicker;
     private readonly IAnimationService animService;
     private readonly IDimmerStateService stateService;
@@ -68,8 +64,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService,
 
-        LoginViewModel loginViewModel,
-        DimmerLiveViewModel dimmerLiveViewModel, IFolderPicker folderPicker, IAnimationService animService,
+        LoginViewModel loginViewModel,IFolderPicker folderPicker, IAnimationService animService,
        IDimmerAudioService _audioService, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
 IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
     {
@@ -77,7 +72,6 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         this.mapper=mapper;
         this.appInitializerService=appInitializerService;
         this.loginViewModel=loginViewModel;
-        this.dimmerLiveViewModel=dimmerLiveViewModel;
         this.folderPicker=folderPicker;
         this.animService=animService;
         audioService=_audioService;

@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Dimmer.WinUI.Views.DimmerLiveUI;
 
 public partial class SessionTransferView : ContentPage
@@ -23,5 +25,13 @@ public partial class SessionTransferView : ContentPage
             MainView.SelectedIndex = 0;
         }
         MainView.EnableSwiping = false;
+    }
+
+    private async void Login_Clicked(object sender, EventArgs e)
+    {
+        SessionTransferVM.LoginViewModel.Username = UsernameEntry.Text;
+        SessionTransferVM.LoginViewModel.Password = PasswordEntry.Text;
+        SessionTransferVM.LoginViewModel.Email = EmailEntry.Text;
+        await SessionTransferVM.LoginViewModel.LoginCommand.ExecuteAsync(null);
     }
 }

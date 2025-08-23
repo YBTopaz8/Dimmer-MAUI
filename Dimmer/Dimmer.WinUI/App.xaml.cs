@@ -181,7 +181,7 @@ public partial class App : MauiWinUIApplication
 
 
 
-    private static void HandleFiles(string?[] paths) // paths now comes as string?[]
+    private static void HandleFiles(string[] paths) // paths now comes as string?[]
     {
         if (paths == null || paths.Length == 0)
             return;

@@ -13,7 +13,7 @@ public interface ILyricsMetadataService
     /// <param name="song">The song to find lyrics for.</param>
     /// <returns>The raw LRC-formatted string content if found; otherwise, null.</returns>
     Task<string?> GetLocalLyricsAsync(SongModelView song);
-    Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo? lyrics);
+    Task<bool> SaveLyricsForSongAsync(bool IsInstru, string planLyrics, SongModelView song, string lrcContent, LyricsInfo? lyrics);
 
     /// <summary>
     /// Searches for lyrics online using the LrcLib service.

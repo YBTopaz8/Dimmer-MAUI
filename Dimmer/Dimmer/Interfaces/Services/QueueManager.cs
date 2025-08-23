@@ -8,7 +8,7 @@ public class QueueManager<T> : IQueueManager<T>
     private readonly List<T> _source = new();
     private readonly int _batchSize;
     private int _position;
-    private int _currentBatchIdValue; // Renamed to avoid conflict with property
+    private int _currentBatchIdValue; 
 
     // Implement the corrected event signatures
     public event Action<IQueueManager<T>, int, IReadOnlyList<T>>? BatchEnqueued;

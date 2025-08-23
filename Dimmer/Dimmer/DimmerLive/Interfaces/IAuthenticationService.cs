@@ -12,5 +12,5 @@ public interface IAuthenticationService
     Task<AuthResult> LoginAsync(string username, string password);
     Task<AuthResult> RegisterAsync(string username, string email, string password); 
     Task LogoutAsync();
-
+    Task AutoLoginAsync();
 }

@@ -16,8 +16,12 @@ using System.Threading.Tasks;
 namespace Dimmer.ViewModel.DimmerLiveVM;
 public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposable
 {
+    public IChatService ChatService => _chatService;
+    public IAuthenticationService AuthenticationService => _authService;
     public readonly IChatService _chatService;
     private readonly IFriendshipService _friendshipService;
+    private readonly IAuthenticationService _authService;
+    private readonly BaseViewModel _mainViewModel;
     private readonly CompositeDisposable _disposables = new();
 
     // --- UI-Bound Collections ---
@@ -37,14 +41,7 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     // --- UI State ---
     [ObservableProperty]
     public partial ChatConversation SelectedConversation{get;set;}
-    partial void OnSelectedConversationChanged(ChatConversation oldValue, ChatConversation newValue)
-    {
-        if (newValue is not null)
-        {
-            _chatService.GetMessagesForConversation(newValue);
-
-        }
-    }
+    
 
     [ObservableProperty]
     public partial string NewMessageText{get;set;}
@@ -55,10 +52,13 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     [ObservableProperty]
     public partial bool IsBusy {get;set;}
 
-    public ChatViewModel(IChatService chatService, IFriendshipService friendshipService)
+    public ChatViewModel(IChatService chatService, IFriendshipService friendshipService, IAuthenticationService authService
+        , BaseViewModel mainViewModel)
     {
         _chatService = chatService;
         _friendshipService = friendshipService;
+        this._authService=authService;
+        this._mainViewModel=mainViewModel;
 
         // Bind the service's conversations to our UI collection
         _chatService.Conversations
@@ -68,27 +68,46 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
             .Subscribe()
             .DisposeWith(_disposables);
 
-        // ** This is the key ReactiveUI pattern for dynamic message loading **
-        // When the SelectedConversation property changes...
         this.WhenAnyValue(vm => vm.SelectedConversation)
-            .Select(convo =>
-            {
-                // ...if a conversation is selected, get its message stream from the service...
-                if (convo == null)
-                    return Observable.Empty<IChangeSet<ChatMessage, string>>();
-                return _chatService.GetMessagesForConversation(convo);
-            })
-            .Switch() // ...and switch to that new stream, automatically disposing the old one.
-            .Sort(SortExpressionComparer<ChatMessage>.Ascending(m => m.CreatedAt))
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out _messages) // Bind the result to our Messages property
-            .Subscribe()
-            .DisposeWith(_disposables);
+      .Select(convo => _chatService.GetMessagesForConversation(convo)) // Get the message stream
+      .Switch() // Unsubscribe from the old stream, subscribe to the new one
+      .Bind(out _messages) // Bind the results to the UI collection
+      .Subscribe();
 
         // Start chat listeners automatically
-        _chatService.StartListeners();
+        //_chatService.StartListeners();
     }
+    [RelayCommand]
+    private async Task StartNoteToSelf()
+    {
+        var currentUser = _authService.CurrentUserValue;
+        if (currentUser == null)
+        {
+            await Shell.Current.DisplayAlert("Not Logged In", "Please log in to use this feature.", "OK");
+            // Optionally, show a message telling the user to log in
+            return;
+        }
 
+        // We call the existing command, passing the current user's own object.
+        await FindAndStartChatCommand.ExecuteAsync(currentUser);
+    }
+    [RelayCommand]
+    private async Task ShareCurrentSong()
+    {
+        var currentSong = _mainViewModel.CurrentPlayingSongView;
+        if (SelectedConversation == null || currentSong == null || currentSong.Id == ObjectId.Empty)
+        {
+            // Optionally, show a "nothing is playing" message
+            return;
+        }
+
+        // The service handles all the backend logic
+        await _chatService.ShareSongAsync( currentSong, _mainViewModel.CurrentTrackPositionSeconds);
+        // Optionally, show a "Song shared!" notification
+        await Shell.Current.DisplayAlert("Song Shared", $"Shared '{currentSong.Title}' in chat.", "OK");
+
+
+    }
     [RelayCommand]
     private async Task FindAndStartChat(UserModelOnline user)
     {
@@ -110,7 +129,7 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     [RelayCommand]
     private async Task SendMessage()
     {
-        await _chatService.SendTextMessageAsync(SelectedConversation, NewMessageText);
+        await _chatService.SendTextMessageAsync( NewMessageText);
         NewMessageText = string.Empty; // Clear the input box
     }
 

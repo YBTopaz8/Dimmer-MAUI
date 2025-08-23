@@ -33,6 +33,26 @@ public class LyricsMetadataService : ILyricsMetadataService
         if (string.IsNullOrEmpty(song?.FilePath) || !File.Exists(song.FilePath))
             return null;
 
+        var realmm = realmFact?.GetRealmInstance();
+        if (realmm is null)
+        {
+            _logger.LogWarning("Realm instance is null when trying to get local lyrics for {SongTitle}", song.Title);
+            return null;
+        }
+        var songInDb = realmm.Find<SongModel>(song.Id);
+        if (songInDb == null)
+        {
+            _logger.LogWarning("Could not find song with ID {SongId} in database when trying to get local lyrics for {SongTitle}", song.Id, song.Title);
+            return null;
+        }
+
+        string? lyrics = songInDb.SyncLyrics;
+        if (lyrics is not null)
+        {
+            return lyrics;
+        }
+
+
         // Priority 1: Embedded Lyrics
         string? embeddedLyrics = GetEmbeddedLyrics(song.FilePath);
         if (!string.IsNullOrEmpty(embeddedLyrics))
@@ -107,9 +127,14 @@ public class LyricsMetadataService : ILyricsMetadataService
         }
 
         HttpClient client = _httpClientFactory.CreateClient("LrcLib");
+        var ar = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.ToLower();
+        string artistName=string.Empty;
+        if (ar is not null)
+        {
 
+             artistName = Uri.EscapeDataString(ar);
+        }
         // URL encode the parameters to handle special characters
-        string artistName = Uri.EscapeDataString(song.ArtistName.ToLower());
         string trackName = Uri.EscapeDataString(song.Title);
         string albumName = Uri.EscapeDataString(song.AlbumName ?? string.Empty);
 
@@ -189,7 +214,7 @@ public class LyricsMetadataService : ILyricsMetadataService
 
     #region Save Lyrics
 
-    public async Task<bool> SaveLyricsForSongAsync(SongModelView song, string lrcContent, LyricsInfo? lyrics)
+    public async Task<bool> SaveLyricsForSongAsync(bool IsInstru,string planLyrics,SongModelView song, string lrcContent, LyricsInfo? lyrics)
     {
         if (string.IsNullOrEmpty(song?.FilePath) || string.IsNullOrWhiteSpace(lrcContent))
         {
@@ -212,6 +237,8 @@ public class LyricsMetadataService : ILyricsMetadataService
 
             realm.Write(() =>
             {
+                songModel.IsInstrumental = IsInstru;
+                songModel.UnSyncLyrics=planLyrics;
                 if (string.IsNullOrEmpty(songModel.SyncLyrics) || songModel.EmbeddedSync.Count<1)
                 {
                     songModel.UnSyncLyrics=song.UnSyncLyrics;

@@ -138,12 +138,12 @@ public partial class SettingsPage : ContentPage
 
     private void AcceptBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.DimmerLiveViewModel.AcceptFriendRequestCommand.Execute(null);
+        //MyViewModel.DimmerLiveViewModel.AcceptFriendRequestCommand.Execute(null);
     }
 
     private void RejectBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.DimmerLiveViewModel.RejectFriendRequestCommand.Execute(null);
+        //MyViewModel.DimmerLiveViewModel.RejectFriendRequestCommand.Execute(null);
 
     }
 

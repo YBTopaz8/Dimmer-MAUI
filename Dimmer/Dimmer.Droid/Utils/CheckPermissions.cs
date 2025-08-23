@@ -2,7 +2,7 @@
 using Android.OS;
 
 namespace Dimmer.Utils; 
-public class CheckPermissions : Permissions.BasePlatformPermission // Renamed for clarity
+public class CheckPermissions : Permissions.BasePlatformPermission 
 {
     public override (string androidPermission, bool isRuntime)[] RequiredPermissions
     {

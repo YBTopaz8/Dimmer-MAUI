@@ -13,10 +13,10 @@ public partial class LoginViewModel : ObservableObject
     private readonly IRealmFactory realmFactory;
 
     [ObservableProperty]
-    public partial string Username{ get; set; }
+    public partial string Username { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string Password { get; set; }
+    public partial string Password { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
@@ -136,13 +136,14 @@ public partial class LoginViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task<bool> InitializeAsync()
+    public async Task InitializeAsync()
     {
 
-        var res = await _authService.InitializeAsync();
+        await _authService.AutoLoginAsync();
 
-        if (res)
+        if (ParseClient.Instance.CurrentUser is not null)
         {
+
             var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
                 .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
 
@@ -150,37 +151,15 @@ public partial class LoginViewModel : ObservableObject
             if (usr is null)
             {
 
-                UserModelOnline newUsr = new UserModelOnline(ParseClient.Instance.CurrentUser);
+                UserModelOnline newUsr = new UserModelOnline(ParseUser.CurrentUser);
 
                 await newUsr.SaveAsync();
                 CurrentUser=newUsr;
-                return true;
+                return ;
             }
             CurrentUser = usr;
-            return true;
 
 
-        }
-        else
-        {
-            /*
-            try
-            {
-                // This is the correct method.
-                ParseUser anonymousUser = ParseClient.Instance.CreateObject<UserModelOnline>();
-
-                // You can pre-populate data for this new anonymous user if you want
-                anonymousUser["displayName"] = $"Listener_{DeviceInfo.Platform.ToString() } {DeviceInfo.Manufacturer}";
-                anonymousUser["isPremium"] = false;
-                anonymousUser["referralCount"] = 0;
-                await anonymousUser.SaveAsync();
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating anonymous user: {ex.Message}");
-            }*/
-            return false;
         }
     }
     [RelayCommand]
@@ -269,4 +248,6 @@ public partial class LoginViewModel : ObservableObject
         OnPropertyChanged(nameof(ToggleText));
         OnPropertyChanged(nameof(ToggleLinkText));
     }
+
+   
 }

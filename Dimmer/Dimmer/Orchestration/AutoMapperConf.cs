@@ -27,6 +27,7 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
                     .ForMember(dest => dest.Album, opt => opt.Ignore()) // Must ignore RealmObject properties
                     .ForMember(dest => dest.Genre, opt => opt.Ignore())
+                    .ForMember(dest => dest.HasLyricsColumnIsFiltered, opt => opt.Ignore())
                     .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
                     .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
                     .ForMember(dest => dest.EmbeddedSync, opt => opt.MapFrom(src => src.EmbeddedSync))
@@ -40,8 +41,9 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.LastPlayed, opt => opt.MapFrom(src => src.LastPlayed))
                     .AfterMap(
                     
-                        (src, dest) =>
+                         (src, dest) =>
                         {
+                            
                             // calculate play counts and last played and skip count
                             dest.RefreshDenormalizedProperties();
                             

@@ -11,11 +11,10 @@ namespace Dimmer.DimmerSearch.TQL.RealmSection;
 /// </summary>
 public record RealmQueryPlan(
     string RqlFilter,
+    Func<SongModelView, bool> InMemoryPredicate,
     IReadOnlyList<SortDescription> SortDescriptions,
     LimiterClause? Limiter,
     IQueryNode? CommandNode, 
-    RandomChanceNode? ChanceNode,
-    DaypartNode? DaypartNode,
     ShuffleNode? Shuffle,
     string? ErrorMessage = null,
     string? ErrorSuggestion = null

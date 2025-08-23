@@ -49,7 +49,14 @@
     <Compile Remove="DimmerSearch\SearchClass.cs" />
     <Compile Remove="DimmerSearch\SemanticModel.cs" />
     <Compile Remove="DimmerSearch\SemanticParser.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\ISearchOrchestratorService.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\QueryAnalysisService.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\QueryModel.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\QueryTokenizer.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\SearchClass.cs" />
     <Compile Remove="DimmerSearch\TQLActions\SearchResult.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\SemanticModel.cs" />
+    <Compile Remove="DimmerSearch\TQLActions\SemanticParser.cs" />
     <Compile Remove="DimmerSearch\TQL\AstEvaluator.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
   </ItemGroup>

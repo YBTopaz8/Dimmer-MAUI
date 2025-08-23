@@ -224,8 +224,11 @@ public class AstParser
             return false;
         return Peek().Type switch
         {
-            TokenType.Or or TokenType.Pipe or TokenType.RightParen => false,
-            _ => true
+            TokenType.Or or TokenType.Pipe or TokenType.RightParen or
+            TokenType.Include or TokenType.Add or
+            TokenType.Exclude or TokenType.Remove => false,
+
+            _ => true,
         };
     }
 

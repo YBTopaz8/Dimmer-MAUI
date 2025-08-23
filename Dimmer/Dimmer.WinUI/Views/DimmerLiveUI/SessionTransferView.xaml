@@ -83,8 +83,8 @@ Shell.NavBarIsVisible="False">
                                  Text="Login"
                                  FontSize="24"
                                  HorizontalOptions="Center" />
-                        <Label Text="{Binding  LoginViewModel.CurrentUser.Username}"/>
-                        <Label Text="{Binding LoginViewModel.CurrentUser.Email}"/>
+                        <Label x:Name="Uname" Text="{Binding  LoginViewModel.CurrentUser.Username}"/>
+                        <Label x:Name="UEmail" Text="{Binding LoginViewModel.CurrentUser.Email}"/>
                         <Label
                                  Text="Please login to continue"
                                  FontSize="16"
@@ -119,8 +119,9 @@ Shell.NavBarIsVisible="False">
 
                             <Button
                                  Text="Login"
+                                 x:Name="Login"
                                  FontSize="16"
-                                 Command="{Binding LoginViewModel.LoginCommand}"
+                                Clicked="Login_Clicked"
                                  HorizontalOptions="Center"
                                 />
 

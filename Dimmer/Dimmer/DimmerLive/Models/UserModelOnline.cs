@@ -1,7 +1,20 @@
-﻿namespace Dimmer.DimmerLive.Models;
+﻿using DynamicData;
+
+using System;
+
+namespace Dimmer.DimmerLive.Models;
 [ParseClassName("_User")]
 public class UserModelOnline : ParseUser
 {
+    private static readonly HashSet<string> _immutableUserKeys = new HashSet<string>
+    {
+        "sessionToken",
+        "authData",
+        // It's also good practice to exclude these as they are set via specific methods
+        "username",
+        "password",
+        "email"
+    };
     [ParseFieldName("profileImagePath")]
     public string? ProfileImagePath // Use nullable if the field might not exist or be null
     {
@@ -38,11 +51,20 @@ public class UserModelOnline : ParseUser
         // and know about Parse-specific types.
         foreach (var key in plainUser.Keys)
         {
+            if (_immutableUserKeys.Contains(key))
+            {
+                continue; // Go to the next key in the loop
+            }
             this[key] = plainUser[key];
         }
+        this.ObjectId = plainUser.ObjectId;
 
-        // If the plainUser has an ACL, you might want to copy it as well.
-        // Create a new ACL instance to avoid modifying the original plainUser's ACL.
+        if (!string.IsNullOrEmpty(plainUser.Username))
+            this.Username = plainUser.Username;
+        if (!string.IsNullOrEmpty(plainUser.Email))
+            this.Email = plainUser.Email;
+
+
         if (plainUser.ACL != null)
         {
             this.ACL = new ParseACL(plainUser);

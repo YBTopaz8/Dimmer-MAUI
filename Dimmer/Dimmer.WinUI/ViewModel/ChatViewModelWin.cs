@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 namespace Dimmer.WinUI.ViewModel;
 public  partial class ChatViewModelWin : ChatViewModel
 {
-    public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService) : base(chatService, friendshipService)
+    public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService, IAuthenticationService auth
+        ,BaseViewModel baseViewModel) : 
+        base(chatService, friendshipService, auth, baseViewModel)
     {
         InitializeGeneralChat();
     }

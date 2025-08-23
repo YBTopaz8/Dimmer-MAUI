@@ -307,17 +307,40 @@ public partial class AppShell : Shell
             {
                 return;
             }
+            SearchSongSB_Clicked(sender, e);
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
-            MyViewModel.SearchSongSB_TextChanged(
-                StaticMethods.SetQuotedSearch("artist", selectedArtist));
+           
 
             return;
         }
 
+        SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
     }
 
+    private void SearchSongSB_Clicked(object sender, EventArgs e)
+    {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+
+        // move and resize to the center of the screen
+
+        var pres = win?.AppWindow.Presenter;
+        //window.SetTitleBar()
+        if (pres is OverlappedPresenter p)
+        {
+            p.IsResizable = true;
+            p.SetBorderAndTitleBar(true, true); // Remove title bar and border
+            p.IsAlwaysOnTop = false;
+        }
+
+
+        Debug.WriteLine(win?.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+
+    }
     private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)
     {
         var currentState = this.FlyoutIsPresented;
@@ -356,8 +379,10 @@ public partial class AppShell : Shell
                     current.NowPlayingLyricsFontSize = 30;
                 
             }
-            AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
-        }
+      
+            //AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
+        
+    }
     
 
     private void Slider_Loaded(object sender, EventArgs e)
@@ -387,6 +412,7 @@ public partial class AppShell : Shell
     private void MainLayout_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
         var pointerPoint = e.GetCurrentPoint(null);
+        
         int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
 
         if (mouseWheelDelta != 0)

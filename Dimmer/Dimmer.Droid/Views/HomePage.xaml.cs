@@ -641,7 +641,9 @@ public partial class HomePage : ContentPage
     {
         var send = (DXButton)sender;
         var song = send.CommandParameter as SongModelView;
-        await MyViewModel.BaseVM.PlaySong(song);
+        await MyViewModel.BaseVM.PlaySong(song, CurrentPage.AllSongs);
+
+        
     }
 
     private void Chip_Tap(object sender, HandledEventArgs e)

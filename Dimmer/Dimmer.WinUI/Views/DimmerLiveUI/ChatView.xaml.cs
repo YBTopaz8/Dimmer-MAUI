@@ -10,4 +10,11 @@ public partial class ChatView : ContentPage
     }
 
     public ChatViewModelWin ChatViewModelWin { get; }
+
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        await ChatViewModelWin.AuthenticationService.InitializeAsync();
+    }
 }

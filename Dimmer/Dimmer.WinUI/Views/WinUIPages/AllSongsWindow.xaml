@@ -25,89 +25,201 @@ xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
 xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
 x:Name="myPage"
     
+    xmlns:queryBuilder="queries"
     xmlns:dgView="using:WinUI.TableView">
 
     <Window.SystemBackdrop>
         <DesktopAcrylicBackdrop />
     </Window.SystemBackdrop>
     <Page x:Name="MyPageGrid" d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin, IsDesignTimeCreatable=True}">
-        
-    <Grid RowSpacing="10">
-            <Grid.Resources>
-               
-            </Grid.Resources>
-            <Grid.RowDefinitions>
-                <!-- Row 0: This will take up all available vertical space -->
-                <RowDefinition Height="Auto" />
 
-                <!-- Row 1: This will take up just enough height for the controls inside it -->
-                <RowDefinition Height="*" />
+        <Page.Resources>
+            <MenuFlyout x:Key="SongRowMenuFlyout">
+                <!-- The DataContext of this MenuFlyout will be the SongModelView -->
+
+                <MenuFlyoutItem Text="View Details"
+                            Command="{Binding  ElementName=YourPageRoot, Path=MyViewModel.ViewSongDetailsCommand}"
+                            CommandParameter="{Binding}">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE1A5;"/>
+                        <!-- Segoe Fluent Icon for "View" -->
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutSeparator/>
+
+                <MenuFlyoutItem Text="Search for artist"
+                            Command="{Binding ElementName=YourPageRoot, Path=MyViewModel.QuickSearchArtistCommand}"
+                            CommandParameter="{Binding ArtistName}">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE77B;"/>
+                        <!-- Icon for "Artist" -->
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutItem Text="Search for album"
+                            Command="{Binding ElementName=YourPageRoot, Path=MyViewModel.QuickSearchAlbumCommand}"
+                            CommandParameter="{Binding AlbumName}">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE958;"/>
+                        <!-- Icon for "Album" -->
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutSeparator/>
+
+                <MenuFlyoutSubItem Text="File Tools">
+                    <MenuFlyoutSubItem.Icon>
+                        <FontIcon Glyph="&#xE713;"/>
+                        <!-- Icon for "Settings" -->
+                    </MenuFlyoutSubItem.Icon>
+                    <MenuFlyoutItem Text="Open File Location"
+                                Command="{Binding ElementName=YourPageRoot, Path=MyViewModel.OpenFileLocationCommand}"
+                                CommandParameter="{Binding FilePath}"/>
+                    <MenuFlyoutItem Text="Delete from Library"
+                                Style="{ThemeResource MenuFlyoutItemRevealStyle}"
+                                    Click="MenuFlyoutItem_Click"
+                                CommandParameter="{Binding}"/>
+                </MenuFlyoutSubItem>
+
+            </MenuFlyout>
+        </Page.Resources>
+    
+            <Grid Grid.Row="0" RowSpacing="10" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <StackPanel Grid.Row="0" Spacing="10" BorderThickness="1"
+                        BorderBrush="DarkSlateBlue" CornerRadius="20">
 
-            <StackPanel Grid.Row="0" Spacing="10" HorizontalAlignment="Center">
-                <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title}" 
-                           HorizontalTextAlignment="Center"
-                           HorizontalAlignment="Center"
-                           FontSize="24" FontWeight="Bold" Margin="10"/>
-
-                <Button Content="Scroll To Song"
-                        x:Name="ScrollToSongBtn"
-                        Click="ScrollToSong_Click"
-                        ClickMode="Press"/>
-
-                <TextBox TextChanged="SearchSongSB_TextChanged"
+                <StackPanel Orientation="Horizontal"
+                            Spacing="10"
+                        x:Name="TopPanel" HorizontalAlignment="Center">
                     
-                            AutomationProperties.Name="multi-line TextBox"
-    TextWrapping="Wrap" AcceptsReturn="True" IsSpellCheckEnabled="True"
-    SelectionHighlightColor="DarkSlateBlue" MinWidth="400" 
-                             x:Name="SearchSongSB" />
+                <AutoSuggestBox
+    x:Name="SearchAutoSuggestBox"
+    PlaceholderText="Search with TQL..."
+    Width="450" 
+                    CharacterReceived="SearchAutoSuggestBox_CharacterReceived"
+                    
+    Text="{x:Bind MyViewModel.CurrentTqlQuery}"
+    TextChanged="SearchAutoSuggestBox_TextChanged"
+    SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
+
+
+
+                    <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center"
+                           FocusVisualPrimaryBrush="Red" TextDecorations="Underline"
+                               IsTextSelectionEnabled="True"
+                           FocusVisualSecondaryBrush="OrangeRed"/>
+                </StackPanel>
+                <TextBlock FontSize="21" FontStretch="Expanded"
+ FontWeight="ExtraBold" FocusVisualPrimaryBrush="DarkSlateBlue"                        x:Name="SearchSongSB" HorizontalAlignment="Center"
+                         CharacterReceived="SearchSongSB_CharacterReceived"
+                         ContextMenuOpening="SearchSongSB_ContextMenuOpening"
+                         KeyDown="SearchSongSB_KeyDown"
+                        Text="{Binding CurrentTqlQuery}"
+                         PointerWheelChanged="SearchSongSB_PointerWheelChanged"
+                         SelectionChanged="SearchSongSB_SelectionChanged"
+                             
+                       />
+
+                <TextBlock Text="{Binding NLPQuery}" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding DebugMessage}" HorizontalAlignment="Center"/>
+                
+
+                <StackPanel Orientation="Horizontal" 
+Spacing="10"
+                            HorizontalAlignment="Center">
+                    <Button Content="Clear"/>
+           
+                    <TextBlock 
+                            VerticalAlignment="Center"
+                        
+                        Text="{x:Bind MyViewModel.SearchResults.Count}"/>
+              
+                    <TextBlock 
+        VerticalAlignment="Center"
+        Text="Songs Found"/>
+                </StackPanel>
+                
+                
             </StackPanel>
-                <dgView:TableView Grid.Row="1" x:Name="MySongsTableView" ItemsSource="{x:Bind MyViewModel.SearchResults}"
+                
+                
+                <dgView:TableView  x:Name="MySongsTableView" ItemsSource="{x:Bind MyViewModel.SearchResults}"
                           RightTapped="TableView_RightTapped"
+                                  Tapped="MySongsTableView_Tapped" Grid.Row="1"
                           PointerPressed="TableView_PointerPressed"
                            AutoGenerateColumns="False"
                               DoubleTapped="TableView_DoubleTapped"
                               IsRightTapEnabled="True"
-                                  
                               BringIntoViewRequested="TableView_BringIntoViewRequested"
-                              CellContextFlyoutOpening="TableView_CellContextFlyoutOpening"
                               ExportSelectedContent="TableView_ExportSelectedContent"
-                              >
-                <dgView:TableView.Columns>
+                            FlyoutBase.AttachedFlyout="{StaticResource SongRowMenuFlyout}"
+                                   
+                                   CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
+                                   ClearSorting="MySongsTableView_ClearSorting"
+                                   DragItemsStarting="MySongsTableView_DragItemsStarting"
+                                   Holding="MySongsTableView_Holding"
+                                   CellSelectionChanged="MySongsTableView_CellSelectionChanged"
+                                   RowContextFlyoutOpening="MySongsTableView_RowContextFlyoutOpening"
+                                   Sorting="MySongsTableView_Sorting"
+                                   Loading="MySongsTableView_Loading"
+                                   
+                                   
+                                   >
+                    <dgView:TableView.Columns>
 
-                    <!-- Column for the Cover Art -->
-                    <dgView:TableViewTemplateColumn Header="Cover">
-                        <dgView:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <!-- You can even overlay a "favorite" icon like in your example -->
-                                    <Image Source="{Binding CoverImagePath}"
+                        <!-- Column for the Cover Art -->
+                        <dgView:TableViewTemplateColumn Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                <Grid 
+                                      ContextRequested="Grid_ContextRequested">
+                                        <!-- You can even overlay a "favorite" icon like in your example -->
+                                        <Image Source="{Binding CoverImagePath}"
                                        Width="100"
                                        Height="100"
                                        Stretch="UniformToFill"/>
 
-                                   
-                                </Grid>
-                            </DataTemplate>
-                        </dgView:TableViewTemplateColumn.CellTemplate>
-                    </dgView:TableViewTemplateColumn>
 
-                    <!-- Other columns for Title, Artist, etc. -->
-                    <dgView:TableViewTextColumn  Header="Title"  IsReadOnly="True" Binding="{Binding Title}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
 
-                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Artist" MaxWidth="300" Binding="{Binding ArtistName}"/>
+                        <!-- Other columns for Title, Artist, etc. -->
+                    <dgView:TableViewCheckBoxColumn
+                        
+                        Header="HasLyrics"  IsReadOnly="True" Binding="{Binding HasSyncedLyrics}"/>
+                        <dgView:TableViewTextColumn 
+                            
+                            
+                            Header="Title"  IsReadOnly="True" Binding="{Binding Title}"/>
 
-                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Album" Binding="{Binding AlbumName}" MaxWidth="200"/> 
+                        <dgView:TableViewTextColumn IsReadOnly="True"
+                                                    
+                                                    Header="Artist" MaxWidth="300" Binding="{Binding ArtistName}"/>
 
-                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Year" Binding="{Binding ReleaseYear}"/>
-                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
-                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Dims" Binding="{Binding PlayCompletedCount}"/>
-                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Skip Count" Binding="{Binding SkipCount}"/>
+                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Album" Binding="{Binding AlbumName}" MaxWidth="500"/>
 
-                </dgView:TableView.Columns>
-            </dgView:TableView>
+                        <dgView:TableViewTextColumn SortDirection="Ascending"  IsFiltered="False"
+                                                    CanFilter="False"
+                                                    
+                                                    CanSort="True"
+                                                    IsReadOnly="True" Header="Year" Binding="{Binding ReleaseYear}"/>
+                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
+                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Dims" Binding="{Binding PlayCompletedCount}"/>
+                    <dgView:TableViewTextColumn  IsReadOnly="True" Header="Skip Count" Binding="{Binding SkipCount}"/>
+                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Duration" Binding="{Binding DurationInSeconds}"/>
 
-        </Grid>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+
+            </Grid>
+        
     </Page>
 </Window>

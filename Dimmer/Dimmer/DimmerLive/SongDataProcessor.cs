@@ -143,7 +143,7 @@ public static class SongDataProcessor
 
                              // B. Save the fetched lyrics BACK TO THE FILE'S METADATA
 
-                             bool saved = await lyricsService.SaveLyricsForSongAsync(song, fetchedLrcData, newLyricsInfo);
+                             bool saved = await lyricsService.SaveLyricsForSongAsync(false, song.UnSyncLyrics, song, fetchedLrcData, newLyricsInfo);
                              if (saved)
                              {
                                  // C. Update the UI model on the main thread

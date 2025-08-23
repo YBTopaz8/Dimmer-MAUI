@@ -10,5 +10,5 @@ public class LrcLibSearchResult
     public double Duration { get; set; }
     public string? SyncedLyrics { get; set; }
     public string? PlainLyrics { get; set; }
-    public bool? Instrumental { get; set; }
+    public bool Instrumental { get; set; }
 }

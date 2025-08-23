@@ -2,6 +2,8 @@
 
 using Parse.LiveQuery;
 
+using ReactiveUI;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,20 +12,23 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
-public partial class ParseChatService : IChatService, IDisposable
+public partial class ParseChatService : ObservableObject, IChatService, IDisposable
 {
     private readonly IAuthenticationService _authService;
     private readonly ILogger<ParseChatService> _logger;
     private readonly ParseLiveQueryClient _liveQueryClient;
 
+    private readonly SourceCache<ChatMessage, string> _msgCache= new(c => c.ObjectId);
     private readonly SourceCache<ChatConversation, string> _conversationsCache = new(c => c.ObjectId);
     private Subscription<ChatConversation>? _conversationSubscription;
+    private Subscription<ChatMessage>? _msgSub;
 
     // This is a powerful pattern. It's a dictionary that holds the message cache for each conversation.
     private readonly Dictionary<string, (SourceCache<ChatMessage, string> cache, IDisposable subscription)> _messageListeners = new();
     private readonly CompositeDisposable _disposables = new();
 
     public IObservable<IChangeSet<ChatConversation, string>> Conversations => _conversationsCache.Connect();
+    public IObservable<IChangeSet<ChatMessage, string>> Messages => _msgCache.Connect();
 
     public ParseChatService(
         IAuthenticationService authService,
@@ -33,39 +38,89 @@ public partial class ParseChatService : IChatService, IDisposable
         _authService = authService;
         _logger = logger;
         _liveQueryClient = liveQueryClient;
+        _authService.CurrentUser
+          .Subscribe(user =>
+          {
+              if (user != null)
+              {
+                  StartListeners(user);
+              }
+              else
+              {
+                  StopListeners();
+              }
+          })
+          .DisposeWith(_disposables);
     }
 
-    public void StartListeners()
+    private readonly object _lock = new();
+    public void StartListeners(UserModelOnline currentUser)
     {
-        var currentUser = _authService.CurrentUserValue;
-        if (currentUser == null)
-            return;
-
-        StopListeners(); // Ensure no lingering listeners
-
-        // Live Query for conversations the current user is a participant in
-        var conversationQuery = new ParseQuery<ChatConversation>(ParseClient.Instance)
-            .WhereEqualTo("Participants", currentUser)
-            .Include(nameof(ChatConversation.LastMessage)); // Include last message data for previews
-
-        _conversationSubscription = _liveQueryClient.Subscribe(conversationQuery);
-        _conversationSubscription.On(Subscription.Event.Enter, convo =>
+        lock (_lock)
         {
-            _conversationsCache.AddOrUpdate(convo);
-        });
-        _conversationSubscription.On(Subscription.Event.Create, convo => _conversationsCache.AddOrUpdate(convo));
-        _conversationSubscription.On(Subscription.Event.Update, convo => _conversationsCache.AddOrUpdate(convo));
-        _conversationSubscription.On(Subscription.Event.Leave, convo => _conversationsCache.Remove(convo));
-        _conversationSubscription.On(Subscription.Event.Delete, convo => _conversationsCache.Remove(convo));
+            if (_conversationSubscription != null)
+                return; // Already running
 
-        _disposables.Add(Disposable.Create(() => _conversationSubscription?.UnsubscribeNow()));
-        _logger.LogInformation("ChatService listeners started.");
+            _logger.LogInformation("ChatService listeners starting for user {Username}...", currentUser.Username);
+       
+
+            var query = ParseClient.Instance.GetQuery<ChatMessage>()
+                .Include(nameof(ChatMessage.UserSenderId));
+            var _messageSub = _liveQueryClient.Subscribe(query);
+
+
+            _liveQueryClient.OnConnectionStateChanged
+          .ObserveOn(RxApp.MainThreadScheduler) // Best practice: ensure UI updates are on the main thread
+          .Subscribe(state =>
+          {
+              Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state}");
+              IsConnectedToMessagesLQ = state == LiveQueryConnectionState.Connected;
+          });
+
+            _liveQueryClient.OnError
+            .Subscribe(ex =>
+            {
+                IsConnectedToMessagesLQ=false;
+                Debug.WriteLine($"[LiveQuery Error]: {ex.Message}");
+            });
+
+
+            _liveQueryClient.OnDisconnected
+                .Do(info =>
+                {
+                    IsConnectedToMessagesLQ=false;
+                    Debug.WriteLine($"Server disconnected.{info.Reason}");
+                })
+                .Subscribe();
+
+            _liveQueryClient.OnSubscribed
+
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Do( async e =>
+                {
+                   await SendTextMessageAsync("Hello 😄" + currentUser.Username + "!");
+                    Debug.WriteLine("Subscribed to: " + e.requestId);
+                })
+                .Subscribe();
+
+            _messageSub.On(Subscription.Event.Enter, convo =>
+            {
+                _msgCache.AddOrUpdate(convo);
+            });
+            _messageSub.On(Subscription.Event.Create, convo => _msgCache.AddOrUpdate(convo));
+            _messageSub.On(Subscription.Event.Update, convo => _msgCache.AddOrUpdate(convo));
+            //_messageSub.On(Subscription.Event.Leave, convo => _msgCache.Remove(convo));
+            _messageSub.On(Subscription.Event.Delete, convo => _msgCache.Remove(convo));
+
+            _disposables.Add(Disposable.Create(() => _conversationSubscription?.UnsubscribeNow()));
+            _logger.LogInformation("ChatService listeners started.");
+        }
     }
 
     public async Task<ChatConversation?> GetOrCreateConversationWithUserAsync(UserModelOnline otherUser)
     {
         var currentUser = _authService.CurrentUserValue;
-        if (currentUser == null || otherUser == null || currentUser.ObjectId == otherUser.ObjectId)
+        if (currentUser == null || otherUser == null) // Removed: || currentUser.ObjectId == otherUser.ObjectId
         {
             _logger.LogWarning("Cannot create conversation, invalid user data.");
             return null;
@@ -85,78 +140,117 @@ public partial class ParseChatService : IChatService, IDisposable
             return null;
         }
     }
+    [ObservableProperty]
+    public partial bool IsConnectedToMessagesLQ { get; set; }
+
+    private async Task LoadInitialMessagesAsync(SourceCache<ChatMessage, string> cache, ChatConversation conversation)
+    {
+        try
+        {
+            var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
+                .WhereEqualTo("conversation.objectId", conversation.ObjectId)
+                .Include(nameof(ChatMessage.Sender));
+
+            var initialMessages = await messageQuery.FindAsync();
+            cache.Edit(updater => updater.AddOrUpdate(initialMessages));
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch initial messages for conversation {ConversationId}", conversation.ObjectId);
+        }
+    }
+
 
     public IObservable<IChangeSet<ChatMessage, string>> GetMessagesForConversation(ChatConversation conversation)
     {
         if (conversation == null)
             return Observable.Empty<IChangeSet<ChatMessage, string>>();
-
-        // If we already have a listener for this conversation, return its observable
-        if (_messageListeners.TryGetValue(conversation.ObjectId, out var listener))
+        lock (_lock)
         {
-            return listener.cache.Connect();
-        }
 
-        _logger.LogInformation("Creating new message listener for conversation {ConversationId}", conversation.ObjectId);
-
-        // Create a new cache and subscription for this conversation's messages
-        var messageCache = new SourceCache<ChatMessage, string>(m => m.ObjectId);
-
-        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-            .WhereEqualTo("conversation", conversation)
-            .Include(nameof(ChatMessage.Sender)); // Important for displaying sender info
-
-        var messageSubscription = _liveQueryClient.Subscribe(messageQuery);
-
-        // Fetch initial messages
-        messageQuery.FindAsync().ContinueWith(t => {
-            if (t.IsCompletedSuccessfully)
+            // If we already have a listener for this conversation, return its observable
+            if (_messageListeners.TryGetValue(conversation.ObjectId, out var listener))
             {
-                messageCache.AddOrUpdate(t.Result);
+                return listener.cache.Connect();
             }
-        });
 
-        // Wire up live query events to the cache
-        messageSubscription.On(Subscription.Event.Enter, msg =>
-        {
-            messageCache.AddOrUpdate(msg);
-        });
-        messageSubscription.On(Subscription.Event.Create, msg =>
-        {
-            messageCache.AddOrUpdate(msg);
-        });
-        messageSubscription.On(Subscription.Event.Update, msg => messageCache.AddOrUpdate(msg));
-        messageSubscription.On(Subscription.Event.Delete, msg => messageCache.Remove(msg));
+            _logger.LogInformation("Creating new message listener for conversation {ConversationId}", conversation.ObjectId);
 
-        var subscriptionDisposable = Disposable.Create(() => messageSubscription.UnsubscribeNow());
-        _messageListeners[conversation.ObjectId] = (messageCache, subscriptionDisposable);
+            // Create a new cache and subscription for this conversation's messages
 
-        return messageCache.Connect();
+            var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
+                .WhereEqualTo("conversationId", conversation.ObjectId)
+                 .Include(nameof(ChatMessage.Sender))
+                .Include($"{nameof(ChatMessage.SharedSong)}.uploader"); // Include nested pointers
+
+
+            var messageSubscription = _liveQueryClient.Subscribe(messageQuery);
+            IsConnectedToMessagesLQ= messageSubscription.IsConnected;
+
+
+            var messageCache = new SourceCache<ChatMessage, string>(m => m.ObjectId);
+
+            LoadInitialMessagesAsync(messageCache, conversation)
+          .FireAndForget(ex => _logger.LogError(ex, "Initial message load failed for {ConvoId}", conversation.ObjectId));
+
+
+
+            // Wire up live query events to the cache
+            messageSubscription.On(Subscription.Event.Enter, msg =>
+            {
+                // connected so let ui know
+
+                _logger.LogInformation("New message in conversation {ConversationId}: {MessageText}", conversation.ObjectId, msg.Text);
+                messageCache.AddOrUpdate(msg);
+            });
+            messageSubscription.On(Subscription.Event.Create, msg =>
+            {
+                messageCache.AddOrUpdate(msg);
+            });
+            messageSubscription.On(Subscription.Event.Update, msg => messageCache.AddOrUpdate(msg));
+            messageSubscription.On(Subscription.Event.Delete, msg => messageCache.Remove(msg));
+
+            var subscriptionDisposable = Disposable.Create(() => messageSubscription.UnsubscribeNow());
+            _messageListeners[conversation.ObjectId] = (messageCache, subscriptionDisposable);
+
+            return messageCache.Connect();
+        }
     }
-
-    public async Task SendTextMessageAsync(ChatConversation conversation, string text)
+    public async Task SendTextMessageAsync(string text)
     {
-        if (conversation == null || string.IsNullOrWhiteSpace(text) || _authService.CurrentUserValue == null)
-            return;
-
-        var message = new ChatMessage
+        try
         {
-            Conversation = conversation,
-            Sender = _authService.CurrentUserValue,
-            Text = text,
-            MessageType = "Text"
-        };
+            if ( string.IsNullOrWhiteSpace(text) || _authService.CurrentUserValue == null)
+                return;
 
-        // ACLs are best handled by a beforeSave trigger in Cloud Code
-        await message.SaveAsync();
+            var message = new ChatMessage
+            {
+
+                //Sender = _authService.CurrentUserValue,
+                Text = text,
+                MessageType = "Text",
+                
+            };
+            
+            message["senderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
+            message["UserSenderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
+
+
+            // ACLs are best handled by a beforeSave trigger in Cloud Code
+            await message.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
-    public Task ShareSongAsync(ChatConversation conversation, SongModelView song, double position)
+    public Task ShareSongAsync( SongModelView song, double position)
     {
         // This is a prime candidate for a Cloud Code function
         var parameters = new Dictionary<string, object>
         {
-            { "conversationId", conversation.ObjectId },
             { "title", song.Title },
             { "artist", song.ArtistName },
             { "album", song.AlbumName },
@@ -176,6 +270,7 @@ public partial class ParseChatService : IChatService, IDisposable
             listener.subscription.Dispose();
         }
         _messageListeners.Clear();
+        _conversationsCache.Clear();
         _logger.LogInformation("ChatService listeners stopped.");
     }
 

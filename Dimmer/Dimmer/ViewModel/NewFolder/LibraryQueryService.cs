@@ -21,7 +21,7 @@
 //    public IObservable<IChangeSet<SongModelView>> Results { get; }
 
 //    // Inject ONLY the dependencies this service needs
-//    public LibraryQueryService(IRealmFactory realmFactory, IMapper mapper, ILogger<LibraryQueryService> logger)
+//    public LibraryQueryService(IRealmFactory RealmFactory, IMapper mapper, ILogger<LibraryQueryService> logger)
 //    {
 //        // ... initialize subjects ...
 

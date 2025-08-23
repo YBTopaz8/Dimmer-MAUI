@@ -23,8 +23,56 @@ public class ParseAuthenticationService : IAuthenticationService
         _logger = logger;
     }
 
+    public async Task AutoLoginAsync()
+    {
+        if (CurrentUserValue == null)
+        {
+            //get saved sessionToken
+
+            var Tokenn = await SecureStorage.Default.GetAsync("userToken");
+
+            if (Tokenn != null)
+            {
+                var usr = await ParseClient.Instance.BecomeAsync(Tokenn);
+
+                if (usr != null)
+                {
+
+                }
+            }
+
+        }
+
+        if (ParseClient.Instance.CurrentUser != null && !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser.SessionToken))
+        {
+            var result = await InitializeAsync();
+            if (result)
+            {
+
+            }
+        }
+    }
+    // method for auto login if token exists
+    // method to save to token to secure storage if remember me is checked
+    public async Task SaveTokenAsync()
+    {
+        if ( ParseClient.Instance.CurrentUser != null)
+        {
+            await SecureStorage.Default.SetAsync("userToken", ParseClient.Instance.CurrentUser.SessionToken);
+        }
+        else
+        {
+            SecureStorage.Default.Remove("userToken");
+        }
+    }
     public async Task<bool> InitializeAsync()
     {
+        if (CurrentUserValue is not null)
+        {
+
+            return true;
+        }
+        
         var parseUser = ParseUser.CurrentUser;
         if (parseUser != null)
         {
@@ -33,6 +81,12 @@ public class ParseAuthenticationService : IAuthenticationService
                 await parseUser.FetchIfNeededAsync();
                 _currentUserSubject.OnNext(new UserModelOnline(parseUser));
                 _logger.LogInformation("User session restored for {Username}", parseUser.Username);
+                await SaveTokenAsync();
+                
+
+
+
+
                 return true;
             }
             catch (Exception ex)
@@ -52,6 +106,10 @@ public class ParseAuthenticationService : IAuthenticationService
 
     public async Task<AuthResult> LoginAsync(string username, string password)
     {
+        if(string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        {
+            return new AuthResult(false, "Empty Params");
+        }    
         try
         {
             var parseUser = await ParseClient.Instance.LogInWithAsync(username, password);

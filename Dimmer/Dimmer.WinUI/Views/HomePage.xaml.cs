@@ -1,19 +1,27 @@
 ﻿    //using Dimmer.DimmerLive.Models;
+    using Dimmer.DimmerLive;
     using Dimmer.DimmerSearch;
     using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.WinUIPages;
 
-    using DynamicData;
+using DynamicData;
     using DynamicData.Binding;
-    using Compositor = Microsoft.UI.Composition.Compositor;
-    using Visual = Microsoft.UI.Composition.Visual;
+
+using Microsoft.Maui.Controls.Embedding;
     using Microsoft.Maui.Controls.Internals;
+using Microsoft.Maui.Platform;
     using Microsoft.UI.Composition;
+    using Microsoft.UI.Xaml;
     using Microsoft.UI.Xaml.Hosting;
     using Microsoft.UI.Xaml.Media;
 
     using MoreLinq;
 
     using ReactiveUI;
+
+    using Syncfusion.Maui.Toolkit.Charts;
+    using Syncfusion.Maui.Toolkit.Expander;
 
     using System.DirectoryServices;
     using System.Numerics;
@@ -24,23 +32,20 @@
     using System.Threading.Tasks;
     using System.Windows.Controls.Primitives;
     using System.Windows.Forms;
+
     using Windows.UI.Composition;
 
-    using SortOrder = Dimmer.Utilities.SortOrder;
-    using WinUIControls = Microsoft.UI.Xaml.Controls;
-    using Microsoft.UI.Xaml;
     using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
     using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunction;
-    using Syncfusion.Maui.Toolkit.Charts;
-    using Label = Microsoft.Maui.Controls.Label;
-    using Dimmer.DimmerLive;
+    using Compositor = Microsoft.UI.Composition.Compositor;
     using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
-    using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
-    using View = Microsoft.Maui.Controls.View;
     using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
-    using Syncfusion.Maui.Toolkit.Expander;
-using Microsoft.Maui.Platform;
-using Microsoft.Maui.Controls.Embedding;
+    using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
+    using Label = Microsoft.Maui.Controls.Label;
+    using SortOrder = Dimmer.Utilities.SortOrder;
+    using View = Microsoft.Maui.Controls.View;
+    using Visual = Microsoft.UI.Composition.Visual;
+    using WinUIControls = Microsoft.UI.Xaml.Controls;
 
 namespace Dimmer.WinUI.Views;
 
@@ -182,13 +187,14 @@ namespace Dimmer.WinUI.Views;
             {
                 return;
             }
-
-            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", selectedArtist);
+            SearchSongSB_Clicked(sender, e);
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
             return;
         }
 
-        SearchSongSB.Text = StaticMethods.SetQuotedSearch(field, val);
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
     }
 
@@ -205,7 +211,7 @@ namespace Dimmer.WinUI.Views;
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentPageContext = CurrentPage.HomePage;
+        MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
         MyViewModel.SongColView = SongsColView;
 
        await MyViewModel.InitializeParseUser();
@@ -215,6 +221,7 @@ namespace Dimmer.WinUI.Views;
     private void MainSongsColView_Loaded(object sender, EventArgs e)
     {
 
+        //MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery+ " >>addend!");
     }
 
     private async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
@@ -232,7 +239,12 @@ namespace Dimmer.WinUI.Views;
     {
         var send = (Microsoft.Maui.Controls.View)sender;
         var song = send.BindingContext as SongModelView;
-      await  MyViewModel.PlaySong(song);
+        if(MyViewModel.PlaybackQueue.Count<1)
+        {
+            MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+        }
+      await  MyViewModel.PlaySong(song, CurrentPage.HomePage);
+        //ScrollToSong_Clicked(sender, e);
     }
 
     private void CurrPlayingSongGesRec_Tapped(object sender, TappedEventArgs e)
@@ -378,8 +390,10 @@ namespace Dimmer.WinUI.Views;
 
     private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
     {
-        SearchSongSB.Text= ((MenuFlyoutItem)sender).CommandParameter.ToString();
-        SearchSongSB.Focus();
+
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((MenuFlyoutItem)sender).CommandParameter.ToString()));
+
     }
 
     private async void QuickSearchArtist_Clicked(object sender, EventArgs e)
@@ -395,8 +409,9 @@ namespace Dimmer.WinUI.Views;
             .ToArray();                                             // Convert to a List
         if (namesList  is not null && namesList.Length==1)
         {
+            SearchSongSB_Clicked(sender, e);
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
 
-            SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", namesList[0]);
             return;
         }
         var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
@@ -406,7 +421,8 @@ namespace Dimmer.WinUI.Views;
             return;
         }
 
-        SearchSongSB.Text = StaticMethods.SetQuotedSearch("artist", selectedArtist);
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
         return;
     }
@@ -795,11 +811,6 @@ namespace Dimmer.WinUI.Views;
 
     }
 
-    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
-    {
-
-    }
-
     private  void TopExpander_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
 
@@ -973,5 +984,154 @@ await this.FadeIn(500, 1.0);
     private void ViewGenreMFI_Clicked(object sender, EventArgs e)
     {
 
+    }
+
+    private void SearchSongSB_Clicked(object sender, EventArgs e)
+    {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+
+        // move and resize to the center of the screen
+
+        var pres = win?.AppWindow.Presenter;
+        //window.SetTitleBar()
+        if (pres is OverlappedPresenter p)
+        {
+            p.IsResizable = true;
+            p.SetBorderAndTitleBar(true,true); // Remove title bar and border
+            p.IsAlwaysOnTop = false;
+        }
+
+
+        Debug.WriteLine(win?.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+
+    }
+
+    private void SongsColView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ColvViewGest_PointerEntered(object sender, PointerEventArgs e)
+    {
+        if (MyViewModel.PlaybackQueue.Count<1)
+        {
+            //MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentTqlQuery);
+        }
+    }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void PlayNext_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddQueue_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ViewArtist_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void PointerGestureRecognizer_PointerPressed_1(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void GlobalColView_PointerPressed(object sender, PointerEventArgs e)
+    {
+        
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+
+        if (properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        {
+            ScrollToSong_Clicked(sender, e);
+            return;
+
+
+        }
+
+
+    }
+}
+
+public class SongViewTemplateSelector : DataTemplateSelector
+{
+    public DataTemplate? ListTemplate { get; set; }
+    public DataTemplate? GridTemplate { get; set; }
+
+    protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
+    {
+        // 'container' in MAUI is typically the ContentPresenter or ViewCell for the item.
+        // We need to walk up the tree from this container to find the CollectionView.
+        var collectionView = FindParent<CollectionView>(container);
+
+        if (collectionView == null)
+        {
+            // If we can't find the CollectionView, we can't determine the mode.
+            // Fall back to a default template.
+            return GridTemplate!;
+        }
+
+        // Once we have the CollectionView, we can get its BindingContext, which is our ViewModel.
+        if (collectionView.BindingContext is BaseViewModelWin viewModel)
+        {
+            // THE MAGIC: Check the CurrentViewMode property on the ViewModel
+            // and return the appropriate template.
+            return viewModel.CurrentViewMode == CollectionViewMode.Grid
+                ? GridTemplate!
+                : ListTemplate!;
+        }
+
+        // If the BindingContext isn't the expected ViewModel, fall back to the default.
+        return GridTemplate!;
+    }
+
+    /// <summary>
+    /// A helper method to traverse the MAUI logical tree upwards to find a parent of a specific type.
+    /// This is the MAUI equivalent of traversing the visual tree.
+    /// </summary>
+    private T? FindParent<T>(BindableObject bindable) where T : BindableObject
+    {
+        Element? parent = bindable as Element;
+
+        while (parent != null)
+        {
+            // Check if the current parent is the type we're looking for.
+            if (parent is T correctlyTyped)
+            {
+                return correctlyTyped;
+            }
+
+            // Move up to the next parent in the logical tree.
+            parent = parent.Parent;
+        }
+
+        // If we reach the top without finding the parent, return null.
+        return null;
     }
 }

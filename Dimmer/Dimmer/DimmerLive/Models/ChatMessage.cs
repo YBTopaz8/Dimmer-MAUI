@@ -69,7 +69,7 @@ public partial class ChatMessage : ParseObject
         set => SetProperty(value);
     }
 
-    [ParseFieldName("sharedSong")]
+    [ParseFieldName("SharedSong")]
     public DimmerSharedSong SharedSong // Pointer to a shared song
     {
         get => GetProperty<DimmerSharedSong>();

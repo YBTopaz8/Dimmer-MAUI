@@ -13,7 +13,11 @@ public partial class ChatConversation : ParseObject
     // Use Relation for participants for better querying
 
     [ParseFieldName("participants")]
-    public ParseRelation<UserModelOnline> Participants => GetRelation<UserModelOnline>(nameof(Participants));
+    public IList<UserModelOnline> participants
+    {
+        get => Get<IList<UserModelOnline>>(nameof(participants));
+        set => Set(nameof(participants), value);
+    }
 
     [ParseFieldName("lastMessage")]
     public ChatMessage LastMessage

@@ -27,6 +27,9 @@ public partial class SongModelView : ObservableObject
     public partial string AlbumName { get; set; } 
 
     [ObservableProperty]
+    public partial bool HasLyricsColumnIsFiltered { get; set; } 
+
+    [ObservableProperty]
     public partial AlbumModelView Album { get; set; } = new();
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView?> ArtistToSong { get; set; }
@@ -61,7 +64,7 @@ public partial class SongModelView : ObservableObject
     public partial byte[]? CoverImageBytes { get; set; }
 
     [ObservableProperty]
-    public partial bool? IsInstrumental { get; set; }
+    public partial bool IsInstrumental { get; set; }
     [ObservableProperty]
     public partial string CoverImagePath { get; set; }
     [ObservableProperty]
