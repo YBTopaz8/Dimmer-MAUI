@@ -33,7 +33,10 @@
     </Shell.Resources>
     <Shell.FlyoutContent>
 
-        <syncf:SfTabView EnableSwiping="True" TabBarHeight="0" TabBarPlacement="Bottom">
+        <syncf:SfTabView x:Name="ShellTabView"
+                         SelectionChanging="ShellTabView_SelectionChanging"
+                         SelectedIndex="{Binding ShellTabIndex}"
+                         EnableSwiping="True" TabBarHeight="0" TabBarPlacement="Top">
             <syncf:SfTabItem x:FieldModifier="Public" x:Name="MediaControlsView">
                 <syncf:SfTabItem.Content>
 
@@ -372,7 +375,65 @@ Value="{Binding CurrentTrackPositionSeconds}" />
                     </VerticalStackLayout>
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
-            
+
+            <syncf:SfTabItem Header="AudioSection" >
+                <syncf:SfTabItem.Content>
+                    <Grid RowDefinitions="auto,*" RowSpacing="20">
+                        <VerticalStackLayout Grid.Row="0">
+                            <Label Text="{Binding AudioDevices.Count , StringFormat='{0} Output Devices'}"
+                                   HorizontalTextAlignment="Center" FontSize="20"/>
+                        </VerticalStackLayout>
+
+                        <CollectionView ItemsSource="{Binding AudioDevices}" Grid.Row="1"
+                                        SelectedItem="{Binding SelectedAudioDevice}"
+                                        >
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate  x:DataType="models:AudioOutputDevice">
+                                    <Border>
+
+                                        <Border.Triggers>
+                                            <DataTrigger Binding="{Binding IsDefaultDevice}"
+                                                         Value="True" TargetType="Border">
+                                                <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                                <Setter Property="StrokeThickness" Value="2"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsDefaultDevice}"
+                                                         Value="False" TargetType="Border">
+                                                <Setter Property="Stroke" Value="White"/>
+                                                <Setter Property="StrokeThickness" Value="0"/>
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                   
+                                    
+                                    <VerticalStackLayout Spacing="10" Margin="10">
+                                            <Label Text="Active Device" 
+HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
+                                               IsVisible="{Binding IsDefaultDevice}
+                                          "/>
+
+                                            <Label Text="{Binding Name}"/>
+                                        <Label Text="{Binding ProductName}"/>
+                                        <Label Text="{Binding IconString}"/>
+                                        <Label Text="{Binding Volume, Converter={converters:PercentageInverterConverter}}"/>
+                                            
+
+
+
+                                            <Button Grid.Column="1" Text="Select Device" 
+                                                Clicked="SetPrefdevice_Clicked"
+                                                IsVisible="{Binding IsDefaultDevice, Converter={converters:BoolToInverseConverter}}"
+                                             CommandParameter="{Binding .}"   Command="{Binding SetPreferredAudioDeviceViewCommand,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelWin}}}"  />
+                                    </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                        
+                    </Grid>                        
+
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
+
           </syncf:SfTabView>
        
     </Shell.FlyoutContent>
@@ -388,6 +449,9 @@ Value="{Binding CurrentTrackPositionSeconds}" />
                    />
             </Grid.GestureRecognizers>
             <VerticalStackLayout Grid.Row="0" Spacing="10" Margin="5">
+                <ImageButton Source="headphonesround.png" 
+                             x:Name="ViewDeviceAudio"
+                             Clicked="ViewDeviceAudio_Clicked"/>
                 <Button Command="{Binding ToggleAppThemeCommand}"
                                     Grid.Row="0"
                                     FontAttributes="Bold"

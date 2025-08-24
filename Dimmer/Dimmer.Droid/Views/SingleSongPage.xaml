@@ -576,6 +576,7 @@ ToolTipProperties.Text="Save To Playlist">
                 <dx:DXCollectionView x:Name="SongsColView" Margin="5"
                                      ItemSpanCount="3" ItemSpanSpacing="5"
                                  Grid.Row="1"   ItemTemplate="{StaticResource GridOfFour}"
+                                     
                                     ItemsSource="{Binding BaseVM.SearchResults}">
 
                 </dx:DXCollectionView>
@@ -833,13 +834,13 @@ WidthRequest="500"
                         <VerticalStackLayout Grid.Row="0" IsVisible="True" Padding="15">
                             <Label Text="Find Lyrics Online" Style="{StaticResource SectionHeader}"/>
                             <VerticalStackLayout HorizontalOptions="Start" WidthRequest="300" Spacing="10">
-                                <Entry Placeholder="Song Title" Text="{Binding LyricsTrackNameSearch}" HorizontalOptions="Fill"/>
-                                <Entry Placeholder="Artist Name" Text="{Binding LyricsArtistNameSearch}" HorizontalOptions="Fill"/>
-                                <Entry Placeholder="Album Name" Text="{Binding LyricsAlbumNameSearch}" HorizontalOptions="Fill"/>
+                                        <Entry Placeholder="Song Title" Text="{Binding BaseVM.LyricsTrackNameSearch}" HorizontalOptions="Fill"/>
+                                        <Entry Placeholder="Artist Name" Text="{Binding BaseVM.LyricsArtistNameSearch}" HorizontalOptions="Fill"/>
+                                        <Entry Placeholder="Album Name" Text="{Binding BaseVM.LyricsAlbumNameSearch}" HorizontalOptions="Fill"/>
                                 <Button Text="Search" Command="{Binding BaseVM.SearchLyricsCommand}"/>
                             </VerticalStackLayout>
-                            <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"/>
-                            <CollectionView ItemsSource="{Binding LyricsSearchResults}" EmptyView="No results found.">
+                            <ActivityIndicator IsRunning="{Binding BaseVM.IsLyricsSearchBusy}"/>
+                                    <CollectionView ItemsSource="{Binding BaseVM.LyricsSearchResults}" EmptyView="No results found.">
                                 <CollectionView.ItemsLayout>
                                     <GridItemsLayout Span="3"
                     Orientation="Vertical"                HorizontalItemSpacing="10"
@@ -865,7 +866,65 @@ WidthRequest="500"
 
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="SyncLyr">
+                            <syncf:SfTabItem.Content>
+                                <Border IsVisible="{Binding IsLyricEditorActive}"
+        BackgroundColor="#E01e1e1e"
+        StrokeThickness="0"
+        Padding="20"
+        VerticalOptions="Fill">
 
+                                    <Grid RowDefinitions="Auto,*,Auto">
+                                        <!-- Header -->
+                                        <Label Grid.Row="0" Text="Lyrics Timestamper" FontSize="22" FontAttributes="Bold" Margin="0,0,0,20"/>
+
+                                        <!-- Lyrics Lines -->
+                                        <CollectionView Grid.Row="1" ItemsSource="{Binding BaseVM.LyricsInEditor}">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                                    <Grid Padding="10,5" ColumnDefinitions="Auto, *">
+                                                        <Grid.Triggers>
+                                                            <DataTrigger TargetType="Grid" Binding="{Binding IsCurrentLine}" Value="True">
+                                                                <Setter Property="BackgroundColor" Value="{StaticResource PrimaryAccentColor}"/>
+                                                            </DataTrigger>
+                                                        </Grid.Triggers>
+
+                                                        <Label Grid.Column="0" Text="{Binding Timestamp}" 
+                               FontFamily="monospace" 
+                               TextColor="{StaticResource SuccessColor}"
+                               VerticalOptions="Center"/>
+
+                                                        <Label Grid.Column="1" Text="{Binding Text}" 
+                               FontSize="16" 
+                               Margin="15,0,0,0"
+                               VerticalOptions="Center">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding IsTimed}" Value="False">
+                                                                    <Setter Property="TextColor" Value="{StaticResource SubtleTextColor}"/>
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                        <!-- Main Action Buttons -->
+                                        <VerticalStackLayout Grid.Row="2" Spacing="10" Margin="0,20,0,0">
+                                            <Button Text="Timestamp Current Line" 
+                    FontSize="18" 
+                    HeightRequest="50"
+                    Command="{Binding BaseVM.TimestampCurrentLyricLineCommand}" 
+                    Style="{StaticResource PrimaryButton}"/>
+                                            <Grid ColumnDefinitions="*,*">
+                                                <Button Grid.Column="0" Text="Cancel" Command="{Binding BaseVM.CancelLyricsEditingSessionCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,5,0"/>
+                                                <Button Grid.Column="1" Text="Save Lyrics" Command="{Binding BaseVM.SaveTimestampedLyricsCommand}" Style="{StaticResource PrimaryButton}" Margin="5,0,0,0"/>
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
                 <!-- Tab 3: Cover Image Management -->
                 <syncf:SfTabItem Header="Cover Image">
                     <syncf:SfTabItem.Content>
@@ -940,7 +999,52 @@ WidthRequest="500"
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
 
+                        <syncf:SfTabItem>
+                            <syncf:SfTabItem.Content>
+                                <Border>
+                                    <VerticalStackLayout Spacing="10">
+                                        <Label Text="Find Lyrics Online" FontSize="18" FontAttributes="Bold"/>
 
+                                        <!-- Search Inputs -->
+                                        <Entry Placeholder="Artist Name" Text="{Binding BaseVM.LyricsArtistNameSearch}"/>
+                                        <Entry Placeholder="Track Name" Text="{Binding BaseVM.LyricsTrackNameSearch}"/>
+                                        <Entry Placeholder="Album Name (Optional)" Text="{Binding BaseVM.LyricsAlbumNameSearch}"/>
+
+                                        <!-- Search Action -->
+                                        <Grid>
+                                            <Button Text="Search" Command="{Binding BaseVM.SearchLyricsCommand}" Style="{StaticResource PrimaryButton}" IsVisible="{Binding BaseVM.IsLyricsSearchBusy, Converter={StaticResource BoolToInverse}}"/>
+                                            <ActivityIndicator IsRunning="{Binding BaseVM.IsLyricsSearchBusy}" IsVisible="{Binding BaseVM.IsLyricsSearchBusy}" Color="{StaticResource PrimaryAccentColor}" HorizontalOptions="Center"/>
+                                        </Grid>
+
+                                        <!-- Search Results -->
+                                        <CollectionView ItemsSource="{Binding BaseVM.LyricsSearchResults}" IsVisible="{Binding BaseVM.HasLyricsSearchResults}" HeightRequest="250" Margin="0,10,0,0">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricsDownloadContent">
+                                                    <Border Padding="10" Margin="0,5">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer x:Name="SearchLyrics" Tapped="SearchLyrics_Tapped"
+                                                  CommandParameter="{Binding .}"/>
+                                                        </Border.GestureRecognizers>
+                                                        <VerticalStackLayout>
+                                                            <Label Text="{Binding TrackName}" FontAttributes="Bold"/>
+                                                            <Label Text="{Binding ArtistName}" TextColor="{StaticResource SubtleTextColor}"/>
+                                                            <Label Text="{Binding AlbumName}" FontSize="12" TextColor="{StaticResource SubtleTextColor}"/>
+                                                        </VerticalStackLayout>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                        <!-- Unlink Action -->
+                                        <Button Text="Unlink Current Lyrics" 
+                 Command="{Binding UnlinkLyricsCommand}" 
+                 Style="{StaticResource SecondaryButton}" 
+                 TextColor="White"
+                 HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
             </syncf:SfTabView>
         </Grid>
     </Grid>

@@ -20,6 +20,7 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     public IAuthenticationService AuthenticationService => _authService;
     public readonly IChatService _chatService;
     private readonly IFriendshipService _friendshipService;
+    private readonly LoginViewModel loginViewModel;
     private readonly IAuthenticationService _authService;
     private readonly BaseViewModel _mainViewModel;
     private readonly CompositeDisposable _disposables = new();
@@ -49,11 +50,17 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     [ObservableProperty]
     public partial bool IsBusy {get;set;}
 
-    public ChatViewModel(IChatService chatService, IFriendshipService friendshipService, IAuthenticationService authService
+    public ChatViewModel(IChatService chatService, IFriendshipService 
+        
+        friendshipService,
+
+        LoginViewModel loginViewModel,
+        IAuthenticationService authService
         , BaseViewModel mainViewModel)
     {
         _chatService = chatService;
         _friendshipService = friendshipService;
+        this.loginViewModel=loginViewModel;
         this._authService=authService;
         this._mainViewModel=mainViewModel;
 
@@ -134,7 +141,14 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     [RelayCommand]
     private async Task SendMessage(SongModelView song)
     {
-        await _chatService.SendTextMessageAsync( NewMessageText,_authService.CurrentUserValue.ObjectId,song);
+        //if (_authService.CurrentUserValue is null)
+        //{
+
+        //    var res = await Shell.Current.DisplayAlert("Not Logged In", "Please log in to send messages.", "Log In", "Cancel");
+           
+
+        //}
+        await _chatService.SendTextMessageAsync( NewMessageText,_authService.CurrentUserValue?.ObjectId,song);
         NewMessageText = string.Empty; // Clear the input box
     }
 

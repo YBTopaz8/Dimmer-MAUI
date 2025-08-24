@@ -13,13 +13,14 @@ public static class NaturalLanguageProcessor
     // Define rules from more specific to more general
     private static readonly (Regex Pattern, string Replacement)[] _rules =
     {
+
     // "songs by <artist>" or "music from <artist>" - Handles quotes and complex names
     (new Regex($@"songs by {Value}|music from {Value}|artist is {Value}", RegexOptions.IgnoreCase), @"artist:$1"),
 
     // "album is <album name>"
     (new Regex($@"album is {Value}", RegexOptions.IgnoreCase), @"album:$1"),
     (new Regex($@"in album {Value}", RegexOptions.IgnoreCase), @"album:$1"),
-
+            (new Regex(@"(added|played) tonight", RegexOptions.IgnoreCase), "$1:evening"),
     // Date-based queries
     (new Regex(@"added (today|yesterday|this week|last week)", RegexOptions.IgnoreCase), @"added:$1"),
     (new Regex(@"played (today|yesterday|this week|last week)", RegexOptions.IgnoreCase), @"played:$1"),
@@ -42,61 +43,25 @@ public static class NaturalLanguageProcessor
     (new Regex($@"{Value} music", RegexOptions.IgnoreCase), "genre:$1"),
 
     // Simple commands
-    (new Regex(@"show me everything|all songs", RegexOptions.IgnoreCase), "any:"),
-    (new Regex(@"in the (last|past) (\d+) (day)s?", RegexOptions.IgnoreCase), "added:>{now.AddDays(-$2)}"),
-(new Regex(@"in the (last|past) (\d+) (week)s?", RegexOptions.IgnoreCase), "added:>{now.AddDays(-$2 * 7)}"),
-(new Regex(@"in the (last|past) (\d+) (month)s?", RegexOptions.IgnoreCase), "added:>{now.AddMonths(-$2)}"),
-(new Regex(@"in the (last|past) (\d+) (year)s?", RegexOptions.IgnoreCase), "added:>{now.AddYears(-$2)}"),
-};
+   (new Regex(@"in the (last|past) (\d+)\s*(day)s?", RegexOptions.IgnoreCase), "added:ago(\"$2d\")"),
+        (new Regex(@"in the (last|past) (\d+)\s*(week)s?", RegexOptions.IgnoreCase), "added:ago(\"$2w\")"),
+        (new Regex(@"in the (last|past) (\d+)\s*(month)s?", RegexOptions.IgnoreCase), "added:ago(\"$2m\")"),
+        (new Regex(@"in the (last|past) (\d+)\s*(year)s?", RegexOptions.IgnoreCase), "added:ago(\"$2y\")"),
+    };
 
     public static string Process(string naturalQuery)
     {
-        // Pre-process to handle possessives like "the beatles' music" -> "music by the beatles"
         var processedQuery = Regex.Replace(naturalQuery, @"(\w+)'s music", "music by $1", RegexOptions.IgnoreCase);
 
         foreach (var (pattern, replacement) in _rules)
         {
-            // Use a loop to allow multiple matches for the same rule
             while (pattern.IsMatch(processedQuery))
             {
                 processedQuery = pattern.Replace(processedQuery, replacement, 1);
             }
         }
-        processedQuery = EvaluateDynamicDates(processedQuery);
+
         return processedQuery.Trim();
     }
 
-    private static string EvaluateDynamicDates(string query)
-    {
-        
-        string processedQuery = query;
-
-        
-        
-        processedQuery = Regex.Replace(processedQuery, @">\{now\.AddDays\(([-]?\d+)\)\}", m =>
-        {
-            int days = int.Parse(m.Groups[1].Value);
-            var date = DateTime.UtcNow.AddDays(days);
-            return $">{date:yyyy-MM-dd}"; 
-        });
-
-        
-        processedQuery = Regex.Replace(processedQuery, @">\{now\.AddMonths\(([-]?\d+)\)\}", m =>
-        {
-            int months = int.Parse(m.Groups[1].Value);
-            var date = DateTime.UtcNow.AddMonths(months);
-            return $">{date:yyyy-MM-dd}";
-        });
-
-        
-        processedQuery = Regex.Replace(processedQuery, @">\{now\.AddYears\(([-]?\d+)\)\}", m =>
-        {
-            int years = int.Parse(m.Groups[1].Value);
-            var date = DateTime.UtcNow.AddYears(years);
-            return $">{date:yyyy-MM-dd}";
-        });
-
-        
-        return processedQuery;
-    }
 }

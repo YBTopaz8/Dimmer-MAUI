@@ -69,12 +69,15 @@
             <Style x:Key="LittleBtn" TargetType="dx:DXButton">
                 <Setter Property="IconHeight" Value="19" />
             </Style>
-
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
             <converters:BoolToInverseConverter x:Key="BoolToInverse" />
-
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+            <converters:VolumeConverter x:Key="VolConverter" />
 
         </ResourceDictionary>
 

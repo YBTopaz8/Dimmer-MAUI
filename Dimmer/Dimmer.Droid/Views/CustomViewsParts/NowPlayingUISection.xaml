@@ -359,15 +359,15 @@ FontAttributes="Bold"
                             <dx:DXButton
                                                 Grid.Column="0"
                                                 AnimationDuration="1500"
-                                BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
                                                 Command="{Binding BaseVM.PlayPauseToggleCommand}"
                                                 HeightRequest="120"
                                                 Icon="play.png"
                                                 IconColor="{AppThemeBinding Dark=White,Light=Black}"
                                                 IconHeight="60"
                                                 IconWidth="60"
+                                BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
                                                 Opacity="0.8"
-                                                PressedBackgroundColor="Purple">
+                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}">
                                 <dx:DXButton.Triggers>
 
                                     <DataTrigger

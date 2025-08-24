@@ -5,6 +5,8 @@ using Dimmer.Utilities.Events;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+
+
 namespace Dimmer.DimmerAudio;
 
 public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable

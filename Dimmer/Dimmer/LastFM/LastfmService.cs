@@ -123,10 +123,10 @@ public class LastfmService : ILastfmService
                     return;
                 _songToScrobble = currentSong;
                
-                if (_songToScrobble != null)
-                {
-                    await ((ILastfmService)this).ScrobbleAsync(_songToScrobble);
-                }
+                //if (_songToScrobble != null)
+                //{
+                //    await ((ILastfmService)this).ScrobbleAsync(_songToScrobble);
+                //}
 
                 await ((ILastfmService)this).UpdateNowPlayingAsync(currentSong);
                 //await ((ILastfmService)this).EnrichSongMetadataAsync(currentSong.Id);

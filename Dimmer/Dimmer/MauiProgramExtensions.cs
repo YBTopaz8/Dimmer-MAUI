@@ -15,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
 
+using Parse.LiveQuery;
+
 using SkiaSharp.Views.Maui.Controls.Hosting;
 
 using System.Reflection;
@@ -119,6 +121,7 @@ public static class MauiProgramExtensions
 
 
 
+        builder.Services.AddSingleton<ParseLiveQueryClient>();
 
         var assembly = Assembly.GetExecutingAssembly();
 

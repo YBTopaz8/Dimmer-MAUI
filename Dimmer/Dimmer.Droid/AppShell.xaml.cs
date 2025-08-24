@@ -1,5 +1,6 @@
 using AndroidX.Lifecycle;
 
+using Dimmer.DimmerSearch;
 using Dimmer.ViewModel;
 using Dimmer.Views.Stats;
 
@@ -24,6 +25,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
         Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
+        Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
     }
 
     protected async override void OnAppearing()
@@ -164,5 +166,96 @@ public partial class AppShell : Shell
     {
 
         await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
+    }
+
+    private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)
+    {
+        var currentState = this.FlyoutIsPresented;
+        if (currentState)
+        {
+            this.FlyoutIsPresented = false;
+            this.FlyoutBehavior = FlyoutBehavior.Flyout;
+            //this.FlyoutWidth = 0; // Optionally set width to 0 to hide the flyout completely
+        }
+        else
+        {
+            this.FlyoutIsPresented = true;
+            this.FlyoutBehavior = FlyoutBehavior.Flyout;
+        }
+    }
+
+    private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
+    {
+
+        await MyViewModel.ProcessAndMoveToViewSong(MyViewModel.BaseVM.CurrentPlayingSongView);
+    }
+
+    private async void DXButton_Clicked(object sender, EventArgs e)
+    {
+
+        await Shell.Current.GoToAsync(nameof(ChatView), true);
+        this.FlyoutIsPresented = false;
+    }
+
+    private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var ee = e.PlatformArgs.MotionEvent.TouchMajor;
+        var eew = e.PlatformArgs.MotionEvent.IsButtonPressed(MotionEventButtonState.Tertiary);
+        var tt = e.PlatformArgs.MotionEvent.ActionMasked;
+        var wtt = e.PlatformArgs.MotionEvent.ActionButton;
+        var swtt = e.PlatformArgs.MotionEvent.Action;
+        var cwtt = e.PlatformArgs.MotionEvent.Source;
+
+
+
+        var send = (Microsoft.Maui.Controls.View)sender;
+        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        if (gest is null)
+        {
+            return;
+        }
+        var field = gest.PointerReleasedCommandParameter as string;
+        var val = gest.PointerPressedCommandParameter as string;
+        if (field is "artist")
+        {
+            char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+            var namesList = val
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+                .Select(name => name.Trim())                           // Trim whitespace from each name
+                .ToArray();                                             // Convert to a List
+
+
+            var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+            {
+                return;
+            }
+            MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+
+
+
+            return;
+        }
+
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+    }
+
+    private bool _isThrottling = false;
+    private readonly int throttleDelay = 300; // Time in milliseconds
+    private async void Slider_DragCompleted(object sender, EventArgs e)
+    {
+        var send = (Slider)sender;
+        if (_isThrottling)
+            return;
+
+        _isThrottling = true;
+
+        MyViewModel.BaseVM.SeekTrackPosition(send.Value);
+
+
+        await Task.Delay(throttleDelay);
+        _isThrottling = false;
     }
 }

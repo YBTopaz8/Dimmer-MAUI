@@ -24,18 +24,6 @@ public partial class ChatView : ContentPage
     {
         base.OnAppearing();
 
-        var getCOntextFromShell = Shell.Current.BindingContext as BaseViewModel;
-        if (getCOntextFromShell is not null)
-        {
-            //BaseVM = getCOntextFromShell;
-        }
-        else
-        {
-            // try from flyout in shell
-            var shell = Shell.Current.BindingContext as BaseViewModel;
-            
-        //BaseVM = shell ?? BaseVM;
-        }
 
             await ChatViewModelWin.AuthenticationService.InitializeAsync();
     }

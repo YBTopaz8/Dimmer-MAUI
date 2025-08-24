@@ -55,9 +55,10 @@ public static class RqlGenerator
         // RQL operators are case-sensitive, so we use mapping. [c] denotes case-insensitivity.
         return fieldDef.Type switch
         {
-            // --- HANDLE SPECIFIC TYPES FIRST ---
+                // --- ADD THIS NEW CASE BLOCK ---
+                FieldType.Date => BuildDateClause(fieldDef, op, value.ToString()),
 
-            FieldType.Boolean => $"{fieldDef.PropertyName} == {FormatValue(value, FieldType.Boolean)}",
+                FieldType.Boolean => $"{fieldDef.PropertyName} == {FormatValue(value, FieldType.Boolean)}",
 
             FieldType.Duration or FieldType.Numeric => op switch
             {
@@ -127,6 +128,58 @@ public static class RqlGenerator
         };
     }
 
+    private static (DateTimeOffset start, DateTimeOffset end) ParseDateKeyword(string? text)
+    {
+        var now = DateTimeOffset.UtcNow.Date;
+        switch (text?.ToLowerInvariant())
+        {
+            case "today":
+                return (now, now.AddDays(1).AddTicks(-1));
+            case "yesterday":
+                var yesterday = now.AddDays(-1);
+                return (yesterday, yesterday.AddDays(1).AddTicks(-1));
+                case "thisweek":
+                    var startOfWeek = now.AddDays(-(int)now.DayOfWeek);
+                    return (startOfWeek, startOfWeek.AddDays(7).AddTicks(-1));
+                case "lastweek":
+                    var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek - 7);
+                    return (startOfLastWeek, startOfLastWeek.AddDays(7).AddTicks(-1));
+                case "thismonth":
+                    var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
+                    return (startOfMonth, startOfMonth.AddMonths(1).AddTicks(-1));
+                case "lastmonth":
+                    var startOfLastMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero).AddMonths(-1);
+                    return (startOfLastMonth, startOfLastMonth.AddMonths(1).AddTicks(-1));
+                case "thisyear":
+                    var startOfYear = new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                    return (startOfYear, startOfYear.AddYears(1).AddTicks(-1));
+                case "lastyear":
+                    var startOfLastYear = new DateTimeOffset(now.Year - 1, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                    return (startOfLastYear, startOfLastYear.AddYears(1).AddTicks(-1));
+                //case "morning":
+                //    return (now.AddHours(5), now.AddHours(12).AddTicks(-1));
+                //case "afternoon":
+
+            // Add other keywords like "thisweek", "lastmonth", etc.
+            default:
+                return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
+        }
+    }
+    private static string BuildDateClause(FieldDefinition fieldDef, string op, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "TRUEPREDICATE";
+
+        var (start, end) = ParseDateKeyword(value);
+
+        // If the keyword is invalid, default to a non-matching query.
+        if (start == DateTimeOffset.MinValue && end == DateTimeOffset.MaxValue)
+        {
+            return "FALSEPREDICATE";
+        }
+
+        return $"({fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)})";
+    }
     private static double ParseDuration(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))

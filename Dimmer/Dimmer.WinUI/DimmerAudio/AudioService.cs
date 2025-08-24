@@ -3,7 +3,8 @@
 using Dimmer.Interfaces.Services.Interfaces;
 
 using NAudio.CoreAudioApi;
-
+using AudioSwitcher.AudioApi.CoreAudio;
+using Vanara.PInvoke;
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -29,9 +30,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
     private bool _isDisposed;
     private string? _currentAudioDeviceId;
+    private readonly CoreAudioController _audioController;
 
     public AudioService()
     {
+        _audioController = new CoreAudioController();
+
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread()
             ?? throw new InvalidOperationException("AudioService must be initialized on a thread with a DispatcherQueue (typically the UI thread).");
 
@@ -306,7 +310,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
 
 
-            _mediaPlayer.Pause();
             _mediaPlayer.Source = null;
             Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer paused and source nulled.");
 
@@ -1037,34 +1040,80 @@ success = true;
     readonly MMDeviceEnumerator _enum = new MMDeviceEnumerator();
     private readonly object _lockObject = new object();
 
+    [System.Runtime.InteropServices.ComImport]
+    [System.Runtime.InteropServices.Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")]
+    private class PolicyConfigClient { }
+
     public bool SetPreferredOutputDevice(AudioOutputDevice dev)
     {
+        if (dev?.Id == null)
+            return false;
+
         try
         {
-            var pc = new PolicyConfigClient() as IPolicyConfig;
-            pc!.SetDefaultEndpoint(dev.Id, Role.eMultimedia);
-            return true;
+            if (dev?.Id == null)
+                return false;
+
+            try
+            {
+                // The library works with its own device objects. Get it by its ID.
+                // The ID from NAudio is compatible.
+                var deviceToSet = _audioController.GetDevice(new Guid(dev.Id));
+
+                if (deviceToSet == null)
+                {
+                    Debug.WriteLine($"Device with ID {dev.Id} not found by AudioSwitcher.");
+                    return false;
+                }
+
+                // This one line does it all. It's clean, safe, and readable.
+                deviceToSet.SetAsDefault();
+                // You can also set the communications default separately if needed
+                deviceToSet.SetAsDefaultCommunications();
+
+                Debug.WriteLine($"Successfully set default audio output device to: {dev.Name}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error setting default audio device: {ex.Message}");
+                return false;
+            }
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Error in SetPreferredOutputDevice: {ex.Message}");
             return false;
         }
     }
 
-
-    public List<AudioOutputDevice>? GetAllAudioDevices()
+    /// <summary>
+    /// Gets a list of all active audio output devices using AudioSwitcher for consistency.
+    /// </summary>
+    public List<AudioOutputDevice> GetAllAudioDevices()
     {
-        var list = new List<AudioOutputDevice>();
-        foreach (var d in _enum.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+        // Get all active playback devices from the controller.
+        //var devices = _audioController.GetPla ybackDevices(AudioSwitcher.AudioApi.DeviceState.Active);
+        IEnumerable<CoreAudioDevice>? devices = _audioController.GetDevices(AudioSwitcher.AudioApi.DeviceState.Active)
+            .Where(x=>x.DeviceType == AudioSwitcher.AudioApi.DeviceType.Playback);
+
+        // Map them to your own simple model.
+        return devices.Select(d => new AudioOutputDevice
         {
-            //d.
-            list.Add(new AudioOutputDevice
-            {
-                Id   = d.ID,
-                Name = d.FriendlyName
-            });
-        }
-        return [.. list.DistinctBy(x => x.Name)];
+            // Note: The library provides the ID as a Guid. Convert to string.
+            Id = d.Id.ToString(),
+            Name = d.FullName,
+            Type = d.DeviceType.ToString(),
+            ProductName = d.InterfaceName,
+            IsPlaybackDevice=d.IsPlaybackDevice,
+            IconString=d.Icon.ToString(),
+            State=d.State.ToString(),
+            Volume= d.Volume,
+            IsMuted=d.IsMuted,
+            IsDefaultCommunicationsDevice=d.IsDefaultCommunicationsDevice,
+            IsDefaultDevice=d.IsDefaultDevice,
+
+        }).ToList();
     }
 
     public void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels)
@@ -1080,26 +1129,5 @@ success = true;
         }
     }
 
-
-
-
-    [ComImport, Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")]
-    class PolicyConfigClient { }
-
-    enum Role : int
-    {
-        eConsole = 0,
-        eMultimedia = 1,
-        eCommunications = 2
-    }
-
-    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("F8679F50-850A-41CF-9C72-430F290290C8")]
-    interface IPolicyConfig
-    {
-
-        void SetDefaultEndpoint(
-            [MarshalAs(UnmanagedType.LPWStr)] string wszDeviceId,
-            Role eRole);
-    }
 }
+

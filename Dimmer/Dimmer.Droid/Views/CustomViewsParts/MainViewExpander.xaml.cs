@@ -64,4 +64,9 @@ public partial class MainViewExpander : DXExpander
     {
 
     }
+
+    private void SongsColView_FilteringUIFormShowing_1(object sender, FilteringUIFormShowingEventArgs e)
+    {
+
+    }
 }

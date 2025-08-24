@@ -457,4 +457,35 @@ public partial class AppShell : Shell
     {
 
     }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SetPrefdevice_Clicked(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        var dev = send.BindingContext as AudioOutputDevice;
+        
+        if (dev is null)
+            return;
+
+        MyViewModel.SetPreferredAudioDevice(dev);
+    }
+
+    private void ShellTabView_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.TabView.SelectionChangingEventArgs e)
+    {
+
+    }
+
+    private void ViewDeviceAudio_Clicked(object sender, EventArgs e)
+    {
+        if (ShellTabView.SelectedIndex == 1)
+        {
+            ShellTabView.SelectedIndex = 0;
+            return;
+        }
+        ShellTabView.SelectedIndex = 1;
+    }
 }

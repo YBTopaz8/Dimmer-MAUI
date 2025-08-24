@@ -218,12 +218,13 @@ Grid.Row="2" RowDefinitions="auto,auto,auto"
                       ColumnDefinitions="*,0.4*" ColumnSpacing="10"
                       >
                     <dx:DXButton Grid.Column="0" AnimationDuration="1500"
-                                 BackgroundColor="DarkSlateBlue"
+                                 BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
+                                 Background="{Binding BaseVM.CurrentPlaySongDominantColor}"
                                  Command="{Binding BaseVM.PlayPauseToggleCommand}"
                                  HeightRequest="120" Icon="play.png"
                                  IconColor="{AppThemeBinding Dark=White,Light=Black}" IconHeight="50"
                                  IconWidth="50" Opacity="0.7"
-                                 PressedBackgroundColor="Purple"
+                                 PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
                                  >
                         <dx:DXButton.Triggers>
 

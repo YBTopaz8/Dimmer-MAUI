@@ -1237,6 +1237,40 @@ _playbackQueueSource.Connect()
         }
     }
 
+    public void LoadAllAudioDevices()
+    {
+        var devices = audioService.GetAllAudioDevices();
+        AudioDevices = new ObservableCollection<AudioOutputDevice>(devices);
+        //SelectedAudioDevice = AudioDevices.FirstOrDefault(d => d.IsSource) ?? AudioDevices.FirstOrDefault();
+        //if (SelectedAudioDevice != null)
+        //{
+        //    audioService.SetPreferredOutputDevice(SelectedAudioDevice);
+        //}
+    }
+
+    [RelayCommand]
+    public void SetPreferredAudioDevice(AudioOutputDevice device)
+    {
+        if (device == null)
+            return;
+        audioService.SetPreferredOutputDevice(device);
+        SelectedAudioDevice = device;
+        LoadAllAudioDevices();
+    }
+   
+
+    [RelayCommand]
+    public void SetPreferredAudioDeviceView(View sender)
+    {
+        var send = (View)sender;
+        var dev = send.BindingContext as AudioOutputDevice;
+
+        if (dev == null)
+            return;
+        audioService.SetPreferredOutputDevice(dev);
+        SelectedAudioDevice = dev;
+    }
+
     [RelayCommand]
     private void LogoutFromLastfm()
     {
@@ -1613,6 +1647,27 @@ _playbackQueueSource.Connect()
 
     [ObservableProperty]
     public partial int SettingsPageIndex { get; set; } = 0;
+
+    [ObservableProperty]
+    public partial int ShellTabIndex { get; set; } = 0;
+
+    partial void OnShellTabIndexChanged(int oldValue, int newValue)
+    {
+        switch (newValue)
+        {
+            case 0:
+
+                break;
+
+            case 1:
+                LoadAllAudioDevices();
+
+                break;
+            default:
+                break;
+        }
+    }
+
 
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
@@ -2107,6 +2162,119 @@ _playbackQueueSource.Connect()
 
     #region Playback Commands (User Intent)
 
+    [RelayCommand]
+    public void AddToNext()
+    {
+        var currsongIndex = _playbackQueueSource.Items.IndexOf(CurrentPlayingSongView);
+        int insertPos = _playbackQueueIndex >= 0 ? _playbackQueueIndex + 1 : 0;
+        if (currsongIndex != -1 && insertPos > currsongIndex)
+        {
+            insertPos--; // Adjust position if inserting after the current song
+            //if list has only 1 song and we are adding next, we add to the end
+       
+
+        }
+
+        if (_playbackQueueSource.Items.Count == 1)
+        {
+            insertPos = _playbackQueueSource.Items.Count;
+        }
+
+        _playbackQueueSource.InsertRange(_searchResults, insertPos);
+        AddNextEvent?.Invoke(this, EventArgs.Empty);
+
+        
+
+    }
+
+    [RelayCommand]
+    public void RemoveFromQueue(SongModelView song)
+    {
+        if (song == null || !_playbackQueueSource.Items.Contains(song))
+            return;
+        int songIndex = _playbackQueueSource.Items.IndexOf(song);
+        _playbackQueueSource.RemoveAt(songIndex);
+        if (songIndex < _playbackQueueIndex)
+        {
+            _playbackQueueIndex--;
+        }
+        else if (songIndex == _playbackQueueIndex)
+        {
+            if (audioService.IsPlaying)
+            {
+                audioService.Stop();
+            }
+            if (_playbackQueueSource.Items.Count > 0)
+            {
+                if (_playbackQueueIndex >= _playbackQueueSource.Items.Count)
+                {
+                    _playbackQueueIndex = 0;
+                }
+                _ = PlaySongAtIndexAsync(_playbackQueueIndex);
+            }
+            else
+            {
+                _playbackQueueIndex = -1;
+                UpdateSongSpecificUi(null);
+            }
+        }
+        //RemoveFromQueueEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    public void ClearQueue()
+    {
+        if (audioService.IsPlaying)
+        {
+            audioService.Stop();
+        }
+        _playbackQueueSource.Clear();
+        _playbackQueueIndex = -1;
+        UpdateSongSpecificUi(null);
+        //ClearQueueEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    public void RemoveManyFromQueue(IEnumerable<SongModelView> songs)
+    {
+        if (songs == null || !songs.Any())
+            return;
+        var songsList = songs.ToList();
+        foreach (var song in songsList)
+        {
+            if (_playbackQueueSource.Items.Contains(song))
+            {
+                int songIndex = _playbackQueueSource.Items.IndexOf(song);
+                _playbackQueueSource.RemoveAt(songIndex);
+                if (songIndex < _playbackQueueIndex)
+                {
+                    _playbackQueueIndex--;
+                }
+                else if (songIndex == _playbackQueueIndex)
+                {
+                    if (audioService.IsPlaying)
+                    {
+                        audioService.Stop();
+                    }
+                    if (_playbackQueueSource.Items.Count > 0)
+                    {
+                        if (_playbackQueueIndex >= _playbackQueueSource.Items.Count)
+                        {
+                            _playbackQueueIndex = 0;
+                        }
+                        _ = PlaySongAtIndexAsync(_playbackQueueIndex);
+                    }
+                    else
+                    {
+                        _playbackQueueIndex = -1;
+                        UpdateSongSpecificUi(null);
+                    }
+                }
+            }
+        }
+    }
+
+
 
     public async Task PlaySong(SongModelView? songToPlay,CurrentPage curPage= CurrentPage.AllSongs)
     {
@@ -2154,7 +2322,8 @@ _playbackQueueSource.Connect()
                 }
                 else
                 {
-                    newQueue = _searchResults.Take(new Range(startIndex, next100)).ToList();
+                    newQueue = _searchResults.ToList();
+                    //newQueue = _searchResults.Take(new Range(startIndex, next100)).ToList();
 
                 }
 
@@ -2801,14 +2970,13 @@ _playbackQueueSource.Connect()
         switch (state)
         {
             case PlayType.Play:
-
-
-
                 OnPlaybackStarted(args);
+                LoadAllAudioDevices();
                 break;
 
             case PlayType.Resume:
                 OnPlaybackResumed(args);
+                LoadAllAudioDevices();
                 break;
 
             case PlayType.Pause:
@@ -2867,11 +3035,11 @@ _playbackQueueSource.Connect()
 
 
 
-    [RelayCommand]
-    public void SetPreferredAudioDevice(AudioOutputDevice dev)
-    {
-        audioService.SetPreferredOutputDevice(dev);
-    }
+    //[RelayCommand]
+    //public void SetPreferredAudioDevice(AudioOutputDevice dev)
+    //{
+    //    audioService.SetPreferredOutputDevice(dev);
+    //}
 
 
     private Random _random = new();
@@ -3378,7 +3546,23 @@ _playbackQueueSource.Connect()
                 PlaylistName = playlistName,
                 IsSmartPlaylist = false
             };
-            targetPlaylist = _playlistRepo.Create(newPlaylistModel);
+            var realm = RealmFactory.GetRealmInstance();
+            realm.Write(() =>
+            {
+                newPlaylistModel.Id = ObjectId.GenerateNewId();
+                newPlaylistModel.DateCreated = DateTimeOffset.UtcNow;
+                newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
+
+                newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
+                newPlaylistModel.QueryText =CurrentTqlQuery;
+                newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel(_mapper)).Distinct());
+
+                realm.Add(newPlaylistModel, true);
+            
+            
+            });
+
+            //targetPlaylist = _playlistRepo.Create(newPlaylistModel);
         }
 
 
@@ -4760,6 +4944,283 @@ _playbackQueueSource.Connect()
         _searchQuerySubject.OnNext(fullQuery);
     }
 
+    public async Task ApplyCurrentImageToMainArtist(SongModelView? selectedSong)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+            var album = songInDb.Album;
+            var songArtist = songInDb.Artist;
+            if (album is null || songArtist is null)
+            {
+                return;
+            }
+
+            songArtist.ImagePath= songInDb.CoverImagePath;
+
+            // save changes
+
+            realm.Add(songArtist, update: true);
+
+
+        });
+
+
+    }
+
+    [RelayCommand]
+    public async Task PickAndApplyImageToSong(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                //SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        var result = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select an image",
+            FileTypes = FilePickerFileType.Images,
+        });
+        if (result is null)
+        {
+            return;
+        }
+
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+
+            songInDb.CoverImagePath = result.FullPath;
+
+            // save changes
+
+            realm.Add(songInDb, update: true);
+
+
+        });
+
+
+    }
+
+    [RelayCommand]
+    public async Task ApplCurrentImageToSong(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                //SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+
+            songInDb.CoverImagePath = selectedSong.CoverImagePath;
+
+            // save changes
+
+            realm.Add(songInDb, update: true);
+
+
+        });
+
+
+    }
+
+    [RelayCommand]
+    public async Task ApplyCurrentImageToAllSongsInAlbum(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                //SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+            var album = songInDb.Album;
+            var songsInAlbum = songInDb.Album.SongsInAlbum;
+            if (album is null || songsInAlbum is null)
+            {
+                return;
+            }
+            foreach (var song in songsInAlbum)
+            {
+                song.CoverImageBytes = songInDb.CoverImageBytes;
+                song.CoverImagePath = songInDb.CoverImagePath;
+            }
+
+            // save changes
+
+            realm.Add(songInDb, update: true);
+
+
+        });
+
+    }
+
+    [RelayCommand]
+
+    public async Task ShareCurrentPlayingAsStoryInCardLikeGradient(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                //SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+
+        // first create the image with SkiaSharp
+        var imagePath = CoverArtService.CreateStoryImageAsync(SelectedSong, null);
+        if (string.IsNullOrEmpty(imagePath))
+        {
+            await Shell.Current.DisplayAlert("Error", "Failed to create story image.", "OK");
+            return;
+        }
+        // then share it
+        ShareFileRequest request = new ShareFileRequest
+        {
+            Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
+            File = new ShareFile(imagePath),
+        };
+        await Share.RequestAsync(request);
+
+
+
+
+    }
+
+
+    public async Task SaveCurrentCoverToDisc(SongModelView? selectedSong)
+    {
+        // save current cover to disc using file saver in pictures folder
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                ////SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        // Save the image to the Pictures folder with a unique name
+
+        var fileName = $"{SelectedSong.Title}_{SelectedSong.ArtistName}.jpg";
+        // Use FileSaver from CommunityToolkit.Maui.Storage
+
+
+        var bytess = File.ReadAllBytes(SelectedSong.CoverImagePath);
+        var stream = new MemoryStream(bytess);
+        var result = await FileSaver.Default.SaveAsync(fileName, SelectedSong.CoverImagePath, stream);
+
+        if (result.IsSuccessful)
+        {
+
+            ShareFileRequest request = new ShareFileRequest
+            {
+                Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
+                File = new ShareFile(result.FilePath),
+            };
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to save image: {result.Exception.Message}", "OK");
+        }
+
+    }
     [ObservableProperty]
     public partial CollectionViewMode CurrentViewMode { get; set; } = CollectionViewMode.Grid;
 

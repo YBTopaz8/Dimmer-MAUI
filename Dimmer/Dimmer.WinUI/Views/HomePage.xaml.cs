@@ -1077,6 +1077,21 @@ await this.FadeIn(500, 1.0);
 
 
     }
+
+    private void BlackListSong_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void CopySongs_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void DeleteSongs_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.DeleteSongs(MyViewModel.SearchResults);
+    }
 }
 
 public class SongViewTemplateSelector : DataTemplateSelector

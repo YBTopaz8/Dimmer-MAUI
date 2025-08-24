@@ -288,6 +288,27 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
     }
 
+    public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
+    {
+        if (selectedSec is null)
+        {
+            if (baseVM.SelectedSong is null)
+            {
+                baseVM.SelectedSong=baseVM.CurrentPlayingSongView;
+            }
+            else
+            {
+                baseVM.SelectedSong = SongsColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            baseVM.SelectedSong=selectedSec;
+        }
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+    }
+
+
     [ObservableProperty]
     public partial BottomSheet QuickPanelBtmSht { get; set; } 
 

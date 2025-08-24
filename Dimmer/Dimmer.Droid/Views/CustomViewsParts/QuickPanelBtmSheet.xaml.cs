@@ -1,5 +1,8 @@
 using DevExpress.Maui.Controls;
+using DevExpress.Maui.Editors;
 
+using Dimmer.Data.Models;
+using Dimmer.DimmerSearch.TQL;
 using Dimmer.Utilities;
 
 using System.ComponentModel;
@@ -15,7 +18,19 @@ public partial class QuickPanelBtmSheet : BottomSheet
         this.BindingContext =vm;
 
         this.MyViewModel =vm;
+
+        // Initialize collections for live updates
+        var realm = MyViewModel.BaseVM.RealmFactory.GetRealmInstance();
+        _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
+        _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
+        _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
+
     }
+
+    public ObservableCollection<string> _liveArtists;
+    public ObservableCollection<string> _liveAlbums;
+    public ObservableCollection<string> _liveGenres;
+
     public BaseViewModelAnd MyViewModel { get; set; }
 
     private void ByTitle()
@@ -229,6 +244,30 @@ public partial class QuickPanelBtmSheet : BottomSheet
     }
 
     private void DXStackLayout_SizeChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void TextEdit_TextChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AutoCompleteEdit_TextChanged(object sender, DevExpress.Maui.Editors.AutoCompleteEditTextChangedEventArgs e)
+    {
+        var send = (AutoCompleteEdit)sender;
+        var cursorPosition = send.CursorPosition;
+        // Get suggestions based on the current text fragment
+        var suggestions = AutocompleteEngine.GetSuggestions(
+            _liveArtists, _liveAlbums, _liveGenres, send.Text, cursorPosition);
+        send.ItemsSource = suggestions;
+    
+
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+    }
+    
+
+    private void AutoCompleteEdit_SelectionChanged(object sender, EventArgs e)
     {
 
     }

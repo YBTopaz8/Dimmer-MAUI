@@ -284,6 +284,15 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                 </Border.GestureRecognizers>
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
+                        <MenuFlyoutItem Text="Blacklist Song" x:Name="BlackListSong"
+                                        Clicked="BlackListSong_Clicked"
+                                        CommandParameter="{Binding .}"/>
+
+                 
+                        <!-- Create New Artist for This Song -->
+                        <MenuFlyoutItem Text="Create New Artist for Song" 
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateArtistAndAssignSongsCommand}" 
+                            CommandParameter="{Binding .}"/>
                         <MenuFlyoutItem 
                 IconImageSource="eye.png"
                Text="{Binding Title, StringFormat='View Song'}"
@@ -877,7 +886,16 @@ Value="False">
                 ColumnDefinitions="*,auto,auto"
                 ColumnSpacing="5">
 
-                    <VerticalStackLayout x:Name="TqlView" Grid.Row="1">
+                    <VerticalStackLayout x:Name="TqlView" Grid.Row="1" >
+                        <Border VerticalOptions="End" Margin="10" Padding="10" IsVisible="False">
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <!-- These commands expect an IEnumerable<SongModelView> -->
+                                <Button Text="Copy" x:Name="CopySongs" Clicked="CopySongs_Clicked"/>
+                                <Button Text="Move" />
+                                <Button Text="Delete" x:Name="DeleteSongs"
+                                        Clicked="DeleteSongs_Clicked" TextColor="White"/>
+                            </HorizontalStackLayout>
+                        </Border>
                         <Button Text="Search" ImageSource="searchd.png"
                     x:Name="SearchSongSB" BackgroundColor="Transparent"
                     windows:SearchBar.IsSpellCheckEnabled="True"
@@ -893,6 +911,48 @@ Value="False">
                         <HorizontalStackLayout>
 
                         </HorizontalStackLayout>
+                        <Border IsVisible="{Binding IsCreatingSegment}"
+        BackgroundColor="#A0000000"
+        Padding="0"
+        StrokeThickness="0"
+        VerticalOptions="Fill"
+        HorizontalOptions="Fill">
+
+                            <Border VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="400">
+                                <VerticalStackLayout Spacing="15">
+                                    <Label Text="Create Song Segment" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+                                    <!-- Segment Name -->
+                                    <Entry Placeholder="Segment Name" Text="{Binding NewSegmentName}"/>
+
+                                    <!-- Start Time -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Entry Grid.Column="0" Placeholder="Start (seconds)" Text="{Binding NewSegmentStart}" Keyboard="Numeric"/>
+                                        <Button Grid.Column="1" Text="&#xE15C;" 
+                        Command="{Binding SetSegmentStartFromCurrentCommand}" 
+                        
+                        ToolTipProperties.Text="Set to Current Time"
+                        Margin="5,0,0,0"/>
+                                    </Grid>
+
+                                    <!-- End Time -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Entry Grid.Column="0" Placeholder="End (seconds)" Text="{Binding NewSegmentEnd}" Keyboard="Numeric"/>
+                                        <Button Grid.Column="1" Text="&#xE15C;" 
+                        Command="{Binding SetSegmentEndFromCurrentCommand}" 
+                        ToolTipProperties.Text="Set to Current Time"
+                        Margin="5,0,0,0"/>
+                                    </Grid>
+
+                                    <!-- Action Buttons -->
+                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                                        <Button Text="Cancel" Command="{Binding CancelCreateSegmentCommand}" />
+                                        <Button Text="Save Segment" Command="{Binding SaveNewSegmentCommand}" />
+                                    </HorizontalStackLayout>
+
+                                </VerticalStackLayout>
+                            </Border>
+                        </Border>
                     </VerticalStackLayout>
                     <HorizontalStackLayout Grid.Column="2" Spacing="10">
 

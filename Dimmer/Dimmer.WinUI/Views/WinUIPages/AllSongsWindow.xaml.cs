@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Windows.Foundation;
@@ -57,8 +58,16 @@ public sealed partial class AllSongsWindow : Window
                 return;
             }
             MyViewModel.CurrentWinUIPage = this;
+            var removeCOmmandFromLastSaved = MyViewModel.CurrentTqlQuery;
+            removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:\d+!", "", RegexOptions.IgnoreCase);
+            removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:end!", "", RegexOptions.IgnoreCase);
+            removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addnext!", "", RegexOptions.IgnoreCase);
+
+
             // Focus the search box
             SearchSongSB.Focus(FocusState.Programmatic);
+        
+
             // Scroll to the currently playing song
             if (MyViewModel.CurrentPlayingSongView != null)
             {

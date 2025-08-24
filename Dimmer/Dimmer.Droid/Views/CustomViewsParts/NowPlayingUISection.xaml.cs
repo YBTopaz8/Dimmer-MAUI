@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class NowPlayingUISection : DXExpander
@@ -39,9 +41,9 @@ public partial class NowPlayingUISection : DXExpander
 
     }
 
-    private void SongTitleChip_LongPress(object sender, System.ComponentModel.HandledEventArgs e)
+    private async void SongTitleChip_LongPress(object sender, System.ComponentModel.HandledEventArgs e)
     {
-
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
     private void SongTitleChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)

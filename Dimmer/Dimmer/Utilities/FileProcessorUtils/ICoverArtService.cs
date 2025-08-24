@@ -285,7 +285,7 @@ public class CoverArtService : ICoverArtService
 
                 // 4. Define target and watermark properties
                 const int targetSize = 1080; // Standard square size for Instagram/Facebook
-                var watermarkText = "Dimmer by YBTopaz8";
+                var watermarkText = $"Dimmer on {DeviceInfo.Idiom}";
                 var padding = 40;
 
                 // 5. Create the final canvas and bitmap
@@ -312,9 +312,10 @@ public class CoverArtService : ICoverArtService
                 using var textPaint = new SKPaint
                 {
                     
-                    TextSize = 128,
+                    TextSize = 428,
                     Color = SKColors.DarkSlateBlue,
                     IsAntialias = true,
+                    TextAlign= SKTextAlign.Center,
                     Typeface =  SKTypeface.FromFamilyName("AleySans", SKFontStyleWeight.ExtraBold, SKFontStyleWidth.Expanded, SKFontStyleSlant.Upright)
                 };
 
@@ -328,14 +329,14 @@ public class CoverArtService : ICoverArtService
 
                 // Measure the text to position it correctly
                 var textBounds = new SKRect();
-                textPaint.MeasureText(watermarkText);
+                textPaint.MeasureText( watermarkText);
 
                 // Position watermark in the bottom-right corner
                 float textX = targetSize - textBounds.Width - padding;
                 // SkiaSharp's DrawText y-coordinate is the baseline, so we adjust for that
                 float textY = targetSize - padding;
 
-                canvas.DrawText(watermarkText, textX, textY, SKTextAlign.Right,new SKFont() { Embolden=true},textPaint);
+                canvas.DrawText(watermarkText, textX, textY, SKTextAlign.Center,new SKFont() { Size=60, Embolden=true},textPaint);
 
             // 8. Save the final image to a temporary file
             string tempFilePath =string.Empty;

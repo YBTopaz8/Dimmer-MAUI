@@ -313,4 +313,9 @@ public partial class SingleSongPage : ContentPage
         MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(prop)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
     }
+
+    private void SearchLyrics_Tapped(object sender, TappedEventArgs e)
+    {
+
+    }
 }

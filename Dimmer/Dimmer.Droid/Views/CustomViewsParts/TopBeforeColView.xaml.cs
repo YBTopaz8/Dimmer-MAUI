@@ -2,8 +2,10 @@ using AndroidX.Lifecycle;
 
 using DevExpress.Maui.Editors;
 
+using Dimmer.Data.Models;
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
+using Dimmer.DimmerSearch.TQL;
 
 using System.ComponentModel;
 
@@ -18,7 +20,18 @@ public partial class TopBeforeColView : DXExpander
         this.BindingContext =vm;
 
         this.MyViewModel =vm;
+        // Initialize collections for live updates
+        var realm = MyViewModel.BaseVM.RealmFactory.GetRealmInstance();
+        _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
+        _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
+        _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
+
     }
+
+    public ObservableCollection<string> _liveArtists;
+    public ObservableCollection<string> _liveAlbums;
+    public ObservableCollection<string> _liveGenres;
+
     public BaseViewModelAnd MyViewModel { get; set; }
 
     private CancellationTokenSource _lyricsCts;
@@ -156,5 +169,67 @@ public partial class TopBeforeColView : DXExpander
         Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
         //await Shell.Current.GoToAsync(nameof(SettingsPage));
+    }
+
+    private void SearchBy_TextChanged_1(object sender, AutoCompleteEditTextChangedEventArgs e)
+    {
+        var send = (AutoCompleteEdit)sender;
+        var cursorPosition = send.CursorPosition;
+        // Get suggestions based on the current text fragment
+        var suggestions = AutocompleteEngine.GetSuggestions(
+            _liveArtists, _liveAlbums, _liveGenres, send.Text, cursorPosition);
+        send.ItemsSource = suggestions;
+
+
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+    }
+
+    private void SearchBy_TextChanged(object sender, AutoCompleteEditTextChangedEventArgs e)
+    {
+
+        var send = (AutoCompleteEdit)sender;
+        var cursorPosition = send.CursorPosition;
+
+        var res = e.Reason;
+        Debug.WriteLine(res);
+        switch (res)
+        {
+            case AutoCompleteEditTextChangeReason.UserInput:
+                break;
+            case AutoCompleteEditTextChangeReason.ProgrammaticChange:
+                break;
+            case AutoCompleteEditTextChangeReason.ItemSelected:
+
+                // each time item is selected, it overwrites the whole text, which is not desired.
+
+                 if (send.SelectedItem is string selectedStr)
+                {
+                    // Find the start of the word the cursor is in
+                    int wordStart = send.Text.LastIndexOf(' ', cursorPosition - 1) + 1;
+                    string currentWord = send.Text[wordStart..cursorPosition];
+                    // Replace only the current word with the selected item
+                    string newText = send.Text.Remove(wordStart, currentWord.Length)
+                        .Insert(wordStart, selectedStr);
+                    // Update the text and move the cursor to the end of the inserted text
+                    send.Text = newText;
+                    send.CursorPosition = wordStart + selectedStr.Length;
+                }
+                 send.Unfocus();
+                
+
+
+                break;
+         
+
+            default:
+                break;
+        }
+        // Get suggestions based on the current text fragment
+        var suggestions = AutocompleteEngine.GetSuggestions(
+            _liveArtists, _liveAlbums, _liveGenres, send.Text, cursorPosition);
+        send.ItemsSource = suggestions;
+
+
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
     }
 }

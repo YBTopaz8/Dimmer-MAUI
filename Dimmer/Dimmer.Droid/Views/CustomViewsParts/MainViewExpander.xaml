@@ -170,12 +170,12 @@ Value="False">
                                 AllowDragDropItems="False"
                                 AllowFixedGroupHeaders="True"
                                 AllowGroupCollapse="True"
-                                
                                                  UseRippleEffect="False"
                                 AllowLiveDataShaping="True"
                                 BackgroundColor="Transparent"
                                 FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
                                 ItemSpacing="10"
+            LongPressCommand="{Binding Commands.ShowFilteringUIForm,Source={x:Reference SongsColView}}"
                                 ItemsSource="{Binding BaseVM.SearchResults}"
                                 Loaded="SongsColView_Loaded"
                                ItemTemplate="{StaticResource OGView}" >

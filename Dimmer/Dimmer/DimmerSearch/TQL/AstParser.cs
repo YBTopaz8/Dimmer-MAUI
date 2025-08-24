@@ -104,6 +104,15 @@ public class AstParser
             {
                 switch (nextToken.Text.ToLowerInvariant())
                 {
+                    case "today":
+                    case "yesterday":
+                    case "thisweek": // Use single words for keywords to avoid ambiguity
+                    case "lastweek":
+                    case "thismonth":
+                    case "lastmonth":
+                    case "thisyear":
+                        break;
+
                     case "ago":
                     case "between":
                     case "never":

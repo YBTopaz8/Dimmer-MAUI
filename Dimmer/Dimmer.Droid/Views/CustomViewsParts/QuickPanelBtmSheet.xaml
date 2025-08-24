@@ -25,9 +25,17 @@ x:FieldModifier="Public">
         </ResourceDictionary>
     </dx:BottomSheet.Resources>
 
-    <Grid>
+    <Grid RowDefinitions="auto,*">
+        <dx:TextEdit Grid.Row="0" TextChanged="TextEdit_TextChanged"
+                     />
+        <dx:AutoCompleteEdit TextChanged="AutoCompleteEdit_TextChanged"
+                            Grid.Row="0"
+                             SelectionChanged="AutoCompleteEdit_SelectionChanged"
+                             />
         <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.SelectedSongForContext.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
-        <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
+        <dx:DXStackLayout BackgroundColor="Transparent" 
+                          Grid.Row="1"
+                          Orientation="Vertical">
             <dx:DXStackLayout.Resources>
                 <ResourceDictionary>
                     <Style TargetType="dx:DXButton">
@@ -68,13 +76,12 @@ x:FieldModifier="Public">
                              Content="Set Play Repeat Count" Icon="repone.png"
                              />
             <dx:DXButton x:Name="AddToPlaylist"
-                             Clicked="AddToPlaylist_Clicked" Content="Add to Playlist**"
-                             Icon="playlistminimalistic.png"
+                             Command="{Binding BaseVM.AddToNextCommand}" Content="Add to Next in Queue"
+                             Icon="addplaylist.png"
                              />
             <dx:DXButton x:Name="GoToAlbumBtn"
-                             Command="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}"
-                             CommandParameter="{Binding BaseVM.SelectedSongForContext}"
-                             Content="Go to Album" Icon="album.png"
+                             Command="{Binding BaseVM.AddToQueueCommand}"
+                                                      Content="Add To End" Icon="album.png"
                              />
             <dx:DXButton x:Name="GotoArtistBtn"
                              Clicked="GotoArtistBtn_Clicked" Content="Go to Artist"
@@ -85,14 +92,14 @@ x:FieldModifier="Public">
                              Content="Tag Editor" Icon="clapperboardedit.png"
                              />
             <dx:DXButton Clicked="DXButton_Clicked_3"
-                             Command="{Binding OpenViewSongDetailsPopupCommand}"
+                             Command="{Binding BaseVM.OpenFileInFolderCommand}"
                              Content="Song Info" Icon="fileinfo.png"
                              />
             <dx:DXButton Clicked="ClosePopup"
-                             Command="{Binding NavigateToShareStoryPageCommand}"
+                             Command="{Binding BaseVM.ShareCurrentPlayingAsStoryInCardLikeGradientCommand}"
                              Content="Share" Icon="squareforward.png"
                              />
-            <dx:DXButton Command="{Binding DeleteFileCommand}"
+            <dx:DXButton Command="{Binding BaseVM.DeleteSongsCommand}"
                              CommandParameter="{Binding CurrentPlayingSongView}"
                              Content="Delete" Icon="delete.png"
                              />

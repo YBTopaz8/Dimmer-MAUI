@@ -97,26 +97,13 @@ x:Name="myPage"
                 <StackPanel Orientation="Horizontal"
                             Spacing="10"
                         x:Name="TopPanel" HorizontalAlignment="Center">
-                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.QueryChips}">
-                        <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border Background="LightGray" CornerRadius="4" Margin="2">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{x:Bind}" Margin="8,4" VerticalAlignment="Center" />
-                                        <Button Grid.Column="1" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" 
-                            Click="RemoveChipButton_Click" DataContext="{x:Bind}"
-                            Background="Transparent" BorderThickness="0" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
-                   
+          
 
+
+                    <TextBlock Text="{Binding NewFieldSuggestion}" HorizontalAlignment="Center"
+                           FocusVisualPrimaryBrush="Red" TextDecorations="Underline"
+                               IsTextSelectionEnabled="True"
+                           FocusVisualSecondaryBrush="OrangeRed"/>
 
                     <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center"
                            FocusVisualPrimaryBrush="Red" TextDecorations="Underline"
@@ -142,7 +129,19 @@ x:Name="myPage"
                 <StackPanel Orientation="Horizontal" 
 Spacing="10"
                             HorizontalAlignment="Center">
-                    <Button Content="Clear"/>
+
+
+                    <AutoSuggestBox
+x:Name="SearchAutoSuggestBox"
+PlaceholderText="Search with TQL..." QuerySubmitted="SearchAutoSuggestBox_QuerySubmitted"
+Width="450" 
+                
+Text="{x:Bind MyViewModel.CurrentTqlQuery}"
+TextChanged="SearchAutoSuggestBox_TextChanged"
+SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
+                    <Button Content="Clear" Command="{Binding ResetSearchCommand}"/>
+                    <Button Content="Add To Next" Command="{Binding AddToNextCommand}"/>
+                    <Button Content="Add To End" Command="{Binding AddToQueueCommand}"/>
            
                     <TextBlock 
                             VerticalAlignment="Center"
@@ -157,15 +156,6 @@ Spacing="10"
 
                 </StackPanel>
                 
-                
-                    <AutoSuggestBox
-x:Name="SearchAutoSuggestBox"
-PlaceholderText="Search with TQL..." QuerySubmitted="SearchAutoSuggestBox_QuerySubmitted"
-Width="450" 
-                
-Text="{x:Bind MyViewModel.CurrentTqlQuery}"
-TextChanged="SearchAutoSuggestBox_TextChanged"
-SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
             </StackPanel>
                 
                 

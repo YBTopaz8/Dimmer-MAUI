@@ -69,3 +69,18 @@ public partial class LyricPhraseModelView : ObservableObject
     }
 
 }
+
+public partial class LyricEditingLineViewModel : ObservableObject
+{
+    [ObservableProperty]
+    public partial string Timestamp { get; set; } = "[--:--.--]";// Initial display
+
+    [ObservableProperty]
+    public partial string Text { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsTimed { get; set; } // To change color in UI once timestamped
+
+    [ObservableProperty]
+    public partial bool IsCurrentLine { get; set; } // To highlight the line the user should be focusing on
+}

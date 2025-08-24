@@ -75,12 +75,7 @@ Shell.NavBarIsVisible="False">
                     </Label>
                     <Label Text="{Binding Messages.Count}"/>
                     <Label Text="{Binding SessionTransferViewModel.StatusMessage}"/>
-                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[0].ObjectId}"/>
-                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[1].ObjectId}"/>
-                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[0].DeviceName}"/>
-                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[0].CreatedAt}"/>
-                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[1].DeviceName}"/>
-                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[1].CreatedAt}"/>
+                    
                 </VerticalStackLayout>
             </Grid>
             <Grid Grid.Row="1" >

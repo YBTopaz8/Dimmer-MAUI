@@ -43,30 +43,30 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         _authService = authService;
         _logger = logger;
         _liveQueryClient = liveQueryClient;
-        _authService.CurrentUser
-          .Subscribe(user =>
-          {
-              if (user != null)
-              {
-                  StartListeners(user);
-              }
-              else
-              {
-                  StopListeners();
-              }
-          })
-          .DisposeWith(_disposables);
+        //_authService.CurrentUser
+        //  .Subscribe(user =>
+        //  {
+        //      //if (user != null)
+        //      //{
+        //      //    StartListeners(user);
+        //      //}
+        //      //else
+        //      //{
+        //      //    StopListeners();
+        //      //}
+        //  })
+        //  .DisposeWith(_disposables);
+        StartListeners();
     }
 
     private readonly object _lock = new();
-    public void StartListeners(UserModelOnline currentUser)
+    public void StartListeners(UserModelOnline? currentUser=null)
     {
         lock (_lock)
         {
             if (_conversationSubscription != null)
                 return; // Already running
 
-            _logger.LogInformation("ChatService listeners starting for user {Username}...", currentUser.Username);
        
 
             var query = ParseClient.Instance.GetQuery<ChatMessage>()
@@ -104,7 +104,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Do( async e =>
                 {
-                   await SendTextMessageAsync("Hello 😄" + currentUser.Username + "!");
+                   await SendTextMessageAsync("Hello 😄" + Username + "!");
                     Debug.WriteLine("Subscribed to: " + e.requestId);
                 })
                 .Subscribe();
@@ -231,12 +231,10 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
     {
         if (string.IsNullOrWhiteSpace(text))
             return;
-        receverObjectId = receverObjectId ?? ParseClient.Instance.CurrentUser.ObjectId;
+        receverObjectId = receverObjectId ?? Username;
         try
         {
-            if ( string.IsNullOrWhiteSpace(text) || _authService.CurrentUserValue == null)
-                return;
-
+            
             var message = new ChatMessage
             {
 
@@ -247,11 +245,11 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             };
             message["Username"]=
         
-        DeviceInfo.Current.Platform + DeviceInfo.VersionString + DeviceInfo.Manufacturer;
-            message["senderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
+        Username;
+            message["senderId"] = receverObjectId; // For Cloud Code use
             
-            message["UserSenderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
-            if (song is not null)
+            message["UserSenderId"] = receverObjectId; // For Cloud Code use
+            if (song is not null && !string.IsNullOrEmpty(song.FilePath))
             {
 
                 var position = _baseVM.CurrentTrackPositionSeconds;

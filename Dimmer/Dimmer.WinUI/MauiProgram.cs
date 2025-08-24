@@ -125,7 +125,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<SocialView>();
         builder.Services.AddSingleton<SocialViewModelWin>();
         builder.Services.AddSingleton<ChatViewModelWin>();
-        builder.Services.AddSingleton<ParseLiveQueryClient>();
 
         return builder.Build();
     }

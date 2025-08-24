@@ -80,6 +80,7 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
 
     public async Task TransferToDevice(UserDeviceSession targetDevice,SongModelView song)
     {
+        return;
         if (targetDevice == null || _mainViewModel.CurrentPlayingSongView == null)
         {
             StatusMessage = "No song is playing to transfer.";

@@ -1,5 +1,8 @@
 ﻿using Dimmer.DimmerLive.Models;
+using Dimmer.ViewModel;
 using Dimmer.ViewModel.DimmerLiveVM;
+
+using IntelliJ.Lang.Annotations;
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.WinUI.ViewModel;
-public  partial class ChatViewModelWin : ChatViewModel
+namespace Dimmer.ViewModels;
+
+public partial class ChatViewModelAnd : ChatViewModel
 {
     private readonly IChatService chatService;
     private readonly IFriendshipService friendshipService;
@@ -19,9 +23,9 @@ public  partial class ChatViewModelWin : ChatViewModel
     public SessionTransferViewModel SessionTransferViewModel => sessionTransferViewModel;
     public BaseViewModel BaseViewModel => baseViewModel;
 
-    public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService, LoginViewModel _loginViewModel, IAuthenticationService auth
-       , BaseViewModel baseViewModel, SessionTransferViewModel sessionTransferViewModel) :
-       base(chatService, friendshipService, _loginViewModel, auth, baseViewModel)
+    public ChatViewModelAnd(IChatService chatService, IFriendshipService friendshipService,LoginViewModel _loginViewModel, IAuthenticationService auth
+        , BaseViewModel baseViewModel, SessionTransferViewModel sessionTransferViewModel) :
+        base(chatService,friendshipService,_loginViewModel, auth, baseViewModel)
     {
         InitializeGeneralChat();
         this.chatService=chatService;
@@ -35,7 +39,7 @@ public  partial class ChatViewModelWin : ChatViewModel
         IsBusy = true;
         if (SelectedConversation != null)
         { return; }
-            var generalChat = await _chatService.GetGeneralChatAsync();
+        var generalChat = await _chatService.GetGeneralChatAsync();
         if (generalChat != null)
         {
             // Automatically select the general chat on startup
@@ -48,7 +52,7 @@ public  partial class ChatViewModelWin : ChatViewModel
     [RelayCommand]
     private async Task GoToGeneralChat()
     {
-         InitializeGeneralChat();
+        InitializeGeneralChat();
     }
 
     [RelayCommand]
@@ -61,7 +65,7 @@ public  partial class ChatViewModelWin : ChatViewModel
     {
         NewMessageText = $"Transfer To {devv.DeviceName}";
         await SendMessageCommand.ExecuteAsync(null);
-        await sessionTransferViewModel.TransferToDevice(devv, baseViewModel.CurrentPlayingSongView);  
+        await sessionTransferViewModel.TransferToDevice(devv, baseViewModel.CurrentPlayingSongView);
 
         //await Shell.Current.GoToAsync("FriendsListPage");
     }

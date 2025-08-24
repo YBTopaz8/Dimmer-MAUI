@@ -57,7 +57,7 @@ x:FieldModifier="Public">
 
         </dx:DXStackLayout>
 
-        <dx:TextEdit
+        <dx:AutoCompleteEdit
                 x:Name="SearchBy"
                 Margin="10"
                 x:FieldModifier="Public"

@@ -57,6 +57,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<TopBeforeColView>();
         builder.Services.AddSingleton<NowPlayingUISection>();
         builder.Services.AddSingleton<NowPlayingbtmsheet>();
+        builder.Services.AddSingleton<ChatViewModelAnd>();
+        //builder.Services.AddSingleton<ChatView>();
+        builder.Services.AddSingleton<ChatView>();
         //builder.Services.AddSingleton<SearchFilterAndSongsColViewUI>();
         builder.Services.AddSingleton<PlayHistoryPage>();
         builder.Services.AddSingleton<QuickSettingsTileService>()
