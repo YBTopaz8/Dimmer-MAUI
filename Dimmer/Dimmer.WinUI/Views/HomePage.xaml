@@ -534,6 +534,7 @@ Value="False">
                     <syncf:SfEffectsView Grid.Column="6" ToolTipProperties.Text="{Binding GenreName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}">
                         
                         <Label
+                            TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
                                         HorizontalTextAlignment="Center"
                                         Text="{Binding ReleaseYear}"
                                         VerticalOptions="Center" />
@@ -852,7 +853,7 @@ Value="False">
 
 
 
-    <Grid RowDefinitions="auto,*">
+    <Grid RowDefinitions="auto,*" BackgroundColor="{AppThemeBinding Light=#999999}">
 
         <Grid.GestureRecognizers>
 
@@ -875,7 +876,7 @@ Value="False">
             <VerticalStackLayout x:Name="AdvSearch" 
                 Padding="5" Spacing="5">
                 <syncf:SfChip
-                    IsVisible="False"
+                    IsVisible="False" 
                     Text="Advanced Search (TQL)"
                     ToolTipProperties.Text="Start a Topaz Query using TQL" />
                 <Label FontSize="19" 
@@ -898,7 +899,7 @@ Value="False">
                         </Border>
                         <Button Text="Search" ImageSource="searchd.png"
                     x:Name="SearchSongSB" BackgroundColor="Transparent"
-                    windows:SearchBar.IsSpellCheckEnabled="True"
+                    windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
                     windows:VisualElement.AccessKey="F"
                     windows:VisualElement.AccessKeyPlacement="Right"
                                  Clicked="SearchSongSB_Clicked"

@@ -418,7 +418,7 @@ VerticalOptions="Center" />
         </DataTemplate>
     </ContentPage.Resources>
 
-    <Grid x:Name="SingleSongView" RowDefinitions="auto,*">
+    <Grid x:Name="SingleSongView" RowDefinitions="auto,*" BackgroundColor="{AppThemeBinding Light=#999999}">
         
         <Grid Grid.Row="0" ColumnDefinitions="*,auto" VerticalOptions="Start" >
             <Border BackgroundColor="{Binding SelectedSecondDomColor}"

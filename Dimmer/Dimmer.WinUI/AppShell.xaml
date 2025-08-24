@@ -33,7 +33,7 @@
     </Shell.Resources>
     <Shell.FlyoutContent>
 
-        <syncf:SfTabView x:Name="ShellTabView"
+        <syncf:SfTabView x:Name="ShellTabView" BackgroundColor="{AppThemeBinding Light=#999999}"
                          SelectionChanging="ShellTabView_SelectionChanging"
                          SelectedIndex="{Binding ShellTabIndex}"
                          EnableSwiping="True" TabBarHeight="0" TabBarPlacement="Top">
@@ -414,7 +414,7 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
                                             <Label Text="{Binding Name}"/>
                                         <Label Text="{Binding ProductName}"/>
                                         <Label Text="{Binding IconString}"/>
-                                        <Label Text="{Binding Volume, Converter={converters:PercentageInverterConverter}}"/>
+                                        <Label Text="{Binding Volume, StringFormat='Volume : {0:n2}%'}"/>
                                             
 
 
@@ -440,7 +440,7 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
 
 
     <Shell.FlyoutFooter>
-        <Grid RowDefinitions="*,*" BackgroundColor="{AppThemeBinding Light=#F5F5F5,Dark=transparent}"
+        <Grid RowDefinitions="*,*" BackgroundColor="{AppThemeBinding Light=#999999,Dark=transparent}"
              x:Name="TopLeft" >
             <Grid.GestureRecognizers>
                 <PointerGestureRecognizer
@@ -453,7 +453,7 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
                              x:Name="ViewDeviceAudio"
                              Clicked="ViewDeviceAudio_Clicked"/>
                 <Button Command="{Binding ToggleAppThemeCommand}"
-                                    Grid.Row="0"
+                                    Grid.Row="0" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
                                     FontAttributes="Bold"
                                     FontSize="13"
                     HorizontalOptions="Center"
@@ -473,7 +473,7 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
                 <Button
  windows:VisualElement.AccessKey="Q"
                     windows:VisualElement.AccessKeyPlacement="Bottom"
-Clicked="ViewNPQ_Clicked" x:Name="ViewNPQ" 
+Clicked="ViewNPQ_Clicked" x:Name="ViewNPQ"  TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
                     BackgroundColor="Transparent"
 ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}"
                     Text="View Now Playing Queue">

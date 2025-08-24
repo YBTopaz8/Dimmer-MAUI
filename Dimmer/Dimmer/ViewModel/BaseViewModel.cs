@@ -285,9 +285,9 @@ _playbackQueueSource.Connect()
                     {
                         var commandAction = commandEvaluator.Evaluate(plan.CommandNode, processedSongs);
 
-                        MainThread.BeginInvokeOnMainThread(async () =>
+                        MainThread.BeginInvokeOnMainThread( () =>
                         {
-                            await HandleCommandAction(commandAction);
+                             HandleCommandAction(commandAction);
 
                         });
                         
@@ -380,7 +380,7 @@ _playbackQueueSource.Connect()
 
     
     public event EventHandler? ToggleNowPlayingUI;
-    private async Task HandleCommandAction(ICommandAction action)
+    private void HandleCommandAction(ICommandAction action)
     {
         if (action is null)
             return;
@@ -401,11 +401,7 @@ _playbackQueueSource.Connect()
             case AddToNextAction ana:
                 Debug.WriteLine($"Action: Add {ana.Songs.Count} songs to next in queue.");
 
-                // get cur song index in playbackqueuesource , then addnext
-                var currsongIndex = _playbackQueueSource.Items.IndexOf(CurrentPlayingSongView);
-                int insertPos = _playbackQueueIndex >= 0 ? _playbackQueueIndex + 1 : 0;
-                _playbackQueueSource.InsertRange(ana.Songs, insertPos);
-                AddNextEvent?.Invoke(this, EventArgs.Empty);
+                AddToNext();
 
               
 
