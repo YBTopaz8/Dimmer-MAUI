@@ -132,9 +132,9 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     }
 
     [RelayCommand]
-    private async Task SendMessage()
+    private async Task SendMessage(SongModelView song)
     {
-        await _chatService.SendTextMessageAsync( NewMessageText);
+        await _chatService.SendTextMessageAsync( NewMessageText,_authService.CurrentUserValue.ObjectId,song);
         NewMessageText = string.Empty; // Clear the input box
     }
 

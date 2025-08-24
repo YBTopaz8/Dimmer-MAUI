@@ -452,4 +452,9 @@ public partial class AppShell : Shell
 #endif
 
     }
+
+    private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

@@ -4,6 +4,8 @@ using Parse.LiveQuery;
 
 using ReactiveUI;
 
+using Syncfusion.Maui.Toolkit.NavigationDrawer;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -225,7 +227,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
    public string Username =>
         DeviceInfo.Current.Platform + DeviceInfo.VersionString + DeviceInfo.Manufacturer;
-    public async Task SendTextMessageAsync(string text, string? receverObjectId = null)
+    public async Task SendTextMessageAsync(string text, string? receverObjectId = null,SongModelView? song=null)
     {
         if (string.IsNullOrWhiteSpace(text))
             return;
@@ -247,9 +249,45 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         
         DeviceInfo.Current.Platform + DeviceInfo.VersionString + DeviceInfo.Manufacturer;
             message["senderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
+            
             message["UserSenderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
+            if (song is not null)
+            {
+
+                var position = _baseVM.CurrentTrackPositionSeconds;
+                var stream = await File.ReadAllBytesAsync(song.FilePath);
+
+                GetSongMimeType(song, out var mimeType, out var fileExtension);
+
+                ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
+
+                await songFile.SaveAsync(ParseClient.Instance);
+
+                // Create the DimmerSharedSong object
+                DimmerSharedSong newSong = new()
+                {
+                    Title = song.Title,
+                    ArtistName = song.ArtistName,
+                    AlbumName = song.AlbumName,
+                    DurationSeconds = song.DurationInSeconds,
+                    GenreName = song.GenreName,
+                    IsFavorite = song.IsFavorite,
+                    IsPlaying = _baseVM.IsPlaying,
+                    SharedPositionInSeconds = position,
 
 
+
+                };
+
+                newSong.AudioFile = songFile;
+                newSong.Uploader = _authService.CurrentUserValue;
+                newSong.AudioFileUrl =songFile.Url; // For Cloud Code use
+                newSong.AudioFileName =songFile.Name; // For Cloud Code use
+                newSong.AudioFileMimeType =songFile.MimeType; // For Cloud Code use
+
+            await newSong.SaveAsync();
+
+            }
             // ACLs are best handled by a beforeSave trigger in Cloud Code
             await message.SaveAsync();
         }

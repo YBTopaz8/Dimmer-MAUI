@@ -28,6 +28,8 @@ using Realms;
 
 using System.Threading.Tasks;
 
+using Vanara.PInvoke;
+
 using WinUI.TableView;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
@@ -57,7 +59,25 @@ public partial class BaseViewModelWin: BaseViewModel
         {
             RebuildAndExecuteQuery();
         };
+
+        AddNextEvent +=BaseViewModelWin_AddNextEvent;
     }
+
+    private async void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
+    {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(this));
+        win.Close();
+
+        // wait 4s and reopen it
+        await Task.Delay(4000);
+
+            var newWin = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(this));
+            newWin.Activate();
+
+    }
+
     [RelayCommand]
     private void RemoveFilter(ActiveFilterViewModel filterToRemove)
     {

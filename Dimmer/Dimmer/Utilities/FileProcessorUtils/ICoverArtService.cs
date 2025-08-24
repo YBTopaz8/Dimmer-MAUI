@@ -311,10 +311,11 @@ public class CoverArtService : ICoverArtService
                 // 7. Add the watermark with a shadow effect
                 using var textPaint = new SKPaint
                 {
-                    TextSize = 48,
-                    Color = SKColors.White,
+                    
+                    TextSize = 128,
+                    Color = SKColors.DarkSlateBlue,
                     IsAntialias = true,
-                    Typeface =  SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)
+                    Typeface =  SKTypeface.FromFamilyName("AleySans", SKFontStyleWeight.ExtraBold, SKFontStyleWidth.Expanded, SKFontStyleSlant.Upright)
                 };
 
                 // For the shadow, we use a built-in image filter which looks much better

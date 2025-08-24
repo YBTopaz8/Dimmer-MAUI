@@ -131,8 +131,9 @@ Shell.NavBarIsVisible="False">
                 <Entry Grid.Column="0" Placeholder="Type a message..." Text="{Binding NewMessageText}" ReturnType="Send" ReturnCommand="{Binding SendMessageCommand}"/>
                 <HorizontalStackLayout Grid.Column="1" >
                     
-                <Button Text="Send" Command="{Binding SendMessageCommand}" />
-                <Button Text="Share Song" Command="{Binding OpenSessionTransferCommand}" />
+                <Button Text="Send" x:Name="SendMsg"
+                        Clicked="SendMsg_Clicked"/>
+                    
 
                 </HorizontalStackLayout>
             </Grid>

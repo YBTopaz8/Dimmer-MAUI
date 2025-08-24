@@ -33,8 +33,10 @@ public static class NaturalLanguageProcessor
     (new Regex(@"in the (\d{2,4})s", RegexOptions.IgnoreCase), "year:$10-$19"),
 
     // "longer than 5 minutes" or "shorter than 3:30"
+    (new Regex(@"at least (\d+:\d+|\d+)\s*m(in(ute)?s?)?", RegexOptions.IgnoreCase), "len:=>$1"),
     (new Regex(@"longer than (\d+:\d+|\d+)\s*m(in(ute)?s?)?", RegexOptions.IgnoreCase), "len:>$1"),
     (new Regex(@"shorter than (\d+:\d+|\d+)\s*m(in(ute)?s?)?", RegexOptions.IgnoreCase), "len:<$1"),
+    (new Regex(@"up to (\d+:\d+|\d+)\s*m(in(ute)?s?)?", RegexOptions.IgnoreCase), "len:<=$1"),
 
     // "show me <genre> music" (e.g., "rock music", "electronic music")
     (new Regex($@"{Value} music", RegexOptions.IgnoreCase), "genre:$1"),

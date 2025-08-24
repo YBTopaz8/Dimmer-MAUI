@@ -299,6 +299,7 @@ internal class WinUIWindowMgrService :IWinUIWindowMgrService
         {
             // The native WinUI Window object itself is the one to activate
             window.Activate();
+            
             Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
 
             // For a more forceful bring to front:

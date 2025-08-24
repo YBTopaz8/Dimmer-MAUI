@@ -15,7 +15,7 @@
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:views="clr-namespace:Dimmer.WinUI.Views"
     FlyoutWidth="380"
-    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     Shell.FlyoutBehavior="Flyout"  xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
   FlyoutBackgroundColor="Transparent"
     x:DataType="vm:BaseViewModelWin">
@@ -34,7 +34,7 @@
     <Shell.FlyoutContent>
 
         <syncf:SfTabView EnableSwiping="True" TabBarHeight="0" TabBarPlacement="Bottom">
-            <syncf:SfTabItem x:Name="MediaControlsView">
+            <syncf:SfTabItem x:FieldModifier="Public" x:Name="MediaControlsView">
                 <syncf:SfTabItem.Content>
 
 
@@ -141,8 +141,10 @@ IsVisible="True">
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Share Song" IconImageSource="shared.png"
-                                                   Command="{Binding }" />
-                                    <MenuFlyoutItem Text="Share Title Only" IconImageSource="textitalicsquare.png"/>
+                                                   Command="{Binding ShareCurrentPlayingAsStoryInCardLikeGradientCommand}" />
+                                    <MenuFlyoutItem Text="Share Title Only" 
+                                                    Clicked="ShowBtmSheet_Clicked"
+                                                    IconImageSource="textitalicsquare.png"/>
                                 </MenuFlyout>
                             </FlyoutBase.ContextFlyout>
 

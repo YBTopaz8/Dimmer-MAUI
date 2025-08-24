@@ -33,6 +33,7 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
 {
+
     private IDuplicateFinderService _duplicateFinderService;
     public BaseViewModel(
        IMapper mapper,
@@ -284,9 +285,9 @@ _playbackQueueSource.Connect()
                     {
                         var commandAction = commandEvaluator.Evaluate(plan.CommandNode, processedSongs);
 
-                        MainThread.BeginInvokeOnMainThread(() =>
+                        MainThread.BeginInvokeOnMainThread(async () =>
                         {
-                            HandleCommandAction(commandAction);
+                            await HandleCommandAction(commandAction);
 
                         });
                         
@@ -375,8 +376,11 @@ _playbackQueueSource.Connect()
         return;
     }
 
+    public event EventHandler? AddNextEvent;
 
-    private void HandleCommandAction(ICommandAction action)
+    
+    public event EventHandler? ToggleNowPlayingUI;
+    private async Task HandleCommandAction(ICommandAction action)
     {
         if (action is null)
             return;
@@ -401,6 +405,9 @@ _playbackQueueSource.Connect()
                 var currsongIndex = _playbackQueueSource.Items.IndexOf(CurrentPlayingSongView);
                 int insertPos = _playbackQueueIndex >= 0 ? _playbackQueueIndex + 1 : 0;
                 _playbackQueueSource.InsertRange(ana.Songs, insertPos);
+                AddNextEvent?.Invoke(this, EventArgs.Empty);
+
+              
 
                 //_= ShowNotification($"Added {ana.Songs.Count} songs to the queue.");
                 break;
