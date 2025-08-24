@@ -16,7 +16,11 @@
     <Copyright>Sean Chapman</Copyright>
     <PackageLicenseUrl>https://github.com/xenolightning/AudioSwitcher/blob/master/README.md</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/xenolightning/AudioSwitcher</PackageProjectUrl>
-    <Description>AudioSwitcher Core Audio Api.&#xD;&#xA;&#xD;&#xA;This includes all controllers and devices to access Windows System Devices and manipulate them.&#xD;&#xA;&#xD;&#xA;This library can be used on any PC running Windows Vista and above. Supports both x86/x64 runtimes.</Description>
+    <Description>AudioSwitcher Core Audio Api.
+
+This includes all controllers and devices to access Windows System Devices and manipulate them.
+
+This library can be used on any PC running Windows Vista and above. Supports both x86/x64 runtimes.</Description>
     <PackageTags>wasapi;audioswitcher;audio api;volume;sound</PackageTags>
     <PackageReleaseNotes>(Please write the package release notes in "RELEASE NOTES.txt".)</PackageReleaseNotes>
   </PropertyGroup>
@@ -47,12 +51,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AssemblyOriginatorKeyFile>api.pfx</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="api.pfx" />
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">

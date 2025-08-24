@@ -4074,7 +4074,7 @@ _playbackQueueSource.Connect()
     /// This is a lightweight "move" operation.
     /// </summary>
     /// <param name="context">A tuple containing the Song to change and the target Artist.</param>
-    [RelayCommand]
+   
     public async Task AssignSongToArtistAsync((SongModelView Song, ArtistModelView TargetArtist) context)
     {
         if (context.Song == null || context.TargetArtist == null)
@@ -4111,8 +4111,9 @@ _playbackQueueSource.Connect()
     /// </summary>
     /// <param name="songsToAssign">The list of songs to assign to the new artist.</param>
     [RelayCommand]
-    private async Task CreateArtistAndAssignSongsAsync(IList<SongModelView> songsToAssign)
+    private async Task CreateArtistAndAssignSongsAsync()
     {
+        var songsToAssign = _searchResults; 
         if (songsToAssign == null || !songsToAssign.Any())
             return;
 
@@ -4162,8 +4163,9 @@ _playbackQueueSource.Connect()
     /// </summary>
     /// <param name="songsToAlbumize">The list of songs to group into an album.</param>
     [RelayCommand]
-    private async Task GroupSongsIntoAlbumAsync(IList<SongModelView> songsToAlbumize)
+    private async Task GroupSongsIntoAlbumAsync()
     {
+        var songsToAlbumize = _searchResults;
         if (songsToAlbumize == null || !songsToAlbumize.Any())
             return;
 
@@ -4204,8 +4206,9 @@ _playbackQueueSource.Connect()
     /// </summary>
     /// <param name="songsToGenre">The songs to apply the genre to.</param>
     [RelayCommand]
-    private async Task ApplyGenreToSongsAsync(IList<SongModelView> songsToGenre)
+    private async Task ApplyGenreToSongsAsync()
     {
+        var songsToGenre = _searchResults;
         if (songsToGenre == null || !songsToGenre.Any())
             return;
 
@@ -4238,8 +4241,9 @@ _playbackQueueSource.Connect()
     /// </summary>
     /// <param name="songsToTag">The songs to apply tags to.</param>
     [RelayCommand]
-    private async Task ApplyTagsToSongsAsync(IList<SongModelView> songsToTag)
+    private async Task ApplyTagsToSongsAsync()
     {
+        var songsToTag = _searchResults;
         if (songsToTag == null || !songsToTag.Any())
             return;
 
