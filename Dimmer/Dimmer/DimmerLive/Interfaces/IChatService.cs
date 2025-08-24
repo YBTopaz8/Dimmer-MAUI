@@ -11,6 +11,7 @@ public interface IChatService
 {
     Task<ChatConversation?> GetGeneralChatAsync();
     IObservable<IChangeSet<ChatConversation, string>> Conversations { get; }
+    IObservable<IChangeSet<ChatMessage, string>> Messages { get; }
 
     // Get a live stream of messages for a specific conversation
 
@@ -18,7 +19,7 @@ public interface IChatService
     Task<ChatConversation?> GetOrCreateConversationWithUserAsync(UserModelOnline otherUser);
 
     // Send a message
-    Task SendTextMessageAsync( string text);
+    Task SendTextMessageAsync( string text, string? receverObjectId = null);
 
     // The key feature: Share a song
     Task ShareSongAsync( SongModelView song, double position);

@@ -7,6 +7,7 @@ namespace Dimmer.DimmerLive.Models;
 [ParseClassName("ChatMessage")]
 public partial class ChatMessage : ParseObject
 {
+
     [ParseFieldName("conversation")]
     public ChatConversation Conversation
     {
@@ -14,28 +15,16 @@ public partial class ChatMessage : ParseObject
         set => SetProperty(value);
     }
 
-    [ParseFieldName("sender")]
-    public UserModelOnline Sender
-    {
-        get => GetProperty<UserModelOnline>();
-        set => SetProperty(value);
-    }
-    // This is a client-side only property. The [ParseIgnore] attribute
-    // tells the SDK not to try and save this field to the server.
-    public bool IsSentByMe
-    {
-        get
-        {
-            // Compare the sender's ObjectId with the current logged-in user's ObjectId.
-            // It's important to handle the case where either might be null.
-            var currentUserId = ParseUser.CurrentUser?.ObjectId;
-            var senderId = Sender?.ObjectId;
-            return !string.IsNullOrEmpty(currentUserId) && currentUserId == senderId;
-        }
-    }
 
     [ParseFieldName("Text")]
     public string Text
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("SongId")]
+    public string SongId
     {
         get => GetProperty<string>();
         set => SetProperty(value);

@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public partial class ParseChatService : ObservableObject, IChatService, IDisposable
 {
+    private readonly BaseViewModel _baseVM;
     private readonly IAuthenticationService _authService;
     private readonly ILogger<ParseChatService> _logger;
     private readonly ParseLiveQueryClient _liveQueryClient;
@@ -33,8 +34,10 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
     public ParseChatService(
         IAuthenticationService authService,
         ILogger<ParseChatService> logger,
+        BaseViewModel baseVM,
         ParseLiveQueryClient liveQueryClient)
     {
+        _baseVM = baseVM;
         _authService = authService;
         _logger = logger;
         _liveQueryClient = liveQueryClient;
@@ -86,8 +89,9 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
 
             _liveQueryClient.OnDisconnected
-                .Do(info =>
+                .Do(async info =>
                 {
+                    await _liveQueryClient.ReconnectAsync();
                     IsConnectedToMessagesLQ=false;
                     Debug.WriteLine($"Server disconnected.{info.Reason}");
                 })
@@ -107,7 +111,10 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             {
                 _msgCache.AddOrUpdate(convo);
             });
-            _messageSub.On(Subscription.Event.Create, convo => _msgCache.AddOrUpdate(convo));
+            _messageSub.On(Subscription.Event.Create, convo =>
+            {
+                _msgCache.AddOrUpdate(convo);
+            });
             _messageSub.On(Subscription.Event.Update, convo => _msgCache.AddOrUpdate(convo));
             //_messageSub.On(Subscription.Event.Leave, convo => _msgCache.Remove(convo));
             _messageSub.On(Subscription.Event.Delete, convo => _msgCache.Remove(convo));
@@ -149,8 +156,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         {
             var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
                 .WhereEqualTo("conversation.objectId", conversation.ObjectId)
-                .Include(nameof(ChatMessage.Sender));
-
+                ;
             var initialMessages = await messageQuery.FindAsync();
             cache.Edit(updater => updater.AddOrUpdate(initialMessages));
 
@@ -181,7 +187,6 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
             var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
                 .WhereEqualTo("conversationId", conversation.ObjectId)
-                 .Include(nameof(ChatMessage.Sender))
                 .Include($"{nameof(ChatMessage.SharedSong)}.uploader"); // Include nested pointers
 
 
@@ -217,8 +222,14 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             return messageCache.Connect();
         }
     }
-    public async Task SendTextMessageAsync(string text)
+
+   public string Username =>
+        DeviceInfo.Current.Platform + DeviceInfo.VersionString + DeviceInfo.Manufacturer;
+    public async Task SendTextMessageAsync(string text, string? receverObjectId = null)
     {
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+        receverObjectId = receverObjectId ?? ParseClient.Instance.CurrentUser.ObjectId;
         try
         {
             if ( string.IsNullOrWhiteSpace(text) || _authService.CurrentUserValue == null)
@@ -232,7 +243,9 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
                 MessageType = "Text",
                 
             };
-            
+            message["Username"]=
+        
+        DeviceInfo.Current.Platform + DeviceInfo.VersionString + DeviceInfo.Manufacturer;
             message["senderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
             message["UserSenderId"] = _authService.CurrentUserValue.ObjectId; // For Cloud Code use
 
@@ -246,18 +259,81 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         }
     }
 
-    public Task ShareSongAsync( SongModelView song, double position)
+
+    public static void GetSongMimeType(SongModelView song, out string mimeType, out string fileExtension)
     {
-        // This is a prime candidate for a Cloud Code function
-        var parameters = new Dictionary<string, object>
+        // Basic implementation based on file extension
+        fileExtension = Path.GetExtension(song.FilePath)?.ToLowerInvariant() ?? ".mp3";
+        switch (fileExtension)
         {
-            { "title", song.Title },
-            { "artist", song.ArtistName },
-            { "album", song.AlbumName },
-            { "position", position }
+            case ".mp3":
+                mimeType = "audio/mpeg";
+                break;
+            case ".wav":
+                mimeType = "audio/wav";
+                break;
+            case ".flac":
+                mimeType = "audio/flac";
+                break;
+            case ".aac":
+                mimeType = "audio/aac";
+                break;
+            default:
+                mimeType = "application/octet-stream"; // Fallback
+                break;
+        }
+    }
+
+    public async Task ShareSongAsync( SongModelView song, double position)
+    {
+
+        // save songFile Parse
+        
+        var stream = await File.ReadAllBytesAsync(song.FilePath);
+
+        GetSongMimeType(song, out var mimeType, out var fileExtension);
+
+        ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
+
+        await songFile.SaveAsync(ParseClient.Instance);
+
+        // Create the DimmerSharedSong object
+        DimmerSharedSong newSong = new()
+        {
+            Title = song.Title,
+            ArtistName = song.ArtistName,
+            AlbumName = song.AlbumName,
+            DurationSeconds = song.DurationInSeconds,
+            GenreName = song.GenreName,
+            IsFavorite = song.IsFavorite,
+            IsPlaying = _baseVM.IsPlaying,
+            SharedPositionInSeconds = position,
+            
+
+            
         };
 
-        return ParseClient.Instance.CallCloudCodeFunctionAsync<string>("shareSongInChat", parameters);
+        newSong.AudioFile = songFile;
+        newSong.Uploader = _authService.CurrentUserValue;
+        newSong.AudioFileUrl =songFile.Url; // For Cloud Code use
+        newSong.AudioFileName =songFile.Name; // For Cloud Code use
+        newSong.AudioFileMimeType =songFile.MimeType; // For Cloud Code use
+
+        await newSong.SaveAsync();
+
+        ChatMessage newMsg = new()
+        {
+            //Sender = _authService.CurrentUserValue,
+            Text = $"Shared a song: {song.Title} by {song.ArtistName}",
+            MessageType = "SongShare",
+            SharedSong = newSong
+        };
+        newMsg["songId"] = newSong.ObjectId; 
+        newMsg.SongId= newSong.ObjectId;
+
+
+       await  newMsg.SaveAsync();
+
     }
 
     public void StopListeners()

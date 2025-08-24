@@ -29,11 +29,8 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
     public ReadOnlyObservableCollection<ChatConversation> Conversations => _conversations;
 
     private ReadOnlyObservableCollection<ChatMessage> _messages;
-    public ReadOnlyObservableCollection<ChatMessage> Messages
-    {
-        get => _messages;
-        private set => this.RaiseAndSetIfChanged(ref _messages, value); // Use ReactiveUI for this
-    }
+    public ReadOnlyObservableCollection<ChatMessage> Messages => _messages;
+   
 
     [ObservableProperty]
     public partial ObservableCollection<UserModelOnline> UserSearchResults { get; set; }
@@ -67,13 +64,21 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
             .Bind(out _conversations)
             .Subscribe()
             .DisposeWith(_disposables);
+        _chatService.Messages.
+            ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out _messages)
+            .Subscribe( t =>
+            {
+                Debug.WriteLine(t.Adds);
+                Debug.WriteLine(t.Refreshes);
+                Debug.WriteLine(t.Moves);
+                Debug.WriteLine(t.Removes);
+                Debug.WriteLine(t.Capacity);
+                Debug.WriteLine(_messages.Count);
+            })
+            .DisposeWith(_disposables);
 
-        this.WhenAnyValue(vm => vm.SelectedConversation)
-      .Select(convo => _chatService.GetMessagesForConversation(convo)) // Get the message stream
-      .Switch() // Unsubscribe from the old stream, subscribe to the new one
-      .Bind(out _messages) // Bind the results to the UI collection
-      .Subscribe();
-
+      
         // Start chat listeners automatically
         //_chatService.StartListeners();
     }

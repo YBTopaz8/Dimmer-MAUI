@@ -1,5 +1,7 @@
 ﻿using ATL;
 
+using SkiaSharp;
+
 namespace Dimmer.Utilities.FileProcessorUtils;
 public interface ICoverArtService
 {
@@ -252,4 +254,115 @@ public class CoverArtService : ICoverArtService
         var hashBytes = sha256.ComputeHash(data);
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
+
+        public static string? CreateStoryImageAsync(SongModelView selectedSong , string? SaveTo=null)
+        {
+            // 1. Validate input
+            if (selectedSong == null || string.IsNullOrWhiteSpace(selectedSong.FilePath) || !File.Exists(selectedSong.FilePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                // 2. Extract embedded picture using ATL
+                var track = new Track(selectedSong.FilePath);
+                PictureInfo? picInfo = track.EmbeddedPictures.FirstOrDefault();
+                if (picInfo == null || picInfo.PictureData == null || picInfo.PictureData.Length == 0)
+                {
+                    // No album art found
+                    return null;
+                }
+
+                byte[] imageData = picInfo.PictureData;
+
+                // 3. Load the original image into a SkiaSharp bitmap
+                using SKBitmap originalBitmap = SKBitmap.Decode(imageData);
+                if (originalBitmap == null)
+                {
+                    return null;
+                }
+
+                // 4. Define target and watermark properties
+                const int targetSize = 1080; // Standard square size for Instagram/Facebook
+                var watermarkText = "Dimmer by YBTopaz8";
+                var padding = 40;
+
+                // 5. Create the final canvas and bitmap
+                // This will be our 1080x1080 canvas to draw on.
+                using var finalBitmap = new SKBitmap(targetSize, targetSize);
+                using var canvas = new SKCanvas(finalBitmap);
+
+                // Optional: Clear with a black background in case the image doesn't fill the canvas
+                canvas.Clear(SKColors.Black);
+
+                // 6. Calculate aspect-ratio-preserving "center-crop" dimensions
+                float scale = Math.Max((float)targetSize / originalBitmap.Width, (float)targetSize / originalBitmap.Height);
+                float scaledWidth = originalBitmap.Width * scale;
+                float scaledHeight = originalBitmap.Height * scale;
+                float left = (targetSize - scaledWidth) / 2;
+                float top = (targetSize - scaledHeight) / 2;
+
+                var destRect = new SKRect(left, top, left + scaledWidth, top + scaledHeight);
+
+                // Draw the original image onto the canvas, scaled and centered
+                canvas.DrawBitmap(originalBitmap, destRect);
+
+                // 7. Add the watermark with a shadow effect
+                using var textPaint = new SKPaint
+                {
+                    TextSize = 48,
+                    Color = SKColors.White,
+                    IsAntialias = true,
+                    Typeface =  SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)
+                };
+
+                // For the shadow, we use a built-in image filter which looks much better
+                textPaint.ImageFilter = SKImageFilter.CreateDropShadow(
+                    dx: 2.0f,
+                    dy: 2.0f,
+                    sigmaX: 3.0f,
+                    sigmaY: 3.0f,
+                    color: SKColors.Black.WithAlpha(200));
+
+                // Measure the text to position it correctly
+                var textBounds = new SKRect();
+                textPaint.MeasureText(watermarkText);
+
+                // Position watermark in the bottom-right corner
+                float textX = targetSize - textBounds.Width - padding;
+                // SkiaSharp's DrawText y-coordinate is the baseline, so we adjust for that
+                float textY = targetSize - padding;
+
+                canvas.DrawText(watermarkText, textX, textY, SKTextAlign.Right,new SKFont() { Embolden=true},textPaint);
+
+            // 8. Save the final image to a temporary file
+            string tempFilePath =string.Empty;
+            if (string.IsNullOrEmpty(SaveTo))
+            {
+             tempFilePath= Path.Combine(Path.GetTempPath(), $"story_{Guid.NewGuid()}.png");
+
+            }
+            else
+            {
+                tempFilePath=    SaveTo;
+            }
+            // Encode the final bitmap as a PNG
+            using var image = SKImage.FromBitmap(finalBitmap);
+                using var data = image.Encode(SKEncodedImageFormat.Png, 90); // Quality 0-100
+
+                // Asynchronously write the data to the file
+
+                using var stream = File.OpenWrite(tempFilePath);
+                 data.SaveTo(stream);
+
+                return tempFilePath;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error creating story image for {selectedSong.FilePath}: {ex.Message}");
+                return null;
+            }
+        }
+    
 }

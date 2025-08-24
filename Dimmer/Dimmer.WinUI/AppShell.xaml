@@ -138,7 +138,13 @@ IsVisible="True">
         HorizontalTextAlignment="Justify" LineBreakMode="WordWrap"
                  FontAttributes="Bold"
      Text="{Binding CurrentPlayingSongView.Title}" FontSize="21">
-
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Share Song" IconImageSource="shared.png"
+                                                   Command="{Binding }" />
+                                    <MenuFlyoutItem Text="Share Title Only" IconImageSource="textitalicsquare.png"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
 
                         </Label>
                         <HorizontalStackLayout HorizontalOptions="Center">

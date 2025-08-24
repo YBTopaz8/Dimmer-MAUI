@@ -1,10 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 
+using Dimmer.DimmerLive.Interfaces.Implementations;
 using Dimmer.DimmerSearch.Interfaces;
 
 using DynamicData;
 
+using Microsoft.Maui;
+
 using ReactiveUI;
+
+using Syncfusion.Maui.Toolkit.NavigationDrawer;
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +22,7 @@ namespace Dimmer.ViewModel;
 public partial class SessionTransferViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionManagerService _sessionManager;
-    private readonly BaseViewModel _mainViewModel; // To get current song state
+    private  BaseViewModel _mainViewModel; // To get current song state
     private readonly ILogger<SessionTransferViewModel> _logger;
     private readonly CompositeDisposable _disposables = new();
 
@@ -57,9 +62,23 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
         // In a real app, this would be tied to page appearing/disappearing
         _sessionManager.StartListeners();
     }
-
     [RelayCommand]
-    private async Task TransferToDevice(UserDeviceSession targetDevice)
+    public async Task RegisterCurrentDeviceAsync()
+    {
+        try
+        {
+            StatusMessage = "Registering device...";
+            await _sessionManager.RegisterCurrentDeviceAsync();
+            StatusMessage = "Device registered successfully!";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Error registering device.";
+            _logger.LogError(ex, "Failed to register device for session transfer.");
+        }
+    }
+
+    public async Task TransferToDevice(UserDeviceSession targetDevice,SongModelView song)
     {
         if (targetDevice == null || _mainViewModel.CurrentPlayingSongView == null)
         {
@@ -69,13 +88,19 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
 
         IsTransferInProgress = true;
         StatusMessage = $"Sending session to {targetDevice.DeviceName}...";
+ 
+      
 
-        // Create the shared song object
-        var songState = new DimmerSharedSong { /* map properties from _mainViewModel.CurrentPlayingSongView */ };
+        var stream = await File.ReadAllBytesAsync(song.FilePath);
 
-        await _sessionManager.InitiateSessionTransferAsync(targetDevice, songState);
+        ParseChatService.GetSongMimeType(song, out var mimeType, out var fileExtension);
 
-        StatusMessage = "Session transfer initiated!";
+        ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
+
+        await songFile.SaveAsync(ParseClient.Instance);
+
+        await _sessionManager.InitiateSessionTransferAsync(targetDevice, null);
+
         IsTransferInProgress = false;
     }
 

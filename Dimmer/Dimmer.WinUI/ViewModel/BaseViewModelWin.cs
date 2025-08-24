@@ -1,9 +1,9 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
 
 using CommunityToolkit.Maui.Storage;
-using Window = Microsoft.UI.Xaml.Window;
 
 using Dimmer.Data.Models;
+using Dimmer.Data.ModelView.DimmerSearch;
 using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.DimmerSearch.TQL.TQLCommands;
@@ -12,8 +12,6 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.LastFM;
 using Dimmer.Utilities.FileProcessorUtils;
-
-
 // Assuming SkiaSharp and ZXing.SkiaSharp are correctly referenced for barcode scanning
 
 // Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
@@ -26,12 +24,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.UI.Xaml.Controls;
 
+using Realms;
+
 using System.Threading.Tasks;
 
-using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
-using Dimmer.Data.ModelView.DimmerSearch;
 using WinUI.TableView;
+
+using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using TableView = WinUI.TableView.TableView;
+using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.ViewModel; 
 
@@ -340,4 +341,281 @@ public partial class BaseViewModelWin: BaseViewModel
         ScheduleVisibleCountUpdate();
     }
 
+    public async Task ApplyCurrentImageToMainArtist(SongModelView? selectedSong)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+            var album = songInDb.Album;
+            var songArtist = songInDb.Artist;
+            if (album is null || songArtist is null)
+            {
+                return;
+            }
+
+            songArtist.ImagePath= songInDb.CoverImagePath;
+
+            // save changes
+
+            realm.Add(songArtist, update: true);
+
+
+        });
+
+
+    }
+
+    [RelayCommand]
+    public async Task PickAndApplyImageToSong(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        var result = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select an image",
+            FileTypes = FilePickerFileType.Images,
+        });
+        if (result is null)
+        {
+            return;
+        }
+
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+
+            songInDb.CoverImagePath = result.FullPath;
+
+            // save changes
+
+            realm.Add(songInDb, update: true);
+
+
+        });
+
+
+    }
+
+    [RelayCommand]
+    public async Task ApplCurrentImageToSong(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+
+            songInDb.CoverImagePath = selectedSong.CoverImagePath;
+
+            // save changes
+
+            realm.Add(songInDb, update: true);
+
+
+        });
+
+
+    }
+
+    [RelayCommand]
+    public async Task ApplyCurrentImageToAllSongsInAlbum(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+
+        await realm.WriteAsync(() =>
+        {
+            var songInDb = realm.Find<SongModel>(selectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+            var album = songInDb.Album;
+            var songsInAlbum = songInDb.Album.SongsInAlbum;
+            if (album is null || songsInAlbum is null)
+            {
+                return;
+            }
+            foreach (var song in songsInAlbum)
+            {
+                song.CoverImageBytes = songInDb.CoverImageBytes;
+                song.CoverImagePath = songInDb.CoverImagePath;
+            }
+
+            // save changes
+
+            realm.Add(songInDb, update: true);
+
+
+        });
+
+    }
+
+    [RelayCommand]
+
+    public async Task ShareCurrentPlayingAsStoryInCardLikeGradient(SongModelView? selectedSong)
+    {
+
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+
+        // first create the image with SkiaSharp
+        var imagePath = CoverArtService.CreateStoryImageAsync(SelectedSong,null);
+        if (string.IsNullOrEmpty(imagePath))
+        {
+            await Shell.Current.DisplayAlert("Error", "Failed to create story image.", "OK");
+            return;
+        }
+        // then share it
+        ShareFileRequest request = new ShareFileRequest
+        {
+            Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
+            File = new ShareFile(imagePath),
+        };  
+        await Share.RequestAsync(request);
+
+
+
+
+    }
+
+
+    internal async Task SaveCurrentCoverToDisc(SongModelView? selectedSong)
+    {
+        // save current cover to disc using file saver in pictures folder
+        if (selectedSong is null)
+        {
+            if (SelectedSong is null)
+            {
+                SelectedSong = CurrentPlayingSongView;
+            }
+            else
+            {
+                SelectedSong = SongColView.SelectedItem as SongModelView;
+            }
+        }
+        else
+        {
+            SelectedSong = selectedSong;
+        }
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        // Save the image to the Pictures folder with a unique name
+
+        var fileName = $"{SelectedSong.Title}_{SelectedSong.ArtistName}.jpg";
+        // Use FileSaver from CommunityToolkit.Maui.Storage
+        
+
+        var bytess = File.ReadAllBytes(SelectedSong.CoverImagePath);
+        var stream = new MemoryStream(bytess);
+        var result = await FileSaver.Default.SaveAsync(fileName, SelectedSong.CoverImagePath,stream);
+
+        if (result.IsSuccessful)
+        {
+
+            ShareFileRequest request = new ShareFileRequest
+            {
+                Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
+                File = new ShareFile(result.FilePath),
+            };
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to save image: {result.Exception.Message}", "OK");
+        }
+
+    }
 }

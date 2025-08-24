@@ -4,6 +4,7 @@ using Microsoft.Maui.Platform;
 
 using Syncfusion.Maui.Toolkit.Charts;
 
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Dimmer.WinUI.Views.SingleSongPages;
@@ -418,13 +419,62 @@ public partial class SingleSongPage : ContentPage
         await MyViewModel.LoadSelectedSongLastFMData();
     }
 
-    private void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
+    private async void ViewSongDetails_PointerPressed(object sender, PointerEventArgs e)
     {
-
+        await SongDetailsPopup.ShowAsync();
     }
 
     private void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
 
+    }
+
+    private async void SaveCurrentCoverToDisc_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.SaveCurrentCoverToDisc(MyViewModel.SelectedSong);
+
+    }
+
+    private async void ApplyCurrentImageToAllSongsInAlbum_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.ApplyCurrentImageToAllSongsInAlbum(MyViewModel.SelectedSong);
+
+    }
+
+    private async void ApplyCurrentImageToMainArtist_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.ApplyCurrentImageToMainArtist(MyViewModel.SelectedSong);
+    }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void OpenFileInFileExplorer_Clicked(object sender, EventArgs e)
+    {
+
+        // open AND select the file in file explorer
+
+        var song = MyViewModel.SelectedSong;
+        if (song is null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
+        {
+            string argument = "/select, \"" + song.FilePath + "\"";
+            System.Diagnostics.Process.Start("explorer.exe", argument);
+            
+            return;
+        }
+
+
+    }
+
+    private async void ApplyCurrentImageToCurrentPlayingSong_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.ApplyCurrentImageToAllSongsInAlbum(MyViewModel.CurrentPlayingSongView);
     }
 }

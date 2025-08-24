@@ -318,70 +318,95 @@ public sealed partial class AllSongsWindow : Window
         // Only get suggestions if the user is typing
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            // Get the cursor position to provide context-aware suggestions
             var internalTextBox = VisualTreeHelpers.FindChildOfType<TextBox>(sender);
             if (internalTextBox == null)
                 return;
 
-            // Now we can get the caret position from the internal TextBox
             var cursorPosition = internalTextBox.SelectionStart;
 
-            var suggestions = AutocompleteEngine.GetSuggestions(_liveArtists, _liveAlbums, _liveGenres, sender.Text, cursorPosition);
+            // Get suggestions based on the current text fragment
+            var suggestions = AutocompleteEngine.GetSuggestions(
+                _liveArtists, _liveAlbums, _liveGenres, sender.Text, cursorPosition);
             sender.ItemsSource = suggestions;
         }
 
-        MyViewModel.SearchSongSB_TextChanged(sender.Text);
+            MyViewModel.SearchSongSB_TextChanged(sender.Text);
     }
 
     private void SearchAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {  // --- MODIFIED: Use the helper here as well ---
-        var internalTextBox = VisualTreeHelpers.FindChildOfType<TextBox>(sender);
-        if (internalTextBox == null)
-            return;
-
+       // 1. Find the start of the word the user is currently typing.
         string currentText = sender.Text;
-        // We get the position BEFORE the text is changed by the suggestion being chosen.
-        int cursorPosition = internalTextBox.SelectionStart;
+        int wordStart = FindWordStart(currentText);
 
-        int wordStart;
-        if (cursorPosition <= 0)
+        // 2. Extract the prefix (e.g., "artist:", "title:"). The prefix is everything
+        //    from the start of the word up to the last separator (like ':').
+        string currentWordFragment = currentText.Substring(wordStart);
+        int separatorIndex = currentWordFragment.LastIndexOf(':');
+
+        string fullChip;
+        if (separatorIndex != -1)
         {
-            // Edge Case 1: Cursor is at the very beginning. The word must start at 0.
-            wordStart = 0;
+            // Case: A prefix exists, like "artist:".
+            string prefix = currentWordFragment.Substring(0, separatorIndex + 1);
+            // Combine prefix with the chosen suggestion.
+            fullChip = prefix + args.SelectedItem.ToString();
         }
         else
         {
-            // Start searching from the character *before* the cursor.
-            // We use Math.Min to ensure we don't go past the end of the string if the
-            // cursor position is somehow invalid.
-            int searchStartIndex = Math.Min(cursorPosition - 1, currentText.Length - 1);
+            // Case: No prefix, it's a simple word.
+            fullChip = args.SelectedItem.ToString();
+        }
 
-            int separatorIndex = currentText.LastIndexOfAny(new char[] { ' ', ':', '(' }, searchStartIndex);
+    }
+    private void SearchAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        {
+            string queryText = "";
 
-            if (separatorIndex == -1)
+            if (args.ChosenSuggestion != null)
             {
-                // Edge Case 2: No separator was found behind the cursor. The word starts at the beginning of the string.
-                // Example: User typed "artist" and cursor is at the end.
-                wordStart = 0;
+                // This case is already handled by SuggestionChosen, but we can leave it
+                // and just let that handler do its work. No extra code needed here for this case.
             }
-            else
+            else if (!string.IsNullOrWhiteSpace(args.QueryText))
             {
-                // Normal Case: A separator was found. The word starts one character after it.
-                // Example: User typed "fav:tr" and cursor is at the end. separatorIndex points to ':'.
-                wordStart = separatorIndex + 1;
+                // User typed text and pressed Enter without choosing a suggestion.
+                // Treat the text as a new chip.
+                queryText = args.QueryText;
+                MyViewModel.QueryChips.Add(queryText);
+
+                // Clear the box and trigger the search
+                sender.Text = string.Empty;
+                MyViewModel.TriggerSearch(string.Empty);
             }
         }
-        // Build the new text string
-        string newText = currentText.Substring(0, wordStart) + args.SelectedItem.ToString();
-
-        // Set the text in the AutoSuggestBox
-        sender.Text = newText;
-
-        // --- IMPORTANT: Manually set the caret position to the end of the newly inserted text ---
-        // This provides a much better user experience.
-        internalTextBox.SelectionStart = newText.Length;
     }
 
+
+    // --- HELPER METHOD to find the start of the current word ---
+    // This is a more robust version of the logic you had.
+    private int FindWordStart(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return 0;
+        }
+
+        // We look for a space, which separates our query "chips".
+        int lastSeparator = text.LastIndexOf(' ');
+
+        if (lastSeparator == -1)
+        {
+            // No space found, the word starts at the beginning.
+            return 0;
+        }
+        else
+        {
+            // The word starts one character after the last space.
+            return lastSeparator + 1;
+        }
+    }
     private void Grid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
         // Get the Grid that was right-clicked
@@ -406,47 +431,8 @@ public sealed partial class AllSongsWindow : Window
         return string.Format(format, arg);
     }
 
-    private void SearchAutoSuggestBox_CharacterReceived(UIElement sender, CharacterReceivedRoutedEventArgs args)
-    {
-        var charRec = args.Character;
-        Debug.WriteLine($"Char received: {charRec}");
-        //if the character is Enter, then execute the search
-        if (charRec == '\r' || charRec == '\n')
-        {
-
-            var suggestBox = sender as AutoSuggestBox;
-
-            if (suggestBox  == null)
-                return;
-
-
-
-            // 1. Get the current text from the search box.
-            string queryText = suggestBox.Text;
-
-            // 2. A simple way to create "chips": split the query by spaces.
-            //    This handles simple cases like "fav:true desc played" very well.
-            //    We filter out any empty strings that might result from multiple spaces.
-            var newChips = queryText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            // 3. Add these new string chips to our ViewModel's collection.
-            foreach (var chip in newChips)
-            {
-                MyViewModel.QueryChips.Add(chip);
-            }
-
-            // 4. Reconstruct the full query string from ALL the chips (old and new).
-            string fullQuery = string.Join(" ", MyViewModel.QueryChips);
-
-            // 5. Trigger the search with the complete query.
-            //    We don't call SearchSongSB_TextChanged here because that's for live updates.
-            //    We use the _searchQuerySubject directly for the final, full query.
-            MyViewModel.TriggerSearch(fullQuery); // We will add this helper to the ViewModel
-
-            // 6. Clear the search box for the next input.
-            suggestBox.Text = string.Empty;
-        }
-    }
+  
+    
     public class QueryComponentTemplateSelector : DataTemplateSelector
     {
         public DataTemplate? FilterTemplate { get; set; }
@@ -605,5 +591,20 @@ public sealed partial class AllSongsWindow : Window
     private void MySongsTableView_ExportSelectedContent(object sender, TableViewExportContentEventArgs e)
     {
 
+    }
+
+    private void SearchAutoSuggestBox_QuerySubmitted_1(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+
+    }
+
+    private void RemoveChipButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is string chipToRemove)
+        {
+            MyViewModel.QueryChips.Remove(chipToRemove);
+            // The CollectionChanged event in the ViewModel will automatically trigger a new search.
+        }
+        //MyViewModel.QueryChips.Remove(e.);
     }
 }

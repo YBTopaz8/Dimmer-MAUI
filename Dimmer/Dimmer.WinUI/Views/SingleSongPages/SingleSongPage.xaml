@@ -450,6 +450,7 @@ VerticalOptions="Center" />
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"
                                             Text="{Binding SelectedSong.AlbumName}" />
 
+                    <Image Source="lyrics.png" HeightRequest="60" IsVisible="{Binding SelectedSong.SyncLyrics.Length, Converter={converters:CollectionSizeToVisibility}}"/>
 
                 </HorizontalStackLayout>
                 <Button BorderWidth="1"
@@ -1155,22 +1156,55 @@ WidthRequest="700"
                                             Text="{Binding SelectedSong.AlbumName}"/>
                                 
                                 
-                                <HorizontalStackLayout>
-                                    <syncf:SfChip
-                                        ImageSource="searchh.png"
+                                <HorizontalStackLayout Spacing="15">
+                                    <ImageButton
+                                        Source="searchd.png"
                                         Clicked="SearchSongOnline_Clicked" 
                                         
-                                        x:Name="SearchSongOnline"/>
-                                    <syncf:SfChip ImageSource="folderopen.png"
+                                        x:Name="SearchSongOnline">
+                                        <ImageButton.Behaviors>
+                                            <toolkit:IconTintColorBehavior
+                                                TintColor="DarkSlateBlue"/>
+                                        </ImageButton.Behaviors>
+                                    </ImageButton>
+                                    <ImageButton Source="folderopen.png"
               Command="{Binding PickSongImageFromFolderCommand}"
-              x:Name="PickSongImageFromFolder"/>
+              x:Name="PickSongImageFromFolder">
+                                        <ImageButton.Behaviors>
+                                            <toolkit:IconTintColorBehavior
+        TintColor="DarkSlateBlue"/>
+                                        </ImageButton.Behaviors>
+                                    </ImageButton>
+
+                                    <ImageButton Source="savea.png"
+                                                 x:Name="SaveCurrentCoverToDisc"
+                                                 Clicked="SaveCurrentCoverToDisc_Clicked"
+                                                 >
+                                        <ImageButton.Behaviors>
+                                            <toolkit:IconTintColorBehavior
+        TintColor="DarkSlateBlue"/>
+                                        </ImageButton.Behaviors>
+                                    </ImageButton>
                                 </HorizontalStackLayout>
 
                                 <HorizontalStackLayout Spacing="40">
                                     <VerticalStackLayout>
+                                        <FlyoutBase.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="Apply This Image To Current Playing Song"
+                                                                x:Name="ApplyCurrentImageToCurrPlayingSong"
+                                                                Clicked="ApplyCurrentImageToCurrentPlayingSong_Clicked"/>
+                                                <MenuFlyoutItem Text="Apply This Image To All Songs In Album"
+                                                                x:Name="ApplyCurrentImageToAllSongsInAlbum"
+                                                                Clicked="ApplyCurrentImageToAllSongsInAlbum_Clicked"/>
+                                                <MenuFlyoutItem Text="Apply This Image To Main Artist In Album"
+                                                                x:Name="ApplyCurrentImageToMainArtist"
+                                                                Clicked="ApplyCurrentImageToMainArtist_Clicked"/>
+                                            </MenuFlyout>
+                                        </FlyoutBase.ContextFlyout>
                                         <Label Text="Current Image" FontSize="Header"/>
-                                        <Image HeightRequest="400"
-                                               WidthRequest="400"
+                                        <Image HeightRequest="500"
+                                               WidthRequest="500"
                                                Source="{Binding SelectedSong.CoverImagePath}"/>
                                     </VerticalStackLayout>
                                     <VerticalStackLayout>
@@ -1212,5 +1246,78 @@ WidthRequest="700"
 
             </syncf:SfTabView>
         </Grid>
+
+        <chart:SfPopup x:Name="SongDetailsPopup" >
+            <chart:SfPopup.HeaderTemplate>
+                <DataTemplate>
+                    <VerticalStackLayout 
+                        >
+                        <Label Text="Song Details" FontSize="20"/>
+
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </chart:SfPopup.HeaderTemplate>
+            <syncf:SfPopup.ContentTemplate>
+                <DataTemplate>
+                    <Border >
+                        
+                     <VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="" Grid.Column="0"/>
+                            <Label Text="{Binding SelectedSong.Title}" Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="" Grid.Column="0"/>
+                            <Label Text="{Binding SelectedSong.ArtistName}" Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="" Grid.Column="0"/>
+                            <Label Text="{Binding SelectedSong.AlbumName}" Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="" Grid.Column="0"/>
+                            <Label Text="{Binding SelectedSong.OtherArtistsName}" Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="File Path" Grid.Column="0"/>
+                            <Button BackgroundColor="Transparent" 
+                                    Clicked="OpenFileInFileExplorer_Clicked"
+                                    x:Name="OpenFileInFileExplorer"
+                                    ToolTipProperties.Text="{Binding SelectedSong.FilePath}"
+                                    Text="{Binding SelectedSong.FilePath}" Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="Cover Image" Grid.Column="0"/>
+                            <ImageButton Source="{Binding SelectedSong.CoverImagePath}" 
+                                         Clicked="SaveCurrentCoverToDisc_Clicked" 
+                                    ToolTipProperties.Text="{Binding SelectedSong.CoverImagePath}"
+                                         Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="" Grid.Column="0"/>
+                            <ImageButton Source="{Binding SelectedSong.DurationInSeconds,Converter={converters:DurationConverterFromMsToTimeSpan}}" 
+                                         Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="Total Dims" Grid.Column="0"/>
+                            <ImageButton Source="{Binding SelectedSong.PlayCompletedCount}" 
+                                         Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="Last Played" Grid.Column="0"/>
+                            <ImageButton Source="{Binding SelectedSong.LastPlayed, Converter={converters:DateTimeOffsetToLocalDateConverter}}" 
+                                         Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="Skip Count" Grid.Column="0"/>
+                            <ImageButton Source="{Binding SelectedSong.SkipCount}" 
+                                         Grid.Column="1"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    </Border>
+                </DataTemplate>
+            </syncf:SfPopup.ContentTemplate>
+        </chart:SfPopup>
     </Grid>
 </ContentPage>

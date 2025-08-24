@@ -75,6 +75,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         {
             var otherDevices = await ParseClient.Instance.CallCloudCodeFunctionAsync<IList<UserDeviceSession>>("getMyDeviceSessions", new Dictionary<string, object>());
 
+            otherDevices = otherDevices.DistinctBy(x => x.DeviceName).ToList();
             // The cloud function getMyDeviceSessions should already exclude the current device if we modify it.
             // Or we can filter client-side.
             _otherDevicesCache.Edit(update => {
@@ -95,7 +96,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         try
         {
             var parameters = new Dictionary<string, object> { { "deviceName", DeviceInfo.Name } };
-            await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("markSessionInactive", parameters);
+            await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>("markSessionInactive", parameters);
             _logger.LogInformation("Marked this device session as inactive.");
         }
         catch (Exception ex)
@@ -118,11 +119,13 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         {
             // 1. Tell the server to make the target device the new active one.
             var parameters = new Dictionary<string, object> { { "selectedDeviceSessionObjectId", targetDevice.ObjectId } };
-            await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("setActiveChatDevice", parameters);
+            await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>("setActiveChatDevice", parameters);
 
             // 2. Save the song state object to get a pointer
             await currentSongState.SaveAsync();
             var songPointer = ParseClient.Instance.CreateObjectWithoutData<DimmerSharedSong>(currentSongState.ObjectId);
+
+            
 
             // 3. Create and send the transfer message
             var message = new ChatMessage
@@ -131,7 +134,6 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
                 MessageType = "SessionTransfer",
                 UserSenderId = _authService.CurrentUserValue!.ObjectId,
                 UserName = _authService.CurrentUserValue!.Username,
-                SharedSong = songPointer,
                 TargetDeviceSessionId = targetDevice.ObjectId, 
             };
 
@@ -167,7 +169,9 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             .WhereEqualTo("targetDeviceSessionId", _thisDeviceSession.ObjectId); // **Listen only for messages targeting this specific device**
 
         _messageSubscription = _liveQueryClient.Subscribe(messageQuery);
-        _messageSubscription.On(Subscription.Event.Create, OnSessionTransferMessageReceived);
+        _messageSubscription.On(
+            Subscription.Event.Create,
+            OnSessionTransferMessageReceived);
     }
 
 

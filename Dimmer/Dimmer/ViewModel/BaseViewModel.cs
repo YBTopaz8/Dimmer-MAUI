@@ -121,7 +121,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        
 
         // Use a single, large write transaction for performance.
-       await realm.WriteAsync(() =>
+       await realm.WriteAsync(async () =>
         {
             var songsToUpdate = realm.All<SongModel>();
 
@@ -130,19 +130,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 // Check if the object is still valid before working on it
                 if (song.IsValid)
                 {
-                    var playEvents = song.PlayHistory; // This is a live list
-
-                    if (playEvents.Count>0)
+                    // 1. Update Play Counts and Last Played
+                    if (song.PlayHistory?.Count>0)
                     {
-                        song.PlayCount = playEvents.Count;
-                        song.PlayCompletedCount = playEvents.Count(p => p.PlayType == (int)PlayType.Completed);
+                        song.PlayCount = song.PlayHistory.Count;
+                        song.PlayCompletedCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
 
-                        var lastPlayEvent = playEvents
+                        var lastPlayEvent = song.PlayHistory
                             .Where(p => p.PlayType == (int)PlayType.Completed)
                             .OrderByDescending(p => p.EventDate)
                             .FirstOrDefault();
+                        if (lastPlayEvent is not null)
+                        {
+                            song.LastPlayed = lastPlayEvent.EventDate;
+                        }
 
-                        song.LastPlayed = lastPlayEvent is null ? DateTimeOffset.MinValue: lastPlayEvent.EventDate; // Use null if no completed plays
+                        song.SkipCount = song.PlayHistory?.Count(x => x.PlayType == (int)PlayType.Skipped) ?? 0;
                     }
                     else
                     {
@@ -150,6 +153,33 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         song.PlayCompletedCount = 0;
                         song.LastPlayed = DateTimeOffset.MinValue;
                     }
+
+                    // 2. Update Aggregated Notes
+                    if (song.UserNotes.Count >0)
+                    {
+                        song.UserNoteAggregatedText = string.Join(" ", song.UserNotes.Select(n => n.UserMessageText));
+                    }
+                    else
+                    {
+                        song.UserNoteAggregatedText = null;
+                    }
+
+                    if (!string.IsNullOrEmpty(song.SearchableText))
+                        return;
+                    // 3. Update the main SearchableText field
+                    var sb = new StringBuilder();
+                    sb.Append(song.Title).Append(' ');
+                    sb.Append(song.OtherArtistsName).Append(' ');
+                    sb.Append(song.AlbumName).Append(' ');
+                    sb.Append(song.GenreName).Append(' ');
+                    sb.Append(song.SyncLyrics).Append(' ');
+                    sb.Append(song.UnSyncLyrics).Append(' ');
+                    sb.Append(song.Composer).Append(' ');
+                    sb.Append(song.UserNoteAggregatedText); // Include the notes in the "any" search
+
+                    song.SearchableText = sb.ToString().ToLowerInvariant();
+
+
                 }
             }
         });
@@ -879,8 +909,6 @@ _playbackQueueSource.Connect()
 
     //private BehaviorSubject<LimiterClause?> _limiterClause;
 
-    [ObservableProperty]
-    public partial string DebugMessage { get; set; } = string.Empty;
     [RelayCommand]
     public void SmolHold()
     {
@@ -924,12 +952,6 @@ _playbackQueueSource.Connect()
     private ReadOnlyObservableCollection<SongModelView> _playbackQueue;
     public ReadOnlyObservableCollection<SongModelView> PlaybackQueue => _playbackQueue;
     protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
-
-
-    [ObservableProperty]
-    public partial Label SongsCountLabel { get; set; }
-    [ObservableProperty]
-    public partial Label TranslatedSearch { get; set; }
 
 
 

@@ -110,64 +110,6 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
         TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
     }
 
-    internal async Task RefreshDenormalizedProperties(Realm? realm)
-    {
-        if (realm is null)
-            return;
-        await realm.WriteAsync(() =>
-        {
-          
-        // 1. Update Play Counts and Last Played
-        if (PlayHistory.Count>0)
-        {
-            PlayCount = PlayHistory.Count;
-            PlayCompletedCount = PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
-
-            var lastPlayEvent = PlayHistory
-                .Where(p => p.PlayType == (int)PlayType.Completed)
-                .OrderByDescending(p => p.EventDate)
-                .FirstOrDefault();
-            if (lastPlayEvent is not null)
-            {
-                LastPlayed = lastPlayEvent.EventDate;
-            }
-
-            SkipCount = PlayHistory?.Count(x => x.PlayType == (int)PlayType.Skipped) ?? 0;
-        }
-        else
-        {
-            PlayCount = 0;
-            PlayCompletedCount = 0;
-            LastPlayed = DateTimeOffset.MinValue;
-        }
-
-        // 2. Update Aggregated Notes
-        if (UserNotes.Count >0)
-        {
-            UserNoteAggregatedText = string.Join(" ", UserNotes.Select(n => n.UserMessageText));
-        }
-        else
-        {
-            UserNoteAggregatedText = null;
-        }
-
-            if (!string.IsNullOrEmpty(SearchableText))
-                return;
-        // 3. Update the main SearchableText field
-        var sb = new StringBuilder();
-        sb.Append(Title).Append(' ');
-        sb.Append(OtherArtistsName).Append(' ');
-        sb.Append(AlbumName).Append(' ');
-        sb.Append(GenreName).Append(' ');
-        sb.Append(SyncLyrics).Append(' ');
-        sb.Append(UnSyncLyrics).Append(' ');
-        sb.Append(Composer).Append(' ');
-        sb.Append(UserNoteAggregatedText); // Include the notes in the "any" search
-
-        SearchableText = sb.ToString().ToLowerInvariant();
-        });
-    }
-    
 
     public SongModel()
     {

@@ -702,7 +702,7 @@ namespace Dimmer.WinUI.Views;
 
     private void Button_Clicked_1(object sender, EventArgs e)
     {
-        SearchSongSB.Text=string.Empty;
+        MyViewModel.SearchSongSB_TextChanged(string.Empty);
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)

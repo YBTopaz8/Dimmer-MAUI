@@ -1,4 +1,5 @@
-﻿using Dimmer.ViewModel.DimmerLiveVM;
+﻿using Dimmer.DimmerLive.Models;
+using Dimmer.ViewModel.DimmerLiveVM;
 
 using System;
 using System.Collections.Generic;
@@ -9,11 +10,25 @@ using System.Threading.Tasks;
 namespace Dimmer.WinUI.ViewModel;
 public  partial class ChatViewModelWin : ChatViewModel
 {
+    private readonly IChatService chatService;
+    private readonly IFriendshipService friendshipService;
+    private readonly IAuthenticationService auth;
+    private readonly BaseViewModel baseViewModel;
+    private readonly SessionTransferViewModel sessionTransferViewModel;
+
+    public SessionTransferViewModel SessionTransferViewModel => sessionTransferViewModel;
+    public BaseViewModel BaseViewModel => baseViewModel;
+
     public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService, IAuthenticationService auth
-        ,BaseViewModel baseViewModel) : 
+        ,BaseViewModel baseViewModel , SessionTransferViewModel sessionTransferViewModel) : 
         base(chatService, friendshipService, auth, baseViewModel)
     {
         InitializeGeneralChat();
+        this.chatService=chatService;
+        this.friendshipService=friendshipService;
+        this.auth=auth;
+        this.baseViewModel=baseViewModel;
+        this.sessionTransferViewModel=sessionTransferViewModel;
     }
     private async void InitializeGeneralChat()
     {
@@ -34,5 +49,20 @@ public  partial class ChatViewModelWin : ChatViewModel
     private async Task GoToGeneralChat()
     {
          InitializeGeneralChat();
+    }
+
+    [RelayCommand]
+    private async Task OpenSessionTransfer()
+    {
+        await sessionTransferViewModel.RegisterCurrentDeviceAsync();
+    }
+    [RelayCommand]
+    public async Task TransferSessions(UserDeviceSession devv)
+    {
+        NewMessageText = $"Transfer To {devv.DeviceName}";
+        await SendMessageCommand.ExecuteAsync(null);
+        await sessionTransferViewModel.TransferToDevice(devv, baseViewModel.CurrentPlayingSongView);  
+
+        //await Shell.Current.GoToAsync("FriendsListPage");
     }
 }

@@ -18,14 +18,15 @@ public static class NaturalLanguageProcessor
 
     // "album is <album name>"
     (new Regex($@"album is {Value}", RegexOptions.IgnoreCase), @"album:$1"),
+    (new Regex($@"in album {Value}", RegexOptions.IgnoreCase), @"album:$1"),
 
     // Date-based queries
     (new Regex(@"added (today|yesterday|this week|last week)", RegexOptions.IgnoreCase), @"added:$1"),
     (new Regex(@"played (today|yesterday|this week|last week)", RegexOptions.IgnoreCase), @"played:$1"),
 
     // "favorite songs" or "my favorites"
-    (new Regex(@"favorite songs|my favorites|my favs|loved songs", RegexOptions.IgnoreCase), "fav:true"),
-    (new Regex(@"has lyrics|have lyrics", RegexOptions.IgnoreCase), "haslyrics:true"),
+    (new Regex(@"favorite songs|my favorites|my fav|my favs|loved songs", RegexOptions.IgnoreCase), "fav:true"),
+    (new Regex(@"has lyrics|have lyrics|with lyrics", RegexOptions.IgnoreCase), "haslyrics:true"),
         
     // "from the 90s" or "in the 80s" - handles 2 or 4 digit decades
     (new Regex(@"from the (\d{2,4})s", RegexOptions.IgnoreCase), "year:$10-$19"),

@@ -97,17 +97,25 @@ x:Name="myPage"
                 <StackPanel Orientation="Horizontal"
                             Spacing="10"
                         x:Name="TopPanel" HorizontalAlignment="Center">
-                    
-                <AutoSuggestBox
-    x:Name="SearchAutoSuggestBox"
-    PlaceholderText="Search with TQL..."
-    Width="450" 
-                    CharacterReceived="SearchAutoSuggestBox_CharacterReceived"
-                    
-    Text="{x:Bind MyViewModel.CurrentTqlQuery}"
-    TextChanged="SearchAutoSuggestBox_TextChanged"
-    SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
-
+                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.QueryChips}">
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border Background="LightGray" CornerRadius="4" Margin="2">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind}" Margin="8,4" VerticalAlignment="Center" />
+                                        <Button Grid.Column="1" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" 
+                            Click="RemoveChipButton_Click" DataContext="{x:Bind}"
+                            Background="Transparent" BorderThickness="0" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                   
 
 
                     <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center"
@@ -115,7 +123,7 @@ x:Name="myPage"
                                IsTextSelectionEnabled="True"
                            FocusVisualSecondaryBrush="OrangeRed"/>
                 </StackPanel>
-                <TextBlock FontSize="21" FontStretch="Expanded"
+                <TextBlock FontSize="25" FontStretch="Expanded"
  FontWeight="ExtraBold" FocusVisualPrimaryBrush="DarkSlateBlue"                        x:Name="SearchSongSB" HorizontalAlignment="Center"
                          CharacterReceived="SearchSongSB_CharacterReceived"
                          ContextMenuOpening="SearchSongSB_ContextMenuOpening"
@@ -125,9 +133,10 @@ x:Name="myPage"
                          SelectionChanged="SearchSongSB_SelectionChanged"
                              
                        />
+                <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center" />
 
                 <TextBlock Text="{Binding NLPQuery}" HorizontalAlignment="Center"/>
-                <TextBlock Text="{Binding DebugMessage}" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding GeneratedTqlQuery}" HorizontalAlignment="Center"/>
                 
 
                 <StackPanel Orientation="Horizontal" 
@@ -138,14 +147,25 @@ Spacing="10"
                     <TextBlock 
                             VerticalAlignment="Center"
                         
-                        Text="{x:Bind MyViewModel.SearchResults.Count}"/>
+                        Text="{Binding SearchResults.Count}"/>
               
                     <TextBlock 
         VerticalAlignment="Center"
         Text="Songs Found"/>
+
+
+
                 </StackPanel>
                 
                 
+                    <AutoSuggestBox
+x:Name="SearchAutoSuggestBox"
+PlaceholderText="Search with TQL..." QuerySubmitted="SearchAutoSuggestBox_QuerySubmitted"
+Width="450" 
+                
+Text="{x:Bind MyViewModel.CurrentTqlQuery}"
+TextChanged="SearchAutoSuggestBox_TextChanged"
+SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
             </StackPanel>
                 
                 

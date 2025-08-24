@@ -65,6 +65,27 @@ public class DimmerSharedSong : ParseObject
         set => SetProperty(value);
     }
 
+    [ParseFieldName("AudioFileUrl")]
+    public Uri AudioFileUrl
+    {
+        get => GetProperty<Uri>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("AudioFileName")]
+    public string AudioFileName
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("AudioFileMimeType")]
+    public string AudioFileMimeType
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
     [ParseFieldName("coverArtFile")]
     public ParseFile CoverArtFile
     {

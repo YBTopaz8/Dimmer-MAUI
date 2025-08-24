@@ -65,20 +65,60 @@ Shell.NavBarIsVisible="False">
         </VerticalStackLayout>
 
         <!-- Column 1: Message Area -->
-        <Grid Grid.Column="1" RowDefinitions="auto,*, Auto">
-            <VerticalStackLayout Grid.Row="1">
-                <Label Text="{Binding SelectedConversation.Name}" HorizontalTextAlignment="Center"
+        <Grid Grid.Column="1" RowDefinitions="auto,auto,*, Auto">
+            <Grid Grid.Row="0">
+
+                <VerticalStackLayout Grid.Row="0">
+                    <Label Text="{Binding SelectedConversation.Name}" HorizontalTextAlignment="Center"
                        FontSize="40">
-                    
-                </Label>
-            </VerticalStackLayout>
-            <CollectionView Grid.Row="1" ItemsSource="{Binding Messages}"
-                            >
+
+                    </Label>
+                    <Label Text="{Binding Messages.Count}"/>
+                    <Label Text="{Binding SessionTransferViewModel.StatusMessage}"/>
+                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[0].ObjectId}"/>
+                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[1].ObjectId}"/>
+                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[0].DeviceName}"/>
+                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[0].CreatedAt}"/>
+                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[1].DeviceName}"/>
+                    <Label Text="{Binding SessionTransferViewModel.OtherDevices[1].CreatedAt}"/>
+                </VerticalStackLayout>
+            </Grid>
+            <Grid Grid.Row="1" >
+                <CollectionView ItemsSource="{Binding SessionTransferViewModel.OtherDevices}">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Span="3"
+                                         Orientation="Horizontal"
+                                         HorizontalItemSpacing="3"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="modelOnline:UserDeviceSession">
+                            <Border StrokeThickness="1" Padding="10"
+                                    Stroke="DarkSlateBlue"
+                                    StrokeShape="RoundRectangle 20">
+                                <VerticalStackLayout>
+                                <Label Text="{Binding DeviceIdiom}"/>
+                                <Label Text="{Binding DeviceName}"/>
+                                <Label Text="{Binding DeviceOSVersion}"/>
+                                    <Button x:Name="TransferSessionToDevice"
+                                            Clicked="TransferSessionToDevice_Clicked"
+                                            Text="Transfer"/>
+                                </VerticalStackLayout>
+                            </Border>
+
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+            <CollectionView Grid.Row="2" ItemsSource="{Binding Messages}" 
+                            Header="{Binding Messages.Count}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="10" Orientation="Vertical"/>
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="{x:Type modelOnline:ChatMessage}">
-                        <Border Padding="8" Margin="5" StrokeShape="RoundRectangle 8" HorizontalOptions="{Binding IsSentByMe, Converter={StaticResource ChatBubbleAlignmentConverter}}">
+                        <Border Padding="8" Margin="5" Stroke="DarkSlateBlue" StrokeShape="RoundRectangle 10">
                             <VerticalStackLayout>
-                                <Label Text="{Binding Sender.Username}" FontSize="Micro" FontAttributes="Bold" />
+                                <Label Text="{Binding UserName}" FontSize="Micro" FontAttributes="Bold" />
                                 <Label Text="{Binding Text}" />
                             </VerticalStackLayout>
                         </Border>
@@ -87,12 +127,12 @@ Shell.NavBarIsVisible="False">
             </CollectionView>
 
             <!-- Message Input Box -->
-            <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Padding="5" BackgroundColor="Transparent">
+            <Grid Grid.Row="3" ColumnDefinitions="*, Auto" Padding="5" BackgroundColor="Transparent">
                 <Entry Grid.Column="0" Placeholder="Type a message..." Text="{Binding NewMessageText}" ReturnType="Send" ReturnCommand="{Binding SendMessageCommand}"/>
                 <HorizontalStackLayout Grid.Column="1" >
                     
                 <Button Text="Send" Command="{Binding SendMessageCommand}" />
-                <Button Text="Send" Command="{Binding ShareCurrentSongCommand}" />
+                <Button Text="Share Song" Command="{Binding OpenSessionTransferCommand}" />
 
                 </HorizontalStackLayout>
             </Grid>
