@@ -162,6 +162,9 @@ public partial class TopBeforeColView : DXExpander
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
 
+        var send = (TextEdit)sender;
+
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
     }
 
     private void Settings_Tap(object sender, HandledEventArgs e)

@@ -131,21 +131,29 @@ public static class NotificationHelper
 
         public void OnNotificationPosted(int notificationId, Notification? notification, bool ongoing)
         {
-            if (ongoing)
-                _svc.StartForeground(notificationId, notification);
-            else
+            try
             {
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
-                {
-                    _svc.StopForeground(StopForegroundFlags.Detach);
-                }
+                if (ongoing)
+                    _svc.StartForeground(notificationId, notification);
                 else
                 {
-                    _svc.StopForeground(StopForegroundFlags.Detach);
+                    if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+                    {
+                        _svc.StopForeground(StopForegroundFlags.Detach);
+                    }
+                    else
+                    {
+                        _svc.StopForeground(StopForegroundFlags.Detach);
+                    }
+
                 }
+                Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
 
             }
-            Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public void OnNotificationCancelled(int notificationId, bool dismissedByUser)

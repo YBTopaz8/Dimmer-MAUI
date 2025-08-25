@@ -90,7 +90,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
 
-        var song = MyViewModel.BaseVM.SelectedSongForContext;
+        var song = MyViewModel.BaseVM.SelectedSong;
         if (song is null)
         {
             return;
@@ -98,7 +98,10 @@ public partial class QuickPanelBtmSheet : BottomSheet
         await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
 
         await this.CloseAsync();
+
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+
+
     }
 
 
@@ -250,7 +253,9 @@ public partial class QuickPanelBtmSheet : BottomSheet
 
     private void TextEdit_TextChanged(object sender, EventArgs e)
     {
+ var send = (TextEdit)sender;
 
+        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
     }
 
     private void AutoCompleteEdit_TextChanged(object sender, DevExpress.Maui.Editors.AutoCompleteEditTextChangedEventArgs e)
@@ -268,6 +273,64 @@ public partial class QuickPanelBtmSheet : BottomSheet
     
 
     private void AutoCompleteEdit_SelectionChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void TextEdit_TextChanged_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SongsColView_Scrolled(object sender, DXCollectionViewScrolledEventArgs e)
+    {
+
+    }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+
+        BtmSheetTab.SelectedItemIndex = 1;
+        MyViewModel.ScrollToSongNowPlayingQueueCommand.Execute(null);
+    }
+
+    private void MainSongsColView_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.SongsColViewNPQ ??= SongsColView;
+
+    }
+
+    private void ViewSongOnly_TouchDown(object sender, EventArgs e)
+    {
+        var send = (Microsoft.Maui.Controls.View)sender;
+        var song = (SongModelView)send.BindingContext;
+        if (song is null)
+        {
+            return;
+        }
+        MyViewModel.BaseVM.SelectedSong = song;
+        MyViewModel.BaseVM.SelectedSong = song;
+        BtmSheetTab.SelectedItemIndex = 0;
+    }
+
+    private async void PlaySongClicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var song = (SongModelView)send.BindingContext;
+        await MyViewModel.BaseVM.PlaySong(song);
+    }
+
+    private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void MoreIcon_LongPress(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void MoreIcon_Tap(object sender, HandledEventArgs e)
     {
 
     }

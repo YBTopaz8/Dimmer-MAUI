@@ -105,7 +105,12 @@ Shell.NavBarIsVisible="False">
                 </CollectionView>
             </Grid>
             <CollectionView Grid.Row="2" ItemsSource="{Binding Messages}" 
-                            Header="{Binding Messages.Count}">
+                            >
+                <CollectionView.Header>
+                    <VerticalStackLayout>
+                        <Label Text="{Binding Messages.Count}" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.Header>
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout ItemSpacing="10" Orientation="Vertical"/>
                 </CollectionView.ItemsLayout>

@@ -67,7 +67,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
     {
         await CloseAsync();
 
-        MyViewModel.BaseVM.SelectedSongForContext = MyViewModel.BaseVM.CurrentPlayingSongView;
+        MyViewModel.BaseVM.SelectedSong = MyViewModel.BaseVM.CurrentPlayingSongView;
         await this.AnimateFadeOutBack(600);
 
         await Shell.Current.GoToAsync(nameof(SingleSongPage));

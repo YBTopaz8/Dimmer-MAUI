@@ -7,7 +7,7 @@
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Dimmer.ViewModels" Title="Artists Page"
              x:DataType="vm:BaseViewModelAnd" Shell.NavBarIsVisible="False"
-             >
+           Shell.TabBarIsVisible="False"  >
 
 
     <ContentPage.Resources>
@@ -143,7 +143,7 @@
                                  />
                     <dx:DXCollectionView x:Name="SongsColView"
                                          Tap="SongsColView_Tap"
-                                        >
+                                    ItemsSource="{Binding BaseVM.SearchResults}"    >
                         <dx:DXCollectionView.GroupDescription>
                             <dx:GroupDescription GroupInterval="DisplayText" FieldName="AlbumName"/>
                         </dx:DXCollectionView.GroupDescription>
@@ -249,10 +249,10 @@
 
                             <Label FontSize="20" HorizontalTextAlignment="Center"
                                    LineBreakMode="NoWrap"
-                                   Text="{Binding BaseVM.SelectedSongForContext.Title}"
+                                   Text="{Binding BaseVM.SelectedSong.Title}"
                                    />
                             <Label FontSize="14" HorizontalTextAlignment="Center"
-                                   Text="{Binding BaseVM.SelectedSongForContext.ArtistName}"
+                                   Text="{Binding BaseVM.SelectedSong.ArtistName}"
                                    />
                         </dx:DXStackLayout>
                     </dx:DXStackLayout>
@@ -264,11 +264,11 @@
                                  />
                     <dx:DXButton Content="Add to Playlist**" Icon="playlistminimalistic.png" />
                     <dx:DXButton x:Name="GoToAlbumBtn"
-                                 CommandParameter="{Binding BaseVM.SelectedSongForContext}"
+                                 CommandParameter="{Binding BaseVM.SelectedSong}"
                                  Content="Go to Album" Icon="album.png"
                                  />
 
-                    <dx:DXButton CommandParameter="{Binding BaseVM.SelectedSongForContext}"
+                    <dx:DXButton CommandParameter="{Binding BaseVM.SelectedSong}"
                                  Content="Tag Editor" Icon="clapperboardedit.png"
                                  />
                     <dx:DXButton Content="Song Info" Icon="fileinfo.png" />

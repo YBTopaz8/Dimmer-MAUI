@@ -54,4 +54,9 @@ public partial class ChatView : ContentPage
     {
 
     }
+
+    private void DXCollectionView_SizeChanged(object sender, EventArgs e)
+    {
+
+    }
 }

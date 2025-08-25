@@ -115,12 +115,9 @@ Shell.NavBarIsVisible="False">
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Grid>
-                    <CollectionView Grid.Row="2" ItemsSource="{Binding Messages}" 
-                            Header="{Binding Messages.Count}">
-                        <CollectionView.ItemsLayout>
-                            <LinearItemsLayout ItemSpacing="10" Orientation="Vertical"/>
-                        </CollectionView.ItemsLayout>
-                        <CollectionView.ItemTemplate>
+                    <dx:DXCollectionView Grid.Row="2" ItemsSource="{Binding Messages}"  
+                            Header="{Binding Messages.Count}" SizeChanged="DXCollectionView_SizeChanged">
+                        <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="{x:Type modelOnline:ChatMessage}">
                                 <Border Padding="8" Margin="5" Stroke="DarkSlateBlue" StrokeShape="RoundRectangle 10">
                                     <VerticalStackLayout>
@@ -130,8 +127,8 @@ Shell.NavBarIsVisible="False">
                                     </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                            </dx:DXCollectionView.ItemTemplate>
+                      </dx:DXCollectionView>
 
                     <!-- Message Input Box -->
                     <Grid Grid.Row="3" ColumnDefinitions="*, Auto" Padding="5" BackgroundColor="Transparent">

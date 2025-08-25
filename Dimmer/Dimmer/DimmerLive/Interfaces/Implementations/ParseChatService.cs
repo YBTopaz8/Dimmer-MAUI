@@ -21,7 +21,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
     private readonly ILogger<ParseChatService> _logger;
     private readonly ParseLiveQueryClient _liveQueryClient;
 
-    private readonly SourceCache<ChatMessage, string> _msgCache= new(c => c.ObjectId);
+    private readonly SourceCache<ChatMessage, string> _msgCache = new(c => c.ObjectId);
     private readonly SourceCache<ChatConversation, string> _conversationsCache = new(c => c.ObjectId);
     private Subscription<ChatConversation>? _conversationSubscription;
     private Subscription<ChatMessage>? _msgSub;
@@ -60,14 +60,14 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
     }
 
     private readonly object _lock = new();
-    public void StartListeners(UserModelOnline? currentUser=null)
+    public void StartListeners(UserModelOnline? currentUser = null)
     {
         lock (_lock)
         {
             if (_conversationSubscription != null)
                 return; // Already running
 
-       
+
 
             var query = ParseClient.Instance.GetQuery<ChatMessage>()
                 .Include(nameof(ChatMessage.UserSenderId));
@@ -102,9 +102,9 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             _liveQueryClient.OnSubscribed
 
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Do( async e =>
+                .Do(async e =>
                 {
-                   await SendTextMessageAsync("Hello 😄" + Username + "!");
+                    await SendTextMessageAsync("Hello 😄" + Username + "!");
                     Debug.WriteLine("Subscribed to: " + e.requestId);
                 })
                 .Subscribe();
@@ -225,8 +225,8 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         }
     }
 
-   public string Username =>
-        DeviceInfo.Current.Platform + DeviceInfo.VersionString + DeviceInfo.Manufacturer;
+    public string Username =>
+         DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
     public async Task SendTextMessageAsync(string text, string? receverObjectId = null,SongModelView? song=null)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -243,9 +243,8 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
                 MessageType = "Text",
                 
             };
-            message["Username"]=
-        
-        Username;
+            message["UserName"]=Username;
+            message["Username"]=Username;
             message["senderId"] = receverObjectId; // For Cloud Code use
             
             message["UserSenderId"] = receverObjectId; // For Cloud Code use

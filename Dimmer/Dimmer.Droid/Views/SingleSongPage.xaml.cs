@@ -24,7 +24,7 @@ public partial class SingleSongPage : ContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        //MyViewModel.BaseVM.LoadStatsForSong(MyViewModel.BaseVM.SelectedSongForContext!);
+        //MyViewModel.BaseVM.LoadStatsForSong(MyViewModel.BaseVM.SelectedSong!);
         await MyViewModel.BaseVM.LoadSelectedSongLastFMData();
         MyViewModel.BaseVM.CurrentPageContext=CurrentPage.SingleSongPage;
         //await MyViewModel.LoadSongLastFMData();

@@ -99,7 +99,7 @@ public partial class HomePage : ContentPage
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
 
-        var song = MyViewModel.BaseVM.SelectedSongForContext;
+        var song = MyViewModel.BaseVM.SelectedSong;
         if (song is null)
         {
             return;
@@ -246,7 +246,7 @@ public partial class HomePage : ContentPage
     {
         //await CloseAsync();
 
-        MyViewModel.BaseVM.SelectedSongForContext = MyViewModel.BaseVM.CurrentPlayingSongView;
+        MyViewModel.BaseVM.SelectedSong = MyViewModel.BaseVM.CurrentPlayingSongView;
         //await this.AnimateFadeOutBack(600);
 
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
