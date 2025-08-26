@@ -91,24 +91,45 @@ x:Name="myPage"
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Spacing="10" BorderThickness="1"
+            <StackPanel Grid.Row="0" Spacing="10" BorderThickness="1" Padding="10"
                         BorderBrush="DarkSlateBlue" CornerRadius="20">
 
                 <StackPanel Orientation="Horizontal"
                             Spacing="10"
                         x:Name="TopPanel" HorizontalAlignment="Center">
-          
 
 
-                    <TextBlock Text="{Binding NewFieldSuggestion}" HorizontalAlignment="Center"
-                           FocusVisualPrimaryBrush="Red" TextDecorations="Underline"
+
+                    <StackPanel Orientation="Horizontal"
+                            Spacing="10"
+                        x:Name="TopPanelTwo" HorizontalAlignment="Center">
+
+
+
+                        <TextBlock Text="{Binding CurrentPlayingSongView.Title}" HorizontalAlignment="Center"
+                         TextDecorations="Underline"
                                IsTextSelectionEnabled="True"
-                           FocusVisualSecondaryBrush="OrangeRed"/>
+                           />
+
+
+                        <TextBlock Text="{Binding CurrentPlayingSongView.ArtistName}" HorizontalAlignment="Center"
+                         FontStyle="Italic"
+                               IsTextSelectionEnabled="True"
+                           />
+
+                        <TextBlock Text="{Binding CurrentPlayingSongView.AlbumName}" HorizontalAlignment="Center"
+                          
+                               IsTextSelectionEnabled="True"
+                           />
+
+                    </StackPanel>
+
+                  
 
                     <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center"
-                           FocusVisualPrimaryBrush="Red" TextDecorations="Underline"
+                           TextDecorations="Underline"
                                IsTextSelectionEnabled="True"
-                           FocusVisualSecondaryBrush="OrangeRed"/>
+                          />
                 </StackPanel>
                 <TextBlock FontSize="25" FontStretch="Expanded"
  FontWeight="ExtraBold" FocusVisualPrimaryBrush="DarkSlateBlue"                        x:Name="SearchSongSB" HorizontalAlignment="Center"
@@ -122,8 +143,6 @@ x:Name="myPage"
                        />
                 <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center" />
 
-                <TextBlock Text="{Binding NLPQuery}" HorizontalAlignment="Center"/>
-                <TextBlock Text="{Binding GeneratedTqlQuery}" HorizontalAlignment="Center"/>
                 
 
                 <StackPanel Orientation="Horizontal" 
@@ -222,9 +241,10 @@ SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
                                                     CanSort="True"
                                                     IsReadOnly="True" Header="Year" Binding="{Binding ReleaseYear}"/>
                         <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
+                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
                         <dgView:TableViewTextColumn IsReadOnly="True" Header="Dims" Binding="{Binding PlayCompletedCount}"/>
                     <dgView:TableViewTextColumn  IsReadOnly="True" Header="Skip Count" Binding="{Binding SkipCount}"/>
-                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Duration" Binding="{Binding DurationInSeconds}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Duration" Binding="{Binding DurationFormatted}"/>
 
                     </dgView:TableView.Columns>
                 </dgView:TableView>

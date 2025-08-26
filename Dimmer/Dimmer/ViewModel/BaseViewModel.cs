@@ -25,6 +25,8 @@ using System.Threading.Tasks;
 
 using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 
+using EventHandler = System.EventHandler;
+
 
 
 
@@ -531,10 +533,17 @@ _playbackQueueSource.Connect()
     }
     public void OnAppOpening()
     {
+        try
+        {
+
         var realm = RealmFactory.GetRealmInstance();
         // Use FirstOrDefault() to be safer and slightly more efficient than .ToList()
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
 
+            // get last dimmerevent
+
+
+            var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefault();
         if (appModel != null)
         {
 
@@ -597,6 +606,13 @@ _playbackQueueSource.Connect()
                 updater.Clear();
                 updater.Add(CurrentPlayingSongView);
             });
+        }
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
         }
     }
     [RelayCommand]
@@ -664,12 +680,11 @@ _playbackQueueSource.Connect()
                 appmodel.LastKnownShuffleState = IsShuffleActive;
                 appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
                 appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
-                appmodel.CurrentSongId = CurrentPlayingSongView?.Id.ToString();
+                appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
                 appmodel.VolumeLevelPreference=audioService.Volume;
 
             });
-            //FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
-
+             realm.Add(appmodel, true);
         }
     }
 
@@ -772,37 +787,11 @@ _playbackQueueSource.Connect()
     private DeviceState _myDeviceState;
 
 
-    private ParseClient ParseClient { get; set; }
+    private ParseClient ParseClientInstance => ParseClient.Instance;
     private ParseLiveQueryClient LiveClient { get; set; }
     public string MyDeviceId { get; set; }
 
 
-
-
-    private void SetupRemoteModeListeners()
-    {
-
-
-        var stateQuery = new ParseQuery<DeviceState>(ParseClient);
-        var stateSub = LiveClient.Subscribe(stateQuery);
-
-
-    }
-    private void SetupPlayerModeListeners()
-    {
-
-        var commandQuery = new ParseQuery<DeviceCommand>(ParseClient)
-            .WhereEqualTo("targetDeviceId", _myDeviceId)
-            .WhereEqualTo("isHandled", false);
-
-        var commandSub = LiveClient.Subscribe(commandQuery);
-
-
-        commandSub.Events
-            .Where(e => e.EventType == Subscription.Event.Create)
-            .Subscribe(e => HandleIncomingDeviceCommand(e.Object));
-
-    }
 
     private async void HandleIncomingDeviceCommand(DeviceCommand command)
     {
@@ -1255,17 +1244,6 @@ _playbackQueueSource.Connect()
     }
    
 
-    [RelayCommand]
-    public void SetPreferredAudioDeviceView(View sender)
-    {
-        var send = (View)sender;
-        var dev = send.BindingContext as AudioOutputDevice;
-
-        if (dev == null)
-            return;
-        audioService.SetPreferredOutputDevice(dev);
-        SelectedAudioDevice = dev;
-    }
 
     [RelayCommand]
     private void LogoutFromLastfm()
@@ -1972,6 +1950,39 @@ _playbackQueueSource.Connect()
 
     }
 
+    public string Username =>
+         DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
+    public async Task LogListenEvent()
+    {
+        SongModelView song = CurrentPlayingSongView;
+        string deviceUName = string.Empty;
+        if(ParseClientInstance is null)
+        {
+            return;
+        }
+
+   
+        var listenEvent = new ParseObject("ListenEvent")
+        {
+            //["user"] = _authService.CurrentUser,
+            ["deviceUName"] = deviceUName,
+            ["songTitle"] = song.Title,
+            ["artistName"] = song.ArtistName,
+            ["albumName"] = song.AlbumName,
+            ["genreName"] = song.GenreName
+        };
+
+        try
+        {
+            // Fire and forget. The client's job is done.
+            await listenEvent.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log listen event to the server.");
+            // The client can continue to function. The social feature just missed one event.
+        }
+    }
     private async Task OnPlaybackEnded()
     {
         _logger.LogInformation("AudioService confirmed: Playback ended for '{Title}'", CurrentPlayingSongView?.Title ?? "N/A");
@@ -2272,7 +2283,7 @@ _playbackQueueSource.Connect()
 
 
 
-    public async Task PlaySong(SongModelView? songToPlay,CurrentPage curPage= CurrentPage.AllSongs)
+    public async Task PlaySong(SongModelView? songToPlay,CurrentPage curPage= CurrentPage.AllSongs, IEnumerable<SongModelView>? songs=null)
     {
         if (songToPlay == null)
             return;
@@ -2291,8 +2302,8 @@ _playbackQueueSource.Connect()
         int startIndex = 0;
         if (curPage == CurrentPage.AllSongs)
         {
-         
-        startIndex = _searchResults.IndexOf(songToPlay);
+            var _songs = songs is null ? _searchResults : songs;
+        startIndex = _songs.IndexOf(songToPlay);
 
         if (startIndex == -1)
         {
@@ -2305,21 +2316,22 @@ _playbackQueueSource.Connect()
         else
         {
                 var next100 = startIndex+100;
-                if (next100>_searchResults.Count)
+                if (next100>_songs.Count())
                 {
-                    next100=startIndex+(_searchResults.Count-1-startIndex);
+                    next100=startIndex+(_songs.Count()-1-startIndex);
                 }
                 if (startIndex == next100)
                 {
                     var isZero = next100==0;
                     next100 = isZero?1:next100+1;
-                    newQueue = _searchResults.Take(new Range(0,next100 )).ToList();
+                    newQueue = _songs.Take(new Range(0,next100 )).ToList();
 
                 }
                 else
                 {
-                    newQueue = _searchResults.ToList();
-                    //newQueue = _searchResults.Take(new Range(startIndex, next100)).ToList();
+                    //newQueue = _songs.inde();
+
+                    newQueue = songs.ToList();
 
                 }
 

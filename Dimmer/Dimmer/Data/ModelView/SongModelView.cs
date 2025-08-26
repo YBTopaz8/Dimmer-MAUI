@@ -41,6 +41,18 @@ public partial class SongModelView : ObservableObject
     public partial string FilePath { get; set; } 
     [ObservableProperty]
     public partial double DurationInSeconds { get; set; }
+
+    public string DurationFormatted
+    {
+        get
+        {
+            TimeSpan time = TimeSpan.FromSeconds(DurationInSeconds);
+            if (time.Hours > 0)
+                return time.ToString(@"hh\:mm\:ss");
+            else
+                return time.ToString(@"mm\:ss");
+        }
+    }
     [ObservableProperty]
     public partial int? ReleaseYear { get; set; }
     [ObservableProperty]

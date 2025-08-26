@@ -94,9 +94,6 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddSingleton<SessionTransferViewModel>();
-        builder.Services.AddSingleton<SessionTransferViewModel>();
-
-
 
 
 
@@ -168,9 +165,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IChatService, ParseChatService>();
 
         // Transients for ViewModels
-        builder.Services.AddSingleton<LoginViewModel>();
         builder.Services.AddSingleton<SocialViewModel>();
-        builder.Services.AddSingleton<SessionTransferViewModel>();
         builder.Services.AddSingleton<ChatViewModel>(); // You'll create this next
 
         return builder;

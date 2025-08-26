@@ -298,83 +298,81 @@ Value="False">
             </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
-            <Grid ColumnDefinitions="*"
-                  HorizontalOptions="Center">
-                <FlyoutBase.ContextFlyout>
-                    <MenuFlyout>
-                        <MenuFlyoutItem 
-                            Text="View"
-                            CommandParameter="{Binding .}"
-                            Clicked="ViewSongMFI_Clicked"
-                            x:Name="ViewSongMFI"/>
+            <DataTemplate x:Key="GridOfFour" x:DataType="models:SongModelView">
+                <Grid ColumnDefinitions="*"
+                      HorizontalOptions="Center">
+                    <FlyoutBase.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem 
+                                Text="View"
+                                CommandParameter="{Binding .}"
+                                Clicked="ViewSongMFI_Clicked"
+                                x:Name="ViewSongMFI"/>
 
-                    </MenuFlyout>
-                </FlyoutBase.ContextFlyout>
-                <Grid.GestureRecognizers>
-                    <PointerGestureRecognizer
-                        PointerEntered="SongViewPointer_PointerEntered"
-                        x:Name="SongViewPointer"
+                        </MenuFlyout>
+                    </FlyoutBase.ContextFlyout>
+                    <Grid.GestureRecognizers>
+                        <PointerGestureRecognizer
+                            PointerEntered="SongViewPointer_PointerEntered"
+                            x:Name="SongViewPointer"
                         
-                        PointerPressed="SongViewPointer_PointerPressed"
-                         PointerPressedCommandParameter="{Binding .}"
-
-                        PointerExited="SongViewPointer_PointerExited"/>
-                </Grid.GestureRecognizers>
-                <Image Source="{Binding CoverImagePath}" 
-                       Opacity="0.7" 
-                       HorizontalOptions="Start" >
-                    <Image.GestureRecognizers>
-                        <DragGestureRecognizer
-                            CanDrag="True"
-                            DragStarting="SongDrag_DragStarting"
-                            x:Name="SongDrag"
-                            DragStartingCommandParameter="{Binding .}"/>
-                    </Image.GestureRecognizers>
-                </Image>
-                <Border BackgroundColor="#2C2C2C" VerticalOptions="End" 
-                        StrokeShape="RoundRectangle 5,5,0,0" Padding="5,5,5,0">
+                 
+                            PointerExited="SongViewPointer_PointerExited"/>
+                    </Grid.GestureRecognizers>
+                    <Image Source="{Binding CoverImagePath}" 
+                           Opacity="0.7" 
+                           HorizontalOptions="Start" >
+                        <Image.GestureRecognizers>
+                            <DragGestureRecognizer
+                                CanDrag="True"
+                                DragStarting="SongDrag_DragStarting"
+                                x:Name="SongDrag"
+                                DragStartingCommandParameter="{Binding .}"/>
+                        </Image.GestureRecognizers>
+                    </Image>
+                    <Border BackgroundColor="#2C2C2C" VerticalOptions="End" 
+                            StrokeShape="RoundRectangle 5,5,0,0" Padding="5,5,5,0">
                     
-                <VerticalStackLayout >
-                        <VerticalStackLayout.Resources>
-                            <Style TargetType="Label">
-                                <Setter Property="TextColor" Value="#999999"/>
-                            </Style>
-                        </VerticalStackLayout.Resources>
-                    <Label Text="{Binding Title}" FontSize="Title" TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
-                    <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
-                        <Label Text="{Binding PlayCompletedCount, StringFormat='{0} Dimms'}"
-                           TextColor="SlateBlue"
-                           FontAttributes="Bold"
-                           HorizontalTextAlignment="End">
-                            <Label.Triggers>
-                                <DataTrigger TargetType="Label" Binding="{Binding PlayCompletedCount}"
-                                             Value="0">
-                                    <Setter Property="FontAttributes"
-                                            Value="None"/>
-                                    <Setter Property="TextColor"
-                                            Value="White"/>
-                                    <Setter Property="Text"
-                                            Value="0 Dimm"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Label" Binding="{Binding PlayCompletedCount}"
-                                             Value="1">
-                                    <Setter Property="FontAttributes"
-                                            Value="Italic"/>
-                                    <Setter Property="TextColor"
-                                            Value="MediumSlateBlue"/>
-                                    <Setter Property="Text"
-                                            Value="1 Dimm"/>
-                                </DataTrigger>
-                            </Label.Triggers>
-                        </Label>
-                </VerticalStackLayout>
+                    <VerticalStackLayout x:Name="DetailsView">
+                            <VerticalStackLayout.Resources>
+                                <Style TargetType="Label">
+                                    <Setter Property="TextColor" Value="#999999"/>
+                                </Style>
+                            </VerticalStackLayout.Resources>
+                        <Label Text="{Binding Title}" FontSize="Title" TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                        <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                            <Label Text="{Binding PlayCompletedCount, StringFormat='{0} Dimms'}"
+                               TextColor="SlateBlue"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="End">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding PlayCompletedCount}"
+                                                 Value="0">
+                                        <Setter Property="FontAttributes"
+                                                Value="None"/>
+                                        <Setter Property="TextColor"
+                                                Value="White"/>
+                                        <Setter Property="Text"
+                                                Value="0 Dimm"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding PlayCompletedCount}"
+                                                 Value="1">
+                                        <Setter Property="FontAttributes"
+                                                Value="Italic"/>
+                                        <Setter Property="TextColor"
+                                                Value="MediumSlateBlue"/>
+                                        <Setter Property="Text"
+                                                Value="1 Dimm"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                    </VerticalStackLayout>
 
-                </Border>
-            </Grid>
+                    </Border>
+                </Grid>
             
             
-        </DataTemplate>
+            </DataTemplate>
       
         <ResourceDictionary>
             <Style TargetType="syncf:SfChip" >
@@ -1247,8 +1245,8 @@ WidthRequest="700"
             </syncf:SfTabView>
         </Grid>
 
-        <chart:SfPopup x:Name="SongDetailsPopup" >
-            <chart:SfPopup.HeaderTemplate>
+        <syncf:SfPopup x:Name="SongDetailsPopup" >
+            <syncf:SfPopup.HeaderTemplate>
                 <DataTemplate>
                     <VerticalStackLayout 
                         >
@@ -1256,7 +1254,7 @@ WidthRequest="700"
 
                     </VerticalStackLayout>
                 </DataTemplate>
-            </chart:SfPopup.HeaderTemplate>
+            </syncf:SfPopup.HeaderTemplate>
             <syncf:SfPopup.ContentTemplate>
                 <DataTemplate>
                     <Border >
@@ -1318,6 +1316,6 @@ WidthRequest="700"
                     </Border>
                 </DataTemplate>
             </syncf:SfPopup.ContentTemplate>
-        </chart:SfPopup>
+        </syncf:SfPopup>
     </Grid>
 </ContentPage>

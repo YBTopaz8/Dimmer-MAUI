@@ -450,6 +450,9 @@ success = true;
     /// <returns>Task indicating completion.</returns>
     public void Stop()
     {
+        try
+        {
+
         ThrowIfDisposed();
         Debug.WriteLine("[AudioService] StopAsync executing.");
         _mediaPlayer.Pause();
@@ -465,6 +468,11 @@ success = true;
         _initializationCts?.Dispose();
         _initializationCts = null;
 
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     /// <summary>

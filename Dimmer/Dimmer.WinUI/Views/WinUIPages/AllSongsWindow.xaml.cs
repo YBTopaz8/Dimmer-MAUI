@@ -139,12 +139,22 @@ public sealed partial class AllSongsWindow : Window
             }
             element = element.Parent as FrameworkElement;
         }
+        var songs = MySongsTableView.Items ;
+        Debug.WriteLine(songs.Count);
+
+
+        // now we need items as enumerable of SongModelView
+
+        var SongsEnumerable = songs.OfType<SongModelView>();
+
+        Debug.WriteLine(SongsEnumerable.Count());
+
 
         if (song != null)
         {
             // You found the song! Now you can call your ViewModel command.
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySong(song);
+            await MyViewModel.PlaySong(song, songs: SongsEnumerable);
         }
     }
     public void ScrollToSong(SongModelView songToFind)
