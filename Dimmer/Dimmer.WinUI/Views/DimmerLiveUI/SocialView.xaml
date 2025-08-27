@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.DimmerLiveUI.SocialView"
+             xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             x:DataType="vm:SocialViewModelWin"
+              xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+ xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+ xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+             xmlns:modelOnline ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+ xmlns:behv ="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+ xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+ x:Name="myPage"
+                 xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
+             Title="Social Hub"
+BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1F1F1F}"
+
+Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+    </ContentPage.Resources>
+    
+    <Grid RowDefinitions="Auto, Auto, *, Auto, *" Padding="10" RowSpacing="10">
+
+        <!-- User Search -->
+        <SearchBar Grid.Row="0" Placeholder="Find users..." Text="{Binding UserSearchTerm}" SearchCommand="{Binding SearchForUsersCommand}" />
+        <CollectionView Grid.Row="1" ItemsSource="{Binding SearchResults}" HeightRequest="150">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Type modelOnline:UserModelOnline}">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Text="{Binding Username}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Add Friend" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=SendFriendRequestCommand}" CommandParameter="{Binding .}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Friend Requests -->
+        <Label Grid.Row="2" Text="Friend Requests" FontSize="Title" />
+        <CollectionView Grid.Row="3" ItemsSource="{Binding FriendRequests}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Type modelOnline:FriendRequest}">
+                    <Grid ColumnDefinitions="*, Auto, Auto">
+                        <Label Text="{Binding Sender.Username}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Accept" Command="{Binding  Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=AcceptRequestCommand}" CommandParameter="{Binding .}" />
+                        <Button Grid.Column="2" Text="Reject" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=RejectRequestCommand}" CommandParameter="{Binding .}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Friends List -->
+        <Label Grid.Row="4" Text="Friends" FontSize="Title" />
+        <CollectionView Grid.Row="5" ItemsSource="{Binding Friends}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Type modelOnline:UserModelOnline}">
+                    <Label Text="{Binding Username}" Padding="10" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>
