@@ -38,6 +38,7 @@ public static class FieldRegistry
             new("FileSize", FieldType.Numeric, new[]{"size"}, "File size in bytes", nameof(SongModel.FileSize)),
             new("PlayCount", FieldType.Numeric,new[]{"plays"}, "Total number of plays", nameof(SongModel.PlayCount)),
             new("PlayCompletedCount", FieldType.Numeric, new[]{"dimms","dims",}, "Total number of plays", nameof(SongModel.PlayCompletedCount)),
+            new("SkipCount", FieldType.Numeric, new[]{"skips",}, "Total number of plays", nameof(SongModel.SkipCount)),
 
             // --- Boolean Fields ---
             new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", nameof(SongModel.IsFavorite)),

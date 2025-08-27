@@ -150,14 +150,19 @@ Spacing="10"
                             HorizontalAlignment="Center">
 
 
-                    <AutoSuggestBox
+                    <TextBox
 x:Name="SearchAutoSuggestBox"
-PlaceholderText="Search with TQL..." QuerySubmitted="SearchAutoSuggestBox_QuerySubmitted"
+PlaceholderText="Search with TQL..." 
 Width="450" 
-                
-Text="{x:Bind MyViewModel.CurrentTqlQuery}"
-TextChanged="SearchAutoSuggestBox_TextChanged"
-SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
+                        KeyboardAcceleratorPlacementMode="Auto"
+                        AccessKey="F"
+                        AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
+                        CharacterReceived="SearchAutoSuggestBox_CharacterReceived"
+                        CopyingToClipboard="SearchAutoSuggestBox_CopyingToClipboard"
+                        CuttingToClipboard="SearchAutoSuggestBox_CuttingToClipboard"
+                        GettingFocus="SearchAutoSuggestBox_GettingFocus"
+                        BeforeTextChanging="SearchAutoSuggestBox_BeforeTextChanging"
+Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                     <Button Content="Clear" Command="{Binding ResetSearchCommand}"/>
                     <Button Content="Add To Next" Command="{Binding AddToNextCommand}"/>
                     <Button Content="Add To End" Command="{Binding AddToQueueCommand}"/>
@@ -167,6 +172,8 @@ SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
                         
                         Text="{Binding SearchResults.Count}"/>
               
+           
+                   
                     <TextBlock 
         VerticalAlignment="Center"
         Text="Songs Found"/>
@@ -198,6 +205,7 @@ SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
                                    Sorting="MySongsTableView_Sorting"
                                    Loading="MySongsTableView_Loading"
                                    
+                                   ContextRequested="MySongsTableView_ContextRequested"
                                    
                                    >
                     <dgView:TableView.Columns>
@@ -231,19 +239,24 @@ SuggestionChosen="SearchAutoSuggestBox_SuggestionChosen" />
 
                         <dgView:TableViewTextColumn IsReadOnly="True"
                                                     
-                                                    Header="Artist" MaxWidth="300" Binding="{Binding ArtistName}"/>
+                                                    Header="Artist" MaxWidth="150" Binding="{Binding ArtistName}"/>
 
-                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Album" Binding="{Binding AlbumName}" MaxWidth="500"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" MaxWidth="150"  Header="Album" Binding="{Binding AlbumName}" />
 
                         <dgView:TableViewTextColumn SortDirection="Ascending"  IsFiltered="False"
                                                     CanFilter="False"
                                                     
                                                     CanSort="True"
                                                     IsReadOnly="True" Header="Year" Binding="{Binding ReleaseYear}"/>
-                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
-                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding PlayCount}"/>
-                        <dgView:TableViewTextColumn IsReadOnly="True" Header="Dims" Binding="{Binding PlayCompletedCount}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Event" Binding="{Binding FilePath}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Dims" Binding="{Binding PlayCompletedCount}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Listen Through Rate" Binding="{Binding ListenThroughRate}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Global Rank" Binding="{Binding GlobalRank}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Popularity Score" Binding="{Binding PopularityScore}"/>
                     <dgView:TableViewTextColumn  IsReadOnly="True" Header="Skip Count" Binding="{Binding SkipCount}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="SkipRate" Binding="{Binding SkipRate}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Rank in album" Binding="{Binding RankInAlbum}"/>
+                    <dgView:TableViewTextColumn IsReadOnly="True" Header="Rank in Artist" Binding="{Binding RankInArtist}"/>
                     <dgView:TableViewTextColumn IsReadOnly="True" Header="Duration" Binding="{Binding DurationFormatted}"/>
 
                     </dgView:TableView.Columns>

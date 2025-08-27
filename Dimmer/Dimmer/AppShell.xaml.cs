@@ -1,4 +1,7 @@
-﻿namespace Dimmer;
+﻿using System.Linq.Dynamic.Core.Exceptions;
+using System.Threading.Tasks;
+
+namespace Dimmer;
 
 public partial class AppShell : Shell
 {
@@ -7,9 +10,9 @@ public partial class AppShell : Shell
         InitializeComponent();
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
     }
-
+   
 }

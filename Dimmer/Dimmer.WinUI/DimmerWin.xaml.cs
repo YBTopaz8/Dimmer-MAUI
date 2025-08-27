@@ -15,7 +15,6 @@ public partial class DimmerWin : Window
         MyViewModel= vm;
         BindingContext=vm;
         
-
     }
 
     private void AppShell_Loaded(object? sender, EventArgs e)

@@ -35,6 +35,18 @@ public partial class AlbumModelView : ObservableObject
     public string? DeviceVersion { get; set; }
     [ObservableProperty]
     public partial bool IsCurrentlySelected { get; set; }
+    [ObservableProperty]
+    public partial double AverageSongListenThroughRate { get; set; }
+    
+    
+        [ObservableProperty]
+    public partial double CompletionPercentage { get; set; }
+    [ObservableProperty]
+    public partial double OverallRank { get; set; }
+    [ObservableProperty]
+    public partial int TotalCompletedPlays { get; set; }
+    
+
 }
 public class AlbumGroupViewModel : ObservableObject
 {

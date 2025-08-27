@@ -33,6 +33,12 @@ public partial class SettingsPage : ContentPage
 
     }
 
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        await MyViewModel.CheckForAppUpdatesAsync();
+    }
     private async void OpenDimmerLiveSettingsChip_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(DimmerLivePage));
@@ -131,7 +137,28 @@ public partial class SettingsPage : ContentPage
         await Shell.Current.GoToAsync(nameof(LibSanityPage), true);
     }
 
+    private async void PostUpdate_Clicked(object sender, EventArgs e)
+    { 
+        if(string.IsNullOrWhiteSpace(RelTitle.Text) || string.IsNullOrWhiteSpace(RelNotes.Text) || string.IsNullOrWhiteSpace(RelLink.Text))
+        {
+            await Shell.Current.DisplayAlert("Error", "Please fill in all fields before posting an update.", "OK");
+            return;
+        }
 
+        await MyViewModel.PostAppUpdateAsync(RelTitle.Text, RelNotes.Text, RelLink.Text);
 
+    }
+
+    private void DownloadAndInstall_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private async void RelLinkss_OnHyperLinkClicked(object sender, Indiko.Maui.Controls.Markdown.LinkEventArgs e)
+    {
+        var urll = e.Url;
+
+        await Browser.Default.OpenAsync(urll, BrowserLaunchMode.SystemPreferred);
+    }
 
 }

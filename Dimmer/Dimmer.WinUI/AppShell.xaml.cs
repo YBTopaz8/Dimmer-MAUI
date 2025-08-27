@@ -1,5 +1,6 @@
 using Dimmer.DimmerLive;
 using Dimmer.DimmerLive.Interfaces;
+using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
@@ -43,7 +44,8 @@ public partial class AppShell : Shell
         this.BindingContext = MyViewModel;
 
         await MyViewModel.InitializeAllVMCoreComponentsAsync();
-      
+
+
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }

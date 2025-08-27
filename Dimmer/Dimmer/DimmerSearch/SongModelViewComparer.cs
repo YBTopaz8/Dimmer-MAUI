@@ -84,9 +84,18 @@ public class SongModelViewComparer : IComparer<SongModelView>
 
 public class RandomSongComparer : IComparer<SongModelView>
 {
+    private readonly Random _random = new();
+
     public int Compare(SongModelView? x, SongModelView? y)
     {
-        // Guid.NewGuid() is an excellent way to get a random, well-distributed sort key.
-        return Guid.NewGuid().CompareTo(Guid.NewGuid());
+        if (x == null && y == null)
+            return 0;
+        if (x == null)
+            return -1;
+        if (y == null)
+            return 1;
+
+        // Use a more efficient random comparison
+        return _random.Next(-1, 2); // Returns -1, 0, or 1
     }
 }

@@ -165,9 +165,51 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     [Indexed]
     public int PlayCompletedCount { get; set; }
 
-    [Ignored]
+    [Indexed]
     public int SkipCount { get; set; }
 
+
+    /// <summary>
+    /// The ratio of completed plays to total plays (starts). A value between 0.0 and 1.0.
+    /// High value indicates a "sticky" song the user doesn't skip.
+    /// </summary>
+    public double ListenThroughRate { get; set; }
+
+    /// <summary>
+    /// The ratio of skips to total plays (starts). A value between 0.0 and 1.0.
+    /// High value indicates a "burnout" song the user is tired of.
+    /// </summary>
+    public double SkipRate { get; set; }
+
+    /// <summary>
+    /// The date and time this song was first played. Useful for "On this day" or "Discovery" features.
+    /// </summary>
+    [Indexed]
+    public DateTimeOffset FirstPlayed { get; set; }
+
+    /// <summary>
+    /// A calculated score representing the song's overall importance to the user.
+    /// Considers play counts, completion rate, skips, and favorite status.
+    /// </summary>
+    public double PopularityScore { get; set; }
+
+    /// <summary>
+    /// The song's overall rank (e.g., #1, #2) in the entire library based on PopularityScore.
+    /// </summary>
+    [Indexed]
+    public int GlobalRank { get; set; }
+
+    /// <summary>
+    /// The song's rank within its primary album, based on play count.
+    /// </summary>
+    [Indexed]
+    public int RankInAlbum { get; set; }
+
+    /// <summary>
+    /// The song's rank among all songs by its primary artist, based on play count.
+    /// </summary>
+    [Indexed]
+    public int RankInArtist { get; set; }
 
 
 }

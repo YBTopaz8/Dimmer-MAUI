@@ -1,4 +1,5 @@
 ﻿
+using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Utils;
 
@@ -117,6 +118,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
            .DisposeWith(Disposables);
     }
 
+    [ObservableProperty]
+    public partial bool IsAppToDate { get; set; }
 
     public async Task InitializeAllVMCoreComponentsAsync()
     {
@@ -124,7 +127,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        
 
         // Use a single, large write transaction for performance.
-       await realm.WriteAsync(async () =>
+       await realm.WriteAsync( () =>
         {
             var songsToUpdate = realm.All<SongModel>();
 
@@ -138,17 +141,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     {
                         song.PlayCount = song.PlayHistory.Count;
                         song.PlayCompletedCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
-
-                        var lastPlayEvent = song.PlayHistory
-                            .Where(p => p.PlayType == (int)PlayType.Completed)
-                            .OrderByDescending(p => p.EventDate)
-                            .FirstOrDefault();
-                        if (lastPlayEvent is not null)
+                        song.SkipCount = song.PlayHistory.Count(x => x.PlayType == (int)PlayType.Skipped);
+                        if (song.PlayCount > 0)
                         {
-                            song.LastPlayed = lastPlayEvent.EventDate;
+                            song.ListenThroughRate = (double)song.PlayCompletedCount / song.PlayCount;
+                            song.SkipRate = (double)song.SkipCount / song.PlayCount;
                         }
 
-                        song.SkipCount = song.PlayHistory?.Count(x => x.PlayType == (int)PlayType.Skipped) ?? 0;
+                        // --- Find First and Last Played Dates ---
+                        var completedPlays = song.PlayHistory
+       .Where(p => p.PlayType == (int)PlayType.Completed)
+       .OrderBy(p => p.EventDate);
+
+                        song.LastPlayed = completedPlays.LastOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
+                        song.FirstPlayed = completedPlays.FirstOrDefault()?.EventDate ?? DateTimeOffset.MaxValue;
                     }
                     else
                     {
@@ -156,6 +162,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         song.PlayCompletedCount = 0;
                         song.LastPlayed = DateTimeOffset.MinValue;
                     }
+
+                    double score = (song.PlayCompletedCount * 1.5) - (song.SkipCount * 0.5) + song.PlayCount;
+                    if (song.IsFavorite)
+                    {
+                        score += 50; // Big bonus for being a favorite
+                    }
+                    song.PopularityScore = score;
+
 
                     // 2. Update Aggregated Notes
                     if (song.UserNotes.Count >0)
@@ -168,7 +182,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     }
 
                     if (!string.IsNullOrEmpty(song.SearchableText))
-                        return;
+                        continue;
                     // 3. Update the main SearchableText field
                     var sb = new StringBuilder();
                     sb.Append(song.Title).Append(' ');
@@ -185,11 +199,139 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                 }
             }
+
+
+            foreach (var album in realm.All<AlbumModel>())
+            {
+                var songsInAlbum = album.SongsInAlbum;
+                int songCount = songsInAlbum.Count(); // .Count() is supported and fast
+                if (songCount > 0)
+                {
+                    int playedSongsCount = songsInAlbum.Filter("PlayCompletedCount > 0").Count();
+                    album.CompletionPercentage = (double)playedSongsCount / songCount;
+
+                    // Manual, memory-efficient aggregation
+                    double totalCompletedPlays = 0;
+                    double totalListenThroughRate = 0;
+                    foreach (var song in songsInAlbum) // This iterates efficiently
+                    {
+                        totalCompletedPlays += song.PlayCompletedCount;
+                        totalListenThroughRate += song.ListenThroughRate;
+                    }
+
+                    album.TotalCompletedPlays = (int)totalCompletedPlays;
+                    album.AverageSongListenThroughRate = totalListenThroughRate / songCount;
+                }
+            }
+
+            foreach (var artist in realm.All<ArtistModel>())
+            {
+                var songsByArtist = artist.Songs;
+                int songCount = songsByArtist.Count();
+                if (songCount > 0)
+                {
+                    int playedSongsCount = songsByArtist.Filter("PlayCompletedCount > 0").Count();
+                    artist.CompletionPercentage = (double)playedSongsCount / songCount;
+
+                    // Manual, memory-efficient aggregation
+                    double totalCompletedPlays = 0;
+                    double totalListenThroughRate = 0;
+                    foreach (var song in songsByArtist) // This iterates efficiently
+                    {
+                        totalCompletedPlays += song.PlayCompletedCount;
+                        totalListenThroughRate += song.ListenThroughRate;
+                    }
+
+                    artist.TotalCompletedPlays = (int)totalCompletedPlays;
+                    artist.AverageSongListenThroughRate = totalListenThroughRate / songCount;
+                }
+            }
+
+            foreach (var genre in realm.All<GenreModel>())
+            {
+                var songsInGenre = genre.Songs;
+                int songCount = songsInGenre.Count();
+                if (songCount > 0)
+                {
+                    // Manual, memory-efficient aggregation
+                    double totalCompletedPlays = 0;
+                    double totalListenThroughRate = 0;
+                    foreach (var song in songsInGenre) // This iterates efficiently
+                    {
+                        totalCompletedPlays += song.PlayCompletedCount;
+                        totalListenThroughRate += song.ListenThroughRate;
+                    }
+
+                    genre.TotalCompletedPlays = (int)totalCompletedPlays;
+                    genre.AverageSongListenThroughRate = totalListenThroughRate / songCount;
+                    genre.AffinityScore = genre.TotalCompletedPlays * (1 + genre.AverageSongListenThroughRate);
+                }
+            }
+
+
+            _logger.LogInformation("Stage 3: Calculating ranks using RQL sorting...");
+            // Global Song Rank
+            int rank = 1;
+            // CORRECT: Use OrderByDescending for sorting, as per the documentation.
+            var sortedSongs = realm.All<SongModel>().OrderByDescending(s => s.PopularityScore);
+            foreach (var song in sortedSongs)
+            {
+                song.GlobalRank = rank++;
+            }
+
+            rank = 1;
+            var sortedAlbums = realm.All<AlbumModel>().OrderByDescending(a => a.TotalCompletedPlays);
+            foreach (var album in sortedAlbums)
+            {
+                album.OverallRank = rank++;
+                int albumSongRank = 1;
+                // Sorting on the related collection (backlink)
+                var sortedSongsInAlbum = album.SongsInAlbum.OrderByDescending(s => s.PlayCompletedCount);
+                foreach (var song in sortedSongsInAlbum)
+                {
+                    song.RankInAlbum = albumSongRank++;
+                }
+            }
+
+            // Artist Rank & In-Artist Song Ranks
+            rank = 1;
+            var sortedArtists = realm.All<ArtistModel>().OrderByDescending(a => a.TotalCompletedPlays);
+            foreach (var artist in sortedArtists)
+            {
+                artist.OverallRank = rank++;
+                int artistSongRank = 1;
+                var sortedSongsByArtist = artist.Songs.OrderByDescending(s => s.PlayCompletedCount);
+                foreach (var song in sortedSongsByArtist)
+                {
+                    song.RankInArtist = artistSongRank++;
+                }
+            }
+
+            // Genre Rank
+            rank = 1;
+            var sortedGenres = realm.All<GenreModel>().OrderByDescending(g => g.AffinityScore);
+            foreach (var genre in sortedGenres)
+            {
+                genre.OverallRank = rank++;
+            }
         });
 
-        _logger.LogInformation("Finished recalculating song statistics.");
-    
+        _logger.LogInformation("Finished recalculating all statistics using RQL-based queries.");
+   
 
+        AppUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
+        if(AppUpdateObj is not null)
+        {
+            IsAppToDate = false;
+            _stateService.SetCurrentLogMsg(new AppLogModel
+            {
+                Log = $"Update available: {AppUpdateObj.title}",
+                
+                
+            });
+            
+
+        }
 
 //SubscribeToCommandEvaluatorEvents();
 
@@ -324,7 +466,7 @@ _playbackQueueSource.Connect()
 
         lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler)
-           .Subscribe(isAuthenticated =>
+           .Subscribe(async isAuthenticated =>
            {
                IsLastfmAuthenticated = isAuthenticated;
                LastfmUsername = lastfmService.AuthenticatedUser ?? "Not Logged In";
@@ -338,7 +480,7 @@ _playbackQueueSource.Connect()
                        {
                            UserLocal.Username=lastfmService.AuthenticatedUser;
                            var db = RealmFactory.GetRealmInstance();
-                           db.Write(() =>
+                           await db.WriteAsync(() =>
                            {
 
                                var usrs = db.All<UserModel>().ToList();
@@ -1041,9 +1183,10 @@ _playbackQueueSource.Connect()
 
     }
     [ObservableProperty]
-    public partial string AppTitle { get; set; } = "Dimmer v1.98 Theta";
+    public partial string AppTitle { get; set; } = "Dimmer";
 
-    public const string CurrentAppVersion = "Dimmer v1.98 Theta";
+    public static  string CurrentAppVersion = "1.0";
+    public static  string CurrentAppStage = "Beta";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
@@ -1741,7 +1884,7 @@ _playbackQueueSource.Connect()
         if (song is null)
         {
 
-            AppTitle = "Dimmer - 1.97Theta";
+
             CurrentTrackDurationSeconds = 1;
             return;
         }
@@ -3895,7 +4038,6 @@ _playbackQueueSource.Connect()
 
             // --- REPLACED: Refresh the UI by re-running the current search ---
             _searchQuerySubject.OnNext(CurrentTqlQuery);
-            await ShowNotification($"'{song.Title}' was missing and has been removed.");
         }
         catch (Exception ex)
         {
@@ -5245,6 +5387,54 @@ _playbackQueueSource.Connect()
             ? CollectionViewMode.List
             : CollectionViewMode.Grid;
     }
+
+
+    public async Task PostAppUpdateAsync(string title, string notes, string url)
+    {
+         await   ParseStatics.PostNewUpdateAsync(title, notes, url);
+    }
+    public async Task SaveTqlQueryAsync(string queryName, string tqlString)
+    {
+        await ParseStatics.SaveTqlQueryAsync(queryName, tqlString);
+    }
+
+    [RelayCommand]
+    public async Task FindMusicalNeighborsAsync()
+    {
+         await ParseStatics.FindMusicalNeighborsAsync();
+    }
+
+    [RelayCommand]
+    public async Task GetSharedSongDetailsAsync(string sharedSongId)
+    {
+         await ParseStatics.GetSharedSongDetailsAsync(sharedSongId);
+    }
+
+    [ObservableProperty]
+    public partial bool IsCheckingForUpdates { get; set; }
+
+    [ObservableProperty]
+    public partial AppUpdateModel? AppUpdateObj { get; set; }
+
+
+
+    [RelayCommand]
+    public async Task CheckForAppUpdatesAsync()
+    {
+        IsCheckingForUpdates = true;
+        AppUpdateObj=   await ParseStatics.CheckForAppUpdatesAsync();
+        IsCheckingForUpdates = false;
+    }
+
+    [RelayCommand]
+    public async Task DownloadAndInstall()
+    {
+        if (AppUpdateObj is null || string.IsNullOrWhiteSpace(AppUpdateObj.url))
+            return;
+        await Browser.Default.OpenAsync(AppUpdateObj.url, BrowserLaunchMode.SystemPreferred);
+    }
+
+
 }
 
 

@@ -2,7 +2,11 @@
 
 using Dimmer.DimmerLive.Interfaces.Implementations;
 
+using Parse.Infrastructure;
+
 using ReactiveUI;
+
+using System.Linq.Dynamic.Core.Exceptions;
 namespace Dimmer.ViewModel;
 
 
@@ -194,7 +198,32 @@ public partial class LoginViewModel : ObservableObject
             }
         }
     }
+    public async Task<ParseUser> SignUpWithReferralAsync(string username, string password, string email, string referralCode)
+    {
+        try
+        {
+            var parameters = new Dictionary<string, object>
+        {
+            { "username", username },
+            { "password", password },
+            { "email", email },
+            { "referralCode", referralCode }
+        };
 
+            // This function returns a ParseUser object upon success, which includes the session token.
+            ParseUser newUser = await ParseClient.Instance.CallCloudCodeFunctionAsync<ParseUser>("signUpWithReferral", parameters);
+
+            // The user is now logged in automatically.
+            Console.WriteLine($"Successfully signed up and logged in user: {newUser.Username}");
+            return newUser;
+        }
+        catch (ParseFailureException e)
+        {
+            // Handle errors like "Invalid or expired referral code."
+            Console.WriteLine($"Error during signup: {e.Message}");
+            return null;
+        }
+    }
 
 
     public async Task<AuthResult> UpdateProfileImageAsync(Stream imageStream, string fileName)

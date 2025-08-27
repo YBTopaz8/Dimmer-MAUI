@@ -62,7 +62,7 @@ Shell.NavBarIsVisible="False">
                 <DataTemplate x:DataType="{x:Type modelOnline:FriendRequest}">
                     <Grid ColumnDefinitions="*, Auto, Auto">
                         <Label Text="{Binding Sender.Username}" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="Accept" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=AcceptRequestCommand}" CommandParameter="{Binding .}" />
+                        <Button Grid.Column="1" Text="Accept" Command="{Binding  Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=AcceptRequestCommand}" CommandParameter="{Binding .}" />
                         <Button Grid.Column="2" Text="Reject" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SocialViewModelWin}}, Path=RejectRequestCommand}" CommandParameter="{Binding .}" />
                     </Grid>
                 </DataTemplate>

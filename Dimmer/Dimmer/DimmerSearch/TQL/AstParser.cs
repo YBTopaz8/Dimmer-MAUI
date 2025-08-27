@@ -68,6 +68,8 @@ public class AstParser
     private IQueryNode ParseClause()
     {
         var peekToken = Peek();
+       
+
         string field = "any";
         string op = "contains"; // Default operator
         bool isNegated = false;
@@ -99,10 +101,10 @@ public class AstParser
         if (FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDef) && fieldDef.Type == FieldType.Date)
         {
             // If the field is a date, check for our special keywords
-            var nextToken = Peek();
-            if (nextToken.Type == TokenType.Identifier)
+            var nextTokens = Peek();
+            if (nextTokens.Type == TokenType.Identifier)
             {
-                switch (nextToken.Text.ToLowerInvariant())
+                switch (nextTokens.Text.ToLowerInvariant())
                 {
                     case "today":
                     case "yesterday":
@@ -125,6 +127,12 @@ public class AstParser
                         return ParseDaypartClause(field);
                 }
             }
+        }
+
+        var nextToken = Peek();
+        if (nextToken.Type == TokenType.EndOfFile)
+        {
+            return new ClauseNode("any", "matchall", "");
         }
 
         // --- Step 5: If it's not a special date keyword, fall back to generic value parsing ---

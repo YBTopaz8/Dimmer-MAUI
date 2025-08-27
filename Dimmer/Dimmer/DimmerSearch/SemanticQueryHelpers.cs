@@ -24,6 +24,7 @@ public static class SemanticQueryHelpers
     /// <param name="propertyName">The name of the property, supporting nesting like "Genre.Name".</param>
     /// <returns>A compiled function that gets the property value.</returns>
     // Step 1: Modify GetAccessor to build the chain and collect the parts.
+    private static readonly object _compilationLock = new();
     private static Func<T, TResult> GetAccessor<T, TResult>(string propertyName)
     {
         string cacheKey = $"{typeof(T).FullName}.{propertyName}";
@@ -31,8 +32,9 @@ public static class SemanticQueryHelpers
         {
             return (Func<T, TResult>)cachedAccessor;
         }
-
-        var parameter = Expression.Parameter(typeof(T), "model");
+        lock (_compilationLock)
+        {
+            var parameter = Expression.Parameter(typeof(T), "model");
 
         // --- REFACTORED PART ---
         var propertyAccessors = new List<Expression>();
@@ -57,8 +59,8 @@ public static class SemanticQueryHelpers
         Func<T, TResult> compiledLambda = lambda.Compile();
         _accessorCache[cacheKey] = compiledLambda;
         return compiledLambda;
+        }
     }
-
     // Step 2: Modify AddNullChecks to simply assemble the parts it's given.
     private static Expression AddNullChecks<TResult>(List<Expression> propertyAccessors)
     {

@@ -19,6 +19,7 @@
     Shell.FlyoutBehavior="Flyout"  xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
   FlyoutBackgroundColor="Transparent"
     x:DataType="vm:BaseViewModelWin">
+    
     <Shell.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
         <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
@@ -185,6 +186,12 @@ IsVisible="True">
                             </Button>
                             <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
                         Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
+                       Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
+                            <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
+                        Text="{Binding CurrentPlayingSongView.ListenThroughRate, StringFormat='{0}'}" 
+                       Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
+                            <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
+                        Text="{Binding CurrentPlayingSongView.SkipRate, StringFormat='{0}'}" 
                        Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
                         </HorizontalStackLayout>
                         <Grid ColumnDefinitions="*,auto" >

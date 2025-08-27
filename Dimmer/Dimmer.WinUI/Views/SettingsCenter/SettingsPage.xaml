@@ -12,11 +12,91 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    
+             xmlns:idk="clr-namespace:Indiko.Maui.Controls.Markdown;assembly=Indiko.Maui.Controls.Markdown"     
     Title="Settings"
     x:DataType="vm:BaseViewModelWin"
     Shell.NavBarIsVisible="False">
     <Grid IsVisible="True">
         <syncf:SfTabView Grid.Row="1" x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
+            <syncf:SfTabItem Header="Latest Update">
+                <VerticalStackLayout Spacing="15" Margin="10,0">
+                    <Label Text="{Binding AppUpdateObj.title}" HorizontalOptions="Center"
+                           FontSize="36"/>
+                    <idk:MarkdownView
+                        TextColor="{AppThemeBinding Dark=White,Light=Black}"
+                        MarkdownText="{Binding AppUpdateObj.notes}"
+                         H1FontSize="25"
+    H1Color="CadetBlue"   ParagraphSpacing="5"
+    H2FontSize="23"
+    H2Color="DeepSkyBlue"
+    H3FontSize="19"
+    H3Color="BlueViolet"
+    CodeBlockBackgroundColor="#1e1e1e"
+    CodeBlockTextColor="DimGrey"
+    CodeBlockBorderColor="DarkSlateGray"
+    
+    CodeBlockFontSize="12"
+    BlockQuoteBackgroundColor="LightYellow"
+    BlockQuoteTextColor="LightGray"
+    BlockQuoteBorderColor="YellowGreen"
+    
+                        
+    TextFontSize="13"
+    TableHeaderBackgroundColor="DarkGray"
+    
+    TableHeaderFontSize="13"
+    TableHeaderTextColor="WhiteSmoke"
+    
+    TableRowFontSize="11"
+    ImageAspect="Fill"
+    HyperlinkColor="AliceBlue"
+    LineColor="LightSlateGray"
+    LinkCommand="{Binding LinkReceivedCommand}"
+    OnHyperLinkClicked="RelLinkss_OnHyperLinkClicked" x:Name="RelLinkss"
+    LineHeightMultiplier="1.2"
+    >
+                        
+                    </idk:MarkdownView>
+                    
+                    
+                    <Label Text="{Binding AppUpdateObj.url}"/>
+                  
+                    
+
+                    <Button x:Name="DownloadAndInstall" Command="{Binding DownloadAndInstallCommand}"
+             Text="Download And Install"/>
+
+                </VerticalStackLayout>
+            </syncf:SfTabItem>
+            <syncf:SfTabItem Header="App Center">
+                <VerticalStackLayout>
+                    <Label Text="App Center"/>
+                    <Button Text="Check for App Updates"
+                      Command="{Binding CheckForAppUpdatesCommand}"     />
+                    <!--<Button Text="App Center"
+                      Command="{Binding CheckForAppUpdatesCommand}"   />-->
+
+                    <Border>
+                        
+                         <VerticalStackLayout>
+                            <Label Text="New Release"/>
+                            <Editor Placeholder="Release Title"  HeightRequest="200"
+                                 x:Name="RelTitle"/>
+                            <Editor Placeholder="Release Notes"
+                                 x:Name="RelNotes"/>
+                            <Editor Placeholder="Release Url"
+                                 x:Name="RelLink"/>
+                       
+                            <Button x:Name="PostUpdate" Clicked="PostUpdate_Clicked"
+                                     Text="Post Update"/>
+                   
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </syncf:SfTabItem>
+            
+            
             <syncf:SfTabItem Header="Main">
 
                 <syncf:SfTabItem.Content>

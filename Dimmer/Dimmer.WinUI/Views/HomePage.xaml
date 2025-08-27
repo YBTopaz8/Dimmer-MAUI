@@ -284,15 +284,15 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                 </Border.GestureRecognizers>
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
-                        <MenuFlyoutItem Text="Blacklist Song" x:Name="BlackListSong"
-                                        Clicked="BlackListSong_Clicked"
-                                        CommandParameter="{Binding .}"/>
+                        <!--<MenuFlyoutItem Text="Blacklist Song" x:Name="BlackListSong"
+                                        Clicked="BlackListSong_Clicked" 
+                                        CommandParameter="{Binding .}"/>-->
 
                  
                         <!-- Create New Artist for This Song -->
-                        <MenuFlyoutItem Text="Create New Artist for Song" 
+                        <!--<MenuFlyoutItem Text="Create New Artist for Song" 
                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateArtistAndAssignSongsCommand}" 
-                            CommandParameter="{Binding .}"/>
+                            CommandParameter="{Binding .}"/>-->
                         <MenuFlyoutItem 
                 IconImageSource="eye.png"
                Text="{Binding Title, StringFormat='View Song'}"
@@ -352,6 +352,10 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                             <MenuFlyoutItem Text="Open File in Explorer"
     Clicked="OnLabelClicked"
     CommandParameter="OpenFileExp" />
+                            <MenuFlyoutItem Text="Open File in Folder"
+    Clicked="OnLabelClicked" CommandParameter="{Binding .}"
+                  Command="{Binding OpenFileInFolderCommand,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelWin}}}"
+/>
                             <MenuFlyoutItem Text="Delete from system"
     Clicked="OnLabelClicked" IconImageSource="deletesonginterfacesymbol.png"
     IsDestructive="True"  CommandParameter="DeleteSys" />
@@ -515,12 +519,6 @@ Value="False">
 
                     <syncf:SfEffectsView x:Name="ArtistSfEffectsView" Grid.Column="5">
 
-                        <syncf:SfEffectsView.GestureRecognizers>
-                            <PointerGestureRecognizer
-                                            PointerPressedCommandParameter="{Binding GenreName}"
-                                            PointerReleased="QuickFilterGest_PointerReleased"
-                                            PointerReleasedCommandParameter="genre" />
-                        </syncf:SfEffectsView.GestureRecognizers>
                         <Label
                                         TextColor="{AppThemeBinding Light=Black,Dark=White}"
                                         HorizontalTextAlignment="Center"
@@ -796,55 +794,12 @@ Value="False">
         </DataTemplate>
 
 
-        <DataTemplate x:Key="GridInteractiveTemplate" x:DataType="models:SongModelView">
-            <Grid WidthRequest="200" HeightRequest="200">
-                <!-- Visual States for hover animations -->
-                <VisualStateManager.VisualStateGroups>
-                    <VisualStateGroup Name="CommonStates">
-                        <VisualState Name="Normal"/>
-                        <VisualState Name="PointerOver">
-                            <VisualState.Setters>
-                                <Setter TargetName="InfoOverlay" Property="Opacity" Value="1"/>
-                                <Setter TargetName="CoverArtImage" Property="Scale" Value="1.1"/>
-                            </VisualState.Setters>
-                        </VisualState>
-                    </VisualStateGroup>
-                </VisualStateManager.VisualStateGroups>
-
-                <Border StrokeShape="RoundRectangle 10" >
-                    <Image x:Name="CoverArtImage" Source="{Binding CoverImagePath}" Aspect="AspectFill"
-                   />
-                </Border>
-
-                <!-- The info overlay that fades in on hover -->
-                <Border x:Name="InfoOverlay" BackgroundColor="#CC000000" Opacity="0"
-                >
-                    <VerticalStackLayout Padding="10" Spacing="8" VerticalOptions="End">
-                        <Label Text="{Binding Title}" TextColor="White" FontSize="16" FontAttributes="Bold"/>
-                        <Label Text="{Binding ArtistName}" TextColor="#CCCCCC" FontSize="12"/>
-
-                        <!-- Action buttons inside the overlay -->
-                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                          
-                        </HorizontalStackLayout>
-                    </VerticalStackLayout>
-                </Border>
-            </Grid>
-            
-            
-        </DataTemplate>
-        <DataTemplate x:Key="MyLinearTemplate" x:DataType="models:SongModelView">
-            <!-- ... your "LinearDetailedTemplate" or "LinearPowerUserTemplate" XAML ... -->
-        </DataTemplate>
-
+     
+        
         <DataTemplate x:Key="MyGridTemplate" x:DataType="models:SongModelView">
             <!-- ... your "GridCardTemplate" or "GridInteractiveTemplate" XAML ... -->
         </DataTemplate>
 
-        <!-- Define the Template Selector and connect it to our templates -->
-        <local:SongViewTemplateSelector x:Key="MySongTemplateSelector"
-        ListTemplate="{StaticResource MyLinearTemplate}"
-        GridTemplate="{StaticResource MyGridTemplate}"/>
 
 
     </ContentPage.Resources>

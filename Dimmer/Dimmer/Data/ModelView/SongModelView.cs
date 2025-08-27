@@ -244,7 +244,6 @@ public partial class SongModelView : ObservableObject
         return HashCode.Combine(Id);
     }
 
-    [Indexed]
     [ObservableProperty]
     public partial int SongTypeValue { get; set; } = (int)SongType.Track;
 
@@ -267,6 +266,27 @@ public partial class SongModelView : ObservableObject
     public string CoverArtHash { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView> EmbeddedSync { get;  set; }
+    [ObservableProperty]
+    public partial double ListenThroughRate { get; set; }
+
+
+    //[ObservableProperty]
+    //public partial double CompletionPercentage { get; set; }
+
+    [ObservableProperty]
+    public partial double SkipRate { get; set; }
+    [ObservableProperty]
+    public partial int GlobalRank { get; set; }
+    [ObservableProperty]
+    public partial double PopularityScore { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset FirstPlayed { get; set; }
+    //[ObservableProperty]
+    //public partial int TotalCompletedPlays { get; set; }
+    [ObservableProperty]
+    public partial int RankInAlbum { get; set; }
+    [ObservableProperty]
+    public partial int RankInArtist { get; set; }
 }
 
 public partial class UserNoteModelView : ObservableObject

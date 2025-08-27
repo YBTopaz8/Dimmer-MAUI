@@ -117,6 +117,33 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     public IList<TagModel> Tags { get; } = null!;
 
     public IList<UserNoteModel>? UserNotes { get; } = null!;
+
+
+    /// <summary>
+    /// The percentage of songs in this album that have been played at least once.
+    /// A value between 0.0 and 1.0.
+    /// </summary>
+   
+    public double CompletionPercentage { get; set; }
+
+    /// <summary>
+    /// The total number of times any song from this album has been played to completion.
+    /// </summary>
+    [Indexed]
+    public int TotalCompletedPlays { get; set; }
+
+    /// <summary>
+    /// The average ListenThroughRate of all songs in this album. Indicates "album quality".
+    /// High value means the album is "all killer, no filler".
+    /// </summary>
+    
+    public double AverageSongListenThroughRate { get; set; }
+
+    /// <summary>
+    /// The overall rank of this album in the library, based on its total plays.
+    /// </summary>
+    [Indexed]
+    public int OverallRank { get; set; }
     public AlbumModel()
     {
     }

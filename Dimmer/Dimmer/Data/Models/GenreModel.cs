@@ -16,6 +16,31 @@ public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
     public bool IsNew { get; set; }
 
     public IList<UserNoteModel> UserNotes { get; }
+
+    /// <summary>
+    /// The total number of times any song in this genre has been played to completion.
+    /// </summary>
+    [Indexed]
+    public int TotalCompletedPlays { get; set; }
+
+    /// <summary>
+    /// The average ListenThroughRate of all songs in this genre.
+    /// </summary>
+    
+    public double AverageSongListenThroughRate { get; set; }
+
+    /// <summary>
+    /// A score representing user affinity for this genre, based on total plays and average LTR.
+    /// </summary>
+    
+    public double AffinityScore { get; set; }
+
+    /// <summary>
+    /// The overall rank of this genre in the library, based on its AffinityScore.
+    /// </summary>
+    [Indexed]
+    public int OverallRank { get; set; }
+
     public GenreModel()
     {
 

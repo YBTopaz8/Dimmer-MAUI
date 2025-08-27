@@ -25,6 +25,28 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     public IList<TagModel> Tags { get; } = null!;
     public string? ImagePath { get; set; }
     public IList<UserNoteModel> UserNotes { get; } = null!;
+
+    /// <summary>
+    /// The percentage of an artist's songs that have been played at least once.
+    /// </summary>
+    public double CompletionPercentage { get; set; }
+
+    /// <summary>
+    /// The total number of times any song by this artist has been played to completion.
+    /// </summary>
+    [Indexed]
+    public int TotalCompletedPlays { get; set; }
+
+    /// <summary>
+    /// The average ListenThroughRate of all songs by this artist. Indicates artist consistency.
+    /// </summary>
+    public double AverageSongListenThroughRate { get; set; }
+
+    /// <summary>
+    /// The overall rank of this artist in the library, based on their total plays.
+    /// </summary>
+    [Indexed]
+    public int OverallRank { get; set; }
     public ArtistModel()
     {
 

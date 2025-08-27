@@ -405,7 +405,6 @@ public class MusicRelationshipService
         if (!artistSongIds.Any())
             return (0, 0, 0);
 
-        // THIS IS THE FIX:
         // 1. First, filter by the simple date range. The result is still an IQueryable.
         var eventsInDateRange = _realm.All<DimmerPlayEvent>()
             .Filter("DatePlayed > $0 AND DatePlayed <= $1", startDate, endDate);
@@ -424,7 +423,6 @@ public class MusicRelationshipService
 
         return (events.Count, songsPlayed, albumsPlayed);
     }
-    // COMPLIANT: Simple Count() calls are supported.
     public double GetArtistLoyaltyIndex(ObjectId artistId)
     {
         // Wrap the entire operation in a 'using' block for safety.

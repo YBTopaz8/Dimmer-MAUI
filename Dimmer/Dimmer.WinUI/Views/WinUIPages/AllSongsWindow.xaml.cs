@@ -186,7 +186,7 @@ public sealed partial class AllSongsWindow : Window
         // This is the text changed event handler for the search box.
         // You can access the text like this:
         var text = send.Text;
-        MyViewModel.SearchSongSB_TextChanged(text);
+       
 
 
     }
@@ -625,5 +625,57 @@ public sealed partial class AllSongsWindow : Window
             // The CollectionChanged event in the ViewModel will automatically trigger a new search.
         }
         //MyViewModel.QueryChips.Remove(e.);
+    }
+
+    private void MySongsTableView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_AccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_CharacterReceived(UIElement sender, CharacterReceivedRoutedEventArgs args)
+    {
+        var xterPressed = args.Character;
+        var box = sender as TextBox;
+        if (box == null)
+            return;
+        // Get the full text from the box
+        var text = box.Text;
+        //Debug.WriteLine($"Character received: {xterPressed}");
+        //if (xterPressed == '\r' || xterPressed == '\n')
+        //{
+        //    // Handle Enter key press
+        //    Debug.WriteLine("Enter key pressed.");
+        //    // You can trigger your search or any other action here
+
+        //}
+        MyViewModel.SearchSongSB_TextChanged(text);
+    }
+
+    private void SearchAutoSuggestBox_CopyingToClipboard(TextBox sender, TextControlCopyingToClipboardEventArgs args)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_CuttingToClipboard(TextBox sender, TextControlCuttingToClipboardEventArgs args)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_GettingFocus(UIElement sender, GettingFocusEventArgs args)
+    {
+        if (args.FocusState == FocusState.Programmatic)
+        { 
+            return;
+        }
+    }
+
+    private void SearchAutoSuggestBox_BeforeTextChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs args)
+    {
+
     }
 }

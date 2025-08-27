@@ -20,7 +20,8 @@ public class RuleBasedPlaybackManager
         _realmFactory = realmFactory;
         _mapper = mapper;
     }
-
+    private int _recursionDepth = 0;
+    private const int MAX_RECURSION_DEPTH = 3;
     /// <summary>
     /// The core method. Finds the next song to play based on the provided rule set.
     /// </summary>
@@ -28,6 +29,11 @@ public class RuleBasedPlaybackManager
     /// <returns>The SongModelView to play next, or null if no song matches any rule.</returns>
     public SongModelView? FindNextSong(IEnumerable<PlaybackRule> rules) // <-- MODIFIED SIGNATURE
     {
+        if (_recursionDepth >= MAX_RECURSION_DEPTH)
+        {
+            _recursionDepth = 0;
+            return null; // Prevent infinite recursion
+        }
         var realm = _realmFactory.GetRealmInstance();
 
         // --- FIXED: The loop now iterates over the 'rules' parameter ---
@@ -48,15 +54,16 @@ public class RuleBasedPlaybackManager
                 if (candidateSongs.Count!=0)
                 {
                     var songToPlayModel = candidateSongs[_random.Next(candidateSongs.Count)];
+                    _recursionDepth = 0;
                     return _mapper.Map<SongModelView>(songToPlayModel);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Silently continue to the next rule
+                System.Diagnostics.Debug.WriteLine($"Error processing playback rule '{rule.Query}': {ex.Message}");
             }
         }
-
         var anyUnplayedIds = realm.All<SongModel>()
             .Select(s => s.Id)
             .ToList()

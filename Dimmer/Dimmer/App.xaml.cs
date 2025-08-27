@@ -5,6 +5,8 @@
 using Dimmer.DimmerLive.Orchestration;
 using Dimmer.Interfaces.Services.Interfaces;
 
+using System.Linq.Dynamic.Core.Exceptions;
+
 namespace Dimmer;
 
 public partial class App : Application
@@ -26,6 +28,7 @@ public partial class App : Application
             ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
             ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
             ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
+            ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
 
         }
     }
@@ -35,7 +38,7 @@ public partial class App : Application
     //     // For example, you can add platform-specific resources or configurations.
     //     // If no specific implementation is needed, leave this method empty.
     // }
-
+   
     protected override Window CreateWindow(IActivationState? activationState)
     {
         IAppUtil appUtil = IPlatformApplication.Current!.Services.GetRequiredService<IAppUtil>();

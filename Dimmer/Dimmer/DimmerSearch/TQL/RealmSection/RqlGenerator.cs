@@ -177,7 +177,10 @@ public static class RqlGenerator
         {
             return "FALSEPREDICATE";
         }
-
+        if (start > end)
+        {
+            return "FALSEPREDICATE";
+        }
         return $"({fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)})";
     }
     private static double ParseDuration(string? text)

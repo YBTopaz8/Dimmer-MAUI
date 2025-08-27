@@ -486,21 +486,22 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
     public async Task DeleteManyAsync(HashSet<ObjectId> missingIds)
     {
-        // Get a fresh Realm instance for this operation
+        if (missingIds == null || missingIds.Count == 0)
+        {
+            return;
+        }
+
         var realm = _factory.GetRealmInstance();
 
-        // Perform the entire operation within a single write transaction for efficiency and safety
         await realm.WriteAsync(() =>
         {
-            // Use Realm's LINQ provider to find all objects whose Id is in the provided list.
-            // The .Contains() method is optimized by Realm for this purpose.
-            var objectsToDelete = realm.All<T>().Where(obj => missingIds.Contains(obj.Id));
-
-            // Use RemoveRange to delete all found objects in one go.
-            // This is significantly faster than deleting in a loop.
-            if (objectsToDelete.Any())
+            foreach (var id in missingIds)
             {
-                realm.RemoveRange(objectsToDelete);
+                var objectToDelete = realm.Find<T>(id);
+                if (objectToDelete != null)
+                {
+                    realm.Remove(objectToDelete);
+                }
             }
         });
     }

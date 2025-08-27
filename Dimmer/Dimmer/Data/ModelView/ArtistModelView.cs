@@ -26,4 +26,30 @@ public partial class ArtistModelView : ObservableObject
     public string? DeviceModel { get; set; }
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
+
+    /// <summary>
+    /// The percentage of an artist's songs that have been played at least once.
+    /// </summary>
+    [ObservableProperty]
+    public partial double CompletionPercentage { get; set; }
+
+    /// <summary>
+    /// The total number of times any song by this artist has been played to completion.
+    /// </summary>
+    
+    [ObservableProperty]
+    public partial int TotalCompletedPlays { get; set; }
+
+    /// <summary>
+    /// The average ListenThroughRate of all songs by this artist. Indicates artist consistency.
+    /// </summary>
+    [ObservableProperty]
+    public partial double AverageSongListenThroughRate { get; set; }
+
+    /// <summary>
+    /// The overall rank of this artist in the library, based on their total plays.
+    /// </summary>
+    
+    [ObservableProperty]
+    public partial int OverallRank { get; set; }
 }
