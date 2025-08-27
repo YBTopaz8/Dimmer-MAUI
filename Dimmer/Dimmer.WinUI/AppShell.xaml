@@ -75,17 +75,17 @@ Value="true">
 
                             </Border.Triggers>
                             <Grid>
-                            <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                                <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
       Opacity="0.3" Aspect="AspectFit" >
-                                <Image.Triggers>
-                                    <DataTrigger TargetType="Image" Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                    <Image.Triggers>
+                                        <DataTrigger TargetType="Image" Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                  Value="True">
-                                        <Setter Property="Opacity" Value="1"/>
-                                    </DataTrigger>
-                                                 
-                                </Image.Triggers>
-                            </Image>
-                        
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </DataTrigger>
+
+                                    </Image.Triggers>
+                                </Image>
+
 
                                 <VerticalStackLayout
 x:Name="LyricsSection"
@@ -135,7 +135,7 @@ IsVisible="True">
                                 </VerticalStackLayout>
 
 
-                        </Grid>
+                            </Grid>
 
                         </Border>
                         <Label HorizontalOptions="Center"
@@ -187,17 +187,8 @@ IsVisible="True">
                             <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
                         Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
                        Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
-                            <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
-                        Text="{Binding CurrentPlayingSongView.ListenThroughRate, StringFormat='{0}'}" 
-                       Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
-                            <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
-                        Text="{Binding CurrentPlayingSongView.SkipRate, StringFormat='{0}'}" 
-                       Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
+
                         </HorizontalStackLayout>
-                        <Grid ColumnDefinitions="*,auto" >
-
-
-                        </Grid>
 
                         <Label HorizontalTextAlignment="Start" 
                    Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">

@@ -30,6 +30,9 @@ public static class MetaParser
     private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
 
+    private static readonly HashSet<TokenType> _directiveKeywords = new()
+        { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
+
     public static RealmQueryPlan Parse(string rawQuery)
     {
         try
@@ -37,38 +40,32 @@ public static class MetaParser
             // 1. Split Query into Filter and Command parts
             var (filterQuery, commandQuery) = SplitFilterAndCommand(rawQuery);
 
-            // 2. Tokenize and Segment the Filter part
-            var filterTokens = Lexer.Tokenize(filterQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-            var segments = ParseSegmentsFromTokens(filterTokens);
+            // 2. Tokenize the entire filter string
+            var allTokens = Lexer.Tokenize(filterQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
 
-            // 3. Build the Master AST from the Segments
-            IQueryNode masterAst = BuildMasterAstFromSegments(segments);
+            // 3. Separate the main filter tokens from the directive tokens (sort, limit, etc.)
+            var (filterTokens, directiveTokens) = SeparateFilterAndDirectives(allTokens);
 
-            // 4. Split the Master AST for Hybrid (DB vs. In-Memory) Execution
-            var (databaseAst, inMemoryAst) = AstSplitter.Split(masterAst);
+            // 4. Build the Master AST from ONLY the filter tokens using the new powerful parser
+            IQueryNode masterAst = new AstParser(filterTokens).Parse();
 
-            // 5. Generate outputs from the split ASTs
-            var rqlFilter = RqlGenerator.Generate(masterAst);
-            var inMemoryPredicate = new AstEvaluator().CreatePredicate(inMemoryAst);
+            // 5. Split the AST for hybrid execution
+            var (databaseAst, _) = AstSplitter.Split(masterAst);
 
-            // 6. Parse Directives from ALL segments combined
-            var allDirectives = segments.SelectMany(s => s.DirectiveTokens).ToList();
-            var sortDescriptions = CreateSortDescriptions(allDirectives);
-            var limiter = CreateLimiterClause(allDirectives);
-            var shuffleNode = CreateShuffleNode(allDirectives);
+            // 6. Generate the RQL and the in-memory predicate
+            var rqlFilter = RqlGenerator.Generate(databaseAst);
+            var inMemoryPredicate = new AstEvaluator().CreatePredicate(masterAst); // Always use the full master AST here
 
-            // 7. Parse the Command part
+            // 7. Parse the separated directive tokens
+            var sortDescriptions = CreateSortDescriptions(directiveTokens);
+            var limiter = CreateLimiterClause(directiveTokens);
+            var shuffleNode = CreateShuffleNode(directiveTokens);
+
+            // 8. Parse the Command part
             IQueryNode? commandNode = ParseCommand(commandQuery);
 
-            // 8. Assemble the final, complete plan
-            return new RealmQueryPlan(
-                rqlFilter,
-                inMemoryPredicate,
-                sortDescriptions,
-                limiter,
-                commandNode,
-                shuffleNode
-            );
+            // 9. Assemble and return the final plan
+            return new RealmQueryPlan(rqlFilter, inMemoryPredicate, sortDescriptions, limiter, commandNode, shuffleNode);
         }
         catch (ParsingException ex)
         {
@@ -82,6 +79,24 @@ public static class MetaParser
         }
     }
 
+    // New helper to replace the complex and flawed segmentation system.
+    private static (List<Token> filterTokens, List<Token> directiveTokens) SeparateFilterAndDirectives(List<Token> allTokens)
+    {
+        // Directives are only valid at the very end of a query.
+        // We find the first directive token and split the list there.
+        int firstDirectiveIndex = allTokens.FindIndex(t => _directiveKeywords.Contains(t.Type));
+
+        if (firstDirectiveIndex == -1)
+        {
+            // No directives found, all tokens are for filtering.
+            return (allTokens, new List<Token>());
+        }
+
+        var filterTokens = allTokens.Take(firstDirectiveIndex).ToList();
+        var directiveTokens = allTokens.Skip(firstDirectiveIndex).ToList();
+
+        return (filterTokens, directiveTokens);
+    }
     private static RealmQueryPlan CreateErrorPlan(string message, string? suggestion = null)
     {
         Func<SongModelView, bool> predicate = _ => false; // Predicate that always returns false

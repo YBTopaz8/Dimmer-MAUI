@@ -168,6 +168,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     {
                         score += 50; // Big bonus for being a favorite
                     }
+                    song.HasSyncedLyrics = song.SyncLyrics.Length > 0 ? true : false;
                     song.PopularityScore = score;
 
 
@@ -611,7 +612,7 @@ _playbackQueueSource.Connect()
                     .Where((song, index) => aia.Indices.Contains(index))
                     .ToList();
 
-                if (!songsToAdd.Any())
+                if (songsToAdd.Count==0)
                     break;
 
                 Debug.WriteLine($"Action: Add {songsToAdd.Count} indexed songs to '{aia.Position}'.");

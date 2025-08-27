@@ -535,6 +535,25 @@ ToolTipProperties.Text="Save To Playlist">
                                                         Text="{Binding   SongListeningStreak.Count  }"/>
                     </VerticalStackLayout>
 
+                    <VerticalStackLayout
+                                          VerticalOptions="Center"  >
+
+                        <Label Text="Global Rank"  FontSize="21"
+                                            TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                        <Label  HorizontalOptions="Center"
+                                            TextColor="{AppThemeBinding Dark=White,Light=Black}" 
+                                                        FontSize="19"
+                                                        Text="{Binding   SelectedSong.ListenThroughRate}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout
+                                          VerticalOptions="Center"  >
+
+                        <Label Text="Global Rank"  FontSize="21"
+                                            TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                        
+                    </VerticalStackLayout>
+
                 </HorizontalStackLayout>
             </VerticalStackLayout>
             <Grid Grid.Column="1" >
