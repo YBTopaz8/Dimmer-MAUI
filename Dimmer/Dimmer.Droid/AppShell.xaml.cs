@@ -164,8 +164,14 @@ public partial class AppShell : Shell
 
     private async void RescanLyrics_Clicked(object sender, EventArgs e)
     {
-
-        await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
+        // Cancel and dispose previous CTS if it exists
+        if (_lyricsCts != null)
+        {
+            _lyricsCts.Cancel();
+            _lyricsCts.Dispose();
+        }
+        _lyricsCts = new CancellationTokenSource();
+        await MyViewModel.LoadSongDataAsync(null, _lyricsCts.Token);
     }
 
     private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)
