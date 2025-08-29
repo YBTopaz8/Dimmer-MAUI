@@ -137,7 +137,7 @@ public partial class SongModelView : ObservableObject
  
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView> UserNotes { get; set; } = new();
+    public partial ObservableCollection<UserNoteModelView> UserNoteAggregatedCol { get; set; } = new();
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
@@ -204,13 +204,13 @@ public partial class SongModelView : ObservableObject
         }
 
         // 2. Update Aggregated Notes
-        if (UserNotes.Any())
+        if (UserNoteAggregatedCol.Any())
         {
-            UserNoteAggregatedText = string.Join(" ", UserNotes.Select(n => n.UserMessageText));
+            UserNoteAggregatedText = string.Join(" ", UserNoteAggregatedCol.Select(n => n.UserMessageText));
         }
         else
         {
-            UserNoteAggregatedText = null;
+            UserNoteAggregatedCol = null;
         }
 
 

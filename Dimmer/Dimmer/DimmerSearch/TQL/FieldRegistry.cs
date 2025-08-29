@@ -53,7 +53,7 @@ public static class FieldRegistry
             new("LastPlayed", FieldType.Date, new[]{"played"}, "The last time the song was played", nameof(SongModel.LastPlayed)),
 
             // --- Advanced Text Fields ---
-            new("UserNoteAggregatedText", FieldType.Text, new[]{"note","notes","playlist","pl", "comment"}, "Text in user notes", nameof(SongModel.UserNoteAggregatedText)),
+            new("UserNoteAggregatedCol", FieldType.Text, new[]{"note","notes","playlist","pl", "comment"}, "Text in user notes", nameof(SongModel.UserNoteAggregatedText)),
             new("LyricsText", FieldType.Text, new[]{"lyrics"}, "Full text of all lyrics", nameof(SongModel.SyncLyrics )),
 
         }.AsReadOnly();

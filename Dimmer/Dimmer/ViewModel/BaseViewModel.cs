@@ -1653,7 +1653,7 @@ _playbackQueueSource.Connect()
             if (addedNote != null)
             {
                 var addedNoteView = _mapper.Map<UserNoteModelView>(addedNote);
-                songWithNote.UserNotes.Add(addedNoteView);
+                songWithNote.UserNoteAggregatedCol.Add(addedNoteView);
 
                 await Toast.Make($"Note added to {songWithNote.Title}").Show();
                 _logger.LogInformation("Successfully added user note for song: {SongTitle}", songWithNote.Title);
