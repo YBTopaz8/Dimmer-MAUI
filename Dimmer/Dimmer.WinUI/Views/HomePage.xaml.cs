@@ -1015,10 +1015,7 @@ await this.FadeIn(500, 1.0);
 
     private void ColvViewGest_PointerEntered(object sender, PointerEventArgs e)
     {
-        if (MyViewModel.PlaybackQueue.Count<1)
-        {
-            //MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentTqlQuery);
-        }
+        
     }
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)

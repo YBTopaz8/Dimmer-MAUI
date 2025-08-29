@@ -61,6 +61,8 @@ public partial class DimmerWin : Window
         {
             return;
         }
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+        winMgr.CloseAllWindows();
 
         // make a copy since closing mutates the collection
         foreach (var window in Application.Current!.Windows.ToList())

@@ -38,6 +38,10 @@ public partial class SettingsPage : ContentPage
         base.OnAppearing();
 
         await MyViewModel.CheckForAppUpdatesAsync();
+#if Release
+ViewAdminUpdate.IsVisible = false;
+#endif
+
     }
     private async void OpenDimmerLiveSettingsChip_Clicked(object sender, EventArgs e)
     {
@@ -74,6 +78,7 @@ public partial class SettingsPage : ContentPage
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
+
         await MyViewModel.AddMusicFolderViaPickerAsync();
     }
 

@@ -268,6 +268,15 @@ internal class WinUIWindowMgrService :IWinUIWindowMgrService
         return _openWindows.ToList().AsReadOnly();
     }
 
+    public void CloseAllWindows()
+    {
+
+        foreach (var window in _openWindows)
+        {
+            CloseWindow(window);    
+
+        }
+    }
     public void CloseWindow(Window window)
     {
         try

@@ -97,10 +97,10 @@ public class StatisticsService
 
        
        
-        var allSongs = await _songRepo.GetAllAsync();
+        var allSongs =  _songRepo.GetAllAsQueryable();
 
         
-        var filteredEvents = await _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
+        var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
         int topCount = 10;
 
         var bundle = new LibraryStatsBundle
@@ -141,8 +141,8 @@ public class StatisticsService
             return null;
 
        
-        var allSongEvents =  _eventRepo.GetAll().Where(x=>x.SongId==songId).ToList().AsReadOnly();
-        if (allSongEvents.Count == 0)
+        var allSongEvents =  _eventRepo.GetAllAsQueryable().Where(x=>x.SongId==songId);
+        if (!allSongEvents.Any())
             return null;
 
         var endDate = DateTimeOffset.UtcNow;
@@ -159,10 +159,10 @@ public class StatisticsService
 
         var filteredEvents = allSongEvents
             .Where(e => (!startDate.HasValue || e.EventDate >= startDate.Value) &&
-                        (e.EventDate < endDate))
-            .ToList();
+                        (e.EventDate < endDate)).AsQueryable()
+            ;
 
-        if (filteredEvents.Count == 0)
+        if (!filteredEvents.Any())
             return null;
 
         var bundle = new SongStatsBundle
@@ -198,8 +198,8 @@ public class StatisticsService
             _ => null
         };
 
-        var allSongs = await _songRepo.GetAllAsync();
-        var filteredEvents = await _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
+        var allSongs =  _songRepo.GetAllAsQueryable();
+        var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
 
         var bundle = new ArtistStatsBundle
         {
@@ -230,8 +230,8 @@ public class StatisticsService
             _ => null
         };
 
-        var allSongs = await _songRepo.GetAllAsync();
-        var filteredEvents = await _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
+        var allSongs =  _songRepo.GetAllAsQueryable();
+        var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
 
         var bundle = new AlbumStatsBundle
         {

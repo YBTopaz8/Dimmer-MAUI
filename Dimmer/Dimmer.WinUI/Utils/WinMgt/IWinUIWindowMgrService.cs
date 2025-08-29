@@ -26,4 +26,5 @@ interface IWinUIWindowMgrService
     void CloseWindow(Window window);
     void CloseWindow<T>() where T : Window;
     void BringToFront(Window window);
+    void CloseAllWindows();
 }

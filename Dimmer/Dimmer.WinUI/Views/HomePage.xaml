@@ -812,8 +812,7 @@ Value="False">
 
         <Grid.GestureRecognizers>
 
-            <PointerGestureRecognizer PointerEntered="ColvViewGest_PointerEntered" x:Name="ColvViewGest"
-                                              />
+            
             <DropGestureRecognizer
                 x:Name="SongDropRecognizer"
                 AllowDrop="True"
@@ -852,7 +851,7 @@ Value="False">
                                         Clicked="DeleteSongs_Clicked" TextColor="White"/>
                             </HorizontalStackLayout>
                         </Border>
-                        <Button Text="Search" ImageSource="searchd.png"
+                        <Button Text="Search" BorderWidth="2" 
                     x:Name="SearchSongSB" BackgroundColor="Transparent"
                     windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
                     windows:VisualElement.AccessKey="F"
@@ -861,7 +860,11 @@ Value="False">
                                  HorizontalOptions="Start"
                                  >
                             <Button.Behaviors>
-                                <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue"/>
+                                <toolkit:TouchBehavior
+                                    HoveredAnimationDuration="700"
+                                    HoveredAnimationEasing="Linear"
+                                    HoveredBackgroundColor="DarkSlateBlue"
+                                    />
                             </Button.Behaviors>
                         </Button>
                         <HorizontalStackLayout>
@@ -912,11 +915,7 @@ Value="False">
                     </VerticalStackLayout>
                     <HorizontalStackLayout Grid.Column="2" Spacing="10">
 
-                        <Button
-                        Command="{Binding RandomizeCommand}"
-                        Text="Randomize" windows:VisualElement.AccessKey="R"
-                        WidthRequest="100" />
-                        <Button Clicked="Button_Clicked_1" Text="Reset" />
+                      
 
                     </HorizontalStackLayout>
                 </Grid>

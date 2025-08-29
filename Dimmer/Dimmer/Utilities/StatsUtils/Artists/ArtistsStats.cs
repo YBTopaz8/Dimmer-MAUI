@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Utilities.StatsUtils.Artists;
+﻿using System.Linq;
+
+namespace Dimmer.Utilities.StatsUtils.Artists;
 public static class ArtistStats
 {
     #region Helper Methods
@@ -6,23 +8,23 @@ public static class ArtistStats
     /// <summary>
     /// Retrieves all songs associated with a given artist ID from the entire library.
     /// </summary>
-    private static List<SongModel> GetSongsByArtistId(ObjectId artistId, IReadOnlyCollection<SongModel> allSongsInLibrary)
+    private static IQueryable<SongModel> GetSongsByArtistId(ObjectId artistId, IQueryable<SongModel> allSongsInLibrary)
     {
-        return [.. allSongsInLibrary.Where(s => s.ArtistToSong.Any(a => a.Id == artistId))];
+        return allSongsInLibrary.Where(s => s.ArtistToSong.Any(a => a.Id == artistId));
     }
 
     /// <summary>
     /// Filters all play events to get only those relevant to a specific collection of songs.
     /// </summary>
-    private static List<DimmerPlayEvent> GetRelevantEventsForArtistSongs(
-        IReadOnlyCollection<SongModel> songsByArtist,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    private static IQueryable<DimmerPlayEvent> GetRelevantEventsForArtistSongs(
+        IQueryable<SongModel> songsByArtist,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
-        if (songsByArtist == null || songsByArtist.Count==0)
-            return new List<DimmerPlayEvent>();
+        if (songsByArtist == null || !songsByArtist.Any())
+            return Enumerable.Empty<DimmerPlayEvent>().AsQueryable();
 
         var songIds = songsByArtist.Select(s => s.Id).ToHashSet();
-        return [.. allEvents.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value))];
+        return allEvents.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value));
     }
 
     /// <summary>
@@ -123,8 +125,8 @@ public static class ArtistStats
 
     public static ArtistSingleStatsSummary GetSingleArtistStats(
         ArtistModel targetArtist,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (targetArtist == null)
             return new ArtistSingleStatsSummary { ArtistName = "Error: Artist not provided" };
@@ -134,10 +136,10 @@ public static class ArtistStats
         {
             ArtistName = targetArtist.Name ?? "Unknown Artist",
             ArtistId = targetArtist.Id,
-            TotalSongsInLibrary = songsByArtist.Count
+            TotalSongsInLibrary = songsByArtist.Count()
         };
 
-        if (songsByArtist.Count==0)
+        if (!songsByArtist.Any())
             return summary; // No songs by this artist in the library
 
         var relevantEventsForArtistSongs = GetRelevantEventsForArtistSongs(songsByArtist, allEvents);
@@ -265,7 +267,7 @@ public static class ArtistStats
             summary.EarliestSongAddedDate = validDateCreatedSongs.Min(s => s.DateCreated!.Value);
             summary.LatestSongAddedDate = validDateCreatedSongs.Max(s => s.DateCreated!.Value);
         }
-        summary.TotalRawPlayEventsForArtistSongs = relevantEventsForArtistSongs.Count;
+        summary.TotalRawPlayEventsForArtistSongs = relevantEventsForArtistSongs.Count();
 
         return summary;
     }
@@ -274,8 +276,8 @@ public static class ArtistStats
     public static ArtistSingleStatsSummary GetSingleArtistStats(
         SongModel sourceSongForArtistSelection,
         int artistIndexInSourceSong,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (sourceSongForArtistSelection?.ArtistToSong == null || artistIndexInSourceSong < 0 || artistIndexInSourceSong >= sourceSongForArtistSelection.ArtistToSong.Count)
             return new ArtistSingleStatsSummary { ArtistName = "Error: Invalid artist selection criteria." };
@@ -299,8 +301,8 @@ public static class ArtistStats
 
     public static ArtistComparisonResult CompareTwoArtists(
         ArtistModel artist1, ArtistModel artist2,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (artist1 == null || artist2 == null)
             return new ArtistComparisonResult { /* Error state can be indicated in ArtistStats names */ };
@@ -329,8 +331,8 @@ public static class ArtistStats
     // Overload for selection by index
     public static ArtistComparisonResult CompareTwoArtists(
         SongModel sourceSong, int artist1Index, int artist2Index,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (sourceSong?.ArtistToSong == null ||
             artist1Index < 0 || artist1Index >= sourceSong.ArtistToSong.Count ||
@@ -360,15 +362,15 @@ public static class ArtistStats
 
     public static ArtistPlottableData GetSingleArtistPlottableData(
         ArtistModel targetArtist,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (targetArtist == null)
             return new ArtistPlottableData { ArtistName = "Error: Artist not provided" };
 
         var songsByArtist = GetSongsByArtistId(targetArtist.Id, allSongsInLibrary);
         var data = new ArtistPlottableData { ArtistName = targetArtist.Name ?? "Unknown Artist", ArtistId = targetArtist.Id };
-        if (songsByArtist.Count==0)
+        if (!songsByArtist.Any())
             return data;
 
         var relevantArtistEvents = GetRelevantEventsForArtistSongs(songsByArtist, allEvents);
@@ -386,16 +388,8 @@ public static class ArtistStats
             .GroupBy(e => e.DatePlayed.Hour)
             .Select(g => new LabelValue($"{g.Key:D2}:00", g.Count()))
             .OrderBy(lv => lv.Label)];
-        data.SongPlayCountDistribution = [.. songsByArtist
-            .Select(s => SongStats.GetPlayCount(s, allEvents))
-            .GroupBy(pc => pc)
-            .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => int.TryParse(lv.Label, out int val) ? val : int.MaxValue)];
-        data.SongSkipCountDistribution = [.. songsByArtist
-            .Select(s => SongStats.GetSkipCount(s, allEvents))
-            .GroupBy(sc => sc)
-            .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => int.TryParse(lv.Label, out int val) ? val : int.MaxValue)];
+       
+
         data.SongDurationDistributionMinutes = [.. songsByArtist
             .GroupBy(s => (int)(s.DurationInSeconds / 60)) // Bucket by minute
             .Select(g => new { BucketValue = g.Key, Count = g.Count() })
@@ -410,8 +404,8 @@ public static class ArtistStats
     // Overload for selection by index
     public static ArtistPlottableData GetSingleArtistPlottableData(
         SongModel sourceSong, int artistIndex,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (sourceSong?.ArtistToSong == null || artistIndex < 0 || artistIndex >= sourceSong.ArtistToSong.Count)
             return new ArtistPlottableData { ArtistName = "Error: Invalid artist selection criteria." };
@@ -426,8 +420,8 @@ public static class ArtistStats
 
     public static List<ArtistSingleStatsSummary> GetMultipleArtistStats(
         List<ArtistModel> targetArtists,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (targetArtists == null || targetArtists.Count==0)
             return new List<ArtistSingleStatsSummary>();
@@ -438,8 +432,8 @@ public static class ArtistStats
     // Overload for selection by indices
     public static List<ArtistSingleStatsSummary> GetMultipleArtistStats(
         SongModel sourceSong, List<int> artistIndices,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (sourceSong?.ArtistToSong == null || artistIndices == null || artistIndices.Count==0)
             return new List<ArtistSingleStatsSummary>();

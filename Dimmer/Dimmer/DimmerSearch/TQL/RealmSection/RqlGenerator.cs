@@ -170,30 +170,24 @@ public static class RqlGenerator
         if (string.IsNullOrWhiteSpace(value))
             return "TRUEPREDICATE";
 
-        // --- NEW, SIMPLIFIED LOGIC ---
-
-        // Case 1: Handle simple comparison operators first (>, <, >=, <=)
-        // These operators expect a single, absolute date/time value.
-        if (op is ">" or "<" or ">=" or "<=")
+       if (op is ">" or "<" or ">=" or "<=")
         {
             if (DateTimeOffset.TryParse(value, out var boundaryDate))
             {
-                // If the value is a valid date, build the clause and we are done.
+       
                 return $"{fieldDef.PropertyName} {op} {FormatValue(boundaryDate, FieldType.Date)}";
             }
             else
             {
-                // If the value is not a valid date for this operator, the query is invalid.
+    
                 return "FALSEPREDICATE";
             }
         }
 
-        // Case 2: Handle keywords (today, thisweek, etc.) and exact date matches (= or contains)
-        // These operators imply a date RANGE.
+     
         var (start, end) = ParseDateKeyword(value);
 
-        // If the value was not a keyword, try parsing it as an absolute date.
-        // This handles queries like `played:"2023-05-10"`
+      
         if (start == DateTimeOffset.MinValue && DateTimeOffset.TryParse(value, out var singleDate))
         {
             start = singleDate.Date; // Start of the day

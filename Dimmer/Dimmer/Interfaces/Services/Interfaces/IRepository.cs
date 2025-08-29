@@ -32,4 +32,9 @@ public interface IRepository<T> where T : new()
     Task<List<T>> QueryWithRQLAsync(string rqlQuery, params QueryArgument[] args);
     Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
     Task DeleteManyAsync(HashSet<ObjectId> missingIds);
+    IQueryable<T> GetAllAsQueryable();
+    IQueryable<T> GetAllAsQueryableSortedFiltered<TKey>(Expression<Func<T, TKey>> keySelector, Expression<Func<T, bool>> predicate, bool ascending = true);
+    IQueryable<T> GetAllAsQueryableSorted<TKey>(Expression<Func<T, TKey>> keySelector, bool ascending = true);
+    IQueryable<T> GetAllAsQueryableFiltered(Expression<Func<T, bool>> predicate);
+    IQueryable<T> GetAllAsQueryableFiltered(string rqlQuery, params QueryArgument[] args);
 }

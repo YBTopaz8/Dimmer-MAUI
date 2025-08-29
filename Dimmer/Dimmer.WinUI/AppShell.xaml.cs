@@ -70,6 +70,7 @@ public partial class AppShell : Shell
     {
         await Shell.Current.GoToAsync(nameof(DimmerLivePage));
     }
+
     private void SettingsChip_Clicked(object sender, EventArgs e)
     {
 
@@ -138,9 +139,11 @@ public partial class AppShell : Shell
     private bool _isLyricsProcessing = false;
 
 
-    private void SettingsNavChips_ChipClicked(object sender, EventArgs e)
+    private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
-
+        this.IsBusy=true;
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
+        this.IsBusy=false;
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)

@@ -6,19 +6,19 @@ public static class AlbumStats
     /// <summary>
     /// Retrieves all songs associated with a given Album ID from the entire library.
     /// </summary>
-    private static List<SongModel> GetSongsByAlbumId(ObjectId albumId, IReadOnlyCollection<SongModel> allSongsInLibrary)
+    private static IQueryable<SongModel> GetSongsByAlbumId(ObjectId albumId, IQueryable<SongModel> allSongsInLibrary)
     {
-        return [.. allSongsInLibrary.Where(s => s.Album != null && s.Album.Id == albumId)];
+        return allSongsInLibrary.Where(s => s.Album != null && s.Album.Id == albumId);
     }
 
     /// <summary>
     /// Filters all play events to get only those relevant to a specific collection of songs (e.g., songs on an album).
     /// </summary>
     private static List<DimmerPlayEvent> GetRelevantEventsForSongs(
-        IReadOnlyCollection<SongModel> songs,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> songs,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
-        if (songs == null || songs.Count==0)
+        if (songs == null || !songs.Any())
             return new List<DimmerPlayEvent>();
 
         var songIds = songs.Select(s => s.Id).ToHashSet();
@@ -121,8 +121,8 @@ public static class AlbumStats
 
     public static AlbumSingleStatsSummary GetSingleAlbumStats(
         AlbumModel targetAlbum,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (targetAlbum == null)
             return new AlbumSingleStatsSummary { AlbumName = "Error: Album not provided" };
@@ -133,10 +133,10 @@ public static class AlbumStats
             AlbumName = targetAlbum.Name ?? "Unknown Album",
             AlbumId = targetAlbum.Id,
             ReleaseYear = targetAlbum.ReleaseYear,
-            TotalTracksInLibraryForAlbum = songsOnAlbum.Count
+            TotalTracksInLibraryForAlbum = songsOnAlbum.Count()
         };
 
-        if (songsOnAlbum.Count==0)
+        if (!songsOnAlbum.Any())
             return summary;
 
         summary.PrimaryArtistNames = songsOnAlbum
@@ -164,7 +164,7 @@ public static class AlbumStats
         summary.AverageSkipsPerSongOnAlbum = summary.TotalTracksInLibraryForAlbum > 0 ? (double)summary.TotalSkipsOnAlbum / summary.TotalTracksInLibraryForAlbum : 0;
         summary.AverageListeningTimePerSongOnAlbumSeconds = summary.TotalTracksInLibraryForAlbum > 0 ? summary.TotalListeningTimeOnAlbumSeconds / summary.TotalTracksInLibraryForAlbum : 0;
         summary.AverageListeningTimePerSongOnAlbumFormatted = FormatTimeSpanLocal(TimeSpan.FromSeconds(summary.AverageListeningTimePerSongOnAlbumSeconds));
-        summary.AverageSongRatingOnAlbum = songsOnAlbum.Count!=0 ? songsOnAlbum.Average(s => s.Rating) : 0; // Or average of played songs: playedSongsOnAlbum.Any() ? playedSongsOnAlbum.Average(s=>s.Rating) : 0;
+        summary.AverageSongRatingOnAlbum = songsOnAlbum.Count()!=0 ? songsOnAlbum.Average(s => s.Rating) : 0; // Or average of played songs: playedSongsOnAlbum.Any() ? playedSongsOnAlbum.Average(s=>s.Rating) : 0;
         summary.AverageSongDurationOnAlbumSeconds = songsOnAlbum.Average(s => s.DurationInSeconds);
         summary.AverageSongDurationOnAlbumFormatted = FormatTimeSpanLocal(TimeSpan.FromSeconds(summary.AverageSongDurationOnAlbumSeconds));
 
@@ -266,8 +266,8 @@ public static class AlbumStats
     // Overload: Get stats for the album of a given song
     public static AlbumSingleStatsSummary GetSingleAlbumStats(
         SongModel songFromAlbum,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (songFromAlbum?.Album == null)
             return new AlbumSingleStatsSummary { AlbumName = "Error: Song has no associated album or song is null." };
@@ -290,8 +290,8 @@ public static class AlbumStats
 
     public static AlbumPlottableData GetSingleAlbumPlottableData(
         AlbumModel targetAlbum,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (targetAlbum == null)
             return new AlbumPlottableData { AlbumName = "Error: Album not provided" };
@@ -322,17 +322,17 @@ public static class AlbumStats
                 s.TrackNumber.HasValue ? $"Track {s.TrackNumber:D2}" : (s.Title ?? "Unknown"),
                 s.DurationInSeconds / 60.0))];
 
-        var relevantAlbumEvents = GetRelevantEventsForSongs(songsOnAlbum, allEvents);
-        var albumPlayInitiationEvents = relevantAlbumEvents.Where(IsPlayInitiationEventLocal).ToList();
+        //var relevantAlbumEvents = GetRelevantEventsForSongs(songsOnAlbum, allEvents);
+        //var albumPlayInitiationEvents = relevantAlbumEvents.Where(IsPlayInitiationEventLocal).ToList();
 
-        data.PlaysPerDayOfWeekForAlbum = [.. albumPlayInitiationEvents
-            .GroupBy(e => e.DatePlayed.DayOfWeek)
-            .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
-            .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label))];
-        data.PlaysPerHourOfDayForAlbum = [.. albumPlayInitiationEvents
-            .GroupBy(e => e.DatePlayed.Hour)
-            .Select(g => new LabelValue($"{g.Key:D2}:00", g.Count()))
-            .OrderBy(lv => lv.Label)];
+        //data.PlaysPerDayOfWeekForAlbum = [.. albumPlayInitiationEvents
+        //    .GroupBy(e => e.DatePlayed.DayOfWeek)
+        //    .Select(g => new LabelValue(g.Key.ToString(), g.Count()))
+        //    .OrderBy(lv => (int)Enum.Parse<DayOfWeek>(lv.Label))];
+        //data.PlaysPerHourOfDayForAlbum = [.. albumPlayInitiationEvents
+        //    .GroupBy(e => e.DatePlayed.Hour)
+        //    .Select(g => new LabelValue($"{g.Key:D2}:00", g.Count()))
+        //    .OrderBy(lv => lv.Label)];
 
         return data;
     }
@@ -340,8 +340,8 @@ public static class AlbumStats
     // Overload for songFromAlbum
     public static AlbumPlottableData GetSingleAlbumPlottableData(
         SongModel songFromAlbum,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents)
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents)
     {
         if (songFromAlbum?.Album == null)
             return new AlbumPlottableData { AlbumName = "Error: Song has no associated album or song is null." };
@@ -416,8 +416,8 @@ public static class AlbumStats
     public static ArtistAlbumContributionStatsSummary GetArtistAlbumContributionStats(
         ArtistModel targetArtist,
         AlbumModel targetAlbum,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents,
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents,
         AlbumSingleStatsSummary? albumOverallStats = null) // Optional pre-calculated album stats for percentages
     {
         if (targetArtist == null || targetAlbum == null)
@@ -441,7 +441,7 @@ public static class AlbumStats
         if (songsByArtistOnThisAlbum.Count==0)
             return summary;
 
-        var relevantEventsForArtistOnAlbum = GetRelevantEventsForSongs(songsByArtistOnThisAlbum, allEvents);
+        //var relevantEventsForArtistOnAlbum = GetRelevantEventsForSongs(songsByArtistOnThisAlbum, allEvents);
 
         summary.TotalPlaysForArtistOnThisAlbum = songsByArtistOnThisAlbum.Sum(s => SongStats.GetPlayCount(s, allEvents));
         summary.TotalSkipsForArtistOnThisAlbum = songsByArtistOnThisAlbum.Sum(s => SongStats.GetSkipCount(s, allEvents));
@@ -475,22 +475,22 @@ public static class AlbumStats
             summary.MostPlayedSongByArtistOnThisAlbumModel = mostPlayedByArtistOnAlbum;
         }
 
-        var artistAlbumPlayInitiationEvents = relevantEventsForArtistOnAlbum.Where(IsPlayInitiationEventLocal).ToList();
-        if (artistAlbumPlayInitiationEvents.Count!=0)
-        {
-            summary.FirstPlayDateForArtistOnThisAlbum = artistAlbumPlayInitiationEvents.Min(e => e.DatePlayed);
-            summary.LastPlayDateForArtistOnThisAlbum = artistAlbumPlayInitiationEvents.Max(e => e.DatePlayed);
-        }
+        //var artistAlbumPlayInitiationEvents = relevantEventsForArtistOnAlbum.Where(IsPlayInitiationEventLocal).ToList();
+        //if (artistAlbumPlayInitiationEvents.Count!=0)
+        //{
+        //    summary.FirstPlayDateForArtistOnThisAlbum = artistAlbumPlayInitiationEvents.Min(e => e.DatePlayed);
+        //    summary.LastPlayDateForArtistOnThisAlbum = artistAlbumPlayInitiationEvents.Max(e => e.DatePlayed);
+        //}
 
-        var devicesForArtistOnAlbum = relevantEventsForArtistOnAlbum.Where(e => !string.IsNullOrEmpty(e.DeviceName)).Select(e => e.DeviceName!).ToList();
-        summary.UniqueDevicesArtistSongsOnThisAlbumPlayedOn = devicesForArtistOnAlbum.Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        summary.MostCommonDeviceForArtistOnThisAlbum = devicesForArtistOnAlbum.GroupBy(d => d, StringComparer.OrdinalIgnoreCase).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key;
+        //var devicesForArtistOnAlbum = relevantEventsForArtistOnAlbum.Where(e => !string.IsNullOrEmpty(e.DeviceName)).Select(e => e.DeviceName!).ToList();
+        //summary.UniqueDevicesArtistSongsOnThisAlbumPlayedOn = devicesForArtistOnAlbum.Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        //summary.MostCommonDeviceForArtistOnThisAlbum = devicesForArtistOnAlbum.GroupBy(d => d, StringComparer.OrdinalIgnoreCase).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key;
 
         summary.FavoritedSongsByArtistOnThisAlbumCount = songsByArtistOnThisAlbum.Count(s => s.IsFavorite);
         summary.SongsByArtistOnThisAlbumWithLyricsCount = songsByArtistOnThisAlbum.Count(s => s.HasLyrics);
         summary.SongsByArtistOnThisAlbumNeverPlayedCount = songsByArtistOnThisAlbum.Count(s => SongStats.GetPlayCount(s, allEvents) == 0);
         summary.SongsByArtistOnThisAlbumCompletedAtLeastOnce = songsByArtistOnThisAlbum.Count(s => SongStats.WasEverCompleted(s, allEvents));
-        summary.TotalCompletionsForArtistOnThisAlbum = songsByArtistOnThisAlbum.Sum(s => relevantEventsForArtistOnAlbum.Count(e => e.SongId == s.Id && (e.PlayType == 3 || e.WasPlayCompleted)));
+        //summary.TotalCompletionsForArtistOnThisAlbum = songsByArtistOnThisAlbum.Sum(s => relevantEventsForArtistOnAlbum.Count(e => e.SongId == s.Id && (e.PlayType == 3 || e.WasPlayCompleted)));
 
         var playedArtistSongsOnAlbum = songsByArtistOnThisAlbum.Where(s => SongStats.GetPlayCount(s, allEvents) > 0).ToList();
         summary.UniqueArtistSongsPlayedOnAlbum = playedArtistSongsOnAlbum.Count;
@@ -526,8 +526,8 @@ public static class AlbumStats
     public static ArtistAlbumContributionStatsSummary GetArtistAlbumContributionStats(
         SongModel sourceSong, // Song from which to get album and artist
         int artistIndexInSourceSong, // Index of artist in sourceSong.ArtistToSong
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents,
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents,
         AlbumSingleStatsSummary? albumOverallStats = null)
     {
         if (sourceSong?.Album == null || sourceSong.ArtistToSong == null ||
@@ -560,8 +560,8 @@ public static class AlbumStats
 
     public static AlbumArtistComparisonBundle GetAlbumArtistComparisonBundle(
         AlbumModel targetAlbum,
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents,
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents,
         List<ArtistModel>? specificArtistsToCompare = null) // Optional: if null, compares all artists on album
     {
         if (targetAlbum == null)
@@ -628,8 +628,8 @@ public static class AlbumStats
     // Overload for selection from a song
     public static AlbumArtistComparisonBundle GetAlbumArtistComparisonBundle(
         SongModel songFromAlbum, // Album is taken from this song
-        IReadOnlyCollection<SongModel> allSongsInLibrary,
-        IReadOnlyCollection<DimmerPlayEvent> allEvents,
+        IQueryable<SongModel> allSongsInLibrary,
+        IQueryable<DimmerPlayEvent> allEvents,
         List<ArtistModel>? specificArtistsToCompare = null) // Optional: if null, compares all artists on album
     {
         if (songFromAlbum?.Album == null)

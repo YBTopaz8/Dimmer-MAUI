@@ -214,12 +214,56 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
             if (IsShuffled)
             {
 
-                return realm.All<T>().ToList().Select(o => o.Freeze()).ToList().Shuffled();
+                return realm.All<T>().AsEnumerable().Select(o => o.Freeze()).ToList();
 
             }
-            return realm.All<T>().ToList().Select(o => o.Freeze()).ToList();
+            return realm.All<T>().AsEnumerable().Select(x=>x.Freeze()).ToList();
         });
     }
+
+    public IQueryable<T> GetAllAsQueryable()
+    {
+        return ExecuteRead(realm =>
+        {
+            return realm.All<T>();
+        });
+    }
+
+    public IQueryable<T> GetAllAsQueryableFiltered(string rqlQuery, params Realms.QueryArgument[] args)
+    {
+        return ExecuteRead(realm =>
+        {
+            return realm.All<T>().Filter(rqlQuery, args);
+        });
+    }
+
+    public IQueryable<T> GetAllAsQueryableFiltered(Expression<Func<T, bool>> predicate)
+    {
+        return ExecuteRead(realm =>
+        {
+            return realm.All<T>().Where(predicate);
+        });
+    }
+
+    public IQueryable<T> GetAllAsQueryableSorted<TKey>(Expression<Func<T, TKey>> keySelector, bool ascending = true)
+    {
+        return ExecuteRead(realm =>
+        {
+            var query = realm.All<T>();
+            return ascending ? query.OrderBy(keySelector) : query.OrderByDescending(keySelector);
+        });
+    }
+
+    public IQueryable<T> GetAllAsQueryableSortedFiltered<TKey>(Expression<Func<T, TKey>> keySelector, Expression<Func<T, bool>> predicate, bool ascending = true)
+    {
+        return ExecuteRead(realm =>
+        {
+            var query = realm.All<T>().Where(predicate);
+            return ascending ? query.OrderBy(keySelector) : query.OrderByDescending(keySelector);
+        });
+    }
+
+    
 
     /// <summary>
     /// Finds all objects matching a LINQ predicate.

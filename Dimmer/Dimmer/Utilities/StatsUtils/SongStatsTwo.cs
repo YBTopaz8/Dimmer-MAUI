@@ -18,17 +18,17 @@ public static class SongStatTwo
         return e.PlayType == 0 || e.PlayType == 2 || e.PlayType == 6 || e.PlayType == 7 || e.PlayType == 8 || e.PlayType == 9;
     }
 
-    private static int CoreGetPlayCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static int CoreGetPlayCount(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return songSpecificEvents.Count(IsPlayInitiationEvent);
     }
 
-    private static int CoreGetSkipCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static int CoreGetSkipCount(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return songSpecificEvents.Count(e => e.PlayType == 5); // PlayType 5 is Skipped
     }
 
-    private static double CoreGetTotalListeningTime(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static double CoreGetTotalListeningTime(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (song.DurationInSeconds <= 0)
             return 0;
@@ -40,7 +40,7 @@ public static class SongStatTwo
 
         // Add partial listening time from skips that weren't already counted as completions.
         totalListeningTime += songSpecificEvents
-            .Where(e => e.PlayType == 5 && !e.WasPlayCompleted)
+            .Where(e => e.PlayType == 5 && !e.WasPlayCompleted).AsEnumerable()
             .Sum(e =>
             {
                 double position = Math.Max(0, e.PositionInSeconds); // Ensure non-negative
@@ -50,13 +50,13 @@ public static class SongStatTwo
         return totalListeningTime;
     }
 
-    private static bool CoreWasEverCompleted(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static bool CoreWasEverCompleted(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         // PlayType 3 is "Completed"
         return songSpecificEvents.Any(e => e.WasPlayCompleted || e.PlayType == 3);
     }
 
-    private static List<string> CoreGetPlayedDevices(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static List<string> CoreGetPlayedDevices(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return [.. songSpecificEvents.Where(e => !string.IsNullOrEmpty(e.DeviceName))
                              .Select(e => e.DeviceName!)
@@ -64,7 +64,7 @@ public static class SongStatTwo
                              .OrderBy(name => name)];
     }
 
-    private static double CoreGetAvgPercentListened(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static double CoreGetAvgPercentListened(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (song.DurationInSeconds <= 0)
             return 0;
@@ -98,9 +98,9 @@ public static class SongStatTwo
         return (totalPercentageSum / terminalEvents.Count) * 100.0;
     }
 
-    private static DateTimeOffset? CoreGetLastPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    private static DateTimeOffset? CoreGetLastPlayedDate(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
-        if (songSpecificEvents.Count==0)
+        if (!songSpecificEvents.Any())
             return null;
         // Considers any event's DatePlayed for "last activity"
         return songSpecificEvents.Max(e => e.DatePlayed);
@@ -110,48 +110,48 @@ public static class SongStatTwo
 
     #region A. Methods for CollectionStats (take allEvents and filter internally)
 
-    private static IReadOnlyCollection<DimmerPlayEvent> GetEventsForSong(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    private static IQueryable<DimmerPlayEvent> GetEventsForSong(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
-        return [.. allEvents.Where(e => e.SongId.HasValue && e.SongId.Value == song.Id)];
+        return allEvents.Where(e => e.SongId.HasValue && e.SongId.Value == song.Id);
     }
 
-    public static int GetPlayCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static int GetPlayCount(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreGetPlayCount(song, relevantEvents);
     }
 
-    public static int GetSkipCount(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static int GetSkipCount(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreGetSkipCount(song, relevantEvents);
     }
 
-    public static double GetTotalListeningTime(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static double GetTotalListeningTime(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreGetTotalListeningTime(song, relevantEvents);
     }
 
-    public static bool WasEverCompleted(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static bool WasEverCompleted(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreWasEverCompleted(song, relevantEvents);
     }
 
-    public static List<string> GetPlayedDevices(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static List<string> GetPlayedDevices(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreGetPlayedDevices(song, relevantEvents);
     }
 
-    public static double GetAvgPercentListened(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static double GetAvgPercentListened(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreGetAvgPercentListened(song, relevantEvents);
     }
 
-    public static DateTimeOffset? GetLastPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> allEvents)
+    public static DateTimeOffset? GetLastPlayedDate(SongModel song, IQueryable<DimmerPlayEvent> allEvents)
     {
         var relevantEvents = GetEventsForSong(song, allEvents);
         return CoreGetLastPlayedDate(song, relevantEvents);
@@ -179,63 +179,63 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets the total number of play initiations for the song from its specific events.</summary>
-    public static int GetTotalPlays(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetTotalPlays(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreGetPlayCount(song, songSpecificEvents);
     }
 
     /// <summary>Gets the total number of skips for the song from its specific events.</summary>
-    public static int GetTotalSkips(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetTotalSkips(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreGetSkipCount(song, songSpecificEvents);
     }
 
     /// <summary>Calculates the total listening time for the song from its specific events.</summary>
-    public static double GetSongTotalListeningTime(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static double GetSongTotalListeningTime(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreGetTotalListeningTime(song, songSpecificEvents);
     }
 
     /// <summary>Calculates the average percentage of the song listened to per terminal event (Pause, Skip, Complete).</summary>
-    public static double GetSongAvgPercentListened(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static double GetSongAvgPercentListened(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreGetAvgPercentListened(song, songSpecificEvents);
     }
 
     /// <summary>Checks if the song was ever marked as completed from its specific events.</summary>
-    public static bool WasSongEverCompleted(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static bool WasSongEverCompleted(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreWasEverCompleted(song, songSpecificEvents);
     }
 
     /// <summary>Gets the date this song was last played based on any of its specific events.</summary>
-    public static DateTimeOffset? GetSongLastPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static DateTimeOffset? GetSongLastPlayedDate(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreGetLastPlayedDate(song, songSpecificEvents);
     }
 
     /// <summary>Gets the date this song was first played based on any of its specific events.</summary>
-    public static DateTimeOffset? GetSongFirstPlayedDate(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static DateTimeOffset? GetSongFirstPlayedDate(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
-        if (songSpecificEvents.Count==0)
+        if (!songSpecificEvents.Any())
             return null;
         return songSpecificEvents.Min(e => e.DatePlayed);
     }
 
     /// <summary>Counts how many times the song was completed, based on its specific events.</summary>
-    public static int GetNumberOfCompletions(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetNumberOfCompletions(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return songSpecificEvents.Count(e => e.WasPlayCompleted || e.PlayType == 3);
     }
 
     /// <summary>Gets a list of unique device names on which this song was played, from its specific events.</summary>
-    public static List<string> GetSongPlayedDevices(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<string> GetSongPlayedDevices(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return CoreGetPlayedDevices(song, songSpecificEvents);
     }
 
     /// <summary>Determines the most frequent hour of the day (0-23) the song was played.</summary>
-    public static int? GetMostFrequentPlayHour(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int? GetMostFrequentPlayHour(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return null;
@@ -248,7 +248,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets the distribution of play initiations per day.</summary>
-    public static List<LabelValue> GetPlayCountPerDay(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<LabelValue> GetPlayCountPerDay(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
@@ -259,7 +259,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets the distribution of play initiations per hour of the day.</summary>
-    public static List<LabelValue> GetPlayCountPerHourOfDay(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<LabelValue> GetPlayCountPerHourOfDay(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
@@ -270,7 +270,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets the distribution of play initiations per day of the week.</summary>
-    public static List<LabelValue> GetPlayCountPerDayOfWeek(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<LabelValue> GetPlayCountPerDayOfWeek(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
@@ -281,7 +281,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets the distribution of play initiations per month.</summary>
-    public static List<LabelValue> GetPlayCountPerMonth(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<LabelValue> GetPlayCountPerMonth(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (!songSpecificEvents.Any(IsPlayInitiationEvent))
             return [];
@@ -292,7 +292,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets a list of distinct dates on which the song had play initiations.</summary>
-    public static List<DateTimeOffset> GetDatesPlayed(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<DateTimeOffset> GetDatesPlayed(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return [.. songSpecificEvents
                          .Where(IsPlayInitiationEvent)
@@ -303,7 +303,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Calculates the longest streak of consecutive days the song was played.</summary>
-    public static int GetLongestListeningStreak(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetLongestListeningStreak(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         var distinctPlayDates = GetDatesPlayed(song, songSpecificEvents).Select(d => d.Date).ToList();
 
@@ -330,7 +330,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Calculates the average time (in days) between play initiations.</summary>
-    public static double? GetAverageTimeBetweenPlays(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static double? GetAverageTimeBetweenPlays(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         var playInitiationEvents = songSpecificEvents
             .Where(IsPlayInitiationEvent)
@@ -349,9 +349,9 @@ public static class SongStatTwo
     }
 
     /// <summary>Gets the distribution of all play event types for the song.</summary>
-    public static List<LabelValue> GetPlayTypeDistribution(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static List<LabelValue> GetPlayTypeDistribution(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
-        if (songSpecificEvents.Count==0)
+        if (!songSpecificEvents.Any())
             return [];
         return [.. songSpecificEvents.GroupBy(e => e.PlayType)
                          .Select(g => new LabelValue(GetPlayTypeName(g.Key), g.Count()))
@@ -360,19 +360,19 @@ public static class SongStatTwo
     }
 
     /// <summary>Counts the number of "Seeked" (PlayType 4) events.</summary>
-    public static int GetSeekFrequency(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetSeekFrequency(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return songSpecificEvents.Count(e => e.PlayType == 4);
     }
 
     /// <summary>Counts the number of "Restarted" or "SeekRestarted" (PlayType 6 or 7) events.</summary>
-    public static int GetRestartFrequency(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetRestartFrequency(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         return songSpecificEvents.Count(e => e.PlayType == 6 || e.PlayType == 7);
     }
 
     /// <summary>Gets counts of play initiations on weekends vs weekdays.</summary>
-    public static (int WeekendPlays, int WeekdayPlays) GetPlaysWeekendsVsWeekdays(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static (int WeekendPlays, int WeekdayPlays) GetPlaysWeekendsVsWeekdays(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         var playInitiationEvents = songSpecificEvents.Where(IsPlayInitiationEvent);
         int weekendPlays = playInitiationEvents.Count(e => e.DatePlayed.DayOfWeek == DayOfWeek.Saturday || e.DatePlayed.DayOfWeek == DayOfWeek.Sunday);
@@ -382,7 +382,7 @@ public static class SongStatTwo
 
     /// <summary>Gets counts of play initiations during night vs day hours.</summary>
     /// <remarks>Night: 10 PM (22:00) to 5:59 AM. Day: 6:00 AM to 9:59 PM.</remarks>
-    public static (int NightPlays, int DayPlays) GetPlaysNightVsDay(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static (int NightPlays, int DayPlays) GetPlaysNightVsDay(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         var playInitiationEvents = songSpecificEvents.Where(IsPlayInitiationEvent);
         int nightPlays = playInitiationEvents.Count(e => e.DatePlayed.Hour >= 22 || e.DatePlayed.Hour <= 5);
@@ -406,14 +406,14 @@ public static class SongStatTwo
     }
 
     /// <summary>Converts the song's play count to a Roman numeral string.</summary>
-    public static string GetPlayCountRoman(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static string GetPlayCountRoman(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         int playCount = GetTotalPlays(song, songSpecificEvents);
         return ToRoman(playCount);
     }
 
     /// <summary>Checks if the song's play count is a Fibonacci number.</summary>
-    public static bool IsPlayCountFibonacci(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static bool IsPlayCountFibonacci(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         int playCount = GetTotalPlays(song, songSpecificEvents);
         if (playCount < 0)
@@ -431,7 +431,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Calculates the sum of the digits of the song's play count.</summary>
-    public static int GetPlayCountDigitSum(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static int GetPlayCountDigitSum(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         int playCount = GetTotalPlays(song, songSpecificEvents);
         if (playCount < 0)
@@ -467,7 +467,7 @@ public static class SongStatTwo
     }
 
     /// <summary>Generates a comprehensive summary of statistics for the given song and its events.</summary>
-    public static SongSingleStatsSummary GetSingleSongSummary(SongModel song, IReadOnlyCollection<DimmerPlayEvent> songSpecificEvents)
+    public static SongSingleStatsSummary GetSingleSongSummary(SongModel song, IQueryable<DimmerPlayEvent> songSpecificEvents)
     {
         if (song == null)
             throw new ArgumentNullException(nameof(song));
