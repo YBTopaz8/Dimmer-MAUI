@@ -4,6 +4,7 @@
 
 using Dimmer.DimmerLive.Orchestration;
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utils;
 
 using System.Linq.Dynamic.Core.Exceptions;
 
@@ -85,8 +86,13 @@ public partial class App : Application
 
     }
 
+    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
     public static void LogException(Exception ex)
     {
+        if (!_filterPolicy.ShouldLog(ex))
+        {
+            return; // Ignore this exception based on our policy.
+        }
         try
         {
             // Define the directory path.

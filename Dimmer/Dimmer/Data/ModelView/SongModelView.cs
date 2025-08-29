@@ -287,6 +287,21 @@ public partial class SongModelView : ObservableObject
     public partial int RankInAlbum { get; set; }
     [ObservableProperty]
     public partial int RankInArtist { get; set; }
+
+    [ObservableProperty]
+    public partial int PauseCount { get;  set; }
+    [ObservableProperty]
+    public partial int ResumeCount { get;  set; }
+    [ObservableProperty]
+    public partial int SeekCount { get;  set; }
+    [ObservableProperty]
+    public partial int LastPlayEventType { get;  set; }
+    [ObservableProperty]
+    public partial int PlayStreakDays { get;  set; }
+    [ObservableProperty]
+    public partial int EddingtonNumber { get;  set; }
+    [ObservableProperty]
+    public partial double EngagementScore { get;  set; }
 }
 
 public partial class UserNoteModelView : ObservableObject

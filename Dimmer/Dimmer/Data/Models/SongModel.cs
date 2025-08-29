@@ -210,8 +210,13 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// </summary>
     [Indexed]
     public int RankInArtist { get; set; }
-
-
+    public int PauseCount { get;  set; }
+    public int ResumeCount { get;  set; }
+    public int SeekCount { get;  set; }
+    public int LastPlayEventType { get;  set; }
+    public int PlayStreakDays { get;  set; }
+    public int EddingtonNumber { get;  set; }
+    public double EngagementScore { get;  set; }
 }
 public partial class SyncLyrics : EmbeddedObject
 {

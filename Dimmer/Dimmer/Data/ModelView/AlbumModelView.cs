@@ -37,15 +37,25 @@ public partial class AlbumModelView : ObservableObject
     public partial bool IsCurrentlySelected { get; set; }
     [ObservableProperty]
     public partial double AverageSongListenThroughRate { get; set; }
-    
-    
-        [ObservableProperty]
+
+    [ObservableProperty]
+    public partial DateTimeOffset DiscoveryDate { get; set; }
+
+    [ObservableProperty]
     public partial double CompletionPercentage { get; set; }
     [ObservableProperty]
     public partial double OverallRank { get; set; }
     [ObservableProperty]
     public partial int TotalCompletedPlays { get; set; }
-    
+
+    [ObservableProperty]
+    public partial double EddingtonNumber { get; set; }
+    [ObservableProperty]
+    public partial double ParetoTopSongsCount { get; set; }
+    [ObservableProperty]
+    public partial double ParetoPercentage { get; set; }
+    [ObservableProperty]
+    public partial double TotalSkipCount { get; set; }
 
 }
 public class AlbumGroupViewModel : ObservableObject

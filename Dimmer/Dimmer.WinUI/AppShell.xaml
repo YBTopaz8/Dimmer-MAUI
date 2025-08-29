@@ -192,28 +192,40 @@ IsVisible="True">
 
                         </HorizontalStackLayout>
 
-                        <Label HorizontalTextAlignment="Start" 
-                   Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">
+                        <Button HorizontalOptions="Start" 
+x:Name="QuickFilterBtn"
+                                BackgroundColor="Transparent"
+                                BorderWidth="1"
+                                Clicked="QuickFilterBtn_Clicked"
+                                Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">
 
-                            <Label.GestureRecognizers>
+                            <Button.GestureRecognizers>
                                 <PointerGestureRecognizer
                      PointerPressedCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
                      PointerReleased="QuickFilterGest_PointerReleased"
                      PointerReleasedCommandParameter="artist" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                            </Button.GestureRecognizers>
+                        </Button>
 
-                        <Label HorizontalTextAlignment="Start"
+                        <syncf:SfEffectsView BackgroundColor="Red"
+                            TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
+                            TouchDownCommandParameter="album"
+                            TouchDown="Quickalbumsearch_Clicked">
+                            
+                            <Label HorizontalOptions="Start"
+                                BackgroundColor="Transparent"
+                              
+                               TextTransform="Lowercase"
+                                
                    Text="{Binding CurrentPlayingSongView.AlbumName}" 
-                   FontSize="16">
-                            <Label.GestureRecognizers>
-                                <PointerGestureRecognizer
-PointerPressedCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
-PointerReleased="QuickFilterGest_PointerReleased"
-PointerReleasedCommandParameter="album" />
-                            </Label.GestureRecognizers>
+                   FontSize="16"
+                                   >
+                          
+
+                            
                         </Label>
 
+                        </syncf:SfEffectsView>
 
 
                         <HorizontalStackLayout

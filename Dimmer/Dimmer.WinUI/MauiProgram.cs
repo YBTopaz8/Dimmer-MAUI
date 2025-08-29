@@ -2,12 +2,15 @@
 
 
 using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
+
+using Microsoft.Maui.Hosting;
 
 using Parse.LiveQuery;
 
@@ -31,7 +34,47 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-            });
+                // This is where you customize the handler
+               
+                     // Target the Button control and its default handler
+
+
+                     // We use AppendToMapping to ADD our custom logic after the default setup runs.
+                     // We give our custom action a unique key, "AddGlobalTouchBehavior".
+                     Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
+                         key: "AddGlobalTouchBehavior",
+                         method: (handler, view) =>
+                         {
+                             // The 'view' is the cross-platform Button control.
+                             if (view is Button button)
+                             {
+                                 // --- PREVENT DUPLICATES ---
+                                 // This is an important check to ensure we don't add the behavior
+                                 // multiple times if the handler's logic re-runs for the same control.
+                                 if (button.Behaviors.OfType<TouchBehavior>().Any())
+                                 {
+                                     return;
+                                 }
+
+                               
+                                 var touchBehavior = new TouchBehavior
+                                 {
+                                     HoveredAnimationDuration = 250,
+                                     HoveredAnimationEasing = Easing.CubicOut,
+                                     HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+                                     
+                                     PressedScale = 1.2, // Adjusted for a smoother feel
+                                     PressedAnimationDuration = 300,
+                                     // Add any other customizations here
+                                 };
+
+                              
+                                 button.Behaviors.Add(touchBehavior);
+                             }
+                         });
+
+
+                 });
 
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();

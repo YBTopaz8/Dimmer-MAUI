@@ -1,11 +1,12 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-using System.Collections.Concurrent;
-
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Utils;
 
 using Microsoft.Windows.AppLifecycle;
+
+using System.Collections.Concurrent;
 
 using Windows.ApplicationModel.Activation;
 
@@ -241,8 +242,13 @@ public partial class App : MauiWinUIApplication
     }
     private static readonly object _logLock = new();
 
+    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
     public static void LogException(Exception ex)
     {
+        if (!_filterPolicy.ShouldLog(ex))
+        {
+            return; // Ignore this exception based on our policy.
+        }
         try
         {
             // Define the directory path.

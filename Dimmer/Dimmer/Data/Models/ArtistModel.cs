@@ -41,6 +41,11 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     /// The average ListenThroughRate of all songs by this artist. Indicates artist consistency.
     /// </summary>
     public double AverageSongListenThroughRate { get; set; }
+    public double TotalSkipCount { get; set; }
+    public DateTimeOffset DiscoveryDate { get; set; }
+    public double EddingtonNumber { get; set; }
+    public double ParetoTopSongsCount { get; set; }
+    public double ParetoPercentage { get; set; }
 
     /// <summary>
     /// The overall rank of this artist in the library, based on their total plays.

@@ -1,3 +1,5 @@
+using CommunityToolkit.Maui.Behaviors;
+
 using Dimmer.DimmerLive;
 using Dimmer.DimmerLive.Interfaces;
 using Dimmer.DimmerLive.ParseStatics;
@@ -10,6 +12,8 @@ using Dimmer.WinUI.Views.WinUIPages;
 using Realms;
 
 using System.Threading.Tasks;
+
+using Vanara.PInvoke;
 
 
 namespace Dimmer.WinUI;
@@ -201,6 +205,8 @@ public partial class AppShell : Shell
 
     private async void QuickSearchSfChip_Clicked(object sender, EventArgs e)
     {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
         var send = (SfChip)sender;
         var field = send.CommandParameter as string;
         if (field is null)
@@ -250,6 +256,7 @@ public partial class AppShell : Shell
             val = MyViewModel.CurrentPlayingSongView.DurationInSeconds.ToString();
         }
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
     }
 
 
@@ -285,7 +292,8 @@ public partial class AppShell : Shell
     }
 
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
-    {
+    {  var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
         var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
        
         var send = (Microsoft.Maui.Controls.View)sender;
@@ -300,29 +308,36 @@ public partial class AppShell : Shell
         {
             char[] dividers = new char[] { ',', ';', ':', '|', '-' };
 
-            var namesList = val
+            var namesList = MyViewModel.CurrentPlayingSongView.OtherArtistsName
                 .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
                 .Select(name => name.Trim())                           // Trim whitespace from each name
                 .ToArray();                                             // Convert to a List
-
-
-            var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
-
-            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+            string res = string.Empty;
+            if (namesList.Length>1)
             {
-                return;
-            }
-            SearchSongSB_Clicked(sender, e);
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+                res   = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
-           
+                if (string.IsNullOrEmpty(res) || res == "Cancel")
+                {
+                    return;
+                }
+
+            }
+            if (namesList.Length==1)
+            {
+                res=namesList[0];
+            }
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
+          
+             winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
 
             return;
         }
 
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
-
+     
+        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
     }
 
     private void SearchSongSB_Clicked(object sender, EventArgs e)
@@ -492,5 +507,93 @@ public partial class AppShell : Shell
             return;
         }
         ShellTabView.SelectedIndex = 1;
+    }
+
+    private async void QuickFilterBtn_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var send = (Button)sender;
+
+            var field = "artist";
+            var val = send.CommandParameter as string;
+
+            char[] dividers = new char[] { ',', ';', ':', '|', '-' };
+
+            var namesList = MyViewModel.CurrentPlayingSongView.OtherArtistsName
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+                .Select(name => name.Trim())                           // Trim whitespace from each name
+                .ToArray();                                             // Convert to a List
+            string res = string.Empty;
+            if (namesList.Length>1)
+            {
+                res   = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+                if (string.IsNullOrEmpty(res) || res == "Cancel")
+                {
+                    return;
+                }
+
+            }
+            if (namesList.Length==1)
+            {
+                res=namesList[0];
+            }
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
+            var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+            var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            throw;
+        }
+    }
+
+    private void Label_Loaded(object sender, EventArgs e)
+    {
+
+        View send = (View)sender;
+        var touchBehavior = new TouchBehavior
+        {
+            HoveredAnimationDuration = 250,
+            HoveredAnimationEasing = Easing.CubicOut,
+            HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+
+            PressedScale = 0.7, // Adjusted for a smoother feel
+            PressedAnimationDuration = 300,
+            // Add any other customizations here
+        };
+
+
+        send.Behaviors.Add(touchBehavior);
+    }
+
+    private void Label_Unloaded(object sender, EventArgs e)
+    {
+        View send = (View)sender;
+        send.Behaviors.Clear();
+    }
+
+    private void QuickFilterBtn_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void Quickalbumsearch_Clicked(object sender, EventArgs e)
+    {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+        var send = (SfEffectsView)sender;
+      
+        var val = send.TouchUpCommandParameter as string;
+        var field = send.TouchDownCommandParameter as string;
+       
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+
+        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        //win.Activate();
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces;
+﻿using Dimmer.Utils;
+
+namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IErrorHandler
 {
     void HandleError(Exception ex);
@@ -15,8 +17,13 @@ public class ErrorHandler : IErrorHandler
         
     }
 
+    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
     public static void LogException(Exception ex)
     {
+        if (!_filterPolicy.ShouldLog(ex))
+        {
+            return; // Ignore this exception based on our policy.
+        }
         try
         {
             string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), LogDirectoryName);

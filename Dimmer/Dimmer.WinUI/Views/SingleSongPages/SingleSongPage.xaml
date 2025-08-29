@@ -57,6 +57,13 @@
                  
                             PointerExited="SongViewPointer_PointerExited"/>
                     </Grid.GestureRecognizers>
+
+                <HorizontalStackLayout
+                        HorizontalOptions="End"
+                        VerticalOptions="Start">
+                    <Label Text="{Binding RankInArtist}"/>
+                </HorizontalStackLayout>
+                    
                     <Image Source="{Binding CoverImagePath}" 
                            Opacity="0.7" 
                            HorizontalOptions="Start" >
@@ -265,12 +272,23 @@ ToolTipProperties.Text="Save To Playlist">
                     <VerticalStackLayout
                                           VerticalOptions="Center"  >
 
-                        <Label Text="Streaks"  FontSize="21"
+                        <Label Text="Rank In Album"  FontSize="21"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding   SongListeningStreak.Count  }"/>
+                                                        Text="{Binding   SelectedSong.RankInAlbum}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout
+                                          VerticalOptions="Center"  >
+
+                        <Label Text="Rank In Artist"  FontSize="21"
+                                            TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                        <Label  HorizontalOptions="Center"
+                                            TextColor="{AppThemeBinding Dark=White,Light=Black}" 
+                                                        FontSize="19"
+                                                        Text="{Binding   SelectedSong.RankInArtist}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
@@ -281,13 +299,16 @@ ToolTipProperties.Text="Save To Playlist">
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding   SelectedSong.ListenThroughRate}"/>
+                                                        Text="{Binding   SelectedSong.GlobalRank}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
                                           VerticalOptions="Center"  >
 
                         <Label Text="Global Rank"  FontSize="21"
+                                            TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                        
+                        <Label Text="{Binding SelectedSong.PopularityScore, StringFormat='{0:n2}'}"  FontSize="21"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                         
                     </VerticalStackLayout>

@@ -52,4 +52,16 @@ public partial class ArtistModelView : ObservableObject
     
     [ObservableProperty]
     public partial int OverallRank { get; set; }
+
+    [ObservableProperty]
+    public partial double TotalSkipCount { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset DiscoveryDate { get; set; }
+    [ObservableProperty]
+    public partial double EddingtonNumber { get; set; }
+    [ObservableProperty]
+    public partial double ParetoTopSongsCount { get; set; }
+    [ObservableProperty]
+    public partial double ParetoPercentage { get; set; }
+
 }

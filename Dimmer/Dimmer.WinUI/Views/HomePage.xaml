@@ -786,7 +786,6 @@ Value="False">
                         <TapGestureRecognizer NumberOfTapsRequired="2" 
                                         CommandParameter="{Binding .}"
                                         Tapped="PlaySongGestRec_Tapped"/>
-                        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" PointerExited="PointerGestureRecognizer_PointerExited"/>
                         <!-- Code-behind would toggle the visibility of 'PlayOverlay' -->
                     </VerticalStackLayout.GestureRecognizers>
                 </VerticalStackLayout>
@@ -852,20 +851,14 @@ Value="False">
                             </HorizontalStackLayout>
                         </Border>
                         <Button Text="Search" BorderWidth="2" 
-                    x:Name="SearchSongSB" BackgroundColor="Transparent"
+                    x:Name="SearchBtn" BackgroundColor="Transparent"
                     windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
                     windows:VisualElement.AccessKey="F"
                     windows:VisualElement.AccessKeyPlacement="Right"
                                  Clicked="SearchSongSB_Clicked"
                                  HorizontalOptions="Start"
-                                 >
-                            <Button.Behaviors>
-                                <toolkit:TouchBehavior
-                                    HoveredAnimationDuration="700"
-                                    HoveredAnimationEasing="Linear"
-                                    HoveredBackgroundColor="DarkSlateBlue"
-                                    />
-                            </Button.Behaviors>
+                               Loaded="SearchBtn_Loaded"  >
+                           
                         </Button>
                         <HorizontalStackLayout>
 

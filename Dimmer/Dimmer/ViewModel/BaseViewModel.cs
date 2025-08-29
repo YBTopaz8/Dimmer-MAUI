@@ -130,6 +130,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // Use a single, large write transaction for performance.
         await realm.WriteAsync( () =>
         {
+           
             var songsToUpdate = realm.All<SongModel>();
 
             foreach (var song in songsToUpdate)
@@ -137,43 +138,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 // Check if the object is still valid before working on it
                 if (song.IsValid)
                 {
-                    // 1. Update Play Counts and Last Played
-                    if (song.PlayHistory?.Count>0)
-                    {
-                        song.PlayCount = song.PlayHistory.Count;
-                        song.PlayCompletedCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
-                        song.SkipCount = song.PlayHistory.Count(x => x.PlayType == (int)PlayType.Skipped);
-                        if (song.PlayCount > 0)
-                        {
-                            song.ListenThroughRate = (double)song.PlayCompletedCount / song.PlayCount;
-                            song.SkipRate = (double)song.SkipCount / song.PlayCount;
-                        }
 
-                        // --- Find First and Last Played Dates ---
-                        var completedPlays = song.PlayHistory
-       .Where(p => p.PlayType == (int)PlayType.Completed)
-       .OrderBy(p => p.EventDate);
-
-                        song.LastPlayed = completedPlays.LastOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
-                        song.FirstPlayed = completedPlays.FirstOrDefault()?.EventDate ?? DateTimeOffset.MaxValue;
-                    }
-                    else
-                    {
-                        song.PlayCount = 0;
-                        song.PlayCompletedCount = 0;
-                        song.LastPlayed = DateTimeOffset.MinValue;
-                    }
-
-                    double score = (song.PlayCompletedCount * 1.5) - (song.SkipCount * 0.5) + song.PlayCount;
-                    if (song.IsFavorite)
-                    {
-                        score += 50; // Big bonus for being a favorite
-                    }
-                    song.HasSyncedLyrics = song.SyncLyrics.Length > 0 ? true : false;
-                    song.PopularityScore = score;
-
-
-                    // 2. Update Aggregated Notes
                     if (song.UserNotes.Count >0)
                     {
                         song.UserNoteAggregatedText = string.Join(" ", song.UserNotes.Select(n => n.UserMessageText));
@@ -203,127 +168,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
 
 
-            foreach (var album in realm.All<AlbumModel>())
-            {
-                var songsInAlbum = album.SongsInAlbum;
-
-                if (songsInAlbum is not null)
-                {
-                    int songCount = songsInAlbum.Count(); // .Count() is supported and fast
-                    if (songCount > 0)
-                    {
-                        int playedSongsCount = songsInAlbum.Filter("PlayCompletedCount > 0").Count();
-                        album.CompletionPercentage = (double)playedSongsCount / songCount;
-
-                        // Manual, memory-efficient aggregation
-                        double totalCompletedPlays = 0;
-                        double totalListenThroughRate = 0;
-                        foreach (var song in songsInAlbum) // This iterates efficiently
-                        {
-                            totalCompletedPlays += song.PlayCompletedCount;
-                            totalListenThroughRate += song.ListenThroughRate;
-                        }
-
-                        album.TotalCompletedPlays = (int)totalCompletedPlays;
-                        album.AverageSongListenThroughRate = totalListenThroughRate / songCount;
-                    }
-                }
-            }
-
-            foreach (var artist in realm.All<ArtistModel>())
-            {
-                var songsByArtist = artist.Songs;
-                if (songsByArtist is not null)
-                {
-                    int songCount = songsByArtist.Count();
-                    if (songCount > 0)
-                    {
-                        int playedSongsCount = songsByArtist.Filter("PlayCompletedCount > 0").Count();
-                        artist.CompletionPercentage = (double)playedSongsCount / songCount;
-
-                        // Manual, memory-efficient aggregation
-                        double totalCompletedPlays = 0;
-                        double totalListenThroughRate = 0;
-                        foreach (var song in songsByArtist) // This iterates efficiently
-                        {
-                            totalCompletedPlays += song.PlayCompletedCount;
-                            totalListenThroughRate += song.ListenThroughRate;
-                        }
-
-                        artist.TotalCompletedPlays = (int)totalCompletedPlays;
-                        artist.AverageSongListenThroughRate = totalListenThroughRate / songCount;
-                    }
-                }
-            }
-
-            foreach (var genre in realm.All<GenreModel>())
-            {
-                var songsInGenre = genre.Songs;
-                int songCount = songsInGenre.Count();
-                if (songCount > 0)
-                {
-                    // Manual, memory-efficient aggregation
-                    double totalCompletedPlays = 0;
-                    double totalListenThroughRate = 0;
-                    foreach (var song in songsInGenre) // This iterates efficiently
-                    {
-                        totalCompletedPlays += song.PlayCompletedCount;
-                        totalListenThroughRate += song.ListenThroughRate;
-                    }
-
-                    genre.TotalCompletedPlays = (int)totalCompletedPlays;
-                    genre.AverageSongListenThroughRate = totalListenThroughRate / songCount;
-                    genre.AffinityScore = genre.TotalCompletedPlays * (1 + genre.AverageSongListenThroughRate);
-                }
-            }
-
-
-            // Global Song Rank
-            int rank = 1;
-            // CORRECT: Use OrderByDescending for sorting, as per the documentation.
-            var sortedSongs = realm.All<SongModel>().OrderByDescending(s => s.PopularityScore);
-            foreach (var song in sortedSongs)
-            {
-                song.GlobalRank = rank++;
-            }
-
-            rank = 1;
-            var sortedAlbums = realm.All<AlbumModel>().OrderByDescending(a => a.TotalCompletedPlays);
-            foreach (var album in sortedAlbums)
-            {
-                album.OverallRank = rank++;
-                int albumSongRank = 1;
-                // Sorting on the related collection (backlink)
-                var sortedSongsInAlbum = album.SongsInAlbum?.OrderByDescending(s => s.PlayCompletedCount);
-                foreach (var song in sortedSongsInAlbum)
-                {
-                    song.RankInAlbum = albumSongRank++;
-                }
-            }
-
-            // Artist Rank & In-Artist Song Ranks
-            rank = 1;
-            var sortedArtists = realm.All<ArtistModel>().OrderByDescending(a => a.TotalCompletedPlays);
-            foreach (var artist in sortedArtists)
-            {
-                artist.OverallRank = rank++;
-                int artistSongRank = 1;
-                var sortedSongsByArtist = artist.Songs.OrderByDescending(s => s.PlayCompletedCount);
-                foreach (var song in sortedSongsByArtist)
-                {
-                    song.RankInArtist = artistSongRank++;
-                }
-            }
-
-            // Genre Rank
-            rank = 1;
-            var sortedGenres = realm.All<GenreModel>().OrderByDescending(g => g.AffinityScore);
-            foreach (var genre in sortedGenres)
-            {
-                genre.OverallRank = rank++;
-            }
         });
-
+        var redoStats = new StatsRecalculator(realm, _logger);
+        redoStats.RecalculateAllStatistics();
         _logger.LogInformation("Finished recalculating all statistics using RQL-based queries.");
    
 
@@ -3598,13 +3445,13 @@ _playbackQueueSource.Connect()
 
 
 
-        SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
-        SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
-        SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
-        SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
-        SongsFirstImpression = TopStats.GetSongsFirstImpression(songEvents);
+        //SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
+        //SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
+        //SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
+        //SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
+        //SongsFirstImpression = TopStats.GetSongsFirstImpression(songEvents);
 
-        SongListeningStreak = TopStats.GetListeningStreak(songEvents);
+        //SongListeningStreak = TopStats.GetListeningStreak(songEvents);
     }
 
 
