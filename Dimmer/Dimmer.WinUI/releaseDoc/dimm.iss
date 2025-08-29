@@ -17,7 +17,7 @@ SolidCompression=yes
 
 [Files]
 ; Include all files from the output folder
-Source: "C:\0.1b\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\0.1e\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 ; Add a shortcut to the Start Menu
