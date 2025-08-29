@@ -323,14 +323,15 @@ _playbackQueueSource.Connect()
            .ObserveOn(RxApp.MainThreadScheduler)
            .Subscribe(async isAuthenticated =>
            {
-               IsLastfmAuthenticated = isAuthenticated;
+               if (IsLastfmAuthenticated)
+                   return;
+                   IsLastfmAuthenticated = isAuthenticated;
                LastfmUsername = lastfmService.AuthenticatedUser ?? "Not Logged In";
                if (isAuthenticated)
                {
-
-
-                   if (string.IsNullOrEmpty(UserLocal.Username))
-                   {
+                   lastFMCOmpleteLoginBtnVisible=false;
+                   LastFMLoginBtnVisible=false;
+                   
                        if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)))
                        {
                            UserLocal.Username=lastfmService.AuthenticatedUser;
@@ -352,7 +353,6 @@ _playbackQueueSource.Connect()
 
                            });
                        }
-                   }
                }
            })
            .DisposeWith(Disposables);
@@ -1156,6 +1156,11 @@ _playbackQueueSource.Connect()
 
 
     [ObservableProperty]
+    public partial bool LastFMLoginBtnVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool lastFMCOmpleteLoginBtnVisible { get; set; } 
+    [ObservableProperty]
     public partial bool IsLastFMNeedsToConfirm { get; set; }
 
     [ObservableProperty]
@@ -1166,6 +1171,19 @@ _playbackQueueSource.Connect()
     [ObservableProperty]
     public partial string LastfmUsername { get; set; }
 
+    [RelayCommand]
+    public void LoadLastFMSession()
+    {
+        lastfmService.LoadSession();
+        IsLastfmAuthenticated = lastfmService.IsAuthenticated;
+        if (IsLastfmAuthenticated)
+        {
+            LastFMLoginBtnVisible=false;
+            lastFMCOmpleteLoginBtnVisible=false;
+            IsLastFMNeedsToConfirm=false;
+            _ = LoadUserLastFMInfo();
+        }
+    }
 
     [RelayCommand]
     public async Task LoginToLastfm()
@@ -1181,7 +1199,8 @@ _playbackQueueSource.Connect()
 
             string url = await lastfmService.GetAuthenticationUrlAsync();
             IsLastFMNeedsToConfirm=true;
-
+            LastFMLoginBtnVisible=false;
+            lastFMCOmpleteLoginBtnVisible=true;
             await Launcher.Default.OpenAsync(new Uri(url));
 
 
@@ -1206,6 +1225,8 @@ _playbackQueueSource.Connect()
             if (IsLastfmAuthenticated)
             {
                 IsLastFMNeedsToConfirm=false;
+                lastFMCOmpleteLoginBtnVisible=false;
+                await LoadUserLastFMInfo();
             }
           
         }

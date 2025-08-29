@@ -207,7 +207,7 @@ x:Name="QuickFilterBtn"
                             </Button.GestureRecognizers>
                         </Button>
 
-                        <syncf:SfEffectsView BackgroundColor="Red"
+                        <syncf:SfEffectsView BackgroundColor="Transparent"
                             TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
                             TouchDownCommandParameter="album"
                             TouchDown="Quickalbumsearch_Clicked">

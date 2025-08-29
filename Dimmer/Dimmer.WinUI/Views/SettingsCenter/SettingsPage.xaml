@@ -46,65 +46,30 @@
                         <FlexLayout JustifyContent="SpaceBetween">
 
                             <Label Text="Last FM Status: "/>
-                            <Label>
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                            <Button Command="{Binding LogoutFromLastfmCommand}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
                                         <Setter Property="Text" Value="Logged In"/>
-                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}"/>
                                     </DataTrigger>
-                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False">
                                         <Setter Property="Text" Value="Logged Out"/>
                                         <Setter Property="TextColor" Value="DarkRed"/>
                                     </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
+                                </Button.Triggers>
+                            </Button>
 
                         </FlexLayout>
 
-                        <Button HorizontalOptions="Start" Command="{Binding LogoutFromLastfmCommand}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="True"/>
-                                    <Setter Property="Text" Value="Log Out"/>
-                                    <Setter Property="BackgroundColor" Value="DarkRed"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                    <Setter Property="Text" Value="Log in"/>
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-                        <Label Text="{Binding IsLastFMNeedsToConfirm}"/>
-                        <Button HorizontalOptions="Start" 
-                                Command="{Binding LoginToLastfmCommand}" BorderWidth="2" >
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False" >
-                                    <Setter Property="Text" Value="Log into LastFM"/>
-                                    <Setter Property="TextColor" Value="Red"/>
-                                    <Setter Property="BorderColor" Value="Red"/>
-                                    <Setter Property="BorderWidth" Value="2"/>
-                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                </DataTrigger>
-                            </Button.Triggers>
+                        
+                        
+                        <Button HorizontalOptions="Start"  IsVisible="{Binding LastFMLoginBtnVisible}"
+                             Text="Login"   Command="{Binding LoginToLastfmCommand}" BorderWidth="2" >
                         </Button>
 
-                        <Button HorizontalOptions="Start" Command="{Binding CompleteLoginCommand}" BorderWidth="2" IsVisible="False">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False" >
-                                    <Setter Property="Text" Value="Complete LastFM Connection"/>
-                                    <Setter Property="IsVisible" Value="True"/>
-                                    <Setter Property="TextColor" Value="Red"/>
-                                    <Setter Property="BorderColor" Value="Red"/>
-                                    <Setter Property="BorderWidth" Value="2"/>
-                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                </DataTrigger>
-                            </Button.Triggers>
+                        <Button 
+                            IsVisible="{Binding lastFMCOmpleteLoginBtnVisible}" Text="Confirm Login"
+                            HorizontalOptions="Start" Command="{Binding CompleteLoginCommand}" BorderWidth="2" >
                         </Button>
 
                         <VerticalStackLayout BackgroundColor="Transparent">

@@ -305,7 +305,7 @@ ToolTipProperties.Text="Save To Playlist">
                     <VerticalStackLayout
                                           VerticalOptions="Center"  >
 
-                        <Label Text="Global Rank"  FontSize="21"
+                        <Label Text="Popularity Score"  FontSize="21"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                         
                         <Label Text="{Binding SelectedSong.PopularityScore, StringFormat='{0:n2}'}"  FontSize="21"

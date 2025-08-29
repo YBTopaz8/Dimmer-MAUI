@@ -41,6 +41,7 @@ public partial class SettingsPage : ContentPage
 #if Release
 ViewAdminUpdate.IsVisible = false;
 #endif
+        MyViewModel.LoadLastFMSession();
 
     }
     private async void OpenDimmerLiveSettingsChip_Clicked(object sender, EventArgs e)
