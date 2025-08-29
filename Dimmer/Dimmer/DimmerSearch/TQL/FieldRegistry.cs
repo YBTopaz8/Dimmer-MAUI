@@ -37,8 +37,11 @@ public static class FieldRegistry
             new("BitRate", FieldType.Numeric, new[]{"bit"}, "The audio bitrate in kbps", nameof(SongModel.BitRate)),
             new("FileSize", FieldType.Numeric, new[]{"size"}, "File size in bytes", nameof(SongModel.FileSize)),
             new("PlayCount", FieldType.Numeric,new[]{"plays"}, "Total number of plays", nameof(SongModel.PlayCount)),
-            new("PlayCompletedCount", FieldType.Numeric, new[]{"dimms","dims",}, "Total number of plays", nameof(SongModel.PlayCompletedCount)),
-            new("SkipCount", FieldType.Numeric, new[]{"skips",}, "Total number of plays", nameof(SongModel.SkipCount)),
+            new("PlayCompletedCount", FieldType.Numeric, new[]{"dimms","dims",}, "Total number of plays completed", nameof(SongModel.PlayCompletedCount)),
+            new("SkipCount", FieldType.Numeric, new[]{"skips",}, "Skip Counts", nameof(SongModel.SkipCount)),
+            new("RankInArtist", FieldType.Numeric, new[]{"rar",}, "Rank In RankInArtist", nameof(SongModel.RankInArtist)),
+            new("RankInAlbum", FieldType.Numeric, new[]{"ral",}, "Rank In Album", nameof(SongModel.RankInAlbum)),
+            new("GlobalRank", FieldType.Numeric, new[]{"rglo",}, "Global Rank", nameof(SongModel.GlobalRank)),
 
             // --- Boolean Fields ---
             new("IsFavorite", FieldType.Boolean, new[]{"fav","love"}, "Is the song a favorite?", nameof(SongModel.IsFavorite)),
@@ -53,7 +56,7 @@ public static class FieldRegistry
             new("LastPlayed", FieldType.Date, new[]{"played"}, "The last time the song was played", nameof(SongModel.LastPlayed)),
 
             // --- Advanced Text Fields ---
-            new("UserNoteAggregatedText", FieldType.Text, new[]{"note","notes","playlist","pl", "comment"}, "Text in user notes", nameof(SongModel.UserNoteAggregatedText)),
+            new("UserNoteAggregatedCol", FieldType.Text, new[]{"note","notes","playlist","pl", "comment"}, "Text in user notes", nameof(SongModel.UserNoteAggregatedText)),
             new("LyricsText", FieldType.Text, new[]{"lyrics"}, "Full text of all lyrics", nameof(SongModel.SyncLyrics )),
 
         }.AsReadOnly();

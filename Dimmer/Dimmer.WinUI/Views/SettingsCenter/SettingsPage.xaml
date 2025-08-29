@@ -17,8 +17,84 @@
     Title="Settings"
     x:DataType="vm:BaseViewModelWin"
     Shell.NavBarIsVisible="False">
-    <Grid IsVisible="True">
-        <syncf:SfTabView Grid.Row="1" x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
+    <Grid IsVisible="True" RowDefinitions="auto,*">
+        <VerticalStackLayout Grid.Row="0">
+            <Label Text="{Binding LatestAppLog.Log}"/>
+        </VerticalStackLayout>
+        <syncf:SfTabView Grid.Row="1"
+                         
+                         x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
+
+
+            <syncf:SfTabItem 
+                             
+                             TextColor="{AppThemeBinding Light=Black, Dark=White}" Header="LastFM Tab">
+                <syncf:SfTabItem.Content>
+                    <VerticalStackLayout Margin="10" Spacing="10">
+                        <Editor Placeholder="UserName" 
+                            PlaceholderColor="{AppThemeBinding Dark=White,Light=Black}"
+                            Text="{Binding UserLocal.LastFMAccountInfo.Name}">
+                            <Editor.Triggers>
+                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                            </Editor.Triggers>
+                        </Editor>
+                        <FlexLayout JustifyContent="SpaceBetween">
+
+                            <Label Text="Last FM Status: "/>
+                            <Button Command="{Binding LogoutFromLastfmCommand}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                        <Setter Property="Text" Value="Logged In"/>
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                        <Setter Property="Text" Value="Logged Out"/>
+                                        <Setter Property="TextColor" Value="DarkRed"/>
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                        </FlexLayout>
+
+                        
+                        
+                        <Button HorizontalOptions="Start"  IsVisible="{Binding LastFMLoginBtnVisible}"
+                             Text="Login"   Command="{Binding LoginToLastfmCommand}" BorderWidth="2" >
+                        </Button>
+
+                        <Button 
+                            IsVisible="{Binding lastFMCOmpleteLoginBtnVisible}" Text="Confirm Login"
+                            HorizontalOptions="Start" Command="{Binding CompleteLoginCommand}" BorderWidth="2" >
+                        </Button>
+
+                        <VerticalStackLayout BackgroundColor="Transparent">
+                            <VerticalStackLayout.Triggers>
+                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="True">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="False">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                            </VerticalStackLayout.Triggers>
+
+                            <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
+
+                                <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180"/>
+
+                            </Border>
+                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
             <syncf:SfTabItem Header="Latest Update">
                 <VerticalStackLayout Spacing="15" Margin="10,0">
                     <Label Text="{Binding AppUpdateObj.title}" HorizontalOptions="Center"
@@ -69,7 +145,7 @@
 
                 </VerticalStackLayout>
             </syncf:SfTabItem>
-            <syncf:SfTabItem Header="App Center">
+            <syncf:SfTabItem Header="App Center" x:Name="ViewAdminUpdate">
                 <VerticalStackLayout>
                     <Label Text="App Center"/>
                     <Button Text="Check for App Updates"
@@ -101,14 +177,41 @@
 
                 <syncf:SfTabItem.Content>
                     <Grid RowDefinitions="*" Margin="10,0">
-                        <Grid Grid.Row="1" RowDefinitions="*,auto">
+                        <Grid Grid.Row="1" RowDefinitions="auto,*">
 
+                            <VerticalStackLayout 
+                                Grid.Row="0" HorizontalOptions="Start"
+                                BackgroundColor="Transparent"
+                                Spacing="10">
+                                <Button Text="Validate Songs"
+Command="{Binding ValidateLibraryCommand}" IsVisible="False"
+/>
+                                <Button
+                                    Clicked="AddNewMusicFolder_Clicked"
+                                    HorizontalOptions="Start"
+                                    Text="Add New Folder" />
+                                <Button
+                                    x:Name="ReScanAllBtn"
+                                    BorderColor="DarkSlateBlue"
+                                    Command="{Binding RescanSongsCommand}"
+                                    Text="Rescan folders" />
+                                <Button IsVisible="False"
+                                    x:Name="Reconcile"
+                                    BorderColor="DarkSlateBlue"
+                                    Command="{Binding ReconcileLibraryCommand}"
+                                    Text="Reconcile Songs" />
+                                <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
+    Clicked="FindDupes_Clicked" IsVisible="False"
+                                        BackgroundColor="SlateBlue"/>
+
+
+                            </VerticalStackLayout>
                             <CollectionView
                                 x:Name="ListOfFolders"
-                                Grid.Row="0"
+                                Grid.Row="1"
                                 Header="List of Folders"
                                 ItemsSource="{Binding FolderPaths}"
-                                MaximumWidthRequest="250">
+                                >
                                 <CollectionView.EmptyView>
                                     <VerticalStackLayout>
                                         <Label
@@ -141,33 +244,7 @@
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                            <VerticalStackLayout
-                                Grid.Row="1"
-                                BackgroundColor="Transparent"
-                                Spacing="10">
-                                <Button Text="Validate Songs"
-Command="{Binding ValidateLibraryCommand}"
-/>
-                                <Button
-                                    Clicked="AddNewMusicFolder_Clicked"
-                                    HorizontalOptions="Start"
-                                    Text="Add New Folder" />
-                                <Button
-                                    x:Name="ReScanAllBtn"
-                                    BorderColor="DarkSlateBlue"
-                                    Command="{Binding RescanSongsCommand}"
-                                    Text="Rescan folders" />
-                                <Button
-                                    x:Name="Reconcile"
-                                    BorderColor="DarkSlateBlue"
-                                    Command="{Binding ReconcileLibraryCommand}"
-                                    Text="Reconcile Songs" />
-                                <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
-    Clicked="FindDupes_Clicked"
-                                        BackgroundColor="SlateBlue"/>
-
-
-                            </VerticalStackLayout>
+                            
                         </Grid>
 
 
@@ -176,108 +253,6 @@ Command="{Binding ValidateLibraryCommand}"
             </syncf:SfTabItem>
 
 
-            <syncf:SfTabItem Header="LastFM Tab">
-                <syncf:SfTabItem.Content>
-                    <VerticalStackLayout Margin="10" Spacing="10">
-                        <Editor Placeholder="UserName" 
-                            PlaceholderColor="{AppThemeBinding Dark=White,Light=Black}"
-                            Text="{Binding UserLocal.LastFMAccountInfo.Name}">
-                            <Editor.Triggers>
-                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                    <Setter Property="IsVisible" Value="True"/>
-                                </DataTrigger>
-                            </Editor.Triggers>
-                        </Editor>
-                        <FlexLayout JustifyContent="SpaceBetween">
-
-                            <Label Text="Last FM Status: "/>
-                            <Label>
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                        <Setter Property="Text" Value="Logged In"/>
-                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Label" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                        <Setter Property="Text" Value="Logged Out"/>
-                                        <Setter Property="TextColor" Value="DarkRed"/>
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-
-                        </FlexLayout>
-
-                        <Button HorizontalOptions="Start" Command="{Binding LogoutFromLastfmCommand}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="True"/>
-                                    <Setter Property="Text" Value="Log Out"/>
-                                    <Setter Property="BackgroundColor" Value="DarkRed"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                    <Setter Property="Text" Value="Log in"/>
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button HorizontalOptions="Start" Command="{Binding LoginToLastfmCommand}" BorderWidth="2" IsVisible="False">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False" >
-                                    <Setter Property="Text" Value="Log into LastFM"/>
-                                    <Setter Property="IsVisible" Value="True"/>
-                                    <Setter Property="TextColor" Value="Red"/>
-                                    <Setter Property="BorderColor" Value="Red"/>
-                                    <Setter Property="BorderWidth" Value="2"/>
-                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button HorizontalOptions="Start" Command="{Binding CompleteLoginCommand}" BorderWidth="2" IsVisible="False">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False" >
-                                    <Setter Property="Text" Value="Complete LastFM Connection"/>
-                                    <Setter Property="IsVisible" Value="True"/>
-                                    <Setter Property="TextColor" Value="Red"/>
-                                    <Setter Property="BorderColor" Value="Red"/>
-                                    <Setter Property="BorderWidth" Value="2"/>
-                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <VerticalStackLayout BackgroundColor="Transparent">
-                            <VerticalStackLayout.Triggers>
-                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="True"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
-                            </VerticalStackLayout.Triggers>
-
-                            <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
-
-                                <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180"/>
-
-                            </Border>
-                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
-                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
-
-                        </VerticalStackLayout>
-                    </VerticalStackLayout>
-
-                </syncf:SfTabItem.Content>
-            </syncf:SfTabItem>
 
         </syncf:SfTabView>
 

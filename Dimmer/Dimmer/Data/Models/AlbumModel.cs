@@ -138,12 +138,18 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// </summary>
     
     public double AverageSongListenThroughRate { get; set; }
+    public double EddingtonNumber { get; set; }
+    public double ParetoTopSongsCount { get; set; }
+    public double ParetoPercentage { get; set; }
+    public double TotalSkipCount { get; set; }
 
     /// <summary>
     /// The overall rank of this album in the library, based on its total plays.
     /// </summary>
     [Indexed]
     public int OverallRank { get; set; }
+    public DateTimeOffset DiscoveryDate { get;  set; }
+
     public AlbumModel()
     {
     }

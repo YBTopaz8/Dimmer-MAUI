@@ -376,13 +376,10 @@ success = true;
         }
     }
 
-
-    private IDisposable? _positionSubscription;
     private void HandleSegmentEnd()
     {
         if (_currentSong == null)
             return;
-        _positionSubscription?.Dispose();
 
         
     }
@@ -1048,9 +1045,9 @@ success = true;
     readonly MMDeviceEnumerator _enum = new MMDeviceEnumerator();
     private readonly object _lockObject = new object();
 
-    [System.Runtime.InteropServices.ComImport]
-    [System.Runtime.InteropServices.Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")]
-    private class PolicyConfigClient { }
+
+
+ 
 
     public bool SetPreferredOutputDevice(AudioOutputDevice dev)
     {
@@ -1102,8 +1099,8 @@ success = true;
     {
         // Get all active playback devices from the controller.
         //var devices = _audioController.GetPla ybackDevices(AudioSwitcher.AudioApi.DeviceState.Active);
-        IEnumerable<CoreAudioDevice>? devices = _audioController.GetDevices(AudioSwitcher.AudioApi.DeviceState.Active)
-            .Where(x=>x.DeviceType == AudioSwitcher.AudioApi.DeviceType.Playback);
+        IEnumerable<CoreAudioDevice>? devices = _audioController.GetPlaybackDevices(AudioSwitcher.AudioApi.DeviceState.Active)
+            . Where(x=>x.DeviceType == AudioSwitcher.AudioApi.DeviceType.Playback);
 
         // Map them to your own simple model.
         return devices.Select(d => new AudioOutputDevice
@@ -1123,6 +1120,7 @@ success = true;
 
         }).ToList();
     }
+
 
     public void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels)
     {

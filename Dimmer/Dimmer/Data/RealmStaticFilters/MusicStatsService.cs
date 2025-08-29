@@ -753,7 +753,7 @@ Generated csharp
 public IQueryable<SongModel> GetSongsWithPinnedNotes()
 {
     // Querying a property on an EmbeddedObject in a list.
-    return realm.All<SongModel>().Filter("ANY UserNotes.IsPinned == true");
+    return realm.All<SongModel>().Filter("ANY UserNoteAggregatedCol.IsPinned == true");
 }
 IGNORE_WHEN_COPYING_START
 content_copy

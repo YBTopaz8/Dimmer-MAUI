@@ -137,7 +137,7 @@ public partial class SongModelView : ObservableObject
  
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView> UserNotes { get; set; } = new();
+    public partial ObservableCollection<UserNoteModelView> UserNoteAggregatedCol { get; set; } = new();
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
@@ -204,13 +204,13 @@ public partial class SongModelView : ObservableObject
         }
 
         // 2. Update Aggregated Notes
-        if (UserNotes.Any())
+        if (UserNoteAggregatedCol.Any())
         {
-            UserNoteAggregatedText = string.Join(" ", UserNotes.Select(n => n.UserMessageText));
+            UserNoteAggregatedText = string.Join(" ", UserNoteAggregatedCol.Select(n => n.UserMessageText));
         }
         else
         {
-            UserNoteAggregatedText = null;
+            UserNoteAggregatedCol = null;
         }
 
 
@@ -287,6 +287,21 @@ public partial class SongModelView : ObservableObject
     public partial int RankInAlbum { get; set; }
     [ObservableProperty]
     public partial int RankInArtist { get; set; }
+
+    [ObservableProperty]
+    public partial int PauseCount { get;  set; }
+    [ObservableProperty]
+    public partial int ResumeCount { get;  set; }
+    [ObservableProperty]
+    public partial int SeekCount { get;  set; }
+    [ObservableProperty]
+    public partial int LastPlayEventType { get;  set; }
+    [ObservableProperty]
+    public partial int PlayStreakDays { get;  set; }
+    [ObservableProperty]
+    public partial int EddingtonNumber { get;  set; }
+    [ObservableProperty]
+    public partial double EngagementScore { get;  set; }
 }
 
 public partial class UserNoteModelView : ObservableObject

@@ -16,13 +16,13 @@ internal class DimmerPlayEventRepository : RealmCoreRepo<DimmerPlayEvent>, IDimm
         _realmFactory= factory;
     }
 
-    public async Task<IReadOnlyCollection<DimmerPlayEvent>> GetEventsInDateRangeAsync(DateTimeOffset? startDate, DateTimeOffset? endDate)
+    public IQueryable<DimmerPlayEvent> GetEventsInDateRangeAsync(DateTimeOffset? startDate, DateTimeOffset? endDate)
     {
 
         using var realm = _realmFactory.GetRealmInstance();
 
 
-        var query = realm.All<DimmerPlayEvent>();
+        IQueryable<DimmerPlayEvent>? query = realm.All<DimmerPlayEvent>();
 
         if (startDate.HasValue)
         {
@@ -34,7 +34,7 @@ internal class DimmerPlayEventRepository : RealmCoreRepo<DimmerPlayEvent>, IDimm
         }
 
 
-        return await Task.FromResult(query.ToList().AsReadOnly());
+        return query;
     }
 
     public async Task<IReadOnlyCollection<DimmerPlayEvent>> GetEventsForSongAsync(ObjectId songId)

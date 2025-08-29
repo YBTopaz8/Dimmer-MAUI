@@ -225,12 +225,15 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         }
     }
 
-    public string Username =>
-         DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
+    public string Username
+    { get; set; }
+      
     public async Task SendTextMessageAsync(string text, string? receverObjectId = null,SongModelView? song=null)
     {
         if (string.IsNullOrWhiteSpace(text))
             return;
+      Username=  DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
+
         receverObjectId = receverObjectId ?? Username;
         try
         {
@@ -243,6 +246,11 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
                 MessageType = "Text",
                 
             };
+
+            if(Username is null)
+            {
+Username = "Unknown User "+Guid.NewGuid();
+            }
             message["UserName"]=Username;
             message["Username"]=Username;
             message["senderId"] = receverObjectId; // For Cloud Code use
@@ -250,7 +258,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             message["UserSenderId"] = receverObjectId; // For Cloud Code use
             if (song is not null && !string.IsNullOrEmpty(song.FilePath))
             {
-
+                return;
                 var position = _baseVM.CurrentTrackPositionSeconds;
                 var stream = await File.ReadAllBytesAsync(song.FilePath);
 
@@ -353,7 +361,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         newSong.AudioFileUrl =songFile.Url; // For Cloud Code use
         newSong.AudioFileName =songFile.Name; // For Cloud Code use
         newSong.AudioFileMimeType =songFile.MimeType; // For Cloud Code use
-
+        return;
         await newSong.SaveAsync();
 
         ChatMessage newMsg = new()

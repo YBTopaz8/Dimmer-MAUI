@@ -170,19 +170,40 @@ public static class RqlGenerator
         if (string.IsNullOrWhiteSpace(value))
             return "TRUEPREDICATE";
 
+       if (op is ">" or "<" or ">=" or "<=")
+        {
+            if (DateTimeOffset.TryParse(value, out var boundaryDate))
+            {
+       
+                return $"{fieldDef.PropertyName} {op} {FormatValue(boundaryDate, FieldType.Date)}";
+            }
+            else
+            {
+    
+                return "FALSEPREDICATE";
+            }
+        }
+
+     
         var (start, end) = ParseDateKeyword(value);
 
-        // If the keyword is invalid, default to a non-matching query.
-        if (start == DateTimeOffset.MinValue && end == DateTimeOffset.MaxValue)
+      
+        if (start == DateTimeOffset.MinValue && DateTimeOffset.TryParse(value, out var singleDate))
+        {
+            start = singleDate.Date; // Start of the day
+            end = start.AddDays(1).AddTicks(-1); // End of the day
+        }
+
+        // If we still don't have a valid date range, the input is invalid for a range query.
+        if (start == DateTimeOffset.MinValue)
         {
             return "FALSEPREDICATE";
         }
-        if (start > end)
-        {
-            return "FALSEPREDICATE";
-        }
-        return $"({fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)})";
+
+        // Build the final range-based query. This is correct for keywords and exact date matches.
+        return $"{fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)}";
     }
+
     private static double ParseDuration(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))

@@ -47,13 +47,15 @@
             x:Name="BottomLeft" Spacing="10"
             Grid.Row="1" BackgroundColor="Transparent"
             Margin="10,10">
-                        <HorizontalStackLayout HorizontalOptions="End" IsVisible="False">
-                            <Button BackgroundColor="Transparent"
-                        windows:VisualElement.AccessKey="E"
-                        x:Name="ToggleAppFlyoutState"
-                        Clicked="ToggleAppFlyoutState_Clicked"
-                        ImageSource="hamburgermenu.png"
-                        HeightRequest="80" />
+                        <HorizontalStackLayout HorizontalOptions="End" IsVisible="True">
+
+                            <ImageButton Source="settings.png" 
+                                          WidthRequest="55"
+                                          Clicked="SettingsNavChips_ChipClicked">
+                                <ImageButton.Behaviors>
+                                    <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue"/>
+                                </ImageButton.Behaviors>
+                            </ImageButton>
                         </HorizontalStackLayout>
 
                         <Border StrokeShape="RoundRectangle 15"
@@ -190,28 +192,40 @@ IsVisible="True">
 
                         </HorizontalStackLayout>
 
-                        <Label HorizontalTextAlignment="Start" 
-                   Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">
+                        <Button HorizontalOptions="Start" 
+x:Name="QuickFilterBtn"
+                                BackgroundColor="Transparent"
+                                BorderWidth="1"
+                                Clicked="QuickFilterBtn_Clicked"
+                                Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">
 
-                            <Label.GestureRecognizers>
+                            <Button.GestureRecognizers>
                                 <PointerGestureRecognizer
                      PointerPressedCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
                      PointerReleased="QuickFilterGest_PointerReleased"
                      PointerReleasedCommandParameter="artist" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                            </Button.GestureRecognizers>
+                        </Button>
 
-                        <Label HorizontalTextAlignment="Start"
+                        <syncf:SfEffectsView BackgroundColor="Transparent"
+                            TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
+                            TouchDownCommandParameter="album"
+                            TouchDown="Quickalbumsearch_Clicked">
+                            
+                            <Label HorizontalOptions="Start"
+                                BackgroundColor="Transparent"
+                              
+                               TextTransform="Lowercase"
+                                
                    Text="{Binding CurrentPlayingSongView.AlbumName}" 
-                   FontSize="16">
-                            <Label.GestureRecognizers>
-                                <PointerGestureRecognizer
-PointerPressedCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
-PointerReleased="QuickFilterGest_PointerReleased"
-PointerReleasedCommandParameter="album" />
-                            </Label.GestureRecognizers>
+                   FontSize="16"
+                                   >
+                          
+
+                            
                         </Label>
 
+                        </syncf:SfEffectsView>
 
 
                         <HorizontalStackLayout

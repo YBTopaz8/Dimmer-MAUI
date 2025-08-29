@@ -35,7 +35,8 @@ using Microsoft.Maui.Platform;
 
     using Windows.UI.Composition;
 
-    using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
+using Colors = Microsoft.Maui.Graphics.Colors;
+using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
     using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunction;
     using Compositor = Microsoft.UI.Composition.Compositor;
     using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
@@ -429,7 +430,6 @@ namespace Dimmer.WinUI.Views;
 
     private void PointerRecog_PointerEntered(object sender, PointerEventArgs e)
     {
-        SearchSongSB.Focus();
         
 
     }
@@ -437,10 +437,7 @@ namespace Dimmer.WinUI.Views;
 
     private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
-        await Task.WhenAll(
-         SearchSongSB.AnimateHeight(30, 500, Easing.SpringIn));
-
-        SearchSongSB.FontSize = 16;
+        
 
     }
 
@@ -546,7 +543,6 @@ namespace Dimmer.WinUI.Views;
 
         if (ewe==Windows.System.VirtualKeyModifiers.Control || ewe==Windows.System.VirtualKeyModifiers.Menu|| ewe==Windows.System.VirtualKeyModifiers.Shift && ee==Microsoft.UI.Input.PointerDeviceType.Mouse)
         {
-            SearchSongSB.Text= StaticMethods.SetQuotedSearch(field.ToString(), valuee);
         }
     }
     private void ArtistSfEffectsView_TouchUp(object sender, EventArgs e)
@@ -1015,10 +1011,7 @@ await this.FadeIn(500, 1.0);
 
     private void ColvViewGest_PointerEntered(object sender, PointerEventArgs e)
     {
-        if (MyViewModel.PlaybackQueue.Count<1)
-        {
-            //MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentTqlQuery);
-        }
+        
     }
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
@@ -1092,6 +1085,19 @@ await this.FadeIn(500, 1.0);
     {
         await MyViewModel.DeleteSongs(MyViewModel.SearchResults);
     }
+
+    private void SearchBtn_Loaded(object sender, EventArgs e)
+    {
+      
+
+        //SearchBtn.Behaviors.Add(new Microsoft.);
+    }
+
+    private void SearchBtn_Unloaded(object sender, EventArgs e)
+    {
+        SearchBtn.Behaviors.Clear();
+    }
+
 }
 
 public class SongViewTemplateSelector : DataTemplateSelector

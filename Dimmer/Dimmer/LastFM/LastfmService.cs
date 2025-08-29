@@ -199,7 +199,7 @@ public class LastfmService : ILastfmService
         Preferences.Set("LastfmUsername", _username);
     }
 
-    private void LoadSession()
+    public void LoadSession()
     {
         var sessionKey = Preferences.Get("LastfmSessionKey", string.Empty);
         var username = Preferences.Get("LastfmUsername", string.Empty);

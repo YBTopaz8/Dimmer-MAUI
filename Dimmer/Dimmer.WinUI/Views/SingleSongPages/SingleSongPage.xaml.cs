@@ -238,7 +238,13 @@ public partial class SingleSongPage : ContentPage
         }
         await this.FadeOut(200, 0.7);
         MyViewModel.SelectedSong = song;
-        await this.FadeIn(350, 1);
+        
+
+            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+
+            await MyViewModel.LoadSelectedSongLastFMData();
+        
+        await this.FadeIn(450, 1);
 
     }
     private async void OnAddQuickNoteClicked(object sender, EventArgs e)
