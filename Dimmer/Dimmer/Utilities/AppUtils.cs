@@ -306,19 +306,82 @@ public static class ImageResizer
 
 public static class ImageFilterUtils
 {
-    // Your FilterType enum from the previous question
-    public enum FilterType
-    {
-        None,
-        Blur,
-        Grayscale,
-        Sepia,
-        DarkAcrylic, // A blur with a dark tint
-        Glassy,      // A blur with a bright, semi-transparent overlay
-        Mauve,       // A color tint
-        Ocean        // Another color tint
+    public static async Task<AlbumArtPalette> GeneratePaletteAsync(string imagePath)
+    { 
+        // --- Step 1: Validate the input ---
+        if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+        {
+            // Log an error or warning here if you want
+            return new();
+        }
+
+        try
+        {
+            // --- Step 2: Read the file data asynchronously ---
+            var imageData = await File.ReadAllBytesAsync(imagePath);
+            if (imageData == null || imageData.Length == 0)
+            {
+                return new();
+            }
+            // STEP 1: Get a list of colors from the image.
+            // We assume your ImageResizer can be modified to do this.
+            // Let's ask for 8 colors to get a good variety.
+            var colorPalette =  ImageResizer.GetVibrantPalette(imageData, 8);
+
+            if (colorPalette == null || colorPalette.Count == 0)
+            {
+                // Return a safe, neutral default palette if image processing fails.
+                return new AlbumArtPalette
+                {
+                    DominantColor = Colors.SlateGray,
+                    VibrantColor = Colors.SteelBlue,
+                    MutedColor = Colors.DarkSlateGray,
+                    TextColorOnDominant = Colors.White,
+                    TextColorOnMuted = Colors.White,
+                };
+            }
+
+            // STEP 2: Intelligently select the best colors for each role.
+            //var dominant = colorPalette[0]; // The first is usually the most dominant.
+            //var vibrant = colorPalette.OrderByDescending(c => c.()).First();
+            //var muted = colorPalette.OrderBy(c => c.GetSaturation()).First();
+
+            return new AlbumArtPalette();
+            //{
+            //    DominantColor = dominant,
+            //    VibrantColor = vibrant,
+            //    MutedColor = muted,
+            //    TextColorOnDominant = GetContrastingTextColor(dominant),
+            //    TextColorOnMuted = GetContrastingTextColor(muted),
+            //};
+        }
+
+        catch (Exception)
+        {
+            return new();
+        }
     }
 
+    /// <summary>
+    /// Calculates the perceived luminance of a color and returns a high-contrast
+    /// TEXT color (either black or white) suitable for placing on top of it.
+    /// </summary>
+    public static Color GetContrastingTextColor(Color backgroundColor)
+    {
+        if (backgroundColor == null)
+            return Colors.White;
+
+        double luminance = (0.299 * backgroundColor.Red) + (0.587 * backgroundColor.Green) + (0.114 * backgroundColor.Blue);
+
+        // If background is light, use black text. If dark, use white text.
+        return luminance > 0.5 ? Colors.Black : Colors.White;
+    }
+
+    // Your GetTintedBackgroundColor is still useful!
+    public static Color GetTintedBackgroundColor(Color color, float alpha = 0.1f)
+    {
+        return color?.MultiplyAlpha(alpha) ?? Colors.Transparent;
+    }
     /// <summary>
     /// Applies a specified filter effect to an image.
     /// </summary>
@@ -339,38 +402,38 @@ public static class ImageFilterUtils
             // --- Step 2: Read the file data asynchronously ---
             var imageData = await File.ReadAllBytesAsync(coverfilePath);
             if (imageData == null || imageData.Length == 0 || filterType == FilterType.None)
-        {
-            return imageData;
-        }
-
-        try
-        {
-            using var original = SKBitmap.Decode(imageData);
-            if (original == null)
+            {
                 return imageData;
+            }
 
-            using var surface = SKSurface.Create(new SKImageInfo(original.Width, original.Height));
-            using var canvas = surface.Canvas;
-            using var paint = new SKPaint();
+            try
+            {
+                using var original = SKBitmap.Decode(imageData);
+                if (original == null)
+                    return imageData;
 
-            // Apply the filter using an SKImageFilter
-            paint.ImageFilter = CreateFilter(filterType);
+                using var surface = SKSurface.Create(new SKImageInfo(original.Width, original.Height));
+                using var canvas = surface.Canvas;
+                using var paint = new SKPaint();
 
-            // Draw the original bitmap onto the canvas with the filter applied
-            canvas.DrawBitmap(original, 0, 0, paint);
-            canvas.Flush();
+                // Apply the filter using an SKImageFilter
+                paint.ImageFilter =  CreateFilter(filterType);
 
-            using var image = surface.Snapshot();
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90); // Encode as JPEG for web/app use
+                // Draw the original bitmap onto the canvas with the filter applied
+                canvas.DrawBitmap(original, 0, 0, paint);
+                canvas.Flush();
 
-            return data.ToArray();
+                using var image = surface.Snapshot();
+                using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90); // Encode as JPEG for web/app use
+
+                return data.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to apply image filter {filterType}: {ex.Message}");
+                return imageData; // Return original on failure
+            }
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to apply image filter {filterType}: {ex.Message}");
-            return imageData; // Return original on failure
-        }
-    }
         catch (Exception ex)
         {
             // --- Step 5: Handle potential errors gracefully ---
@@ -453,17 +516,22 @@ public static class ImageFilterUtils
                 return null;
         }
     }
+
 }
+// Your FilterType enum from the previous question
 public enum FilterType
-{
-    None,
-    Blur,
-    Grayscale,
-    Sepia,
-    DarkAcrylic,
-    Mauve,
-    Ocean
-}
+    {
+        None,
+        Blur,
+        Grayscale,
+        Sepia,
+        DarkAcrylic, // A blur with a dark tint
+        Glassy,      // A blur with a bright, semi-transparent overlay
+        Mauve,       // A color tint
+        Ocean        // Another color tint
+    }
+
+  
 
 public static class TimeUtils
 {

@@ -81,6 +81,12 @@ public sealed partial class AllSongsWindow : Window
         _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
         _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
 
+        this.Closed +=AllSongsWindow_Closed;
+    }
+
+    private void AllSongsWindow_Closed(object sender, WindowEventArgs args)
+    {
+
     }
 
     public ObservableCollection<string> _liveArtists;
@@ -89,6 +95,7 @@ public sealed partial class AllSongsWindow : Window
 
     public BaseViewModelWin MyViewModel { get; internal set; }
 
+    
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         this.Close();

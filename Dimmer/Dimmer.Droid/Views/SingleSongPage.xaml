@@ -171,7 +171,7 @@ VerticalOptions="Center" />
     <Grid x:Name="SingleSongView" RowDefinitions="auto,*">
 
         <Grid Grid.Row="0" ColumnDefinitions="*,auto" VerticalOptions="Start" >
-            <Border BackgroundColor="{Binding BaseVM.SelectedSecondDomColor}"
+            <Border BackgroundColor="{Binding SelectedSecondDomColor}"
                                         Opacity="0.5" IsVisible="True"  ZIndex="0"
                                         x:Name="BorderNextToImageDomm"
                                         Grid.Column="0">
@@ -187,7 +187,7 @@ VerticalOptions="Center" />
                                               
                         
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"
-                                            Text="{Binding BaseVM.SelectedSong.ArtistName}" FontSize="19"/>
+                                            Text="{Binding SelectedSong.ArtistName}" FontSize="19"/>
                     <Button
                         x:Name="ToggleViewAlbum"
                         Clicked="ToggleViewAlbum_Clicked"
@@ -198,19 +198,19 @@ VerticalOptions="Center" />
                                               
                                               
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"
-                                            Text="{Binding BaseVM.SelectedSong.AlbumName}" />
+                                            Text="{Binding SelectedSong.AlbumName}" />
 
 
                 </HorizontalStackLayout>
                 <Button BorderWidth="1"
                                             HorizontalOptions="Start" BackgroundColor="Transparent"
-                                            Text="{Binding BaseVM.SelectedSong.Title}" FontSize="29"
+                                            Text="{Binding SelectedSong.Title}" FontSize="29"
                                                FontAttributes="Bold" 
                                             
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                 <HorizontalStackLayout Spacing="20">
                     <Button
-                                                BackgroundColor="{Binding BaseVM.SelectedSecondDomColor}"
+                                                BackgroundColor="{Binding SelectedSecondDomColor}"
                                                     ImageSource="play.png"
                                                 BorderWidth="2"
                                             HeightRequest="60"
@@ -223,14 +223,14 @@ VerticalOptions="Center" />
                                             >
                         <Button.Triggers>
                             <DataTrigger
-Binding="{Binding BaseVM.IsPlaying}"
+Binding="{Binding IsPlaying}"
 TargetType="Button"
 Value="true">
                                 <Setter Property="ImageSource" Value="pause.png" />
                             </DataTrigger>
 
                             <DataTrigger
-Binding="{Binding BaseVM.IsPlaying}"
+Binding="{Binding IsPlaying}"
 TargetType="Button"
 Value="false">
                                 <Setter Property="ImageSource" Value="play.png" />
@@ -238,25 +238,25 @@ Value="false">
                         </Button.Triggers>
                     </Button>
                     <Button
-Command="{Binding BaseVM.ToggleFavSongCommand}"
-CommandParameter="{Binding BaseVM.SelectedSong}"
+Command="{Binding ToggleFavSongCommand}"
+CommandParameter="{Binding SelectedSong}"
 BackgroundColor="Transparent"
             BorderWidth="0.7"
-            BorderColor="{Binding BaseVM.SelectedSecondDomColor}"
+            BorderColor="{Binding SelectedSecondDomColor}"
             
 ImageSource="heart.png"
 WidthRequest="65" HeightRequest="65"
 ToolTipProperties.Text="Save To Playlist">
                         <Button.Triggers>
                             <DataTrigger
-        Binding="{Binding BaseVM.SelectedSong.IsFavorite}"
+        Binding="{Binding SelectedSong.IsFavorite}"
         TargetType="Button"
         Value="False">
                                 <Setter Property="ImageSource" Value="heartbroken.png" />
 
                             </DataTrigger>
                             <DataTrigger
-        Binding="{Binding BaseVM.SelectedSong.IsFavorite}"
+        Binding="{Binding SelectedSong.IsFavorite}"
         TargetType="Button"
         Value="True">
                                 <Setter Property="ImageSource" Value="heartlock.png" />
@@ -272,7 +272,7 @@ ToolTipProperties.Text="Save To Playlist">
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding BaseVM.SelectedSong.PlayCompletedCount}"/>
+                                                        Text="{Binding SelectedSong.PlayCompletedCount}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
@@ -283,20 +283,20 @@ ToolTipProperties.Text="Save To Playlist">
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding BaseVM.SongListeningStreak.Count  }"/>
+                                                        Text="{Binding SongListeningStreak.Count  }"/>
                     </VerticalStackLayout>
                 </HorizontalStackLayout>
             </VerticalStackLayout>
             <Grid Grid.Column="1" >
                 <Border Opacity="0.01" ZIndex="1" x:Name="BorderUnderImageDomm"
-                                            BackgroundColor="{Binding BaseVM.SelectedSecondDomColor}">
+                                            BackgroundColor="{Binding SelectedSecondDomColor}">
 
                 </Border>
                 <Image VerticalOptions="Start"
                                         HeightRequest="250"
                                         WidthRequest="250" Opacity="0.8"
                                       
-                                        Source="{Binding BaseVM.SelectedSong.CoverImagePath}"/>
+                                        Source="{Binding SelectedSong.CoverImagePath}"/>
 
             </Grid>
         </Grid>
@@ -322,14 +322,14 @@ ToolTipProperties.Text="Save To Playlist">
                             <VerticalStackLayout>
                                 <HorizontalStackLayout HorizontalOptions="Center">
 
-                                    <Button Text="{Binding BaseVM.CurrentPlayingSongView.Title}" BackgroundColor="Transparent"
-                                        Command="{Binding BaseVM.PlayPauseToggleCommand}"
+                                    <Button Text="{Binding CurrentPlayingSongView.Title}" BackgroundColor="Transparent"
+                                        Command="{Binding PlayPauseToggleCommand}"
                                         />
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
                                     <Label Grid.Column="0" 
                                            TextColor="DarkSlateBlue"
-                                           Text="{Binding BaseVM.CurrentTrackPositionPercentage, StringFormat='{0:n1}'}" />
+                                           Text="{Binding CurrentTrackPositionPercentage, StringFormat='{0:n1}'}" />
                                     <Label Text="%"/>
 
                                 </HorizontalStackLayout>
@@ -359,7 +359,7 @@ ToolTipProperties.Text="Save To Playlist">
                            
                            
                            Background="Transparent"
-                           Command="{Binding BaseVM.PreviousTrackCommand}"
+                           Command="{Binding PreviousTrackCommand}"
                            ImageSource="skipprevious.png"
                            StyleClass="MediaBtnChip" />
                                     <syncf:SfChip
@@ -367,19 +367,19 @@ ToolTipProperties.Text="Save To Playlist">
                            
                            
                            Background="Transparent"
-                           Command="{Binding BaseVM.PlayPauseToggleCommand}"
+                           Command="{Binding PlayPauseToggleCommand}"
                            ImageSource="play.png"
                            StyleClass="MediaBtnChip">
                                         <syncf:SfChip.Triggers>
                                             <DataTrigger
-                                   Binding="{Binding BaseVM.IsPlaying}"
+                                   Binding="{Binding IsPlaying}"
                                    TargetType="syncf:SfChip"
                                    Value="true">
                                                 <Setter Property="ImageSource" Value="pause.png" />
                                             </DataTrigger>
 
                                             <DataTrigger
-                                   Binding="{Binding BaseVM.IsPlaying}"
+                                   Binding="{Binding IsPlaying}"
                                    TargetType="syncf:SfChip"
                                    Value="false">
                                                 <Setter Property="ImageSource" Value="play.png" />
@@ -391,7 +391,7 @@ ToolTipProperties.Text="Save To Playlist">
                            
                            
                            Background="Transparent"
-                           Command="{Binding BaseVM.NextTrackCommand}"
+                           Command="{Binding NextTrackCommand}"
                            ImageSource="skipnext.png"
                            StyleClass="MediaBtnChip" />
 
@@ -407,12 +407,12 @@ ToolTipProperties.Text="Save To Playlist">
                                 <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
                                     <syncf:SfChip
                            Background="Transparent"
-                           Command="{Binding BaseVM.ToggleShuffleCommand}"
+                           Command="{Binding ToggleShuffleCommand}"
                            ImageSource="shuffle.png"
                            StyleClass="MediaBtnChip">
                                         <syncf:SfChip.Triggers>
                                             <DataTrigger
-                                   Binding="{Binding BaseVM.IsShuffleActive}"
+                                   Binding="{Binding IsShuffleActive}"
                                    TargetType="syncf:SfChip"
                                    Value="True">
                                                 <Setter Property="Stroke" Value="DarkSlateBlue" />
@@ -432,7 +432,7 @@ ToolTipProperties.Text="Save To Playlist">
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem Text="View"
-                                                 CommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
+                                                 CommandParameter="{Binding CurrentPlayingSongView}"
                                                  Clicked="ViewSongMFI_Clicked"
                                                  x:Name="ViewSongMFI"/>
 
@@ -448,8 +448,8 @@ ToolTipProperties.Text="Save To Playlist">
                                                 <Setter Property="TextColor" Value="#999999"/>
                                             </Style>
                                         </VerticalStackLayout.Resources>
-                                        <Label Text="{Binding BaseVM.CurrentPlayingSongView.Title}"/>
-                                        <Label Text="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                                        <Label Text="{Binding CurrentPlayingSongView.Title}"/>
+                                        <Label Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
                                     </VerticalStackLayout>
 
                                 </Border>
@@ -470,14 +470,14 @@ ToolTipProperties.Text="Save To Playlist">
                         x:Name="ViewSongDetails"
                         Clicked="ViewSongDetails_Clicked"
                         WidthRequest="200"
-                        Aspect="AspectFill" Source="{Binding BaseVM.SelectedSong.CoverImagePath}"/>
+                        Aspect="AspectFill" Source="{Binding SelectedSong.CoverImagePath}"/>
                     </Border>
 
                     <syncf:SfEffectsView
                     TouchUp="ViewSongDetails_Clicked">
 
 
-                        <Label Text="{Binding BaseVM.SelectedSong.Title}" 
+                        <Label Text="{Binding SelectedSong.Title}" 
                        
                        FontSize="38" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                     </syncf:SfEffectsView>
@@ -487,32 +487,32 @@ ToolTipProperties.Text="Save To Playlist">
                     TextColor="{AppThemeBinding Dark=White,Light=Black}"
                     Clicked="ViewArtist_Clicked"
                     x:Name="ViewArtist" StrokeThickness="0.4"
-                    CommandParameter="{Binding BaseVM.SelectedSong}"
-                    Text="{Binding BaseVM.SelectedSong.OtherArtistsName}" FontSize="20" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
+                    CommandParameter="{Binding SelectedSong}"
+                    Text="{Binding SelectedSong.OtherArtistsName}" FontSize="20" HorizontalOptions="Center" HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
 
                     <Label
                     TextColor="{AppThemeBinding Dark=White,Light=Black}"
                  FontAttributes="Italic"
                  x:Name="ViewAlbum"
                  LineBreakMode="TailTruncation"
-                    Text="{Binding BaseVM.SelectedSong.AlbumName}" FontSize="14" HorizontalOptions="Center" 
+                    Text="{Binding SelectedSong.AlbumName}" FontSize="14" HorizontalOptions="Center" 
                  HorizontalTextAlignment="Center" Margin="0,-5,0,10"/>
 
                     <!-- Quick Actions -->
-                    <syncf:SfChip Command="{Binding BaseVM.ToggleFavSongCommand}" 
+                    <syncf:SfChip Command="{Binding ToggleFavSongCommand}" 
                         ShowIcon="True" 
-                        CommandParameter="{Binding BaseVM.SelectedSong}"
+                        CommandParameter="{Binding SelectedSong}"
                               ImageSize="50"
                               WidthRequest="65"
                               StrokeThickness="0"
                         >
                         <syncf:SfChip.Triggers>
-                            <DataTrigger Binding="{Binding BaseVM.SelectedSong.IsFavorite}"
+                            <DataTrigger Binding="{Binding SelectedSong.IsFavorite}"
                                      Value="True" TargetType="syncf:SfChip">
                                 <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                 <Setter Property="ImageSource" Value="heart.png"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding BaseVM.SelectedSong.IsFavorite}"
+                            <DataTrigger Binding="{Binding SelectedSong.IsFavorite}"
                                      Value="False" TargetType="syncf:SfChip">
                                 <Setter Property="ImageSource" Value="heart.png"/>
                                 <Setter Property="BackgroundColor" Value="Transparent"/>
@@ -523,18 +523,18 @@ ToolTipProperties.Text="Save To Playlist">
                     <!-- Tags Section -->
 
                     <!-- User Note Section -->
-                    <Label Text="{Binding BaseVM.SelectedSong.TrackNumber, 
+                    <Label Text="{Binding SelectedSong.TrackNumber, 
                         StringFormat='# : {0}'}" 
                            Style="{StaticResource SectionHeader}"/>
-                    <Label Text="{Binding BaseVM.SelectedSong.ReleaseYear, StringFormat='Release Year : {0}'}" Style="{StaticResource SectionHeader}"/>
+                    <Label Text="{Binding SelectedSong.ReleaseYear, StringFormat='Release Year : {0}'}" Style="{StaticResource SectionHeader}"/>
                     <Label 
-                        Text="{Binding BaseVM.SelectedSong.DateCreated, 
+                        Text="{Binding SelectedSong.DateCreated, 
                         StringFormat='Created on : {0: ddd, MM yyy - hh:mm}',Converter={StaticResource DateTimeConverter}}" 
                         Style="{StaticResource SectionHeader}"/>
-                    <Label Text="{Binding BaseVM.SelectedSong.PlayCount, StringFormat='Number of Dimms : {0}'}" Style="{StaticResource SectionHeader}"/>
+                    <Label Text="{Binding SelectedSong.PlayCount, StringFormat='Number of Dimms : {0}'}" Style="{StaticResource SectionHeader}"/>
                     <Button 
                     Text="Delete"
-                        CommandParameter="{Binding BaseVM.SelectedSong}" HorizontalOptions="Start"/>
+                        CommandParameter="{Binding SelectedSong}" HorizontalOptions="Start"/>
 
                     <!-- File Properties -->
                     <Label Text="File Properties" Style="{StaticResource SectionHeader}"/>
@@ -543,13 +543,13 @@ ToolTipProperties.Text="Save To Playlist">
 
                         <syncf:SfEffectsView Grid.Row="0" Grid.Column="1" x:Name="ViewFileFolder"
                                          TouchDown="ViewFileFolder_TouchDown">
-                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.FilePath}" LineBreakMode="TailTruncation"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.FilePath}" LineBreakMode="TailTruncation"/>
                         </syncf:SfEffectsView>
                         <Label Grid.Row="1" Grid.Column="0" Text="Size:" Style="{StaticResource SectionHeader}"/>
-                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
 
                         <Label Grid.Row="2" Grid.Column="0" Text="Format:" Style="{StaticResource SectionHeader}"/>
-                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.FileFormat, StringFormat='{0}'}">
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.FileFormat, StringFormat='{0}'}">
                             <!--<Label.BindingContext>
                             <MultiBinding>
                                 <Binding Path="SelectedSong.FileFormat"/>
@@ -559,7 +559,7 @@ ToolTipProperties.Text="Save To Playlist">
                         </Label>
 
                         <Label Grid.Row="3" Grid.Column="0" Text="Date Added:" Style="{StaticResource FieldLabel}"/>
-                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.DateCreated, Converter={StaticResource DateTimeConverter}}"/>
+                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSong.DateCreated, Converter={StaticResource DateTimeConverter}}"/>
                     </Grid>
                 </VerticalStackLayout>
             </VerticalStackLayout>
@@ -577,7 +577,7 @@ ToolTipProperties.Text="Save To Playlist">
                                      ItemSpanCount="3" ItemSpanSpacing="5"
                                  Grid.Row="1"   ItemTemplate="{StaticResource GridOfFour}"
                                      
-                                    ItemsSource="{Binding BaseVM.SearchResults}">
+                                    ItemsSource="{Binding SearchResults}">
 
                 </dx:DXCollectionView>
 
@@ -608,16 +608,16 @@ ToolTipProperties.Text="Save To Playlist">
                                                     <HorizontalStackLayout Spacing="10">
                                                         <VerticalStackLayout>
 
-                                                            <Label Text="{Binding BaseVM.SongBingeFactor.Name}"/>
-                                                            <Label Text="{Binding BaseVM.SongBingeFactor.Count, StringFormat='{0}'
+                                                            <Label Text="{Binding SongBingeFactor.Name}"/>
+                                                            <Label Text="{Binding SongBingeFactor.Count, StringFormat='{0}'
 ,Converter={converters:NumberToShortStringConverter}}"/>
                                                         </VerticalStackLayout>
 
                                                         <VerticalStackLayout>
 
-                                                            <Label Text="{Binding BaseVM.SongAverageListenThrough.Name}"/>
+                                                            <Label Text="{Binding SongAverageListenThrough.Name}"/>
                                                             <Label 
-   Text="{Binding BaseVM.SongAverageListenThrough.Value, StringFormat='{0:n2}%'}"/>
+   Text="{Binding SongAverageListenThrough.Value, StringFormat='{0:n2}%'}"/>
 
                                                         </VerticalStackLayout>
 
@@ -635,7 +635,7 @@ ToolTipProperties.Text="Save To Playlist">
                                                     <Label Text="Length"
                                                             FontSize="Medium" FontAttributes="Bold"/>
                                                     <Label 
-                                                   Text="{Binding BaseVM.SelectedSong.DurationInSeconds, StringFormat='{0}'
+                                                   Text="{Binding SelectedSong.DurationInSeconds, StringFormat='{0}'
                                                 ,Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
 
                                                     <Label Text="Lyrics"
@@ -644,7 +644,7 @@ ToolTipProperties.Text="Save To Playlist">
                                                     <HorizontalStackLayout>
 
                                                         <Label
-                                                            Text="{Binding BaseVM.SelectedSong.SyncLyrics.Length,
+                                                            Text="{Binding SelectedSong.SyncLyrics.Length,
                                                 StringFormat='{0} lines'}"/>
                                                         <ImageButton 
                                                             HeightRequest="30"
@@ -683,7 +683,7 @@ ToolTipProperties.Text="Save To Playlist">
                                                                 
                                                                 EnableTooltip="True"
                                                                 TooltipTemplate="{StaticResource tooltipTemplateTwo}"
-                                                                ItemsSource="{Binding BaseVM.SongPlayTypeDistribution}">
+                                                                ItemsSource="{Binding SongPlayTypeDistribution}">
 
                                                         </syncf:DoughnutSeries>
                                                     </syncf:SfCircularChart>
@@ -706,7 +706,7 @@ WidthRequest="500"
                                                             <chart:NumericalAxis >
                                                             </chart:NumericalAxis>
                                                         </chart:SfPolarChart.SecondaryAxis>
-                                                        <syncf:PolarLineSeries ItemsSource="{Binding BaseVM.SongPlayDistributionByHour}"
+                                                        <syncf:PolarLineSeries ItemsSource="{Binding SongPlayDistributionByHour}"
                                                    ShowDataLabels="True" 
                                                                            
                                                                            TooltipTemplate="{StaticResource tooltipTemplateTwo}"
@@ -733,31 +733,31 @@ WidthRequest="500"
                     <syncf:SfTabItem.Content>
                         <ScrollView>
                             <Grid >
-                                <Image Source="{Binding BaseVM.SelectedSong.CoverImagePath}" Opacity="0.18"/>
+                                <Image Source="{Binding SelectedSong.CoverImagePath}" Opacity="0.18"/>
 
                                 <VerticalStackLayout Padding="15" Spacing="10">
                                     <Label Text="Edit the core information for this song. These changes will be saved directly to the audio file's tags."/>
 
                                     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="10" ColumnDefinitions="Auto,*">
                                         <Label Grid.Row="0" Grid.Column="0" Text="Title" Style="{StaticResource FieldLabel}"/>
-                                        <Entry Grid.Row="0" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.Title}"/>
+                                        <Entry Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.Title}"/>
 
                                         <Label Grid.Row="1" Grid.Column="0" Text="Artist(s)" Style="{StaticResource FieldLabel}"/>
-                                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.OtherArtistsName}" Placeholder="e.g. Artist A, Artist B"/>
+                                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.OtherArtistsName}" Placeholder="e.g. Artist A, Artist B"/>
 
                                         <Label Grid.Row="2" Grid.Column="0" Text="Album" Style="{StaticResource FieldLabel}"/>
-                                        <Entry Grid.Row="2" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.AlbumName}"/>
+                                        <Entry Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.AlbumName}"/>
 
 
                                         <Label Grid.Row="4" Grid.Column="0" Text="Genre" Style="{StaticResource FieldLabel}"/>
-                                        <Entry Grid.Row="4" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.GenreName}"/>
+                                        <Entry Grid.Row="4" Grid.Column="1" Text="{Binding SelectedSong.GenreName}"/>
 
                                         <Label Grid.Row="5" Grid.Column="0" Text="Year" Style="{StaticResource FieldLabel}"/>
-                                        <Entry Grid.Row="5" Grid.Column="1" Text="{Binding BaseVM.SelectedSong.ReleaseYear}" Keyboard="Numeric"/>
+                                        <Entry Grid.Row="5" Grid.Column="1" Text="{Binding SelectedSong.ReleaseYear}" Keyboard="Numeric"/>
 
                                         <Label Grid.Row="6" Grid.Column="0" Text="Tags" VerticalOptions="Start" Style="{StaticResource FieldLabel}"/>
                                         <VerticalStackLayout Grid.Row="6" Grid.Column="1" Spacing="10">
-                                            <syncf:SfChipGroup ItemsSource="{Binding BaseVM.SelectedSong.UserNotes}">
+                                            <syncf:SfChipGroup ItemsSource="{Binding SelectedSong.UserNotes}">
 
                                                 <syncf:SfChipGroup.ItemTemplate>
                                                     <DataTemplate x:DataType="models:UserNoteModelView">
@@ -774,7 +774,7 @@ WidthRequest="500"
                                                 </syncf:SfChipGroup.ItemTemplate>
                                             </syncf:SfChipGroup>
                                             <HorizontalStackLayout IsVisible="False">
-                                                <Entry Placeholder="Add a new tag..." Text="{Binding BaseVM.CurrentNoteToSave}" HorizontalOptions="Fill"/>
+                                                <Entry Placeholder="Add a new tag..." Text="{Binding CurrentNoteToSave}" HorizontalOptions="Fill"/>
 
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
@@ -795,12 +795,12 @@ WidthRequest="500"
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="Auto, *">
                             <VerticalStackLayout>
-                                <Label Text="{Binding BaseVM.SelectedSong.EmbeddedSync.Count,StringFormat='Sync Lyrics Count: {0}'}"/>
+                                <Label Text="{Binding SelectedSong.EmbeddedSync.Count,StringFormat='Sync Lyrics Count: {0}'}"/>
                             </VerticalStackLayout>
                             <Grid Grid.Row="1"  ColumnDefinitions="*">
 
                                 <CollectionView Grid.Column="0" 
-                                            ItemsSource="{Binding BaseVM.SelectedSong.EmbeddedSync}" >
+                                            ItemsSource="{Binding SelectedSong.EmbeddedSync}" >
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate x:DataType="models:LyricPhraseModelView">
                                             <Grid ColumnDefinitions="0.3*,*,0.3*">
@@ -834,13 +834,13 @@ WidthRequest="500"
                         <VerticalStackLayout Grid.Row="0" IsVisible="True" Padding="15">
                             <Label Text="Find Lyrics Online" Style="{StaticResource SectionHeader}"/>
                             <VerticalStackLayout HorizontalOptions="Start" WidthRequest="300" Spacing="10">
-                                        <Entry Placeholder="Song Title" Text="{Binding BaseVM.LyricsTrackNameSearch}" HorizontalOptions="Fill"/>
-                                        <Entry Placeholder="Artist Name" Text="{Binding BaseVM.LyricsArtistNameSearch}" HorizontalOptions="Fill"/>
-                                        <Entry Placeholder="Album Name" Text="{Binding BaseVM.LyricsAlbumNameSearch}" HorizontalOptions="Fill"/>
-                                <Button Text="Search" Command="{Binding BaseVM.SearchLyricsCommand}"/>
+                                        <Entry Placeholder="Song Title" Text="{Binding LyricsTrackNameSearch}" HorizontalOptions="Fill"/>
+                                        <Entry Placeholder="Artist Name" Text="{Binding LyricsArtistNameSearch}" HorizontalOptions="Fill"/>
+                                        <Entry Placeholder="Album Name" Text="{Binding LyricsAlbumNameSearch}" HorizontalOptions="Fill"/>
+                                <Button Text="Search" Command="{Binding SearchLyricsCommand}"/>
                             </VerticalStackLayout>
-                            <ActivityIndicator IsRunning="{Binding BaseVM.IsLyricsSearchBusy}"/>
-                                    <CollectionView ItemsSource="{Binding BaseVM.LyricsSearchResults}" EmptyView="No results found.">
+                            <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"/>
+                                    <CollectionView ItemsSource="{Binding LyricsSearchResults}" EmptyView="No results found.">
                                 <CollectionView.ItemsLayout>
                                     <GridItemsLayout Span="3"
                     Orientation="Vertical"                HorizontalItemSpacing="10"
@@ -879,7 +879,7 @@ WidthRequest="500"
                                         <Label Grid.Row="0" Text="Lyrics Timestamper" FontSize="22" FontAttributes="Bold" Margin="0,0,0,20"/>
 
                                         <!-- Lyrics Lines -->
-                                        <CollectionView Grid.Row="1" ItemsSource="{Binding BaseVM.LyricsInEditor}">
+                                        <CollectionView Grid.Row="1" ItemsSource="{Binding LyricsInEditor}">
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="models:LyricPhraseModelView">
                                                     <Grid Padding="10,5" ColumnDefinitions="Auto, *">
@@ -914,11 +914,11 @@ WidthRequest="500"
                                             <Button Text="Timestamp Current Line" 
                     FontSize="18" 
                     HeightRequest="50"
-                    Command="{Binding BaseVM.TimestampCurrentLyricLineCommand}" 
+                    Command="{Binding TimestampCurrentLyricLineCommand}" 
                     Style="{StaticResource PrimaryButton}"/>
                                             <Grid ColumnDefinitions="*,*">
-                                                <Button Grid.Column="0" Text="Cancel" Command="{Binding BaseVM.CancelLyricsEditingSessionCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,5,0"/>
-                                                <Button Grid.Column="1" Text="Save Lyrics" Command="{Binding BaseVM.SaveTimestampedLyricsCommand}" Style="{StaticResource PrimaryButton}" Margin="5,0,0,0"/>
+                                                <Button Grid.Column="0" Text="Cancel" Command="{Binding CancelLyricsEditingSessionCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,5,0"/>
+                                                <Button Grid.Column="1" Text="Save Lyrics" Command="{Binding SaveTimestampedLyricsCommand}" Style="{StaticResource PrimaryButton}" Margin="5,0,0,0"/>
                                             </Grid>
                                         </VerticalStackLayout>
                                     </Grid>
@@ -929,20 +929,20 @@ WidthRequest="500"
                 <syncf:SfTabItem Header="Cover Image">
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="auto,*">
-                            <Image Source="{Binding BaseVM.SelectedSong.CoverImagePath}"
+                            <Image Source="{Binding SelectedSong.CoverImagePath}"
                                    Opacity="0.2" Aspect="AspectFit"/>
                             <VerticalStackLayout 
                                 Spacing="10"
                                 Grid.Row="0">
 
                                 <Editor 
-                                            Text="{Binding BaseVM.SelectedSong.Title}"/>
+                                            Text="{Binding SelectedSong.Title}"/>
 
                                 <Editor 
-                                            Text="{Binding BaseVM.SelectedSong.ArtistName}"/>
+                                            Text="{Binding SelectedSong.ArtistName}"/>
 
                                 <Editor 
-                                            Text="{Binding BaseVM.SelectedSong.AlbumName}"/>
+                                            Text="{Binding SelectedSong.AlbumName}"/>
 
 
                                 <HorizontalStackLayout>
@@ -952,7 +952,7 @@ WidthRequest="500"
                                         
                                         x:Name="SearchSongOnline"/>
                                     <syncf:SfChip ImageSource="folderopen.png"
-              Command="{Binding BaseVM.PickSongImageFromFolderCommand}"
+              Command="{Binding PickSongImageFromFolderCommand}"
               x:Name="PickSongImageFromFolder"/>
                                 </HorizontalStackLayout>
 
@@ -961,19 +961,19 @@ WidthRequest="500"
                                         <Label Text="Current Image" FontSize="Header"/>
                                         <Image HeightRequest="400"
                                                WidthRequest="400"
-                                               Source="{Binding BaseVM.SelectedSong.CoverImagePath}"/>
+                                               Source="{Binding SelectedSong.CoverImagePath}"/>
                                     </VerticalStackLayout>
                                     <VerticalStackLayout>
                                         <Label Text="Current Image" FontSize="Header"/>
                                         <Image HeightRequest="400"
                                                WidthRequest="400"
-                                               Source="{Binding BaseVM.SelectedSongLastFMData.Images[5].Url}"/>
+                                               Source="{Binding SelectedSongLastFMData.Images[5].Url}"/>
                                     </VerticalStackLayout>
                                 </HorizontalStackLayout>
 
                             </VerticalStackLayout>
 
-                            <CollectionView ItemsSource="{Binding BaseVM.SelectedSongLastFMData.Images}" Grid.Row="1">
+                            <CollectionView ItemsSource="{Binding SelectedSongLastFMData.Images}" Grid.Row="1">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="lastfmmodels:Image">
                                         <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" Margin="5">
@@ -1006,18 +1006,18 @@ WidthRequest="500"
                                         <Label Text="Find Lyrics Online" FontSize="18" FontAttributes="Bold"/>
 
                                         <!-- Search Inputs -->
-                                        <Entry Placeholder="Artist Name" Text="{Binding BaseVM.LyricsArtistNameSearch}"/>
-                                        <Entry Placeholder="Track Name" Text="{Binding BaseVM.LyricsTrackNameSearch}"/>
-                                        <Entry Placeholder="Album Name (Optional)" Text="{Binding BaseVM.LyricsAlbumNameSearch}"/>
+                                        <Entry Placeholder="Artist Name" Text="{Binding LyricsArtistNameSearch}"/>
+                                        <Entry Placeholder="Track Name" Text="{Binding LyricsTrackNameSearch}"/>
+                                        <Entry Placeholder="Album Name (Optional)" Text="{Binding LyricsAlbumNameSearch}"/>
 
                                         <!-- Search Action -->
                                         <Grid>
-                                            <Button Text="Search" Command="{Binding BaseVM.SearchLyricsCommand}" Style="{StaticResource PrimaryButton}" IsVisible="{Binding BaseVM.IsLyricsSearchBusy, Converter={StaticResource BoolToInverse}}"/>
-                                            <ActivityIndicator IsRunning="{Binding BaseVM.IsLyricsSearchBusy}" IsVisible="{Binding BaseVM.IsLyricsSearchBusy}" Color="{StaticResource PrimaryAccentColor}" HorizontalOptions="Center"/>
+                                            <Button Text="Search" Command="{Binding SearchLyricsCommand}" Style="{StaticResource PrimaryButton}" IsVisible="{Binding IsLyricsSearchBusy, Converter={StaticResource BoolToInverse}}"/>
+                                            <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}" IsVisible="{Binding IsLyricsSearchBusy}" Color="{StaticResource PrimaryAccentColor}" HorizontalOptions="Center"/>
                                         </Grid>
 
                                         <!-- Search Results -->
-                                        <CollectionView ItemsSource="{Binding BaseVM.LyricsSearchResults}" IsVisible="{Binding BaseVM.HasLyricsSearchResults}" HeightRequest="250" Margin="0,10,0,0">
+                                        <CollectionView ItemsSource="{Binding LyricsSearchResults}" IsVisible="{Binding HasLyricsSearchResults}" HeightRequest="250" Margin="0,10,0,0">
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="models:LyricsDownloadContent">
                                                     <Border Padding="10" Margin="0,5">

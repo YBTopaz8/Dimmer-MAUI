@@ -46,7 +46,8 @@ using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
     using SortOrder = Dimmer.Utilities.SortOrder;
     using View = Microsoft.Maui.Controls.View;
     using Visual = Microsoft.UI.Composition.Visual;
-    using WinUIControls = Microsoft.UI.Xaml.Controls;
+using Window = Microsoft.UI.Xaml.Window;
+using WinUIControls = Microsoft.UI.Xaml.Controls;
 
 namespace Dimmer.WinUI.Views;
 
@@ -58,7 +59,7 @@ namespace Dimmer.WinUI.Views;
 
 
 
-        public HomePage(BaseViewModelWin vm)
+        public HomePage(BaseViewModelWin vm , IWinUIWindowMgrService windowMgrService)
         {
             InitializeComponent();
             BindingContext = vm;
@@ -79,11 +80,45 @@ namespace Dimmer.WinUI.Views;
             new LinearItemsLayout(ItemsLayoutOrientation.Vertical) { ItemSpacing = 5 },
             new GridItemsLayout(ItemsLayoutOrientation.Vertical) { Span = 6, VerticalItemSpacing = 10, HorizontalItemSpacing = 5 }
         };
-    }
-  
-    private List<DataTemplate> _availableLayouts; 
-    private readonly List<IItemsLayout> _availableItemsLayouts; 
+        _windowMgrService = windowMgrService;
 
+        // Subscribe to the new events
+        _windowMgrService.WindowActivated += OnAnyWindowActivated;
+        _windowMgrService.WindowClosed += OnAnyWindowClosed;
+        _windowMgrService.WindowClosing += OnAnyWindowClosing;
+    }
+
+    private void OnAnyWindowClosing(object? sender, WinUIWindowMgrService.WindowClosingEventArgs e)
+    {
+        Debug.WriteLine($"A window is trying to close: {e.Window.Title}");
+
+        // Example: Prevent a specific window from closing if it has unsaved changes
+        //if (e.Window is AllSongsWindow editor && editor.HasUnsavedChanges)
+        //{
+        //    // You would typically show a dialog here asking the user to save.
+        //    // If they cancel, you set e.Cancel = true;
+        //    Debug.WriteLine($"Closing cancelled for {e.Window.Title} due to unsaved changes.");
+        //    e.Cancel = true;
+        //}
+    }
+
+    private void OnAnyWindowClosed(object? sender, Window closedWindow)
+    {
+        Debug.WriteLine($"A window was just closed: {closedWindow.Title}");
+        // Maybe update a status bar or a "Window" menu list
+    }
+
+    private void OnAnyWindowActivated(object? sender, WindowActivatedEventArgs e)
+    {
+        if (e.WindowActivationState != WindowActivationState.Deactivated && sender is Window activatedWindow)
+        {
+            Debug.WriteLine($"Window Activated: {activatedWindow.Title}");
+            // You could use this to update a "currently active document" display
+        }
+    }
+    private List<DataTemplate> _availableLayouts; 
+    private readonly List<IItemsLayout> _availableItemsLayouts;
+    private readonly IWinUIWindowMgrService _windowMgrService;
     private int _currentLayoutIndex = 0;
     
       private void ChangeLayout_Clicked(object sender, EventArgs e)
@@ -986,7 +1021,7 @@ await this.FadeIn(500, 1.0);
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
 
         // move and resize to the center of the screen
 
@@ -1098,6 +1133,10 @@ await this.FadeIn(500, 1.0);
         SearchBtn.Behaviors.Clear();
     }
 
+    private void ViewSongDetails_Clicked(object sender, EventArgs e)
+    {
+        MainPagePopup.IsOpen = !MainPagePopup.IsOpen;
+    }
 }
 
 public class SongViewTemplateSelector : DataTemplateSelector

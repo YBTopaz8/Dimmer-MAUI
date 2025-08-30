@@ -6,24 +6,46 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using Application = Microsoft.UI.Xaml.Application;
 using Page = Microsoft.UI.Xaml.Controls.Page;
 using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
-internal class WinUIWindowMgrService :IWinUIWindowMgrService
+public partial class WinUIWindowMgrService :IWinUIWindowMgrService
 {
     private readonly IServiceProvider _mauiServiceProvider; // To potentially resolve MAUI services if needed
     private readonly List<Window> _openWindows = new(); // Simple tracking
     private readonly Dictionary<string, Window> _trackedUniqueContentWindows = new();
     private readonly Dictionary<Type, Window> _trackedUniqueTypedWindows = new();
 
+    /// <summary>
+    /// Fired just before a window is closed. Can be cancelled by subscribers.
+    /// </summary>
+    public event EventHandler<WindowClosingEventArgs>? WindowClosing;
+
+    /// <summary>
+    /// Fired after a window has been closed.
+    /// </summary>
+    public event EventHandler<Window>? WindowClosed; // CHANGED: Renamed from WindowClosing for clarity
+
+    /// <summary>
+    /// Fired when any tracked window is activated (brought to the foreground).
+    /// </summary>
+    public event EventHandler<WindowActivatedEventArgs>? WindowActivated;
+
+    /// <summary>
+    /// Fired when any tracked window's size is changed.
+    /// </summary>
+    public event EventHandler<WindowSizeChangedEventArgs>? WindowSizeChanged;
+
+
     public WinUIWindowMgrService(IServiceProvider mauiServiceProvider)
     {
         _mauiServiceProvider = mauiServiceProvider;
-
     }
+
    
 
     /// <summary>
@@ -137,14 +159,15 @@ internal class WinUIWindowMgrService :IWinUIWindowMgrService
         }
     }
 
-    public T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window
+    public T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM, Func<T>? windowFactory = null) where T : Window
     {
+      
+
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
             if (IsWindowOpen(existingTypedWindow))
             {
                 BringToFront(existingTypedWindow);
-                Debug.WriteLine($"Unique typed window {typeof(T).FullName} already exists. Bringing to front.");
                 return existingTypedWindow;
             }
             else
@@ -154,14 +177,33 @@ internal class WinUIWindowMgrService :IWinUIWindowMgrService
             }
         }
 
-        if (windowFactory == null)
-            throw new ArgumentNullException(nameof(windowFactory), $"No factory provided and no parameterless constructor for {typeof(T).Name}");
-
+        windowFactory ??= () => Activator.CreateInstance<T>();
         T newWindow = windowFactory();
+
+        void OnNewWindowClosed(object sender, WindowEventArgs args)
+        {
+            // Unsubscribe to prevent memory leaks
+            newWindow.Closed -= OnNewWindowClosed;
+
+            // Bring the original caller back to the front
+            try
+            {
+                Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
+                callerVM.ActivateMainWindow();
+            }
+            catch (Exception ex)
+            {
+                // This might happen if the caller window was also closed in the meantime.
+                Debug.WriteLine($"Could not activate caller window. It might be closed. Error: {ex.Message}");
+            }
+        }
+
+        newWindow.Closed += OnNewWindowClosed;
+
         TrackWindow(newWindow);
         _trackedUniqueTypedWindows[typeof(T)] = newWindow;
         newWindow.Activate();
-        Debug.WriteLine($"Unique typed window created and activated: {typeof(T).FullName}");
+        Debug.WriteLine($"Unique typed window created: {typeof(T).FullName}. It will activate its caller on close.");
 
         return newWindow;
     }
@@ -199,21 +241,34 @@ internal class WinUIWindowMgrService :IWinUIWindowMgrService
     }
 
 
-    private void TrackWindow(Window window)
+    public void TrackWindow(Window window)
     {
         if (!_openWindows.Contains(window))
         {
             _openWindows.Add(window);
-            window.Closed += Window_Closed;
+            window.Closed += OnWindowClosed;
             ; // Subscribe to Closed event
         }
     }
+    private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+    {
+        var ss = sender.Id.Value;
+        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);  
+        var isEqual = e == (nint)ss;
+        // Find the XAML Window corresponding to this AppWindow
+        var xamlWindow = _openWindows.FirstOrDefault(w => isEqual);
+        if (xamlWindow != null)
+        {
+            var customArgs = new WindowClosingEventArgs(xamlWindow);
+            WindowClosing?.Invoke(this, customArgs);
+            args.Cancel = customArgs.Cancel; // Respect if a subscriber cancelled the close
+        }
+    }
 
-
-    private void UntrackWindow(Window window)
+    public void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);
-        window.Closed += Window_Closed;
+        window.Closed += OnWindowClosed;
 
         // Also remove from unique tracking if it was there
         var uniqueTypedKey = _trackedUniqueTypedWindows.FirstOrDefault(kvp => kvp.Value == window).Key;
@@ -225,15 +280,28 @@ internal class WinUIWindowMgrService :IWinUIWindowMgrService
             _trackedUniqueContentWindows.Remove(uniqueContentKey);
     }
 
-    private void Window_Closed(object sender, WindowEventArgs args)
+    private void OnWindowClosed(object sender, WindowEventArgs args)
     {
         if (sender is Window closedWindow)
         {
+
+            var customArgs = new WindowClosingEventArgs(closedWindow);
+            WindowClosing?.Invoke(this, customArgs); // Notify any subscribers
             UntrackWindow(closedWindow);
             Debug.WriteLine($"Native WinUI window closed and untracked: {closedWindow.Title}");
         }
     }
+    // This is a custom EventArgs class you'll need to create for the cancellable event
+    public class WindowClosingEventArgs : EventArgs
+    {
+        public bool Cancel { get; set; } = false;
+        public Window Window { get; }
 
+        public WindowClosingEventArgs(Window window)
+        {
+            Window = window;
+        }
+    }
 
     private bool IsWindowOpen(Window window)
     {

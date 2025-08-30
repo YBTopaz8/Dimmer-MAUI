@@ -20,7 +20,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
         this.MyViewModel =vm;
 
         // Initialize collections for live updates
-        var realm = MyViewModel.BaseVM.RealmFactory.GetRealmInstance();
+        var realm = MyViewModel.RealmFactory.GetRealmInstance();
         _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
         _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
         _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
@@ -82,7 +82,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
             return;
         }
         selectedSongPopUp = paramss;
-        MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
+        MyViewModel.SetCurrentlyPickedSongForContext(paramss);
 
     }
 
@@ -90,12 +90,12 @@ public partial class QuickPanelBtmSheet : BottomSheet
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
 
-        var song = MyViewModel.BaseVM.SelectedSong;
+        var song = MyViewModel.SelectedSong;
         if (song is null)
         {
             return;
         }
-        await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
+        await MyViewModel.SelectedArtistAndNavtoPage(song);
 
         await this.CloseAsync();
 
@@ -119,17 +119,17 @@ public partial class QuickPanelBtmSheet : BottomSheet
 
 
         // Update current sort state
-        MyViewModel.BaseVM.CurrentSortProperty = sortProperty;
+        MyViewModel.CurrentSortProperty = sortProperty;
 
 
         SortOrder newOrder;
 
         // Toggle order if sorting by the same property again
-        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
+        newOrder = (MyViewModel.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
 
 
-        MyViewModel.BaseVM.CurrentSortOrder = newOrder;
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)newOrder;
+        MyViewModel.CurrentSortOrder = newOrder;
+        MyViewModel.CurrentSortOrderInt = (int)newOrder;
         // Optional: Update UI to show sort indicators (e.g., change chip appearance)
         bool flowControl = SortIndeed();
         if (!flowControl)
@@ -148,11 +148,11 @@ public partial class QuickPanelBtmSheet : BottomSheet
     {
         var send = (DXButton)sender;
         var song = send.CommandParameter as SongModelView;
-        var pl = MyViewModel.BaseVM.AllPlaylists;
+        var pl = MyViewModel.AllPlaylists;
         var listt = new List<SongModelView>();
         listt.Add(song);
 
-        MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
+        MyViewModel.AddToPlaylist("Playlists", listt, MyViewModel.CurrentTqlQuery);
     }
 
     private void CloseNowPlayingQueue_Tap(object sender, HandledEventArgs e)
@@ -173,9 +173,9 @@ public partial class QuickPanelBtmSheet : BottomSheet
     {
         internalOrder =  internalOrder== SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
 
-        MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
+        MyViewModel.CurrentSortOrder = internalOrder;
 
-        switch (MyViewModel.BaseVM.CurrentSortProperty)
+        switch (MyViewModel.CurrentSortProperty)
         {
             case "Title":
                 
@@ -205,14 +205,14 @@ public partial class QuickPanelBtmSheet : BottomSheet
                 
                 break;
             default:
-                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.BaseVM.CurrentSortProperty}");
+                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.CurrentSortProperty}");
                 // Reset sort state if property is unknown, or do nothing
-                MyViewModel.BaseVM.CurrentSortProperty = string.Empty;
-                MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
+                MyViewModel.CurrentSortProperty = string.Empty;
+                MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
                 break;
 
         }
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
+        MyViewModel.CurrentSortOrderInt = (int)MyViewModel.CurrentSortOrder;
 
         return true;
     }
@@ -255,7 +255,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
     {
  var send = (TextEdit)sender;
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 
     private void AutoCompleteEdit_TextChanged(object sender, DevExpress.Maui.Editors.AutoCompleteEditTextChangedEventArgs e)
@@ -268,7 +268,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
         send.ItemsSource = suggestions;
     
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
     
 
@@ -308,8 +308,8 @@ public partial class QuickPanelBtmSheet : BottomSheet
         {
             return;
         }
-        MyViewModel.BaseVM.SelectedSong = song;
-        MyViewModel.BaseVM.SelectedSong = song;
+        MyViewModel.SelectedSong = song;
+        MyViewModel.SelectedSong = song;
         BtmSheetTab.SelectedItemIndex = 0;
     }
 
@@ -317,7 +317,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
     {
         var send = (DXButton)sender;
         var song = (SongModelView)send.BindingContext;
-        await MyViewModel.BaseVM.PlaySong(song);
+        await MyViewModel.PlaySong(song);
     }
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)

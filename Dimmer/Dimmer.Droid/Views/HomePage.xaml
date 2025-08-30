@@ -172,6 +172,10 @@ Value="False">
                                   CornerRadius="15"                            
                                   Loaded="SongView_Loaded"
                                                                   BorderThickness="1">
+                    <dx:DXStackLayout.Behaviors>
+                      
+                            
+                    </dx:DXStackLayout.Behaviors>
 
 
 
@@ -252,7 +256,7 @@ Value="False">
             Aspect="AspectFill"
             Opacity="{AppThemeBinding Light=0,
                                       Dark=0.09}"
-            Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />-->
+            Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />-->
 
         <dx:SafeKeyboardAreaView
             x:Name="myPageSKAV"
@@ -353,7 +357,7 @@ x:FieldModifier="Public">
                     VerticalOptions="Start">
                                         <Label x:Name="SongsCountLabel" 
                            TextColor="{AppThemeBinding Dark=#999999, Light=black}"
-                           Text="{Binding BaseVM.SearchResults.Count, StringFormat='Songs : {0}'}" />
+                           Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
 
 
                                         <dx:Chip
@@ -416,11 +420,13 @@ x:FieldModifier="Public">
                                         x:Name="PlaybackQueueColView"
                                         ItemTemplate="{StaticResource NowPlayingView}"
                                         Orientation="Vertical"
+                                                          Loaded="PlaybackQueueColView_Loaded"
+                                                          Unloaded="PlaybackQueueColView_Unloaded"
                                                           UseRippleEffect="True"
-                                                          RippleColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
+                                                          RippleColor="{Binding CurrentPlaySongDominantColor}"
                                         ItemSpanCount="{Binding NowPlayingQueueItemSpan}"
-                                        IndicatorColor="{Binding BaseVM.CurrentPlayingSongView.CurrentPlaySongDominantColor}"
-                                        ItemsSource="{Binding BaseVM.PlaybackQueue}">
+                                        IndicatorColor="{Binding CurrentPlayingSongView.CurrentPlaySongDominantColor}"
+                                        ItemsSource="{Binding PlaybackQueue}">
 
 
                                     </dx:DXCollectionView>
@@ -463,7 +469,7 @@ x:FieldModifier="Public">
                                 FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
                                 ItemSpacing="10"
             LongPressCommand="{Binding Commands.ShowFilteringUIForm,Source={x:Reference SongsColView}}"
-                                ItemsSource="{Binding BaseVM.SearchResults}"
+                                ItemsSource="{Binding SearchResults}"
                                 Loaded="SongsColView_Loaded"
                                ItemTemplate="{StaticResource OGView}" >
                                     </dx:DXCollectionView>
@@ -626,7 +632,7 @@ Value="False">
                                         </Grid.Resources>
                                         <dx:DXImage Opacity="0.1" Grid.RowSpan="2"
                     ZIndex="-1"
-                    Source="{Binding BaseVM.SelectedSong.CoverImagePath}" />
+                    Source="{Binding SelectedSong.CoverImagePath}" />
                                         <dx:TabView  Grid.Row="1" ZIndex="1" x:Name="BtmSheetTab"
                      SwipeEnabled="True" HeaderPanelHeight="0" HeaderPanelPosition="Bottom" >
 
@@ -639,8 +645,8 @@ Value="False">
            IsVisible="True"
            Loaded="MainSongsColView_Loaded" 
                SelectionMode="Single"
-               SelectedItem="{Binding BaseVM.SelectedSong}"
-               ItemsSource="{Binding BaseVM.PlaybackQueue}"
+               SelectedItem="{Binding SelectedSong}"
+               ItemsSource="{Binding PlaybackQueue}"
         VerticalOptions="Start"
                                         
                                ItemTemplate="{StaticResource OGView}" >
@@ -655,7 +661,7 @@ Value="False">
                                         Command="{Binding SongsColViewNPQ}"/>
                                                             <Label 
                                     HeightRequest="30"
-                                        Text="{Binding BaseVM.PlaybackQueue.Count}"/>
+                                        Text="{Binding PlaybackQueue.Count}"/>
                                                         </dx:DXStackLayout>
                                                     </dx:DXCollectionView.Header>
                                                 </dx:DXCollectionView>
@@ -696,11 +702,11 @@ Value="False">
                              Content="View Queue" Icon="musicplaylist.png"
                              />
                                                         <dx:DXButton x:Name="AddToPlaylist"
-                             Command="{Binding BaseVM.AddToNextCommand}" Content="Add to Next in Queue"
+                             Command="{Binding AddToNextCommand}" Content="Add to Next in Queue"
                              Icon="addplaylist.png"
                              />
                                                         <dx:DXButton x:Name="GoToAlbumBtn"
-                             Command="{Binding BaseVM.AddToQueueCommand}"
+                             Command="{Binding AddToQueueCommand}"
                                                       Content="Add To End" Icon="album.png"
                              />
                                                         <dx:DXButton x:Name="GotoArtistBtn"
@@ -708,18 +714,18 @@ Value="False">
                              Icon="artist.png"
                              />
                                                         <dx:DXButton Command="{Binding OpenEditSongPopupCommand}"
-                             CommandParameter="{Binding BaseVM.SelectedSong}"
+                             CommandParameter="{Binding SelectedSong}"
                              Content="Tag Editor" Icon="clapperboardedit.png"
                              />
                                                         <dx:DXButton Clicked="DXButton_Clicked_3"
-                             Command="{Binding BaseVM.OpenFileInFolderCommand}"
+                             Command="{Binding OpenFileInFolderCommand}"
                              Content="Song Info" Icon="fileinfo.png"
                              />
                                                         <dx:DXButton Clicked="ClosePopup"
-                             Command="{Binding BaseVM.ShareCurrentPlayingAsStoryInCardLikeGradientCommand}"
+                             Command="{Binding ShareCurrentPlayingAsStoryInCardLikeGradientCommand}"
                              Content="Share" Icon="squareforward.png"
                              />
-                                                        <dx:DXButton Command="{Binding BaseVM.DeleteSongsCommand}"
+                                                        <dx:DXButton Command="{Binding DeleteSongsCommand}"
                              CommandParameter="{Binding CurrentPlayingSongView}"
                              Content="Delete" Icon="delete.png"
                              />
@@ -752,15 +758,15 @@ Value="False">
                                                 Grid.Row="0"
                                                 IsVisible="True"
                                                     
-                                                Source="{Binding BaseVM.CurrentCoverImagePath}" >
+                                                Source="{Binding CurrentCoverImagePath}" >
                                                     <dx:DXImage.Triggers>
                                                         <DataTrigger TargetType="dx:DXImage" Value="True"
-                                                                 Binding="{Binding BaseVM.AllLines,Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                                                 Binding="{Binding AllLines,Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                                  >
                                                             <Setter Property="Opacity" Value="0.8"/>
                                                         </DataTrigger>
                                                         <DataTrigger TargetType="dx:DXImage" Value="False"
-                                                                 Binding="{Binding BaseVM.AllLines,Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                                                 Binding="{Binding AllLines,Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                                  >
                                                             <Setter Property="Opacity" Value="0.5"/>
                                                         </DataTrigger>
@@ -774,8 +780,8 @@ Value="False">
                                             HeightRequest="150"
                                             HorizontalOptions="Center"
                                             IsScrollBarVisible="False"
-                                            ItemsSource="{Binding BaseVM.AllLines}"
-                                            SelectedItem="{Binding BaseVM.CurrentLine}"
+                                            ItemsSource="{Binding AllLines}"
+                                            SelectedItem="{Binding CurrentLine}"
                                             SelectionChanged="DXCollectionView_SelectionChanged"
                                             SelectionMode="Single"
                                             VerticalOptions="Center"
@@ -810,7 +816,7 @@ Value="False">
                                                     </DataTemplate>
                                                 </dx:DXCollectionView.ItemTemplate>
                                             </dx:DXCollectionView>
-                                            <dx:DXBorder VerticalOptions="End" BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}" Opacity="0.8"
+                                            <dx:DXBorder VerticalOptions="End" BackgroundColor="{Binding CurrentPlaySongDominantColor}" Opacity="0.8"
                                                      CornerRadius="0,0,10,15">
 
                                                 <Grid ColumnDefinitions="*,*" >
@@ -823,8 +829,8 @@ Value="False">
      FontSize="14" 
                                                     TextColor="{AppThemeBinding Light=black,Dark=white}"
      Tap="ArtistChip_Tap"
-     TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
-     Text="{Binding BaseVM.CurrentPlayingSongView.ReleaseYear}" />
+     TapCommandParameter="{Binding CurrentPlayingSongView}"
+     Text="{Binding CurrentPlayingSongView.ReleaseYear}" />
                                                     </dx:DXStackLayout>
                                                     <dx:DXStackLayout Grid.Column="1" HorizontalOptions="End">
                                                         <dx:Chip
@@ -835,8 +841,8 @@ Value="False">
                                                     TextColor="{AppThemeBinding Light=black,Dark=white}"
      FontSize="14"
      Tap="ArtistChip_Tap"
-     TapCommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
-     Text="{Binding BaseVM.CurrentPlayingSongView.GenreName}" />
+     TapCommandParameter="{Binding CurrentPlayingSongView}"
+     Text="{Binding CurrentPlayingSongView.GenreName}" />
                                                     </dx:DXStackLayout>
                                                 </Grid>
 
@@ -866,16 +872,16 @@ Value="False">
                                                                 <Label
                                                         FontSize="22"
 FontAttributes="Bold"                                                        HorizontalTextAlignment="Justify"
-                                                        Text="{Binding BaseVM.CurrentPlayingSongView.Title}" >
+                                                        Text="{Binding CurrentPlayingSongView.Title}" >
                                                                     <Label.Triggers>
                                                                         <DataTrigger
-         Binding="{Binding BaseVM.IsPlaying}"
+         Binding="{Binding IsPlaying}"
          TargetType="Label"
          Value="True">
                                                                             <Setter Property="TextColor" Value="DarkSlateBlue" />
                                                                         </DataTrigger>
                                                                         <DataTrigger
-         Binding="{Binding BaseVM.IsPlaying}"
+         Binding="{Binding IsPlaying}"
          TargetType="Label"
          Value="False">
                                                                             <Setter Property="TextColor" Value="Grey" />
@@ -889,7 +895,7 @@ FontAttributes="Bold"                                                        Hor
                                             
                                             FontSize="16"
                                             FontAttributes="Bold"
-                                            Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}" />
+                                            Text="{Binding CurrentPlayingSongView.ArtistName}" />
                                                     <Label
                                             BackgroundColor="Transparent"
                                             HorizontalTextAlignment="Justify"
@@ -897,7 +903,7 @@ FontAttributes="Bold"                                                        Hor
                                             
                                             FontSize="13" 
                                             TextColor="{AppThemeBinding Light=Black, Dark= White}"
-                                            Text="{Binding BaseVM.CurrentPlayingSongView.AlbumName}" />
+                                            Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
                                                     <dx:DXStackLayout HorizontalOptions="Center" Orientation="Horizontal">
 
@@ -909,17 +915,17 @@ FontAttributes="Bold"                                                        Hor
                                                 FontSize="18"
                                                 Icon="heartbroken.png"
                                                 IsIconVisible="True"
-                                                LongPressCommand="{Binding BaseVM.ToggleFavSongCommand}"
+                                                LongPressCommand="{Binding ToggleFavSongCommand}"
                                                 Tap="ArtistChip_Tap">
                                                             <dx:Chip.Triggers>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.CurrentPlayingSongView.IsFavorite}"
+                                                        Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                                         TargetType="dx:Chip"
                                                         Value="True">
                                                                     <Setter Property="Icon" Value="heart.png" />
                                                                 </DataTrigger>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.CurrentPlayingSongView.IsFavorite}"
+                                                        Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                                         TargetType="dx:Chip"
                                                         Value="False">
                                                                     <Setter Property="Icon" Value="heartbroken.png" />
@@ -944,7 +950,7 @@ FontAttributes="Bold"                                                        Hor
                                                         <dx:DXButton
                                                 Grid.Column="0"
                                                 BackgroundColor="#343534"
-                                                Command="{Binding BaseVM.ToggleRepeatModeCommand}"
+                                                Command="{Binding ToggleRepeatModeCommand}"
                                                 HeightRequest="120"
                                                 Icon="repeat.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,
@@ -952,32 +958,32 @@ FontAttributes="Bold"                                                        Hor
                                                 IconHeight="40"
                                                 IconWidth="40"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
-                                                ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='{0}'}">
+                                                PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                                                ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='{0}'}">
                                                             <dx:DXButton.Triggers>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        Binding="{Binding CurrentRepeatMode}"
                                                         TargetType="dx:DXButton"
                                                         Value="0">
                                                                     <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
 
                                                                 </DataTrigger>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        Binding="{Binding CurrentRepeatMode}"
                                                         TargetType="dx:DXButton"
                                                         Value="1">
                                                                     <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
 
                                                                 </DataTrigger>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        Binding="{Binding CurrentRepeatMode}"
                                                         TargetType="dx:DXButton"
                                                         Value="2">
                                                                     <Setter Property="BackgroundColor" Value="Orange" />
 
                                                                 </DataTrigger>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.CurrentRepeatMode}"
+                                                        Binding="{Binding CurrentRepeatMode}"
                                                         TargetType="dx:DXButton"
                                                         Value="3">
                                                                     <Setter Property="BackgroundColor" Value="DarkBlue" />
@@ -989,7 +995,7 @@ FontAttributes="Bold"                                                        Hor
                                                         <dx:DXButton
                                                 Grid.Column="1"
                                                 BackgroundColor="#343534"
-                                                Command="{Binding BaseVM.PreviousTrackCommand}"
+                                                Command="{Binding PreviousTrackCommand}"
                                                 HeightRequest="120"
                                                 Icon="skipprevious.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,
@@ -997,7 +1003,7 @@ FontAttributes="Bold"                                                        Hor
                                                 IconHeight="50"
                                                 IconWidth="50"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}" />
+                                                PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}" />
                                                         <Grid
                                                 Grid.Column="2"
                                                 BackgroundColor="Transparent"
@@ -1009,13 +1015,13 @@ FontAttributes="Bold"                                                        Hor
                                                     Grid.Column="0"
                                                     Grid.ColumnSpan="2"
                                                     BackgroundColor="Transparent"
-                                                    MaxValue="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds}"
+                                                    MaxValue="{Binding CurrentPlayingSongView.DurationInSeconds}"
                                                     MinValue="0"
                                                     Opacity="0.7"
                                                     TapReleased="ProgressSlider_TapReleased"
                                                     ValueStep="1"
                                                     VerticalOptions="End"
-                                                    Value="{Binding BaseVM.CurrentTrackPositionSeconds}">
+                                                    Value="{Binding CurrentTrackPositionSeconds}">
 
 
                                                                 <dx:DXSlider.TooltipAppearance>
@@ -1045,7 +1051,7 @@ FontAttributes="Bold"                                                        Hor
                                                     Grid.Column="0"
                                                     
                                                     FontSize="14"
-                                                    Text="{Binding BaseVM.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}"
+                                                    Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}"
                                                      />
                                                             <Label
                                                     Grid.Row="1"
@@ -1053,7 +1059,7 @@ FontAttributes="Bold"                                                        Hor
                                                     
                                                     FontSize="14" 
                                                     HorizontalOptions="End"
-                                                    Text="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                                                    Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                                                     />
                                                         </Grid>
 
@@ -1068,26 +1074,26 @@ FontAttributes="Bold"                                                        Hor
                                                         <dx:DXButton
                                                 Grid.Column="0"
                                                 AnimationDuration="1500"
-                                                Command="{Binding BaseVM.PlayPauseToggleCommand}"
+                                                Command="{Binding PlayPauseToggleCommand}"
                                                 HeightRequest="120"
                                                 Icon="play.png"
                                                 IconColor="{AppThemeBinding Dark=White,Light=Black}"
                                                 IconHeight="60"
                                                 IconWidth="60"
-                                BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
+                                BackgroundColor="{Binding CurrentPlaySongDominantColor}"
                                                 Opacity="0.8"
-                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}">
+                                                PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}">
                                                             <dx:DXButton.Triggers>
 
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.IsPlaying}"
+                                                        Binding="{Binding IsPlaying}"
                                                         TargetType="dx:DXButton"
                                                         Value="True">
                                                                     <Setter Property="BorderThickness" Value="2" />
                                                                     <Setter Property="Icon" Value="pause.png" />
                                                                 </DataTrigger>
                                                                 <DataTrigger
-                                                        Binding="{Binding BaseVM.IsPlaying}"
+                                                        Binding="{Binding IsPlaying}"
                                                         TargetType="dx:DXButton"
                                                         Value="False">
                                                                     <Setter Property="BorderThickness" Value="0" />
@@ -1101,23 +1107,23 @@ FontAttributes="Bold"                                                        Hor
                                                 AnimationDuration="800"
                                                 BackgroundColor="{AppThemeBinding Dark=#343534,
                                                                                   Light=grey}"
-                                                Command="{Binding BaseVM.ToggleShuffleCommand}"
+                                                Command="{Binding ToggleShuffleCommand}"
                                                 HeightRequest="120"
                                                 Icon="shuffle.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,
                                                                             Light=White}"
                                                 IconHeight="40"
                                                 IconWidth="40"
-                                                IsChecked="{Binding BaseVM.IsShuffleActive}"
+                                                IsChecked="{Binding IsShuffleActive}"
                                                 Opacity="0.5"
-                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"/>
+                                PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"/>
 
                                                         <dx:DXButton
                                                 Grid.Column="2"
                                                 AnimationDuration="800"
                                                 BackgroundColor="{AppThemeBinding Dark=#343534,
                                                                                   Light=grey}"
-                                                Command="{Binding BaseVM.NextTrackCommand}"
+                                                Command="{Binding NextTrackCommand}"
                                                 HeightRequest="120"
                                                 Icon="skipnext.png"
                                                 IconColor="{AppThemeBinding Dark=#f5f5f5,
@@ -1125,7 +1131,7 @@ FontAttributes="Bold"                                                        Hor
                                                 IconHeight="40"
                                                 IconWidth="40"
                                                 Opacity="0.5"
-                                                PressedBackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}" />
+                                                PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}" />
 
                                                     </Grid>
 
@@ -1202,14 +1208,14 @@ FontAttributes="Bold"                                                        Hor
                                                                     IconColor="DarkSlateBlue"
                                                                     IconSize="60,60"
                                                                     IsIconVisible="True"
-                                                                    TapCommand="{Binding BaseVM.ToggleShuffleCommand}" />
+                                                                    TapCommand="{Binding ToggleShuffleCommand}" />
 
-                                                            <dx:DXSlider Value="{Binding BaseVM.DeviceVolumeLevel}" />
+                                                            <dx:DXSlider Value="{Binding DeviceVolumeLevel}" />
                                                             <Label HorizontalOptions="Center" Text="App Volume" />
 
                                                         </StackLayout>
                                                         <dx:DXStackLayout Orientation="Horizontal">
-                                                            <dx:TextEdit LabelText="Little Note 🎶" Text="{Binding BaseVM.CurrentNoteToSave}" />
+                                                            <dx:TextEdit LabelText="Little Note 🎶" Text="{Binding CurrentNoteToSave}" />
                                                             <dx:DXButton
                                                                     BackgroundColor="#1e1e1e"
                                                                     HeightRequest="60"
@@ -1231,7 +1237,7 @@ FontAttributes="Bold"                                                        Hor
                                                 VerticalExpandMode="FromStartToEnd">
                                             <dx:DXExpander.Content>
                                                 <Grid BackgroundColor="Transparent" RowDefinitions="*">
-                                                    <dx:DXImage Opacity="0.12" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                                                    <dx:DXImage Opacity="0.12" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                                                     <Grid ColumnDefinitions="*,*" ZIndex="1">
                                                         <StackLayout
                                                                 Grid.Column="1"
@@ -1320,7 +1326,7 @@ FontAttributes="Bold"                                                        Hor
                             <dx:DXBorder.Content>
                                 <dx:DXStackLayout x:FieldModifier="Public" x:Name="BtmBarStackLayout" Padding="0,0" BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#131314}">
                                     <syncf:SfLinearProgressBar 
-    Progress="{Binding BaseVM.CurrentTrackPositionPercentage}" TrackFill="Transparent" BackgroundColor="Transparent"
+    Progress="{Binding CurrentTrackPositionPercentage}" TrackFill="Transparent" BackgroundColor="Transparent"
                 ProgressFill="DarkSlateBlue" Maximum="100"/>
                                     <Grid
                 Padding="0,0"
@@ -1331,7 +1337,7 @@ FontAttributes="Bold"                                                        Hor
                                             <dx:DXImage
                         Aspect="AspectFit"
                         HeightRequest="70"
-                        Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}" />
+                        Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
                                         </StackLayout>
                                         <Grid Grid.Column="1" ColumnDefinitions="*,auto">
 
@@ -1346,14 +1352,14 @@ FontAttributes="Bold"                                                        Hor
                                                 <Label
                             FontSize="23"
                             LineBreakMode="TailTruncation"
-                            Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
-                            TextColor="{Binding BaseVM.CurrentPlayingSongView.CurrentPlaySongDominantColor}" />
+                            Text="{Binding CurrentPlayingSongView.Title}"
+                            TextColor="{Binding CurrentPlayingSongView.CurrentPlaySongDominantColor}" />
                                                 <Label
                             FontAttributes="Italic"
                             FontSize="14"
                             LineBreakMode="WordWrap"
                             TextColor="{AppThemeBinding Light=Black, Dark= White}"
-                            Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}" />
+                            Text="{Binding CurrentPlayingSongView.ArtistName}" />
                                             </StackLayout>
 
                                             <dx:Chip
@@ -1368,18 +1374,18 @@ FontAttributes="Bold"                                                        Hor
                                                             <Label
                                         FontSize="16"
                                         HorizontalOptions="End"
-                                        Text="{Binding BaseVM.CurrentTrackPositionSeconds, Converter={x:StaticResource DurationConverter}}"
+                                        Text="{Binding CurrentTrackPositionSeconds, Converter={x:StaticResource DurationConverter}}"
                                         VerticalOptions="Center">
                                                                 <Label.Triggers>
                                                                     <DataTrigger
-                                                Binding="{Binding BaseVM.IsPlaying}"
+                                                Binding="{Binding IsPlaying}"
                                                 TargetType="Label"
                                                 Value="True">
                                                                         <Setter Property="FontAttributes" Value="Bold" />
-                                                                        <Setter Property="TextColor" Value="{Binding BaseVM.CurrentPlayingSongView.CurrentPlaySongDominantColor}" />
+                                                                        <Setter Property="TextColor" Value="{Binding CurrentPlayingSongView.CurrentPlaySongDominantColor}" />
                                                                     </DataTrigger>
                                                                     <DataTrigger
-                                                Binding="{Binding BaseVM.IsPlaying}"
+                                                Binding="{Binding IsPlaying}"
                                                 TargetType="Label"
                                                 Value="False">
                                                                         <Setter Property="FontAttributes" Value="None" />
@@ -1391,7 +1397,7 @@ FontAttributes="Bold"                                                        Hor
                                                             <Label
                                         FontSize="10"
                                         HorizontalOptions="End"
-                                        Text="{Binding BaseVM.CurrentPlayingSongView.PlayCompletedCount}" />
+                                        Text="{Binding CurrentPlayingSongView.PlayCompletedCount}" />
                                                         </VerticalStackLayout>
                                                     </DataTemplate>
                                                 </dx:Chip.ContentTemplate>

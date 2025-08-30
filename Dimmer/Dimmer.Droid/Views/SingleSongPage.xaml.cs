@@ -24,9 +24,9 @@ public partial class SingleSongPage : ContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        //MyViewModel.BaseVM.LoadStatsForSong(MyViewModel.BaseVM.SelectedSong!);
-        await MyViewModel.BaseVM.LoadSelectedSongLastFMData();
-        MyViewModel.BaseVM.CurrentPageContext=CurrentPage.SingleSongPage;
+        //MyViewModel.LoadStatsForSong(MyViewModel.SelectedSong!);
+        await MyViewModel.LoadSelectedSongLastFMData();
+        MyViewModel.CurrentPageContext=CurrentPage.SingleSongPage;
         //await MyViewModel.LoadSongLastFMData();
         //await MyViewModel.LoadSongLastFMMoreData();
 
@@ -54,18 +54,18 @@ public partial class SingleSongPage : ContentPage
     private async void PlaySongGestRec_Tapped(object sender, EventArgs e)
     {
         var send = (Microsoft.Maui.Controls.View)sender;
-        var song = MyViewModel.BaseVM.SelectedSong;
+        var song = MyViewModel.SelectedSong;
         if (song is null)
         {
             return;
         }
-        if (MyViewModel.BaseVM.CurrentPlayingSongView == song)
+        if (MyViewModel.CurrentPlayingSongView == song)
         {
-            await MyViewModel.BaseVM.PlayPauseToggle();
+            await MyViewModel.PlayPauseToggle();
         }
         else
         {
-            await MyViewModel.BaseVM.PlaySong(song);
+            await MyViewModel.PlaySong(song);
         }
     }
     private List<DataTemplate> _availableLayouts;
@@ -98,10 +98,10 @@ public partial class SingleSongPage : ContentPage
         {
             return;
         }
-        var sss = MyViewModel.BaseVM.SearchResults.First(x => x.Id==songg.Song.Id);
+        var sss = MyViewModel.SearchResults.First(x => x.Id==songg.Song.Id);
 
 
-        MyViewModel.BaseVM.SelectedSong=sss;
+        MyViewModel.SelectedSong=sss;
         //ColViewOfTopSongs.SelectedItem=       songg;
         Debug.WriteLine($"Selected Song: {songg.Song.Title}, Played {songg.Count} times.");
 
@@ -112,7 +112,7 @@ public partial class SingleSongPage : ContentPage
 
     private void ViewFileFolder_TouchDown(object sender, EventArgs e)
     {
-        var song = MyViewModel.BaseVM.SelectedSong;
+        var song = MyViewModel.SelectedSong;
         if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
         {
             string argument = "/select, \"" + song.FilePath + "\"";
@@ -128,7 +128,7 @@ public partial class SingleSongPage : ContentPage
         //{
         //    return;
         //}
-        //await MyViewModel.BaseVM.SaveUserNoteToSong(song);
+        //await MyViewModel.SaveUserNoteToSong(song);
     }
 
     private async void ViewArtist_Clicked(object sender, EventArgs e)
@@ -171,7 +171,7 @@ public partial class SingleSongPage : ContentPage
             return;
         }
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
         // You might want to ensure ArtistView is visible before this animation.
         if (!ArtistAlbumView.IsVisible)
@@ -218,7 +218,7 @@ public partial class SingleSongPage : ContentPage
         var song = send.CommandParameter as SongModelView;
 
         await this.FadeOut(200, 0.7);
-        MyViewModel.BaseVM.SelectedSong = song;
+        MyViewModel.SelectedSong = song;
         await this.FadeIn(350, 1);
 
     }
@@ -233,7 +233,7 @@ public partial class SingleSongPage : ContentPage
 
         _isThrottling = true;
 
-        MyViewModel.BaseVM.SeekTrackPosition(send.Value);
+        MyViewModel.SeekTrackPosition(send.Value);
 
 
         await Task.Delay(throttleDelay);
@@ -246,12 +246,12 @@ public partial class SingleSongPage : ContentPage
         var contxt = send.BindingContext as SongModelView;
 
         await this.FadeOut(200, 0.7);
-        MyViewModel.BaseVM.SelectedSong = contxt;
+        MyViewModel.SelectedSong = contxt;
         await this.FadeIn(350, 1);
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        if (MyViewModel.BaseVM.SelectedSong is null)
+        if (MyViewModel.SelectedSong is null)
         {
             Debug.WriteLine("is null");
         }
@@ -296,7 +296,7 @@ public partial class SingleSongPage : ContentPage
 
         Button send = (Button)sender;
         var prop = send.Text;
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(prop));
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(prop));
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
     }
 
@@ -310,7 +310,7 @@ public partial class SingleSongPage : ContentPage
 
         Button send = (Button)sender;
         var prop = send.Text;
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(prop)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(prop)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
     }
 

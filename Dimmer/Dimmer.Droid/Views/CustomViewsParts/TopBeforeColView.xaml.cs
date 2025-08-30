@@ -21,7 +21,7 @@ public partial class TopBeforeColView : DXExpander
 
         this.MyViewModel =vm;
         // Initialize collections for live updates
-        var realm = MyViewModel.BaseVM.RealmFactory.GetRealmInstance();
+        var realm = MyViewModel.RealmFactory.GetRealmInstance();
         _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
         _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
         _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
@@ -115,7 +115,7 @@ public partial class TopBeforeColView : DXExpander
     }
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
-        //int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+        //int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
         //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
     }
@@ -164,7 +164,7 @@ public partial class TopBeforeColView : DXExpander
 
         var send = (TextEdit)sender;
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 
     private void Settings_Tap(object sender, HandledEventArgs e)
@@ -184,7 +184,7 @@ public partial class TopBeforeColView : DXExpander
         send.ItemsSource = suggestions;
 
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 
     private void SearchBy_TextChanged(object sender, AutoCompleteEditTextChangedEventArgs e)
@@ -233,6 +233,6 @@ public partial class TopBeforeColView : DXExpander
         send.ItemsSource = suggestions;
 
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 }

@@ -51,7 +51,7 @@ ViewAdminUpdate.IsVisible = false;
     private void SettingsChip_Clicked(object sender, EventArgs e)
     {
 
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWindowManagerService>()!;
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IMauiWindowManagerService>()!;
 
         winMgr.GetOrCreateUniqueWindow(() => new SettingWin(MyViewModel));
         //await Shell.Current.GoToAsync(nameof(SettingsPage));

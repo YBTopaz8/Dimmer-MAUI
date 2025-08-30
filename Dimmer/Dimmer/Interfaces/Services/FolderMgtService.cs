@@ -96,7 +96,7 @@ public class FolderMgtService : IFolderMgtService
         _isCurrentlyWatching = false;
     }
 
-    public void AddFolderToWatchListAndScan(string path)
+    public async Task AddFolderToWatchListAndScan(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -122,7 +122,7 @@ public class FolderMgtService : IFolderMgtService
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));
 
         _logger.LogInformation("Triggering scan for newly added folder: {Path}", path);
-        Task.Run(async () => await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false));
+        await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false);
     }
 
     public void AddManyFoldersToWatchListAndScan(List<string> paths)

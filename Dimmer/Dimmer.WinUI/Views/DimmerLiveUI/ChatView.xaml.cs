@@ -42,7 +42,7 @@ public partial class ChatView : ContentPage
 
     private async void SendMsg_Clicked(object sender, EventArgs e)
     {
-        var song = BaseVM.CurrentPlayingSongView;
+        var song = CurrentPlayingSongView;
         await ChatViewModelWin.SendMessageCommand.ExecuteAsync(song);
     }
 }

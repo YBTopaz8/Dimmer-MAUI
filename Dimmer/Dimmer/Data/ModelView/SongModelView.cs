@@ -134,7 +134,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView> PlayEvents { get; set; } = new();
 
- 
+
+    [ObservableProperty]
+    public partial ObservableCollection<PlaylistModelView> PlaylistsHavingSong { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<UserNoteModelView> UserNoteAggregatedCol { get; set; } = new();

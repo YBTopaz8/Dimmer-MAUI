@@ -171,7 +171,7 @@ Value="False">
        
         <dx:DXImage Opacity="0.1" Grid.RowSpan="2"
                     ZIndex="-1"
-                    Source="{Binding BaseVM.SelectedSong.CoverImagePath}" />
+                    Source="{Binding SelectedSong.CoverImagePath}" />
         <dx:TabView  Grid.Row="1" ZIndex="1" x:Name="BtmSheetTab"
                      SwipeEnabled="True" HeaderPanelHeight="0" HeaderPanelPosition="Bottom" >
             <dx:TabViewItem>
@@ -211,11 +211,11 @@ Value="False">
                              Content="View Queue" Icon="musicplaylist.png"
                              />
             <dx:DXButton x:Name="AddToPlaylist"
-                             Command="{Binding BaseVM.AddToNextCommand}" Content="Add to Next in Queue"
+                             Command="{Binding AddToNextCommand}" Content="Add to Next in Queue"
                              Icon="addplaylist.png"
                              />
             <dx:DXButton x:Name="GoToAlbumBtn"
-                             Command="{Binding BaseVM.AddToQueueCommand}"
+                             Command="{Binding AddToQueueCommand}"
                                                       Content="Add To End" Icon="album.png"
                              />
             <dx:DXButton x:Name="GotoArtistBtn"
@@ -223,18 +223,18 @@ Value="False">
                              Icon="artist.png"
                              />
             <dx:DXButton Command="{Binding OpenEditSongPopupCommand}"
-                             CommandParameter="{Binding BaseVM.SelectedSong}"
+                             CommandParameter="{Binding SelectedSong}"
                              Content="Tag Editor" Icon="clapperboardedit.png"
                              />
             <dx:DXButton Clicked="DXButton_Clicked_3"
-                             Command="{Binding BaseVM.OpenFileInFolderCommand}"
+                             Command="{Binding OpenFileInFolderCommand}"
                              Content="Song Info" Icon="fileinfo.png"
                              />
             <dx:DXButton Clicked="ClosePopup"
-                             Command="{Binding BaseVM.ShareCurrentPlayingAsStoryInCardLikeGradientCommand}"
+                             Command="{Binding ShareCurrentPlayingAsStoryInCardLikeGradientCommand}"
                              Content="Share" Icon="squareforward.png"
                              />
-            <dx:DXButton Command="{Binding BaseVM.DeleteSongsCommand}"
+            <dx:DXButton Command="{Binding DeleteSongsCommand}"
                              CommandParameter="{Binding CurrentPlayingSongView}"
                              Content="Delete" Icon="delete.png"
                              />
@@ -253,8 +253,8 @@ Value="False">
            IsVisible="True"
            Loaded="MainSongsColView_Loaded" 
                SelectionMode="Single"
-               SelectedItem="{Binding BaseVM.SelectedSong}"
-               ItemsSource="{Binding BaseVM.PlaybackQueue}"
+               SelectedItem="{Binding SelectedSong}"
+               ItemsSource="{Binding PlaybackQueue}"
         VerticalOptions="Start"
                                         
                                ItemTemplate="{StaticResource OGView}" >
@@ -269,7 +269,7 @@ Value="False">
                                         Command="{Binding SongsColViewNPQ}"/>
                                 <Label 
                                     HeightRequest="30"
-                                        Text="{Binding BaseVM.PlaybackQueue.Count}"/>
+                                        Text="{Binding PlaybackQueue.Count}"/>
                             </dx:DXStackLayout>
                         </dx:DXCollectionView.Header>
                     </dx:DXCollectionView>

@@ -13,7 +13,7 @@ namespace Dimmer;
 public partial class App : Application
 {
 
-    public App()
+    public App(IAppUtil appUtil)
     {
         InitializeComponent();
 
@@ -32,6 +32,8 @@ public partial class App : Application
             ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
 
         }
+
+        AppUtil=appUtil;
     }
     //public partial void AddPlatformResources()
     // {
@@ -42,8 +44,7 @@ public partial class App : Application
    
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        IAppUtil appUtil = IPlatformApplication.Current!.Services.GetRequiredService<IAppUtil>();
-        return appUtil.LoadWindow();
+        return AppUtil.LoadWindow();
     }
 
     private static readonly object _logLock = new();
@@ -87,6 +88,9 @@ public partial class App : Application
     }
 
     private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
+
+    public IAppUtil AppUtil { get; }
+
     public static void LogException(Exception ex)
     {
         if (!_filterPolicy.ShouldLog(ex))

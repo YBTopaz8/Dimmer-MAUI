@@ -184,8 +184,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 
                 
             });
-            
 
+
+
+
+            var appModel = realm.All<AppStateModel>().ToList();
+            if (appModel is not null && appModel.Count>0)
+            {
+                var appmodel = appModel[0];
+
+                FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
+
+            }
+
+            _folderMgtService.StartWatchingConfiguredFolders();
         }
 
 //SubscribeToCommandEvaluatorEvents();
@@ -390,7 +402,7 @@ _playbackQueueSource.Connect()
             case SavePlaylistAction spa:
                 // Your actual implementation here
                 Debug.WriteLine($"Action: Save playlist '{spa.Name}' with {spa.Songs.Count} songs.");
-                AddToPlaylist(spa.Name, spa.Songs.ToList());
+                AddToPlaylist(spa.Name, spa.Songs.ToList(), CurrentTqlQuery);
                 ShowNotification($"Playlist '{spa.Name}' saved.").FireAndForget(ex =>
                 {
                     _logger.LogError(ex, "Failed to show notification");
@@ -868,6 +880,8 @@ _playbackQueueSource.Connect()
 
 
     public ObservableCollection<IQueryComponentViewModel> UIQueryComponents { get; } = new();
+
+    [RelayCommand]
     public void SearchSongSB_TextChanged(string searchText)
     {
 
@@ -1492,6 +1506,10 @@ _playbackQueueSource.Connect()
     /// <param name="songToUpdate">The Song View Model from the UI.</param>
     /// <param name="newArtistName">The desired name of the new artist.</param>
 
+    public async Task UpdateSong(SongModelView song)
+    {
+        _baseAppFlow.UpsertSong(song.ToModel(_mapper));
+    }
     public async Task UpdateSongArtist(SongModelView songToUpdate, string newArtistName)
     {
         if (songToUpdate == null || string.IsNullOrWhiteSpace(newArtistName))
@@ -1735,7 +1753,8 @@ _playbackQueueSource.Connect()
 
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView> AllAvailableArtists { get; set; }
-    private void OnPlaybackStarted(PlaybackEventArgs args)
+
+    protected virtual void OnPlaybackStarted(PlaybackEventArgs args)
     {
         if (args.MediaSong is null)
         {
@@ -2041,6 +2060,11 @@ _playbackQueueSource.Connect()
         if (value.Title is null)
             return;
 
+ 
+    }
+
+    protected virtual async Task ProcessSongChangeAsync(SongModelView value)
+    {
         if (audioService.IsPlaying)
         {
             value.IsCurrentPlayingHighlight = true;
@@ -2052,13 +2076,14 @@ _playbackQueueSource.Connect()
             CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
 
 
-            }
+
+        }
         else
         {
             value.IsCurrentPlayingHighlight=false;
         }
-
     }
+
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
         _stateService.SetCurrentLogMsg(new AppLogModel()
@@ -2201,8 +2226,9 @@ _playbackQueueSource.Connect()
     #region Playback Commands (User Intent)
 
     [RelayCommand]
-    public void AddToNext()
+    public void AddToNext(IEnumerable<SongModelView>? songs=null)
     {
+        songs ??=_searchResults;
         var currsongIndex = _playbackQueueSource.Items.IndexOf(CurrentPlayingSongView);
         int insertPos = _playbackQueueIndex >= 0 ? _playbackQueueIndex + 1 : 0;
         if (currsongIndex != -1 && insertPos > currsongIndex)
@@ -2218,7 +2244,7 @@ _playbackQueueSource.Connect()
             insertPos = _playbackQueueSource.Items.Count;
         }
 
-        _playbackQueueSource.InsertRange(_searchResults, insertPos);
+        _playbackQueueSource.InsertRange(songs, insertPos);
         AddNextEvent?.Invoke(this, EventArgs.Empty);
 
         
@@ -2867,7 +2893,35 @@ _playbackQueueSource.Connect()
 
         _logger.LogInformation("Cleared all upcoming songs in the queue.");
     }
+    [RelayCommand]
+    public void MoveSongInQueue(Tuple<int, int> fromToIndices)
+    {
+        int fromIndex = fromToIndices.Item1;
+        int toIndex = fromToIndices.Item2;
 
+        if (fromIndex < 0 || fromIndex >= _playbackQueueSource.Count ||
+            toIndex < 0 || toIndex >= _playbackQueueSource.Count)
+            return;
+
+        // Use the built-in Move method for efficient reordering
+        var songToMove = _playbackQueueSource.Items[fromIndex];
+        _playbackQueueSource.RemoveAt(fromIndex);
+        _playbackQueueSource.Insert(toIndex, songToMove);
+
+        // Important: Update the current playing index if it was affected by the move
+        if (_playbackQueueIndex == fromIndex)
+        {
+            _playbackQueueIndex = toIndex;
+        }
+        else if (fromIndex < _playbackQueueIndex && toIndex >= _playbackQueueIndex)
+        {
+            _playbackQueueIndex--;
+        }
+        else if (fromIndex > _playbackQueueIndex && toIndex <= _playbackQueueIndex)
+        {
+            _playbackQueueIndex++;
+        }
+    }
     public void MoveSongInQueue(int oldIndex, int newIndex)
     {
 
@@ -2984,6 +3038,7 @@ _playbackQueueSource.Connect()
     /// If the queue is empty, it starts playback with this new list.
     /// </summary>
 
+    [RelayCommand]
     public void AddToQueueEnd(IEnumerable<SongModelView>? songs)
     {
         if (songs == null || !songs.Any())
@@ -2999,7 +3054,7 @@ _playbackQueueSource.Connect()
     /// This is the target of our main PlaybackStateChanged subscription.
     /// </summary>
     private SongModelView? _songToScrobble;
-    private void HandlePlaybackStateChange(PlaybackEventArgs args)
+    protected virtual void HandlePlaybackStateChange(PlaybackEventArgs args)
     {
 
 
@@ -3048,7 +3103,12 @@ _playbackQueueSource.Connect()
 
         _subsManager.Add(_stateService.LatestDeviceLog
             .Where(s => s.Log is not null)
-            .Subscribe(LatestDeviceLog, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
+            .Subscribe(obv =>
+            {
+
+                LatestDeviceLog(obv);
+            })
+            );
 
 
     }
@@ -3056,6 +3116,7 @@ _playbackQueueSource.Connect()
     private void OnCurrentSongChanged(SongModelView? view)
     {
         //throw new NotImplementedException();
+        
     }
 
     private void LatestDeviceLog(AppLogModel model)
@@ -3180,10 +3241,10 @@ _playbackQueueSource.Connect()
         //Task.Run(() => libService.LoadInSongsAndEvents());
 
     }
-    public void AddMusicFolderByPassingToService(string folderPath)
+    public async Task AddMusicFolderByPassingToService(string folderPath)
     {
         _logger.LogInformation("User requested to add music folder.");
-        _folderMgtService.AddFolderToWatchListAndScan(folderPath);
+        await _folderMgtService.AddFolderToWatchListAndScan(folderPath);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, folderPath, null, null));
     }
     public void AddMusicFoldersByPassingToService(List<string> folderPaths)
@@ -3564,7 +3625,7 @@ _playbackQueueSource.Connect()
     }
 
 
-    public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd)
+    public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
         if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || songsToAdd.Count()==0)
         {
@@ -3594,10 +3655,10 @@ _playbackQueueSource.Connect()
                 newPlaylistModel.Id = ObjectId.GenerateNewId();
                 newPlaylistModel.DateCreated = DateTimeOffset.UtcNow;
                 newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
-
+                newPlaylistModel.QueryText = PlQuery;
                 newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
-                newPlaylistModel.QueryText =CurrentTqlQuery;
-                newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel(_mapper)).Distinct());
+
+                //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel(_mapper)).Distinct());
 
                 realm.Add(newPlaylistModel, true);
             
@@ -5421,6 +5482,10 @@ _playbackQueueSource.Connect()
             return;
         }
         var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        // i need an inverted BG color that will work well with this dominant color
+
+        var bgColor = color.MultiplyAlpha(0.1f);
+
         song.CurrentPlaySongDominantColor = color;
         if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
         {

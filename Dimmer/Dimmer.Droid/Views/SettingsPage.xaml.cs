@@ -28,7 +28,7 @@ public partial class SettingsPage : ContentPage
     {
         var send = (ImageButton)sender;
         var param = send.CommandParameter.ToString();
-        MyViewModel.BaseVM.DeleteFolderPath(param);
+        MyViewModel.DeleteFolderPath(param);
     }
 
     //private async void ViewUserAccountOnline(object sender, EventArgs e)
@@ -81,7 +81,7 @@ public partial class SettingsPage : ContentPage
     {
         if (e.NewIndex == 1)
         {
-            await MyViewModel.BaseVM.LoadUserLastFMInfo();
+            await MyViewModel.LoadUserLastFMInfo();
         }
     }
 
@@ -89,7 +89,7 @@ public partial class SettingsPage : ContentPage
     {
 
 
-        await Launcher.Default.OpenAsync(new Uri(MyViewModel.BaseVM.UserLocal.LastFMAccountInfo.Url));
+        await Launcher.Default.OpenAsync(new Uri(MyViewModel.UserLocal.LastFMAccountInfo.Url));
     }
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
@@ -133,7 +133,7 @@ public partial class SettingsPage : ContentPage
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
     {
 
-        await MyViewModel.BaseVM.LoginToLastfm();
+        await MyViewModel.LoginToLastfm();
     }
 
     private void AcceptBtn_Clicked(object sender, EventArgs e)

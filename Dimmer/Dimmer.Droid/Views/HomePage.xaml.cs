@@ -1,3 +1,5 @@
+using CommunityToolkit.Maui.Behaviors;
+
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
@@ -47,8 +49,10 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.BaseVM.ResetSearch();
-
+        MyViewModel.MyHomePage = this;
+        //MyViewModel.MyHomePage.pla
+        MyViewModel.ResetSearch();
+        
         MainViewTabView.SelectedItemIndex = 1;
         //MyViewModel.FiniInit();
 
@@ -94,7 +98,7 @@ public partial class HomePage : ContentPage
         selectedSongPopUp = paramss;
 
 
-        MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
+        MyViewModel.SetCurrentlyPickedSongForContext(paramss);
 
 
 
@@ -106,12 +110,12 @@ public partial class HomePage : ContentPage
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
 
-        var song = MyViewModel.BaseVM.SelectedSong;
+        var song = MyViewModel.SelectedSong;
         if (song is null)
         {
             return;
         }
-        await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
+        await MyViewModel.SelectedArtistAndNavtoPage(song);
 
         //await SongsMenuPopup.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
@@ -154,17 +158,17 @@ public partial class HomePage : ContentPage
 
 
         // Update current sort state
-        MyViewModel.BaseVM.CurrentSortProperty = sortProperty;
+        MyViewModel.CurrentSortProperty = sortProperty;
 
 
         SortOrder newOrder;
 
         // Toggle order if sorting by the same property again
-        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
+        newOrder = (MyViewModel.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
 
 
-        MyViewModel.BaseVM.CurrentSortOrder = newOrder;
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)newOrder;
+        MyViewModel.CurrentSortOrder = newOrder;
+        MyViewModel.CurrentSortOrderInt = (int)newOrder;
         // Optional: Update UI to show sort indicators (e.g., change chip appearance)
         bool flowControl = SortIndeed();
         if (!flowControl)
@@ -181,13 +185,13 @@ public partial class HomePage : ContentPage
 
         var song = send.CommandParameter as SongModelView;
 
-        var pl = MyViewModel.BaseVM.AllPlaylists;
+        var pl = MyViewModel.AllPlaylists;
 
         var listt = new List<SongModelView>();
 
         listt.Add(song);
 
-        MyViewModel.BaseVM.AddToPlaylist("Playlists", listt);
+        MyViewModel.AddToPlaylist("Playlists", listt,MyViewModel.CurrentTqlQuery);
     }
 
     private void CloseNowPlayingQueue_Tap(object sender, HandledEventArgs e)
@@ -241,7 +245,7 @@ public partial class HomePage : ContentPage
             return;
         }
 
-        if (await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song))
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
         {
             await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
         }
@@ -253,7 +257,7 @@ public partial class HomePage : ContentPage
     {
         //await CloseAsync();
 
-        MyViewModel.BaseVM.SelectedSong = MyViewModel.BaseVM.CurrentPlayingSongView;
+        MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
         //await this.AnimateFadeOutBack(600);
 
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
@@ -442,6 +446,11 @@ public partial class HomePage : ContentPage
         //SongsColView.Commands.ShowFilteringUIForm.Execute(null);
     }
 
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        MyViewModel.MyHomePage = null;
+    }
 
 
     private void QuickFilterYears_Tap(object sender, HandledEventArgs e)
@@ -459,7 +468,7 @@ public partial class HomePage : ContentPage
 
         _isThrottling = true;
 
-        MyViewModel.BaseVM.SeekTrackPosition(send.Value);
+        MyViewModel.SeekTrackPosition(send.Value);
 
 
         await Task.Delay(throttleDelay);
@@ -486,7 +495,7 @@ public partial class HomePage : ContentPage
         var txt = send.LongPressCommandParameter as string;
         txt = $"album:{txt}";
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(txt);
+        MyViewModel.SearchSongSB_TextChanged(txt);
     }
 
     private void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
@@ -508,7 +517,7 @@ public partial class HomePage : ContentPage
         var ind = send.FindItemHandle(sel);
         send.ScrollTo(ind, DXScrollToPosition.Start);
 
-        //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.BaseVM.cur);
+        //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.cur);
         //bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
 
     }
@@ -569,8 +578,8 @@ public partial class HomePage : ContentPage
     {
         var send = (Chip)sender;
         SongModelView song = send.BindingContext as SongModelView;
-        MyViewModel.BaseVM.SelectedSong=song;
-        await MyViewModel.BaseVM.SaveUserNoteToSong(song);
+        MyViewModel.SelectedSong=song;
+        await MyViewModel.SaveUserNoteToSong(song);
         //await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
@@ -593,7 +602,7 @@ public partial class HomePage : ContentPage
     {
         var send = (Chip)sender;
         SongModelView song = send.BindingContext as SongModelView;
-        MyViewModel.BaseVM.SelectedSong=song;
+        MyViewModel.SelectedSong=song;
         await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
@@ -649,7 +658,7 @@ public partial class HomePage : ContentPage
     {
         var send = (DXButton)sender;
         var song = send.CommandParameter as SongModelView;
-        await MyViewModel.BaseVM.PlaySong(song, CurrentPage.AllSongs);
+        await MyViewModel.PlaySong(song, CurrentPage.AllSongs);
 
 
     }
@@ -661,7 +670,7 @@ public partial class HomePage : ContentPage
 
     private void ViewNPQ_Tap(object sender, HandledEventArgs e)
     {
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(MyViewModel.BaseVM.CurrentPlaybackQuery);
+        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
         return;
 
     }
@@ -678,7 +687,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrWhiteSpace(val))
             return; // No album to show
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
     }
 
 
@@ -716,7 +725,7 @@ public partial class HomePage : ContentPage
         }
 
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
     }
 
@@ -744,7 +753,7 @@ public partial class HomePage : ContentPage
     private void TopBeforeColView_Loaded(object sender, EventArgs e)
     {
 
-        var realm = MyViewModel.BaseVM.RealmFactory.GetRealmInstance();
+        var realm = MyViewModel.RealmFactory.GetRealmInstance();
 
         _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
         _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
@@ -848,7 +857,7 @@ public partial class HomePage : ContentPage
     }
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
-        //int itemHandle = SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+        //int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
         //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
     }
@@ -897,7 +906,7 @@ public partial class HomePage : ContentPage
 
         var send = (TextEdit)sender;
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 
     private void Settings_Tap(object sender, HandledEventArgs e)
@@ -918,7 +927,7 @@ public partial class HomePage : ContentPage
     //    {
     //        return;
     //    }
-    //    MyViewModel.BaseVM.SelectedSong = song;
+    //    MyViewModel.SelectedSong = song;
     //    // raise event to notify the parent view to handle the touch down event
     //    ViewSongOnlyEvt?.Invoke(this, e);
     //}
@@ -961,12 +970,13 @@ public partial class HomePage : ContentPage
     }
 
 
+
     //private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     //{
     //    //DXBorder send = (DXBorder)sender;
 
 
-    //    await MyViewModel.BaseVM.PlayPauseToggle();
+    //    await MyViewModel.PlayPauseToggle();
 
     //}
 
@@ -1017,7 +1027,7 @@ public partial class HomePage : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                await MyViewModel.BaseVM.NextTrackAsync();
+                                await MyViewModel.NextTrackAsync();
 
                                 Task<bool> bounceTask = send.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -1026,7 +1036,7 @@ public partial class HomePage : ContentPage
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                await MyViewModel.BaseVM.PreviousTrack();
+                                await MyViewModel.PreviousTrack();
 
                                 Task<bool> bounceTask = send.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -1050,7 +1060,7 @@ public partial class HomePage : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            await MyViewModel.BaseVM.PreviousTrack();
+                            await MyViewModel.PreviousTrack();
                             Debug.WriteLine("Swiped left");
                             Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
                             Task t2 = Task.Delay(500);
@@ -1077,12 +1087,12 @@ public partial class HomePage : ContentPage
                     {
                         try
                         {
-                            if(MyViewModel.BaseVM.CurrentPlayingSongView.Title is not null)
+                            if(MyViewModel.CurrentPlayingSongView.Title is not null)
                             {
 
                                 MainThread.BeginInvokeOnMainThread(() =>
                                 {
-                                    int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+                                    int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
                                     MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
                                 });
                                 btmBarHeight=send.Height;
@@ -1151,7 +1161,7 @@ public partial class HomePage : ContentPage
             return;
         }
         selectedSongPopUp = paramss;
-        MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
+        MyViewModel.SetCurrentlyPickedSongForContext(paramss);
 
     }
 
@@ -1184,7 +1194,7 @@ public partial class HomePage : ContentPage
     {
         var send = (TextEdit)sender;
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 
     private void AutoCompleteEdit_TextChanged(object sender, DevExpress.Maui.Editors.AutoCompleteEditTextChangedEventArgs e)
@@ -1197,7 +1207,7 @@ public partial class HomePage : ContentPage
         send.ItemsSource = suggestions;
 
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongSB_TextChanged(send.Text);
     }
 
 
@@ -1222,13 +1232,34 @@ public partial class HomePage : ContentPage
         MyViewModel.SongsColViewNPQ ??= SongsColView;
 
     }
-
+    View SelectedSongView;
     private async void SongView_Loaded(object sender, EventArgs e)
     {
         var send = (View)sender;
         var song = send.BindingContext as SongModelView;
 
-        await  MyViewModel.BaseVM.LoadSongDominantColorIfNotYetDoneAsync(song);
+        await  MyViewModel.LoadSongDominantColorIfNotYetDoneAsync(song);
+
+        TouchBehavior tch = new TouchBehavior()
+        {
+
+        };
+
+        //var beh = send.Behaviors.Add(tch);
+
+
+        MyViewModel.SelectedSongView=send;
+    }
+
+    private void PlaybackQueueColView_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.PlaybackQueueColView = this.PlaybackQueueColView;
+        
+    }
+
+    private void PlaybackQueueColView_Unloaded(object sender, EventArgs e)
+    {MyViewModel.PlaybackQueueColView = null;
+
     }
 }
 

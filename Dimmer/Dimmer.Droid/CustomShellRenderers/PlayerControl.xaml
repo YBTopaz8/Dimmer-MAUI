@@ -33,11 +33,11 @@
                    />
             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
                 <Label FontAttributes="Bold"
-                       Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
+                       Text="{Binding CurrentPlayingSongView.Title}"
                        TextColor="{AppThemeBinding Dark=White, Light=Black}"
                        />
                 <Label FontSize="Micro"
-                       Text="{Binding BaseVM.CurrentPlayingSongView.Title}"
+                       Text="{Binding CurrentPlayingSongView.Title}"
                        TextColor="{AppThemeBinding Dark=White, Light=Black}"
                        />
             </VerticalStackLayout>

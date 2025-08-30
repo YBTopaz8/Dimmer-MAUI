@@ -25,7 +25,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
         var send = (DXSlider)sender;
 
 
-        MyViewModel.BaseVM.SeekTrackPosition(ProgressSlider.Value);
+        MyViewModel.SeekTrackPosition(ProgressSlider.Value);
     }
 
     private async void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
@@ -34,7 +34,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
         {
             await this.AnimateFadeOutBack(600);
         }
-        //if (MyViewModel.BaseVM.IsPlaying)
+        //if (MyViewModel.IsPlaying)
         //{
         //    SongPicture.StartHeartbeat();
         //}
@@ -49,7 +49,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
         {
             return;
         }
-        await MyViewModel.BaseVM.SelectedArtistAndNavtoPage(song);
+        await MyViewModel.SelectedArtistAndNavtoPage(song);
 
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
 
@@ -67,7 +67,7 @@ public partial class NowPlayingbtmsheet : BottomSheet
     {
         await CloseAsync();
 
-        MyViewModel.BaseVM.SelectedSong = MyViewModel.BaseVM.CurrentPlayingSongView;
+        MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
         await this.AnimateFadeOutBack(600);
 
         await Shell.Current.GoToAsync(nameof(SingleSongPage));

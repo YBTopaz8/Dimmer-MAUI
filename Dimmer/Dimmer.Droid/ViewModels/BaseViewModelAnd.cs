@@ -10,6 +10,12 @@ using DevExpress.Maui.Controls;
 
 using Dimmer.Data.Models;
 using Dimmer.DimmerLive;
+using Dimmer.Interfaces.IDatabase;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+using Dimmer.LastFM;
+using Dimmer.Utilities.Events;
+using Dimmer.Utilities.FileProcessorUtils;
+using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewModel;
 
 using Microsoft.Extensions.Logging;
@@ -17,8 +23,10 @@ using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using SwipeItem = DevExpress.Maui.CollectionView.SwipeItem;
+
 namespace Dimmer.ViewModels;
-public partial class BaseViewModelAnd : ObservableObject, IDisposable
+public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
     public LoginViewModel LoginViewModel => loginViewModel;
     private readonly LoginViewModel loginViewModel;
@@ -74,37 +82,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
         logger.LogInformation("NowPlayingQueueItemSpan changed from {OldValue} to {NewValue}", oldValue, newValue);
     }
 
-    public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService,
 
-        LoginViewModel loginViewModel,IFolderPicker folderPicker, IAnimationService animService,
-       IDimmerAudioService _audioService, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subsManager,
-IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository, IRepository<AlbumModel> albumRepository, IRepository<GenreModel> genreRepository, LyricsMgtFlow lyricsMgtFlow, IFolderMgtService folderMgtService, ILogger<BaseViewModelAnd> logger, BaseViewModel baseViewModel)
-    {
-        baseVM = baseViewModel; // Store the BaseViewModel reference if needed
-        this.mapper=mapper;
-        this.appInitializerService=appInitializerService;
-        this.loginViewModel=loginViewModel;
-        this.folderPicker=folderPicker;
-        this.animService=animService;
-        audioService=_audioService;
-        this.stateService=stateService;
-        this.settingsService=settingsService;
-        this.subsManager=subsManager;
-        this.songRepository=songRepository;
-        this.artistRepository=artistRepository;
-        this.albumRepository=albumRepository;
-        this.genreRepository=genreRepository;
-        this.lyricsMgtFlow=lyricsMgtFlow;
-        this.folderMgtService=folderMgtService;
-        this.logger=logger;
-
-        // mapper and stateService are accessible via base class protected fields.
-        // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
-
-
-        isAppBooting=true;
-        logger.LogInformation("BaseViewModelAnd initialized.");
-    }
     bool isAppBooting = false;
 
     public void FiniInit()
@@ -167,7 +145,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
                     // The FolderManagementService should handle adding to settings and triggering the scan.
                     // We just need to tell it the folder was selected by the user.
 
-                    baseVM.AddMusicFolderByPassingToService(selectedFolderPath);
+                  await  AddMusicFolderByPassingToService(selectedFolderPath);
                 }
                 else
                 {
@@ -188,10 +166,38 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     internal void ViewArtistDetails(ArtistModelView? s)
     {
-        baseVM.ViewArtistDetails(s);
+        ViewArtistDetails(s);
     }
 
     private bool _isExpanded;
+
+    public BaseViewModelAnd(IDimmerAudioService _audioService, ILogger<BaseViewModelAnd> logger, IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+    {
+        this.mapper=mapper;
+        this.appInitializerService=appInitializerService;
+        this.loginViewModel=loginViewModel;
+        this.folderPicker=folderPicker;
+        this.animService=animService;
+        audioService=_audioService;
+        this.stateService=stateService;
+        this.settingsService=settingsService;
+        this.subsManager=subsManager;
+        this.songRepository=songRepository;
+        this.artistRepository=artistRepository;
+        this.albumRepository=albumRepository;
+        this.genreRepository=genreRepository;
+        this.lyricsMgtFlow=lyricsMgtFlow;
+        this.folderMgtService=folderMgtService;
+        this.logger=logger;
+
+        // mapper and stateService are accessible via base class protected fields.
+        // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
+
+
+        isAppBooting=true;
+        logger.LogInformation("BaseViewModelAnd initialized.");
+    }
+
     public bool IsExpanded
     {
         get => _isExpanded;
@@ -233,7 +239,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
         await Shell.Current.DisplayAlert("SkipNext Clicked", "SkipNext button was clicked!", "OK");
     }
     [ObservableProperty]
-    public partial DXCollectionView SongsColView { get; set; }
+    public partial DXCollectionView? SongsColView { get; set; }
     [ObservableProperty]
     public partial DXCollectionView SongsColViewNPQ { get; set; } // Nullable, ensure it's set from XAML
     [RelayCommand]
@@ -241,7 +247,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            int itemHandle = SongsColView.FindItemHandle(BaseVM.CurrentPlayingSongView);
+            int itemHandle = SongsColView.FindItemHandle(CurrentPlayingSongView);
             SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
         });
     }
@@ -250,7 +256,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            int itemHandle = SongsColViewNPQ.FindItemHandle(BaseVM.CurrentPlayingSongView);
+            int itemHandle = SongsColViewNPQ.FindItemHandle(CurrentPlayingSongView);
             SongsColViewNPQ.ScrollTo(itemHandle, DXScrollToPosition.Start);
         });
     }
@@ -263,7 +269,7 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
             {
                 SongsColView = colView;
                 // Optionally, you can also set the current item to scroll to it.
-                int itemHandle = SongsColView.FindItemHandle(BaseVM.CurrentPlayingSongView);
+                int itemHandle = SongsColView.FindItemHandle(CurrentPlayingSongView);
                 SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
             }
         });
@@ -290,22 +296,42 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
 
     internal async Task LoadSongDataAsync(Progress<LyricsProcessingProgress>? progressReporter, CancellationTokenSource _lyricsCts)
     { 
-       await baseVM.LoadSongDataAsync(progressReporter, _lyricsCts);
+       await LoadSongDataAsync(progressReporter, _lyricsCts);
     }
     #endregion
 
 
     public async Task InitializeDimmerLiveData()
     {
-        loginViewModel.Username=baseVM.UserLocal.Username;
+        loginViewModel.Username=UserLocal.Username;
         await loginViewModel.InitializeAsync();
+    }
+    protected override async Task ProcessSongChangeAsync(SongModelView value)
+    {
+        // 1. Let the base class do all of its work first.
+        await base.ProcessSongChangeAsync(value);
+
+
+        if (value.IsCurrentPlayingHighlight)
+        {
+
+            _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
+            var itemHandle = SongsColView.FindItemHandle(value);
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+
+                PlaybackQueueColView?.ScrollTo(itemHandle, DXScrollToPosition.MakeVisible);
+
+            });
+        }
     }
 
     internal void ScrollColViewToStart(SongModelView? songModelView=null)
     {
         if (songModelView is not null)
         {
-            songModelView = BaseVM.CurrentPlayingSongView ;
+            songModelView = CurrentPlayingSongView ;
         }
         int itemHandle = SongsColView.FindItemHandle(songModelView);
         SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
@@ -315,18 +341,18 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     {
         if (selectedSec is null)
         {
-            if (baseVM.SelectedSong is null)
+            if (SelectedSong is null)
             {
-                baseVM.SelectedSong=baseVM.CurrentPlayingSongView;
+                SelectedSong=CurrentPlayingSongView;
             }
             else
             {
-                baseVM.SelectedSong = SongsColView.SelectedItem as SongModelView;
+                SelectedSong = SongsColView.SelectedItem as SongModelView;
             }
         }
         else
         {
-            baseVM.SelectedSong=selectedSec;
+            SelectedSong=selectedSec;
         }
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
@@ -336,6 +362,427 @@ IRepository<SongModel> songRepository, IRepository<ArtistModel> artistRepository
     public partial BottomSheet QuickPanelBtmSht { get; set; } 
 
     [ObservableProperty]
-    public partial DXExpander MainViewExp { get; set; } 
+    public partial DXExpander MainViewExp { get; set; }
+    [ObservableProperty]
+    public partial DXCollectionView? PlaybackQueueColView { get; internal set; }
 
+
+    partial void OnSongsColViewChanged(DXCollectionView? oldValue, DXCollectionView? newValue)
+    {
+    
+        if(newValue is not null)
+        {
+            newValue.GroupCollapsed += SongsColView_GroupCollapsed;
+            newValue.DragItem +=SongsColView_DragItem;
+            newValue.DragItemOver += SongsColView_DragItemOver;
+            newValue.DropItem += SongsColView_DropItem;
+            newValue.FilteringUIFormShowing += SongsColView_FilteringUIFormShowing;
+            newValue.PullToRefresh +=SongsColView_PullToRefresh;
+            newValue.Scrolled += SongsColView_Scrolled;
+            newValue.ValidateAndSave +=SongsColView_ValidateAndSave;
+            newValue.SwipeItemShowing +=SongsColView_SwipeItemShowing;
+            newValue.SelectionChanged += SongsColView_SelectionChanged;
+        }
+    }
+
+    private async void SongsColView_SelectionChanged(object? sender, CollectionViewSelectionChangedEventArgs e)
+    {
+      DXCollectionView send=sender as DXCollectionView;
+
+
+        // --- Multi-Select Mode ---
+        // If we're in a multi-select state, we just update the selection list.
+        if (IsInMultiSelectMode)
+        {
+            // AddedItems contains what the user just tapped on.
+            foreach (var item in e.AddedItems.Cast<SongModelView>())
+            {
+                //ToggleMultiSelectItemCommand.Execute(item);
+            }
+            // RemovedItems contains what the user just UN-tapped.
+            foreach (var item in e.RemovedItems.Cast<SongModelView>())
+            {
+                //ToggleMultiSelectItemCommand.Execute(item);
+            }
+            return; // Don't play the song in multi-select mode.
+        }
+
+        // --- Single-Select Mode (Standard Playback) ---
+        var songToPlay = e.AddedItems.FirstOrDefault() as SongModelView;
+        if (songToPlay == null)
+            return;
+
+        // This is the most important call. It tells the VM to start playback
+        // with this song as the starting point, and the current search results
+        // (_searchResults in your VM) as the context for the new queue.
+        await PlaySong(songToPlay, CurrentPage.AllSongs
+            );
+
+        Debug.WriteLine(send.SelectedItems.GetType());
+
+     // Deselect the item visually so it can be tapped again.
+     //send.SelectedItems.Cast<SongModelView>().DeselectItem(songToPlay);
+    }
+
+    private void SongsColView_SwipeItemShowing(object? sender, SwipeItemShowingEventArgs e)
+    {
+        DXCollectionView send = sender as DXCollectionView;
+        var w = e.SwipeItem as SwipeItemBase;
+        var song = e.Item as SongModelView;
+        var swipee = e.RowHandle;
+
+        var addEndAction = new SwipeContainerItem()
+        {
+            Caption = "Add to End",
+            BackgroundColor = Colors.DarkGreen,
+            Command = AddToQueueEndCommand, // Assuming you have this command
+            CommandParameter = new List<SongModelView> { song } // Pass a list
+        };
+
+        // 2. Add to Next in Queue
+        var addNextAction = new SwipeContainerItem()
+        {
+            Caption = "Play Next",
+            BackgroundColor = Colors.RoyalBlue,
+            Command = AddToNextCommand,
+            CommandParameter = new List<SongModelView> { song }
+        };
+
+        // --- END SWIPE (usually for neutral/destructive actions) ---
+
+        // 3. Edit Metadata
+        var editAction = new SwipeContainerItem()
+        {
+            Caption = "Edit",
+            BackgroundColor = Colors.Orange,
+            Command = send.Commands.ShowDetailEditForm, // A new command that navigates to an edit page
+            CommandParameter = song
+        };
+
+        // 4. Find More Like This (Powerful Discovery!)
+        var findSimilarAction = new SwipeContainerItem()
+        {
+            Caption = "More Like This",
+            BackgroundColor = Colors.Purple,
+            // We can call a method directly or use a command.
+            // This is a "power method" that constructs a TQL query.
+            Command = new RelayCommand(() =>
+            {
+                // Creates a search for songs of the same genre and similar BPM.
+                string similarQuery = $"genre:\"{song.GenreName}\" and bpm:{song.BPM - 10}-{song.BPM + 10}";
+                SearchSongSB_TextChangedCommand.Execute(similarQuery);
+            })
+        };
+    }
+
+    private void SongsColView_ValidateAndSave(object? sender, ValidateItemEventArgs e)
+    {
+        var ee = e.Item as SongModelView;
+        var s = e.Context;
+        
+        // The e.Item is the SongModelView with the *new, edited* values.
+        var editedSong = e.Item as SongModelView;
+        if (editedSong == null)
+        {
+            e.IsValid = false;
+            return;
+        }
+
+        // --- Perform Validation ---
+        if (string.IsNullOrWhiteSpace(editedSong.Title))
+        {
+            e.IsValid = false;
+            return;
+        }
+
+        if (editedSong.ReleaseYear is < 1000 or > 3000)
+        {
+            e.IsValid = false;
+            return;
+        }
+
+        // --- If Valid, Save the Changes ---
+        e.IsValid = true;
+        e.ForceUpdateItemsSource(); // Tell DX to commit the change visually.
+
+        // Now, call your ViewModel's persistence logic.
+        if (ApplyNewSongEditsCommand.CanExecute(editedSong))
+        {
+             ApplyNewSongEditsCommand.ExecuteAsync(editedSong);
+        }
+
+        //Debug.WriteLine(s.GetType().Name);
+        //DataChangeType DTType = e.DataChangeType;
+        //switch (DTType)
+        //{
+        //    case DataChangeType.Add:
+        //        break;
+        //    case DataChangeType.Edit:
+        //        break;
+        //    case DataChangeType.Delete:
+        //        break;
+        //    default:
+        //        break;
+        //}
+        //var ss = e.SourceIndex;
+        //e.ForceUpdateItemsSource();
+
+        // can be used to call save song
+        //base.UpdateSongArtist
+
+    }
+
+    private void SongsColView_Scrolled(object? sender, DXCollectionViewScrolledEventArgs e)
+    {
+        var ee = e.ViewportSize;
+        var aw = e.Delta;
+        var ss = e.ExtentSize;
+        var sx = e.FirstVisibleItemHandle;
+        var sy = e.LastVisibleItemHandle;
+        var pos = e.FirstVisibleItemIndex;
+        var lastVisibleItemIndex = e.LastVisibleItemIndex;
+        var offset = e.Offset;
+
+    }
+
+    private void SongsColView_PullToRefresh(object? sender, EventArgs e)
+    {
+        
+    }
+
+    private void SongsColView_FilteringUIFormShowing(object? sender, FilteringUIFormShowingEventArgs e)
+    {
+        var s = e.ViewModel;
+        var ss = e.Form;
+        
+    }
+
+
+    private void SongsColView_DragItemOver(object? sender, DropItemEventArgs e)
+    {
+        DXCollectionView send = sender as DXCollectionView;
+        var draggedItem = e.DragItem as SongModelView;
+        var draggedItemHandle = e.ItemHandle;
+        var Cancel = e.Cancel;
+
+        var dropItemHandle = e.DropItemHandle;  
+        var dragItemposInSource = send.GetItemSourceIndex(draggedItemHandle);
+        var targetItem = e.DropItem as SongModelView;
+        var dropItemposInSource = send.GetItemSourceIndex(dropItemHandle);
+
+
+        if (draggedItem == null || targetItem == null || draggedItem.Id == targetItem.Id)
+        {
+            e.Cancel = true; // Don't allow dropping onto itself or invalid items
+            return;
+        }
+
+        // IDEA: If you drag a song onto another song from a DIFFERENT artist,
+        // we can interpret that as "Show me a playlist blending these two artists."
+        if (draggedItem.ArtistName != targetItem.ArtistName)
+        {
+            // Provide visual feedback - maybe change the row color. This is harder in MVVM.
+            // For now, we'll just allow the drop.
+            e.Cancel = false; // Allow the drop
+        }
+        // IDEA: If you drag onto a song from the SAME artist,
+        // we can interpret that as "Group these songs into an album."
+        else if (draggedItem.ArtistName == targetItem.ArtistName)
+        {
+            e.Cancel = false; // Allow the drop
+        }
+        else
+        {
+            e.Cancel = true; // Disallow drops in other cases for clarity.
+        }
+    }
+
+    private async void SongsColView_DropItem(object? sender, DropItemEventArgs e)
+    {
+
+        int DropItemHandle = e.DropItemHandle;
+        int itemHandle = e.ItemHandle;
+        SongModelView dropItem = e.DropItem as SongModelView;
+        SongModelView dragItem = e.DragItem as SongModelView;
+        var Cancel = e.Cancel;
+
+    e.Cancel = true; // ALWAYS cancel the default DX behavior. We will handle the logic.
+
+        // Get the dragged song(s) and the target song.
+        var draggedSongs = IsInMultiSelectMode
+            ? MultiSelectSongs.ToList()
+            : new List<SongModelView> { e.DragItem as SongModelView };
+
+        var targetSong = e.DropItem as SongModelView;
+
+        if (!draggedSongs.Any() || targetSong == null)
+            return;
+
+        // --- Logic based on the DragItemOver checks ---
+
+        // SCENARIO 1: Blend Artists
+        if (draggedSongs.First().ArtistName != targetSong.ArtistName)
+        {
+            string choice = await Shell.Current.DisplayActionSheet(
+                "Create Blend?",
+                "Cancel",
+                null,
+                $"Create a playlist with {draggedSongs.First().ArtistName} and {targetSong.ArtistName}"
+            );
+
+            if (choice.StartsWith("Create"))
+            {
+                // Another "power method" call!
+                string blendQuery = $"artist:\"{draggedSongs.First().ArtistName}\" or artist:\"{targetSong.ArtistName}\" shuffle";
+                SearchSongSB_TextChangedCommand.Execute(blendQuery);
+            }
+        }
+        // SCENARIO 2: Group into Album
+        else if (draggedSongs.First().ArtistName == targetSong.ArtistName)
+        {
+            string choice = await Shell.Current.DisplayActionSheet(
+                "Group Songs?",
+                "Cancel",
+                null,
+                "Group selected songs into a new album"
+            );
+            if (choice.StartsWith("Group"))
+            {
+                // Combine the dragged songs and the target into one list to pass to the command.
+                var allSongsToGroup = new List<SongModelView>(draggedSongs);
+                if (!allSongsToGroup.Contains(targetSong))
+                {
+                    allSongsToGroup.Add(targetSong);
+                }
+
+                // Your existing powerful command does the rest!
+                GroupSongsIntoAlbumCommand.Execute(allSongsToGroup);
+            }
+        }
+    }
+
+    private void SongsColView_DragItem(object? sender, DragItemEventArgs e)
+    {
+        var s = e.DragItem as SongModelView;
+        var itemHandle = e.ItemHandle;
+        var Cancel = e.Cancel;
+
+    }
+
+    private void SongsColView_GroupCollapsed(object? sender, DevExpress.Maui.CollectionView.ItemEventArgs e)
+    {
+        DXCollectionView cv = sender as DXCollectionView;
+        var ee = e.ItemHandle;
+        var item = cv.GetItem(ee);
+    }
+
+    [ObservableProperty]
+    public partial Microsoft.Maui.Controls.View SelectedSongView { get; internal set; }
+
+    [ObservableProperty]
+    public partial bool IsInMultiSelectMode { get; internal set; }
+
+    [ObservableProperty]
+    public partial bool IsSongLongPressed { get; set; }
+
+    public void HandleSongLongPress(Microsoft.Maui.Controls.View view)
+    {
+        if(SongsColView is null)
+        {
+            return;
+        }
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+
+
+            if (SongsColView.SelectionMode !=SelectionMode.Multiple)
+            {
+                SongsColView.SelectionMode=SelectionMode.Multiple;
+                HandleSongSongMultiSelect(view);
+                return;
+            }
+            SelectedSongView=view;
+            IsSongLongPressed=true;
+
+            MultiSelectViewsOfSongs.Add(view);
+            // You can now use 'collectionOfLongPressedViews' as needed.
+        _logger.LogInformation("Song long-pressed, view captured.");
+        });
+
+    }
+    public void HandleSongSongMultiSelect(Microsoft.Maui.Controls.View view)
+    {
+        SelectedSongView=view;
+        var selectedSong = SongsColView.SelectedItem as SongModelView;
+        IsSongLongPressed=true;
+
+        if (!MultiSelectViewsOfSongs.Contains(view))
+        {
+
+            MultiSelectViewsOfSongs.Add(view);
+            
+            if(!MultiSelectSongs.Contains(selectedSong))
+            {
+                
+            MultiSelectSongs.Add(selectedSong);
+            }
+
+        }
+        // You can now use 'collectionOfLongPressedViews' as needed.
+        _logger.LogInformation("Song multi-selected, view captured.");
+        var collectionOfSelectedViews = new List<Microsoft.Maui.Controls.View>();
+        collectionOfSelectedViews.Add(view);
+    }
+    [ObservableProperty]
+    public partial ObservableCollection<Microsoft.Maui.Controls.View> MultiSelectViewsOfSongs { get; set; } = new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> MultiSelectSongs { get; set; } = new();
+    [ObservableProperty]
+    public partial HomePage? MyHomePage { get; internal set; }
+    partial void OnMyHomePageChanged(HomePage? oldValue, HomePage? newValue)
+    {
+        if (newValue is not null)
+        {
+            SongsColView =  newValue.SongsColView;
+        }
+        else
+        {
+            SongsColView =  null;
+
+        }
+    }
+
+    protected override void HandlePlaybackStateChange(PlaybackEventArgs args)
+    {
+        // STEP 1: Always a good practice to let the base class do its work first.
+        // This will run the logic in A (setting IsPlaying, etc.).
+        base.HandlePlaybackStateChange(args);
+
+
+        PlayType? state = StatesMapper.Map(args.EventType);
+
+        if (state == PlayType.Play)
+        {
+            // Do something that ONLY ViewModel B cares about.
+            // For example, maybe B is the VM for a mini-player and needs to
+            // trigger a specific animation.
+            TriggerMiniPlayerGlowAnimation();
+            _logger.LogInformation("Playback started, ViewModel B is reacting specifically.");
+        }
+        else if (state == PlayType.Pause)
+        {
+            // Stop the animation.
+            StopMiniPlayerGlowAnimation();
+        }
+    }
+
+    private void StopMiniPlayerGlowAnimation()
+    {
+        //throw new NotImplementedException();
+    }
+
+    private void TriggerMiniPlayerGlowAnimation()
+    {
+        //throw new NotImplementedException();
+    }
 }

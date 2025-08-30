@@ -86,7 +86,7 @@ public static class MauiProgram
         builder.Services.AddTransient<AllAlbumsPage>();
         builder.Services.AddSingleton<ArtistsPage>();
         builder.Services.AddTransient<OnlinePageManagement>();
-        builder.Services.AddSingleton<IWindowManagerService, WindowManagerService>();
+        builder.Services.AddSingleton<IMauiWindowManagerService, WindowManagerService>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
 
         builder.Services.AddSingleton<DimmerWin>();
