@@ -171,7 +171,7 @@ public partial class AppShell : Shell
             _lyricsCts.Dispose();
         }
         _lyricsCts = new CancellationTokenSource();
-        await MyViewModel.LoadSongDataAsync(null, _lyricsCts.Token);
+        await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
     }
 
     private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)

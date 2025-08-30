@@ -50,7 +50,7 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
 
 
     [ObservableProperty]
-    private DXCollectionView? _songLyricsCV; // Nullable, ensure it's set from XAML
+    public partial DXCollectionView? SongLyricsCV { get; set; } // Nullable, ensure it's set from XAML
 
     // Removed local stateService and mapper as they are protected in BaseViewModel
     private readonly ILogger<BaseViewModelAnd> logger;
@@ -61,6 +61,18 @@ public partial class BaseViewModelAnd : ObservableObject, IDisposable
     public partial SafeKeyboardAreaView MySafeKeyboardAreaView { get; set; }
 
 
+    [ObservableProperty]
+    public partial int NowPlayingQueueItemSpan { get; set; }
+
+
+    [ObservableProperty]
+    public partial int NowPlayingTabIndex { get; set; }
+
+    partial void OnNowPlayingQueueItemSpanChanged(int oldValue, int newValue)
+    {
+        // Handle any additional logic when NowPlayingQueueItemSpan changes, if needed.
+        logger.LogInformation("NowPlayingQueueItemSpan changed from {OldValue} to {NewValue}", oldValue, newValue);
+    }
 
     public BaseViewModelAnd(IMapper mapper, IAppInitializerService appInitializerService,
 

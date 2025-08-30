@@ -26,7 +26,7 @@ public partial class BtmBar : DXBorder
     public event EventHandler RequestFocusOnMainView;
 
 
-
+    
     
     private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
@@ -188,5 +188,15 @@ public partial class BtmBar : DXBorder
     private void DurationAndSearchChip_Tap(object sender, HandledEventArgs e)
     {
         ToggleAdvanceFilters?.Invoke(this, e);
+    }
+
+    private void BtmBarr_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void BtmBarr_Unloaded(object sender, EventArgs e)
+    {
+
     }
 }

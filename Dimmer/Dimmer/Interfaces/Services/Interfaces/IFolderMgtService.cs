@@ -7,4 +7,5 @@ public interface IFolderMgtService : IDisposable
     void AddManyFoldersToWatchListAndScan(List<string> paths);
     void ClearAllWatchedFoldersAndRescanAsync();
     void RemoveFolderFromWatchListAsync(string path);
+    void StartWatchingConfiguredFolders();
 }

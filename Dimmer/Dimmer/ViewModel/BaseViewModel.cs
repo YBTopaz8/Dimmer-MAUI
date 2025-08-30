@@ -2362,7 +2362,7 @@ _playbackQueueSource.Connect()
                 {
                     //newQueue = _songs.inde();
 
-                    newQueue = songs.ToList();
+                    newQueue = _songs.ToList();
 
                 }
 
@@ -5412,6 +5412,35 @@ _playbackQueueSource.Connect()
         await Browser.Default.OpenAsync(AppUpdateObj.url, BrowserLaunchMode.SystemPreferred);
     }
 
+    public async Task LoadSongDominantColorIfNotYetDoneAsync(SongModelView? song)
+    {
+        if(song is null)
+            return;
+        if (song.CurrentPlaySongDominantColor != null)
+        {
+            return;
+        }
+        var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        song.CurrentPlaySongDominantColor = color;
+        if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
+        {
+            CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
+        }
+
+    }
+
+    public async Task ReAssignDominantColor(SongModelView song)
+    {
+        if (song is null)
+            return;
+
+        var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        song.CurrentPlaySongDominantColor = color;
+        if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
+        {
+            CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
+        }
+    }
 
 }
 

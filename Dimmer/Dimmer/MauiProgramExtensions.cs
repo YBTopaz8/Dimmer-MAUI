@@ -40,6 +40,11 @@ public static class MauiProgramExtensions
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("nothingfont.otf", "AleySans");
+                fonts.AddFont("MaterialIconsOutlined-Regular.otf", "MatOutReg");
+                fonts.AddFont("MaterialIconsRound-Regular.otf", "MatRoundReg");
+                fonts.AddFont("MaterialIcons-Regular.otf", "MatReg");
+                fonts.AddFont("MaterialIconsSharp-Regular.otf", "MatSharpReg");
+                fonts.AddFont("MaterialIconsTwoTone-Regular.otf", "MatTwoToneReg");
                 fonts.AddFont("FontAwesomeRegular400.otf", "FontAwesomeRegular");
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");

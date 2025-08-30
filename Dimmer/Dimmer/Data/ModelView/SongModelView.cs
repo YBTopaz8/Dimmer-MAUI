@@ -261,6 +261,7 @@ public partial class SongModelView : ObservableObject
     public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
     [ObservableProperty]
     public partial Color? CurrentPlaySongDominantColor { get;  set; }
+
     [ObservableProperty]
     public partial bool IsHidden { get;  set; }
     public string CoverArtHash { get; set; }
