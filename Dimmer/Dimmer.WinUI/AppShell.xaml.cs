@@ -596,4 +596,10 @@ public partial class AppShell : Shell
         var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
         //win.Activate();
     }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var label = (Label)sender;
+        label.ShowContextMenu();
+    }
 }

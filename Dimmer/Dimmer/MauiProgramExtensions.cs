@@ -4,7 +4,7 @@ using Dimmer.DimmerSearch.Interfaces;
 using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.LastFM;

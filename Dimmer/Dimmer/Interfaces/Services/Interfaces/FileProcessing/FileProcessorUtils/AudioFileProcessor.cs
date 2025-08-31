@@ -2,7 +2,7 @@
 
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
 {

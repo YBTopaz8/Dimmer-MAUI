@@ -10,7 +10,7 @@ public interface IDuplicateFinderService
     /// Processes the user's selected actions (e.g., deleting files and database entries).
     /// </summary>
     Task<int> ResolveDuplicatesAsync(IEnumerable<DuplicateItemViewModel> itemsToDelete);
-    Task<LibraryValidationResult> ValidateFilePresenceAsync(IList<SongModelView>? allSongs);
+    Task<LibraryValidationResult> ValidateMultipleFilesPresenceAsync(IList<SongModelView>? allSongs);
 
     /// <summary>
     /// Intelligently validates the library. Finds missing files and attempts

@@ -258,7 +258,7 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                         
                     </PointerGestureRecognizer>
                 </Border.GestureRecognizers>
-                <FlyoutBase.ContextFlyout>
+                <FlyoutBase.ContextFlyout >
                     <MenuFlyout>
                         <!--<MenuFlyoutItem Text="Blacklist Song" x:Name="BlackListSong"
                                         Clicked="BlackListSong_Clicked" 
@@ -357,7 +357,7 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                 </Border.Triggers>
 
                 <Grid RowDefinitions="120"
-                                ColumnDefinitions="30,120,*,*,*,*,auto,auto,auto"
+                                ColumnDefinitions="40,auto,*,*,*,auto,80,80,80"
                                 ColumnSpacing="5">
 
                     <Grid.GestureRecognizers>
@@ -439,6 +439,7 @@ Value="False">
                         </Border>
 
                     <Label  Grid.Column="2" HorizontalTextAlignment="Justify"
+                            HorizontalOptions="Center"
                              ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
 
                         Text="{Binding Title}"
@@ -963,6 +964,21 @@ Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}" />
 
                         <Button
                         x:Name="EXout"
+                        windows:VisualElement.AccessKey="E"
+                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                        Clicked="OnNavigateToExperimentalPage"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                                    Text="E"
+                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
+                                                WidthRequest="58"
+HeightRequest="50"
+                        
+                        />
+
+                        <Button
+                        x:Name="MoreBtn"
+                            ImageSource="more1.png"
                         windows:VisualElement.AccessKey="E"
                         windows:VisualElement.AccessKeyPlacement="Bottom"
                         Clicked="OnNavigateToExperimentalPage"

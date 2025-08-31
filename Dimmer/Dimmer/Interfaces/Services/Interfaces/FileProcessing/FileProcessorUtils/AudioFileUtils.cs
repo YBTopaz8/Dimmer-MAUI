@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.FileProcessorUtils;
+﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public static class AudioFileUtils
 {
     public static string GenerateId(string prefix)

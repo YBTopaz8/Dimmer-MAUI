@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Reactive.Disposables;
 // Add other necessary using statements
 using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 namespace Dimmer.Interfaces.Services;
 

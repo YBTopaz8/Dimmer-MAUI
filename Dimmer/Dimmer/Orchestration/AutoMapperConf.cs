@@ -22,11 +22,14 @@ public static class AutoMapperConf
                 // These are explicit to prevent threading issues and silent failures.
 
                 cfg.CreateMap<SongModel, SongModelView>()
+                .ForMember(dest => dest.PlaylistsHavingSong, opt => opt.Ignore())
                     .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.OtherArtistsName))
                     .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.AlbumName))
                     .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
-                    .ForMember(dest => dest.Album, opt => opt.Ignore()) // Must ignore RealmObject properties
-                    .ForMember(dest => dest.Genre, opt => opt.Ignore())
+                    
+                    .ForMember(dest => dest.Album, opt => opt.MapFrom(scr=>scr.Album)) // Must ignore RealmObject properties
+                    .ForMember(dest => dest.Artist, opt => opt.MapFrom(scr=>scr.Artist)) // Must ignore RealmObject properties
+                    .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre))
                     .ForMember(dest => dest.HasLyricsColumnIsFiltered, opt => opt.Ignore())
                     .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
                     .ForMember(dest => dest.UserNoteAggregatedCol, opt => opt.MapFrom(src => src.UserNotes))
@@ -120,6 +123,8 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.Genre, opt => opt.Ignore())
                 .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
                 .ForMember(dest => dest.Tags, opt => opt.Ignore())
+                .ForMember(dest => dest.PlaylistsHavingSong, opt => opt.Ignore())
+                
                 .ForMember(dest => dest.PlayHistory, opt => opt.Ignore())
                 //.ForMember(dest => dest.UserNoteAggregatedCol, opt => opt.Ignore())
                                 .ForMember(dest => dest.UserNotes, opt => opt.Ignore())

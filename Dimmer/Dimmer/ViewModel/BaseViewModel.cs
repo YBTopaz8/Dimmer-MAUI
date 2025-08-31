@@ -1,6 +1,7 @@
 ﻿
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Utils;
 
 using DynamicData;
@@ -38,6 +39,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 {
 
     private IDuplicateFinderService _duplicateFinderService;
+
+
     public BaseViewModel(
        IMapper mapper,
        IDimmerStateService dimmerStateService,
@@ -386,6 +389,34 @@ _playbackQueueSource.Connect()
 
         return;
     }
+    [RelayCommand]
+    public void SearchSongSB_TextChanged(string searchText)
+    {
+
+        string currentText = CurrentTqlQuery;
+
+        string processedNewText = NaturalLanguageProcessor.Process(searchText);
+
+
+        if ((searchText.StartsWith("and ", StringComparison.OrdinalIgnoreCase) ||
+             searchText.StartsWith("with ", StringComparison.OrdinalIgnoreCase)) &&
+             !string.IsNullOrWhiteSpace(currentText))
+        {
+
+            CurrentTqlQuery = $"{currentText} {processedNewText}";
+        }
+        else
+        {
+
+            CurrentTqlQuery = processedNewText;
+        }
+
+
+        _searchQuerySubject.OnNext(searchText);
+
+
+    }
+    public BehaviorSubject<string> _searchQuerySubject;
 
     public event EventHandler? AddNextEvent;
 
@@ -540,6 +571,30 @@ _playbackQueueSource.Connect()
 
         return _mapper.Map<List<SongModelView>>(orderedSongs);
     }
+    #region appc cylce  
+    public void OnAppClosing()
+    {
+        var realmm = RealmFactory.GetRealmInstance();
+        var appModel = realmm.All<AppStateModel>().ToList();
+        if (appModel is not null && appModel.Count>0)
+        {
+            var appmodel = appModel[0];
+            realmm.Write(() =>
+            {
+                appmodel.LastKnownQuery = CurrentTqlQuery;
+                appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
+                appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
+                appmodel.LastKnownShuffleState = IsShuffleActive;
+                appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
+                appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
+                appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
+                appmodel.VolumeLevelPreference=audioService.Volume;
+
+            });
+            realm.Add(appmodel, true);
+        }
+    }
+
     public void OnAppOpening()
     {
         try
@@ -624,6 +679,63 @@ _playbackQueueSource.Connect()
             Debug.WriteLine(ex.Message);
         }
     }
+
+
+    [RelayCommand]
+    public void ToggleAppTheme()
+    {
+        var currentAppTheme = Application.Current?.UserAppTheme;
+        if (currentAppTheme == AppTheme.Dark)
+        {
+            Application.Current?.UserAppTheme = AppTheme.Light;
+        }
+        else if (currentAppTheme == AppTheme.Light)
+        {
+
+
+            Application.Current?.UserAppTheme = AppTheme.Dark;
+        }
+        else if (currentAppTheme  == AppTheme.Unspecified)
+        {
+            Application.Current?.UserAppTheme = AppTheme.Dark;
+        }
+
+        //save to db for next boot
+        using var realm = RealmFactory.GetRealmInstance();
+        realm.Write(() =>
+        {
+            var existingSettings = realm.All<AppStateModel>().ToList();
+            if (existingSettings != null)
+            {
+                var setting = existingSettings.FirstOrDefault();
+                if (setting != null)
+                {
+                    setting.IsDarkModePreference
+                    = Application.Current?.UserAppTheme == AppTheme.Dark;
+                }
+                else
+                {
+                    setting = new AppStateModel
+                    {
+                        IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark
+                    };
+                }
+
+                realm.Add(setting);
+            }
+        });
+        IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
+    }
+
+
+    private async Task ShowNotification(string v)
+    {
+        await Shell.Current.DisplayAlert("Notification", v, "OK");
+    }
+
+    #endregion
+
+
     [RelayCommand]
     private async Task LoadLastPlaybackSession()
     {
@@ -655,7 +767,7 @@ _playbackQueueSource.Connect()
         }
     }
     [RelayCommand]
-    private async Task PlayPlaylist(PlaylistModelView? playlist)
+    public async Task PlayPlaylist(PlaylistModelView? playlist)
     {
         if (playlist?.SongsIdsInPlaylist == null || !playlist.SongsIdsInPlaylist.Any())
         {
@@ -663,7 +775,6 @@ _playbackQueueSource.Connect()
             return;
         }
 
-        // --- REPLACED: Use the new efficient helper method ---
         var songsInPlaylist = await GetOrderedSongsFromIdsAsync(playlist.SongsIdsInPlaylist);
         if (songsInPlaylist.Count==0)
         {
@@ -674,43 +785,54 @@ _playbackQueueSource.Connect()
         var contextQuery = $"playlist:\"{playlist.PlaylistName}\"";
         await StartNewPlaybackQueue(songsInPlaylist, 0, contextQuery);
     }
-    public void OnAppClosing()
-    {
-        var realmm = RealmFactory.GetRealmInstance();
-        var appModel = realmm.All<AppStateModel>().ToList();
-        if (appModel is not null && appModel.Count>0)
-        {
-            var appmodel = appModel[0];
-            realmm.Write(() =>
-            {
-                appmodel.LastKnownQuery = CurrentTqlQuery;
-                appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
-                appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
-                appmodel.LastKnownShuffleState = IsShuffleActive;
-                appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
-                appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
-                appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
-                appmodel.VolumeLevelPreference=audioService.Volume;
 
-            });
-             realm.Add(appmodel, true);
-        }
-    }
-
-    private async Task ShowNotification(string v)
-    {
-        await Shell.Current.DisplayAlert("Notification", v, "OK");
-    }
     public ObservableCollection<PlaybackRule> Rules { get; } = new();
     public RuleBasedPlaybackManager PlaybackManager { get; }
 
-
-    SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
+    #region private fields
+    SourceList<SongModelView>  searchResultsHolder = new SourceList<SongModelView>();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
-    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
+
 
     private readonly CommandEvaluator commandEvaluator = new();
+
+    #endregion
+
+    #region private and protected fields
+    protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
+    private ICoverArtService _coverArtService;
+
+    public IMapper _mapper;
+    private readonly MusicDataService _musicDataService;
+    private IAppInitializerService appInitializerService;
+    protected IDimmerStateService _stateService;
+    protected ISettingsService _settingsService;
+    protected SubscriptionManager _subsManager;
+    protected IFolderMgtService _folderMgtService;
+    private IRepository<SongModel> songRepo;
+    private IRepository<ArtistModel> artistRepo;
+    private IRepository<PlaylistModel> _playlistRepo;
+    private IRepository<AlbumModel> albumRepo;
+    private IFolderMonitorService folderMonitorService;
+    private IRepository<GenreModel> genreRepo;
+    private IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
+    public LyricsMgtFlow _lyricsMgtFlow;
+    private MusicRelationshipService musicRelationshipService;
+    private MusicArtistryService musicArtistryService;
+    private MusicStatsService musicStatsService;
+    protected ILogger<BaseViewModel> _logger;
+    private IDimmerAudioService audioService;
+    private ILibraryScannerService libService;
+
+    
+
+
+
+    #endregion
+
+    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
 
     /// <summary>
@@ -784,17 +906,7 @@ _playbackQueueSource.Connect()
             _logger.LogError(ex, "An error occurred during the sanitization of skipped events.");
         }
     }
-    [RelayCommand]
-    private void RemoteNextTrackAsync()
-    {
-        if (ControlledDeviceState == null)
-            return;
-
-    }
-
-    private string _myDeviceId;
-    private DeviceState _myDeviceState;
-
+  
 
     private ParseClient ParseClientInstance => ParseClient.Instance;
     private ParseLiveQueryClient LiveClient { get; set; }
@@ -802,42 +914,11 @@ _playbackQueueSource.Connect()
 
 
 
-    private async void HandleIncomingDeviceCommand(DeviceCommand command)
-    {
-        _logger.LogInformation("Received remote command: {Command}", command.CommandName);
-
-
-        switch (command.CommandName)
-        {
-            case "PLAY_PAUSE":
-                await PlayPauseToggle();
-                break;
-            case "NEXT":
-                await NextTrackAsync();
-                break;
-            case "PREVIOUS":
-                await PreviousTrack();
-                break;
-
-        }
-
-
-        command.IsHandled = true;
-        await command.SaveAsync();
-    }
-
-    [ObservableProperty]
-    public partial DeviceState? ControlledDeviceState { get; set; }
-
-
-    private ReadOnlyObservableCollection<DeviceState> _availablePlayers;
-    public ReadOnlyObservableCollection<DeviceState> AvailablePlayers => _availablePlayers;
-
 
 
 
     [RelayCommand]
-    public async Task OpenFileInFolder(SongModelView? songToView)
+    public async Task OpenFileInOtherApp(SongModelView? songToView)
     {
 
 
@@ -874,41 +955,16 @@ _playbackQueueSource.Connect()
                DeviceInfo.VersionString + "-" +
                DeviceInfo.Platform.ToString() + "-" +
                DeviceInfo.Idiom.ToString() + "-" +
+               CurrentAppVersion + "-" +
+               CurrentAppStage + "-" +
                DeviceInfo.DeviceType.ToString();
+
     }
 
 
 
     public ObservableCollection<IQueryComponentViewModel> UIQueryComponents { get; } = new();
 
-    [RelayCommand]
-    public void SearchSongSB_TextChanged(string searchText)
-    {
-
-        string currentText = CurrentTqlQuery;
-
-        string processedNewText = NaturalLanguageProcessor.Process(searchText);
-
-
-        if ((searchText.StartsWith("and ", StringComparison.OrdinalIgnoreCase) ||
-             searchText.StartsWith("with ", StringComparison.OrdinalIgnoreCase)) &&
-             !string.IsNullOrWhiteSpace(currentText))
-        {
-
-            CurrentTqlQuery = $"{currentText} {processedNewText}";
-        }
-        else
-        {
-
-            CurrentTqlQuery = processedNewText;
-        }
-
-
-        _searchQuerySubject.OnNext(searchText);
-
-
-    }
-    public BehaviorSubject<string> _searchQuerySubject;
 
     //private BehaviorSubject<LimiterClause?> _limiterClause;
 
@@ -943,48 +999,13 @@ _playbackQueueSource.Connect()
     private IDisposable? _realmSubscription;
     private bool _isDisposed;
 
-    [ObservableProperty]
-    public partial SongViewMode CurrentSongViewMode { get; set; } = SongViewMode.DetailedGrid;
-    private BehaviorSubject<ValidationResult> _validationResultSubject = new(new(true));
-    public IObservable<ValidationResult> ValidationResult => _validationResultSubject;
-
     private ILyricsMetadataService _lyricsMetadataService;
 
 
     private readonly SourceList<SongModelView> _playbackQueueSource = new();
     private ReadOnlyObservableCollection<SongModelView> _playbackQueue;
     public ReadOnlyObservableCollection<SongModelView> PlaybackQueue => _playbackQueue;
-    protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
-
-
-
-
-    #region privte fields
-    private ICoverArtService _coverArtService;
-
-    public IMapper _mapper;
-    private readonly MusicDataService _musicDataService;
-    private IAppInitializerService appInitializerService;
-    protected IDimmerStateService _stateService;
-    protected ISettingsService _settingsService;
-    protected SubscriptionManager _subsManager;
-    protected IFolderMgtService _folderMgtService;
-    private IRepository<SongModel> songRepo;
-    private IRepository<ArtistModel> artistRepo;
-    private IRepository<PlaylistModel> _playlistRepo;
-    private IRepository<AlbumModel> albumRepo;
-    private IFolderMonitorService folderMonitorService;
-    private IRepository<GenreModel> genreRepo;
-    private IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
-    public LyricsMgtFlow _lyricsMgtFlow;
-    private MusicRelationshipService musicRelationshipService;
-    private MusicArtistryService musicArtistryService;
-    private MusicStatsService musicStatsService;
-    protected ILogger<BaseViewModel> _logger;
-    private IDimmerAudioService audioService;
-    private ILibraryScannerService libService;
-
-    #endregion
+  
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView> AllLines { get; set; }
     [ObservableProperty]
@@ -1255,6 +1276,7 @@ _playbackQueueSource.Connect()
         }
     }
 
+    #region audio device management
     public void LoadAllAudioDevices()
     {
         var devices = audioService.GetAllAudioDevices();
@@ -1283,6 +1305,8 @@ _playbackQueueSource.Connect()
     {
         lastfmService.Logout();
     }
+    #endregion
+
 
 
     [RelayCommand]
@@ -1406,11 +1430,6 @@ _playbackQueueSource.Connect()
         });
     }
 
-    [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModelView>? CurrentSynchronizedLyrics { get; set; }
-
-    [ObservableProperty]
-    public partial LyricPhraseModelView? ActiveCurrentLyricPhrase { get; set; }
 
     [ObservableProperty]
     public partial bool IsMainViewVisible { get; set; } = true;
@@ -1506,7 +1525,7 @@ _playbackQueueSource.Connect()
     /// <param name="songToUpdate">The Song View Model from the UI.</param>
     /// <param name="newArtistName">The desired name of the new artist.</param>
 
-    public async Task UpdateSong(SongModelView song)
+    public void UpdateSong(SongModelView song)
     {
         _baseAppFlow.UpsertSong(song.ToModel(_mapper));
     }
@@ -1615,31 +1634,7 @@ _playbackQueueSource.Connect()
             _logger.LogError(ex, "Failed to update cover image for song '{Title}'", SelectedSong?.Title);
         }
     }
-    public async Task FetchAndLoadSelectedSongFromLastFMToSelectedSongLastFMObject()
-    {
-        if (SelectedSong is null)
-        {
-            _logger.LogWarning("No song is currently selected to fetch Last.fm data.");
-            return;
-        }
-        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
-        Hqub.Lastfm.Entities.Track? trackInfo = await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
-        if (trackInfo is not null)
-        {
-            SelectedSongLastFMData = trackInfo;
-            CorrectedSelectedSongLastFMData = await lastfmService.GetCorrectionAsync(artistName, SelectedSong.Title);
-            SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSong.Title);
-            if (SimilarTracks is not null)
-            {
-                SimilarSongs = SimilarTracks.ToObservableCollection();
-            }
-        }
-        else
-        {
-            _logger.LogWarning("Failed to load Last.fm track info for song '{Title}' by '{Artist}'", SelectedSong.Title, SelectedSong.ArtistName);
-        }
-    }
 
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
@@ -1686,6 +1681,7 @@ _playbackQueueSource.Connect()
     private BaseAppFlow _baseAppFlow;
 
 
+    #region public partials
 
     [ObservableProperty]
     public partial UserModelView UserLocal { get; set; }
@@ -1717,7 +1713,7 @@ _playbackQueueSource.Connect()
     [ObservableProperty] public partial CollectionStatsSummary? ArtistCurrentColStats { get; private set; }
     [ObservableProperty] public partial CollectionStatsSummary? AlbumCurrentColStats { get; private set; }
 
-
+    #endregion
 
 
 
@@ -1726,20 +1722,12 @@ _playbackQueueSource.Connect()
     public IRealmFactory RealmFactory;
     private Realm realm;
 
-    [ObservableProperty]
-    public partial SongStat AllTimeTopSong { get; set; }
-    [ObservableProperty]
-    public partial double SkipToCompletionRatio { get; set; }
-    [ObservableProperty]
-    public partial ArtistStat AllTimeTopArtist { get; set; }
-    [ObservableProperty]
-    public partial PlaylistModelView CurrentlyPlayingPlaylistContext { get; set; }
+
 
     [ObservableProperty]
     public partial int MaxDeviceVolumeLevel { get; set; }
 
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerPlayEvent> AllPlayEvents { get; private set; }
+  
 
     public IObservable<bool> AudioEngineIsPlayingObservable { get; }
     public IObservable<double> AudioEnginePositionObservable { get; }
@@ -1792,33 +1780,6 @@ _playbackQueueSource.Connect()
     }
 
 
-
-    /// <summary>
-    /// Creates a deep, unmanaged copy of the selected song for safe editing.
-    /// </summary>
-    private void PrepareForEditing(SongModelView song)
-    {
-
-
-
-        EditableSongView = _mapper.Map<SongModelView>(song);
-    }
-
-    /// <summary>
-    /// Loads all artists from the database into a collection for the UI to bind to.
-    /// </summary>
-    private async Task LoadAllArtistsAsync()
-    {
-
-        var artists = await Task.Run(() => artistRepo.GetAll());
-        var artistViews = _mapper.Map<List<ArtistModelView>>(artists);
-
-        AllAvailableArtists.Clear();
-        foreach (var artist in artistViews.OrderBy(a => a.Name))
-        {
-            AllAvailableArtists.Add(artist);
-        }
-    }
 
 
     /// <summary>
@@ -1952,7 +1913,7 @@ _playbackQueueSource.Connect()
         _logger.LogInformation("Finished pre-caching ALL cover art process.");
     }
 
-
+    #region Playback Event Handlers
     private void OnPlaybackPaused(PlaybackEventArgs args)
     {
         if (args.MediaSong is null)
@@ -1988,39 +1949,6 @@ _playbackQueueSource.Connect()
 
     }
 
-    public string Username =>
-         DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
-    public async Task LogListenEvent()
-    {
-        SongModelView song = CurrentPlayingSongView;
-        string deviceUName = string.Empty;
-        if(ParseClientInstance is null)
-        {
-            return;
-        }
-
-   
-        var listenEvent = new ParseObject("ListenEvent")
-        {
-            //["user"] = _authService.CurrentUser,
-            ["deviceUName"] = deviceUName,
-            ["songTitle"] = song.Title,
-            ["artistName"] = song.ArtistName,
-            ["albumName"] = song.AlbumName,
-            ["genreName"] = song.GenreName
-        };
-
-        try
-        {
-            // Fire and forget. The client's job is done.
-            await listenEvent.SaveAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to log listen event to the server.");
-            // The client can continue to function. The social feature just missed one event.
-        }
-    }
     private async Task OnPlaybackEnded()
     {
         _logger.LogInformation("AudioService confirmed: Playback ended for '{Title}'", CurrentPlayingSongView?.Title ?? "N/A");
@@ -2053,37 +1981,51 @@ _playbackQueueSource.Connect()
         CurrentTrackPositionPercentage = (CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0)*100;
 
     }
+    #endregion
+    public async Task LogListenEvent()
+    {
+        SongModelView song = CurrentPlayingSongView;
+        string deviceUName = string.Empty;
+        if (ParseClientInstance is null)
+        {
+            return;
+        }
+
+
+        var listenEvent = new ParseObject("ListenEvent")
+        {
+            //["user"] = _authService.CurrentUser,
+            ["deviceUName"] = deviceUName,
+            ["songTitle"] = song.Title,
+            ["artistName"] = song.ArtistName,
+            ["albumName"] = song.AlbumName,
+            ["genreName"] = song.GenreName
+        };
+
+        try
+        {
+            // Fire and forget. The client's job is done.
+            await listenEvent.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log listen event to the server.");
+            // The client can continue to function. The social feature just missed one event.
+        }
+    }
+
+    #region Current Playing Song and Color Management
+
     [ObservableProperty]
-    public partial Color? CurrentPlaySongDominantColor { get; set; }
+    public partial Color? CurrentPlaySongDominantColor { get; set; } = Colors.DarkSlateBlue;
+ 
     async partial void OnCurrentPlayingSongViewChanged(SongModelView value)
     {
         if (value.Title is null)
             return;
 
- 
+      await  ProcessSongChangeAsync(value);
     }
-
-    protected virtual async Task ProcessSongChangeAsync(SongModelView value)
-    {
-        if (audioService.IsPlaying)
-        {
-            value.IsCurrentPlayingHighlight = true;
-
-            AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
-            value.CurrentPlaySongDominantColor = await ImageResizer.GetDomminantMauiColorAsync(value.CoverImagePath, 1f);
-
-
-            CurrentPlaySongDominantColor = value.CurrentPlaySongDominantColor;
-
-
-
-        }
-        else
-        {
-            value.IsCurrentPlayingHighlight=false;
-        }
-    }
-
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
         _stateService.SetCurrentLogMsg(new AppLogModel()
@@ -2091,7 +2033,7 @@ _playbackQueueSource.Connect()
             Log = "Folder scan completed. Refreshing UI."
         });
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
-        
+
         IsAppScanning = false;
         if (stateInfo.ExtraParameter is List<SongModelView> newSongs && newSongs.Count > 0)
         {
@@ -2131,98 +2073,27 @@ _playbackQueueSource.Connect()
         }
     }
 
+    protected virtual async Task ProcessSongChangeAsync(SongModelView value)
+    {
+        if (audioService.IsPlaying)
+        {
+            value.IsCurrentPlayingHighlight = true;
+
+            AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
+           await LoadSongDominantColorIfNotYetDoneAsync(value);
+
+
+        }
+        else
+        {
+            value.IsCurrentPlayingHighlight=false;
+        }
+    }
+
+   
     #endregion
-    private void SubscribeToLyricsFlow()
-    {
-        _subsManager.Add(_lyricsMgtFlow.CurrentLyric
-            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(line => CurrentLine = line));
-        _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
-            .ObserveOn(RxApp.MainThreadScheduler)
-           .Subscribe(lines => AllLines = lines.ToObservableCollection()));
-
-        _subsManager.Add(_lyricsMgtFlow.PreviousLyric
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(line =>
-            {
-
-                PreviousLine = line;
-                if (PreviousLine is not null)
-                {
-                    PreviousLine.TextColor = Colors.DarkSlateBlue;
-                    PreviousLine.NowPlayingLyricsFontSize= 12;
-                }
-            }));
-
-        _subsManager.Add(_lyricsMgtFlow.NextLyric
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(line =>
-            {
-                NextLine = line;
-            }));
-    }
-    private void SubscribeToAudioServiceEvents()
-    {
-
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.PlaybackStateChanged += h,
-                h => audioService.PlaybackStateChanged -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
-
-
-
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.IsPlayingChanged += h,
-                h => audioService.IsPlayingChanged -= h)
-            .Select(evt => evt.EventArgs.IsPlaying)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(isPlaying =>
-            {
-                IsPlaying = isPlaying;
-
-            }
-            , ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
-
-
-        _subsManager.Add(Observable.FromEventPattern<double>(
-                h => audioService.PositionChanged += h,
-                h => audioService.PositionChanged -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
-
-        _subsManager.Add(Observable.FromEventPattern<double>(
-                h => audioService.SeekCompleted += h,
-                h => audioService.SeekCompleted -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
-
-
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.PlayEnded += h,
-                h => audioService.PlayEnded -= h)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription")));
-
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.MediaKeyNextPressed += h,
-                h => audioService.MediaKeyNextPressed -= h)
-            .Subscribe(async _ => await NextTrackAsync(), ex => _logger.LogError(ex, "Error in MediaKeyNextPressed subscription")));
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.MediaKeyPreviousPressed += h,
-                h => audioService.MediaKeyPreviousPressed -= h)
-            .Subscribe(async _ => await PreviousTrack(), ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
-    }
-
-    #region Playback Commands (User Intent)
-
+   
+   
     #region Playback Commands (User Intent)
 
     [RelayCommand]
@@ -2245,7 +2116,7 @@ _playbackQueueSource.Connect()
         }
 
         _playbackQueueSource.InsertRange(songs, insertPos);
-        AddNextEvent?.Invoke(this, EventArgs.Empty);
+        //AddNextEvent?.Invoke(this, EventArgs.Empty);
 
         
 
@@ -2717,7 +2588,7 @@ _playbackQueueSource.Connect()
         await PlaySongAtIndexAsync(prevIndex);
     }
 
-    #endregion
+   
 
     #region Private Playback Helper Methods
 
@@ -3082,11 +2953,12 @@ _playbackQueueSource.Connect()
     /// <summary>
     /// Subscribes to general state changes from the IStateService.
     /// </summary>
+    /// 
     private void SubscribeToStateServiceEvents()
     {
-        _subsManager.Add(_stateService.CurrentSong
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(OnCurrentSongChanged, ex => _logger.LogError(ex, "Error in CurrentSong subscription")));
+        //_subsManager.Add(_stateService.CurrentSong
+        //    .ObserveOn(RxApp.MainThreadScheduler)
+        //    .Subscribe(/*OnCurrentSongChanged*/ ex => _logger.LogError(ex, "Error in CurrentSong subscription")));
 
         _subsManager.Add(_stateService.IsShuffleActive
             .Subscribe(isShuffle => IsShuffleActive = isShuffle, ex => _logger.LogError(ex, "Error in IsShuffleActive subscription")));
@@ -3112,35 +2984,109 @@ _playbackQueueSource.Connect()
 
 
     }
-
-    private void OnCurrentSongChanged(SongModelView? view)
+    private void SubscribeToLyricsFlow()
     {
-        //throw new NotImplementedException();
-        
+        _subsManager.Add(_lyricsMgtFlow.CurrentLyric
+            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(line => CurrentLine = line));
+        _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
+            .ObserveOn(RxApp.MainThreadScheduler)
+           .Subscribe(lines => AllLines = lines.ToObservableCollection()));
+
+        _subsManager.Add(_lyricsMgtFlow.PreviousLyric
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(line =>
+            {
+
+                PreviousLine = line;
+                if (PreviousLine is not null)
+                {
+                    PreviousLine.TextColor = Colors.DarkSlateBlue;
+                    PreviousLine.NowPlayingLyricsFontSize= 12;
+                }
+            }));
+
+        _subsManager.Add(_lyricsMgtFlow.NextLyric
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(line =>
+            {
+                NextLine = line;
+            }));
     }
+    private void SubscribeToAudioServiceEvents()
+    {
+
+
+        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => audioService.PlaybackStateChanged += h,
+                h => audioService.PlaybackStateChanged -= h)
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
+
+
+
+
+        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => audioService.IsPlayingChanged += h,
+                h => audioService.IsPlayingChanged -= h)
+            .Select(evt => evt.EventArgs.IsPlaying)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(isPlaying =>
+            {
+                IsPlaying = isPlaying;
+
+            }
+            , ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
+
+
+        _subsManager.Add(Observable.FromEventPattern<double>(
+                h => audioService.PositionChanged += h,
+                h => audioService.PositionChanged -= h)
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
+
+        _subsManager.Add(Observable.FromEventPattern<double>(
+                h => audioService.SeekCompleted += h,
+                h => audioService.SeekCompleted -= h)
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
+
+
+
+        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => audioService.PlayEnded += h,
+                h => audioService.PlayEnded -= h)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription")));
+
+
+        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => audioService.MediaKeyNextPressed += h,
+                h => audioService.MediaKeyNextPressed -= h)
+            .Subscribe(async _ => await NextTrackAsync(), ex => _logger.LogError(ex, "Error in MediaKeyNextPressed subscription")));
+
+        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => audioService.MediaKeyPreviousPressed += h,
+                h => audioService.MediaKeyPreviousPressed -= h)
+            .Subscribe(async _ => await PreviousTrack(), ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
+    }
+
+
 
     private void LatestDeviceLog(AppLogModel model)
     {
         LatestAppLog=model;
         LatestScanningLog = model.Log;
+        _logger.LogInformation("Device Log: {Log}", model.Log);
+        _stateService.SetCurrentLogMsg(model);
     }
 
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
 
     [ObservableProperty]
     public partial bool IsAppScanning { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsSafeKeyboardAreaViewOpened { get; set; }
-
-
-
-    //[RelayCommand]
-    //public void SetPreferredAudioDevice(AudioOutputDevice dev)
-    //{
-    //    audioService.SetPreferredOutputDevice(dev);
-    //}
-
 
     private Random _random = new();
 
@@ -3934,7 +3880,7 @@ _playbackQueueSource.Connect()
             // --- MODIFIED: Query fresh data directly from the repository ---
             var allSongsFromDb = await songRepo.GetAllAsync();
             var validationResult = await Task.Run(() =>
-                _duplicateFinderService.ValidateFilePresenceAsync(_mapper.Map<List<SongModelView>>(allSongsFromDb)));
+                _duplicateFinderService.ValidateMultipleFilesPresenceAsync(_mapper.Map<List<SongModelView>>(allSongsFromDb)));
 
             if (validationResult.MissingCount == 0)
             {
@@ -3975,7 +3921,7 @@ _playbackQueueSource.Connect()
         try
         {
 
-            var validationResult = await _duplicateFinderService.ValidateFilePresenceAsync(new List<SongModelView> { song });
+            var validationResult = await _duplicateFinderService.ValidateMultipleFilesPresenceAsync(new List<SongModelView> { song });
 
             if (validationResult.MissingCount == 0)
             {
@@ -4861,13 +4807,19 @@ _playbackQueueSource.Connect()
 
         if (lines.Count==0)
             return;
-
+        CurrentSongPlainLyricsEdit= plainText;
         LyricsInEditor = new ObservableCollection<LyricEditingLineViewModel>(lines);
         _currentLineIndexToTimestamp = 0;
         LyricsInEditor[_currentLineIndexToTimestamp].IsCurrentLine = true;
         IsLyricEditorActive = true;
         _logger.LogInformation("Started lyrics editing session with {Count} lines.", lines.Count);
     }
+
+    [ObservableProperty]
+    public partial bool IsTimestampingInProgress { get; set; }
+
+    [ObservableProperty]
+    public partial string CurrentSongPlainLyricsEdit { get; set; }
 
     /// <summary>
     /// This is the main action button. It grabs the current playback time
@@ -4933,7 +4885,7 @@ _playbackQueueSource.Connect()
 
 
 
-        await _lyricsMetadataService.SaveLyricsForSongAsync(false, string.Empty,songToUpdate, finalLrcContent, null);
+        await _lyricsMetadataService.SaveLyricsForSongAsync(false, CurrentSongPlainLyricsEdit,songToUpdate, finalLrcContent, null);
 
 
         IsLyricEditorActive = false;
@@ -5005,53 +4957,6 @@ _playbackQueueSource.Connect()
             ? PlaylistEditMode.Remove
             : PlaylistEditMode.Add;
     }
-
-    [RelayCommand]
-    public void ToggleAppTheme()
-    {
-        var currentAppTheme = Application.Current?.UserAppTheme;
-        if (currentAppTheme == AppTheme.Dark)
-        {
-            Application.Current?.UserAppTheme = AppTheme.Light;
-        }
-        else if (currentAppTheme == AppTheme.Light)
-        {
-
-
-            Application.Current?.UserAppTheme = AppTheme.Dark;
-        }
-        else if (currentAppTheme  == AppTheme.Unspecified)
-        {
-            Application.Current?.UserAppTheme = AppTheme.Dark;
-        }
-
-        //save to db for next boot
-        using var realm = RealmFactory.GetRealmInstance();
-        realm.Write(() =>
-        {
-            var existingSettings = realm.All<AppStateModel>().ToList();
-            if (existingSettings != null)
-            {
-                var setting = existingSettings.FirstOrDefault();
-                if (setting != null)
-                {
-                    setting.IsDarkModePreference
-                    = Application.Current?.UserAppTheme == AppTheme.Dark;
-                }
-                else
-                {
-                    setting = new AppStateModel
-                    {
-                        IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark
-                    };
-                }
-
-                realm.Add(setting);
-            }
-        });
-        IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
-    }
-
     /// <summary>
     /// Plays a song that has just been transferred from another device,
     /// and immediately seeks to the correct starting position.
@@ -5282,7 +5187,7 @@ _playbackQueueSource.Connect()
                 //SelectedSong = SongColView.SelectedItem as SongModelView;
             }
         }
-        else
+        else 
         {
             SelectedSong = selectedSong;
         }
@@ -5321,9 +5226,9 @@ _playbackQueueSource.Connect()
 
     }
 
-    [RelayCommand]
 
-    public async Task ShareCurrentPlayingAsStoryInCardLikeGradient(SongModelView? selectedSong)
+
+    public async Task<(byte[]? imgBytes, Stream? ImgStream)> ShareCurrentPlayingAsStoryInCardLikeGradient(SongModelView? selectedSong, bool ShareToClipboardInstead=false)
     {
 
         if (selectedSong is null)
@@ -5343,15 +5248,20 @@ _playbackQueueSource.Connect()
         }
         if (SelectedSong is null)
         {
-            return;
+            return (null,null);
         }
 
         // first create the image with SkiaSharp
-        var imagePath = CoverArtService.CreateStoryImageAsync(SelectedSong, null);
+        var result = CoverArtService.CreateStoryImageAsync(SelectedSong, null);
+        if(ShareToClipboardInstead)
+        {
+            return (result.stream, result.memStream);
+        }
+        var imagePath = result.filePath;
         if (string.IsNullOrEmpty(imagePath))
         {
             await Shell.Current.DisplayAlert("Error", "Failed to create story image.", "OK");
-            return;
+            return (null, null);
         }
         // then share it
         ShareFileRequest request = new ShareFileRequest
@@ -5362,7 +5272,7 @@ _playbackQueueSource.Connect()
         await Share.RequestAsync(request);
 
 
-
+        return  (null,null);
 
     }
 
@@ -5483,15 +5393,18 @@ _playbackQueueSource.Connect()
         }
         var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
         // i need an inverted BG color that will work well with this dominant color
+        if (color is not null)
+        {
 
-        var bgColor = color.MultiplyAlpha(0.1f);
-
+            var bgColor = color.MultiplyAlpha(0.1f);
+        
         song.CurrentPlaySongDominantColor = color;
-        if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
+
+        if (CurrentPlayingSongView != null && CurrentPlayingSongView.TitleDurationKey == song.TitleDurationKey)
         {
             CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
         }
-
+        }
     }
 
     public async Task ReAssignDominantColor(SongModelView song)
@@ -5515,3 +5428,4 @@ public enum CollectionViewMode
     List,
     Grid
 }
+#endregion

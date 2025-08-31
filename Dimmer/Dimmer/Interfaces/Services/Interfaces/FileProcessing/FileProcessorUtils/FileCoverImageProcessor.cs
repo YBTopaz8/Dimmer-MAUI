@@ -1,6 +1,6 @@
 ﻿using ATL;
 
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public static class FileCoverImageProcessor
 {
     public static string SaveOrGetCoverImageToFilePath(string? fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)

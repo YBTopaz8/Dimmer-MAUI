@@ -5,6 +5,7 @@ using Microsoft.Maui.Platform;
 using Syncfusion.Maui.Toolkit.Charts;
 
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 
 namespace Dimmer.WinUI.Views.SingleSongPages;
@@ -135,7 +136,7 @@ public partial class SingleSongPage : ContentPage
     private async void ViewArtist_Clicked(object sender, EventArgs e)
     {
         
-        if (SongView.IsVisible)
+        if (SongTabView.IsVisible)
         {
             
             
@@ -177,7 +178,7 @@ public partial class SingleSongPage : ContentPage
         
         if (!ArtistAlbumView.IsVisible)
         {
-            await Task.WhenAll(SongView.DimmOutCompletelyAndHide(), ArtistAlbumView.DimmInCompletelyAndShow());
+            await Task.WhenAll(SongTabView.DimmOutCompletelyAndHide(), ArtistAlbumView.DimmInCompletelyAndShow());
         }
     }
 
@@ -240,7 +241,7 @@ public partial class SingleSongPage : ContentPage
         MyViewModel.SelectedSong = song;
         
 
-            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+            await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
 
             await MyViewModel.LoadSelectedSongLastFMData();
         
@@ -285,9 +286,9 @@ public partial class SingleSongPage : ContentPage
         var contxt = send.BindingContext as SongModelView;
 
         await this.FadeOut(200, 0.7);
-        if (!SongView.IsVisible)
+        if (!SongTabView.IsVisible)
         {
-            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+            await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
 
             await MyViewModel.LoadSelectedSongLastFMData();
             return;
@@ -307,7 +308,7 @@ public partial class SingleSongPage : ContentPage
     private async void ViewSongDetails_Clicked(object sender, EventArgs e)
     {
 
-        await Task.WhenAll(ArtistAlbumView.DimmOutCompletelyAndHide(), SongView.DimmInCompletelyAndShow());
+        await Task.WhenAll(ArtistAlbumView.DimmOutCompletelyAndHide(), SongTabView.DimmInCompletelyAndShow());
 
     }
 
@@ -334,9 +335,9 @@ public partial class SingleSongPage : ContentPage
     private async void ToggleViewArtist_Clicked(object sender, EventArgs e)
     {
         
-        if (!SongView.IsVisible)
+        if (!SongTabView.IsVisible)
         {
-            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+            await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
 
             await MyViewModel.LoadSelectedSongLastFMData();
             return;
@@ -355,7 +356,7 @@ public partial class SingleSongPage : ContentPage
         
         Button send = (Button)sender;
         var artistName = send.Text;
-        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
+        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
 
@@ -374,9 +375,9 @@ public partial class SingleSongPage : ContentPage
     {
   
         
-        if (!SongView.IsVisible)
+        if (!SongTabView.IsVisible)
         {
-            await Task.WhenAll(SongView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+            await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
 
             await MyViewModel.LoadSelectedSongLastFMData();
             return;
@@ -396,7 +397,7 @@ public partial class SingleSongPage : ContentPage
         Button send = (Button)sender;
         var artistName = send.Text;
 
-        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongView.DimmOutCompletelyAndHide());
+        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(artistName)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
 
@@ -501,4 +502,44 @@ public partial class SingleSongPage : ContentPage
     {
         await MyViewModel.ApplyCurrentImageToAllSongsInAlbum(MyViewModel.CurrentPlayingSongView);
     }
+
+    private void SongTitleEntry_Focused(object sender, FocusEventArgs e)
+    {
+        SongTitleEntry.Text = MyViewModel.SelectedSong?.Title;
+    }
+
+    private void SongAlbumName_Focused(object sender, FocusEventArgs e)
+    {
+
+        SongArtistNameEntry.Text = MyViewModel.SelectedSong?.AlbumName;
+    }
+
+    private void SongArtistNameEntry_Focused(object sender, FocusEventArgs e)
+    {
+
+        SongAlbumName.Text = MyViewModel.SelectedSong?.ArtistName;
+    }
+
+    private void SongTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+
+    }
+
+    private async void PasteFromClipBoard_Clicked(object sender, EventArgs e)
+    {
+        if (MyViewModel.SelectedSong is null)
+        {
+            return;
+        }
+        var clipboardText = await Microsoft.Maui.ApplicationModel.DataTransfer.Clipboard.Default.GetTextAsync();
+        if (string.IsNullOrWhiteSpace(clipboardText))
+        {
+            return;
+        }
+
+        PlainLyricsEditor.Text = clipboardText;
+
+         MyViewModel.StartLyricsEditingSession(clipboardText);
+    }
+
 }

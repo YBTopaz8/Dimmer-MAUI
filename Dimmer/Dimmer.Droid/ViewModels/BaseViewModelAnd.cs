@@ -28,8 +28,8 @@ using SwipeItem = DevExpress.Maui.CollectionView.SwipeItem;
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
-    public LoginViewModel LoginViewModel => loginViewModel;
-    private readonly LoginViewModel loginViewModel;
+    public LoginViewModel LoginViewModel => _loginViewModel;
+    private readonly LoginViewModel _loginViewModel;
     public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
     protected readonly IDimmerStateService _stateService;
@@ -61,7 +61,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public partial DXCollectionView? SongLyricsCV { get; set; } // Nullable, ensure it's set from XAML
 
     // Removed local stateService and mapper as they are protected in BaseViewModel
-    private readonly ILogger<BaseViewModelAnd> logger;
 
 
 
@@ -76,10 +75,35 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int NowPlayingTabIndex { get; set; }
 
+    [ObservableProperty]
+    public partial bool NowPlayingUI { get; set; }
+
+    partial void OnNowPlayingTabIndexChanged(int oldValue, int newValue)
+    {
+        switch (newValue)
+        {
+            case 0:
+                IsNowPlayingQueue =true;
+                NowPlayingUI=false;
+                break;
+            case 1:
+                IsNowPlayingQueue =true;
+                NowPlayingUI=false;
+                break;
+            case 2:
+                IsNowPlayingQueue =false;
+                NowPlayingUI=true;
+                break;
+            default:
+                break;
+        }
+    }
+    [ObservableProperty]
+    public partial bool IsNowPlayingQueue { get; set; }
     partial void OnNowPlayingQueueItemSpanChanged(int oldValue, int newValue)
     {
         // Handle any additional logic when NowPlayingQueueItemSpan changes, if needed.
-        logger.LogInformation("NowPlayingQueueItemSpan changed from {OldValue} to {NewValue}", oldValue, newValue);
+        _logger.LogInformation("NowPlayingQueueItemSpan changed from {OldValue} to {NewValue}", oldValue, newValue);
     }
 
 
@@ -124,7 +148,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public async Task AddMusicFolderViaPickerAsync(string? selectedFolder = null)
     {
 
-        logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
+        _logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
         var status = await Permissions.RequestAsync<CheckPermissions>();
 
         if (status == PermissionStatus.Granted)
@@ -141,7 +165,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
                 if (!string.IsNullOrEmpty(selectedFolderPath))
                 {
-                    logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
+                    _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
                     // The FolderManagementService should handle adding to settings and triggering the scan.
                     // We just need to tell it the folder was selected by the user.
 
@@ -149,7 +173,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 }
                 else
                 {
-                    logger.LogInformation("No folder selected by user.");
+                    _logger.LogInformation("No folder selected by user.");
                 }
 
 
@@ -158,7 +182,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
         else
         {
-            logger.LogWarning("Storage permission denied for adding music folder.");
+            _logger.LogWarning("Storage permission denied for adding music folder.");
             // TODO: Show message to user explaining why permission is needed.
         }
 
@@ -171,31 +195,23 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     private bool _isExpanded;
 
-    public BaseViewModelAnd(IDimmerAudioService _audioService, ILogger<BaseViewModelAnd> logger, IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+    public BaseViewModelAnd(IDimmerAudioService AudioService, ILogger<BaseViewModelAnd> logger, 
+        IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService,
+        IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, 
+        ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, 
+        ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> SongRepo, 
+        IDuplicateFinderService duplicateFinderService, ILastfmService LastfmService, IRepository<ArtistModel> artistRepo, 
+        IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, SongRepo, duplicateFinderService, LastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
     {
-        this.mapper=mapper;
-        this.appInitializerService=appInitializerService;
-        this.loginViewModel=loginViewModel;
-        this.folderPicker=folderPicker;
-        this.animService=animService;
-        audioService=_audioService;
-        this.stateService=stateService;
-        this.settingsService=settingsService;
-        this.subsManager=subsManager;
-        this.songRepository=songRepository;
-        this.artistRepository=artistRepository;
-        this.albumRepository=albumRepository;
-        this.genreRepository=genreRepository;
-        this.lyricsMgtFlow=lyricsMgtFlow;
-        this.folderMgtService=folderMgtService;
-        this.logger=logger;
-
+       
+        
         // mapper and stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
 
-
+        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
         isAppBooting=true;
-        logger.LogInformation("BaseViewModelAnd initialized.");
+        this._logger.LogInformation("BaseViewModelAnd initialized.");
+        audioService=AudioService;
     }
 
     public bool IsExpanded
@@ -254,12 +270,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [RelayCommand]
     void ScrollToSongNowPlayingQueue()
     {
+        if(PlaybackQueueColView is null)
+        {
+            return;
+        }
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            int itemHandle = SongsColViewNPQ.FindItemHandle(CurrentPlayingSongView);
-            SongsColViewNPQ.ScrollTo(itemHandle, DXScrollToPosition.Start);
+            int itemHandle = PlaybackQueueColView.FindItemHandle(CurrentPlayingSongView);
+            PlaybackQueueColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
         });
     }
+
 
     public void LoadTheCurrentColView(DXCollectionView colView)
     {
@@ -303,8 +324,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public async Task InitializeDimmerLiveData()
     {
-        loginViewModel.Username=UserLocal.Username;
-        await loginViewModel.InitializeAsync();
+        _loginViewModel.Username=UserLocal.Username;
+        await _loginViewModel.InitializeAsync();
     }
     protected override async Task ProcessSongChangeAsync(SongModelView value)
     {

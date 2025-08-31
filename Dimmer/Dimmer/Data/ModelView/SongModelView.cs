@@ -22,6 +22,8 @@ public partial class SongModelView : ObservableObject
     }
     [ObservableProperty]
     public partial string ArtistName { get; set; } 
+    [ObservableProperty]
+    public partial ArtistModel Artist { get; set; } 
 
     [ObservableProperty]
     public partial string AlbumName { get; set; } 

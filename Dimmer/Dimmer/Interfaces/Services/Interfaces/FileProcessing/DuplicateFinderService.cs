@@ -136,8 +136,16 @@ public class DuplicateFinderService : IDuplicateFinderService
     }
 
     
-    public async Task<LibraryValidationResult> ValidateFilePresenceAsync(IList<SongModelView>? allSongs)
+    public async Task<LibraryValidationResult> ValidateMultipleFilesPresenceAsync(IList<SongModelView>? allSongs)
     {
+        if (allSongs == null || allSongs.Count == 0)
+        {
+            return new LibraryValidationResult
+            {
+                ScannedCount = 0,
+                MissingSongs = new List<SongModelView>()
+            };
+        }
 
         _logger.LogInformation("Starting file presence validation for {Count} songs.", allSongs.Count);
 
@@ -324,7 +332,28 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.HasLyrics = survivor.HasLyrics || ghost.HasLyrics;
         survivor.HasSyncedLyrics = survivor.HasSyncedLyrics || ghost.HasSyncedLyrics;
         survivor.CoverImagePath = string.IsNullOrWhiteSpace(survivor.CoverImagePath) ? ghost.CoverImagePath : survivor.CoverImagePath;
-        // Add other properties you want to merge...
+        survivor.OtherArtistsName = string.IsNullOrWhiteSpace(survivor.OtherArtistsName) ? ghost.OtherArtistsName : survivor.OtherArtistsName;
+        survivor.Genre = survivor.Genre is null ? ghost.Genre : survivor.Genre;  
+        survivor.BitRate = survivor.BitRate > ghost.BitRate ? survivor.BitRate : ghost.BitRate; // Keep the highest bitrate 
+        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName)? survivor.GenreName: ghost.GenreName; // Keep the highest sample rate
+        survivor.TrackNumber = survivor.TrackNumber != 0 ? survivor.TrackNumber : ghost.TrackNumber;
+        survivor.DiscNumber = survivor.DiscNumber != 0 ? survivor.DiscNumber : ghost.DiscNumber;
+        survivor.ReleaseYear = survivor.ReleaseYear != 0 ? survivor.ReleaseYear : ghost.ReleaseYear;
+        survivor.FileFormat = string.IsNullOrWhiteSpace(survivor.FileFormat) ? ghost.FileFormat: survivor.FileFormat;
+        survivor.FilePath = string.IsNullOrWhiteSpace(survivor.FilePath) ? ghost.FilePath : survivor.FilePath;
+        survivor.FileSize = survivor.FileSize != 0 ? ghost.FileSize : survivor.FileSize;
+        survivor.RankInAlbum = survivor.RankInAlbum> 0 ? survivor.RankInAlbum: ghost.RankInAlbum;
+        survivor.RankInArtist = survivor.RankInArtist > 0 ? survivor.RankInArtist : ghost.RankInArtist;
+        survivor.GlobalRank = survivor.GlobalRank > 0 ? survivor.GlobalRank : ghost.GlobalRank;
+        survivor.IsHidden = survivor.IsHidden && ghost.IsHidden; // Only hidden if both are hidden
+        survivor.Description = string.IsNullOrWhiteSpace(survivor.Description) ? ghost.Description : survivor.Description;
+        survivor.Lyricist = string.IsNullOrWhiteSpace(survivor.Lyricist) ? ghost.Lyricist : survivor.Lyricist;
+        survivor.Composer = string.IsNullOrWhiteSpace(survivor.Composer) ? ghost.Composer : survivor.Composer;
+        survivor.Conductor = string.IsNullOrWhiteSpace(survivor.Conductor) ? ghost.Conductor : survivor.Conductor;
+        survivor.Language = string.IsNullOrWhiteSpace(survivor.Language) ? ghost.Language : survivor.Language;
+        survivor.IsInstrumental = survivor.IsInstrumental ?? ghost.IsInstrumental;
+        survivor.CoverImageBytes = survivor.CoverImageBytes ?? ghost.CoverImageBytes;
+
 
         // Ensure the survivor has the earliest creation date.
         if (ghost.DateCreated.HasValue && (!survivor.DateCreated.HasValue || ghost.DateCreated < survivor.DateCreated))

@@ -1,14 +1,12 @@
 ﻿using ATL;
 
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
-
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
 public class MusicMetadataService : IMusicMetadataService
 {
-    private readonly Dictionary<string, ArtistModelView> _artistsByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, AlbumModelView> _albumsByName = new(System.StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, GenreModelView> _genresByName = new(System.StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ArtistModelView> _artistsByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AlbumModelView> _albumsByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, GenreModelView> _genresByName = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
 
 

@@ -1,6 +1,8 @@
-﻿namespace Dimmer.DimmerSearch;
+﻿
+namespace Dimmer.DimmerSearch;
 public static class StaticMethods
 {
+   
 
     /// <summary>
     /// Creates a search query string for a given key and value,

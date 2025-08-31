@@ -819,7 +819,7 @@ namespace Dimmer.WinUI.Views;
                 break;
             case "OpenFileExp":
 
-                await MyViewModel.OpenFileInFolder(song);
+                await MyViewModel.OpenFileInOtherApp(song);
                 break;
 
             default:
@@ -1091,6 +1091,7 @@ await this.FadeIn(500, 1.0);
 
     private void GlobalColView_PointerPressed(object sender, PointerEventArgs e)
     {
+        var sendd = (View)sender;
         
         var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
         var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;

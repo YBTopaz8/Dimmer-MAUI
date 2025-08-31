@@ -277,7 +277,7 @@ Value="False">
                     <Grid Grid.Row="0">
 
                         <dx:DXExpander 
-                            
+                            IsExpanded="{Binding NowPlayingUI, Converter={converters:BoolToInverseConverter}}"
 xmlns:dx="http://schemas.devexpress.com/maui"
 xmlns:helper="clr-namespace:Dimmer.Utils.AnimsStatics"
 xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -359,32 +359,8 @@ x:FieldModifier="Public">
                            TextColor="{AppThemeBinding Dark=#999999, Light=black}"
                            Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
 
-
-                                        <dx:Chip
-                        x:Name="Settings"
-                        
-                        BorderThickness="0"
-                        Icon="settings.png"
-                        IconColor="DarkSlateBlue"
-                        IconSize="35,35"
-                        IsIconVisible="True"
-                        Tap="Settings_Tap" />
-
-                                        <dx:Chip
-                        x:Name="ScrollToCurrSong"
-                        BorderThickness="0"
-                        Icon="eye.png"
-                        IconSize="35,35"
-                        IsIconVisible="True"
-                        Tap="ScrollToCurrSong_Tap" />
-
-
-
-
-
-
-
                                     </HorizontalStackLayout>
+                                   
 
                                 </dx:DXStackLayout>
                                 <Label
@@ -432,32 +408,80 @@ x:FieldModifier="Public">
                                     </dx:DXCollectionView>
 
 
-                                    <dx:DXStackLayout Grid.Row="1" VerticalOptions="End"
-                                                          BackgroundColor="Transparent">
-                                        <dx:DXSlider
-                                            MaxValue="3"
-                                            MinValue="2"
-                                            Value="{Binding NowPlayingQueueItemSpan,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+                                    <dx:DXExpander Grid.Row="1" IsExpanded="{Binding IsNowPlayingQueue}" >
+
+                                        <dx:DXStackLayout  VerticalOptions="End" ZIndex="1"
+                                                              BackgroundColor="Transparent">
+                                            <dx:DXButton Icon="eye.png"
+                                                         Command="{Binding ScrollToSongNowPlayingQueueCommand}"
+                                                         IconHeight="40"
+                                                         IconWidth="40"
+                                                         HorizontalOptions="End"/>
+                                            <dx:DXSlider
+                                                MaxValue="5"
+                                                ValueStep="1"
+                                                TickmarkStep="1"
+                                                MinValue="2"
+                                                
+                                                Value="{Binding NowPlayingQueueItemSpan,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+    >
+                                                <dx:DXSlider.TrackAppearance>
+                                                    <dx:DXSliderTrackAppearance 
+                                                        ActiveBackgroundColor="{Binding CurrentPlaySongDominantColor}"
 />
-                                        
-                                    </dx:DXStackLayout>
+                                                    </dx:DXSlider.TrackAppearance>
+                                            </dx:DXSlider>
+
+                                        </dx:DXStackLayout>
+
+                                    </dx:DXExpander>
 
                                 </Grid>
                             </dx:TabViewItem>
                             
                             <dx:TabViewItem 
                                 HeaderText="music_note">
+                                <Grid>
+                                    
+                                                <HorizontalStackLayout VerticalOptions="End"
+                                                                       ZIndex="1"
+                                                                       HorizontalOptions="End">
+                <dx:Chip
+x:Name="Settings"
 
-                                <dx:DXStackLayout>
+BorderThickness="0"
+Icon="settings.png"
+IconColor="DarkSlateBlue"
+IconSize="35,35"
+IsIconVisible="True"
+Tap="Settings_Tap" />
+
+                <dx:Chip
+x:Name="ScrollToCurrSong"
+BorderThickness="0"
+Icon="eye.png"
+                    IconColor="{Binding CurrentPlaySongDominantColor}"
+IconSize="55,55" BackgroundColor="Black"
+IsIconVisible="True"
+Tap="ScrollToCurrSong_Tap" />
+
+
+
+
+
+
+
+            </HorizontalStackLayout>
+                                <dx:DXStackLayout ZIndex="0">
                                     <dx:DXStackLayout.Resources>
                                         <ResourceDictionary>
 
 
                                         </ResourceDictionary>
                                     </dx:DXStackLayout.Resources>
-                                    <dx:DXCollectionView 
-                            
-                            x:Name="SongsColView"
+                                        <dx:DXCollectionView 
+
+                                            x:Name="SongsColView"
                             Grid.Row="0"
                                 x:FieldModifier="public"
                                 AllowDragDropItems="False"
@@ -474,6 +498,8 @@ x:FieldModifier="Public">
                                ItemTemplate="{StaticResource OGView}" >
                                     </dx:DXCollectionView>
                                 </dx:DXStackLayout>
+
+                                </Grid>
                             </dx:TabViewItem>
                             <!--                        
                             <dx:TabViewItem >
@@ -1288,10 +1314,10 @@ FontAttributes="Bold"                                                        Hor
 
                     <dx:DXExpander
                         x:Name="BtmBarExp" BackgroundColor="Transparent"
-                        
+                        IsExpanded="{Binding IsNowPlayingQueue}"
                         Grid.Row="2" 
                         VerticalOptions="End"
-                        IsExpanded="True">
+                        >
 
                         <dx:DXBorder
                             

@@ -2,7 +2,7 @@
 
 using SkiaSharp;
 
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public interface ICoverArtService
 {
     Task<string?> SaveOrGetCoverImageAsync(string audioFilePath, PictureInfo? embeddedPictureInfo);
@@ -255,12 +255,12 @@ public class CoverArtService : ICoverArtService
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
-        public static string? CreateStoryImageAsync(SongModelView selectedSong , string? SaveTo=null)
+        public static (string? filePath, byte[]? stream, Stream? memStream) CreateStoryImageAsync(SongModelView selectedSong , string? SaveTo=null)
         {
             // 1. Validate input
             if (selectedSong == null || string.IsNullOrWhiteSpace(selectedSong.FilePath) || !File.Exists(selectedSong.FilePath))
             {
-                return null;
+                return (null,null,null);
             }
 
             try
@@ -271,7 +271,7 @@ public class CoverArtService : ICoverArtService
                 if (picInfo == null || picInfo.PictureData == null || picInfo.PictureData.Length == 0)
                 {
                     // No album art found
-                    return null;
+                    return (null,null,null);
                 }
 
                 byte[] imageData = picInfo.PictureData;
@@ -280,7 +280,7 @@ public class CoverArtService : ICoverArtService
                 using SKBitmap originalBitmap = SKBitmap.Decode(imageData);
                 if (originalBitmap == null)
                 {
-                    return null;
+                    return (null,null,null);
                 }
 
                 // 4. Define target and watermark properties
@@ -357,13 +357,15 @@ public class CoverArtService : ICoverArtService
 
                 using var stream = File.OpenWrite(tempFilePath);
                  data.SaveTo(stream);
-
-                return tempFilePath;
+            MemoryStream memoryStream = new MemoryStream();
+            data.SaveTo(memoryStream);
+            var bytes = data.ToArray();
+            return (tempFilePath,bytes, memoryStream);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error creating story image for {selectedSong.FilePath}: {ex.Message}");
-                return null;
+                return (null,null,null);
             }
         }
     

@@ -11,12 +11,20 @@ public class CustomCollectionViewHandler : CollectionViewHandler
         base.ConnectHandler(platformView);
 
 
+        //var ee = new Microsoft.UI.Xaml.Media.Animation.TransitionCollection();
+        //ee.Add(new Microsoft.UI.Xaml.Media.Animation.ReorderThemeTransition()
+        //);
+        //ee.Add(new Microsoft.UI.Xaml.Media.Animation.ContentThemeTransition());
+        //ee.Add(new Microsoft.UI.Xaml.Media.Animation.AddDeleteThemeTransition() );
+        //ee.Add(new Microsoft.UI.Xaml.Media.Animation.RepositionThemeTransition() { IsStaggeringEnabled=true});
+        //ee.Add(new Microsoft.UI.Xaml.Media.Animation.EntranceThemeTransition() { IsStaggeringEnabled=true});
+        //ee.Add(new Microsoft.UI.Xaml.Media.Animation.PopupThemeTransition() );
+
         platformView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Single;
 
         platformView.Background = null;
         platformView.BorderBrush = null;
         platformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-        
         platformView.ContainerContentChanging += (s, args) =>
         {
             if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)

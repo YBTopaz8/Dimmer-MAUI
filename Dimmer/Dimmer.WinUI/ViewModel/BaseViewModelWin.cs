@@ -10,8 +10,8 @@ using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
-using Dimmer.Utilities.FileProcessorUtils;
 // Assuming SkiaSharp and ZXing.SkiaSharp are correctly referenced for barcode scanning
 
 // Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
@@ -27,6 +27,7 @@ using Microsoft.UI.Xaml.Controls;
 using Realms;
 
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 using Vanara.PInvoke;
 
@@ -411,7 +412,35 @@ public partial class BaseViewModelWin: BaseViewModel
         }
     }
 
-    
+
+    public async Task ShareSongViewClipboard(SongModelView song)
+    {
+
+        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
+
+        if (byteData.imgBytes != null)
+        {
+
+            BitmapSource? bitmapSource = null;
+            using (var stream = new MemoryStream(byteData.imgBytes))
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = stream;
+                bitmap.EndInit();
+                bitmap.Freeze(); // Freeze to make it cross-thread accessible
+                bitmapSource = bitmap;
+            }
+
+            // listening to, text so, title, artistname, album with app name, and version.
+            string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
+
+            System.Windows.Clipboard.SetImage(bitmapSource);
+            System.Windows.Clipboard.SetText(clipboardText);
+
+        }
+    }
     internal void OpenSettingWin()
     {
         
