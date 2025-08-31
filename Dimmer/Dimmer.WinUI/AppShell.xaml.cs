@@ -47,7 +47,7 @@ public partial class AppShell : Shell
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         this.BindingContext = MyViewModel;
 
-        await MyViewModel.InitializeAllVMCoreComponentsAsync();
+        MyViewModel.InitializeAllVMCoreComponentsAsync();
 
 
     }

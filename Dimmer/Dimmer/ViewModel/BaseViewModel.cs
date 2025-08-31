@@ -124,84 +124,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsAppToDate { get; set; }
 
-    public async Task InitializeAllVMCoreComponentsAsync()
+    public void InitializeAllVMCoreComponentsAsync()
     {
         realm=RealmFactory.GetRealmInstance();
 
 
-        _logger.LogInformation($"{DateTime.Now}: Calculating ranks using RQL sorting...");
-        // Use a single, large write transaction for performance.
-        await realm.WriteAsync( () =>
-        {
-           
-            var songsToUpdate = realm.All<SongModel>();
-
-            foreach (var song in songsToUpdate)
-            {
-                // Check if the object is still valid before working on it
-                if (song.IsValid)
-                {
-
-                    if (song.UserNotes.Count >0)
-                    {
-                        song.UserNoteAggregatedText = string.Join(" ", song.UserNotes.Select(n => n.UserMessageText));
-                    }
-                    else
-                    {
-                        song.UserNoteAggregatedText = null;
-                    }
-
-                    if (!string.IsNullOrEmpty(song.SearchableText))
-                        continue;
-                    // 3. Update the main SearchableText field
-                    var sb = new StringBuilder();
-                    sb.Append(song.Title).Append(' ');
-                    sb.Append(song.OtherArtistsName).Append(' ');
-                    sb.Append(song.AlbumName).Append(' ');
-                    sb.Append(song.GenreName).Append(' ');
-                    sb.Append(song.SyncLyrics).Append(' ');
-                    sb.Append(song.UnSyncLyrics).Append(' ');
-                    sb.Append(song.Composer).Append(' ');
-                    sb.Append(song.UserNoteAggregatedText); // Include the notes in the "any" search
-
-                    song.SearchableText = sb.ToString().ToLowerInvariant();
-
-
-                }
-            }
-
-
-        });
-        var redoStats = new StatsRecalculator(realm, _logger);
-        redoStats.RecalculateAllStatistics();
-        _logger.LogInformation("Finished recalculating all statistics using RQL-based queries.");
-   
-
-        AppUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
-        if(AppUpdateObj is not null)
-        {
-            IsAppToDate = false;
-            _stateService.SetCurrentLogMsg(new AppLogModel
-            {
-                Log = $"Update available: {AppUpdateObj.title}",
-                
-                
-            });
-
-
-
-
-            var appModel = realm.All<AppStateModel>().ToList();
-            if (appModel is not null && appModel.Count>0)
-            {
-                var appmodel = appModel[0];
-
-                FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
-
-            }
-
+      
             _folderMgtService.StartWatchingConfiguredFolders();
-        }
+        
 
 //SubscribeToCommandEvaluatorEvents();
 
@@ -216,15 +146,6 @@ _playbackQueueSource.Connect()
     .DisposeWith(Disposables);
 
 
-        try
-        {
-            var realm = RealmFactory.GetRealmInstance();
-            Debug.WriteLine($"[DEBUG] Database check: Found {realm.All<SongModel>().Count()} total songs in Realm.");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[DEBUG] FATAL: Could not access Realm database. {ex.Message}");
-        }
 
 
         _searchQuerySubject
@@ -264,7 +185,7 @@ _playbackQueueSource.Connect()
                     IQueryable<SongModel> query = realm.All<SongModel>().Filter(plan.RqlFilter);
 
                     // --- DEBUG STEP 5: How many results did Realm return BEFORE sorting? ---
-                    Debug.WriteLine($"[DEBUG] Realm Query: Returned {query.Count()} songs for filter '{plan.RqlFilter}'.");
+                    Debug.WriteLine($"[DEBUG] {DateTime.Now} Realm Query: Returned {query.Count()} songs for filter '{plan.RqlFilter}'.");
 
                     if (plan.SortDescriptions.Count>0)
                     {
@@ -328,11 +249,16 @@ _playbackQueueSource.Connect()
 
         // Initial search to populate the list
         _searchQuerySubject.OnNext(""); // Confirmed this should be empty string
-    
+        _logger.LogInformation($"{DateTime.Now}: Calculating ranks using RQL sorting...");
+        // Use a single, large write transaction for performance.
+     
 
-    // Initial search to populate the list
+        //we redid stats so normally it should live update since we used reactive ex
 
-    //FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
+
+        // Initial search to populate the list
+
+        //FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
 
         lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler)
@@ -371,7 +297,8 @@ _playbackQueueSource.Connect()
                }
            })
            .DisposeWith(Disposables);
-        this.lastfmService.Start();
+ 
+
 
 
 
@@ -387,7 +314,95 @@ _playbackQueueSource.Connect()
         //await EnsureAllCoverArtCachedForSongsAsync();
 
 
-        return;
+        // --- STAGE 2: KICK OFF LONG-RUNNING BACKGROUND TASKS ---
+        // We start these tasks on a background thread and DO NOT await them.
+        // This is the "fire and forget" part that prevents UI freeze.
+        _ = PerformBackgroundInitializationAsync();
+
+        // The method can now return immediately, making the UI responsive.
+        return; // Or await Task.CompletedTask; if you prefer
+    }
+
+    /// <summary>
+    /// Contains all long-running, non-essential initialization tasks that can be
+    /// performed in the background without blocking the UI.
+    /// </summary>
+    private async Task PerformBackgroundInitializationAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Starting background initialization tasks...");
+
+            // Task 1: Check for App Updates (Network I/O)
+            var appUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
+            if (appUpdateObj is not null)
+            {
+                // When the background task completes, update UI properties on the main thread.
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    AppUpdateObj = appUpdateObj;
+                    IsAppToDate = false;
+                    _stateService.SetCurrentLogMsg(new AppLogModel
+                    {
+                        Log = $"Update available: {appUpdateObj.title}",
+                    });
+                });
+            }
+
+            var backgroundRealm = RealmFactory.GetRealmInstance();
+
+            // Task 2: Update SearchableText for all songs (Heavy CPU/DB work)
+            _logger.LogInformation("Starting background calculation of SearchableText...");
+            await backgroundRealm.WriteAsync(() =>
+            {
+                var songsToUpdate = backgroundRealm.All<SongModel>();
+                foreach (var song in songsToUpdate)
+                {
+                    if (!song.IsValid)
+                        continue;
+
+                    if (song.UserNotes.Count > 0)
+                    {
+                        song.UserNoteAggregatedText = string.Join(" ", song.UserNotes.Select(n => n.UserMessageText));
+                    }
+                    else
+                    {
+                        song.UserNoteAggregatedText = null;
+                    }
+
+                    if (string.IsNullOrEmpty(song.SearchableText)) // Optimization: only calculate if not already present
+                    {
+                        var sb = new StringBuilder();
+                        sb.Append(song.Title).Append(' ');
+                        sb.Append(song.OtherArtistsName).Append(' ');
+                        sb.Append(song.AlbumName).Append(' ');
+                        sb.Append(song.GenreName).Append(' ');
+                        sb.Append(song.SyncLyrics).Append(' ');
+                        sb.Append(song.UnSyncLyrics).Append(' ');
+                        sb.Append(song.Composer).Append(' ');
+                        sb.Append(song.UserNoteAggregatedText);
+                        song.SearchableText = sb.ToString().ToLowerInvariant();
+                    }
+                }
+            });
+            _logger.LogInformation("Finished calculating SearchableText.");
+
+
+            // Task 3: Recalculate All Statistics (Heavy DB work)
+            _logger.LogInformation("Starting background statistics recalculation...");
+            var redoStats = new StatsRecalculator(backgroundRealm, _logger);
+            await redoStats.RecalculateAllStatistics();
+            _logger.LogInformation("Finished recalculating statistics.");
+
+            // Task 4: Start the Last.fm service and handle its initial auth state
+            lastfmService.Start();
+        }
+        catch (Exception ex)
+        {
+            // CRITICAL: Always have a try-catch in a fire-and-forget method.
+            // An unhandled exception here would crash your app silently.
+            _logger.LogError(ex, "A fatal error occurred during background initialization.");
+        }
     }
     [RelayCommand]
     public void SearchSongSB_TextChanged(string searchText)
@@ -1039,7 +1054,7 @@ _playbackQueueSource.Connect()
     [ObservableProperty] public partial List<string>? SortingModes { get; set; } = new List<string> { "Title", "Artist", "Album", "Duration", "Year" };
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
     [ObservableProperty] public partial string? SelectedSortingMode { get; set; }
-    [ObservableProperty] public partial bool? IsAscending { get; set; }
+    [ObservableProperty] public partial bool IsAscending { get; set; }
     [ObservableProperty]
     public partial SongModelView? SelectedSongForContext { get; set; }
 
@@ -2188,8 +2203,9 @@ _playbackQueueSource.Connect()
     }
 
     [RelayCommand]
-    public void OrderQueueByTitle(bool IsAscending)
+    public void OrderQueueByTitle()
     {
+        var isCurrentAscending = IsAscending;
         if (_playbackQueueSource.Items.Count < 2)
             return;
         var ordered = IsAscending ?
@@ -2197,9 +2213,10 @@ _playbackQueueSource.Connect()
             _playbackQueueSource.Items.OrderByDescending(s => s.Title);
         _playbackQueueSource.Clear();
         _playbackQueueSource.AddRange(ordered);
+        IsAscending = !IsAscending;
     }
     [RelayCommand]
-    public void OrderQueueByArtist(bool IsAscending)
+    public void OrderQueueByArtist()
     {
         if (_playbackQueueSource.Items.Count < 2)
             return;
@@ -2208,10 +2225,11 @@ _playbackQueueSource.Connect()
             _playbackQueueSource.Items.OrderByDescending(s => s.ArtistName);
         _playbackQueueSource.Clear();
         _playbackQueueSource.AddRange(ordered);
+        IsAscending = !IsAscending;
     }
 
     [RelayCommand]
-    public void OrderQueueByAlbum(bool IsAscending)
+    public void OrderQueueByAlbum()
     {
         if (_playbackQueueSource.Items.Count < 2)
             return;
@@ -2220,6 +2238,7 @@ _playbackQueueSource.Connect()
             _playbackQueueSource.Items.OrderByDescending(s => s.AlbumName);
         _playbackQueueSource.Clear();
         _playbackQueueSource.AddRange(ordered);
+        IsAscending = !IsAscending;
     }
 
 

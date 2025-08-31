@@ -1264,6 +1264,12 @@ public partial class HomePage : ContentPage
     {MyViewModel.PlaybackQueueColView = null;
 
     }
+
+    private void SearchBtn_Clicked(object sender, EventArgs e)
+    {
+        MainViewTabView.SelectedItemIndex = 1;
+        SearchBy.Focus();
+    }
 }
 
 

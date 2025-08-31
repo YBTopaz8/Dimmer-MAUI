@@ -935,7 +935,15 @@ Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}" />
                         Grid.Column="2" HorizontalOptions="Center" Spacing="10">
 
                     <VerticalStackLayout Spacing="10">
-
+                        <VerticalStackLayout.Resources>
+                            <ResourceDictionary>
+                                <Style TargetType="Button">
+                                    <Setter Property="BorderWidth" Value="1"/>
+                                    <Setter Property="HeightRequest" Value="34"/>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                </Style>
+                            </ResourceDictionary>
+                        </VerticalStackLayout.Resources>
 
                         <Button
                         x:Name="ScrollToSong"
@@ -958,8 +966,6 @@ Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}" />
                         IsVisible="False"
                         WidthRequest="180" />
 
-
-                    <VerticalStackLayout Spacing="10">
 
 
                         <Button
@@ -990,7 +996,30 @@ HeightRequest="50"
 HeightRequest="50"
                         
                         />
-                    </VerticalStackLayout>
+                        <Button Text="Shuffle" BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"
+                            Command="{Binding ToggleShuffleCommand}"
+                            />
+                    <Button Text="G. Album" ToolTipProperties.Text="Group By Album"
+                            Command="{Binding GroupSongsInQueueByAlbumCommand}"
+                          BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"  />
+                    <Button Text="G. Artist" ToolTipProperties.Text="Group By Artist"
+                            Command="{Binding GroupSongsInQueueByArtistCommand}"
+                           BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50" />
+                    <Button Text="G. Genre" ToolTipProperties.Text="Group By Genre"
+                            Command="{Binding GroupSongsInQueueByGenreCommand}"
+                        BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"    />
+                    <Button Text="O. Album" ToolTipProperties.Text="Order By Album"
+                            Command="{Binding OrderQueueByAlbumCommand}"
+                            BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50">
+                        
+                        
+                    </Button>
+                    <Button Text="O. Artist" ToolTipProperties.Text="Order By Artist"
+                          BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"  Command="{Binding OrderQueueByArtistCommand}"
+                            />
+                    <Button Text="O. Title" ToolTipProperties.Text="Order By Title"
+                          BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"  Command="{Binding OrderQueueByTitleCommand}"
+                            />
                 </HorizontalStackLayout>
 
             </Grid>

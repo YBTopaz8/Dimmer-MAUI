@@ -85,7 +85,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         switch (newValue)
         {
             case 0:
-                IsNowPlayingQueue =true;
+                IsNowPlayingQueue =false;
                 NowPlayingUI=false;
                 break;
             case 1:
