@@ -602,7 +602,7 @@ _playbackQueueSource.Connect()
 
         var realm = RealmFactory.GetRealmInstance();
         // Use FirstOrDefault() to be safer and slightly more efficient than .ToList()
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().ToList().FirstOrDefault();
 
             // get last dimmerevent
 
@@ -1110,6 +1110,7 @@ _playbackQueueSource.Connect()
     private IDialogueService _dialogueService;
     protected ILastfmService lastfmService;
 
+    #region lastfm
     [RelayCommand]
     public async Task LoadUserLastFMInfo()
     {
@@ -1275,6 +1276,75 @@ _playbackQueueSource.Connect()
             IsBusy = false;
         }
     }
+    public async Task LoadSelectedSongLastFMData()
+    {
+        if (SelectedSong is not null)
+        {
+            SelectedSongLastFMData = null;
+            CorrectedSelectedSongLastFMData = null;
+
+            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == SelectedSong.Title);
+
+
+            var playEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(res);
+            SelectedSong.PlayEvents=playEvents;
+            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
+
+
+
+            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
+            await LoadSongLastFMData();
+
+        }
+    }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
+
+    public async Task LoadSongLastFMData()
+    {
+        return;
+        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
+        {
+            return;
+        }
+
+
+
+        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        artistName ??=string.Empty;
+        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
+        if (SelectedSongLastFMData is null)
+        {
+            return;
+        }
+        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
+
+    }
+
+    public void LoadSongLastFMMoreData()
+    {
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+
+        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
+        //AllLyricsResultsLrcLib = s.ToObservableCollection();
+
+    }
+
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
+    #endregion
 
     #region audio device management
     public void LoadAllAudioDevices()
@@ -1438,11 +1508,6 @@ _playbackQueueSource.Connect()
     public partial CurrentPage CurrentPageContext { get; set; }
 
     [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
-
-    [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
 
     async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
@@ -1459,65 +1524,11 @@ _playbackQueueSource.Connect()
         //LoadSongLastFMMoreData().ConfigureAwait(false);
 
     }
-    public async Task LoadSelectedSongLastFMData()
-    {
-        if (SelectedSong is not null)
-        {
-            SelectedSongLastFMData = null;
-            CorrectedSelectedSongLastFMData = null;
-
-            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == SelectedSong.Title);
-
-
-            var playEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(res);
-            SelectedSong.PlayEvents=playEvents;
-            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
-
-
-
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
-            await LoadSongLastFMData();
-
-        }
-    }
-    [ObservableProperty]
+   [ObservableProperty]
     public partial Color? SelectedSecondDomColor { get; set; }
     [ObservableProperty]
     public partial byte[]? SelectedSecondSongCoverBytes { get; set; } = Array.Empty<byte>();
-    public async Task LoadSongLastFMData()
-    {
-        return;
-        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
-        {
-            return;
-        }
-
-
-
-        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-        artistName ??=string.Empty;
-        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
-        if (SelectedSongLastFMData is null)
-        {
-            return;
-        }
-        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
-
-    }
-
-    public void LoadSongLastFMMoreData()
-    {
-        if (SelectedSong is null)
-        {
-            return;
-        }
-        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
-
-        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
-        //AllLyricsResultsLrcLib = s.ToObservableCollection();
-
-    }
+ 
     /// <summary>
     /// Updates a single song's artist. It intelligently handles whether the new artist
     /// already exists or needs to be created in the database.
@@ -1634,13 +1645,8 @@ _playbackQueueSource.Connect()
             _logger.LogError(ex, "Failed to update cover image for song '{Title}'", SelectedSong?.Title);
         }
     }
+    [ObservableProperty]
 
-
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
-    [ObservableProperty]
     public partial bool IsSearching { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<LrcLibSearchResult>? AllLyricsResultsLrcLib { get; set; }
@@ -1734,34 +1740,11 @@ _playbackQueueSource.Connect()
     public IObservable<double> AudioEngineVolumeObservable { get; }
 
 
-    #region Subscription Event Handlers (The Reactive Logic)
-
-    [ObservableProperty]
-    public partial string CurrentCoverImagePath { get; set; }
-
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView> AllAvailableArtists { get; set; }
-
-    protected virtual void OnPlaybackStarted(PlaybackEventArgs args)
-    {
-        if (args.MediaSong is null)
-        {
-            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
-            return;
-        }
-        CurrentPlayingSongView.IsCurrentPlayingHighlight=false;
-
-        CurrentPlayingSongView = args.MediaSong;
-        _songToScrobble = CurrentPlayingSongView;
-        CurrentPlayingSongView.IsCurrentPlayingHighlight=true;
-
-
-        _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(RealmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
-        UpdateSongSpecificUi(CurrentPlayingSongView);
-
-
-    }
+    [ObservableProperty]
+    public partial string CurrentCoverImagePath { get; set; }
+  
     private void UpdateSongSpecificUi(SongModelView? song)
     {
         if (song is null)
@@ -1981,6 +1964,27 @@ _playbackQueueSource.Connect()
         CurrentTrackPositionPercentage = (CurrentTrackDurationSeconds > 0 ? (positionSeconds / CurrentTrackDurationSeconds) : 0)*100;
 
     }
+
+    protected virtual void OnPlaybackStarted(PlaybackEventArgs args)
+    {
+        if (args.MediaSong is null)
+        {
+            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
+            return;
+        }
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=false;
+
+        CurrentPlayingSongView = args.MediaSong;
+        _songToScrobble = CurrentPlayingSongView;
+        CurrentPlayingSongView.IsCurrentPlayingHighlight=true;
+
+
+        _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
+        _baseAppFlow.UpdateDatabaseWithPlayEvent(RealmFactory, args.MediaSong, StatesMapper.Map(DimmerPlaybackState.Playing), 0);
+        UpdateSongSpecificUi(CurrentPlayingSongView);
+
+
+    }
     #endregion
     public async Task LogListenEvent()
     {
@@ -2090,12 +2094,13 @@ _playbackQueueSource.Connect()
         }
     }
 
-   
+
     #endregion
-   
-   
+
+
     #region Playback Commands (User Intent)
 
+    #region Queue Manipulation Commands
     [RelayCommand]
     public void AddToNext(IEnumerable<SongModelView>? songs=null)
     {
@@ -2114,13 +2119,109 @@ _playbackQueueSource.Connect()
         {
             insertPos = _playbackQueueSource.Items.Count;
         }
-
-        _playbackQueueSource.InsertRange(songs, insertPos);
+        ClearQueueCommand.Execute(null);
+        _playbackQueueSource.AddRange(songs);
         //AddNextEvent?.Invoke(this, EventArgs.Empty);
 
         
 
     }
+
+    [RelayCommand]
+    public void RemoveRemainingSongsFromQueue()
+    {
+        if (_playbackQueueIndex < 0 || _playbackQueueIndex >= _playbackQueueSource.Items.Count - 1)
+            return;
+        int itemsToRemove = _playbackQueueSource.Items.Count - (_playbackQueueIndex + 1);
+        for (int i = 0; i < itemsToRemove; i++)
+        {
+            _playbackQueueSource.RemoveAt(_playbackQueueSource.Items.Count - 1);
+        }
+    }
+
+
+
+    [RelayCommand]
+    public void GroupSongsInQueueByArtist()
+    {
+        if (_playbackQueueSource.Items.Count < 2)
+            return;
+        var grouped = _playbackQueueSource.Items
+            .OrderBy(s => s.ArtistName)
+            .ThenBy(s => s.AlbumName)
+            .ThenBy(s => s.DiscNumber)
+            .ThenBy(s => s.TrackNumber)
+            .ToList();
+        _playbackQueueSource.Clear();
+        _playbackQueueSource.AddRange(grouped);
+    }
+
+
+    [RelayCommand]
+    public void GroupSongsInQueueByGenre()
+    {
+        if (_playbackQueueSource.Items.Count < 2)
+            return;
+        var grouped = _playbackQueueSource.Items
+            .OrderBy(s => s.GenreName)
+            .ThenBy(s => s.ArtistName)
+            .ThenBy(s => s.AlbumName)
+            .ThenBy(s => s.DiscNumber)
+            .ThenBy(s => s.TrackNumber)
+            ;
+        _playbackQueueSource.Clear();
+        _playbackQueueSource.AddRange(grouped);
+    }
+
+    [RelayCommand]
+    public void GroupSongsInQueueByAlbum()
+    {
+        if (_playbackQueueSource.Items.Count < 2)
+            return;
+        var grouped = _playbackQueueSource.Items
+            .OrderBy(s => s.AlbumName)
+            .ThenBy(s => s.DiscNumber)
+            .ThenBy(s => s.TrackNumber)
+            ;
+        _playbackQueueSource.Clear();
+        _playbackQueueSource.AddRange(grouped);
+    }
+
+    [RelayCommand]
+    public void OrderQueueByTitle(bool IsAscending)
+    {
+        if (_playbackQueueSource.Items.Count < 2)
+            return;
+        var ordered = IsAscending ?
+            _playbackQueueSource.Items.OrderBy(s => s.Title) :
+            _playbackQueueSource.Items.OrderByDescending(s => s.Title);
+        _playbackQueueSource.Clear();
+        _playbackQueueSource.AddRange(ordered);
+    }
+    [RelayCommand]
+    public void OrderQueueByArtist(bool IsAscending)
+    {
+        if (_playbackQueueSource.Items.Count < 2)
+            return;
+        var ordered = IsAscending ?
+            _playbackQueueSource.Items.OrderBy(s => s.ArtistName) :
+            _playbackQueueSource.Items.OrderByDescending(s => s.ArtistName);
+        _playbackQueueSource.Clear();
+        _playbackQueueSource.AddRange(ordered);
+    }
+
+    [RelayCommand]
+    public void OrderQueueByAlbum(bool IsAscending)
+    {
+        if (_playbackQueueSource.Items.Count < 2)
+            return;
+        var ordered = IsAscending ?
+            _playbackQueueSource.Items.OrderBy(s => s.AlbumName) :
+            _playbackQueueSource.Items.OrderByDescending(s => s.AlbumName);
+        _playbackQueueSource.Clear();
+        _playbackQueueSource.AddRange(ordered);
+    }
+
 
     [RelayCommand]
     public void RemoveFromQueue(SongModelView song)
@@ -2174,7 +2275,7 @@ _playbackQueueSource.Connect()
     {
         if (songs == null || !songs.Any())
             return;
-        var songsList = songs.ToList();
+        var songsList = songs;
         foreach (var song in songsList)
         {
             if (_playbackQueueSource.Items.Contains(song))
@@ -2210,7 +2311,7 @@ _playbackQueueSource.Connect()
     }
 
 
-
+    #endregion
     public async Task PlaySong(SongModelView? songToPlay,CurrentPage curPage= CurrentPage.AllSongs, IEnumerable<SongModelView>? songs=null)
     {
         if (songToPlay == null)
@@ -2372,8 +2473,8 @@ _playbackQueueSource.Connect()
         if (IsShuffleActive)
         {
             var songToStartWith = songs.ElementAt(startIndex);
-            var otherSongs = songs.Where(s => s.Id != songToStartWith.Id).ToList();
-            var shuffledSongs = otherSongs.OrderBy(x => _random.Next()).ToList();
+            var otherSongs = songs.Where(s => s.Id != songToStartWith.Id);
+            var shuffledSongs = otherSongs.OrderBy(x => _random.Next());
 
             finalQueue = [songToStartWith, .. shuffledSongs];
             finalStartIndex = 0;
@@ -2391,12 +2492,7 @@ _playbackQueueSource.Connect()
 
 
 
-
-        _playbackQueueSource.Edit(updater =>
-        {
-            updater.Clear();
-            updater.AddRange(finalQueue);
-        });
+        AddToNextCommand.Execute(null);
 
 
         CurrentPlaybackQuery = contextQuery;
@@ -2593,13 +2689,13 @@ _playbackQueueSource.Connect()
     #region Private Playback Helper Methods
 
 
-    private const string LastSessionPlaylistName = "__LastPlaybackSession";
+    private const string LastSessionPlaylistName = "__dimmerSessionPlayback";
 
 
     private void SavePlaybackContext(string query)
     {
-
-        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName);
+        
+        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName+DateTimeOffset.UtcNow);
 
 
         if (existingPlaylist != null && existingPlaylist.QueryText == query)
@@ -3009,6 +3105,9 @@ _playbackQueueSource.Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(line =>
             {
+                // if next line is empty we toggle IsNextLineEmpty to true
+                IsNextLineEmpty = string.IsNullOrWhiteSpace(line?.Text);
+
                 NextLine = line;
             }));
     }
@@ -3080,7 +3179,6 @@ _playbackQueueSource.Connect()
         LatestAppLog=model;
         LatestScanningLog = model.Log;
         _logger.LogInformation("Device Log: {Log}", model.Log);
-        _stateService.SetCurrentLogMsg(model);
     }
 
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
@@ -3157,7 +3255,7 @@ _playbackQueueSource.Connect()
 
 
         var realm = RealmFactory.GetRealmInstance();
-        var artDb = realm.All<ArtistModel>().FirstOrDefault(x => x.Name == result);
+        var artDb = realm.All<ArtistModel>().ToList().FirstOrDefault(x => x.Name == result);
 
         DeviceStaticUtils.SelectedArtistOne = artDb.ToModelView(_mapper);
 
@@ -3208,6 +3306,8 @@ _playbackQueueSource.Connect()
 
     }
 
+    [ObservableProperty]
+    public partial bool IsNextLineEmpty { get; set; }
 
 
     [RelayCommand]
@@ -3407,29 +3507,6 @@ _playbackQueueSource.Connect()
         var endDate = DateTimeOffset.UtcNow;
         var monthStartDate = endDate.AddMonths(-1);
         var yearStartDate = endDate.AddYears(-1);
-
-
-       // TopSongsLastMonth  = allSongs
-       //.OrderByDescending(s => s.PlayCompletedCount)
-       //.Take(topCount)
-       //.ToObservableCollection();
-
-
-       // TopSongsLastMonth = TopStats.GetTopCompletedSongs(allSongs, allEvents, topCount, monthStartDate, endDate).ToObservableCollection();
-       // MostSkippedSongs = TopStats.GetTopSkippedSongs(allSongs, allEvents, topCount).ToObservableCollection();
-       // ArtistsByHighestSkipRate = TopStats.GetArtistsByHighestSkipRate(allEvents, allSongs, topCount).ToObservableCollection();
-       // TopBurnoutSongs = TopStats.GetTopBurnoutSongs(allEvents, allSongs, topCount).ToObservableCollection();
-       // TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(allEvents, allSongs, topCount).ToObservableCollection();
-       // TopArtistsByVariety = TopStats.GetTopArtistsBySongVariety(allEvents, allSongs, topCount).ToObservableCollection();
-       // TopGenresByListeningTime = TopStats.GetTopGenresByListeningTime(allEvents, allSongs, topCount).ToObservableCollection();
-
-
-       // OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(allEvents, allSongs).ToObservableCollection();
-       // DeviceUsageByTopArtists = TopStats.GetDeviceUsageByTopArtists(allEvents, allSongs, 5).ToObservableCollection();
-       // GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(allEvents, allSongs).ToObservableCollection();
-       // DailyListeningTimeRange = ChartSpecificStats.GetDailyListeningTimeRange(allEvents, allSongs, monthStartDate, endDate).ToObservableCollection();
-       // SongProfileBubbleChart = ChartSpecificStats.GetSongProfileBubbleChartData(allEvents, allSongs).ToObservableCollection();
-       // DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(allEvents, allSongs, monthStartDate, endDate).ToObservableCollection();
 
 
 
@@ -3909,6 +3986,17 @@ _playbackQueueSource.Connect()
     }
 
     [RelayCommand]
+    public void RefreshSongMissingMetaDataWithSourceAsFile(SongModelView? song)
+    {
+        if (song is null)
+            return;
+
+        ApplyGenreToSongsAsync();
+
+    }
+
+
+    [RelayCommand]
     private async Task ValidateSongAsync(SongModelView song)
     {
         if (IsCheckingFilePresence)
@@ -4342,7 +4430,12 @@ _playbackQueueSource.Connect()
 
         await realm.WriteAsync(() =>
         {
-            var genre = realm.All<GenreModel>().FirstOrDefault(g => g.Name == genreName)
+
+            //search realm using RQL directly. its fast and safe
+            //var RQL
+
+
+            var genre = realm.All<GenreModel>().ToList().FirstOrDefault(g => g.Name == genreName)
                         ?? new GenreModel { Name = genreName };
 
             var songsInDb = realm.All<SongModel>().Where(s => songIds.Contains(s.Id));
@@ -5428,4 +5521,3 @@ public enum CollectionViewMode
     List,
     Grid
 }
-#endregion

@@ -50,7 +50,6 @@ global using Dimmer.DimmerLive;
 global using Dimmer.DimmerLive.Interfaces;
 global using MongoDB.Bson;
 
-global using Dimmer.Utilities.FileProcessorUtils;
 
 global using Dimmer.Interfaces.Services;
 global using System.Text;

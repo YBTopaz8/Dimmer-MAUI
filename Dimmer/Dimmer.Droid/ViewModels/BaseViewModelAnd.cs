@@ -1,6 +1,8 @@
 ﻿
 //using System.Reactive.Linq;
 
+using Android.Text;
+
 using AndroidX.Lifecycle;
 
 using CommunityToolkit.Maui.Core.Extensions;
@@ -12,9 +14,9 @@ using Dimmer.Data.Models;
 using Dimmer.DimmerLive;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
-using Dimmer.Utilities.FileProcessorUtils;
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewModel;
 
@@ -805,5 +807,20 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private void TriggerMiniPlayerGlowAnimation()
     {
         //throw new NotImplementedException();
+    }
+
+
+    public async Task ShareSongViewClipboard(SongModelView song)
+    {
+
+        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
+
+        if (byteData.imgBytes != null)
+        {
+            string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
+
+             await Clipboard.Default.SetTextAsync(clipboardText);
+
+        }
     }
 }
