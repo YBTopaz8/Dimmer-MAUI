@@ -33,7 +33,7 @@
                     <Grid
                                                 BackgroundColor="Transparent"
                                                 RowDefinitions="60" ColumnSpacing="1"
-                                                ColumnDefinitions="auto,*,auto"
+                                                ColumnDefinitions="70,*,auto"
                                                 
                                                 VerticalOptions="Center">
                         <syncf:SfEffectsView Grid.Column="0"
@@ -60,8 +60,8 @@ Value="False">
                             <dx:DXBorder CornerRadius="15" 
                                                              BorderThickness="2">
 
-                                <Image  
-                                                         
+                                <dx:DXImage  Aspect="AspectFill"
+                                               
                                                Source="{Binding CoverImagePath}"/>
 
                             </dx:DXBorder>
@@ -277,7 +277,8 @@ Value="False">
                     <Grid Grid.Row="0">
 
                         <dx:DXExpander 
-                            IsExpanded="{Binding NowPlayingUI, Converter={converters:BoolToInverseConverter}}"
+                            IsExpanded="{Binding 
+                IsNowAllSongsQueue}"
 xmlns:dx="http://schemas.devexpress.com/maui"
 xmlns:helper="clr-namespace:Dimmer.Utils.AnimsStatics"
 xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -1320,7 +1321,7 @@ FontAttributes="Bold"                                                        Hor
 
                     <dx:DXExpander
                         x:Name="BtmBarExp" BackgroundColor="Transparent"
-                        IsExpanded="{Binding IsNowPlayingQueue}"
+                        IsExpanded="{Binding NowPlayingUI,Converter={converters:BoolToInverseConverter}}"
                         Grid.Row="2" 
                         VerticalOptions="End"
                         >

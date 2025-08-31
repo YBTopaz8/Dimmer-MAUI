@@ -85,15 +85,20 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         switch (newValue)
         {
             case 0:
-                IsNowPlayingQueue =false;
+                IsNowPlayingQueue =true;
+
+                IsNowAllSongsQueue=false;
                 NowPlayingUI=false;
                 break;
             case 1:
-                IsNowPlayingQueue =true;
-                NowPlayingUI=false;
+                IsNowPlayingQueue =false;
+                IsNowAllSongsQueue=true;
+                NowPlayingUI =false;
                 break;
             case 2:
                 IsNowPlayingQueue =false;
+
+                IsNowAllSongsQueue=false;
                 NowPlayingUI=true;
                 break;
             default:
@@ -102,6 +107,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
     [ObservableProperty]
     public partial bool IsNowPlayingQueue { get; set; }
+    [ObservableProperty]
+    public partial bool IsNowAllSongsQueue { get; set; }
     partial void OnNowPlayingQueueItemSpanChanged(int oldValue, int newValue)
     {
         // Handle any additional logic when NowPlayingQueueItemSpan changes, if needed.
