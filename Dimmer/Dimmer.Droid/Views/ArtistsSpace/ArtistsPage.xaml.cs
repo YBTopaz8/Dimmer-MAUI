@@ -200,7 +200,7 @@ public partial class ArtistsPage : ContentPage
         // Optional: Scroll to top after sorting
         // if (SongsColView.CurrentItems.Count > 0)
         // {
-        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
+        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.StartAsync, true);
         // }
     }
 

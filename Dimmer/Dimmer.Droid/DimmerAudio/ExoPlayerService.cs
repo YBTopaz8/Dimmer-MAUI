@@ -646,7 +646,7 @@ public class ExoPlayerService : MediaSessionService
         {
 
         }
-
+        
         public void OnMediaItemTransition(MediaItem? mediaItem, int reason)
         {
             // This is vital for playlists. When a song finishes and the next one starts automatically...
@@ -659,6 +659,7 @@ public class ExoPlayerService : MediaSessionService
                 // Find the full song details from a repository or a cached list
                 // SongModelView newSongContext = MySongRepository.GetById(mediaItem.MediaId);
                 // service.CurrentSongContext = newSongContext;
+                
                 service.player?.Stop();
                 service.RaisePlayingEnded();
                 Console.WriteLine($"[ExoPlayerService] MediaItemTransition: {mediaItem.MediaId} Reason={reason}");
@@ -837,8 +838,8 @@ public class ExoPlayerService : MediaSessionService
         public bool IsDeviceMuted { get => _realPlayer.DeviceMuted; set => _realPlayer.DeviceMuted = value; }
         public int DeviceVolume { get => _realPlayer.DeviceVolume; set => _realPlayer.DeviceVolume = value; }
         public long Duration => _realPlayer.Duration;
-        [System.Obsolete] public bool HasNext => _realPlayer.HasNext;
-        [System.Obsolete] public bool HasNextWindow => _realPlayer.HasNextWindow;
+        //[System.Obsolete] public bool HasNext => _realPlayer.HasNext;
+        //[System.Obsolete] public bool HasNextWindow => _realPlayer.HasNextWindow;
         public bool IsCurrentMediaItemDynamic => _realPlayer.IsCurrentMediaItemDynamic;
         public bool IsCurrentMediaItemLive => _realPlayer.IsCurrentMediaItemLive;
         public bool IsCurrentMediaItemSeekable => _realPlayer.IsCurrentMediaItemSeekable;
@@ -912,7 +913,7 @@ public class ExoPlayerService : MediaSessionService
 
         public void MoveMediaItem(int currentIndex, int newIndex) => _realPlayer.MoveMediaItem(currentIndex, newIndex);
         public void MoveMediaItems(int fromIndex, int toIndex, int newIndex) => _realPlayer.MoveMediaItems(fromIndex, toIndex, newIndex);
-        [System.Obsolete] public void Next() => _realPlayer.Next();
+        //[System.Obsolete] public void Next() => _realPlayer.Next();
         public void Pause() => _realPlayer.Pause();
         public void Play() => _realPlayer.Play();
         public void Prepare() => _realPlayer.Prepare();
@@ -930,10 +931,10 @@ public class ExoPlayerService : MediaSessionService
         public void SeekToDefaultPosition(int mediaItemIndex) => _realPlayer.SeekToDefaultPosition(mediaItemIndex);
         public void SeekToNext() => _realPlayer.SeekToNext();
         public void SeekToNextMediaItem() => _realPlayer.SeekToNextMediaItem();
-        [System.Obsolete] public void SeekToNextWindow() => _realPlayer.SeekToNextWindow();
+        //[System.Obsolete] public void SeekToNextWindow() => _realPlayer.SeekToNextWindow();
         public void SeekToPrevious() => _realPlayer.SeekToPrevious();
         public void SeekToPreviousMediaItem() => _realPlayer.SeekToPreviousMediaItem();
-        [System.Obsolete] public void SeekToPreviousWindow() => _realPlayer.SeekToPreviousWindow();
+        //[System.Obsolete] public void SeekToPreviousWindow() => _realPlayer.SeekToPreviousWindow();
         public void SetAudioAttributes(AudioAttributes? attrs, bool handleAudioFocus) => _realPlayer.SetAudioAttributes(attrs, handleAudioFocus);
         //[System.Obsolete] public void SetDeviceMuted(bool muted) => _realPlayer.SetDeviceMuted(muted);
         public void SetDeviceMuted(bool muted, int flags) => _realPlayer.SetDeviceMuted(muted, flags);

@@ -335,7 +335,7 @@ public partial class UserNoteModelView : ObservableObject
 //    public int TimestampMs { get; set; }
 //    public string? Text { get; set; }
 //    /// <summary>
-//    /// Start timestamp of the phrase, in milliseconds
+//    /// StartAsync timestamp of the phrase, in milliseconds
 //    /// </summary>
 //    public int TimestampStart { get; }
 //    /// <summary>

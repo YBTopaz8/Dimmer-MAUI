@@ -86,7 +86,7 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
             .DisposeWith(_disposables);
 
       
-        // Start chat listeners automatically
+        // StartAsync chat listeners automatically
         //_chatService.StartListeners();
     }
     [RelayCommand]

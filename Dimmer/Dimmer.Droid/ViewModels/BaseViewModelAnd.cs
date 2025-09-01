@@ -32,13 +32,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
     public LoginViewModel LoginViewModel => _loginViewModel;
     private readonly LoginViewModel _loginViewModel;
-    public readonly IMapper _mapper;
     private readonly IAppInitializerService appInitializerService;
-    protected readonly IDimmerStateService _stateService;
-    protected readonly ISettingsService _settingsService;
-    protected readonly SubscriptionManager _subsManager;
-    protected readonly IFolderMgtService _folderMgtService;
-    protected readonly ILogger<BaseViewModel> _logger;
     private readonly IDimmerAudioService audioService;
 
     // _subs is inherited from BaseViewModel as _subsManager and should be used for subscriptions here too

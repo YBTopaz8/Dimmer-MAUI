@@ -705,7 +705,7 @@ public static class TopStats
 
             Name = "Longest Streak",
             Count = longestStreak,
-            Date = streakStartDate, // Start of the best streak
+            Date = streakStartDate, // StartAsync of the best streak
             DateValue = streakEndDate,   // End of the best streak
             StatTitle = $"Listened {longestStreak} day{plural}  in a row."
         };

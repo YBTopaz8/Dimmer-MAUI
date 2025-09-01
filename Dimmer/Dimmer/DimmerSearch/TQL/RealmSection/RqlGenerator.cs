@@ -190,7 +190,7 @@ public static class RqlGenerator
       
         if (start == DateTimeOffset.MinValue && DateTimeOffset.TryParse(value, out var singleDate))
         {
-            start = singleDate.Date; // Start of the day
+            start = singleDate.Date; // StartAsync of the day
             end = start.AddDays(1).AddTicks(-1); // End of the day
         }
 

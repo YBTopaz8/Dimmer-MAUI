@@ -52,11 +52,11 @@ public static class MauiProgram
                          method: (handler, view) =>
                          {
                              return;
+                                 
                              // The 'view' is the cross-platform Button control.
                              if (view is Button button)
                              {
 
-                                 
                                  // --- PREVENT DUPLICATES ---
                                  // This is an important check to ensure we don't add the behavior
                                  // multiple times if the handler's logic re-runs for the same control.

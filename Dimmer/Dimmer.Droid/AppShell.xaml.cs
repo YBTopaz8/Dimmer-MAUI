@@ -26,6 +26,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
         Routing.RegisterRoute(nameof(PlayHistoryPage), typeof(PlayHistoryPage));
         Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
+        Routing.RegisterRoute(nameof(AlbumPage), typeof(AlbumPage));
+        Routing.RegisterRoute(nameof(DimmerVault), typeof(DimmerVault));
     }
 
     protected async override void OnAppearing()

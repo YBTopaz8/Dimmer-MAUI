@@ -125,18 +125,37 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsAppToDate { get; set; }
 
+    Timer? _bootTimer;
     public void InitializeAllVMCoreComponentsAsync()
     {
+        // i need a time to see how long this takes
+
+        var startTime = DateTime.Now;
+
+
+
+        Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
         realm=RealmFactory.GetRealmInstance();
 
+        _ = Task.Run(async () =>
+        {
+            // 1. Set up watchers immediately (this is now fast)
+            await _folderMgtService.StartWatchingConfiguredFoldersAsync();
 
-      
-            _folderMgtService.StartWatchingConfiguredFolders();
-        
+            // 2. Perform the slow initial scan in the background
+            var folders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
+            if (folders.Any())
+            {
+              _=  await libService.ScanLibrary(folders);
+            }
+        });
 
-//SubscribeToCommandEvaluatorEvents();
 
-_playbackQueueSource.Connect()
+        Debug.WriteLine($"{DateTime.Now}: Folder monitoring started.");
+
+        //SubscribeToCommandEvaluatorEvents();
+
+        _playbackQueueSource.Connect()
     .ObserveOn(RxApp.MainThreadScheduler)
     .Bind(out _playbackQueue)
     .Subscribe( x =>
@@ -146,7 +165,7 @@ _playbackQueueSource.Connect()
 
     .DisposeWith(Disposables);
 
-
+        Debug.WriteLine($"{DateTime.Now}: Playback queue subscription set up.");
 
 
         _searchQuerySubject
@@ -164,6 +183,7 @@ _playbackQueueSource.Connect()
 
                 return (Query: tqlQuery, Plan: plan);
             })
+            .SubscribeOn(RxApp.TaskpoolScheduler)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(payload =>
             {
@@ -247,6 +267,7 @@ _playbackQueueSource.Connect()
         })
         .DisposeWith(Disposables);
 
+        Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
         // Initial search to populate the list
         _searchQuerySubject.OnNext(""); // Confirmed this should be empty string
@@ -260,6 +281,8 @@ _playbackQueueSource.Connect()
         // Initial search to populate the list
 
         //FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
+
+        Debug.WriteLine($"{DateTime.Now}: Loading user settings...");
 
         lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler)
@@ -315,10 +338,16 @@ _playbackQueueSource.Connect()
         //await EnsureAllCoverArtCachedForSongsAsync();
 
 
+        Debug.WriteLine($"{DateTime.Now}: Subscriptions to services set up.");
         // --- STAGE 2: KICK OFF LONG-RUNNING BACKGROUND TASKS ---
         // We start these tasks on a background thread and DO NOT await them.
         // This is the "fire and forget" part that prevents UI freeze.
         _ = PerformBackgroundInitializationAsync();
+
+        var endTime = DateTime.Now;
+        var duration = endTime - startTime;
+        Debug.WriteLine($"{DateTime.Now}: Finished InitializeAllVMCoreComponentsAsync in {duration.TotalSeconds} seconds.");
+
 
         // The method can now return immediately, making the UI responsive.
         return; // Or await Task.CompletedTask; if you prefer
@@ -335,20 +364,20 @@ _playbackQueueSource.Connect()
             _logger.LogInformation("Starting background initialization tasks...");
 
             // Task 1: Check for App Updates (Network I/O)
-            var appUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
-            if (appUpdateObj is not null)
-            {
-                // When the background task completes, update UI properties on the main thread.
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    AppUpdateObj = appUpdateObj;
-                    IsAppToDate = false;
-                    _stateService.SetCurrentLogMsg(new AppLogModel
-                    {
-                        Log = $"Update available: {appUpdateObj.title}",
-                    });
-                });
-            }
+            //var appUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
+            //if (appUpdateObj is not null)
+            //{
+            //    // When the background task completes, update UI properties on the main thread.
+            //    MainThread.BeginInvokeOnMainThread(() =>
+            //    {
+            //        AppUpdateObj = appUpdateObj;
+            //        IsAppToDate = false;
+            //        _stateService.SetCurrentLogMsg(new AppLogModel
+            //        {
+            //            Log = $"Update available: {appUpdateObj.title}",
+            //        });
+            //    });
+            //}
 
             var backgroundRealm = RealmFactory.GetRealmInstance();
 
@@ -389,13 +418,14 @@ _playbackQueueSource.Connect()
             _logger.LogInformation("Finished calculating SearchableText.");
 
 
-            // Task 3: Recalculate All Statistics (Heavy DB work)
-            _logger.LogInformation("Starting background statistics recalculation...");
-            var redoStats = new StatsRecalculator(backgroundRealm, _logger);
-            await redoStats.RecalculateAllStatistics();
-            _logger.LogInformation("Finished recalculating statistics.");
+            //// Task 3: Recalculate All Statistics (Heavy DB work)
+            //_logger.LogInformation("Starting background statistics recalculation...");
+            //var redoStats = new StatsRecalculator(backgroundRealm, _logger);
+            //await redoStats.RecalculateAllStatistics();
+            //_logger.LogInformation("Finished recalculating statistics.");
 
-            // Task 4: Start the Last.fm service and handle its initial auth state
+
+            // Task 4: StartAsync the Last.fm service and handle its initial auth state
             lastfmService.Start();
         }
         catch (Exception ex)

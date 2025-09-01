@@ -5,6 +5,9 @@ using Dimmer.Utils.CustomHandlers.CollectionView;
 using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
 
+using Microsoft.Maui.LifecycleEvents;
+
+
 namespace Dimmer;
 
 public static class MauiProgram
@@ -23,11 +26,13 @@ public static class MauiProgram
                       //.AddAppAction("browse_audio", "Browse Audio Files", icon: "browse_action_icon")
                       //.AddAppAction("app_settings", "App Settings", subtitle: "Configure preferences")
                       .OnAppAction(MainApplication.HandleAppAction);
+                  
               })
             .UseDevExpress(useLocalization: false)
             .UseDevExpressCollectionView()
             .UseMauiCommunityToolkit(options =>
             {
+                options.SetShouldEnableSnackbarOnWindows(true);
                 options.SetShouldSuppressExceptionsInAnimations(true);
                 options.SetShouldSuppressExceptionsInBehaviors(true);
                 options.SetShouldSuppressExceptionsInConverters(true);
@@ -67,8 +72,67 @@ public static class MauiProgram
         {
             handlers.AddHandler<Shell, MyShellRenderer>();
             handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
+
+            
+            Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
+            key: "AddGlobalTouchBehavior",
+            method: (handler, view) =>
+            {
+                if (view is Android.Widget.Button button)
+                {
+                    
+                }
+            });
+
+            Microsoft.Maui.Handlers.ProgressBarHandler.Mapper.AppendToMapping(
+                key: "CustomProgressBar",
+                method: (handler, view) =>
+                {
+                    if (view is Microsoft.Maui.Controls.ProgressBar customProgressBar)
+                    {
+                        
+                        
+                        // Customize the ProgressBar here
+                        // For example, set a custom drawable or color
+                        // handler.PlatformView.ProgressDrawable = ...;
+                    }
+                });
         });
-        builder.Services.AddSingleton<PlayerViewModel>();
+        builder.ConfigureLifecycleEvents(events =>
+        {
+            events.AddAndroid(android =>
+            {
+                android.OnCreate((activity, bundle) =>
+                {
+                    // Handle OnCreate event
+                    // You can access the activity and bundle parameters here
+                });
+                android.OnStart((activity) =>
+                {
+                    // Handle OnStart event
+                });
+                android.OnResume((activity) =>
+                {
+                    // Handle OnResume event
+                });
+                android.OnPause((activity) =>
+                {
+                    // Handle OnPause event
+                });
+                android.OnStop((activity) =>
+                {
+                    // Handle OnStop event
+                });
+                android.OnDestroy((activity) =>
+                {
+                    // Handle OnDestroy event
+                });
+            });
+
+     
+
+        });
+            builder.Services.AddSingleton<PlayerViewModel>();
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
         return builder.Build();

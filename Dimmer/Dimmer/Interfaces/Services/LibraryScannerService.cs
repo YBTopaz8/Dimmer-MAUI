@@ -45,7 +45,7 @@ public class LibraryScannerService : ILibraryScannerService
         _coverArtService = new CoverArtService(_config);
     }
 
-    public async Task<LoadSongsResult>? ScanLibrary(List<string>? folderPaths)
+    public async Task<LoadSongsResult> ScanLibrary(List<string>? folderPaths)
     {
         try
         {

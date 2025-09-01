@@ -1,5 +1,6 @@
 using CommunityToolkit.Maui.Behaviors;
 
+using DevExpress.Android.Navigation;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.Editors;
@@ -51,9 +52,8 @@ public partial class HomePage : ContentPage
         base.OnAppearing();
         MyViewModel.MyHomePage = this;
         //MyViewModel.MyHomePage.pla
-        MyViewModel.ResetSearch();
-        
-        MainViewTabView.SelectedItemIndex = 1;
+
+        MainViewTabView.SelectedItemIndex = 0;
         //MyViewModel.FiniInit();
 
         ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
@@ -121,7 +121,7 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
     }
 
-    private  void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    private void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         //AndroidTransitionHelper.BeginMaterialContainerTransform(this.RootLayout, HomeView, DetailView);
         //HomeView.IsVisible=false;
@@ -147,7 +147,7 @@ public partial class HomePage : ContentPage
         // Optional: Scroll to top after sorting
         // if (SongsColView.CurrentItems.Count > 0)
         // {
-        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.Start, true);
+        //     SongsColView.ScrollTo(songs.FirstOrDefault(), ScrollToPosition.StartAsync, true);
         // }
     }
 
@@ -191,7 +191,7 @@ public partial class HomePage : ContentPage
 
         listt.Add(song);
 
-        MyViewModel.AddToPlaylist("Playlists", listt,MyViewModel.CurrentTqlQuery);
+        MyViewModel.AddToPlaylist("Playlists", listt, MyViewModel.CurrentTqlQuery);
     }
 
     private void CloseNowPlayingQueue_Tap(object sender, HandledEventArgs e)
@@ -557,7 +557,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private  void am_DoubleTap(object sender, HandledEventArgs e)
+    private void am_DoubleTap(object sender, HandledEventArgs e)
     {
         //await BelowBtmBar.DimmOutCompletelyAndHide();
     }
@@ -592,7 +592,7 @@ public partial class HomePage : ContentPage
     private bool SwitchUINowPlayingOrNot()
     {
 
-      
+
 
 
         return true;
@@ -730,15 +730,6 @@ public partial class HomePage : ContentPage
     }
 
 
-
-    private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)
-    {
-
-
-        this.TopBeforeColView.IsExpanded = !this.TopBeforeColView.IsExpanded;
-
-    }
-
     private void MainViewExpander_ViewSongOnlyEvt(object sender, EventArgs e)
     {
 
@@ -759,7 +750,7 @@ public partial class HomePage : ContentPage
         _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
         _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
         //MyViewModel
-    
+
     }
 
     private void TopBeforeColView_Unloaded(object sender, EventArgs e)
@@ -778,57 +769,7 @@ public partial class HomePage : ContentPage
 
     private CancellationTokenSource _lyricsCts;
     private bool _isLyricsProcessing = false;
-    private async void RefreshLyrics_Clicked(object sender, EventArgs e)
-    {
-        if (_isLyricsProcessing)
-        {
-            // Optionally, offer to cancel the running process
-            bool cancel = await Shell.Current.DisplayAlert("Processing...", "Lyrics are already being processed. Cancel the current operation?", "Yes, Cancel", "No");
-            if (cancel)
-            {
-                _lyricsCts?.Cancel();
-            }
-            return;
-        }
 
-        _isLyricsProcessing = true;
-        MyProgressBar.IsVisible = true; // Show a progress bar
-        MyProgressLabel.IsVisible = true; // Show a label
-
-        // Create a new CancellationTokenSource for this operation
-        _lyricsCts = new CancellationTokenSource();
-
-        // The IProgress<T> object automatically marshals calls to the UI thread.
-        var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
-        {
-            // This code runs on the UI thread safely!
-            MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
-            MyProgressLabel.Text = $"Processing: {progress.CurrentFile}";
-        });
-
-        try
-        {
-
-            await MyViewModel.LoadSongDataAsync(progressReporter, _lyricsCts);
-            await Shell.Current.DisplayAlert("Complete", "Lyrics processing finished!", "OK");
-
-        }
-        catch (OperationCanceledException)
-        {
-            await Shell.Current.DisplayAlert("Cancelled", "The operation was cancelled.", "OK");
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Error", $"An unexpected error occurred: {ex.Message}", "OK");
-        }
-        finally
-        {
-            // Clean up and hide UI elements
-            _isLyricsProcessing = false;
-            MyProgressBar.IsVisible = false;
-            MyProgressLabel.IsVisible = false;
-        }
-    }
     private void BtmBar_RequestFocusOnMainView(object sender, EventArgs e)
     {
         //if (!TopBeforeColView.IsExpanded)
@@ -844,13 +785,8 @@ public partial class HomePage : ContentPage
         //}
     }
 
-    private  void OpenDevExpressFilter_Tap(object sender, HandledEventArgs e)
-    {
-        //myPageSKAV.IsOpened = !myPageSKAV.IsOpened;
-        SearchBy.Unfocus();
-        //await OpenedKeyboardToolbar.DimmOutCompletelyAndHide();
+ 
 
-    }
     private void SearchBy_Focused(object sender, FocusEventArgs e)
     {
         MainViewTabView.SelectedItemIndex = 1;
@@ -858,7 +794,7 @@ public partial class HomePage : ContentPage
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
         //int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-        //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+        //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.StartAsync);
 
     }
     private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)
@@ -903,7 +839,7 @@ public partial class HomePage : ContentPage
 
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
-        if(MainViewTabView.SelectedItemIndex != 1)
+        if (MainViewTabView.SelectedItemIndex != 1)
         {
             MainViewTabView.SelectedItemIndex=1;
         }
@@ -920,7 +856,7 @@ public partial class HomePage : ContentPage
     }
 
 
-  
+
     public event EventHandler? ViewSongOnlyEvt;
     //private void ViewSongOnly_TouchDown(object sender, EventArgs e)
     //{
@@ -1090,7 +1026,7 @@ public partial class HomePage : ContentPage
                     {
                         try
                         {
-                            if(MyViewModel.CurrentPlayingSongView.Title is not null)
+                            if (MyViewModel.CurrentPlayingSongView.Title is not null)
                             {
 
                                 MainThread.BeginInvokeOnMainThread(() =>
@@ -1241,7 +1177,7 @@ public partial class HomePage : ContentPage
         var send = (View)sender;
         var song = send.BindingContext as SongModelView;
 
-        await  MyViewModel.LoadSongDominantColorIfNotYetDoneAsync(song);
+        await MyViewModel.LoadSongDominantColorIfNotYetDoneAsync(song);
 
         TouchBehavior tch = new TouchBehavior()
         {
@@ -1256,12 +1192,13 @@ public partial class HomePage : ContentPage
 
     private void PlaybackQueueColView_Loaded(object sender, EventArgs e)
     {
-        MyViewModel.PlaybackQueueColView = this.PlaybackQueueColView;
-        
+        //MyViewModel.PlaybackQueueColView = this.PlaybackQueueColView;
+
     }
 
     private void PlaybackQueueColView_Unloaded(object sender, EventArgs e)
-    {MyViewModel.PlaybackQueueColView = null;
+    {
+        MyViewModel.PlaybackQueueColView = null;
 
     }
 
@@ -1270,8 +1207,63 @@ public partial class HomePage : ContentPage
         MainViewTabView.SelectedItemIndex = 1;
         SearchBy.Focus();
     }
-}
 
+    private void TapGestureRecognizer_Tapped_1(object sender, TappedEventArgs e)
+    {
+
+    }
+
+    private async void NavToSong_Tapped(object sender, TappedEventArgs e)
+    {
+        var song = e.Parameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        MyViewModel.SelectedSong = song;
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
+    }
+
+    private async void NavToArtist_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Chip)sender;
+        var song = send.TapCommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
+
+    }
+
+    private async void NavToAlbum_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Chip)sender;
+        var song = send.TapCommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        var val = song.AlbumName;
+        if (string.IsNullOrWhiteSpace(val))
+            return; // No album to show
+        await Shell.Current.GoToAsync(nameof(AlbumPage), true);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+    }
+
+    private void MainViewTabView_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void MainViewTabView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+}
 
 
 

@@ -39,7 +39,7 @@ public partial class LyricPhraseModelView : ObservableObject
     public partial bool IsVisible { get; set; } = true;
 
     /// <summary>
-    /// Start timestamp of the phrase, in milliseconds
+    /// StartAsync timestamp of the phrase, in milliseconds
     /// </summary>
     [ObservableProperty]
     public partial int TimestampStart { get; set; }

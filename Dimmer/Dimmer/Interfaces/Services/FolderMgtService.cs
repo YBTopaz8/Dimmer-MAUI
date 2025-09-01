@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 // Add other necessary using statements
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using System.Threading.Tasks;
 
 namespace Dimmer.Interfaces.Services;
 
@@ -42,7 +43,7 @@ public class FolderMgtService : IFolderMgtService
 
     public IObservable<IReadOnlyList<FolderModel>> AllWatchedFolders => _allFoldersBehaviorSubject.AsObservable();
 
-    public void StartWatchingConfiguredFolders()
+    public async Task StartWatchingConfiguredFoldersAsync()
     {
         if (_isCurrentlyWatching)
         {
@@ -69,12 +70,12 @@ public class FolderMgtService : IFolderMgtService
 
 
         _folderMonitor.OnCreated += HandleFileOrFolderCreated;
-        ;
+        _folderMonitor.OnRenamed += HandleFileOrFolderRenamed;
         _folderMonitor.OnDeleted += HandleFileOrFolderDeleted;
         _folderMonitor.OnChanged += HandleFileOrFolderChanged;
-        _folderMonitor.OnRenamed += HandleFileOrFolderRenamed;
 
-        _folderMonitor.Start(foldersToWatchPaths);
+
+        await _folderMonitor.StartAsync(foldersToWatchPaths);
         _isCurrentlyWatching = true;
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderWatchStarted, null, null, null));
     }
@@ -113,7 +114,7 @@ public class FolderMgtService : IFolderMgtService
         if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
         {
 
-            StartWatchingConfiguredFolders();
+           await StartWatchingConfiguredFoldersAsync();
             _settingsService.AddMusicFolder(path);
         }
 
@@ -126,30 +127,31 @@ public class FolderMgtService : IFolderMgtService
         await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false);
     }
 
-    public void AddManyFoldersToWatchListAndScan(List<string> paths)
+    public async void AddManyFoldersToWatchListAndScan(List<string> paths)
     {
+        var newPathsToAdd = new List<string>();
         foreach (var path in paths)
         {
-
             if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
             {
-
-                StartWatchingConfiguredFolders();
                 _settingsService.AddMusicFolder(path);
+                newPathsToAdd.Add(path);
             }
-
-            _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
-
-
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));
-
-            _logger.LogInformation("Triggering scan for newly added folder: {Path}", path);
         }
-        Task.Run(async () => await _libraryScanner.ScanSpecificPaths(paths , isIncremental: false));
-    
 
+        if (newPathsToAdd.Any())
+        {
+            _logger.LogInformation("Adding {Count} new folders to watch list.", newPathsToAdd.Count);
+
+            // 1. Restart the watcher ONCE with the full new list of folders.
+          await  StartWatchingConfiguredFoldersAsync();
+
+            // 2. Scan all newly added paths in a single operation.
+            _logger.LogInformation("Triggering scan for newly added folders.");
+            await _libraryScanner.ScanSpecificPaths(newPathsToAdd, isIncremental: false);
+        }
     }
-    public void RemoveFolderFromWatchListAsync(string path)
+    public async Task RemoveFolderFromWatchListAsync(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
             return;
@@ -158,7 +160,7 @@ public class FolderMgtService : IFolderMgtService
         if (removed)
         {
             _logger.LogInformation("Removed folder from watch list and settings: {Path}", path);
-            StartWatchingConfiguredFolders();
+          await  StartWatchingConfiguredFoldersAsync();
 
 
             _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, path, null, null));
@@ -169,7 +171,7 @@ public class FolderMgtService : IFolderMgtService
 
             _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
             var remainingFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-            Task.Run(async () => await _libraryScanner.ScanLibrary(remainingFolders));
+            await _libraryScanner.ScanLibrary(remainingFolders);
         }
         else
         {
@@ -177,33 +179,41 @@ public class FolderMgtService : IFolderMgtService
         }
     }
 
-    public void ClearAllWatchedFoldersAndRescanAsync()
+    public async Task ClearAllWatchedFoldersAndRescanAsync()
     {
         _logger.LogInformation("Clearing all watched folders and settings.");
         _settingsService.ClearAllFolders();
-        StartWatchingConfiguredFolders();
+       await StartWatchingConfiguredFoldersAsync();
 
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));
 
         _logger.LogInformation("Triggering library scan with empty folder list (to clear library).");
-        _libraryScanner.ScanLibrary(new List<string>());
+        await _libraryScanner.ScanLibrary(new List<string>());
     }
 
 
     private async void HandleFileOrFolderCreated(FileSystemEventArgs e)
     {
-        _logger.LogDebug("FS Event: Created - {FullPath}", e.FullPath);
-        if (IsRelevantAudioFile(e.FullPath))
+        try
         {
-            _logger.LogInformation("Relevant audio file created: {FilePath}. Triggering incremental scan of parent directory.", e.FullPath);
-            // It's often better to scan the directory in case multiple files were added in quick succession
-            // or if metadata relies on folder structure.
-            await _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
+
+            _logger.LogDebug("FS Event: Created - {FullPath}", e.FullPath);
+            if (IsRelevantAudioFile(e.FullPath))
+            {
+                _logger.LogInformation("Relevant audio file created: {FilePath}. Triggering incremental scan of parent directory.", e.FullPath);
+                // It's often better to scan the directory in case multiple files were added in quick succession
+                // or if metadata relies on folder structure.
+                await _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
+            }
+            else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath))
+            {
+                _logger.LogInformation("New directory created within watched scope: {FolderPath}. Triggering incremental scan.", e.FullPath);
+                await _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true);
+            }
         }
-        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath))
+        catch (Exception ex)
         {
-            _logger.LogInformation("New directory created within watched scope: {FolderPath}. Triggering incremental scan.", e.FullPath);
-           await _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true);
+            Debug.WriteLine(ex.Message);
         }
     }
 

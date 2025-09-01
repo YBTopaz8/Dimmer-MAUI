@@ -54,7 +54,7 @@ public partial class SocialViewModel : ObservableObject, IDisposable
             .Subscribe()
             .DisposeWith(_disposables);
 
-        // Start listening when a user is logged in
+        // StartAsync listening when a user is logged in
         _authService.CurrentUser
             .Where(user => user != null)
             .Subscribe(_ => _friendshipService.StartListeners())
