@@ -2,6 +2,7 @@
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using Dimmer.UIUtils.CustomPopups;
 using Dimmer.Utils;
 
 using DynamicData;
@@ -1336,8 +1337,11 @@ _playbackQueueSource.Connect()
 
     public async Task SaveUserNoteToSong(SongModelView songWithNote)
     {
-        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Note for {Environment.NewLine}" +
-            $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
+        
+
+        var result = await Shell.Current.DisplayPromptAsync("Note Text",
+        message:    $"Note for {Environment.NewLine}" +
+                    $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
                 placeholder: "Tip: Just type this note to search this song through TQL :)",
                 accept: "Done", keyboard: Keyboard.Text);
         if (result == null)

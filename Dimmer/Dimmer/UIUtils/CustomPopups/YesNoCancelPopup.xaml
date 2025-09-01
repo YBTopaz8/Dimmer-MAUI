@@ -37,7 +37,13 @@
         <DataTemplate>
 
             <VerticalStackLayout>
-                <Label Text="Details "/>
+                <Label Text="{Binding PopUpMessageText}"/>
+
+                <Editor Text="{Binding CustomMessageText}"/>
+
+                <Button Text="{Binding YesButtonText}" Clicked="Button_Clicked"
+                        />
+                <Button Text="{Binding CancelButtonText}" Clicked="CancelBtn_Clicked" x:Name="CancelBtn"/>
             </VerticalStackLayout>
         </DataTemplate>
     </syncf:SfPopup.ContentTemplate>

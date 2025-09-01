@@ -1,3 +1,4 @@
+using Syncfusion.Maui.Toolkit.Graphics.Internals;
 using Syncfusion.Maui.Toolkit.Popup;
 
 namespace Dimmer.UIUtils.CustomPopups;
@@ -8,6 +9,7 @@ public partial class YesNoCancelPopup : SfPopup
 	{
 		InitializeComponent();
 		this.BindingContext = vm;
+		
     }
 
 	public string? PopUpHeaderText { get; set; } = "Confirm Action";
@@ -19,6 +21,10 @@ public partial class YesNoCancelPopup : SfPopup
 	public bool? IsNoButtonVisible { get; set; } = true;
 	public bool? IsCancelButtonVisible { get; set; } = true;
 	public string? CustomMessageText { get; set; } = string.Empty;
+    protected override void ScrollToCore(SemanticsNode node)
+    {
+        base.ScrollToCore(node);
+    }
 	public void ShowPopup(string message, string header = "Confirm Action", bool isYesVisible = true, bool isNoVisible = true, bool isCancelVisible = true, string yesText = "Yes", string noText = "No", string cancelText = "Cancel", string customMessage = "")
 	{
 		PopUpHeaderText = header;
@@ -32,7 +38,7 @@ public partial class YesNoCancelPopup : SfPopup
 		CustomMessageText = customMessage;
 		this.Show();
     }
-	object returnObject;
+	object? returnObject;
 	public object? ClosePopup()
 	{
 
@@ -41,4 +47,16 @@ public partial class YesNoCancelPopup : SfPopup
 
 		return returnObject;
 	}
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+		returnObject = CustomMessageText;
+		ClosePopup();
+    }
+
+    private void CancelBtn_Clicked(object sender, EventArgs e)
+    {
+		returnObject = "Cancel";
+        ClosePopup();
+    }
 }
