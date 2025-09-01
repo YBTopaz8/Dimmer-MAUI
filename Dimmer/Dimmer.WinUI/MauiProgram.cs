@@ -9,10 +9,7 @@ using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
-
-using Microsoft.Maui.Hosting;
-
-using Parse.LiveQuery;
+using Dimmer.WinUI.Views.WinUIPages;
 
 using Colors = Microsoft.Maui.Graphics.Colors;
 
@@ -58,6 +55,8 @@ public static class MauiProgram
                              // The 'view' is the cross-platform Button control.
                              if (view is Button button)
                              {
+
+                                 
                                  // --- PREVENT DUPLICATES ---
                                  // This is an important check to ensure we don't add the behavior
                                  // multiple times if the handler's logic re-runs for the same control.
@@ -149,6 +148,13 @@ public static class MauiProgram
         {
             events.AddWindows(wndLifeCycleBuilder =>
             {
+                wndLifeCycleBuilder.OnClosed((window, args) =>
+                {
+                    
+
+                    // Handle window closed event
+                    // You can perform cleanup or save state here if needed
+                });
                 wndLifeCycleBuilder.OnWindowCreated(window =>
                 {
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
@@ -211,7 +217,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SocialView>();
         builder.Services.AddSingleton<SocialViewModelWin>();
         builder.Services.AddSingleton<ChatViewModelWin>();
-
+        builder.Services.AddSingleton<SongDetailPage>();
         return builder.Build();
     }
 

@@ -1125,242 +1125,7 @@ _playbackQueueSource.Connect()
     private IDialogueService _dialogueService;
     protected ILastfmService lastfmService;
 
-    #region lastfm
-    [RelayCommand]
-    public async Task LoadUserLastFMInfo()
-    {
-        if (!lastfmService.IsAuthenticated)
-        {
-            return;
-        }
-        var usr = await lastfmService.GetUserInfoAsync();
-        if (usr is null)
-        {
-            _logger.LogWarning("Failed to load Last.fm user info.");
-            return;
-        }
-        UserLocal.LastFMAccountInfo.Name = usr.Name;
-        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
-        UserLocal.LastFMAccountInfo.Url = usr.Url;
-        UserLocal.LastFMAccountInfo.Country = usr.Country;
-        UserLocal.LastFMAccountInfo.Age = usr.Age;
-        UserLocal.LastFMAccountInfo.Playcount= usr.Playcount;
-        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
-        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
-        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
-        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
-        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
-        var rlm = RealmFactory.GetRealmInstance();
-        rlm.Write(() =>
-        {
-            var usre = rlm.All<UserModel>().ToList();
-            if (usre is not null)
-            {
-                var usrr = usre.FirstOrDefault();
-                if (usrr is not null)
-                {
-                    usrr.LastFMAccountInfo=new();
-                    usrr.LastFMAccountInfo.Name = usr.Name;
-                    usrr.LastFMAccountInfo.RealName = usr.RealName;
-                    usrr.LastFMAccountInfo.Url = usr.Url;
-                    usrr.LastFMAccountInfo.Country = usr.Country;
-                    usrr.LastFMAccountInfo.Age = usr.Age;
-                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
-                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
-                    usrr.LastFMAccountInfo.Registered = usr.Registered;
-                    usrr.LastFMAccountInfo.Gender = usr.Gender;
-
-                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
-                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
-                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
-                    rlm.Add(usrr, update: true);
-                }
-                else
-                {
-                    usrr = new UserModel();
-                    usrr.LastFMAccountInfo=new();
-                    usrr.Id=new();
-                    usrr.UserName= usr.Name;
-                    usrr.LastFMAccountInfo.Name = usr.Name;
-                    usrr.LastFMAccountInfo.RealName = usr.RealName;
-                    usrr.LastFMAccountInfo.Url = usr.Url;
-                    usrr.LastFMAccountInfo.Country = usr.Country;
-                    usrr.LastFMAccountInfo.Age = usr.Age;
-                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
-                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
-                    usrr.LastFMAccountInfo.Registered = usr.Registered;
-                    usrr.LastFMAccountInfo.Gender = usr.Gender;
-                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
-                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
-                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
-
-                    rlm.Add(usrr, update: true);
-                }
-            }
-        });
-    }
-
-
-    [ObservableProperty]
-    public partial bool IsLastfmAuthenticated { get; set; }
-
-
-    [ObservableProperty]
-    public partial bool LastFMLoginBtnVisible { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool lastFMCOmpleteLoginBtnVisible { get; set; } 
-    [ObservableProperty]
-    public partial bool IsLastFMNeedsToConfirm { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsLastFMNeedsUsername { get; set; }
-    [ObservableProperty]
-    public partial bool IsBusy { get; set; }
-
-    [ObservableProperty]
-    public partial string LastfmUsername { get; set; }
-
-    [RelayCommand]
-    public void LoadLastFMSession()
-    {
-        lastfmService.LoadSession();
-        IsLastfmAuthenticated = lastfmService.IsAuthenticated;
-        if (IsLastfmAuthenticated)
-        {
-            LastFMLoginBtnVisible=false;
-            lastFMCOmpleteLoginBtnVisible=false;
-            IsLastFMNeedsToConfirm=false;
-            _ = LoadUserLastFMInfo();
-        }
-    }
-
-    [RelayCommand]
-    public async Task LoginToLastfm()
-    {
-        if (string.IsNullOrEmpty(UserLocal.LastFMAccountInfo.Name))
-        {
-            IsLastFMNeedsUsername=true;
-            return;
-        }
-        IsBusy = true;
-        try
-        {
-
-            string url = await lastfmService.GetAuthenticationUrlAsync();
-            IsLastFMNeedsToConfirm=true;
-            LastFMLoginBtnVisible=false;
-            lastFMCOmpleteLoginBtnVisible=true;
-            await Launcher.Default.OpenAsync(new Uri(url));
-
-
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
-            IsBusy = false;
-            return;
-        }
-
-    }
-    [RelayCommand]
-    public async Task CompleteLoginAsync()
-    {
-        IsBusy = true;
-        try
-        {
-
-            IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
-            if (IsLastfmAuthenticated)
-            {
-                IsLastFMNeedsToConfirm=false;
-                lastFMCOmpleteLoginBtnVisible=false;
-                await LoadUserLastFMInfo();
-            }
-          
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while completing Last.fm login.");
-       
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-    public async Task LoadSelectedSongLastFMData()
-    {
-        if (SelectedSong is not null)
-        {
-            SelectedSongLastFMData = null;
-            CorrectedSelectedSongLastFMData = null;
-
-            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == SelectedSong.Title);
-
-
-            var playEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(res);
-            SelectedSong.PlayEvents=playEvents;
-            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
-
-
-
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
-            await LoadSongLastFMData();
-
-        }
-    }
-
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
-
-    public async Task LoadSongLastFMData()
-    {
-        return;
-        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
-        {
-            return;
-        }
-
-
-
-        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-        artistName ??=string.Empty;
-        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
-        if (SelectedSongLastFMData is null)
-        {
-            return;
-        }
-        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
-
-    }
-
-    public void LoadSongLastFMMoreData()
-    {
-        if (SelectedSong is null)
-        {
-            return;
-        }
-        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
-
-        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
-        //AllLyricsResultsLrcLib = s.ToObservableCollection();
-
-    }
-
-
-
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
-    #endregion
-
+  
     #region audio device management
     public void LoadAllAudioDevices()
     {
@@ -3543,39 +3308,7 @@ _playbackQueueSource.Connect()
             ClearSingleSongStats();
             return;
         }
-
-
-       
-
-
-        var realm = RealmFactory.GetRealmInstance();
-        var songDb = realm.Find<SongModel>(song.Id);
-        //var songEvents = songDb.PlayHistory.ToList().AsReadOnly();
-        var songEventsROCol = songDb.PlayHistory.AsRealmQueryable();
-
-        if (songDb == null)
-        {
-            ClearSingleSongStats();
-            return;
-        }
-
-        var songEvents = songEventsROCol.Where(x => x.SongName == song.Title);
-        if (!songEvents.Any())
-        {
-            ClearSingleSongStats();
-            return;
-        }
-
-
-
-
-        //SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
-        //SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
-        //SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
-        //SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
-        //SongsFirstImpression = TopStats.GetSongsFirstImpression(songEvents);
-
-        //SongListeningStreak = TopStats.GetListeningStreak(songEvents);
+        
     }
 
 
@@ -5537,6 +5270,261 @@ _playbackQueueSource.Connect()
         }
     }
 
+    #region lastfm
+    [RelayCommand]
+    public async Task LoadUserLastFMInfo()
+    {
+        if (!lastfmService.IsAuthenticated)
+        {
+            return;
+        }
+        var usr = await lastfmService.GetUserInfoAsync();
+        if (usr is null)
+        {
+            _logger.LogWarning("Failed to load Last.fm user info.");
+            return;
+        }
+        UserLocal.LastFMAccountInfo.Name = usr.Name;
+        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
+        UserLocal.LastFMAccountInfo.Url = usr.Url;
+        UserLocal.LastFMAccountInfo.Country = usr.Country;
+        UserLocal.LastFMAccountInfo.Age = usr.Age;
+        UserLocal.LastFMAccountInfo.Playcount= usr.Playcount;
+        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
+        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
+        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
+        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
+        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        var rlm = RealmFactory.GetRealmInstance();
+        rlm.Write(() =>
+        {
+            var usre = rlm.All<UserModel>().ToList();
+            if (usre is not null)
+            {
+                var usrr = usre.FirstOrDefault();
+                if (usrr is not null)
+                {
+                    usrr.LastFMAccountInfo=new();
+                    usrr.LastFMAccountInfo.Name = usr.Name;
+                    usrr.LastFMAccountInfo.RealName = usr.RealName;
+                    usrr.LastFMAccountInfo.Url = usr.Url;
+                    usrr.LastFMAccountInfo.Country = usr.Country;
+                    usrr.LastFMAccountInfo.Age = usr.Age;
+                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
+                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
+                    usrr.LastFMAccountInfo.Registered = usr.Registered;
+                    usrr.LastFMAccountInfo.Gender = usr.Gender;
+
+                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
+                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
+                    rlm.Add(usrr, update: true);
+                }
+                else
+                {
+                    usrr = new UserModel();
+                    usrr.LastFMAccountInfo=new();
+                    usrr.Id=new();
+                    usrr.UserName= usr.Name;
+                    usrr.LastFMAccountInfo.Name = usr.Name;
+                    usrr.LastFMAccountInfo.RealName = usr.RealName;
+                    usrr.LastFMAccountInfo.Url = usr.Url;
+                    usrr.LastFMAccountInfo.Country = usr.Country;
+                    usrr.LastFMAccountInfo.Age = usr.Age;
+                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
+                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
+                    usrr.LastFMAccountInfo.Registered = usr.Registered;
+                    usrr.LastFMAccountInfo.Gender = usr.Gender;
+                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
+                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
+
+                    rlm.Add(usrr, update: true);
+                }
+            }
+        });
+    }
+
+
+    [ObservableProperty]
+    public partial bool IsLastfmAuthenticated { get; set; }
+
+
+    [ObservableProperty]
+    public partial bool LastFMLoginBtnVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool lastFMCOmpleteLoginBtnVisible { get; set; }
+    [ObservableProperty]
+    public partial bool IsLastFMNeedsToConfirm { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLastFMNeedsUsername { get; set; }
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial string LastfmUsername { get; set; }
+
+    [RelayCommand]
+    public void LoadLastFMSession()
+    {
+        lastfmService.LoadSession();
+        IsLastfmAuthenticated = lastfmService.IsAuthenticated;
+        if (IsLastfmAuthenticated)
+        {
+            LastFMLoginBtnVisible=false;
+            lastFMCOmpleteLoginBtnVisible=false;
+            IsLastFMNeedsToConfirm=false;
+            _ = LoadUserLastFMInfo();
+        }
+    }
+
+    [RelayCommand]
+    public async Task LoginToLastfm()
+    {
+        if (string.IsNullOrEmpty(UserLocal.LastFMAccountInfo.Name))
+        {
+            IsLastFMNeedsUsername=true;
+            return;
+        }
+        IsBusy = true;
+        try
+        {
+
+            string url = await lastfmService.GetAuthenticationUrlAsync();
+            IsLastFMNeedsToConfirm=true;
+            LastFMLoginBtnVisible=false;
+            lastFMCOmpleteLoginBtnVisible=true;
+            await Launcher.Default.OpenAsync(new Uri(url));
+
+
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
+            IsBusy = false;
+            return;
+        }
+
+    }
+    [RelayCommand]
+    public async Task CompleteLoginAsync()
+    {
+        IsBusy = true;
+        try
+        {
+
+            IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
+            if (IsLastfmAuthenticated)
+            {
+                IsLastFMNeedsToConfirm=false;
+                lastFMCOmpleteLoginBtnVisible=false;
+                await LoadUserLastFMInfo();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while completing Last.fm login.");
+
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+    public async Task LoadSelectedSongLastFMData()
+    {
+        if (SelectedSong is not null)
+        {
+            SelectedSongLastFMData = null;
+            CorrectedSelectedSongLastFMData = null;
+
+            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
+
+
+
+            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
+            await LoadSongLastFMData();
+
+        }
+    }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
+
+    public async Task LoadSongLastFMData()
+    {
+        return;
+        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
+        {
+            return;
+        }
+
+
+
+        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        artistName ??=string.Empty;
+        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
+        if (SelectedSongLastFMData is null)
+        {
+            return;
+        }
+        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
+
+    }
+
+    public void LoadSongLastFMMoreData()
+    {
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+
+        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
+        //AllLyricsResultsLrcLib = s.ToObservableCollection();
+
+    }
+
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
+    #endregion
+
+    [RelayCommand]
+    public void OpenSongInOnlineSearch(string? service)
+    {
+        service ??= "google";
+        if (SelectedSong is null && CurrentPlayingSongView is not null)
+        {
+            SelectedSong = CurrentPlayingSongView;
+        }
+        if (SelectedSong is null)
+            return;
+        string query = $"{SelectedSong.Title} {SelectedSong.ArtistName}";
+        string url = service.ToLower() switch
+        {
+            "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
+            "youtube" => $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}",
+            "last.fm" => $"https://www.last.fm/search?q={Uri.EscapeDataString(query)}",
+            "spotify" => $"https://open.spotify.com/search/{Uri.EscapeDataString(query)}",
+            "apple music" => $"https://music.apple.com/us/search?term={Uri.EscapeDataString(query)}",
+            "deezer" => $"https://www.deezer.com/en/search/{Uri.EscapeDataString(query)}",
+            _ => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
+        };
+    }
+
+    
 }
 
 

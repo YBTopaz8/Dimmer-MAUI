@@ -1,19 +1,9 @@
 using CommunityToolkit.Maui.Behaviors;
 
-using Dimmer.DimmerLive;
-using Dimmer.DimmerLive.Interfaces;
-using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch;
-using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 using Dimmer.WinUI.Views.WinUIPages;
-
-using Realms;
-
-using System.Threading.Tasks;
-
-using Vanara.PInvoke;
 
 
 namespace Dimmer.WinUI;

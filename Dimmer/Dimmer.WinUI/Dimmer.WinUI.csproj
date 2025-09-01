@@ -92,7 +92,9 @@
     <None Remove="Views\SingleSongPages\SingleSongPage.xaml" />
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
+    <None Remove="Views\WinUIPages\AllSongsListPage.xaml" />
     <None Remove="Views\WinUIPages\AllSongsWindow.xaml" />
+    <None Remove="Views\WinUIPages\SongDetailPage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -289,6 +291,16 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\WinUIPages\AllSongsListPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\WinUIPages\SongDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\WinUIPages\AllSongsWindow.xaml">

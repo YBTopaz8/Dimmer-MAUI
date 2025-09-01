@@ -1,51 +1,17 @@
-﻿    //using Dimmer.DimmerLive.Models;
-    using Dimmer.DimmerLive;
-    using Dimmer.DimmerSearch;
-    using Dimmer.Interfaces.Services.Interfaces;
+﻿//using Dimmer.DimmerLive.Models;
+using Dimmer.DimmerLive;
+using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
-using DynamicData;
-    using DynamicData.Binding;
-
-using Microsoft.Maui.Controls.Embedding;
-    using Microsoft.Maui.Controls.Internals;
-using Microsoft.Maui.Platform;
-    using Microsoft.UI.Composition;
-    using Microsoft.UI.Xaml;
-    using Microsoft.UI.Xaml.Hosting;
-    using Microsoft.UI.Xaml.Media;
-
-    using MoreLinq;
-
-    using ReactiveUI;
-
-    using Syncfusion.Maui.Toolkit.Charts;
-    using Syncfusion.Maui.Toolkit.Expander;
-
-    using System.DirectoryServices;
-    using System.Numerics;
-    using System.Reactive.Concurrency;
-    using System.Reactive.Linq;
-    using System.Reactive.Subjects;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using System.Windows.Controls.Primitives;
-    using System.Windows.Forms;
-
-    using Windows.UI.Composition;
-
-using Colors = Microsoft.Maui.Graphics.Colors;
-using CompositionBatchTypes = Microsoft.UI.Composition.CompositionBatchTypes;
-    using CompositionEasingFunction = Microsoft.UI.Composition.CompositionEasingFunction;
-    using Compositor = Microsoft.UI.Composition.Compositor;
-    using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
-    using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
-    using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
-    using Label = Microsoft.Maui.Controls.Label;
-    using SortOrder = Dimmer.Utilities.SortOrder;
-    using View = Microsoft.Maui.Controls.View;
-    using Visual = Microsoft.UI.Composition.Visual;
+using Microsoft.UI.Xaml;
+//using Microsoft.UI.Xaml.Controls;
+using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
+using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
+using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
+using Label = Microsoft.Maui.Controls.Label;
+using SortOrder = Dimmer.Utilities.SortOrder;
+using View = Microsoft.Maui.Controls.View;
 using Window = Microsoft.UI.Xaml.Window;
 using WinUIControls = Microsoft.UI.Xaml.Controls;
 
@@ -903,93 +869,221 @@ await this.FadeIn(500, 1.0);
     {
         await this.FadeOut(500, 0.8);
         var dragData = e.PlatformArgs.DragEventArgs.DataView;
-        var dataa = await dragData.GetStorageItemsAsync();
-      var  SupportedAudioExtensions = new HashSet<string>(
-          [".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus"],
-          StringComparer.OrdinalIgnoreCase
-      );
-        if (dataa.Count < 1)
+        var dUI = e.PlatformArgs.DragEventArgs.DragUIOverride;
+        var dataaF = dragData.AvailableFormats;
+        // Set the visual feedback for the user
+        dUI.IsCaptionVisible = true;
+        dUI.IsGlyphVisible = true;
+        dUI.IsContentVisible = true;
+        
+        // --- STRATEGY: CHECK FOR INTERNAL DRAG FIRST, THEN EXTERNAL ---
+        
+        // 1. CHECK FOR INTERNAL DRAG: Do we have our custom text format?
+        // DataView is the universal container for dragged data.
+        if (dragData.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.Text))
         {
-            return;
-        }
-        // keep to internal list to show unsupported file type in alert later
-        if (MyViewModel.DraggedAudioFiles is null)
-        {
-            MyViewModel.DraggedAudioFiles = new List<string>();
+            // IMPORTANT: We cannot read the data content in DragOver. It's too slow.
+            // We can only check for the PRESENCE of the format. 
+            // We'll trust our own app to have formatted it correctly.
+            // A better way is to define a custom data format.
+            e.AcceptedOperation = DataPackageOperation.Copy;
+            dUI.Caption = "Add to Queue";
+            return; // We've made our decision.
         }
 
-        MyViewModel.DraggedAudioFiles.Clear();
-        
-        // Check if the dragged items are audio files
-        foreach (var item in dataa)
+        // 2. CHECK FOR EXTERNAL DRAG: Are there files being dragged from Explorer?
+        if (dragData.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
         {
+            // We can't get the items here, but we can tell the system we are prepared to handle them.
+            // We'll do the actual file type check in the Drop event.
+            // For now, we optimistically accept the drag.
+            e.AcceptedOperation = DataPackageOperation.Copy;
+            dUI.Caption = "Add Songs to Library";
+            return;
+        }
+
+        // 3. REJECT: If neither format is present, reject the drop.
+        e.AcceptedOperation = DataPackageOperation.None;
+        dUI.Caption = "Cannot drop here";
+
+
+
+        //if (dataa.Count < 1)
+        //{
+        //    return;
+        //}
+        //// keep to internal list to show unsupported file type in alert later
+        //if (MyViewModel.DraggedAudioFiles is null)
+        //{
+        //    MyViewModel.DraggedAudioFiles = new List<string>();
+        //}
+
+        //MyViewModel.DraggedAudioFiles.Clear();
+        
+        //// Check if the dragged items are audio files
+        //foreach (var item in dataa)
+        //{
             
-            if (item is StorageFile file)
-            {
-                var fileExtension = Path.GetExtension(file.Path);
-                if (!SupportedAudioExtensions.Contains(fileExtension))
-                {
+        //    if (item is StorageFile file)
+        //    {
+        //        var fileExtension = Path.GetExtension(file.Path);
+        //        if (!SupportedAudioExtensions.Contains(fileExtension))
+        //        {
                     
-                    await DisplayAlert("Unsupported File Type", $"The file '{file.Name}' is not a supported audio format.", "OK");
-                    // Set the accepted operation to None to reject the drop
-                    e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
-                    return;
-                }
-                else
+        //            await DisplayAlert("Unsupported File Type", $"The file '{file.Name}' is not a supported audio format.", "OK");
+        //            // Set the accepted operation to None to reject the drop
+        //            e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+        //            return;
+        //        }
+        //        else
+        //        {
+        //            // store all audio files in a list for process in drop event
+        //            MyViewModel.DraggedAudioFiles.Add(file.Path);
+        //        }
+        //    }
+        //}
+        //// If all files are audio files, accept the drop
+        //e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+     
+    }
+    private async Task ShowInvalidFilesDialog(List<string> invalidFiles)
+    {
+        var dialog = new WinUIControls.ContentDialog
+        {
+            Title = "Unsupported File Types",
+            Content = $"The following files are not supported and were ignored:\n\n{string.Join("\n", invalidFiles)}",
+            CloseButtonText = "OK",
+        };
+        await dialog.ShowAsync();
+    }
+    private async void SongDropRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        await this.FadeIn(500, 1.0);
+        if (e.PlatformArgs is null)
+        {
+            return; // Drop was not accepted, so we do nothing.
+        }
+
+        var deferral = e.PlatformArgs.DragEventArgs.GetDeferral();
+
+        try
+        {
+            // --- STRATEGY: PROCESS DATA BASED ON THE FORMAT, INTERNAL FIRST ---
+
+            // 1. HANDLE INTERNAL DRAG
+            if (e.PlatformArgs.DragEventArgs.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.Text))
+            {
+                var textData = await  e.PlatformArgs.DragEventArgs.DataView.GetTextAsync();
+                if (textData.StartsWith("songids:"))
                 {
-                    // store all audio files in a list for process in drop event
-                    MyViewModel.DraggedAudioFiles.Add(file.Path);
+                    var idString = textData.Substring("songids:".Length);
+                    var songIds = idString.Split(',').ToList();
+
+                    
+                    MyViewModel.AddSongsByIdsToQueue(songIds); // Example action
+                    return; // Job done.
+                }
+            }
+
+            // 2. HANDLE EXTERNAL DRAG
+            if (e.PlatformArgs.DragEventArgs.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
+            {
+                var items = await e.PlatformArgs.DragEventArgs.DataView.GetStorageItemsAsync();
+                if (items.Any())
+                {
+                    var supportedAudioExtensions = new HashSet<string>(
+                      [".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus"],
+                      StringComparer.OrdinalIgnoreCase
+                    );
+
+                    var validFiles = new List<string>();
+                    var invalidFiles = new List<string>();
+
+                    foreach (var item in items)
+                    {
+                        if (item is StorageFile file)
+                        {
+                            if (supportedAudioExtensions.Contains(file.FileType))
+                            {
+                                validFiles.Add(file.Path);
+                            }
+                            else
+                            {
+                                invalidFiles.Add(file.Name);
+                            }
+                        }
+                    }
+
+                    // Process the valid files
+                    if (validFiles.Any())
+                    {
+                        
+                        MyViewModel.AddMusicFoldersByPassingToService(validFiles);
+                    }
+
+                    // Inform the user about any invalid files
+                    if (invalidFiles.Any())
+                    {
+                        await ShowInvalidFilesDialog(invalidFiles);
+                    }
                 }
             }
         }
-        // If all files are audio files, accept the drop
-        e.PlatformArgs.DragEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
-     
-    }
-
-    private void SongDropRecognizer_Drop(object sender, DropEventArgs e)
-    {
-        // songs dropped so we can load in viewmodel
-        if (MyViewModel.DraggedAudioFiles is null || MyViewModel.DraggedAudioFiles.Count < 1)
+        catch (Exception ex)
         {
-            return; // No files to process
+            await DisplayAlert("Error", $"An error occurred while processing the dropped files: {ex.Message}", "OK");
+
+            // Optionally show an error dialog to the user.
         }
-        // Process the dropped audio files
-        MyViewModel.AddMusicFoldersByPassingToService(MyViewModel.DraggedAudioFiles);
+        finally
+        {
+            // IMPORTANT: Complete the deferral.
+            deferral.Complete();
+        }
+        //MyViewModel.AddMusicFoldersByPassingToService(MyViewModel.DraggedAudioFiles);
     }
 
     private async void SongViewPointer_PointerPressed(object sender, PointerEventArgs e)
     {
-        this.IsEnabled=false;
-        var send = (View)sender;
 
-        
-        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
-
-        var pointerParamPressed = gest.PointerPressedCommandParameter as SongModelView;
-        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
-
-
-        if (properties.IsRightButtonPressed)
+        try
         {
-            this.IsEnabled=true;
-            return; // Do not process right-clicks here, let the context menu handle it
-            
-        }
-        else if (properties.IsMiddleButtonPressed)
-        {
-            // Handle Middle Click
-           
+
+            this.IsEnabled=false;
+            var send = (View)sender;
+
+
+            var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+
+            var pointerParamPressed = gest.PointerPressedCommandParameter as SongModelView;
+            var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+
+
+            if (properties.IsRightButtonPressed)
+            {
+                this.IsEnabled=true;
+                return; // Do not process right-clicks here, let the context menu handle it
+
+            }
+            else if (properties.IsMiddleButtonPressed)
+            {
+                // Handle Middle Click
+
                 PlaySongGestRec_Tapped(send, null);
-            this.IsEnabled=true;
-            return;
-        }
-        else if (properties.IsXButton2Pressed)
-        {
+                this.IsEnabled=true;
+                return;
+            }
+            else if (properties.IsXButton2Pressed)
+            {
 
+            }
+            await MyViewModel.ProcessAndMoveToViewSong(pointerParamPressed);
+            this.IsEnabled=true;
         }
-        await MyViewModel.ProcessAndMoveToViewSong(pointerParamPressed);
-        this.IsEnabled=true;
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private void PlayBtn_Clicked(object sender, EventArgs e)
@@ -1138,6 +1232,8 @@ await this.FadeIn(500, 1.0);
     {
         MainPagePopup.IsOpen = !MainPagePopup.IsOpen;
     }
+
+  
 }
 
 public class SongViewTemplateSelector : DataTemplateSelector
@@ -1196,3 +1292,5 @@ public class SongViewTemplateSelector : DataTemplateSelector
         return null;
     }
 }
+
+

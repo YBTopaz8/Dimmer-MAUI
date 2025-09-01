@@ -4,9 +4,7 @@ using CommunityToolkit.Maui.Storage;
 
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView.DimmerSearch;
-using Dimmer.Data.RealmStaticFilters;
 using Dimmer.DimmerSearch.TQL;
-using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
@@ -18,20 +16,10 @@ using Dimmer.LastFM;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
-using Hqub.Lastfm.Entities;
-
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.UI.Xaml.Controls;
 
-using Realms;
-
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-
-using Vanara.PInvoke;
-
-using WinUI.TableView;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using TableView = WinUI.TableView.TableView;
@@ -448,5 +436,15 @@ public partial class BaseViewModelWin: BaseViewModel
         var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
         Debug.WriteLine(win.Visible);
         Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+    }
+
+    internal void AddSongsByIdsToQueue(List<string> songIds)
+    {
+        var songsToAdd = SearchResults.Where(s => songIds.Contains(s.Id.ToString()));
+        if (songsToAdd is not null && songsToAdd.Count()>0)
+        {
+            AddToQueueEnd(songsToAdd);
+        }
+
     }
 }

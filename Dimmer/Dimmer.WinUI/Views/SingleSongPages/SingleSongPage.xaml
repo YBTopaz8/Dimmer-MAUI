@@ -240,7 +240,7 @@ BackgroundColor="Transparent"
             windows:VisualElement.AccessKey="H"
 ImageSource="heart.png"
 WidthRequest="65" HeightRequest="65"
-ToolTipProperties.Text="Save To Playlist">
+ToolTipProperties.Text="Save Has Favorite">
                         <Button.Triggers>
                             <DataTrigger
         Binding="{Binding SelectedSong.IsFavorite}"
@@ -272,23 +272,24 @@ ToolTipProperties.Text="Save To Playlist">
                     <VerticalStackLayout
                                           VerticalOptions="Center"  >
 
-                        <Label Text="Rank In Album"  FontSize="21"
+                        <Label Text="Track Number"  FontSize="21"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding   SelectedSong.RankInAlbum}"/>
+                                                        Text="{Binding   SelectedSong.TrackNumber}"/>
+                        
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
                                           VerticalOptions="Center"  >
 
-                        <Label Text="Rank In Artist"  FontSize="21"
+                        <Label Text="Disc Number" ToolTipProperties.Text="Album Disc Number"  FontSize="21"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
                         <Label  HorizontalOptions="Center"
                                             TextColor="{AppThemeBinding Dark=White,Light=Black}" 
                                                         FontSize="19"
-                                                        Text="{Binding   SelectedSong.RankInArtist}"/>
+                                                        Text="{Binding   SelectedSong.DiscNumber}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout
@@ -301,17 +302,27 @@ ToolTipProperties.Text="Save To Playlist">
                                                         FontSize="19"
                                                         Text="{Binding   SelectedSong.GlobalRank}"/>
                     </VerticalStackLayout>
-
-                    <VerticalStackLayout
-                                          VerticalOptions="Center"  >
-
-                        <Label Text="Popularity Score"  FontSize="21"
-                                            TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
-                        
-                        <Label Text="{Binding SelectedSong.PopularityScore, StringFormat='{0:n2}'}"  FontSize="21"
-                                            TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
-                        
-                    </VerticalStackLayout>
+                    <Button
+                        Rotation="90"
+                        BackgroundColor="Transparent"
+                        HeightRequest="70"
+                        x:Name="MoreBtn"
+                        Clicked="MoreBtn_Clicked"
+                        BorderWidth="1"
+                        BorderColor="DarkSlateBlue"
+                        ImageSource="more1.png">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="View on Last FM" 
+                                                IconImageSource="lastfm.png"
+                                                Command="{Binding }"
+                                                CommandParameter="lastFM"/>
+                                <MenuFlyoutItem Text="Share Title Only" 
+                         Clicked="ShowBtmSheet_Clicked"
+                         IconImageSource="textitalicsquare.png"/>
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+                    </Button>
 
                 </HorizontalStackLayout>
             </VerticalStackLayout>
@@ -651,9 +662,9 @@ ToolTipProperties.Text="Save To Playlist">
                                                     <HorizontalStackLayout Spacing="10">
                                                         <VerticalStackLayout>
 
-                                                            <Label Text="{Binding SongBingeFactor.Name}"/>
-                                                            <Label Text="{Binding SongBingeFactor.Count, StringFormat='{0}'
-,Converter={converters:NumberToShortStringConverter}}"/>
+                                                            <Label Text="{Binding SelectedSong.EddingtonNumber, StringFormat='Eddington Number : {0}'}"/>
+                                                            <Label Text="{Binding SelectedSong.PopularityScore, StringFormat='Popularity Score : {0}'}"/>
+                                                            <Label Text="{Binding SelectedSong.TrackNumber, StringFormat='Popularity Score : {0}'}"/>
                                                         </VerticalStackLayout>
 
                                                         <VerticalStackLayout>

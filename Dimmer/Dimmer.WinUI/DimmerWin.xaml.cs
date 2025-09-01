@@ -1,7 +1,5 @@
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
-using Dimmer.WinUI.Views.WinUIPages;
 
 namespace Dimmer.WinUI;
 

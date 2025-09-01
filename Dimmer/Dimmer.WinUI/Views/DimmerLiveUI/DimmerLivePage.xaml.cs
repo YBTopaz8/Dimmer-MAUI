@@ -1,9 +1,5 @@
 using Dimmer.DimmerLive.Models;
 
-using ReactiveUI;
-
-using Syncfusion.Maui.Toolkit.Carousel;
-
 namespace Dimmer.WinUI.Views.DimmerLiveUI;
 
 public partial class DimmerLivePage : ContentPage

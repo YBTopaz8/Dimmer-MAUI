@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views.DimmerLiveUI;
 
 public partial class SessionTransferView : ContentPage

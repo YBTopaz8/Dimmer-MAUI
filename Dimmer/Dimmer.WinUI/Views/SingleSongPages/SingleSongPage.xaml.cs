@@ -1,12 +1,6 @@
 using Dimmer.DimmerSearch;
 
-using Microsoft.Maui.Platform;
-
 using Syncfusion.Maui.Toolkit.Charts;
-
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
-using System.Xml.Linq;
 
 namespace Dimmer.WinUI.Views.SingleSongPages;
 
@@ -542,4 +536,14 @@ public partial class SingleSongPage : ContentPage
          MyViewModel.StartLyricsEditingSession(clipboardText);
     }
 
+    private void ShowBtmSheet_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void MoreBtn_Clicked(object sender, EventArgs e)
+    {
+        Button btn = (Button)sender;
+        btn.ShowContextMenu();
+    }
 }

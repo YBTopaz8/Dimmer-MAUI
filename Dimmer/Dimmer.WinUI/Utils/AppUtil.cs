@@ -1,5 +1,4 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.WinUI.ViewModel;
 
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil

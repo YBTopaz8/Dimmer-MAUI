@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 public partial class ArtistsPage : ContentPage

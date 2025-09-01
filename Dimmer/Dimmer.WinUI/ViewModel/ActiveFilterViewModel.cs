@@ -1,12 +1,6 @@
 ﻿using Dimmer.Data.ModelView.DimmerSearch;
 using Dimmer.DimmerSearch.TQL;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.ViewModel;
 
 
