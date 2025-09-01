@@ -324,10 +324,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         this.Dispose();
     }
 
-    internal async Task LoadSongDataAsync(Progress<LyricsProcessingProgress>? progressReporter, CancellationTokenSource _lyricsCts)
-    { 
-       await LoadSongDataAsync(progressReporter, _lyricsCts);
-    }
+  
     #endregion
 
 

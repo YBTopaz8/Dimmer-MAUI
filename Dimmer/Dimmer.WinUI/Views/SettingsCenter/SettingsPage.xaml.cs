@@ -32,6 +32,64 @@ public partial class SettingsPage : ContentPage
         }
 
     }
+    private async void RefreshLyrics_Clicked(object sender, EventArgs e)
+    {
+        var res = await DisplayAlert("Refresh Lyrics", "This will process all songs in the library to update lyrics. Do you want to continue?", "Yes", "No");
+
+        if (!res)
+        {
+            return; // User cancelled the operation
+        }
+
+
+        if (_isLyricsProcessing)
+        {
+            bool cancel = await DisplayAlert("Processing...", "Lyrics are already being processed. Cancel the current operation?", "Yes, Cancel", "No");
+            if (cancel)
+            {
+                _lyricsCts?.Cancel();
+            }
+            return;
+        }
+
+        _isLyricsProcessing = true;
+        MyProgressBar.IsVisible = true; // Show a progress bar
+        MyProgressLabel.IsVisible = true; // Show a label
+
+
+
+        _lyricsCts = new CancellationTokenSource();
+
+
+
+        var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
+        {
+            MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
+            MyProgressLabel.Text = $"Processing: {progress.CurrentFile} {Environment.NewLine}" +
+            $"File {progress.ProcessedCount}/{progress.TotalCount}";
+        });
+
+        try
+        {
+
+            await MyViewModel.LoadSongDataAsync(progressReporter, _lyricsCts);
+            await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
+        }
+        catch (OperationCanceledException)
+        {
+            await DisplayAlert("Cancelled", "The operation was cancelled.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"An unexpected error occurred: {ex.Message}", "OK");
+        }
+        finally
+        {
+            _isLyricsProcessing = false;
+            MyProgressBar.IsVisible = false;
+            MyProgressLabel.IsVisible = false;
+        }
+    }
 
     protected async override void OnAppearing()
     {

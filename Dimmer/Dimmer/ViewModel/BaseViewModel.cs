@@ -3865,9 +3865,13 @@ _playbackQueueSource.Connect()
     public async Task LoadSongDataAsync(Progress<LyricsProcessingProgress>? progressReporter, CancellationTokenSource _lyricsCts)
     {
 
+
         var allSongsFromDb = await songRepo.GetAllAsync();
-        var songsToRefresh = _mapper.Map<List<SongModelView>>(allSongsFromDb);
-        await SongDataProcessor.ProcessLyricsAsync(songsToRefresh, _lyricsMetadataService, progressReporter, _lyricsCts.Token);
+        
+
+
+        await SongDataProcessor.ProcessLyricsAsync(RealmFactory, allSongsFromDb, _lyricsMetadataService, progressReporter, _lyricsCts.Token);
+        
     }
 
     public record QueryComponents(
@@ -4071,7 +4075,7 @@ _playbackQueueSource.Connect()
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLyricsSearchResults))]
-    public partial ObservableCollection<LrcLibSearchResult> LyricsSearchResults { get; set; } = new();
+    public partial ObservableCollection<LrcLibLyrics> LyricsSearchResults { get; set; } = new();
 
     public bool HasLyricsSearchResults => LyricsSearchResults.Any();
 
@@ -4117,8 +4121,9 @@ _playbackQueueSource.Connect()
             }
             var query = $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
             //ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
+            CancellationTokenSource cts=    new();
 
-            IEnumerable<LrcLibSearchResult>? results = await _lyricsMetadataService.SearchOnlineManualParamsAsync(LyricsTrackNameSearch, LyricsArtistNameSearch, LyricsAlbumNameSearch);
+            IEnumerable<LrcLibLyrics>? results = await _lyricsMetadataService.SearchLyricsAsync(LyricsTrackNameSearch, LyricsArtistNameSearch, LyricsAlbumNameSearch,cts.Token);
 
             foreach (var result in results)
             {
@@ -4179,7 +4184,7 @@ _playbackQueueSource.Connect()
 
 
 
-            await _lyricsMetadataService.SaveLyricsForSongAsync(false,string.Empty,SelectedSong, selectedResult.SyncedLyrics, lyricsInfo);
+            await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong.Id,string.Empty, selectedResult.SyncedLyrics);
 
 
             SelectedSong.SyncLyrics = selectedResult.SyncedLyrics;
@@ -4216,7 +4221,7 @@ _playbackQueueSource.Connect()
 
 
         var emptyLyricsInfo = new LyricsInfo();
-        await _lyricsMetadataService.SaveLyricsForSongAsync(false,string.Empty,SelectedSong, string.Empty, emptyLyricsInfo);
+        await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong.Id, string.Empty, string.Empty);
 
 
         SelectedSong.SyncLyrics = string.Empty;
@@ -4997,7 +5002,7 @@ _playbackQueueSource.Connect()
 
 
 
-        await _lyricsMetadataService.SaveLyricsForSongAsync(false, CurrentSongPlainLyricsEdit,songToUpdate, finalLrcContent, null);
+        await _lyricsMetadataService.SaveLyricsForSongAsync(songToUpdate.Id, CurrentSongPlainLyricsEdit,finalLrcContent);
 
 
         IsLyricEditorActive = false;

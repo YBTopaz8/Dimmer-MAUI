@@ -194,8 +194,10 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                               IsRightTapEnabled="True"
                               BringIntoViewRequested="TableView_BringIntoViewRequested"
                               ExportSelectedContent="TableView_ExportSelectedContent"
-                                   
+                                   PointerReleased="MySongsTableView_PointerReleased"
+                                   PointerEntered="MySongsTableView_PointerEntered"
                                    AllowFocusOnInteraction="False"
+                                   PointerExited="MySongsTableView_PointerExited"
                                    AllowFocusWhenDisabled="False"
                                    CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
                                    ClearSorting="MySongsTableView_ClearSorting"
@@ -209,11 +211,14 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                                    ContextRequested="MySongsTableView_ContextRequested"
                                    
                                    >
+                    
                 <dgView:TableView.ContextFlyout>
                     <MenuFlyout>
-                        <MenuFlyoutItem Text="hello :)" />
-                        <MenuFlyoutItem Text="Another Option" />
+                        <MenuFlyoutItem Text="View Song" 
+                                        CommandParameter="{Binding .}"
+                                        Click="ViewSong_Click" x:Name="ViewSong"/>
                         <MenuFlyoutSeparator />
+                        
                         <MenuFlyoutItem Text="Option with an Icon">
                             <MenuFlyoutItem.Icon>
                                 <FontIcon Glyph="&#xE71E;"/>

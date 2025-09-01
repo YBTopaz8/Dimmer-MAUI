@@ -685,4 +685,44 @@ public sealed partial class AllSongsWindow : Window
     {
 
     }
+
+    private void ViewSong_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        Debug.WriteLine(e.Pointer.PointerId);
+        Debug.WriteLine(e.OriginalSource.GetType());
+
+        // if it is a middle click, exclude in tql explictly
+        if (e.GetCurrentPoint(null).Properties.IsMiddleButtonPressed)
+        {   
+            var currentTql = MyViewModel.CurrentTqlQuery;
+
+
+
+        }
+    }
+
+    private void MySongsTableView_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerEntered_1(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
 }

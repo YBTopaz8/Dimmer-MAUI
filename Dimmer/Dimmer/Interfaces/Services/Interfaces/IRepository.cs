@@ -37,4 +37,5 @@ public interface IRepository<T> where T : new()
     IQueryable<T> GetAllAsQueryableSorted<TKey>(Expression<Func<T, TKey>> keySelector, bool ascending = true);
     IQueryable<T> GetAllAsQueryableFiltered(Expression<Func<T, bool>> predicate);
     IQueryable<T> GetAllAsQueryableFiltered(string rqlQuery, params QueryArgument[] args);
+    Task<IReadOnlyCollection<T>> GetAllAsync();
 }

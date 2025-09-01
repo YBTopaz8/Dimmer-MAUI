@@ -46,8 +46,14 @@
 
     <dx:SafeKeyboardAreaView>
 
-
-        <syncf:SfTabView SelectedIndex="{Binding LoginViewModel.SelectedIndex}">
+        <Grid RowDefinitions="Auto, *" BackgroundColor="{AppThemeBinding Dark=#1e1e1e,
+                                               Light=White}">
+            <VerticalStackLayout Grid.Row="0">
+                <ProgressBar x:Name="MyProgressBar"/>
+                <Label x:Name="MyProgressLabel"/>
+            </VerticalStackLayout>
+        
+        <syncf:SfTabView Grid.Row="1" SelectedIndex="{Binding LoginViewModel.SelectedIndex}">
             <syncf:SfTabItem Header="Login" IsVisible="False">
                 <syncf:SfTabItem.Content>
                     <ScrollView x:Name="TabA">
@@ -256,7 +262,7 @@ x:Name="AcceptBtn"
                                      x:Name="RescanLyrics"
                                      BorderColor="DarkSlateBlue"
                                      Text="Rescan Lyrics" 
-                                                Clicked="RescanLyrics_Clicked"/>
+                                                Clicked="RefreshLyrics_Clicked"/>
 
                                         </VerticalStackLayout>
                                     </Grid>
@@ -445,6 +451,7 @@ x:Name="AcceptBtn"
             </syncf:SfTabItem>
         </syncf:SfTabView>
 
+        </Grid>
     </dx:SafeKeyboardAreaView>
 
 

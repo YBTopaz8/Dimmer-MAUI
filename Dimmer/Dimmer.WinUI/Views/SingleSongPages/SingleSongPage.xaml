@@ -161,16 +161,16 @@ VerticalOptions="Center" />
         </DataTemplate>
     </ContentPage.Resources>
 
-    <Grid x:Name="SingleSongView" RowDefinitions="auto,*" BackgroundColor="{AppThemeBinding Light=#999999}">
+    <Grid x:Name="SingleSongView" RowDefinitions="auto,*" BackgroundColor="Transparent">
         
-        <Grid Grid.Row="0" ColumnDefinitions="*,auto" VerticalOptions="Start" >
+        <Grid Grid.Row="0" ColumnDefinitions="auto,*" VerticalOptions="Start" >
             <Border BackgroundColor="{Binding SelectedSecondDomColor}"
                                         Opacity="0.5" IsVisible="True"  ZIndex="0"
                                         x:Name="BorderNextToImageDomm"
-                                        Grid.Column="0">
+                                        Grid.Column="1">
             </Border>
 
-            <VerticalStackLayout   Padding="20"  Spacing="25"  Grid.Column="0" ZIndex="1">
+            <VerticalStackLayout   Padding="20"  Spacing="25"  Grid.Column="1" ZIndex="1">
                 <HorizontalStackLayout Spacing="20">
                     <Button
                                             BackgroundColor="Transparent"
@@ -315,14 +315,13 @@ ToolTipProperties.Text="Save To Playlist">
 
                 </HorizontalStackLayout>
             </VerticalStackLayout>
-            <Grid Grid.Column="1" >
+            <Grid Grid.Column="0" BackgroundColor="Transparent" >
                 <Border Opacity="0.01" ZIndex="1" x:Name="BorderUnderImageDomm"
                                             BackgroundColor="{Binding SelectedSecondDomColor}">
 
                 </Border>
                 <Image VerticalOptions="Start"
-                                        HeightRequest="250"
-                                        WidthRequest="250" Opacity="0.6"
+                       HeightRequest="260" Opacity="0.6"
                                       
                                         Source="{Binding SelectedSong.CoverImagePath}"/>
 
@@ -627,7 +626,7 @@ ToolTipProperties.Text="Save To Playlist">
             </Grid>
             
             <syncf:SfTabView x:Name="SongTabView"  SelectionChanged="SongTabView_SelectionChanged"
-                             
+                             BackgroundColor="Transparent"
                              EnableSwiping="True"
                              TabBarPlacement="Bottom" IsVisible="True">
 
@@ -706,14 +705,9 @@ ToolTipProperties.Text="Save To Playlist">
                                     <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
                                     <Label FontSize="26" Text="Album"/>
                                         <Grid ColumnDefinitions="*">
-                                            
-                                                <ScrollView>
-                                                    <HorizontalStackLayout>
-
-
-
-                                                    </HorizontalStackLayout>
-                                                </ScrollView>
+                                            <VerticalStackLayout>
+                                                
+                                            </VerticalStackLayout>
                                            
                                     </Grid>
                                 </VerticalStackLayout>
