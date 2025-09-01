@@ -68,6 +68,20 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         }
     }
 
+    private async Task<TResult> ExecuteReadAsync<TResult>(Func<Realm, Task<TResult>> function)
+    {
+        using var realm = _factory.GetRealmInstance();
+        try
+        {
+            return await function(realm);
+        }
+        catch (RealmException ex)
+        {
+            Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] A Realm error occurred during an async read operation. Exception: {ex}");
+            throw;
+        }
+    }
+
     #endregion
 
     #region Public API - CRUD Operations
@@ -211,14 +225,24 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     {
         return ExecuteRead(realm =>
         {
-            if (IsShuffled)
-            {
-
-                return realm.All<T>().AsEnumerable().Select(o => o.Freeze()).ToList();
-
-            }
+            
+            
             return realm.All<T>().AsEnumerable().Select(x=>x.Freeze()).ToList();
         });
+    }
+
+    /// <summary>
+    /// Retrieves all objects of type T.
+    /// </summary>
+    /// <returns>A thread-safe, frozen, read-only collection of all objects.</returns>
+    public async Task<IReadOnlyCollection<T>> GetAllAsync()
+    {
+        return await ExecuteReadAsync(async realm =>
+        {
+            await Task.Yield(); 
+            return realm.All<T>().AsEnumerable().Select(x => x.Freeze()).ToList();
+        });
+
     }
 
     public IQueryable<T> GetAllAsQueryable()

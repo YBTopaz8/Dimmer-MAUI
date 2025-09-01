@@ -28,7 +28,7 @@ public partial class MainViewExpander : DXExpander
         {
             return;
         }
-        MyViewModel.BaseVM.SelectedSong = song;
+        MyViewModel.SelectedSong = song;
         // raise event to notify the parent view to handle the touch down event
         ViewSongOnlyEvt?.Invoke(this, e);
     }
@@ -42,7 +42,7 @@ public partial class MainViewExpander : DXExpander
     {
         var send = (DXButton)sender;
         var song = (SongModelView)send.BindingContext;
-        await MyViewModel.BaseVM.PlaySong(song);
+        await MyViewModel.PlaySong(song);
     }
 
     private void ArtistsChip_LongPress(object sender, System.ComponentModel.HandledEventArgs e)

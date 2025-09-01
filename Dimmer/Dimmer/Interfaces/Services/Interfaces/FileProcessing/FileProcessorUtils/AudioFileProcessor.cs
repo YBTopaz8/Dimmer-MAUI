@@ -2,7 +2,7 @@
 
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
 {
@@ -178,6 +178,10 @@ public class AudioFileProcessor : IAudioFileProcessor
             if (track.Lyrics is not null && track.Lyrics.Count > 0)
             {
                 song.UnSyncLyrics = track.Lyrics[0].UnsynchronizedLyrics;
+                if(song.EmbeddedSync is null)
+                {
+                    song.EmbeddedSync = new ObservableCollection<LyricPhraseModelView>();
+                }
 
                 // Basic to string, real app might parse into a structured format or just store raw
                 foreach (var item in track.Lyrics[0].SynchronizedLyrics)

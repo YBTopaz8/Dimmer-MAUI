@@ -1,24 +1,30 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces;
+using Dimmer.WinUI.ViewModel;
 
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
 
+    public AppUtil(BaseViewModelWin baseViewModelWin)
+    {
+
+        BaseViewModelWin=baseViewModelWin;
+        this.dimmerWin ??=baseViewModelWin.MainMAUIWindow;
+
+    }
+
     public Shell GetShell()
     {
-        return new AppShell();
+        return new AppShell(BaseViewModelWin);
     }
     public Window LoadWindow()
     {
-        var win = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
-        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        if (win is null)
+        this.dimmerWin ??=BaseViewModelWin.MainMAUIWindow;
+        dimmerWin ??= new DimmerWin(BaseViewModelWin, this);
+
+        if (dimmerWin == null)
         {
-            dimmerWin = new DimmerWin(vm);
-        }
-        else
-        {
-            dimmerWin = win;
+            throw new Exception("DimmerWin is null");
         }
         dimmerWin.MinimumHeight = 750;
         dimmerWin.MinimumWidth = 900;
@@ -30,5 +36,6 @@ public class AppUtil : IAppUtil
         return dimmerWin;
     }
     public DimmerWin? dimmerWin { get; set; }
+    public BaseViewModelWin BaseViewModelWin { get; }
 }
 

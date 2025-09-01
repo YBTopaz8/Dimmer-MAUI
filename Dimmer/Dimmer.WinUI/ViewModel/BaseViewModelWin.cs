@@ -10,8 +10,8 @@ using Dimmer.DimmerSearch.TQL.TQLCommands;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
-using Dimmer.Utilities.FileProcessorUtils;
 // Assuming SkiaSharp and ZXing.SkiaSharp are correctly referenced for barcode scanning
 
 // Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
@@ -27,6 +27,7 @@ using Microsoft.UI.Xaml.Controls;
 using Realms;
 
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 using Vanara.PInvoke;
 
@@ -42,24 +43,34 @@ public partial class BaseViewModelWin: BaseViewModel
 
 {
 
-    private readonly IWindowManagerService windowManager;
+    public readonly IMauiWindowManagerService windowManager;
     private readonly IRepository<SongModel> songRepository;
     private readonly IRepository<ArtistModel> artistRepository;
     private readonly IRepository<AlbumModel> albumRepository;
     private readonly IRepository<GenreModel> genreRepository;
-    private readonly IWindowManagerService winMgrService;
+    public readonly IWinUIWindowMgrService winUIWindowMgrService;
     private readonly LoginViewModel loginViewModel;
     private readonly IFolderPicker _folderPicker;
     public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService,LoginViewModel _loginViewModel,
-         IDimmerStateService dimmerStateService, IFolderPicker _folderPicker, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,  IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService,musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+        IWinUIWindowMgrService winUIWindowMgrService,
+        IMauiWindowManagerService mauiWindowManagerService,
+         IDimmerStateService dimmerStateService, IFolderPicker _folderPicker,
+         IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, 
+         ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, 
+         ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,  
+         IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo,
+         IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel,
+         IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService,musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
     {
+
+        this.winUIWindowMgrService = winUIWindowMgrService;
         this.loginViewModel=_loginViewModel;
         this._folderPicker = _folderPicker;
         UIQueryComponents.CollectionChanged += (s, e) =>
         {
             RebuildAndExecuteQuery();
         };
-
+        windowManager = mauiWindowManagerService;
         AddNextEvent +=BaseViewModelWin_AddNextEvent;
     }
 
@@ -67,13 +78,13 @@ public partial class BaseViewModelWin: BaseViewModel
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(this));
+        var win = winMgr.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
         win.Close();
 
         // wait 4s and reopen it
         await Task.Delay(4000);
 
-            var newWin = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(this));
+            var newWin = winMgr.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
             newWin.Activate();
 
     }
@@ -227,6 +238,8 @@ public partial class BaseViewModelWin: BaseViewModel
     }
     [ObservableProperty]
     public partial string GeneratedTqlQuery { get; set; }
+    [ObservableProperty]
+    public partial string PopUpHeaderText { get; set; }
 
     [ObservableProperty]
     public partial int MediaBarGridRowPosition { get; set; }
@@ -334,6 +347,7 @@ public partial class BaseViewModelWin: BaseViewModel
 
     [ObservableProperty]
     public partial TableView? MyTableVIew {get;set;}
+    public DimmerWin MainMAUIWindow { get; internal set; }
 
     // --- The partial OnChanged methods that are our triggers ---
 
@@ -361,4 +375,78 @@ public partial class BaseViewModelWin: BaseViewModel
         ScheduleVisibleCountUpdate();
     }
 
+    public event EventHandler? AllSongsWindowClosed;
+    internal void OnAllSongsWindowClosed()
+    {
+        ActivateMainWindow();
+    }
+
+    
+
+    internal void ActivateMainWindow()
+    {
+     var dimWindow = windowManager.GetWindow<DimmerWin>();
+        if (dimWindow is not null)
+        {
+            windowManager.ActivateWindow(dimWindow);
+        }
+
+    }
+    protected override async Task ProcessSongChangeAsync(SongModelView value)
+    {
+        // 1. Let the base class do all of its work first.
+        await base.ProcessSongChangeAsync(value);
+
+        
+        if (value.IsCurrentPlayingHighlight)
+        {
+            
+            _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
+            
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+
+                SongColView?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
+
+            });
+        }
+    }
+
+
+    public async Task ShareSongViewClipboard(SongModelView song)
+    {
+
+        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
+
+        if (byteData.imgBytes != null)
+        {
+
+            BitmapSource? bitmapSource = null;
+            using (var stream = new MemoryStream(byteData.imgBytes))
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = stream;
+                bitmap.EndInit();
+                bitmap.Freeze(); // Freeze to make it cross-thread accessible
+                bitmapSource = bitmap;
+            }
+
+            // listening to, text so, title, artistname, album with app name, and version.
+            string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
+
+            System.Windows.Clipboard.SetImage(bitmapSource);
+            System.Windows.Clipboard.SetText(clipboardText);
+
+        }
+    }
+    internal void OpenSettingWin()
+    {
+        
+
+        var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
+        Debug.WriteLine(win.Visible);
+        Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+    }
 }

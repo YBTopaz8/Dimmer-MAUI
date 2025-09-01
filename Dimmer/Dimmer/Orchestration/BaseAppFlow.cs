@@ -213,7 +213,7 @@ public class BaseAppFlow : IDisposable
         return updatedUser;
     }
 
-    public PlaylistModel UpsertPlaylist(PlaylistModel playlist)
+    public PlaylistModel? UpsertPlaylist(PlaylistModel playlist)
     {
         if (playlist == null)
             throw new ArgumentNullException(nameof(playlist));
@@ -225,7 +225,7 @@ public class BaseAppFlow : IDisposable
         return updatedPlaylist;
     }
 
-    public ArtistModel UpsertArtist(ArtistModel artist)
+    public ArtistModel? UpsertArtist(ArtistModel artist)
     {
         if (artist == null)
             throw new ArgumentNullException(nameof(artist));
@@ -234,7 +234,7 @@ public class BaseAppFlow : IDisposable
         return updatedArtist;
     }
 
-    public AlbumModel UpsertAlbum(AlbumModel album)
+    public AlbumModel? UpsertAlbum(AlbumModel? album)
     {
         if (album == null)
             throw new ArgumentNullException(nameof(album));
@@ -243,7 +243,7 @@ public class BaseAppFlow : IDisposable
         return updatedAlbum;
     }
 
-    public SongModel UpsertSong(SongModel song)
+    public SongModel? UpsertSong(SongModel? song)
     {
         if (song == null)
             throw new ArgumentNullException(nameof(song));

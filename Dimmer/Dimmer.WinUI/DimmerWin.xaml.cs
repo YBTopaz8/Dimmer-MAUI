@@ -8,11 +8,15 @@ namespace Dimmer.WinUI;
 public partial class DimmerWin : Window
 {
     public BaseViewModelWin MyViewModel { get; set; }
-    public DimmerWin(BaseViewModelWin vm)
+    public IAppUtil AppUtil { get; }
+
+    public DimmerWin(BaseViewModelWin vm, IAppUtil appUtil)
     {
         InitializeComponent();
-        Page = IPlatformApplication.Current!.Services.GetService<IAppUtil>()?.GetShell();
+        vm.MainMAUIWindow=this;
+        Page = appUtil.GetShell();
         MyViewModel= vm;
+        AppUtil=appUtil;
         BindingContext=vm;
         
     }
@@ -25,7 +29,7 @@ public partial class DimmerWin : Window
 
     protected async override void OnDestroying()
     {
-        
+        MyViewModel.windowManager.CloseWindow(this);
         MyViewModel.OnAppClosing();
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
@@ -61,16 +65,11 @@ public partial class DimmerWin : Window
         {
             return;
         }
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-        winMgr.CloseAllWindows();
+        
+        MyViewModel.winUIWindowMgrService.CloseAllWindows();
+        MyViewModel.windowManager.CloseAllWindows();
+      
 
-        // make a copy since closing mutates the collection
-        foreach (var window in Application.Current!.Windows.ToList())
-        {
-            //REWORK THIS
-            // this will completely close the window
-            Application.Current.CloseWindow(window);
-        }
     }
     protected override void OnActivated()
     {
@@ -115,6 +114,7 @@ public partial class DimmerWin : Window
     }
     protected override void OnCreated()
     {
+        MyViewModel.windowManager.TrackWindow(this);
         base.OnCreated();
 #if DEBUG
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
@@ -186,19 +186,14 @@ public partial class DimmerWin : Window
     private void SettingsBtn_Clicked(object sender, EventArgs e)
     {
      
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWindowManagerService>()!;
-
-        winMgr.GetOrCreateUniqueWindow(() => new SettingWin(MyViewModel));
+        MyViewModel.OpenSettingWin();
         //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     private void SettingsBtnn_Clicked(object sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
-        Debug.WriteLine(win.Visible);
-        Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+        MyViewModel.OpenSettingWin();
+      
     }
 
     private void SwitchTheme_Clicked(object sender, EventArgs e)

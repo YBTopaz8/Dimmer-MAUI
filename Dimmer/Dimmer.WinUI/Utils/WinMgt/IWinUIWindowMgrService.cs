@@ -7,24 +7,24 @@ using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.Utils.WinMgt;
 
-interface IWinUIWindowMgrService
+public interface IWinUIWindowMgrService
 {
+    event EventHandler<WinUIWindowMgrService.WindowClosingEventArgs>? WindowClosing;
+    event EventHandler<Microsoft.UI.Xaml.WindowActivatedEventArgs>? WindowActivated;
+    event EventHandler<Window>? WindowClosed;
+    event EventHandler<Microsoft.UI.Xaml.WindowSizeChangedEventArgs>? WindowSizeChanged;
 
-    // Create a window by its direct type
-    T? CreateWindow<T>() where T : Window, new();
-    T? CreateWindow<T>(object? parameter) where T : Window; // If constructor takes a parameter
-
-    // Create a window that hosts a specific Page type
-    Window? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null);
-
-    // Get or create a unique window by its type (e.g., only one Settings native window)
-    T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window;
-    Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null);
-
-    T? GetWindow<T>() where T : Window;
-    IReadOnlyList<Window> GetOpenNativeWindows(); // Note: This might be tricky to track perfectly without more involved OS-level enumeration
-    void CloseWindow(Window window);
-    void CloseWindow<T>() where T : Window;
     void BringToFront(Window window);
     void CloseAllWindows();
+    void CloseWindow(Window window);
+    void CloseWindow<T>() where T : Window;
+    Window? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null);
+    T? CreateWindow<T>() where T : Window, new();
+    T? CreateWindow<T>(object? parameter) where T : Window;
+    IReadOnlyList<Window> GetOpenNativeWindows();
+    Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null);
+    T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM=null, Func<T>? windowFactory = null) where T : Window;
+    T? GetWindow<T>() where T : Window;
+    void TrackWindow(Window window);
+    void UntrackWindow(Window window);
 }

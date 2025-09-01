@@ -26,6 +26,9 @@ public partial class UserModel : RealmObject, IRealmObjectWithObjectId
     public LastFMUser LastFMAccountInfo { get; set; }
     public bool IsNew { get; set; }
     public IList<TagModel> Tags { get; }
+
+
+
     public UserModel()
     {
 

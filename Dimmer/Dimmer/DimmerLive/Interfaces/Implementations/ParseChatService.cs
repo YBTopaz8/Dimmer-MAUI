@@ -259,38 +259,7 @@ Username = "Unknown User "+Guid.NewGuid();
             if (song is not null && !string.IsNullOrEmpty(song.FilePath))
             {
                 return;
-                var position = _baseVM.CurrentTrackPositionSeconds;
-                var stream = await File.ReadAllBytesAsync(song.FilePath);
-
-                GetSongMimeType(song, out var mimeType, out var fileExtension);
-
-                ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
-
-                await songFile.SaveAsync(ParseClient.Instance);
-
-                // Create the DimmerSharedSong object
-                DimmerSharedSong newSong = new()
-                {
-                    Title = song.Title,
-                    ArtistName = song.ArtistName,
-                    AlbumName = song.AlbumName,
-                    DurationSeconds = song.DurationInSeconds,
-                    GenreName = song.GenreName,
-                    IsFavorite = song.IsFavorite,
-                    IsPlaying = _baseVM.IsPlaying,
-                    SharedPositionInSeconds = position,
-
-
-
-                };
-
-                newSong.AudioFile = songFile;
-                newSong.Uploader = _authService.CurrentUserValue;
-                newSong.AudioFileUrl =songFile.Url; // For Cloud Code use
-                newSong.AudioFileName =songFile.Name; // For Cloud Code use
-                newSong.AudioFileMimeType =songFile.MimeType; // For Cloud Code use
-
-            await newSong.SaveAsync();
+           
 
             }
             // ACLs are best handled by a beforeSave trigger in Cloud Code
@@ -349,7 +318,6 @@ Username = "Unknown User "+Guid.NewGuid();
             DurationSeconds = song.DurationInSeconds,
             GenreName = song.GenreName,
             IsFavorite = song.IsFavorite,
-            IsPlaying = _baseVM.IsPlaying,
             SharedPositionInSeconds = position,
             
 

@@ -38,7 +38,7 @@ public partial class AppShell : Shell
             return;
         }
         this.BindingContext = MyViewModel;
-        await MyViewModel.BaseVM.InitializeAllVMCoreComponentsAsync();
+         MyViewModel.InitializeAllVMCoreComponentsAsync();
         
     }
 
@@ -66,21 +66,21 @@ public partial class AppShell : Shell
     {
         if (e.NewIndex == 1)
         {
-            await MyViewModel.BaseVM.LoadUserLastFMInfo();
+            await MyViewModel.LoadUserLastFMInfo();
         }
     }
 
     private void ChangeFolder_Clicked(object sender, EventArgs e)
     {
         var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        //await  MyViewModel.BaseVM.AddMusicFolderAsync(selectedFolder);
+        //await  MyViewModel.AddMusicFolderAsync(selectedFolder);
     }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
     {
         var send = (ImageButton)sender;
         var param = send.CommandParameter.ToString();
-        MyViewModel.BaseVM.DeleteFolderPath(param);
+        MyViewModel.DeleteFolderPath(param);
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
@@ -131,7 +131,7 @@ public partial class AppShell : Shell
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
     {
 
-        await MyViewModel.BaseVM.LoginToLastfm();
+        await MyViewModel.LoginToLastfm();
     }
     private void FindDuplicatesBtn_Clicked(object sender, EventArgs e)
     {
@@ -171,7 +171,7 @@ public partial class AppShell : Shell
             _lyricsCts.Dispose();
         }
         _lyricsCts = new CancellationTokenSource();
-        await MyViewModel.LoadSongDataAsync(null, _lyricsCts.Token);
+        await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
     }
 
     private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)
@@ -193,7 +193,7 @@ public partial class AppShell : Shell
     private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
     {
 
-        await MyViewModel.ProcessAndMoveToViewSong(MyViewModel.BaseVM.CurrentPlayingSongView);
+        await MyViewModel.ProcessAndMoveToViewSong(MyViewModel.CurrentPlayingSongView);
     }
 
     private async void DXButton_Clicked(object sender, EventArgs e)
@@ -238,14 +238,14 @@ public partial class AppShell : Shell
             {
                 return;
             }
-            MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
 
 
             return;
         }
 
-        MyViewModel.BaseVM.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
     }
 
     private bool _isThrottling = false;
@@ -258,7 +258,7 @@ public partial class AppShell : Shell
 
         _isThrottling = true;
 
-        MyViewModel.BaseVM.SeekTrackPosition(send.Value);
+        MyViewModel.SeekTrackPosition(send.Value);
 
 
         await Task.Delay(throttleDelay);

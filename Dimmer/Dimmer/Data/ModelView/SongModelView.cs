@@ -22,6 +22,8 @@ public partial class SongModelView : ObservableObject
     }
     [ObservableProperty]
     public partial string ArtistName { get; set; } 
+    [ObservableProperty]
+    public partial ArtistModel Artist { get; set; } 
 
     [ObservableProperty]
     public partial string AlbumName { get; set; } 
@@ -134,7 +136,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<DimmerPlayEventView> PlayEvents { get; set; } = new();
 
- 
+
+    [ObservableProperty]
+    public partial ObservableCollection<PlaylistModelView> PlaylistsHavingSong { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<UserNoteModelView> UserNoteAggregatedCol { get; set; } = new();
@@ -261,6 +265,7 @@ public partial class SongModelView : ObservableObject
     public SegmentEndBehavior SegmentEndBehavior { get => (SegmentEndBehavior)SegmentEndBehaviorValue; set => SegmentEndBehaviorValue = (int)value; }
     [ObservableProperty]
     public partial Color? CurrentPlaySongDominantColor { get;  set; }
+
     [ObservableProperty]
     public partial bool IsHidden { get;  set; }
     public string CoverArtHash { get; set; }

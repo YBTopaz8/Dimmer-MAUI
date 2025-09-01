@@ -20,6 +20,15 @@
     <Grid IsVisible="True" RowDefinitions="auto,*">
         <VerticalStackLayout Grid.Row="0">
             <Label Text="{Binding LatestAppLog.Log}"/>
+            <ProgressBar
+      x:Name="MyProgressBar"
+      IsVisible="False"
+      WidthRequest="80" />
+            <Label
+      x:Name="MyProgressLabel"
+      IsVisible="False"
+      WidthRequest="180" />
+
         </VerticalStackLayout>
         <syncf:SfTabView Grid.Row="1"
                          
@@ -186,10 +195,18 @@
                                 <Button Text="Validate Songs"
 Command="{Binding ValidateLibraryCommand}" IsVisible="False"
 />
+                                
                                 <Button
                                     Clicked="AddNewMusicFolder_Clicked"
                                     HorizontalOptions="Start"
                                     Text="Add New Folder" />
+                                
+                                
+                                <Button
+                                    Clicked="RefreshLyrics_Clicked"
+                                    HorizontalOptions="Start"
+                                    Text="Refresh Lyrc" />
+                                
                                 <Button
                                     x:Name="ReScanAllBtn"
                                     BorderColor="DarkSlateBlue"

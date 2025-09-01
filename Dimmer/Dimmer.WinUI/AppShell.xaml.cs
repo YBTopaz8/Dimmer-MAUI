@@ -20,7 +20,7 @@ namespace Dimmer.WinUI;
 
 public partial class AppShell : Shell
 {
-    public AppShell()
+    public AppShell(BaseViewModelWin baseViewModel)
     {
         InitializeComponent();
 
@@ -47,7 +47,7 @@ public partial class AppShell : Shell
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         this.BindingContext = MyViewModel;
 
-        await MyViewModel.InitializeAllVMCoreComponentsAsync();
+        MyViewModel.InitializeAllVMCoreComponentsAsync();
 
 
     }
@@ -78,7 +78,7 @@ public partial class AppShell : Shell
     private void SettingsChip_Clicked(object sender, EventArgs e)
     {
 
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWindowManagerService>()!;
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IMauiWindowManagerService>()!;
 
         winMgr.GetOrCreateUniqueWindow(() => new SettingWin(MyViewModel));
         //await Shell.Current.GoToAsync(nameof(SettingsPage));
@@ -256,7 +256,7 @@ public partial class AppShell : Shell
             val = MyViewModel.CurrentPlayingSongView.DurationInSeconds.ToString();
         }
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
 
@@ -329,7 +329,7 @@ public partial class AppShell : Shell
             }
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
           
-             winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+             winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
 
             return;
         }
@@ -337,14 +337,14 @@ public partial class AppShell : Shell
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
      
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
     private void SearchSongSB_Clicked(object sender, EventArgs e)
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
 
         // move and resize to the center of the screen
 
@@ -542,7 +542,7 @@ public partial class AppShell : Shell
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
             var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-            var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+            var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
         }
         catch (Exception ex)
         {
@@ -593,7 +593,13 @@ public partial class AppShell : Shell
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
-        var win = winMgr.GetOrCreateUniqueWindow(() => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
         //win.Activate();
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var label = (Label)sender;
+        label.ShowContextMenu();
     }
 }

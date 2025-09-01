@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Dimmer.Utilities.FileProcessorUtils;
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public static class FilenameParser
 {
     // A list of common "noise" patterns to remove from titles, case-insensitive.

@@ -1,3 +1,5 @@
+using Dimmer.DimmerLive;
+
 using Java.Net;
 
 using Syncfusion.Maui.Toolkit.Chips;
@@ -28,7 +30,7 @@ public partial class SettingsPage : ContentPage
     {
         var send = (ImageButton)sender;
         var param = send.CommandParameter.ToString();
-        MyViewModel.BaseVM.DeleteFolderPath(param);
+        MyViewModel.DeleteFolderPath(param);
     }
 
     //private async void ViewUserAccountOnline(object sender, EventArgs e)
@@ -81,7 +83,7 @@ public partial class SettingsPage : ContentPage
     {
         if (e.NewIndex == 1)
         {
-            await MyViewModel.BaseVM.LoadUserLastFMInfo();
+            await MyViewModel.LoadUserLastFMInfo();
         }
     }
 
@@ -89,7 +91,7 @@ public partial class SettingsPage : ContentPage
     {
 
 
-        await Launcher.Default.OpenAsync(new Uri(MyViewModel.BaseVM.UserLocal.LastFMAccountInfo.Url));
+        await Launcher.Default.OpenAsync(new Uri(MyViewModel.UserLocal.LastFMAccountInfo.Url));
     }
     private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
@@ -133,7 +135,7 @@ public partial class SettingsPage : ContentPage
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
     {
 
-        await MyViewModel.BaseVM.LoginToLastfm();
+        await MyViewModel.LoginToLastfm();
     }
 
     private void AcceptBtn_Clicked(object sender, EventArgs e)
@@ -146,9 +148,64 @@ public partial class SettingsPage : ContentPage
         //MyViewModel.DimmerLiveViewModel.RejectFriendRequestCommand.Execute(null);
 
     }
-
-    private async void RescanLyrics_Clicked(object sender, EventArgs e)
+    private async void RefreshLyrics_Clicked(object sender, EventArgs e)
     {
-       await MyViewModel.LoadSongDataAsync(null, _lyricsCts);
+        var res = await DisplayAlert("Refresh Lyrics", "This will process all songs in the library to update lyrics. Do you want to continue?", "Yes", "No");
+
+        if (!res)
+        {
+            return; // User cancelled the operation
+        }
+
+
+        if (_isLyricsProcessing)
+        {
+            bool cancel = await DisplayAlert("Processing...", "Lyrics are already being processed. Cancel the current operation?", "Yes, Cancel", "No");
+            if (cancel)
+            {
+                _lyricsCts?.Cancel();
+            }
+            return;
+        }
+
+        _isLyricsProcessing = true;
+        MyProgressBar.IsVisible = true; // Show a progress bar
+        MyProgressLabel.IsVisible = true; // Show a label
+
+
+
+        _lyricsCts = new CancellationTokenSource();
+
+
+
+        var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
+        {
+            MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
+            MyProgressLabel.Text = $"Processing: {progress.CurrentFile} {Environment.NewLine}" +
+            $"File {progress.ProcessedCount}/{progress.TotalCount}";
+        });
+
+        try
+        {
+
+            await MyViewModel.LoadSongDataAsync(progressReporter, _lyricsCts);
+            await DisplayAlert("Complete", "Lyrics processing finished!", "OK");
+        }
+        catch (OperationCanceledException)
+        {
+            await DisplayAlert("Cancelled", "The operation was cancelled.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"An unexpected error occurred: {ex.Message}", "OK");
+        }
+        finally
+        {
+            _isLyricsProcessing = false;
+            MyProgressBar.IsVisible = false;
+            MyProgressLabel.IsVisible = false;
+        }
     }
+
+   
 }

@@ -1,8 +1,10 @@
-﻿using Microsoft.Windows.AppNotifications;
+﻿using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
 using System.Drawing.Imaging;
 
+using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -276,4 +278,23 @@ public static class PlatUtils
 
         AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
     }
-}
+
+    public static void ShowContextMenu(this Element element)
+    {
+        // Get the MenuFlyout attached to the MAUI element
+        var menuFlyout = Microsoft.Maui.Controls.FlyoutBase.GetContextFlyout(element);
+        if (menuFlyout == null)
+        {
+            // No context menu to show
+            return;
+        }
+
+        // Use platform-specific code to trigger the flyout
+        var platformView = element.Handler?.PlatformView as Microsoft.UI.Xaml.FrameworkElement;
+        if (platformView != null)
+        {
+            // The native way to show a context flyout on WinUI
+            FlyoutBase.ShowAttachedFlyout(platformView);
+        }
+    }
+    }

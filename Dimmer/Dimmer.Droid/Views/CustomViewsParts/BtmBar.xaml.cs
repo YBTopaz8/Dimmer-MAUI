@@ -26,14 +26,14 @@ public partial class BtmBar : DXBorder
     public event EventHandler RequestFocusOnMainView;
 
 
-
+    
     
     private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
         //DXBorder send = (DXBorder)sender;
 
 
-       await MyViewModel.BaseVM.PlayPauseToggle();
+       await MyViewModel.PlayPauseToggle();
 
     }
 
@@ -83,7 +83,7 @@ public partial class BtmBar : DXBorder
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                             await   MyViewModel.BaseVM.NextTrackAsync();
+                             await   MyViewModel.NextTrackAsync();
 
                                 Task<bool> bounceTask = this.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -92,7 +92,7 @@ public partial class BtmBar : DXBorder
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                              await  MyViewModel.BaseVM.PreviousTrack();
+                              await  MyViewModel.PreviousTrack();
 
                                 Task<bool> bounceTask = this.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -116,7 +116,7 @@ public partial class BtmBar : DXBorder
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            await MyViewModel.BaseVM.PreviousTrack();
+                            await MyViewModel.PreviousTrack();
                             Debug.WriteLine("Swiped left");
                             Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
                             Task t2 = Task.Delay(500);
@@ -145,7 +145,7 @@ public partial class BtmBar : DXBorder
                         {
                             MainThread.BeginInvokeOnMainThread(() =>
                             {
-                                int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.BaseVM.CurrentPlayingSongView);
+                                int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
                                 MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
                             });
                             btmBarHeight=this.Height;
@@ -188,5 +188,15 @@ public partial class BtmBar : DXBorder
     private void DurationAndSearchChip_Tap(object sender, HandledEventArgs e)
     {
         ToggleAdvanceFilters?.Invoke(this, e);
+    }
+
+    private void BtmBarr_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void BtmBarr_Unloaded(object sender, EventArgs e)
+    {
+
     }
 }

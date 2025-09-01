@@ -18,11 +18,11 @@ public class StatsRecalculator
         _logger = logger;
     }
 
-    public void RecalculateAllStatistics()
+    public async Task RecalculateAllStatistics()
     {
-        _logger.LogInformation("Starting recalculation of all statistics...");
+        _logger.LogInformation($"{DateTime.Now} Starting recalculation of all statistics...");
 
-        _realm.Write(() =>
+       await _realm.WriteAsync(() =>
         {
             // --- Phase 1: Update Song-level Statistics ---
             var allSongs = _realm.All<SongModel>();

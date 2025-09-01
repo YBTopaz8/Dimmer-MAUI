@@ -14,6 +14,8 @@ using Microsoft.Maui.Hosting;
 
 using Parse.LiveQuery;
 
+using Colors = Microsoft.Maui.Graphics.Colors;
+
 namespace Dimmer.WinUI;
 
 public static class MauiProgram
@@ -34,42 +36,83 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-                // This is where you customize the handler
-               
-                     // Target the Button control and its default handler
+                Microsoft.Maui.Handlers.LabelHandler.Mapper.AppendToMapping(
+                    nameof(FlyoutBase.ContextFlyoutProperty), (handler, view) =>
+                {
+                    if (handler.PlatformView is Microsoft.UI.Xaml.FrameworkElement nativeView && view is Element element)
+                    {
+                        var contextFlyout = FlyoutBase.GetContextFlyout(element);
+                        if (contextFlyout?.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase nativeFlyout)
+                        {
+                            Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase.SetAttachedFlyout(nativeView, nativeFlyout);
+                        }
+                    }
+                });
 
 
-                     // We use AppendToMapping to ADD our custom logic after the default setup runs.
-                     // We give our custom action a unique key, "AddGlobalTouchBehavior".
-                     Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
+                Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
                          key: "AddGlobalTouchBehavior",
                          method: (handler, view) =>
                          {
+                             return;
                              // The 'view' is the cross-platform Button control.
                              if (view is Button button)
                              {
                                  // --- PREVENT DUPLICATES ---
                                  // This is an important check to ensure we don't add the behavior
                                  // multiple times if the handler's logic re-runs for the same control.
-                                 if (button.Behaviors.OfType<TouchBehavior>().Any())
+                                 if (button.Behaviors.OfType<TouchBehavior>().Any() || button.Behaviors.OfType<IconTintColorBehavior>().Any())
                                  {
                                      return;
                                  }
-
-                               
-                                 var touchBehavior = new TouchBehavior
+                                 var iconTintBehavior = new CommunityToolkit.Maui.Behaviors.IconTintColorBehavior
                                  {
-                                     HoveredAnimationDuration = 250,
-                                     HoveredAnimationEasing = Easing.CubicOut,
-                                     HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+                                     // Set the initial/unhovered color. Let's use the button's TextColor for flexibility.
+                                     TintColor = Colors.DarkSlateBlue
                                      
-                                     PressedScale = 1.2, // Adjusted for a smoother feel
-                                     PressedAnimationDuration = 300,
-                                     // Add any other customizations here
                                  };
 
-                              
+
+                                 var touchBehavior = new TouchBehavior
+                                 {
+                                     HoveredAnimationDuration = 350,
+                                     HoveredAnimationEasing = Easing.Linear,
+                                     HoveredOpacity=0.8,
+                                     PressedAnimationDuration = 300,
+                                     // Add any other customizations here
+
+                                 };
+
+                                 touchBehavior.HoverStateChanged += (sender, e) =>
+                                 {
+                                     // Here we define the desired visual state changes.
+                                     switch (e.State)
+                                     {
+                                         case CommunityToolkit.Maui.Core.HoverState.Hovered:
+                                             var bev =button.Behaviors.FirstOrDefault(x=>x.GetType()== typeof(IconTintColorBehavior));
+                                                if (bev is null) return;
+                                                var iconTintBehavior = (CommunityToolkit.Maui.Behaviors.IconTintColorBehavior)bev;
+                                             // The 'sender' of this event is the TouchBehavior itself.
+                                             iconTintBehavior.TintColor= Colors.DarkSlateBlue;
+
+                                             button.BorderWidth = 1;
+                                             button.BorderColor = Colors.DarkSlateBlue;
+                                             break;
+
+                                         case CommunityToolkit.Maui.Core.HoverState.Default:
+                                         default:
+
+
+
+
+                                             // e.g., button.BackgroundColor = Colors.DarkSlateBlue;
+                                             break;
+                                     }
+                                 };
+
+
                                  button.Behaviors.Add(touchBehavior);
+                                 button.Behaviors.Add(iconTintBehavior);
                              }
                          });
 
@@ -86,7 +129,7 @@ public static class MauiProgram
         builder.Services.AddTransient<AllAlbumsPage>();
         builder.Services.AddSingleton<ArtistsPage>();
         builder.Services.AddTransient<OnlinePageManagement>();
-        builder.Services.AddSingleton<IWindowManagerService, WindowManagerService>();
+        builder.Services.AddSingleton<IMauiWindowManagerService, WindowManagerService>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
 
         builder.Services.AddSingleton<DimmerWin>();
@@ -170,5 +213,42 @@ public static class MauiProgram
         builder.Services.AddSingleton<ChatViewModelWin>();
 
         return builder.Build();
+    }
+
+    private static void TouchBehavior_HoverStateChanged(object? sender, CommunityToolkit.Maui.Core.HoverStateChangedEventArgs e)
+    {
+        // The 'sender' of this event is the TouchBehavior itself.
+        // We need to get the Button it is attached to.
+        var touchBehavior = (CommunityToolkit.Maui.Behaviors.TouchBehavior)sender;
+        //var button = (Button)touchBehavior.p; // Get the Button
+
+        // Find the IconTintColorBehavior that is already attached to the button.
+        // The easiest way is to use the x:Name we gave it in XAML, if the handler is in the same class.
+        // Or, more robustly, find it in the Behaviors collection.
+        //var iconTintBehavior = button.Behaviors.OfType<CommunityToolkit.Maui.Behaviors.IconTintColorBehavior>().FirstOrDefault();
+
+        //if (iconTintBehavior is null)
+        //{
+        //    // This should not happen if you set it up in XAML
+        //    return;
+        //}
+
+        //// Now, just change the TintColor property based on the hover state
+        //switch (e.State)
+        //{
+        //    case CommunityToolkit.Maui.Core.HoverState.Hovered:
+        //        // When hovered, change the tint color to White
+        //        iconTintBehavior.TintColor = Microsoft.Maui.Graphics.Colors.White;
+        //        // You might also want to change the button's background
+        //        button.BackgroundColor = Microsoft.Maui.Graphics.Colors.RoyalBlue; // Example highlight color
+        //        break;
+
+        //    case CommunityToolkit.Maui.Core.HoverState.Default:
+        //    default:
+        //        // When not hovered, change it back to the original color
+        //        iconTintBehavior.TintColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        //        button.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue; // Back to original
+        //        break;
+        //}
     }
 }

@@ -25,13 +25,13 @@ public partial class ArtistsPage : ContentPage
     public void LoadArtists()
     {
         var s = DeviceStaticUtils.SelectedArtistOne;
-        MyViewModel.BaseVM.ViewArtistDetails(s);
+        MyViewModel.ViewArtistDetails(s);
 
     }
     private async void SongsColView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
         var song = e.Item as SongModelView;
-      await  MyViewModel.BaseVM.PlaySong(song);
+      await  MyViewModel.PlaySong(song);
     }
     private async void NavHome_Clicked(object sender, EventArgs e)
     {
@@ -39,13 +39,13 @@ public partial class ArtistsPage : ContentPage
     }
     private async void PlayAll_Clicked(object sender, EventArgs e)
     {
-      await  MyViewModel.BaseVM.PlaySong(MyViewModel.BaseVM.SearchResults.FirstOrDefault());
+      await  MyViewModel.PlaySong(MyViewModel.SearchResults.FirstOrDefault());
     }
     private async void TapGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext as SongModelView;
-      await  MyViewModel.BaseVM.PlaySong(song);
+      await  MyViewModel.PlaySong(song);
     }
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -92,7 +92,7 @@ public partial class ArtistsPage : ContentPage
             return;
         }
         selectedSongPopUp = paramss;
-        MyViewModel.BaseVM.SetCurrentlyPickedSongForContext(paramss);
+        MyViewModel.SetCurrentlyPickedSongForContext(paramss);
         //SongsMenuPopup.Show();
 
     }
@@ -113,54 +113,54 @@ public partial class ArtistsPage : ContentPage
         ObservableCollection<SongModelView> songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
         if (songs == null || songs.Count == 0)
         {
-            MyViewModel.BaseVM.CurrentTotalSongsOnDisplay = 0;
+            MyViewModel.CurrentTotalSongsOnDisplay = 0;
             return false;
         }
         if (songs == null || !songs.Any())
             return false;
         internalOrder =  internalOrder== SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
 
-        MyViewModel.BaseVM.CurrentSortOrder = internalOrder;
+        MyViewModel.CurrentSortOrder = internalOrder;
 
-        switch (MyViewModel.BaseVM.CurrentSortProperty)
+        switch (MyViewModel.CurrentSortProperty)
         {
             case "Title":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByTitle(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             case "Artist": // Assuming CommandParameter is "Artist" for ArtistName
-                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource =    CollectionSortHelper.SortByArtistName(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             case "Album": // Assuming CommandParameter is "Album" for AlbumName
-                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource =  CollectionSortHelper.SortByAlbumName(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             case "Genre":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByGenre(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             case "Duration":
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByDuration(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             case "Year": // Assuming CommandParameter for ReleaseYear
-                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource =   CollectionSortHelper.SortByReleaseYear(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             case "DateAdded": // Assuming CommandParameter for DateCreated
-                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, MyViewModel.BaseVM.CurrentSortOrder);
+                SongsColView.ItemsSource = CollectionSortHelper.SortByDateAdded(songs, MyViewModel.CurrentSortOrder);
                 songsToDisplay=SongsColView.ItemsSource as ObservableCollection<SongModelView> ?? new ObservableCollection<SongModelView>();
                 break;
             default:
-                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.BaseVM.CurrentSortProperty}");
+                System.Diagnostics.Debug.WriteLine($"Unsupported sort property: {MyViewModel.CurrentSortProperty}");
                 // Reset sort state if property is unknown, or do nothing
-                MyViewModel.BaseVM.CurrentSortProperty = string.Empty;
-                MyViewModel.BaseVM.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
+                MyViewModel.CurrentSortProperty = string.Empty;
+                MyViewModel.CurrentTotalSongsOnDisplay= songsToDisplay.Count;
                 break;
 
         }
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)MyViewModel.BaseVM.CurrentSortOrder;
+        MyViewModel.CurrentSortOrderInt = (int)MyViewModel.CurrentSortOrder;
 
         return true;
     }
@@ -179,17 +179,17 @@ public partial class ArtistsPage : ContentPage
 
 
         // Update current sort state
-        MyViewModel.BaseVM.CurrentSortProperty = sortProperty;
+        MyViewModel.CurrentSortProperty = sortProperty;
 
 
         SortOrder newOrder;
 
         // Toggle order if sorting by the same property again
-        newOrder = (MyViewModel.BaseVM.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
+        newOrder = (MyViewModel.CurrentSortOrder == SortOrder.Asc) ? SortOrder.Desc : SortOrder.Asc;
 
 
-        MyViewModel.BaseVM.CurrentSortOrder = newOrder;
-        MyViewModel.BaseVM.CurrentSortOrderInt = (int)newOrder;
+        MyViewModel.CurrentSortOrder = newOrder;
+        MyViewModel.CurrentSortOrderInt = (int)newOrder;
         // Optional: Update UI to show sort indicators (e.g., change chip appearance)
         bool flowControl = SortIndeed();
         if (!flowControl)

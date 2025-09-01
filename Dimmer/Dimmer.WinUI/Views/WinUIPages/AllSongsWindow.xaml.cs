@@ -81,6 +81,12 @@ public sealed partial class AllSongsWindow : Window
         _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
         _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
 
+        this.Closed +=AllSongsWindow_Closed;
+    }
+
+    private void AllSongsWindow_Closed(object sender, WindowEventArgs args)
+    {
+
     }
 
     public ObservableCollection<string> _liveArtists;
@@ -89,6 +95,7 @@ public sealed partial class AllSongsWindow : Window
 
     public BaseViewModelWin MyViewModel { get; internal set; }
 
+    
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         this.Close();
@@ -675,6 +682,46 @@ public sealed partial class AllSongsWindow : Window
     }
 
     private void SearchAutoSuggestBox_BeforeTextChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs args)
+    {
+
+    }
+
+    private void ViewSong_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        Debug.WriteLine(e.Pointer.PointerId);
+        Debug.WriteLine(e.OriginalSource.GetType());
+
+        // if it is a middle click, exclude in tql explictly
+        if (e.GetCurrentPoint(null).Properties.IsMiddleButtonPressed)
+        {   
+            var currentTql = MyViewModel.CurrentTqlQuery;
+
+
+
+        }
+    }
+
+    private void MySongsTableView_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerEntered_1(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MySongsTableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
 
     }

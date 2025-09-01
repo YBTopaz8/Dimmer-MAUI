@@ -76,7 +76,7 @@
                     <dx:DXStackLayout Grid.Row="0" ItemSpacing="20">
                         <dx:DXImage Margin="0,0,0,-20" Aspect="Fill"
                                     Opacity="0.6"
-                                    Source="{Binding BaseVM.SelectedArtist.ImageBytes, Converter={converters:BytesArrayToImageSource}}"
+                                    Source="{Binding SelectedArtist.ImageBytes, Converter={converters:BytesArrayToImageSource}}"
                                     />
                         <dx:DXStackLayout IsVisible="False" Orientation="Horizontal">
                             <dx:Chip BorderThickness="0" Icon="play.png"
@@ -89,13 +89,13 @@
                         </dx:DXStackLayout>
                         <Grid ColumnDefinitions="*,*">
                             <dx:DXStackLayout Grid.Column="0" Orientation="Horizontal">
-                                <Label FontSize="26" Text="{Binding BaseVM.SelectedArtist.Name}" />
+                                <Label FontSize="26" Text="{Binding SelectedArtist.Name}" />
 
 
                                 <dx:DXStackLayout Orientation="Horizontal">
                                     <dx:Chip BorderThickness="0" IconSize="30,30"
                                              IsIconVisible="True"
-                                             Text="{Binding BaseVM.SelectedArtistAlbums.Count}"
+                                             Text="{Binding SelectedArtistAlbums.Count}"
                                              />
 
                                 </dx:DXStackLayout>
@@ -120,7 +120,7 @@
 
                     <dx:DXCollectionView x:Name="ArtistAlbums"
                                          HeightRequest="60"
-                                         ItemsSource="{Binding BaseVM.SelectedArtistAlbums}"
+                                         ItemsSource="{Binding SelectedArtistAlbums}"
                                          Orientation="Horizontal"
                                          >
                         <dx:DXCollectionView.ItemTemplate>
@@ -143,7 +143,7 @@
                                  />
                     <dx:DXCollectionView x:Name="SongsColView"
                                          Tap="SongsColView_Tap"
-                                    ItemsSource="{Binding BaseVM.SearchResults}"    >
+                                    ItemsSource="{Binding SearchResults}"    >
                         <dx:DXCollectionView.GroupDescription>
                             <dx:GroupDescription GroupInterval="DisplayText" FieldName="AlbumName"/>
                         </dx:DXCollectionView.GroupDescription>
@@ -222,7 +222,7 @@
                         AllowedState="HalfExpanded" HalfExpandedRatio="0.8"
                         >
             <Grid>
-                <dx:DXImage Opacity="0.3" Source="{Binding BaseVM.CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                <dx:DXImage Opacity="0.3" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
                 <dx:DXStackLayout BackgroundColor="Transparent" Orientation="Vertical">
                     <dx:DXStackLayout.Resources>
                         <ResourceDictionary>
@@ -249,10 +249,10 @@
 
                             <Label FontSize="20" HorizontalTextAlignment="Center"
                                    LineBreakMode="NoWrap"
-                                   Text="{Binding BaseVM.SelectedSong.Title}"
+                                   Text="{Binding SelectedSong.Title}"
                                    />
                             <Label FontSize="14" HorizontalTextAlignment="Center"
-                                   Text="{Binding BaseVM.SelectedSong.ArtistName}"
+                                   Text="{Binding SelectedSong.ArtistName}"
                                    />
                         </dx:DXStackLayout>
                     </dx:DXStackLayout>
@@ -264,11 +264,11 @@
                                  />
                     <dx:DXButton Content="Add to Playlist**" Icon="playlistminimalistic.png" />
                     <dx:DXButton x:Name="GoToAlbumBtn"
-                                 CommandParameter="{Binding BaseVM.SelectedSong}"
+                                 CommandParameter="{Binding SelectedSong}"
                                  Content="Go to Album" Icon="album.png"
                                  />
 
-                    <dx:DXButton CommandParameter="{Binding BaseVM.SelectedSong}"
+                    <dx:DXButton CommandParameter="{Binding SelectedSong}"
                                  Content="Tag Editor" Icon="clapperboardedit.png"
                                  />
                     <dx:DXButton Content="Song Info" Icon="fileinfo.png" />
@@ -301,16 +301,16 @@
                                              Icon="roundaltarrowup.png" IconSize="30,30"
                                              IsIconVisible="True" PressedBackgroundColor="DarkSlateBlue"
                                              PressedBorderColor="DarkSlateBlue" PressedIconColor="{AppThemeBinding Dark=White,Light=Black}"
-                                             Text="{Binding BaseVM.CurrentSortProperty, StringFormat='Current Sorting Cateogy: {0}'}"
+                                             Text="{Binding CurrentSortProperty, StringFormat='Current Sorting Cateogy: {0}'}"
                                              >
                                         <dx:Chip.Triggers>
-                                            <DataTrigger Binding="{Binding BaseVM.CurrentSortOrderInt}"
+                                            <DataTrigger Binding="{Binding CurrentSortOrderInt}"
                                                          TargetType="dx:Chip" Value="0"
                                                          >
                                                 <Setter Property="Icon" Value="roundaltarrowup.png" />
 
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding BaseVM.CurrentSortOrderInt}"
+                                            <DataTrigger Binding="{Binding CurrentSortOrderInt}"
                                                          TargetType="dx:Chip" Value="1"
                                                          >
                                                 <Setter Property="Icon" Value="roundaltarrowdown.png" />

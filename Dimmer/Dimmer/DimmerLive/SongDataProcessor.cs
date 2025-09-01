@@ -3,19 +3,150 @@
 using Dimmer.Interfaces.Services.Interfaces;
 
 using System.Collections.Concurrent;
+using System.Threading.Tasks.Dataflow;
 
 
 namespace Dimmer.DimmerLive;
 
 
-// A simple class to report progress
+//// A simple class to report progress
+//public class LyricsProcessingProgress
+//{
+//    public int ProcessedCount { get; set; }
+//    public int TotalCount { get; set; }
+//    public string? CurrentFile { get; set; }
+//    public bool FoundLyrics { get; set; }
+//    public bool FoundUnsyncLyrics { get; set; }
+//}
+
+
 public class LyricsProcessingProgress
 {
     public int ProcessedCount { get; set; }
     public int TotalCount { get; set; }
     public string? CurrentFile { get; set; }
+    public bool FoundLyrics { get; set; }
+    public bool FoundUnsyncLyrics { get; set; }
 }
 
+public static class SongDataProcessor
+{
+    public static async Task ProcessLyricsAsync(
+        IRealmFactory RealmFactory,
+        IReadOnlyCollection<SongModel> songsToProcess,
+        ILyricsMetadataService lyricsService,
+        IProgress<LyricsProcessingProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        var songList = songsToProcess;
+        int totalCount = songList.Count;
+        int processedCount = 0;
+
+        // --- THE ACTION BLOCK ---
+        // This is our asynchronous consumer. It will process items concurrently.
+        var actionBlock = new ActionBlock<SongModel>(async song =>
+        {
+            try
+            {
+                // Operation was cancelled before we started this item.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Skip if lyrics are already present.
+                if (!string.IsNullOrEmpty(song.SyncLyrics))
+                {
+                    return;
+                }
+
+                // --- STEP 1: Fetch Lyrics from local file first ---
+                var track = new Track(song.FilePath);
+                string? fetchedLrcData = track.Lyrics?.FirstOrDefault()?.FormatSynch();
+                string? plainLyrics = track.Lyrics?.FirstOrDefault()?.UnsynchronizedLyrics;
+
+                // --- STEP 2: If not found locally, search online ---
+                if (string.IsNullOrWhiteSpace(fetchedLrcData) && string.IsNullOrWhiteSpace(plainLyrics))
+                {
+                    // Pass the cancellationToken to the service! This is crucial.
+                    var onlineResults = await lyricsService.SearchLyricsAsync(song.Title,song.ArtistName,song.AlbumName, cancellationToken);
+                    var onlineResult = onlineResults.FirstOrDefault();
+                    if (onlineResult is not null)
+                    {
+
+                        var newLyricsInfo = new LyricsInfo();
+                        if (!string.IsNullOrWhiteSpace(fetchedLrcData))
+                        {
+                            newLyricsInfo.Parse(fetchedLrcData);
+                        }
+                        else
+                        {
+                            newLyricsInfo.UnsynchronizedLyrics = plainLyrics;
+                        }
+
+                        fetchedLrcData = onlineResult.SyncedLyrics;
+                        plainLyrics = onlineResult.PlainLyrics;
+
+                        // Save the new lyrics back to the file metadata
+                        bool saved = await lyricsService.SaveLyricsToDB(onlineResult.Instrumental,plainLyrics, song, fetchedLrcData,newLyricsInfo);
+                        if (saved)
+                        {
+
+                            // Update the UI model on the main thread
+                            //MainThread.BeginInvokeOnMainThread(() =>
+                            //{
+                            //    song.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
+                            //    song.UnSyncLyrics = plainLyrics;
+                            //    song.SyncLyrics = fetchedLrcData; // Or however you store it
+                            //});
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException ex)
+            {
+
+                // This is expected, just let it bubble up to stop the block.
+                throw new OperationCanceledException(ex.Message) ;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error processing lyrics for {song.FilePath}: {ex.Message}");
+            }
+            finally
+            {
+                // Report progress in a thread-safe way.
+                int currentProcessed = Interlocked.Increment(ref processedCount);
+                progress?.Report(new LyricsProcessingProgress
+                {
+                    ProcessedCount = currentProcessed,
+                    TotalCount = totalCount,
+                    CurrentFile = Path.GetFileName(song.FilePath),
+                    FoundLyrics = !string.IsNullOrEmpty(song.SyncLyrics),
+                    FoundUnsyncLyrics = !string.IsNullOrEmpty(song.UnSyncLyrics)
+                });
+            }
+        },
+        // --- CONFIGURATION ---
+        new ExecutionDataflowBlockOptions
+        {
+            // This is the magic. Run up to 4 tasks in parallel. Perfect for network I/O.
+            MaxDegreeOfParallelism = 4,
+            CancellationToken = cancellationToken
+        });
+
+        // --- THE PRODUCER ---
+        // This is now a simple loop that "posts" work to the block. It doesn't block.
+        foreach (var song in songList)
+        {
+            await actionBlock.SendAsync(song, cancellationToken);
+        }
+
+        // --- WAIT FOR COMPLETION ---
+        // 1. Tell the block we are done adding items.
+        actionBlock.Complete();
+        // 2. Asynchronously wait for all queued items to be processed.
+        await actionBlock.Completion;
+    }
+}
+/*
 public static class SongDataProcessor
 {
     /// <summary>
@@ -181,6 +312,8 @@ public static class SongDataProcessor
                              ProcessedCount = currentProcessed,
                              TotalCount = totalCount,
                              CurrentFile = Path.GetFileName(song.FilePath)
+                             ,FoundLyrics = song.HasSyncedLyrics
+                             ,FoundUnsyncLyrics = song.HasLyrics
                          });
                      }
                  }
@@ -190,3 +323,5 @@ public static class SongDataProcessor
         return Task.WhenAll(consumerTasks.Concat(new[] { producerTask }));
     }
 }
+
+*/

@@ -17,10 +17,10 @@
               RowSpacing="20"
               >
             <Label Grid.Row="0" FontSize="28"
-                   Text="{Binding BaseVM.DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
+                   Text="{Binding DimmerPlayEventList.Count, StringFormat='Song Name: {0}'}"
                    VerticalOptions="Start"
                    />
-            <CollectionView Grid.Row="1" ItemsSource="{Binding BaseVM.DimmerPlayEventList}">
+            <CollectionView Grid.Row="1" ItemsSource="{Binding DimmerPlayEventList}">
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:DimmerPlayEventView">

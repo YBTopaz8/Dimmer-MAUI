@@ -34,10 +34,11 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     // --- Optional Metadata ---
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
-    public IList<SongModel> SongsInPlaylist { get; } = null!;
+    [Backlink(nameof(SongModel.PlaylistsHavingSong))]
+    public IQueryable<SongModel> SongsInPlaylist { get; } = null!;
     public IList<ObjectId> SongsIdsInPlaylist { get; } = null!;
     public string? CurrentSongId { get; set; }
-
+    
     public string? CoverImagePath { get; set; }
     /// <summary>
     /// The last time this playlist was played. This allows for sorting by "recently played".

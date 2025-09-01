@@ -33,8 +33,11 @@
         <ResourceDictionary />
     </Shell.Resources>
     <Shell.FlyoutContent>
-
-        <syncf:SfTabView x:Name="ShellTabView" BackgroundColor="{AppThemeBinding Light=#999999}"
+        <Grid RowDefinitions="auto,*">
+            <VerticalStackLayout Grid.Row="0">
+                <Label Text="{Binding LatestAppLog.Log}"/>
+            </VerticalStackLayout>
+        <syncf:SfTabView Grid.Row="1" x:Name="ShellTabView" BackgroundColor="{AppThemeBinding Light=#999999}"
                          SelectionChanging="ShellTabView_SelectionChanging"
                          SelectedIndex="{Binding ShellTabIndex}"
                          EnableSwiping="True" TabBarHeight="0" TabBarPlacement="Top">
@@ -144,6 +147,10 @@ IsVisible="True">
         HorizontalTextAlignment="Justify" LineBreakMode="WordWrap"
                  FontAttributes="Bold"
      Text="{Binding CurrentPlayingSongView.Title}" FontSize="21">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"
+                                                          />
+                                </Label.GestureRecognizers>
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Share Song" IconImageSource="shared.png"
@@ -447,7 +454,8 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
             </syncf:SfTabItem>
 
           </syncf:SfTabView>
-       
+
+        </Grid>
     </Shell.FlyoutContent>
 
 

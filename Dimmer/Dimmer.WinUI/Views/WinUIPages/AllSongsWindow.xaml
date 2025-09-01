@@ -194,8 +194,11 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                               IsRightTapEnabled="True"
                               BringIntoViewRequested="TableView_BringIntoViewRequested"
                               ExportSelectedContent="TableView_ExportSelectedContent"
-                                   
-                                   
+                                   PointerReleased="MySongsTableView_PointerReleased"
+                                   PointerEntered="MySongsTableView_PointerEntered"
+                                   AllowFocusOnInteraction="False"
+                                   PointerExited="MySongsTableView_PointerExited"
+                                   AllowFocusWhenDisabled="False"
                                    CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
                                    ClearSorting="MySongsTableView_ClearSorting"
                                    DragItemsStarting="MySongsTableView_DragItemsStarting"
@@ -208,6 +211,23 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                                    ContextRequested="MySongsTableView_ContextRequested"
                                    
                                    >
+                    
+                <dgView:TableView.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="View Song" 
+                                        CommandParameter="{Binding .}"
+                                        Click="ViewSong_Click" x:Name="ViewSong"/>
+                        <MenuFlyoutSeparator />
+                        
+                        <MenuFlyoutItem Text="Option with an Icon">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE71E;"/>
+                                <!-- This is a 'Save' icon -->
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+
+                </dgView:TableView.ContextFlyout>
                     <dgView:TableView.Columns>
 
                         <!-- Column for the Cover Art -->
@@ -238,10 +258,10 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
 
                     <dgView:TableViewTextColumn IsReadOnly="True"                                      
                                                     
-                                                    Header="Artist" MaxWidth="220" Binding="{Binding Title}">
+                                                    Header="Title" MaxWidth="310" Binding="{Binding Title}">
                     </dgView:TableViewTextColumn>
                         <dgView:TableViewTextColumn IsReadOnly="True"                                                 
-                                                    Header="Artist" MaxWidth="180" Binding="{Binding ArtistName}"/>
+                                                    Header="Artist" MaxWidth="200" Binding="{Binding ArtistName}"/>
 
                     <dgView:TableViewTextColumn IsReadOnly="True" MaxWidth="180"  Header="Album" Binding="{Binding AlbumName}" />
 

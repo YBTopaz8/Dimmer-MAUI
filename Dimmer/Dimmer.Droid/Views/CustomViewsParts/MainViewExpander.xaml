@@ -176,7 +176,7 @@ Value="False">
                                 FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
                                 ItemSpacing="10"
             LongPressCommand="{Binding Commands.ShowFilteringUIForm,Source={x:Reference SongsColView}}"
-                                ItemsSource="{Binding BaseVM.SearchResults}"
+                                ItemsSource="{Binding SearchResults}"
                                 Loaded="SongsColView_Loaded"
                                ItemTemplate="{StaticResource OGView}" >
         </dx:DXCollectionView>

@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.WinUI.Utils.WinMgt;
-public interface IWindowManagerService
+public interface IMauiWindowManagerService
 {
     // Create a window by its direct type
     T? CreateWindow<T>() where T : Window, new();
@@ -18,4 +18,8 @@ public interface IWindowManagerService
     void CloseWindow(Window window);
     void CloseWindow<T>() where T : Window;
     void BringToFront(Window window);
+    void UntrackWindow(Window window);
+    void TrackWindow(Window window);
+    void CloseAllWindows();
+    void ActivateWindow(Window window);
 }

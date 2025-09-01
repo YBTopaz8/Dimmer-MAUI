@@ -83,7 +83,7 @@ x:FieldModifier="Public">
                     VerticalOptions="Start">
                 <Label x:Name="SongsCountLabel" 
                            TextColor="{AppThemeBinding Dark=#999999, Light=black}"
-                           Text="{Binding BaseVM.SearchResults.Count, StringFormat='Songs : {0}'}" />
+                           Text="{Binding SearchResults.Count, StringFormat='Songs : {0}'}" />
 
 
                 <dx:Chip

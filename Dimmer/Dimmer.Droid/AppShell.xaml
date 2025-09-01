@@ -87,20 +87,20 @@ Text="Rescan Lyrics"
 
 
                                     <DataTrigger
-Binding="{Binding BaseVM.CurrentPlayingSongView.HasSyncedLyrics}"
+Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
 TargetType="Border"
 Value="true">
-                                        <Setter Property="Stroke" Value="{Binding BaseVM.CurrentPlaySongDominantColor}" />
+                                        <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
                                     </DataTrigger>
 
 
 
                                 </Border.Triggers>
                                 <Grid>
-                                    <Image Source="{Binding BaseVM.CurrentPlayingSongView.CoverImagePath}"
+                                    <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
       Opacity="0.3" Aspect="AspectFit" >
                                         <Image.Triggers>
-                                            <DataTrigger TargetType="Image" Binding="{Binding BaseVM.AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                            <DataTrigger TargetType="Image" Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                  Value="True">
                                                 <Setter Property="Opacity" Value="1"/>
                                             </DataTrigger>
@@ -116,14 +116,14 @@ IsVisible="True">
                                         <VerticalStackLayout.Triggers>
 
                                             <DataTrigger
-        Binding="{Binding BaseVM.CurrentPlayingSongView.HasSyncedLyrics}"
+        Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
         TargetType="VerticalStackLayout"
         Value="true">
                                                 <Setter Property="IsVisible" Value="True" />
                                             </DataTrigger>
 
                                             <DataTrigger
-        Binding="{Binding BaseVM.AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
+        Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
         TargetType="VerticalStackLayout"
         Value="false">
                                                 <Setter Property="IsVisible" Value="False" />
@@ -134,7 +134,7 @@ IsVisible="True">
     FontSize="15"
     HorizontalTextAlignment="Center"
     Opacity="0.7"
-    Text="{Binding BaseVM.PreviousLine.Text}" />
+    Text="{Binding PreviousLine.Text}" />
                                         <Grid 
     HorizontalOptions="Center">
                                             <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
@@ -144,7 +144,7 @@ IsVisible="True">
         FontSize="36"
     HorizontalTextAlignment="Center"
         Opacity="1"
-        Text="{Binding BaseVM. CurrentLine.Text}"
+        Text="{Binding  CurrentLine.Text}"
         TextColor="DarkSlateBlue">
                                                 <Label.Triggers />
                                             </Label>
@@ -153,7 +153,7 @@ IsVisible="True">
     FontSize="17"
     HorizontalTextAlignment="Center"
     Opacity="0.7"
-    Text="{Binding BaseVM.NextLine.Text}" />
+    Text="{Binding NextLine.Text}" />
                                     </VerticalStackLayout>
 
 
@@ -163,11 +163,11 @@ IsVisible="True">
                             <Label HorizontalOptions="Center"
         HorizontalTextAlignment="Justify" LineBreakMode="WordWrap"
                  FontAttributes="Bold"
-     Text="{Binding BaseVM.CurrentPlayingSongView.Title}" FontSize="21">
+     Text="{Binding CurrentPlayingSongView.Title}" FontSize="21">
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem Text="Share Song" IconImageSource="shared.png"
-                                                   Command="{Binding BaseVM.ShareCurrentPlayingAsStoryInCardLikeGradientCommand}" />
+                                                   Command="{Binding ShareCurrentPlayingAsStoryInCardLikeGradientCommand}" />
                                         <MenuFlyoutItem Text="Share Title Only" 
                                                     Clicked="ShowBtmSheet_Clicked"
                                                     IconImageSource="textitalicsquare.png"/>
@@ -177,8 +177,8 @@ IsVisible="True">
                             </Label>
                             <HorizontalStackLayout HorizontalOptions="Center">
                                 <Button 
-                        Command="{Binding BaseVM.ToggleFavSongCommand}"
-                        CommandParameter="{Binding BaseVM.CurrentPlayingSongView}"
+                        Command="{Binding ToggleFavSongCommand}"
+                        CommandParameter="{Binding CurrentPlayingSongView}"
                         BackgroundColor="Transparent"
                         
                         BorderWidth="0"
@@ -188,7 +188,7 @@ IsVisible="True">
                         WidthRequest="58">
                                     <Button.Triggers>
                                         <DataTrigger
-                                Binding="{Binding BaseVM.CurrentPlayingSongView.IsFavorite}"
+                                Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                 TargetType="Button"
                                 Value="False">
                                             <Setter Property="ImageSource" Value="heartbroken.png" />
@@ -196,7 +196,7 @@ IsVisible="True">
 
                                         </DataTrigger>
                                         <DataTrigger
-                                Binding="{Binding BaseVM.CurrentPlayingSongView.IsFavorite}"
+                                Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                 TargetType="Button"
                                 Value="True">
                                             <Setter Property="ImageSource" Value="heartlock.png" />
@@ -206,8 +206,8 @@ IsVisible="True">
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
-                                <Button WidthRequest="60" BackgroundColor="{Binding BaseVM.CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
-                        Text="{Binding BaseVM.CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
+                                <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
+                        Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
                        Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
                             </HorizontalStackLayout>
                             <Grid ColumnDefinitions="*,auto" >
@@ -216,22 +216,22 @@ IsVisible="True">
                             </Grid>
 
                             <Label HorizontalTextAlignment="Start" 
-                   Text="{Binding BaseVM.CurrentPlayingSongView.ArtistName}" FontSize="16">
+                   Text="{Binding CurrentPlayingSongView.ArtistName}" FontSize="16">
 
                                 <Label.GestureRecognizers>
                                     <PointerGestureRecognizer
-                     PointerPressedCommandParameter="{Binding BaseVM.CurrentPlayingSongView.OtherArtistsName}"
+                     PointerPressedCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
                      PointerReleased="QuickFilterGest_PointerReleased"
                      PointerReleasedCommandParameter="artist" />
                                 </Label.GestureRecognizers>
                             </Label>
 
                             <Label HorizontalTextAlignment="Start"
-                   Text="{Binding BaseVM.CurrentPlayingSongView.AlbumName}" 
+                   Text="{Binding CurrentPlayingSongView.AlbumName}" 
                    FontSize="16">
                                 <Label.GestureRecognizers>
                                     <PointerGestureRecognizer
-PointerPressedCommandParameter="{Binding BaseVM.CurrentPlayingSongView.AlbumName}"
+PointerPressedCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
 PointerReleased="QuickFilterGest_PointerReleased"
 PointerReleasedCommandParameter="album" />
                                 </Label.GestureRecognizers>
@@ -260,17 +260,17 @@ PointerReleasedCommandParameter="album" />
          WidthRequest="60"
          BorderWidth="0"
 Background="Transparent"
-Command="{Binding BaseVM.ToggleShuffleCommand}"
+Command="{Binding ToggleShuffleCommand}"
 ImageSource="shuffle.png"
-ToolTipProperties.Text="{Binding BaseVM.IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
+ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
          
 StyleClass="MediaBtnChip">
                                     <Button.Triggers>
                                         <DataTrigger
-        Binding="{Binding BaseVM.IsShuffleActive}"
+        Binding="{Binding IsShuffleActive}"
         TargetType="Button"
         Value="True">
-                                            <Setter Property="BorderColor" Value="{Binding BaseVM.CurrentPlaySongDominantColor}" />
+                                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
                                             <Setter Property="BorderWidth" Value="2" />
 
                                         </DataTrigger>
@@ -284,7 +284,7 @@ StyleClass="MediaBtnChip">
                            
                            Background="Transparent"
                     BorderWidth="0"
-                           Command="{Binding BaseVM.PreviousTrackCommand}"
+                           Command="{Binding PreviousTrackCommand}"
                            ImageSource="skipprevious.png"
                            StyleClass="MediaBtnChip" />
                                 <Button
@@ -292,20 +292,20 @@ StyleClass="MediaBtnChip">
                            
                            
                            Background="Transparent"
-                           Command="{Binding BaseVM.PlayPauseToggleCommand}"
+                           Command="{Binding PlayPauseToggleCommand}"
                            ImageSource="play.png"
                            StyleClass="MediaBtnChip">
 
                                     <Button.Triggers>
                                         <DataTrigger
-                                   Binding="{Binding BaseVM.IsPlaying}"
+                                   Binding="{Binding IsPlaying}"
                                    TargetType="Button"
                                    Value="true">
                                             <Setter Property="ImageSource" Value="pause.png" />
                                         </DataTrigger>
 
                                         <DataTrigger
-                                   Binding="{Binding BaseVM.IsPlaying}"
+                                   Binding="{Binding IsPlaying}"
                                    TargetType="Button"
                                    Value="false">
                                             <Setter Property="ImageSource" Value="play.png" />
@@ -317,7 +317,7 @@ StyleClass="MediaBtnChip">
                            
                            
                            Background="Transparent"
-                           Command="{Binding BaseVM.NextTrackCommand}"
+                           Command="{Binding NextTrackCommand}"
                            ImageSource="skipnext.png"
                            StyleClass="MediaBtnChip" />
 
@@ -325,22 +325,22 @@ StyleClass="MediaBtnChip">
                                 <Button
          WidthRequest="60"
 Background="Transparent"
-Command="{Binding BaseVM.ToggleRepeatModeCommand}"
+Command="{Binding ToggleRepeatModeCommand}"
 ImageSource="repeat.png"
 StyleClass="MediaBtnChip"
-ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
+ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
                                     <Button.Triggers>
                                         <DataTrigger
-        Binding="{Binding BaseVM.CurrentRepeatMode}"
+        Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="0">
-                                            <Setter Property="BorderColor" Value="{Binding BaseVM.CurrentPlaySongDominantColor}" />
+                                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
                                             <Setter Property="BorderWidth" Value="1" />
 
 
                                         </DataTrigger>
                                         <DataTrigger
-        Binding="{Binding BaseVM.CurrentRepeatMode}"
+        Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="1">
                                             <Setter Property="BorderColor" Value="LightBlue" />
@@ -348,7 +348,7 @@ ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='Current
 
                                         </DataTrigger>
                                         <DataTrigger
-        Binding="{Binding BaseVM.CurrentRepeatMode}"
+        Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="2">
                                             <Setter Property="BorderColor" Value="Orange" />
@@ -356,7 +356,7 @@ ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='Current
 
                                         </DataTrigger>
                                         <DataTrigger
-        Binding="{Binding BaseVM.CurrentRepeatMode}"
+        Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
         Value="3">
                                             <Setter Property="BorderColor" Value="Red" />
@@ -370,17 +370,17 @@ ToolTipProperties.Text="{Binding BaseVM.CurrentRepeatMode, StringFormat='Current
 x:Name="TrackProgressSlider"
 Grid.Column="1"
 DragCompleted="Slider_DragCompleted"
-Maximum="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds}"
+Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
 Minimum="0" MaximumTrackColor="{AppThemeBinding Dark=White,Light=Black}"
 MinimumTrackColor="DarkSlateBlue"
-ThumbColor="{Binding BaseVM.CurrentPlaySongDominantColor}"
-Value="{Binding BaseVM.CurrentTrackPositionSeconds}" />
+ThumbColor="{Binding CurrentPlaySongDominantColor}"
+Value="{Binding CurrentTrackPositionSeconds}" />
                             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                                 <Label HorizontalTextAlignment="Start"
                        TextColor="{AppThemeBinding Light=DarkSlateblue,Dark=white}"
-                                Grid.Column="0" Text="{Binding BaseVM.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >
+                                Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >
                                     <Label.Triggers>
-                                        <DataTrigger Binding="{Binding BaseVM.IsPlaying}"
+                                        <DataTrigger Binding="{Binding IsPlaying}"
                   Value="True"
                   TargetType="Label">
                                             <Setter Property="TextColor" Value="DarkSlateBlue"/>
@@ -391,7 +391,7 @@ Value="{Binding BaseVM.CurrentTrackPositionSeconds}" />
 
                                 <Label Grid.Column="2"  HorizontalTextAlignment="Start"
                                    BackgroundColor="Transparent"
-                                   Text="{Binding BaseVM.CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                                   Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
                             </HorizontalStackLayout>
 

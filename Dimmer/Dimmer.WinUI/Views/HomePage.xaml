@@ -67,6 +67,12 @@ PointerExited="SongViewPointer_PointerExited"/>
                 <Grid RowDefinitions="*,150" RowSpacing="5" Margin="2">
                     <FlyoutBase.ContextFlyout>
                         <MenuFlyout>
+                            <MenuFlyoutItem Text="View Song Details" 
+x:Name="ViewSongDetails" 
+                                    Clicked="ViewSongDetails_Clicked"
+                                            /> 
+
+
                             <MenuFlyoutItem 
                 IconImageSource="eye.png"
                Text="{Binding Title, StringFormat='View Song'}"
@@ -219,37 +225,7 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                 <Setter Property="TextColor" Value="{AppThemeBinding Dark=#999999, Light=Black}"/>
             </Style>
         </ResourceDictionary>
-        <DataTemplate x:Key="SimpleList"  x:DataType="models:SongModelView">
-            <VerticalStackLayout>
-                <Label Text="{Binding Title}"/>
-            </VerticalStackLayout>
-        </DataTemplate>
-        <DataTemplate x:Key="SimpleListAndArtist"  x:DataType="models:SongModelView">
-            <HorizontalStackLayout BackgroundColor="Transparent" Spacing="10">
-                <Label Text="{Binding Title}"/>
-                <Label Text="|"/>
-                <Label Text="{Binding ArtistName}"/>
-                <Label Text="|"/>
-                <Label Text="{Binding AlbumName}"/>
-                <Label Text="|"/>
-                <Label Text="{Binding IsFavorite}"/>
-                <Label Text="|"/>
-                <Label Text="{Binding GenreName}"/>
-                <Label Text="|"/>
-            </HorizontalStackLayout>
-        </DataTemplate>
-        <DataTemplate x:Key="MultiColumnsView">
-            <Grid ColumnDefinitions="0.4,*,*,*,*,*,*">
-                <HorizontalStackLayout Grid.Column="0" />
-                <HorizontalStackLayout Grid.Column="1" />
-                <HorizontalStackLayout Grid.Column="2" />
-                <HorizontalStackLayout Grid.Column="3" />
-                <HorizontalStackLayout Grid.Column="4" />
-                <HorizontalStackLayout Grid.Column="5" />
-
-            </Grid>
-        </DataTemplate>
-
+       
         <DataTemplate x:Key="tooltipTemplateTwo" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
                 <Label
@@ -282,7 +258,7 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                         
                     </PointerGestureRecognizer>
                 </Border.GestureRecognizers>
-                <FlyoutBase.ContextFlyout>
+                <FlyoutBase.ContextFlyout >
                     <MenuFlyout>
                         <!--<MenuFlyoutItem Text="Blacklist Song" x:Name="BlackListSong"
                                         Clicked="BlackListSong_Clicked" 
@@ -293,6 +269,10 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                         <!--<MenuFlyoutItem Text="Create New Artist for Song" 
                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateArtistAndAssignSongsCommand}" 
                             CommandParameter="{Binding .}"/>-->
+                        <MenuFlyoutItem Text="View Song Details" 
+x:Name="ViewSongDetails" 
+                                    Clicked="ViewSongDetails_Clicked"
+                                            />
                         <MenuFlyoutItem 
                 IconImageSource="eye.png"
                Text="{Binding Title, StringFormat='View Song'}"
@@ -377,7 +357,7 @@ CommandParameter="Black" IconImageSource="chatdots.png"
                 </Border.Triggers>
 
                 <Grid RowDefinitions="120"
-                                ColumnDefinitions="30,120,*,*,*,*,auto,auto,auto"
+                                ColumnDefinitions="40,auto,*,*,*,auto,80,80,80"
                                 ColumnSpacing="5">
 
                     <Grid.GestureRecognizers>
@@ -459,6 +439,7 @@ Value="False">
                         </Border>
 
                     <Label  Grid.Column="2" HorizontalTextAlignment="Justify"
+                            HorizontalOptions="Center"
                              ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
 
                         Text="{Binding Title}"
@@ -954,7 +935,15 @@ Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}" />
                         Grid.Column="2" HorizontalOptions="Center" Spacing="10">
 
                     <VerticalStackLayout Spacing="10">
-
+                        <VerticalStackLayout.Resources>
+                            <ResourceDictionary>
+                                <Style TargetType="Button">
+                                    <Setter Property="BorderWidth" Value="1"/>
+                                    <Setter Property="HeightRequest" Value="34"/>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                </Style>
+                            </ResourceDictionary>
+                        </VerticalStackLayout.Resources>
 
                         <Button
                         x:Name="ScrollToSong"
@@ -978,8 +967,6 @@ Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}" />
                         WidthRequest="180" />
 
 
-                    <VerticalStackLayout Spacing="10">
-
 
                         <Button
                         x:Name="EXout"
@@ -994,7 +981,45 @@ Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}" />
 HeightRequest="50"
                         
                         />
-                    </VerticalStackLayout>
+
+                        <Button
+                        x:Name="MoreBtn"
+                            ImageSource="more1.png"
+                        windows:VisualElement.AccessKey="E"
+                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                        Clicked="OnNavigateToExperimentalPage"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                                    Text="E"
+                                    TextColor="{AppThemeBinding Dark=WHite,Light=Black}"
+                                                WidthRequest="58"
+HeightRequest="50"
+                        
+                        />
+                        <Button Text="Shuffle" BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"
+                            Command="{Binding ToggleShuffleCommand}"
+                            />
+                    <Button Text="G. Album" ToolTipProperties.Text="Group By Album"
+                            Command="{Binding GroupSongsInQueueByAlbumCommand}"
+                          BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"  />
+                    <Button Text="G. Artist" ToolTipProperties.Text="Group By Artist"
+                            Command="{Binding GroupSongsInQueueByArtistCommand}"
+                           BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50" />
+                    <Button Text="G. Genre" ToolTipProperties.Text="Group By Genre"
+                            Command="{Binding GroupSongsInQueueByGenreCommand}"
+                        BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"    />
+                    <Button Text="O. Album" ToolTipProperties.Text="Order By Album"
+                            Command="{Binding OrderQueueByAlbumCommand}"
+                            BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50">
+                        
+                        
+                    </Button>
+                    <Button Text="O. Artist" ToolTipProperties.Text="Order By Artist"
+                          BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"  Command="{Binding OrderQueueByArtistCommand}"
+                            />
+                    <Button Text="O. Title" ToolTipProperties.Text="Order By Title"
+                          BackgroundColor="Transparent" BorderWidth="1" HeightRequest="50"  Command="{Binding OrderQueueByTitleCommand}"
+                            />
                 </HorizontalStackLayout>
 
             </Grid>
@@ -1022,6 +1047,37 @@ HeightRequest="50"
 
 
         </Grid>
+
+        <syncf:SfPopup x:Name="MainPagePopup" x:FieldModifier="Public"
+                       IsFullScreen="False"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       AppearanceMode="TwoButton"
+                       ShowCloseButton="True"
+                       ShowFooter="True"
+                       ShowHeader="True"
+                       ShowOverlayAlways="True"
+                       AutoSizeMode="Both"
+                       >
+            <syncf:SfPopup.HeaderTemplate>
+                <DataTemplate x:DataType="vm:BaseViewModelWin">
+                    <VerticalStackLayout>
+                        <Label Text="{Binding PopUpHeaderText}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </syncf:SfPopup.HeaderTemplate>
+
+            <syncf:SfPopup.ContentTemplate>
+                <DataTemplate>
+
+                    <VerticalStackLayout>
+                        <Label Text="Details "/>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </syncf:SfPopup.ContentTemplate>
+        
+        </syncf:SfPopup>
+        
     </Grid>
    
 

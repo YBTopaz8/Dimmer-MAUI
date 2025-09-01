@@ -40,9 +40,9 @@ public partial class ChatView : ContentPage
         //await ChatViewModelWin.SessionTransferViewModel.TransferToDevice(dev,ChatViewModelWin.BaseViewModel.CurrentPlayingSongView);
     }
 
-    private async void SendMsg_Clicked(object sender, EventArgs e)
+    private void SendMsg_Clicked(object sender, EventArgs e)
     {
-        var song = BaseVM.CurrentPlayingSongView;
-        await ChatViewModelWin.SendMessageCommand.ExecuteAsync(song);
+        //var song = CurrentPlayingSongView;
+        //await ChatViewModelWin.SendMessageCommand.ExecuteAsync(song);
     }
 }

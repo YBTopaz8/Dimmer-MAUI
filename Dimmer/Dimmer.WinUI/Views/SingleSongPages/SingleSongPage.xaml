@@ -161,16 +161,16 @@ VerticalOptions="Center" />
         </DataTemplate>
     </ContentPage.Resources>
 
-    <Grid x:Name="SingleSongView" RowDefinitions="auto,*" BackgroundColor="{AppThemeBinding Light=#999999}">
+    <Grid x:Name="SingleSongView" RowDefinitions="auto,*" BackgroundColor="Transparent">
         
-        <Grid Grid.Row="0" ColumnDefinitions="*,auto" VerticalOptions="Start" >
+        <Grid Grid.Row="0" ColumnDefinitions="auto,*" VerticalOptions="Start" >
             <Border BackgroundColor="{Binding SelectedSecondDomColor}"
                                         Opacity="0.5" IsVisible="True"  ZIndex="0"
                                         x:Name="BorderNextToImageDomm"
-                                        Grid.Column="0">
+                                        Grid.Column="1">
             </Border>
 
-            <VerticalStackLayout   Padding="20"  Spacing="25"  Grid.Column="0" ZIndex="1">
+            <VerticalStackLayout   Padding="20"  Spacing="25"  Grid.Column="1" ZIndex="1">
                 <HorizontalStackLayout Spacing="20">
                     <Button
                                             BackgroundColor="Transparent"
@@ -315,14 +315,13 @@ ToolTipProperties.Text="Save To Playlist">
 
                 </HorizontalStackLayout>
             </VerticalStackLayout>
-            <Grid Grid.Column="1" >
+            <Grid Grid.Column="0" BackgroundColor="Transparent" >
                 <Border Opacity="0.01" ZIndex="1" x:Name="BorderUnderImageDomm"
                                             BackgroundColor="{Binding SelectedSecondDomColor}">
 
                 </Border>
                 <Image VerticalOptions="Start"
-                                        HeightRequest="250"
-                                        WidthRequest="250" Opacity="0.6"
+                       HeightRequest="260" Opacity="0.6"
                                       
                                         Source="{Binding SelectedSong.CoverImagePath}"/>
 
@@ -626,7 +625,8 @@ ToolTipProperties.Text="Save To Playlist">
                 
             </Grid>
             
-            <syncf:SfTabView x:Name="SongView" 
+            <syncf:SfTabView x:Name="SongTabView"  SelectionChanged="SongTabView_SelectionChanged"
+                             BackgroundColor="Transparent"
                              EnableSwiping="True"
                              TabBarPlacement="Bottom" IsVisible="True">
 
@@ -705,14 +705,9 @@ ToolTipProperties.Text="Save To Playlist">
                                     <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
                                     <Label FontSize="26" Text="Album"/>
                                         <Grid ColumnDefinitions="*">
-                                            
-                                                <ScrollView>
-                                                    <HorizontalStackLayout>
-
-
-
-                                                    </HorizontalStackLayout>
-                                                </ScrollView>
+                                            <VerticalStackLayout>
+                                                
+                                            </VerticalStackLayout>
                                            
                                     </Grid>
                                 </VerticalStackLayout>
@@ -788,7 +783,7 @@ ToolTipProperties.Text="Save To Playlist">
                 </syncf:SfTabItem>
 
                 <!-- TAB 1: LYRICS MANAGEMENT -->
-                <syncf:SfTabItem Header="Lyrics" IsVisible="Hidden">
+                <syncf:SfTabItem Header="Lyrics" IsVisible="True">
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="Auto, *">
                                 <VerticalStackLayout>
@@ -825,15 +820,60 @@ ToolTipProperties.Text="Save To Playlist">
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
 
+                <syncf:SfTabItem Header="Edit Lyrics">
+                    <syncf:SfTabItem.Content>
+                        <Grid ColumnDefinitions="auto,*,*">
+                            <VerticalStackLayout Grid.Column="0">
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1">
+                                <HorizontalStackLayout>
+
+                                    <Editor  x:Name="PlainLyricsEditor"
+                                    Placeholder="Paste Plain Lyrics Here"/>
+                                    <Button 
+                                        x:Name="PasteFromClipBoard"
+                                        Clicked="PasteFromClipBoard_Clicked"
+                                            BackgroundColor="Transparent"
+                                            ImageSource="clipboard.png"
+                                            
+                                            HeightRequest="30"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="2">
+                                <CollectionView ItemsSource="{Binding LyricsInEditor}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:LyricEditingLineViewModel">
+                                            <Grid ColumnDefinitions="*,*,*">
+                                                <Label Text="{Binding Text}" Grid.Row="0"/>
+                                                <Label Text="{Binding Timestamp}" Grid.Row="1"/>
+                                                <Label Text="{Binding TimestampCurrentLyricLineCommand ,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelWin}}}" Grid.Row="1"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </syncf:SfTabItem.Content>
+                </syncf:SfTabItem>
+                
                 <!-- TAB 2: MANUAL LYRICS SYNCER -->
                 <syncf:SfTabItem Header="Lyrics search">
                         <syncf:SfTabItem.Content>
                             <VerticalStackLayout Grid.Row="0" IsVisible="True" Padding="15">
                                 <Label Text="Find Lyrics Online" Style="{StaticResource SectionHeader}"/>
                                 <VerticalStackLayout HorizontalOptions="Start" WidthRequest="300" Spacing="10">
-                                    <Entry Placeholder="Song Title" Text="{Binding LyricsTrackNameSearch}" HorizontalOptions="Fill"/>
-                                    <Entry Placeholder="Artist Name" Text="{Binding LyricsArtistNameSearch}" HorizontalOptions="Fill"/>
-                                    <Entry Placeholder="Album Name" Text="{Binding LyricsAlbumNameSearch}" HorizontalOptions="Fill"/>
+                                    <Entry Placeholder="Song Title" Text="{Binding LyricsTrackNameSearch}" HorizontalOptions="Fill"
+                                           Focused="SongTitleEntry_Focused" x:Name="SongTitleEntry"
+                                           />
+                                <Entry Placeholder="Artist Name" ReturnCommandParameter="art"
+                                           x:Name="SongArtistNameEntry" Focused="SongArtistNameEntry_Focused"
+                                       
+                                           Text="{Binding LyricsArtistNameSearch}" HorizontalOptions="Fill"/>
+                                    <Entry Placeholder="Album Name" Text="{Binding LyricsAlbumNameSearch}"
+                                           x:Name="SongAlbumName" ReturnCommandParameter="alb" Focused="SongAlbumName_Focused"
+                                           HorizontalOptions="Fill"/>
                                     <Button Text="Search" Command="{Binding SearchLyricsCommand}"/>
                                 </VerticalStackLayout>
                                 <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"/>

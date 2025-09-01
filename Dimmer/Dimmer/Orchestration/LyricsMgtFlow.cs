@@ -191,6 +191,7 @@ public class LyricsMgtFlow : IDisposable
     }
     private async Task<string?> GetLyricsContentAsync(SongModelView song)
     {
+        CancellationTokenSource cts= new();
         var instru = song.IsInstrumental;
         if (instru)
         {
@@ -210,14 +211,14 @@ public class LyricsMgtFlow : IDisposable
         }
 
         _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
-        var onlineResults = await _lyricsMetadataService.SearchOnlineAsync(song);
+        var onlineResults = await _lyricsMetadataService.GetAllLyricsOnlineAsync(song, cts.Token);
         var onlineLyrics = onlineResults?.FirstOrDefault();
         if (onlineLyrics != null)
         {
             _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
             // Optionally, save to DB or local storage here.
-            await _lyricsMetadataService.SaveLyricsForSongAsync(onlineLyrics.Instrumental!,onlineLyrics.PlainLyrics,song,onlineLyrics.SyncedLyrics,null);
+            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id,onlineLyrics.PlainLyrics,onlineLyrics.SyncedLyrics);
             return onlineLyrics.SyncedLyrics;
 
         }

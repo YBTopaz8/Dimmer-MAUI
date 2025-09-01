@@ -31,8 +31,8 @@ public partial class ChatView : ContentPage
 
     private async void SendMsg_Clicked(object sender, EventArgs e)
     {
-        var song = BaseVM.BaseVM.CurrentPlayingSongView;
-        await ChatViewModelAnd.SendMessageCommand.ExecuteAsync(song);
+        //var song = m CurrentPlayingSongView;
+        //await ChatViewModelAnd.SendMessageCommand.ExecuteAsync(song);
     }
 
     private void BtmBar_RequestFocusNowPlayingUI(object sender, EventArgs e)

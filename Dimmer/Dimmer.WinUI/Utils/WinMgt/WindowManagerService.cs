@@ -6,7 +6,7 @@ using Window = Microsoft.Maui.Controls.Window;
 
 
 namespace Dimmer.WinUI.Utils.WinMgt;
-internal class WindowManagerService : IWindowManagerService
+internal class WindowManagerService : IMauiWindowManagerService
 {
     private readonly IServiceProvider _mauiServiceProvider; // To potentially resolve MAUI services if needed
     private readonly List<Window> _openWindows = new(); // Simple tracking
@@ -196,7 +196,7 @@ internal class WindowManagerService : IWindowManagerService
     }
 
 
-    private void TrackWindow(Window window)
+    public void TrackWindow(Window window)
     {
         if (!_openWindows.Contains(window))
         {
@@ -215,7 +215,7 @@ internal class WindowManagerService : IWindowManagerService
         }
     }
 
-    private void UntrackWindow(Window window)
+    public void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);
         window.Destroying -= Window_Destroying; // Unsubscribe
@@ -248,7 +248,14 @@ internal class WindowManagerService : IWindowManagerService
         return _openWindows.Contains(window);
     }
 
-
+    public void ActivateWindow(Window window)
+    {
+        if (IsWindowOpen(window))
+        {
+            Application.Current!.ActivateWindow(window);
+            Debug.WriteLine($"Native WinUI window activated: {window.Title}");
+        }
+    }
     public T? GetWindow<T>() where T : Window
     {
         // If it was uniquely tracked by type
@@ -295,6 +302,16 @@ internal class WindowManagerService : IWindowManagerService
         if (window != null)
         {
             CloseWindow(window);
+        }
+    }
+
+    public void CloseAllWindows()
+    {
+
+        foreach (var window in _openWindows)
+        {
+            CloseWindow(window);
+
         }
     }
 
