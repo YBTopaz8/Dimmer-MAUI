@@ -207,7 +207,7 @@ public static class MauiProgram
         });
 
 
-
+        builder.Services.AddSingleton<IAnimationService,WindowsAnimationService>();
 
 
 

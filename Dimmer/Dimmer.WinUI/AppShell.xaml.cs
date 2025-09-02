@@ -5,6 +5,8 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 using Dimmer.WinUI.Views.WinUIPages;
 
+using Microsoft.UI.Xaml.Media.Animation;
+
 
 namespace Dimmer.WinUI;
 
@@ -30,6 +32,77 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
     }
 
+
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+        
+    }
+
+    protected override void OnNavigating(ShellNavigatingEventArgs args)
+    {
+        base.OnNavigating(args);
+
+        //args.
+    }
+
+    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+    {
+        base.OnNavigatedFrom(args);
+    }
+    protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
+    {
+        base.OnNavigatingFrom(args);
+    }
+
+    //protected override void OnNavigated(ShellNavigatedEventArgs args)
+    //{
+    
+        
+
+    //    // Get the animation service via the DI container
+    //    var animationService = this.Handler?.MauiContext?.Services.GetService<IAnimationService>();
+    //    if (animationService == null)
+    //    {
+    //        base.OnNavigated(args);
+    //        return;
+    //    }
+
+    //    // Determine the target page type
+    //    var targetPage = args.Current.Location.OriginalString;
+    //    var targetPageType = Routing.GetRoute(args.Current);
+
+    //    if (targetPageType == null)
+    //    {
+    //        base.OnNavigate(args);
+    //        return;
+    //    }
+
+    //    // Load the animation profile for this specific page type
+    //    var animationProfile = AnimationManager.GetPageAnimations(targetPageType, animationService);
+
+    //    // Get the correct NavigationTransitionInfo object
+    //    NavigationTransitionInfo transitionInfo;
+    //    if (args.IsPopping)
+    //    {
+    //        transitionInfo = animationProfile.PopExit.TransitionInfo;
+    //    }
+    //    else
+    //    {
+    //        transitionInfo = animationProfile.PushEnter.TransitionInfo;
+    //    }
+
+    //    // If it's a special HomePage navigation, override with those settings
+    //    if (targetPageType == typeof(HomePage)) // Assuming HomePage is the name of your page
+    //    {
+    //        transitionInfo = args.IsPopping
+    //            ? animationService.GetHomePagePopExitAnimation().TransitionInfo
+    //            : animationService.GetHomePagePushEnterAnimation().TransitionInfo;
+    //    }
+
+    //    // Finally, call the base navigation method, but provide our custom transition info!
+    //    base.OnNavigate(args, transitionInfo);
+    //}
     protected async override void OnAppearing()
     {
         base.OnAppearing();
@@ -583,7 +656,7 @@ public partial class AppShell : Shell
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
+    
         //win.Activate();
     }
 
@@ -591,5 +664,11 @@ public partial class AppShell : Shell
     {
         var label = (Label)sender;
         label.ShowContextMenu();
+    }
+
+    private void NowPlayingSong_Clicked(object sender, EventArgs e)
+    {
+      
+
     }
 }

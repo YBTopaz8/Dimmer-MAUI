@@ -21,7 +21,7 @@
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                       Dark=#1131314}"
     Shell.NavBarIsVisible="False"
-    Shell.TabBarIsVisible="False">
+    Shell.TabBarIsVisible="True">
 
     <ContentPage.Resources>
         <ResourceDictionary>

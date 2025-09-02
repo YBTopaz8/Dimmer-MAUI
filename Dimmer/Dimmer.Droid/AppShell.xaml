@@ -418,7 +418,7 @@ Value="{Binding CurrentTrackPositionSeconds}" />
 
 
 
-        <ShellContent ContentTemplate="{DataTemplate views:SingleSongPage}"
+        <ShellContent ContentTemplate="{DataTemplate views:AnimationSettingsPage}"
                       Icon="musicnoteslider.png" Route="SingleSongPage"
                       />
 

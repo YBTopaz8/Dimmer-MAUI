@@ -175,10 +175,20 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
 
             <dgView:TableView.ContextFlyout>
                 <MenuFlyout>
-                    <MenuFlyoutItem Text="View Song" 
-                                        CommandParameter="{Binding .}"
-                                        Click="ViewSong_Click" x:Name="ViewSong"/>
+                    <MenuFlyoutItem Text="Play Next" 
+                                    Command="{x:Bind MyViewModel.AddToNextCommand}"
+                                    CommandParameter="{x:Bind MySongsTableView.ItemsSource}"
+                                        Click="ViewSong_Click" x:Name="AddToNext"/>
                     <MenuFlyoutSeparator />
+                    
+                    
+                    <MenuFlyoutItem Text="Add to End of Queue" 
+                                    Command="{x:Bind MyViewModel.AddToQueueEndCommand}"
+                                    CommandParameter="{x:Bind MySongsTableView.ItemsSource}"
+                                         x:Name="AddToEnd"/>
+                    <MenuFlyoutSeparator />
+                    
+                    
 
                     <MenuFlyoutItem Text="Option with an Icon">
                         <MenuFlyoutItem.Icon>

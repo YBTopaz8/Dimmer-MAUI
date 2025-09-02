@@ -608,19 +608,18 @@ public sealed partial class AllSongsListPage : Page
     {
         var xterPressed = args.Character;
         var box = sender as TextBox;
-        if (box == null)
-            return;
+      
         // Get the full text from the box
         var text = box.Text;
         //Debug.WriteLine($"Character received: {xterPressed}");
-        //if (xterPressed == '\r' || xterPressed == '\n')
-        //{
-        //    // Handle Enter key press
-        //    Debug.WriteLine("Enter key pressed.");
-        //    // You can trigger your search or any other action here
+        if (xterPressed == '\r' || xterPressed == '\n')
+        {
+            MyViewModel.SearchSongSB_TextChanged(text);
+            // Handle Enter key press
+            Debug.WriteLine("Enter key pressed.");
+            // You can trigger your search or any other action here
 
-        //}
-        MyViewModel.SearchSongSB_TextChanged(text);
+        }
     }
 
     private void SearchAutoSuggestBox_CopyingToClipboard(TextBox sender, TextControlCopyingToClipboardEventArgs args)
@@ -648,7 +647,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewSong_Click(object sender, RoutedEventArgs e)
     {
-
+        Debug.WriteLine(MySongsTableView.ItemsSource?.GetType());
     }
 
     private void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)

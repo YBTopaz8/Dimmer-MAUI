@@ -52,6 +52,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IAnimationService, AndroidAnimationService>();
         builder.Services.AddSingleton<SearchSongPage>();
         builder.Services.AddSingleton<ArtistsPage>();
+        builder.Services.AddSingleton<AnimationSettingsPage>();
+
 
 
         builder.Services.AddSingleton<BaseViewModelAnd>();

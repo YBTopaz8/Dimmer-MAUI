@@ -78,22 +78,19 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         switch (newValue)
         {
-            case 0:
-                IsNowPlayingQueue =true;
-
-                IsNowAllSongsQueue=false;
-                NowPlayingUI=false;
-                break;
-            case 1:
-                IsNowPlayingQueue =false;
+            case 0: IsNowPlayingQueue =false;
                 IsNowAllSongsQueue=true;
                 NowPlayingUI =false;
+               
                 break;
-            case 2:
+            case 1:
+               
                 IsNowPlayingQueue =false;
 
                 IsNowAllSongsQueue=false;
                 NowPlayingUI=true;
+                break;
+            case 2:
                 break;
             default:
                 break;

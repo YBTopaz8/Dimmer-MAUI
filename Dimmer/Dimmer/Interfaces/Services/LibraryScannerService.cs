@@ -348,7 +348,7 @@ public class LibraryScannerService : ILibraryScannerService
         _state.LoadAllSongs(freshSongs.AsReadOnly());
         _logger.LogInformation($"Loaded {freshSongs.Count} songs into global state.");
     }
-    public async Task<LoadSongsResult>? ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
+    public async Task<LoadSongsResult> ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));
         return await ScanLibrary(pathsToScan);

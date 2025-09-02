@@ -39,7 +39,6 @@ namespace Dimmer.WinUI.Views;
         _availableLayouts = new List<DataTemplate>
         {
             (DataTemplate)Resources["OGView"],
-            (DataTemplate)Resources["GridOfFour"],
         };
         _availableItemsLayouts = new List<IItemsLayout>
         {
@@ -52,6 +51,7 @@ namespace Dimmer.WinUI.Views;
         _windowMgrService.WindowActivated += OnAnyWindowActivated;
         _windowMgrService.WindowClosed += OnAnyWindowClosed;
         _windowMgrService.WindowClosing += OnAnyWindowClosing;
+
     }
 
     private void OnAnyWindowClosing(object? sender, WinUIWindowMgrService.WindowClosingEventArgs e)

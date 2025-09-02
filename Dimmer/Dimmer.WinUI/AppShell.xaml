@@ -34,7 +34,7 @@
     </Shell.Resources>
     <Shell.FlyoutContent>
         <Grid RowDefinitions="auto,*">
-            <VerticalStackLayout Grid.Row="0">
+            <VerticalStackLayout Grid.Row="0" Margin="10,5">
                 <Label Text="{Binding LatestAppLog.Log}"/>
             </VerticalStackLayout>
         <syncf:SfTabView Grid.Row="1" x:Name="ShellTabView" BackgroundColor="{AppThemeBinding Light=#999999}"
@@ -44,7 +44,7 @@
             <syncf:SfTabItem x:FieldModifier="Public" x:Name="MediaControlsView">
                 <syncf:SfTabItem.Content>
 
-
+                        <ScrollView>
                     <VerticalStackLayout
             HorizontalOptions="Start"
             x:Name="BottomLeft" Spacing="10"
@@ -62,7 +62,7 @@
                         </HorizontalStackLayout>
 
                         <Border StrokeShape="RoundRectangle 15"
-                Margin="10,0"  Grid.Row="1"
+                Margin="0,0"  Grid.Row="1"
                 StrokeThickness="3"
                   x:Name="NavTab">
                             <Border.Triggers>
@@ -80,16 +80,20 @@ Value="true">
 
                             </Border.Triggers>
                             <Grid>
-                                <Image Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-      Opacity="0.3" Aspect="AspectFit" >
-                                    <Image.Triggers>
-                                        <DataTrigger TargetType="Image" Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                <ImageButton Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+      Opacity="0.3" Aspect="AspectFit" x:Name="NowPlayingSong"
+                                             WidthRequest="300"
+                                             HeightRequest="300"
+                                             Clicked="NowPlayingSong_Clicked">
+                                    
+                                    <ImageButton.Triggers>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                  Value="True">
                                             <Setter Property="Opacity" Value="1"/>
                                         </DataTrigger>
 
-                                    </Image.Triggers>
-                                </Image>
+                                    </ImageButton.Triggers>
+                                </ImageButton>
 
 
                                 <VerticalStackLayout
@@ -199,7 +203,9 @@ IsVisible="True">
 
                         </HorizontalStackLayout>
 
-                        <Button HorizontalOptions="Start" 
+                        <Button 
+                            Padding="10"
+                            HorizontalOptions="Start" 
 x:Name="QuickFilterBtn"
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
@@ -215,7 +221,7 @@ x:Name="QuickFilterBtn"
                         </Button>
 
                         <syncf:SfEffectsView BackgroundColor="Transparent"
-                            TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
+                          Margin="2,0"   TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}"
                             TouchDownCommandParameter="album"
                             TouchDown="Quickalbumsearch_Clicked">
                             
@@ -237,9 +243,9 @@ x:Name="QuickFilterBtn"
 
                         <HorizontalStackLayout
                        x:Name="MediaBtns"
-                       Grid.Row="0"
+                       Grid.Row="0" Margin="0"
                        HeightRequest="50"
-                       Spacing="10" HorizontalOptions="Center"
+                       Spacing="10" 
                        VerticalOptions="Center">
 
                             <HorizontalStackLayout.Resources>
@@ -362,7 +368,7 @@ ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat
                                 </Button.Triggers>
                             </Button>
                         </HorizontalStackLayout>
-                        <Slider
+                        <Slider Margin="2,0"
 x:Name="TrackProgressSlider"
 Grid.Column="1"
 DragCompleted="Slider_DragCompleted"
@@ -392,7 +398,8 @@ Value="{Binding CurrentTrackPositionSeconds}" />
                         </HorizontalStackLayout>
 
                     </VerticalStackLayout>
-                </syncf:SfTabItem.Content>
+                        </ScrollView>
+                    </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
             <syncf:SfTabItem Header="AudioSection" >

@@ -1919,21 +1919,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void AddToNext(IEnumerable<SongModelView>? songs=null)
     {
         songs ??=_searchResults;
-        var currsongIndex = _playbackQueueSource.Items.IndexOf(CurrentPlayingSongView);
-        int insertPos = _playbackQueueIndex >= 0 ? _playbackQueueIndex + 1 : 0;
-        if (currsongIndex != -1 && insertPos > currsongIndex)
-        {
-            insertPos--; // Adjust position if inserting after the current song
-            //if list has only 1 song and we are adding next, we add to the end
-       
-
-        }
-
-        if (_playbackQueueSource.Items.Count == 1)
-        {
-            insertPos = _playbackQueueSource.Items.Count;
-        }
-        ClearQueueCommand.Execute(null);
+      
         _playbackQueueSource.AddRange(songs);
         //AddNextEvent?.Invoke(this, EventArgs.Empty);
 
@@ -2859,7 +2845,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
 
             case PlayType.Pause:
-                OnPlaybackPaused(args);
+                //OnPlaybackPaused(args);
                 break;
 
         }

@@ -11,7 +11,7 @@ namespace Dimmer.Interfaces.Services;
 public class FolderMgtService : IFolderMgtService
 {
     private readonly IDimmerStateService _state;
-    private readonly ISettingsService _settingsService;
+    private readonly IRealmFactory realmFactory;
     private readonly IFolderMonitorService _folderMonitor;
     private readonly ILibraryScannerService _libraryScanner;
     private readonly ILogger<FolderMgtService> _logger;
@@ -24,14 +24,16 @@ public class FolderMgtService : IFolderMgtService
 
 
     public FolderMgtService(
+        IRealmFactory _realmFact,
         IDimmerStateService state,
         ISettingsService settingsService,
         IFolderMonitorService folderMonitor,
         ILibraryScannerService libraryScanner,
         ILogger<FolderMgtService> logger)
     {
+        realmFactory = _realmFact ?? throw new ArgumentNullException(nameof(_realmFact));
         _state = state ?? throw new ArgumentNullException(nameof(state));
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+
         _folderMonitor = folderMonitor ?? throw new ArgumentNullException(nameof(folderMonitor));
         _libraryScanner = libraryScanner ?? throw new ArgumentNullException(nameof(libraryScanner));
         _config =  new ProcessingConfig();
@@ -49,8 +51,10 @@ public class FolderMgtService : IFolderMgtService
         {
             StopWatching();
         }
-
-        var foldersToWatchPaths = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference.Freeze().ToList() ?? new List<string>();
+     
         if (foldersToWatchPaths.Count==0)
         {
             _logger.LogInformation("No folders configured to watch.");
@@ -60,7 +64,7 @@ public class FolderMgtService : IFolderMgtService
 
         _logger.LogInformation("Starting to watch folders: {Folders}", string.Join(", ", foldersToWatchPaths));
 
-        var folderModels = foldersToWatchPaths.Select(p => new FolderModel { Path = p }).ToList();
+        var folderModels = foldersToWatchPaths.Freeze().Select(p => new FolderModel { Path = p }).ToList();
         _allFoldersBehaviorSubject.OnNext(folderModels.AsReadOnly());
 
 
@@ -110,12 +114,16 @@ public class FolderMgtService : IFolderMgtService
             _logger.LogError("Directory not found: {Path}. Cannot add to watch list.", path);
             throw new DirectoryNotFoundException($"Directory not found: {path}");
         }
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
 
-        if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+        if (!foldersToWatchPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
         {
 
            await StartWatchingConfiguredFoldersAsync();
-            _settingsService.AddMusicFolder(path);
+
+            foldersToWatchPaths?.Add(path);
         }
 
         _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
@@ -127,19 +135,23 @@ public class FolderMgtService : IFolderMgtService
         await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false);
     }
 
-    public async void AddManyFoldersToWatchListAndScan(List<string> paths)
+    public async Task AddManyFoldersToWatchListAndScan(List<string> paths)
     {
         var newPathsToAdd = new List<string>();
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var knowPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+
         foreach (var path in paths)
         {
-            if (!_settingsService.UserMusicFoldersPreference?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+            if (!knowPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
             {
-                _settingsService.AddMusicFolder(path);
+                appModel.UserMusicFoldersPreference.Add(path);
                 newPathsToAdd.Add(path);
             }
         }
 
-        if (newPathsToAdd.Any())
+        if (newPathsToAdd.Count!=0)
         {
             _logger.LogInformation("Adding {Count} new folders to watch list.", newPathsToAdd.Count);
 
@@ -155,8 +167,11 @@ public class FolderMgtService : IFolderMgtService
     {
         if (string.IsNullOrWhiteSpace(path))
             return;
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
 
-        bool removed = _settingsService.RemoveMusicFolder(path);
+        bool removed = foldersToWatchPaths.Remove(path);
         if (removed)
         {
             _logger.LogInformation("Removed folder from watch list and settings: {Path}", path);
@@ -166,12 +181,8 @@ public class FolderMgtService : IFolderMgtService
             _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, path, null, null));
 
 
-
-
-
             _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
-            var remainingFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-            await _libraryScanner.ScanLibrary(remainingFolders);
+            await _libraryScanner.ScanLibrary(foldersToWatchPaths.Freeze().ToList());
         }
         else
         {
@@ -181,8 +192,12 @@ public class FolderMgtService : IFolderMgtService
 
     public async Task ClearAllWatchedFoldersAndRescanAsync()
     {
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+
         _logger.LogInformation("Clearing all watched folders and settings.");
-        _settingsService.ClearAllFolders();
+        foldersToWatchPaths.Clear();
        await StartWatchingConfiguredFoldersAsync();
 
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));
@@ -229,9 +244,11 @@ public class FolderMgtService : IFolderMgtService
         else if (WasPathPreviouslyWatchedSubfolder(e.FullPath))
         {
             _logger.LogInformation("Watched sub-directory deleted: {FolderPath}. Triggering full library refresh.", e.FullPath);
+            var realm = realmFactory.GetRealmInstance();
+            var appModel = realm.All<AppStateModel>().FirstOrDefault();
+            var currentFolders = appModel?.UserMusicFoldersPreference ?? new List<string>();
 
-            var currentFolders = _settingsService.UserMusicFoldersPreference?.ToList() ?? new List<string>();
-            await _libraryScanner.ScanLibrary(currentFolders);
+            await _libraryScanner.ScanLibrary(currentFolders.ToList());
         }
     }
 
@@ -289,10 +306,14 @@ public class FolderMgtService : IFolderMgtService
     }
     private bool IsPathWithinWatchedFolders(string path)
     {
-        var watched = _settingsService.UserMusicFoldersPreference;
-        if (watched == null)
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+
+
+        if (foldersToWatchPaths == null)
             return false;
-        return watched.Any(watchedFolder => path.StartsWith(watchedFolder, StringComparison.OrdinalIgnoreCase));
+        return foldersToWatchPaths.Any(watchedFolder => path.StartsWith(watchedFolder, StringComparison.OrdinalIgnoreCase));
     }
     private bool WasPathPreviouslyKnownAudio(string fullPath) {/* TODO: Check against current library if needed */ return false; }
     private bool WasPathPreviouslyWatchedSubfolder(string fullPath) {/* TODO: Check against known subfolders if needed */ return false; }

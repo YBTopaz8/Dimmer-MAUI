@@ -369,30 +369,30 @@ IRepository<SongModel> songRepository, // Inject the repository
             UnsynchronizedLyrics = plainLyrics ?? string.Empty
         };
         // Step 1: Save to the audio file's metadata using ATL.
-        try
-        {
-            var track = new Track(song.FilePath);
-            track.Lyrics.Clear(); // Remove any existing lyrics to prevent duplicates
+        //try
+        //{
+        //    var track = new Track(song.FilePath);
+        //    track.Lyrics.Clear(); // Remove any existing lyrics to prevent duplicates
 
 
-            if (!string.IsNullOrWhiteSpace(syncedLyrics))
-            {
-                newLyricsInfo.Parse(syncedLyrics);
-            }
+        //    if (!string.IsNullOrWhiteSpace(syncedLyrics))
+        //    {
+        //        newLyricsInfo.Parse(syncedLyrics);
+        //    }
 
-            track.Lyrics.Add(newLyricsInfo);
+        //    track.Lyrics.Add(newLyricsInfo);
 
-            if (!track.Save())
-            {
-                _logger.LogError("ATL failed to save lyrics metadata to file: {FilePath}", song.FilePath);
-                return false; // Failed to write to file, abort.
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception while saving lyrics metadata to file: {FilePath}", song.FilePath);
-            return false;
-        }
+        //    if (!track.Save())
+        //    {
+        //        _logger.LogError("ATL failed to save lyrics metadata to file: {FilePath}", song.FilePath);
+        //        return false; // Failed to write to file, abort.
+        //    }
+        //}
+        //catch (Exception ex)
+        //{
+        //    _logger.LogError(ex, "Exception while saving lyrics metadata to file: {FilePath}", song.FilePath);
+        //    return false;
+        //}
 
         // Step 2: Save to the Realm database using the repository.
         try
@@ -412,29 +412,6 @@ IRepository<SongModel> songRepository, // Inject the repository
     #endregion
 
 
-
-
-    //public class LyricsMetadataService : ILyricsMetadataService
-    //{
-    //    private readonly IRealmFactory realmFact;
-    //    private readonly IHttpClientFactory _httpClientFactory;
-    //    private readonly IMapper _mapper; // To map between SongModel and SongModelView
-    //    private readonly ILogger<LyricsMetadataService> _logger;
-
-    //    public LyricsMetadataService(
-    //        IHttpClientFactory httpClientFactory,
-    //        IMapper mapper,
-    //        IRealmFactory realmFactory,
-    //        ILogger<LyricsMetadataService> logger)
-    //    {
-
-    //        realmFact = realmFactory;
-    //        _httpClientFactory = httpClientFactory;
-    //        _mapper = mapper;
-    //        _logger = logger;
-    //    }
-
-    //    #region Get Local Lyrics
 
     public async Task<string?> GetLocalLyricsAsync(SongModelView song)
     {
