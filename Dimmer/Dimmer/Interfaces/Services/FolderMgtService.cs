@@ -64,7 +64,27 @@ public class FolderMgtService : IFolderMgtService
 
         _logger.LogInformation("Starting to watch folders: {Folders}", string.Join(", ", foldersToWatchPaths));
 
-        var folderModels = foldersToWatchPaths.Freeze().Select(p => new FolderModel { Path = p }).ToList();
+        // check if some paths are actually just subfolders of others and remove them, leaving topmost only
+
+        var SanitizedPaths = new List<string>();
+        foreach (var path in foldersToWatchPaths)
+        {
+            if (!SanitizedPaths.Any(existing => path.StartsWith(existing, StringComparison.OrdinalIgnoreCase)))
+            {
+                // Remove any existing paths that are subfolders of the new path
+                SanitizedPaths.RemoveAll(existing => existing.StartsWith(path, StringComparison.OrdinalIgnoreCase));
+                SanitizedPaths.Add(path);
+            }
+        }
+
+        await realm.WriteAsync(() =>
+        {
+            appModel?.UserMusicFoldersPreference.Clear();
+            foreach (var p in SanitizedPaths)
+                appModel?.UserMusicFoldersPreference.Add(p);
+        });
+
+        var folderModels = foldersToWatchPaths.Select(p => new FolderModel { Path = p }).ToList();
         _allFoldersBehaviorSubject.OnNext(folderModels.AsReadOnly());
 
 
