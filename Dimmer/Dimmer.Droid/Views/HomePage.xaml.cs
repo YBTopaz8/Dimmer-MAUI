@@ -789,7 +789,7 @@ public partial class HomePage : ContentPage
 
     private void SearchBy_Focused(object sender, FocusEventArgs e)
     {
-        MainViewTabView.SelectedItemIndex = 1;
+        MainViewTabView.SelectedItemIndex = 0;
     }
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {

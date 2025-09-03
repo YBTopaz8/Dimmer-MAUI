@@ -687,7 +687,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-
+        var OldValue = e.OldValue;
+        var newValue = e.NewValue;
+        var propValue = e.Property;
+        Debug.WriteLine(propValue?.GetType());
+        Debug.WriteLine(OldValue?.GetType());
+        Debug.WriteLine(newValue?.GetType());
     }
 
     private void MySongsTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)

@@ -387,7 +387,8 @@ x:FieldModifier="Public">
                        
                             
                             <dx:TabViewItem 
-                                HeaderText="music_note">
+                                HeaderIcon="musical_notes.png"
+                                >
                                 <Grid>
                                     
                                                 <HorizontalStackLayout VerticalOptions="End"
@@ -450,7 +451,7 @@ Tap="ScrollToCurrSong_Tap" />
                             </dx:TabViewItem>
                         
 
-                            <dx:TabViewItem HeaderText="music_video">
+                            <dx:TabViewItem HeaderIcon="musicaa.png">
 
                                 <Grid
                                 Margin="5"

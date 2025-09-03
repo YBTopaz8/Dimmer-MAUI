@@ -315,7 +315,7 @@ ToolTipProperties.Text="Save Has Favorite">
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="View on Last FM" 
                                                 IconImageSource="lastfm.png"
-                                                Command="{Binding }"
+                                                Command="{Binding OpenSongInOnlineSearchCommand}"
                                                 CommandParameter="lastFM"/>
                                 <MenuFlyoutItem Text="Share Title Only" 
                          Clicked="ShowBtmSheet_Clicked"
@@ -714,10 +714,31 @@ ToolTipProperties.Text="Save Has Favorite">
                                     </Grid>
 
                                     <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                    <Label FontSize="26" Text="Album"/>
+                                    <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.StatExplanation}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.Name}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.Count}"/>
+                                    <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle2}"/>
                                         <Grid ColumnDefinitions="*">
                                             <VerticalStackLayout>
-                                                
+                                                <syncf:SfPolarChart>
+                                                    <syncf:SfPolarChart.PrimaryAxis>
+                                                        <syncf:CategoryAxis />
+
+                                                    </syncf:SfPolarChart.PrimaryAxis>
+
+                                                    <syncf:SfPolarChart.SecondaryAxis>
+                                                        <syncf:NumericalAxis >
+                                                        </syncf:NumericalAxis>
+                                                    </syncf:SfPolarChart.SecondaryAxis>
+
+                                                    <syncf:PolarLineSeries ItemsSource="{Binding ListeningClockData}"
+                                                                       XBindingPath="PlotData.Label"
+                                                                        YBindingPath="PlotData.Value"   >
+
+                                                    </syncf:PolarLineSeries>
+
+                                                </syncf:SfPolarChart>
                                             </VerticalStackLayout>
                                            
                                     </Grid>

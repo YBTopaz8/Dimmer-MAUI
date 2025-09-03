@@ -340,6 +340,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     {
         try
         {
+
             if (IsWindowOpen(window)) // Check if we are tracking it as open
             {
                 window.Close(); // This will trigger the Destroying event which will handle untracking
