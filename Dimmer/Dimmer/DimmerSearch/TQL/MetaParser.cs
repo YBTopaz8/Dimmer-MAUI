@@ -125,7 +125,7 @@ public static class MetaParser
     private static List<QuerySegment> ParseSegmentsFromTokens(List<Token> allTokens)
     {
         var segments = new List<QuerySegment>();
-        if (!allTokens.Any())
+        if (allTokens.Count==0)
         {
             segments.Add(new QuerySegment(SegmentType.Main, [], []));
             return segments;
@@ -184,24 +184,24 @@ public static class MetaParser
     private static IQueryNode BuildMasterAstFromSegments(List<QuerySegment> segments)
     {
         var mainAndIncludeNodes = segments
-            .Where(s => s.SegmentType is SegmentType.Main or SegmentType.Include && s.FilterTokens.Any())
+            .Where(s => s.SegmentType is SegmentType.Main or SegmentType.Include && s.FilterTokens.Count!=0)
             .Select(s => new AstParser(s.FilterTokens).Parse())
             .ToList();
 
         var excludeNodes = segments
-            .Where(s => s.SegmentType is SegmentType.Exclude && s.FilterTokens.Any())
+            .Where(s => s.SegmentType is SegmentType.Exclude && s.FilterTokens.Count!=0)
             .Select(s => new AstParser(s.FilterTokens).Parse())
             .ToList();
 
         // If there are no include clauses, the result is "match everything".
         // If there are no clauses at all, this will also correctly result in TRUEPREDICATE.
         IQueryNode includeRoot = new ClauseNode("any", "matchall", "");
-        if (mainAndIncludeNodes.Any())
+        if (mainAndIncludeNodes.Count!=0)
         {
             includeRoot = mainAndIncludeNodes.Aggregate((current, next) => new LogicalNode(current, LogicalOperator.Or, next));
         }
 
-        if (!excludeNodes.Any())
+        if (excludeNodes.Count==0)
         {
             return includeRoot;
         }
@@ -219,7 +219,7 @@ public static class MetaParser
         }
 
         var commandTokens = Lexer.Tokenize(commandQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-        if (!commandTokens.Any() || commandTokens.First().Type != TokenType.Identifier)
+        if (commandTokens.Count==0 || commandTokens.First().Type != TokenType.Identifier)
         {
             return null;
         }

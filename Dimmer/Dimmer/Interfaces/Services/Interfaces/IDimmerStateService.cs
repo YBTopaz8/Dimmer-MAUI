@@ -33,7 +33,7 @@ public interface IDimmerStateService : IDisposable
     ReadOnlyCollection<SongModel> AllCurrentSongsInDB { get; }
 
     // --- Methods to Update State ---
-    void LoadAllSongs(IEnumerable<SongModel> songs);
+
     void SetCurrentSong(SongModel? song);
     void SetCurrentState(PlaybackStateInfo state);
     void SetCurrentPlaylist(PlaylistModel? playlist);

@@ -56,7 +56,6 @@ public partial class DimmerStateService : IDimmerStateService
                  ex => { /* Log error for _currentSong reset subscription if needed */ })
          );
         _audioService= audioService ?? throw new ArgumentNullException(nameof(audioService));
-        _allSongsInLibrary.OnNext([.. songRepo.GetAll(true)]);
     }
 
     // --- Observables (Implementing IDimmerStateService) ---
@@ -86,13 +85,7 @@ public partial class DimmerStateService : IDimmerStateService
     public ReadOnlyCollection<SongModel> AllCurrentSongsInDB { get; private set; }
 
     // --- Setters (Implementing IDimmerStateService) ---
-    public void LoadAllSongs(IEnumerable<SongModel> songs)
-    {
-        var songList = songs?.ToList() ?? new List<SongModel>();
-        // Consider if a deep equality check is needed or if reference change is enough
-        AllCurrentSongsInDB=songs.ToList().AsReadOnly();
-        _allSongsInLibrary.OnNext(songList.AsReadOnly());
-    }
+
     public void LoadAllPlayHistory(IEnumerable<DimmerPlayEvent> events)
     {
         var eventsList = events?.ToList() ?? new List<DimmerPlayEvent>();
@@ -267,7 +260,6 @@ public partial class DimmerStateService : IDimmerStateService
         _currentRepeatMode.Dispose();
         _currentSongPosition.Dispose();
         _currentSongDuration.Dispose();
-        _allSongsInLibrary.Dispose();
         _allEventsInLibrary.Dispose();
         _currentUser.Dispose();
         _applicationSettingsState.Dispose();

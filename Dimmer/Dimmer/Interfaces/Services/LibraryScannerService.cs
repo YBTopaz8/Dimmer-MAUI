@@ -265,88 +265,11 @@ public class LibraryScannerService : ILibraryScannerService
             return null;
         }
     }
-    public void LoadInSongsAndEvents()
-    {
-        _logger.LogInformation("Loading all songs from database into global state.");
-        var allSongs = _songRepo.GetAll(true).AsEnumerable().DistinctBy(x => x.Title).ToList();
-        _state.LoadAllSongs(allSongs.AsReadOnly());
-        _logger.LogInformation("Loaded {SongCount} songs into global state.", allSongs.Count);
-
-        //var allEvents = _playEventsRepo.GetAll();
-        //_state.LoadAllPlayHistory(allEvents);
-    }
+  
 
     public void RemoveDupesFromDB()
     {
-        _logger.LogInformation("Loading all songs from database into global state.");
-        var allSongs = _songRepo.GetAll().AsEnumerable();
-
-        if (!allSongs.Any())
-        {
-            _logger.LogInformation("No songs in the database to check for duplicates.");
-            // Still, ensure the state is consistent
-            _state.LoadAllSongs(System.Array.Empty<SongModel>().AsReadOnly()); // Or new List<SongModel>().AsReadOnly()
-        }
-        var groupedSongs = allSongs
-          .GroupBy(song => new
-          {
-              Title = song.Title, // Consider: song.Title?.ToLowerInvariant() for case-insensitivity
-              Duration = song.DurationInSeconds // Consider: Math.Round(song.DurationInSeconds, 1) for 1 decimal place precision
-          })
-          .ToList(); // Materialize the groups
-
-        var songsToDelete = new List<SongModel>();
-        int duplicatesFoundCount = 0;
-
-        _logger.LogInformation($"Found {groupedSongs.Count} unique Title/Duration combinations.");
-
-        foreach (var group in groupedSongs)
-        {
-            if (group.Count() > 1)
-            {
-                // This group has duplicates
-                _logger.LogInformation($"Found {group.Count()} songs for Title: '{group.Key.Title}', Duration: {group.Key.Duration}. Identifying which to keep.");
-
-                // Decide which song to keep.
-                // Strategy: Keep the one with the lexicographically smallest ObjectId.
-                // ObjectId.ToString() provides a sortable representation.
-                // Alternatively, you could use s.DateCreated if it's reliably set, or s.Id directly.
-                var songToKeep = group.OrderBy(s => s.Id.ToString()).First(); // Or s.Id, or s.DateCreated
-
-                // Add all other songs in this group to the deletion list
-                var currentGroupDuplicates = group.Where(s => s.Id != songToKeep.Id).ToList();
-                songsToDelete.AddRange(currentGroupDuplicates);
-
-                duplicatesFoundCount += currentGroupDuplicates.Count;
-                _logger.LogInformation($"Keeping song Id: {songToKeep.Id}. Marked {currentGroupDuplicates.Count} other(s) for deletion from this group.");
-            }
-        }
-
-        if (songsToDelete.Count!=0)
-        {
-            _logger.LogInformation($"Attempting to delete {songsToDelete.Count} duplicate songs in total.");
-            try
-            {
-                // Use the batch delete method (assumes it's updated to handle frozen entities)
-                _logger.LogInformation($"Successfully deleted {songsToDelete.Count} duplicate songs.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"An error occurred while batch deleting duplicate songs. {songsToDelete.Count} songs were intended for deletion.");
-                // Depending on requirements, you might re-throw or handle partially.
-                // For now, we'll continue to reload state, which will reflect any successful deletions.
-            }
-        }
-        else
-        {
-            _logger.LogInformation("No duplicate songs (based on Title and Duration) found to delete.");
-        }
-
-        // 4. Reload all songs from the database into the global state.
-        _logger.LogInformation("Reloading all songs from database into global state after de-duplication attempt.");
-        var freshSongs = _songRepo.GetAll(true).ToList(); // Get fresh list, shuffle if needed for display
-        _state.LoadAllSongs(freshSongs.AsReadOnly());
-        _logger.LogInformation($"Loaded {freshSongs.Count} songs into global state.");
+        
     }
     public async Task<LoadSongsResult> ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {

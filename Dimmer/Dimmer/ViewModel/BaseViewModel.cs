@@ -147,7 +147,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             // 2. Perform the slow initial scan in the background
            
-            if (folders is not null && folders.Any())
+            if (folders is not null && folders.Count!=0)
             {
               _=  await libService.ScanLibrary(folders);
             }
@@ -277,15 +277,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation($"{DateTime.Now}: Calculating ranks using RQL sorting...");
         // Use a single, large write transaction for performance.
      
-
-        //we redid stats so normally it should live update since we used reactive ex
-
-
-        // Initial search to populate the list
-
-        //FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
-
-        Debug.WriteLine($"{DateTime.Now}: Loading user settings...");
 
         lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler)
@@ -2119,127 +2110,264 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     #endregion
-    public async Task PlaySong(SongModelView? songToPlay,CurrentPage curPage= CurrentPage.AllSongs, IEnumerable<SongModelView>? songs=null)
+
+    /// <summary>
+    /// The single, core method responsible for playing a song.
+    /// Handles all validation, audio service interaction, and UI updates.
+    /// </summary>
+    /// <param name="songToPlay">The song to attempt to play.</param>
+    /// <returns>True if playback started successfully, otherwise false.</returns>
+    private async Task<bool> PlayInternalAsync(SongModelView? songToPlay)
+    {
+        // A. Stop current playback and clear UI if the new song is null.
+        if (songToPlay == null)
+        {
+            if (audioService.IsPlaying)
+                audioService.Stop();
+            UpdateSongSpecificUi(null);
+            return false;
+        }
+
+        // B. Validate the song file path.
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
+            await ValidateSongAsync(songToPlay);
+            return false; // Playback failed
+        }
+
+        try
+        {
+            // C. Stop any currently playing audio.
+            if (audioService.IsPlaying)
+            {
+                audioService.Stop();
+            }
+
+            // D. Determine the start position. Reset if it's a new song.
+            double startPosition = 0;
+            if (songToPlay.TitleDurationKey == CurrentPlayingSongView?.TitleDurationKey)
+            {
+                startPosition = CurrentTrackPositionSeconds;
+            }
+
+            // E. Initialize the audio service with the new track.
+            await audioService.InitializeAsync(songToPlay, startPosition);
+
+            // F. Update history and UI state *after* successful initialization.
+            PlaybackManager.AddSongToHistory(songToPlay);
+
+            return true; // Playback started successfully
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to play song '{Title}'.", songToPlay.Title);
+            return false; // Playback failed
+        }
+    }
+
+    [RelayCommand]
+    private async Task PlayFromSearchResultsAsync(SongModelView? songToPlay)
     {
         if (songToPlay == null)
             return;
 
-        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
-        {
-            //_= ShowNotification($"Song file not found for '{songToPlay.Title}'. Skipping to next track.");
-            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
+        // We pass the full search results as the source for the new queue.
+        await PlaySong(songToPlay, CurrentPage.AllSongs, _searchResults);
+    }
 
+    public async Task PlaySong(SongModelView? songToPlay, CurrentPage curPage = CurrentPage.AllSongs, IEnumerable<SongModelView>? songs = null)
+    {
+        if (songToPlay == null)
+            return;
+
+        Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
+        // Quick exit check. The more detailed check is in PlayInternalAsync.
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             await ValidateSongAsync(songToPlay);
-            await NextTrackAsync();
             return;
         }
 
-        var newQueue = new List<SongModelView>();
-        int startIndex = 0;
+        var sourceList = new List<SongModelView>();
+        int startIndex = -1;
+
         if (curPage == CurrentPage.AllSongs)
         {
-            var _songs = songs is null ? _searchResults : songs;
-        startIndex = _songs.IndexOf(songToPlay);
-
-        if (startIndex == -1)
-        {
-
-
-            _logger.LogWarning("Song '{Title}' not in current search results. Playing it alone.", songToPlay.Title);
-            newQueue = new List<SongModelView> { songToPlay };
-            startIndex = 0;
-        }
-        else
-        {
-                var next100 = startIndex+100;
-                if (next100>_songs.Count())
-                {
-                    next100=startIndex+(_songs.Count()-1-startIndex);
-                }
-                if (startIndex == next100)
-                {
-                    var isZero = next100==0;
-                    next100 = isZero?1:next100+1;
-                    newQueue = _songs.Take(new Range(0,next100 )).ToList();
-
-                }
-                else
-                {
-                    //newQueue = _songs.inde();
-
-                    newQueue = _songs.ToList();
-
-                }
-
-
-                startIndex= newQueue.IndexOf(songToPlay);
-            }
-
-        }
-        else if(curPage == CurrentPage.HomePage)
-        {
-
-
-            startIndex = _playbackQueue.IndexOf(songToPlay);
+            var songSource = (songs ?? _searchResults).ToList();
+            startIndex = songSource.IndexOf(songToPlay);
 
             if (startIndex == -1)
             {
-
-
-                _logger.LogWarning("Song '{Title}' not in current search results. Playing it alone.", songToPlay.Title);
-                newQueue = new List<SongModelView> { songToPlay };
+                _logger.LogWarning("Song '{Title}' not in current source. Playing it alone.", songToPlay.Title);
+                sourceList.Add(songToPlay);
                 startIndex = 0;
             }
             else
             {
+                // *** SIMPLIFIED QUEUE SLICING LOGIC ***
+                // Take a window of 150 songs (50 before, 100 after) for performance.
+                const int songsToTakeBefore = 50;
+                const int songsToTakeAfter = 100;
+                const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
-                newQueue = _playbackQueue.ToList();
+                int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
+                sourceList = songSource.Skip(sliceStart).Take(totalQueueSize).ToList();
 
+                // The start index is now relative to this new, smaller list.
+                startIndex = sourceList.IndexOf(songToPlay);
             }
-
         }
-        await StartNewPlaybackQueue(newQueue, startIndex, CurrentTqlQuery);
+        else if (curPage == CurrentPage.HomePage)
+        {
+            sourceList = _playbackQueue.ToList();
+            startIndex = sourceList.IndexOf(songToPlay);
+
+            if (startIndex == -1)
+            {
+                _logger.LogWarning("Song '{Title}' not in current queue. Playing it alone.", songToPlay.Title);
+                sourceList = new List<SongModelView> { songToPlay };
+                startIndex = 0;
+            }
+        }
+
+        Debug.WriteLine("Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
+        await StartNewPlaybackQueue(sourceList, startIndex, CurrentTqlQuery);
+    }
+
+    /// <summary>
+    /// Plays a song from a specific context, like an album or a user-created playlist.
+    /// This creates a new, smaller queue containing only the songs from that specific collection.
+    /// </summary>
+    [RelayCommand]
+    private async Task PlayFromSpecificCollectionAsync(SongModelView? songToPlay)
+    {
+        if (songToPlay == null)
+            return;
+
+        // Example for playing from a specific album's song list.
+        // You would have a similar property for a selected playlist's songs.
+        await PlaySong(songToPlay, CurrentPage.SpecificAlbumPage, _searchResults);
+    }
+    /// <summary>
+    /// Jumps to a song that is already in the Now Playing queue.
+    /// This does NOT create a new queue; it just changes the current track index.
+    /// </summary>
+    [RelayCommand]
+    private async Task JumpToSongInQueueAsync(SongModelView? songToPlay)
+    {
+        if (songToPlay == null)
+            return;
+
+        int index = PlaybackQueue.IndexOf(songToPlay);
+        if (index != -1)
+        {
+            await PlaySongAtIndexAsync(index);
+        }
+        else
+        {
+            // Fallback: If for some reason the song isn't in the queue,
+            // add it next and play it.
+            _logger.LogWarning("Song '{Title}' was not found in the current queue. Adding it to play next.", songToPlay.Title);
+            // You would need an "Add Next" method here.
+            // For now, let's just play it as a single-song queue.
+            await PlaySong(songToPlay, CurrentPage.NowPlayingPage, new List<SongModelView> { songToPlay });
+        }
+    }
+    private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
+    {
+        List<SongModelView> initialSongList = songs.ToList();
+        if (initialSongList.Count==0 || startIndex < 0 || startIndex >= initialSongList.Count)
+        {
+            _logger.LogError("Could not start playback. Invalid songs list or start index.");
+
+            _playbackQueueSource.Clear();
+
+            await PlayInternalAsync(null); // Stop playback
+
+            return;
+        }
+
+
+
+        List<SongModelView> finalQueue;
+        int finalStartIndex;
+
+
+        if (IsShuffleActive)
+        {
+            var songToStartWith = initialSongList[startIndex];
+            var otherSongs = initialSongList.Where(s => s.Id != songToStartWith.Id);
+
+            // The collection expression is fine for creating a temporary List<T>
+            finalQueue = [songToStartWith, .. otherSongs.OrderBy(x => _random.Next())];
+            finalStartIndex = 0;
+        }
+        else
+        {
+            finalQueue = initialSongList;
+            finalStartIndex = startIndex;
+        }
+
+        _playbackQueueSource.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddRange(finalQueue);
+        });
+
+        // The index is a separate variable, we can set it directly.
+        _playbackQueueIndex = finalStartIndex;
+
+        // Update context and clear history for the new session
+        CurrentPlaybackQuery = contextQuery;
+        SavePlaybackContext(CurrentPlaybackQuery);
+        PlaybackManager.ClearSessionHistory();
+
+        // Now, attempt to play the first song in the newly created queue.
+        // We can safely read from the public _playbackQueue now, as it has been updated by the source.
+        var songToPlay = finalQueue[finalStartIndex];
+
+        if (!await PlayInternalAsync(songToPlay))
+        {
+            await NextTrackAsync();
+        }
     }
 
     private async Task PlaySongAtIndexAsync(int index)
     {
         if (_playbackQueue == null || index < 0 || index >= _playbackQueue.Count)
         {
-            _logger.LogInformation("Playback stopped: Index {Index} is out of bounds for the current queue.", index);
-            if (audioService.IsPlaying)
-                audioService.Stop();
-            UpdateSongSpecificUi(null);
+            _logger.LogInformation("Playback stopped: Index {Index} is out of bounds.", index);
+            await PlayInternalAsync(null); // Stop playback
             return;
         }
 
         _playbackQueueIndex = index;
         var songToPlay = _playbackQueue[_playbackQueueIndex];
 
-        if (_playbackQueueIndex == -1)
-
-            PlaybackManager.AddSongToHistory(songToPlay);
-        if (songToPlay.TitleDurationKey != CurrentPlayingSongView.TitleDurationKey)
+        // If playback fails (e.g., file deleted), automatically skip to the next track.
+        if (!await PlayInternalAsync(songToPlay))
         {
-            CurrentTrackPositionSeconds=0;
-        }
+            var result = await Shell.Current.DisplayActionSheet("Failed to play the selected song. What would you like to do?", "Cancel", null, "Remove from Queue", "Skip to Next");
+            
+            if (result == "Remove from Queue")
+            {
+                RemoveFromQueue(songToPlay);
+            }
+            else if (result == "Skip to Next")
+            {
+                await NextTrackAsync();
+            }
+            else
+            {
+                // User cancelled or closed the dialog
+                _logger.LogInformation("User cancelled action after playback failure for '{Title}'.", songToPlay.Title);
+            }
 
-
-        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
-        {
-            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
-
-            await ValidateSongAsync(songToPlay);
             await NextTrackAsync();
-            return;
         }
-        if (audioService.IsPlaying)
-        {
-            audioService.Stop();
-
-        }
-        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
     }
-
 
     private int GetNextIndexInQueue(int direction)
     {
@@ -2271,73 +2399,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         return nextIndex;
-    }
-    private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
-    {
-        List<SongModelView> finalQueue;
-        int finalStartIndex;
-
-        if (IsShuffleActive)
-        {
-            var songToStartWith = songs.ElementAt(startIndex);
-            var otherSongs = songs.Where(s => s.Id != songToStartWith.Id);
-            var shuffledSongs = otherSongs.OrderBy(x => _random.Next());
-
-            finalQueue = [songToStartWith, .. shuffledSongs];
-            finalStartIndex = 0;
-        }
-        else
-        {
-            finalQueue = songs.ToList();
-            finalStartIndex = startIndex;
-        }
-
-        if (audioService.IsPlaying)
-        {
-            audioService.Stop();
-        }
-
-
-
-        AddToNextCommand.Execute(null);
-
-
-        CurrentPlaybackQuery = contextQuery;
-        SavePlaybackContext(CurrentPlaybackQuery);
-        PlaybackManager.ClearSessionHistory();
-
-
-
-
-        if (finalQueue == null || finalStartIndex < 0 || finalStartIndex >= finalQueue.Count)
-        {
-            _logger.LogError("Could not start playback. Invalid start index for the new queue.");
-            UpdateSongSpecificUi(null);
-            return;
-        }
-
-
-        _playbackQueueIndex = finalStartIndex;
-        var songToPlay = finalQueue[_playbackQueueIndex];
-
-
-        PlaybackManager.AddSongToHistory(songToPlay);
-        CurrentTrackPositionSeconds = 0;
-
-
-        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
-        {
-            _logger.LogError("Song file not found for '{Title}'. Skipping...", songToPlay.Title);
-            await ValidateSongAsync(songToPlay);
-
-
-            return;
-        }
-
-
-        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
-
-        
     }
     [RelayCommand]
     private void ToggleShuffle()
@@ -3331,10 +3392,151 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             ClearSingleSongStats();
             return;
         }
-        
+
+        _reportGenerator = new ListeningReportGenerator(RealmFactory, _logger,_mapper);
+       await GenerateWeeklyReportAsync();
+    }
+    [RelayCommand]
+    private async Task GenerateWeeklyReportAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            // Define the period for a weekly report ending today
+            var endDate = DateTimeOffset.UtcNow.Date.AddDays(1); // To include all of today
+            var startDate = endDate.AddDays(-7);
+
+            var reportData = await _reportGenerator.GenerateReportAsync(startDate, endDate);
+            if (reportData != null && reportData.Count>0)
+            {
+                // Find each stat by its title and assign it to the correct property.
+                // Use FirstOrDefault to avoid exceptions if a stat isn't generated.
+                TotalScrobblesStat = reportData.FirstOrDefault(s => s.StatTitle == "Total Scrobbles");
+
+                TopTracks = reportData.FirstOrDefault(s => s.StatTitle == "Top Tracks")?.ChildStats;
+                TopArtists = reportData.FirstOrDefault(s => s.StatTitle == "Top Artists")?.ChildStats;
+                TopAlbums = reportData.FirstOrDefault(s => s.StatTitle == "Top Albums")?.ChildStats;
+
+                ListeningClockData = reportData.FirstOrDefault(s => s.StatTitle == "Listening Clock");
+                MusicByDecadeData = reportData.FirstOrDefault(s => s.StatTitle == "Music By Decade");
+                TopTagsEvolutionData = reportData.FirstOrDefault(s => s.StatTitle == "Top Tags Evolution");
+
+                // --- Top Lists (Already Done) ---
+                TopTracks = reportData.FirstOrDefault(s => s.StatTitle == "Top Tracks")?.ChildStats;
+                TopArtists = reportData.FirstOrDefault(s => s.StatTitle == "Top Artists")?.ChildStats;
+                TopAlbums = reportData.FirstOrDefault(s => s.StatTitle == "Top Albums")?.ChildStats;
+
+                // --- Unique Count Cards (NEW) ---
+                UniqueTracksStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Tracks");
+                UniqueArtistsStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Artists");
+                UniqueAlbumsStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Albums");
+
+                // --- Listening Fingerprint (NEW) ---
+                ConsistencyStat = reportData.FirstOrDefault(s => s.StatTitle == "Consistency");
+                DiscoveryRateStat = reportData.FirstOrDefault(s => s.StatTitle == "Discovery Rate");
+                VarianceStat = reportData.FirstOrDefault(s => s.StatTitle == "Variance");
+                ConcentrationStat = reportData.FirstOrDefault(s => s.StatTitle == "Concentration");
+                ReplayRateStat = reportData.FirstOrDefault(s => s.StatTitle == "Replay Rate");
+
+                // --- Quick Facts (NEW) ---
+                TotalListeningTimeStat = reportData.FirstOrDefault(s => s.StatTitle == "Total Listening Time");
+                AverageScrobblesPerDayStat = reportData.FirstOrDefault(s => s.StatTitle == "Average Scrobbles/Day");
+                MostActiveDayStat = reportData.FirstOrDefault(s => s.StatTitle == "Most Active Day");
+
+                // --- Advanced Plots (NEW) ---
+                ListeningConcentrationStat = reportData.FirstOrDefault(s => s.StatTitle == "Listening Concentration (Pareto)");
+                EddingtonNumberStat = reportData.FirstOrDefault(s => s.StatTitle == "Music Eddington Number");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate weekly report.");
+            // Handle error, maybe show a message to the user
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
+    #region Main Cards & Charts
+    [ObservableProperty]
+    public partial DimmerStats? TotalScrobblesStat { get; set; }
 
+    [ObservableProperty]
+    public partial DimmerStats? ListeningClockData { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? MusicByDecadeData { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? TopTagsEvolutionData { get; set; }
+    #endregion
+
+    #region Top Lists
+    [ObservableProperty]
+    public partial List<DimmerStats>? TopTracks { get; set; }
+
+    [ObservableProperty]
+    public partial List<DimmerStats>? TopArtists { get; set; }
+
+    [ObservableProperty]
+    public partial List<DimmerStats>? TopAlbums { get; set; }
+    #endregion
+
+    #region Unique Count Cards
+    [ObservableProperty]
+    public partial DimmerStats? UniqueTracksStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? UniqueArtistsStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? UniqueAlbumsStat { get; set; }
+    #endregion
+
+    #region Listening Fingerprint
+    [ObservableProperty]
+    public partial DimmerStats? ConsistencyStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? DiscoveryRateStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? VarianceStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? ConcentrationStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? ReplayRateStat { get; set; }
+    #endregion
+
+    #region Quick Facts
+    [ObservableProperty]
+    public partial DimmerStats? TotalListeningTimeStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? AverageScrobblesPerDayStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? MostActiveDayStat { get; set; }
+    #endregion
+
+    #region Advanced Plots
+    [ObservableProperty]
+    public partial DimmerStats? ListeningConcentrationStat { get; set; } // Pareto
+
+    [ObservableProperty]
+    public partial DimmerStats? EddingtonNumberStat { get; set; }
+    #endregion
+    private ListeningReportGenerator _reportGenerator;
+
+    [ObservableProperty]
+    public partial List<DimmerStats> ReportData { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLoading { get; set; }
     private void ClearSingleSongStats()
     {
         SongPlayTypeDistribution = null;
@@ -5556,6 +5758,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _ => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
         };
     }
+
 
     
 }
