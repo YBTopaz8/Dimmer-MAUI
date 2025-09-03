@@ -1,8 +1,6 @@
 using Dimmer.DimmerLive.Models;
 using Dimmer.Interfaces.Services.Interfaces;
 
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views.DimmerLiveUI;
 
 public partial class ChatView : ContentPage

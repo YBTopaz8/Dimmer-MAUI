@@ -44,7 +44,7 @@ public partial class AudioVisualizerService : Object, IAudioVisualizerService, V
         }
         catch (Java.Lang.Exception ex) // Visualizer can throw various exceptions
         {
-            System.Diagnostics.Debug.WriteLine($"Visualizer Start Error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Visualizer StartAsync Error: {ex.Message}");
             _visualizer?.Release();
             _visualizer = null;
         }

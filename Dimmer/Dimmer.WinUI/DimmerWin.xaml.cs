@@ -1,7 +1,5 @@
 using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
-using Dimmer.WinUI.Views.WinUIPages;
 
 namespace Dimmer.WinUI;
 
@@ -20,7 +18,7 @@ public partial class DimmerWin : Window
         BindingContext=vm;
         
     }
-
+    public Page CurrentPage => this.Page as Page ?? throw new InvalidOperationException("Current Page is not a valid Page.");
     private void AppShell_Loaded(object? sender, EventArgs e)
     {
         

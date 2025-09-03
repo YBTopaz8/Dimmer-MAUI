@@ -123,7 +123,7 @@ public class MainActivity : MauiAppCompatActivity
         _serviceConnection = new MediaPlayerServiceConnection();
 
 
-        // 1) Start the foreground service
+        // 1) StartAsync the foreground service
         _serviceIntent = new Intent(this, typeof(ExoPlayerService));
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {

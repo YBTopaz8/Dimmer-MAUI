@@ -50,7 +50,7 @@ public static class GeneralViewUtil
                 startColor.Alpha + (targetColor.Alpha - startColor.Alpha) * v
             );
             element.BackgroundColor = stepColor;
-        }, 0.0, 1.0, easing ?? Easing.Linear); // Start=0, End=1, Optional Easing
+        }, 0.0, 1.0, easing ?? Easing.Linear); // StartAsync=0, End=1, Optional Easing
 
         // Commit the animation
         // Use a unique handle name per element/property to enable cancellation

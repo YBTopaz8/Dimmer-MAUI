@@ -280,7 +280,7 @@ public static class ImageResizer
         if (data.Length < 8) // Need at least a few bytes to check headers
             return false;
 
-        // Common JPEG headers (Start of Image marker)
+        // Common JPEG headers (StartAsync of Image marker)
         if (data.Length >= 2 && data.Take(2).SequenceEqual(new byte[] { 0xFF, 0xD8 }))
             return true;
 

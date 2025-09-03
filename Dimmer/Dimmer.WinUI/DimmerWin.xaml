@@ -37,13 +37,13 @@
                 <HorizontalStackLayout BackgroundColor="Transparent">
                     <ImageButton
                        Source="chatdimmer.png"
-                      Clicked="DimmerChat_Clicked"
+                      Clicked="DimmerChat_Clicked" IsVisible="False"
                         x:Name="DimmerChat"
                         />
 
                     <ImageButton Source="sharefd.png"
                                  x:Name="ShareSong"
-                                    Clicked="ShareBtn_Clicked"
+                                    Clicked="ShareBtn_Clicked" IsVisible="False"
                    >
                         <ImageButton.Behaviors>
                             <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue"/>
@@ -51,7 +51,7 @@
                     </ImageButton>
 
                     <ImageButton Source="usersgrouprounded.png"
-                                 x:Name="SocialBtn"
+                                 x:Name="SocialBtn" IsEnabled="False" 
                                     Clicked="SocialBtn_Clicked"
                     />
                     <ImageButton Source="{AppThemeBinding Light=darkmoon.png, Dark=lightmodde.png}" x:Name="SwitchTheme"

@@ -330,55 +330,6 @@ public partial class UserNoteModelView : ObservableObject
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
 }
-//public partial class SyncLyricsView : ObservableObject
-//{
-//    public int TimestampMs { get; set; }
-//    public string? Text { get; set; }
-//    /// <summary>
-//    /// Start timestamp of the phrase, in milliseconds
-//    /// </summary>
-//    public int TimestampStart { get; }
-//    /// <summary>
-//    /// End timestamp of the phrase, in milliseconds
-//    /// </summary>
-//    public int TimestampEnd { get; set; }
-//    /// <summary>
-//    /// Text
-//    /// </summary>
-//    public List<LyricsPhrase>? Beats { get; }
 
-
-//    public bool IsLyricSynced { get; set; }
-
-//    // Constructor that accepts a LyricsInfo.LyricsPhrase object
-//    public SyncLyricsView(LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
-//    {
-
-//        if (phrase != null)
-//        {
-
-//            TimestampStart = phrase.TimestampStart;
-//            TimestampEnd = phrase.TimestampEnd;
-//            Text = phrase.Text;
-
-//        }
-//    }
-//    public SyncLyricsView(int timestampMs, string text)
-//    {
-//        TimestampMs = timestampMs;
-//        Text = text;
-//    }
-//    public SyncLyricsView()
-//    {
-
-//    }
-//    public SyncLyricsView(SyncLyrics syncLyricsDB)
-//    {
-//        Text= syncLyricsDB.Text;
-//        TimestampMs = syncLyricsDB.TimestampMs;
-
-//    }
-
-//}
 public enum SongType { Track, Segment }
 public enum SegmentEndBehavior { Stop, LoopSegment, PlayThrough }

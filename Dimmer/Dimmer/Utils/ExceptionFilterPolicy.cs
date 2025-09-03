@@ -42,6 +42,8 @@ public class ExceptionFilterPolicy
                 }
             }
         }
+
+
         // --- Rule 3: (Example) Ignore OperationCanceledException from a specific service ---
         // if (ex is OperationCanceledException && ex.StackTrace?.Contains("MyCancellableDataService") == true)
         // {

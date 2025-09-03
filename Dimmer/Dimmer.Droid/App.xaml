@@ -30,6 +30,60 @@
             <Color x:Key="SubtleTextColor">#a0a0a0</Color>
             <Color x:Key="SuccessColor">#4CAF50</Color>
 
+
+            <Color x:Key="MyAccentColor">#483D8B</Color>
+            <!-- DarkSlateBlue -->
+            <Color x:Key="MyAccentColorLight">#6A5ACD</Color>
+            <!-- SlateBlue (for hover/pressed states) -->
+            <Color x:Key="MyAccentColorDark">#3A316D</Color>
+            <!-- A darker shade for borders -->
+
+            <SolidColorBrush x:Key="MyAccentBrush" Color="{StaticResource MyAccentColor}" />
+            <SolidColorBrush x:Key="MyAccentBrushLight" Color="{StaticResource MyAccentColorLight}" />
+            <SolidColorBrush x:Key="MyAccentBrushDark" Color="{StaticResource MyAccentColorDark}" />
+
+            <!-- Core Theme Colors -->
+            <Color x:Key="ThemeBackgroundColor">#1C1C1C</Color>
+            <!-- A very dark gray, not pure black -->
+            <Color x:Key="ThemeSubtleGrayColor">#2D2D2D</Color>
+            <!-- For subtle backgrounds and borders -->
+            <Color x:Key="ThemeForegroundColor">#E8E8E8</Color>
+            <!-- Off-white for text -->
+            <Color x:Key="ThemeForegroundSubtleColor">#A0A0A0</Color>
+            <!-- Gray text for secondary info -->
+
+
+
+            <!-- 3. PRIMARY, SECONDARY, AND TERTIARY BUTTON STYLES -->
+
+            <!-- Base style for all buttons to remove default borders and make them consistent -->
+            <Style x:Key="BaseButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderWidth" Value="1"/>
+                <Setter Property="Padding" Value="12,6"/>
+                <Setter Property="CornerRadius" Value="4"/>
+            </Style>
+
+            <!-- Primary Button: Accent color fill -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+                <Setter Property="Background" Value="{StaticResource MyAccentBrush}"/>
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <!-- Secondary Button: Accent color border -->
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <!-- Tertiary Button: Subtle, text-only button -->
+            <Style x:Key="TertiaryButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

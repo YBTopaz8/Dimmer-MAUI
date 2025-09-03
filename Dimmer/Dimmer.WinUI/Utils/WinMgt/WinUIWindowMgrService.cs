@@ -1,14 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-using Application = Microsoft.UI.Xaml.Application;
 using Page = Microsoft.UI.Xaml.Controls.Page;
 using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
@@ -349,6 +340,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     {
         try
         {
+
             if (IsWindowOpen(window)) // Check if we are tracking it as open
             {
                 window.Close(); // This will trigger the Destroying event which will handle untracking

@@ -86,6 +86,8 @@ public partial class DimmerStats : ObservableObject
 public bool IsSummary { get; set; }      // For WaterfallSeries' SummaryBindingPath
     public List<SongModelView> ContributingSongs { get; internal set; } = new();
     public double SizeDouble { get; internal set; }
+    public string? StatTitle2 { get; internal set; }
+    public List<DimmerStats>? ChildStats { get; internal set; }
 }
 public class ChartDataPoint
 {

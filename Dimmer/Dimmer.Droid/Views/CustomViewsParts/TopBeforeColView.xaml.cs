@@ -116,7 +116,7 @@ public partial class TopBeforeColView : DXExpander
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
         //int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-        //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+        //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.StartAsync);
 
     }
     private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)

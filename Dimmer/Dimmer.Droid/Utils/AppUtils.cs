@@ -208,7 +208,15 @@ public class AppUtil : IAppUtil
         // Fallback to provided default or the action ID itself
         return defaultTitle ?? actionId;
     }
+    public static class AndroidLifecycle
+    {
+        // For handling incoming intents (deep links, widget clicks, etc.)
+        public const string IntentReceived = "Android.IntentReceived";
 
+        // For Picture-in-Picture (PiP) requests
+        public const string EnterPiPModeRequested = "Android.EnterPiPModeRequested";
+        public const string PiPAction = "Android.PiPAction";
+    }
     // 6. Validate App Action Icon Exists (Platform Dependent)
     public static bool ValidateAppActionIconExists(string iconName)
     {

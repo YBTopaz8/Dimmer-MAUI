@@ -41,7 +41,7 @@ public static class NaturalLanguageProcessor
     (new Regex(@"up to (\d+:\d+|\d+)\s*m(in(ute)?s?)?", RegexOptions.IgnoreCase), "len:<=$1"),
 
     // "show me <genre> music" (e.g., "rock music", "electronic music")
-    (new Regex($@"{Value} music", RegexOptions.IgnoreCase), "genre:$1"),
+    (new Regex($@"of genre {Value}", RegexOptions.IgnoreCase), "genre:$1"),
 
     // Simple commands
    (new Regex(@"in the (last|past) (\d+)\s*(day)s?", RegexOptions.IgnoreCase), "added:ago(\"$2d\")"),

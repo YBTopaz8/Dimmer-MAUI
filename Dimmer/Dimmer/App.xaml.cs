@@ -3,10 +3,7 @@
 //using Dimmer.DimmerLive.Orchestration;
 
 using Dimmer.DimmerLive.Orchestration;
-using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utils;
-
-using System.Linq.Dynamic.Core.Exceptions;
 
 namespace Dimmer;
 
@@ -41,7 +38,7 @@ public partial class App : Application
     //     // For example, you can add platform-specific resources or configurations.
     //     // If no specific implementation is needed, leave this method empty.
     // }
-   
+
     protected override Window CreateWindow(IActivationState? activationState)
     {
         return AppUtil.LoadWindow();
@@ -82,7 +79,7 @@ public partial class App : Application
         Debug.WriteLine(errorDetails);
 
         // Log to file
-      LogException(e.Exception);
+        LogException(e.Exception);
 
 
     }

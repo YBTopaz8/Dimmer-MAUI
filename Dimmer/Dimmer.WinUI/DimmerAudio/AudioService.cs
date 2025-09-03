@@ -4,7 +4,6 @@ using Dimmer.Interfaces.Services.Interfaces;
 
 using NAudio.CoreAudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
-using Vanara.PInvoke;
 namespace Dimmer.WinUI.DimmerAudio;
 
 

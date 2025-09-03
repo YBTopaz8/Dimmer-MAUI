@@ -16,7 +16,7 @@ public class ChatBubbleAlignmentConverter : IValueConverter
     /// <param name="targetType">The type of the binding target property.</param>
     /// <param name="parameter">An unused parameter.</param>
     /// <param name="culture">The culture to use in the converter.</param>
-    /// <returns>LayoutOptions.End for sent messages, LayoutOptions.Start for received messages.</returns>
+    /// <returns>LayoutOptions.End for sent messages, LayoutOptions.StartAsync for received messages.</returns>
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is bool isSentByMe)

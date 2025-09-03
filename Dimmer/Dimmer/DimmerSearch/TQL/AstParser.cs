@@ -27,7 +27,7 @@ public class AstParser
         if (_tokens.All(t => t.Type == TokenType.EndOfFile))
             return new ClauseNode("any", "matchall", "");
 
-        var result = ParseAddRemove(); // Start parsing from the lowest precedence operator
+        var result = ParseAddRemove(); // StartAsync parsing from the lowest precedence operator
 
         if (!IsAtEnd())
             throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' after valid expression.", Peek().Position);

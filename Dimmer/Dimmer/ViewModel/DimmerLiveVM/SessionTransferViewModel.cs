@@ -58,7 +58,7 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
             .Subscribe(HandleIncomingTransferRequest)
             .DisposeWith(_disposables);
 
-        // Lifecycle management: Start/stop listeners when the viewmodel is used
+        // Lifecycle management: StartAsync/stop listeners when the viewmodel is used
         // In a real app, this would be tied to page appearing/disappearing
         _sessionManager.StartListeners();
     }

@@ -1,4 +1,5 @@
 ﻿using System.Reactive.Disposables;
+using System.Threading.Tasks;
 
 using Dimmer.Interfaces.Services.Interfaces;
 

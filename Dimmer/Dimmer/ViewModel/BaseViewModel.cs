@@ -1,7 +1,9 @@
 ﻿
+using Dimmer.Data;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using Dimmer.UIUtils.CustomPopups;
 using Dimmer.Utils;
 
 using DynamicData;
@@ -69,7 +71,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this._musicDataService=musicDataService;
         this.appInitializerService=appInitializerService;
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _subsManager = subsManager ?? new SubscriptionManager();
         _folderMgtService = folderMgtService;
         this.songRepo=_songRepo;
@@ -124,18 +125,40 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsAppToDate { get; set; }
 
+    Timer? _bootTimer;
     public void InitializeAllVMCoreComponentsAsync()
     {
-        realm=RealmFactory.GetRealmInstance();
+        // i need a time to see how long this takes
+
+        var startTime = DateTime.Now;
 
 
+
+        Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
       
-            _folderMgtService.StartWatchingConfiguredFolders();
-        
+            realm=RealmFactory.GetRealmInstance();
+        var folders = realm.All<AppStateModel>().FirstOrDefault()?.Freeze().UserMusicFoldersPreference.ToList();
 
-//SubscribeToCommandEvaluatorEvents();
+        _ = Task.Run(async () =>
+        {
 
-_playbackQueueSource.Connect()
+            // 1. Set up watchers immediately (this is now fast)
+            await _folderMgtService.StartWatchingConfiguredFoldersAsync();
+
+            // 2. Perform the slow initial scan in the background
+           
+            if (folders is not null && folders.Count!=0)
+            {
+              _=  await libService.ScanLibrary(folders);
+            }
+        });
+
+
+        Debug.WriteLine($"{DateTime.Now}: Folder monitoring started.");
+
+        //SubscribeToCommandEvaluatorEvents();
+
+        _playbackQueueSource.Connect()
     .ObserveOn(RxApp.MainThreadScheduler)
     .Bind(out _playbackQueue)
     .Subscribe( x =>
@@ -145,7 +168,7 @@ _playbackQueueSource.Connect()
 
     .DisposeWith(Disposables);
 
-
+        Debug.WriteLine($"{DateTime.Now}: Playback queue subscription set up.");
 
 
         _searchQuerySubject
@@ -163,6 +186,7 @@ _playbackQueueSource.Connect()
 
                 return (Query: tqlQuery, Plan: plan);
             })
+            .SubscribeOn(RxApp.TaskpoolScheduler)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(payload =>
             {
@@ -246,19 +270,13 @@ _playbackQueueSource.Connect()
         })
         .DisposeWith(Disposables);
 
+        Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
         // Initial search to populate the list
         _searchQuerySubject.OnNext(""); // Confirmed this should be empty string
         _logger.LogInformation($"{DateTime.Now}: Calculating ranks using RQL sorting...");
         // Use a single, large write transaction for performance.
      
-
-        //we redid stats so normally it should live update since we used reactive ex
-
-
-        // Initial search to populate the list
-
-        //FolderPaths = _settingsService.UserMusicFoldersPreference.ToObservableCollection();
 
         lastfmService.IsAuthenticatedChanged
            .ObserveOn(RxApp.MainThreadScheduler)
@@ -314,10 +332,16 @@ _playbackQueueSource.Connect()
         //await EnsureAllCoverArtCachedForSongsAsync();
 
 
+        Debug.WriteLine($"{DateTime.Now}: Subscriptions to services set up.");
         // --- STAGE 2: KICK OFF LONG-RUNNING BACKGROUND TASKS ---
         // We start these tasks on a background thread and DO NOT await them.
         // This is the "fire and forget" part that prevents UI freeze.
         _ = PerformBackgroundInitializationAsync();
+
+        var endTime = DateTime.Now;
+        var duration = endTime - startTime;
+        Debug.WriteLine($"{DateTime.Now}: Finished InitializeAllVMCoreComponentsAsync in {duration.TotalSeconds} seconds.");
+
 
         // The method can now return immediately, making the UI responsive.
         return; // Or await Task.CompletedTask; if you prefer
@@ -334,20 +358,20 @@ _playbackQueueSource.Connect()
             _logger.LogInformation("Starting background initialization tasks...");
 
             // Task 1: Check for App Updates (Network I/O)
-            var appUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
-            if (appUpdateObj is not null)
-            {
-                // When the background task completes, update UI properties on the main thread.
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    AppUpdateObj = appUpdateObj;
-                    IsAppToDate = false;
-                    _stateService.SetCurrentLogMsg(new AppLogModel
-                    {
-                        Log = $"Update available: {appUpdateObj.title}",
-                    });
-                });
-            }
+            //var appUpdateObj = await ParseStatics.CheckForAppUpdatesAsync();
+            //if (appUpdateObj is not null)
+            //{
+            //    // When the background task completes, update UI properties on the main thread.
+            //    MainThread.BeginInvokeOnMainThread(() =>
+            //    {
+            //        AppUpdateObj = appUpdateObj;
+            //        IsAppToDate = false;
+            //        _stateService.SetCurrentLogMsg(new AppLogModel
+            //        {
+            //            Log = $"Update available: {appUpdateObj.title}",
+            //        });
+            //    });
+            //}
 
             var backgroundRealm = RealmFactory.GetRealmInstance();
 
@@ -388,13 +412,14 @@ _playbackQueueSource.Connect()
             _logger.LogInformation("Finished calculating SearchableText.");
 
 
-            // Task 3: Recalculate All Statistics (Heavy DB work)
-            _logger.LogInformation("Starting background statistics recalculation...");
-            var redoStats = new StatsRecalculator(backgroundRealm, _logger);
-            await redoStats.RecalculateAllStatistics();
-            _logger.LogInformation("Finished recalculating statistics.");
+            //// Task 3: Recalculate All Statistics (Heavy DB work)
+            //_logger.LogInformation("Starting background statistics recalculation...");
+            //var redoStats = new StatsRecalculator(backgroundRealm, _logger);
+            //await redoStats.RecalculateAllStatistics();
+            //_logger.LogInformation("Finished recalculating statistics.");
 
-            // Task 4: Start the Last.fm service and handle its initial auth state
+
+            // Task 4: StartAsync the Last.fm service and handle its initial auth state
             lastfmService.Start();
         }
         catch (Exception ex)
@@ -604,6 +629,7 @@ _playbackQueueSource.Connect()
                 appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
                 appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
                 appmodel.VolumeLevelPreference=audioService.Volume;
+
 
             });
             realm.Add(appmodel, true);
@@ -823,7 +849,6 @@ _playbackQueueSource.Connect()
     private readonly MusicDataService _musicDataService;
     private IAppInitializerService appInitializerService;
     protected IDimmerStateService _stateService;
-    protected ISettingsService _settingsService;
     protected SubscriptionManager _subsManager;
     protected IFolderMgtService _folderMgtService;
     private IRepository<SongModel> songRepo;
@@ -1125,242 +1150,7 @@ _playbackQueueSource.Connect()
     private IDialogueService _dialogueService;
     protected ILastfmService lastfmService;
 
-    #region lastfm
-    [RelayCommand]
-    public async Task LoadUserLastFMInfo()
-    {
-        if (!lastfmService.IsAuthenticated)
-        {
-            return;
-        }
-        var usr = await lastfmService.GetUserInfoAsync();
-        if (usr is null)
-        {
-            _logger.LogWarning("Failed to load Last.fm user info.");
-            return;
-        }
-        UserLocal.LastFMAccountInfo.Name = usr.Name;
-        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
-        UserLocal.LastFMAccountInfo.Url = usr.Url;
-        UserLocal.LastFMAccountInfo.Country = usr.Country;
-        UserLocal.LastFMAccountInfo.Age = usr.Age;
-        UserLocal.LastFMAccountInfo.Playcount= usr.Playcount;
-        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
-        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
-        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
-        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
-        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
-        var rlm = RealmFactory.GetRealmInstance();
-        rlm.Write(() =>
-        {
-            var usre = rlm.All<UserModel>().ToList();
-            if (usre is not null)
-            {
-                var usrr = usre.FirstOrDefault();
-                if (usrr is not null)
-                {
-                    usrr.LastFMAccountInfo=new();
-                    usrr.LastFMAccountInfo.Name = usr.Name;
-                    usrr.LastFMAccountInfo.RealName = usr.RealName;
-                    usrr.LastFMAccountInfo.Url = usr.Url;
-                    usrr.LastFMAccountInfo.Country = usr.Country;
-                    usrr.LastFMAccountInfo.Age = usr.Age;
-                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
-                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
-                    usrr.LastFMAccountInfo.Registered = usr.Registered;
-                    usrr.LastFMAccountInfo.Gender = usr.Gender;
-
-                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
-                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
-                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
-                    rlm.Add(usrr, update: true);
-                }
-                else
-                {
-                    usrr = new UserModel();
-                    usrr.LastFMAccountInfo=new();
-                    usrr.Id=new();
-                    usrr.UserName= usr.Name;
-                    usrr.LastFMAccountInfo.Name = usr.Name;
-                    usrr.LastFMAccountInfo.RealName = usr.RealName;
-                    usrr.LastFMAccountInfo.Url = usr.Url;
-                    usrr.LastFMAccountInfo.Country = usr.Country;
-                    usrr.LastFMAccountInfo.Age = usr.Age;
-                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
-                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
-                    usrr.LastFMAccountInfo.Registered = usr.Registered;
-                    usrr.LastFMAccountInfo.Gender = usr.Gender;
-                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
-                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
-                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
-
-                    rlm.Add(usrr, update: true);
-                }
-            }
-        });
-    }
-
-
-    [ObservableProperty]
-    public partial bool IsLastfmAuthenticated { get; set; }
-
-
-    [ObservableProperty]
-    public partial bool LastFMLoginBtnVisible { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool lastFMCOmpleteLoginBtnVisible { get; set; } 
-    [ObservableProperty]
-    public partial bool IsLastFMNeedsToConfirm { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsLastFMNeedsUsername { get; set; }
-    [ObservableProperty]
-    public partial bool IsBusy { get; set; }
-
-    [ObservableProperty]
-    public partial string LastfmUsername { get; set; }
-
-    [RelayCommand]
-    public void LoadLastFMSession()
-    {
-        lastfmService.LoadSession();
-        IsLastfmAuthenticated = lastfmService.IsAuthenticated;
-        if (IsLastfmAuthenticated)
-        {
-            LastFMLoginBtnVisible=false;
-            lastFMCOmpleteLoginBtnVisible=false;
-            IsLastFMNeedsToConfirm=false;
-            _ = LoadUserLastFMInfo();
-        }
-    }
-
-    [RelayCommand]
-    public async Task LoginToLastfm()
-    {
-        if (string.IsNullOrEmpty(UserLocal.LastFMAccountInfo.Name))
-        {
-            IsLastFMNeedsUsername=true;
-            return;
-        }
-        IsBusy = true;
-        try
-        {
-
-            string url = await lastfmService.GetAuthenticationUrlAsync();
-            IsLastFMNeedsToConfirm=true;
-            LastFMLoginBtnVisible=false;
-            lastFMCOmpleteLoginBtnVisible=true;
-            await Launcher.Default.OpenAsync(new Uri(url));
-
-
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
-            IsBusy = false;
-            return;
-        }
-
-    }
-    [RelayCommand]
-    public async Task CompleteLoginAsync()
-    {
-        IsBusy = true;
-        try
-        {
-
-            IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
-            if (IsLastfmAuthenticated)
-            {
-                IsLastFMNeedsToConfirm=false;
-                lastFMCOmpleteLoginBtnVisible=false;
-                await LoadUserLastFMInfo();
-            }
-          
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while completing Last.fm login.");
-       
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-    public async Task LoadSelectedSongLastFMData()
-    {
-        if (SelectedSong is not null)
-        {
-            SelectedSongLastFMData = null;
-            CorrectedSelectedSongLastFMData = null;
-
-            var res = dimmerPlayEventRepo.GetAll().Where(x => x.SongName == SelectedSong.Title);
-
-
-            var playEvents = _mapper.Map<ObservableCollection<DimmerPlayEventView>>(res);
-            SelectedSong.PlayEvents=playEvents;
-            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
-
-
-
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
-            await LoadSongLastFMData();
-
-        }
-    }
-
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
-
-    public async Task LoadSongLastFMData()
-    {
-        return;
-        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
-        {
-            return;
-        }
-
-
-
-        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-        artistName ??=string.Empty;
-        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
-        if (SelectedSongLastFMData is null)
-        {
-            return;
-        }
-        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
-
-    }
-
-    public void LoadSongLastFMMoreData()
-    {
-        if (SelectedSong is null)
-        {
-            return;
-        }
-        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
-
-        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
-        //AllLyricsResultsLrcLib = s.ToObservableCollection();
-
-    }
-
-
-
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
-    #endregion
-
+  
     #region audio device management
     public void LoadAllAudioDevices()
     {
@@ -1571,8 +1361,11 @@ _playbackQueueSource.Connect()
 
     public async Task SaveUserNoteToSong(SongModelView songWithNote)
     {
-        var result = await Shell.Current.DisplayPromptAsync("Note Text", $"Note for {Environment.NewLine}" +
-            $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
+        
+
+        var result = await Shell.Current.DisplayPromptAsync("Note Text",
+        message:    $"Note for {Environment.NewLine}" +
+                    $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
                 placeholder: "Tip: Just type this note to search this song through TQL :)",
                 accept: "Done", keyboard: Keyboard.Text);
         if (result == null)
@@ -2120,21 +1913,7 @@ _playbackQueueSource.Connect()
     public void AddToNext(IEnumerable<SongModelView>? songs=null)
     {
         songs ??=_searchResults;
-        var currsongIndex = _playbackQueueSource.Items.IndexOf(CurrentPlayingSongView);
-        int insertPos = _playbackQueueIndex >= 0 ? _playbackQueueIndex + 1 : 0;
-        if (currsongIndex != -1 && insertPos > currsongIndex)
-        {
-            insertPos--; // Adjust position if inserting after the current song
-            //if list has only 1 song and we are adding next, we add to the end
-       
-
-        }
-
-        if (_playbackQueueSource.Items.Count == 1)
-        {
-            insertPos = _playbackQueueSource.Items.Count;
-        }
-        ClearQueueCommand.Execute(null);
+      
         _playbackQueueSource.AddRange(songs);
         //AddNextEvent?.Invoke(this, EventArgs.Empty);
 
@@ -2331,127 +2110,264 @@ _playbackQueueSource.Connect()
 
 
     #endregion
-    public async Task PlaySong(SongModelView? songToPlay,CurrentPage curPage= CurrentPage.AllSongs, IEnumerable<SongModelView>? songs=null)
+
+    /// <summary>
+    /// The single, core method responsible for playing a song.
+    /// Handles all validation, audio service interaction, and UI updates.
+    /// </summary>
+    /// <param name="songToPlay">The song to attempt to play.</param>
+    /// <returns>True if playback started successfully, otherwise false.</returns>
+    private async Task<bool> PlayInternalAsync(SongModelView? songToPlay)
+    {
+        // A. Stop current playback and clear UI if the new song is null.
+        if (songToPlay == null)
+        {
+            if (audioService.IsPlaying)
+                audioService.Stop();
+            UpdateSongSpecificUi(null);
+            return false;
+        }
+
+        // B. Validate the song file path.
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
+            await ValidateSongAsync(songToPlay);
+            return false; // Playback failed
+        }
+
+        try
+        {
+            // C. Stop any currently playing audio.
+            if (audioService.IsPlaying)
+            {
+                audioService.Stop();
+            }
+
+            // D. Determine the start position. Reset if it's a new song.
+            double startPosition = 0;
+            if (songToPlay.TitleDurationKey == CurrentPlayingSongView?.TitleDurationKey)
+            {
+                startPosition = CurrentTrackPositionSeconds;
+            }
+
+            // E. Initialize the audio service with the new track.
+            await audioService.InitializeAsync(songToPlay, startPosition);
+
+            // F. Update history and UI state *after* successful initialization.
+            PlaybackManager.AddSongToHistory(songToPlay);
+
+            return true; // Playback started successfully
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to play song '{Title}'.", songToPlay.Title);
+            return false; // Playback failed
+        }
+    }
+
+    [RelayCommand]
+    private async Task PlayFromSearchResultsAsync(SongModelView? songToPlay)
     {
         if (songToPlay == null)
             return;
 
-        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
-        {
-            //_= ShowNotification($"Song file not found for '{songToPlay.Title}'. Skipping to next track.");
-            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
+        // We pass the full search results as the source for the new queue.
+        await PlaySong(songToPlay, CurrentPage.AllSongs, _searchResults);
+    }
 
+    public async Task PlaySong(SongModelView? songToPlay, CurrentPage curPage = CurrentPage.AllSongs, IEnumerable<SongModelView>? songs = null)
+    {
+        if (songToPlay == null)
+            return;
+
+        Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
+        // Quick exit check. The more detailed check is in PlayInternalAsync.
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        {
+            _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             await ValidateSongAsync(songToPlay);
-            await NextTrackAsync();
             return;
         }
 
-        var newQueue = new List<SongModelView>();
-        int startIndex = 0;
+        var sourceList = new List<SongModelView>();
+        int startIndex = -1;
+
         if (curPage == CurrentPage.AllSongs)
         {
-            var _songs = songs is null ? _searchResults : songs;
-        startIndex = _songs.IndexOf(songToPlay);
-
-        if (startIndex == -1)
-        {
-
-
-            _logger.LogWarning("Song '{Title}' not in current search results. Playing it alone.", songToPlay.Title);
-            newQueue = new List<SongModelView> { songToPlay };
-            startIndex = 0;
-        }
-        else
-        {
-                var next100 = startIndex+100;
-                if (next100>_songs.Count())
-                {
-                    next100=startIndex+(_songs.Count()-1-startIndex);
-                }
-                if (startIndex == next100)
-                {
-                    var isZero = next100==0;
-                    next100 = isZero?1:next100+1;
-                    newQueue = _songs.Take(new Range(0,next100 )).ToList();
-
-                }
-                else
-                {
-                    //newQueue = _songs.inde();
-
-                    newQueue = _songs.ToList();
-
-                }
-
-
-                startIndex= newQueue.IndexOf(songToPlay);
-            }
-
-        }
-        else if(curPage == CurrentPage.HomePage)
-        {
-
-
-            startIndex = _playbackQueue.IndexOf(songToPlay);
+            var songSource = (songs ?? _searchResults).ToList();
+            startIndex = songSource.IndexOf(songToPlay);
 
             if (startIndex == -1)
             {
-
-
-                _logger.LogWarning("Song '{Title}' not in current search results. Playing it alone.", songToPlay.Title);
-                newQueue = new List<SongModelView> { songToPlay };
+                _logger.LogWarning("Song '{Title}' not in current source. Playing it alone.", songToPlay.Title);
+                sourceList.Add(songToPlay);
                 startIndex = 0;
             }
             else
             {
+                // *** SIMPLIFIED QUEUE SLICING LOGIC ***
+                // Take a window of 150 songs (50 before, 100 after) for performance.
+                const int songsToTakeBefore = 50;
+                const int songsToTakeAfter = 100;
+                const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
-                newQueue = _playbackQueue.ToList();
+                int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
+                sourceList = songSource.Skip(sliceStart).Take(totalQueueSize).ToList();
 
+                // The start index is now relative to this new, smaller list.
+                startIndex = sourceList.IndexOf(songToPlay);
             }
-
         }
-        await StartNewPlaybackQueue(newQueue, startIndex, CurrentTqlQuery);
+        else if (curPage == CurrentPage.HomePage)
+        {
+            sourceList = _playbackQueue.ToList();
+            startIndex = sourceList.IndexOf(songToPlay);
+
+            if (startIndex == -1)
+            {
+                _logger.LogWarning("Song '{Title}' not in current queue. Playing it alone.", songToPlay.Title);
+                sourceList = new List<SongModelView> { songToPlay };
+                startIndex = 0;
+            }
+        }
+
+        Debug.WriteLine("Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
+        await StartNewPlaybackQueue(sourceList, startIndex, CurrentTqlQuery);
+    }
+
+    /// <summary>
+    /// Plays a song from a specific context, like an album or a user-created playlist.
+    /// This creates a new, smaller queue containing only the songs from that specific collection.
+    /// </summary>
+    [RelayCommand]
+    private async Task PlayFromSpecificCollectionAsync(SongModelView? songToPlay)
+    {
+        if (songToPlay == null)
+            return;
+
+        // Example for playing from a specific album's song list.
+        // You would have a similar property for a selected playlist's songs.
+        await PlaySong(songToPlay, CurrentPage.SpecificAlbumPage, _searchResults);
+    }
+    /// <summary>
+    /// Jumps to a song that is already in the Now Playing queue.
+    /// This does NOT create a new queue; it just changes the current track index.
+    /// </summary>
+    [RelayCommand]
+    private async Task JumpToSongInQueueAsync(SongModelView? songToPlay)
+    {
+        if (songToPlay == null)
+            return;
+
+        int index = PlaybackQueue.IndexOf(songToPlay);
+        if (index != -1)
+        {
+            await PlaySongAtIndexAsync(index);
+        }
+        else
+        {
+            // Fallback: If for some reason the song isn't in the queue,
+            // add it next and play it.
+            _logger.LogWarning("Song '{Title}' was not found in the current queue. Adding it to play next.", songToPlay.Title);
+            // You would need an "Add Next" method here.
+            // For now, let's just play it as a single-song queue.
+            await PlaySong(songToPlay, CurrentPage.NowPlayingPage, new List<SongModelView> { songToPlay });
+        }
+    }
+    private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
+    {
+        List<SongModelView> initialSongList = songs.ToList();
+        if (initialSongList.Count==0 || startIndex < 0 || startIndex >= initialSongList.Count)
+        {
+            _logger.LogError("Could not start playback. Invalid songs list or start index.");
+
+            _playbackQueueSource.Clear();
+
+            await PlayInternalAsync(null); // Stop playback
+
+            return;
+        }
+
+
+
+        List<SongModelView> finalQueue;
+        int finalStartIndex;
+
+
+        if (IsShuffleActive)
+        {
+            var songToStartWith = initialSongList[startIndex];
+            var otherSongs = initialSongList.Where(s => s.Id != songToStartWith.Id);
+
+            // The collection expression is fine for creating a temporary List<T>
+            finalQueue = [songToStartWith, .. otherSongs.OrderBy(x => _random.Next())];
+            finalStartIndex = 0;
+        }
+        else
+        {
+            finalQueue = initialSongList;
+            finalStartIndex = startIndex;
+        }
+
+        _playbackQueueSource.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddRange(finalQueue);
+        });
+
+        // The index is a separate variable, we can set it directly.
+        _playbackQueueIndex = finalStartIndex;
+
+        // Update context and clear history for the new session
+        CurrentPlaybackQuery = contextQuery;
+        SavePlaybackContext(CurrentPlaybackQuery);
+        PlaybackManager.ClearSessionHistory();
+
+        // Now, attempt to play the first song in the newly created queue.
+        // We can safely read from the public _playbackQueue now, as it has been updated by the source.
+        var songToPlay = finalQueue[finalStartIndex];
+
+        if (!await PlayInternalAsync(songToPlay))
+        {
+            await NextTrackAsync();
+        }
     }
 
     private async Task PlaySongAtIndexAsync(int index)
     {
         if (_playbackQueue == null || index < 0 || index >= _playbackQueue.Count)
         {
-            _logger.LogInformation("Playback stopped: Index {Index} is out of bounds for the current queue.", index);
-            if (audioService.IsPlaying)
-                audioService.Stop();
-            UpdateSongSpecificUi(null);
+            _logger.LogInformation("Playback stopped: Index {Index} is out of bounds.", index);
+            await PlayInternalAsync(null); // Stop playback
             return;
         }
 
         _playbackQueueIndex = index;
         var songToPlay = _playbackQueue[_playbackQueueIndex];
 
-        if (_playbackQueueIndex == -1)
-
-            PlaybackManager.AddSongToHistory(songToPlay);
-        if (songToPlay.TitleDurationKey != CurrentPlayingSongView.TitleDurationKey)
+        // If playback fails (e.g., file deleted), automatically skip to the next track.
+        if (!await PlayInternalAsync(songToPlay))
         {
-            CurrentTrackPositionSeconds=0;
-        }
+            var result = await Shell.Current.DisplayActionSheet("Failed to play the selected song. What would you like to do?", "Cancel", null, "Remove from Queue", "Skip to Next");
+            
+            if (result == "Remove from Queue")
+            {
+                RemoveFromQueue(songToPlay);
+            }
+            else if (result == "Skip to Next")
+            {
+                await NextTrackAsync();
+            }
+            else
+            {
+                // User cancelled or closed the dialog
+                _logger.LogInformation("User cancelled action after playback failure for '{Title}'.", songToPlay.Title);
+            }
 
-
-        if (songToPlay.FilePath == null || !File.Exists(songToPlay.FilePath))
-        {
-            _logger.LogError("Song file not found for '{Title}'. Skipping to next track.", songToPlay.Title);
-
-            await ValidateSongAsync(songToPlay);
             await NextTrackAsync();
-            return;
         }
-        if (audioService.IsPlaying)
-        {
-            audioService.Stop();
-
-        }
-        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
     }
-
 
     private int GetNextIndexInQueue(int direction)
     {
@@ -2483,73 +2399,6 @@ _playbackQueueSource.Connect()
 
 
         return nextIndex;
-    }
-    private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
-    {
-        List<SongModelView> finalQueue;
-        int finalStartIndex;
-
-        if (IsShuffleActive)
-        {
-            var songToStartWith = songs.ElementAt(startIndex);
-            var otherSongs = songs.Where(s => s.Id != songToStartWith.Id);
-            var shuffledSongs = otherSongs.OrderBy(x => _random.Next());
-
-            finalQueue = [songToStartWith, .. shuffledSongs];
-            finalStartIndex = 0;
-        }
-        else
-        {
-            finalQueue = songs.ToList();
-            finalStartIndex = startIndex;
-        }
-
-        if (audioService.IsPlaying)
-        {
-            audioService.Stop();
-        }
-
-
-
-        AddToNextCommand.Execute(null);
-
-
-        CurrentPlaybackQuery = contextQuery;
-        SavePlaybackContext(CurrentPlaybackQuery);
-        PlaybackManager.ClearSessionHistory();
-
-
-
-
-        if (finalQueue == null || finalStartIndex < 0 || finalStartIndex >= finalQueue.Count)
-        {
-            _logger.LogError("Could not start playback. Invalid start index for the new queue.");
-            UpdateSongSpecificUi(null);
-            return;
-        }
-
-
-        _playbackQueueIndex = finalStartIndex;
-        var songToPlay = finalQueue[_playbackQueueIndex];
-
-
-        PlaybackManager.AddSongToHistory(songToPlay);
-        CurrentTrackPositionSeconds = 0;
-
-
-        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
-        {
-            _logger.LogError("Song file not found for '{Title}'. Skipping...", songToPlay.Title);
-            await ValidateSongAsync(songToPlay);
-
-
-            return;
-        }
-
-
-        await audioService.InitializeAsync(songToPlay, CurrentTrackPositionSeconds);
-
-        
     }
     [RelayCommand]
     private void ToggleShuffle()
@@ -2713,62 +2562,63 @@ _playbackQueueSource.Connect()
 
     private void SavePlaybackContext(string query)
     {
-        
-        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName+DateTimeOffset.UtcNow);
+        // --- FIX #1: Query by the CONSTANT name ---
+        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName);
 
+        // Now, 'existingPlaylist' will correctly find the single "Last Session" playlist if it exists.
 
-        if (existingPlaylist != null && existingPlaylist.QueryText == query)
+        if (existingPlaylist != null)
         {
-
-
-
-            _logger.LogInformation("Same query detected. Updating existing session playlist.");
+            // This playlist already exists, so we update it.
+            _logger.LogInformation("Found existing session playlist. Updating it.");
 
             _playlistRepo.Update(existingPlaylist.Id, playlistInDb =>
             {
+                // Update the properties
                 playlistInDb.LastPlayedDate = DateTimeOffset.UtcNow;
+                playlistInDb.QueryText = query; // Update the query text
+
+                // Clear the old song list and add the new one
+                playlistInDb.SongsIdsInPlaylist.Clear();
+                foreach (var song in _playbackQueue)
+                {
+                    playlistInDb.SongsIdsInPlaylist.Add(song.Id);
+                }
+
+                // You might want to add a new event or clear and add one.
+                // Let's assume you add a new one each time context is saved.
                 playlistInDb.PlayHistory.Add(new PlaylistEvent());
             });
         }
         else
         {
-
-
-            _logger.LogInformation("New query detected. Overwriting session playlist.");
-
+            // The playlist doesn't exist, so we create it for the first time.
+            _logger.LogInformation("No existing session playlist found. Creating a new one.");
 
             var contextPlaylist = new PlaylistModel
             {
-
-
-                Id = existingPlaylist?.Id ?? ObjectId.GenerateNewId(),
-                PlaylistName = LastSessionPlaylistName,
+                // Id will be generated by the repo if not provided
+                PlaylistName = LastSessionPlaylistName, // The constant name
                 IsSmartPlaylist = !string.IsNullOrEmpty(query),
                 QueryText = query,
                 DateCreated = DateTimeOffset.UtcNow,
                 LastPlayedDate = DateTimeOffset.UtcNow,
             };
 
-
             contextPlaylist.PlayHistory.Add(new PlaylistEvent());
-
 
             foreach (var song in _playbackQueue)
             {
                 contextPlaylist.SongsIdsInPlaylist.Add(song.Id);
             }
 
-
-
-            _playlistRepo.Upsert(contextPlaylist);
+            // Use Create, not Upsert, as we've already established it's a new entity.
+            _playlistRepo.Create(contextPlaylist);
         }
-
 
         QueryBeforePlay = query;
         _logger.LogInformation("Saved playback context for query: \"{query}\"", query);
     }
-
-
 
     [RelayCommand]
     private async Task ReconcileLibraryAsync()
@@ -2839,7 +2689,6 @@ _playbackQueueSource.Connect()
         CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % Enum.GetNames(typeof(RepeatMode)).Length);
 
 
-        _settingsService.RepeatMode = CurrentRepeatMode;
 
         _logger.LogInformation("Repeat mode toggled to: {RepeatMode}", CurrentRepeatMode);
 
@@ -3060,7 +2909,7 @@ _playbackQueueSource.Connect()
                 break;
 
             case PlayType.Pause:
-                OnPlaybackPaused(args);
+                //OnPlaybackPaused(args);
                 break;
 
         }
@@ -3544,41 +3393,146 @@ _playbackQueueSource.Connect()
             return;
         }
 
-
-       
-
-
-        var realm = RealmFactory.GetRealmInstance();
-        var songDb = realm.Find<SongModel>(song.Id);
-        //var songEvents = songDb.PlayHistory.ToList().AsReadOnly();
-        var songEventsROCol = songDb.PlayHistory.AsRealmQueryable();
-
-        if (songDb == null)
+        _reportGenerator = new ListeningReportGenerator(RealmFactory, _logger,_mapper);
+       await GenerateWeeklyReportAsync();
+    }
+    [RelayCommand]
+    private async Task GenerateWeeklyReportAsync()
+    {
+        IsLoading = true;
+        try
         {
-            ClearSingleSongStats();
-            return;
-        }
+            // Define the period for a weekly report ending today
+            var endDate = DateTimeOffset.UtcNow.Date.AddDays(1); // To include all of today
+            var startDate = endDate.AddDays(-7);
 
-        var songEvents = songEventsROCol.Where(x => x.SongName == song.Title);
-        if (!songEvents.Any())
+            var reportData = await _reportGenerator.GenerateReportAsync(startDate, endDate);
+            if (reportData != null && reportData.Count>0)
+            {
+                // Find each stat by its title and assign it to the correct property.
+                // Use FirstOrDefault to avoid exceptions if a stat isn't generated.
+                TotalScrobblesStat = reportData.FirstOrDefault(s => s.StatTitle == "Total Scrobbles");
+
+                TopTracks = reportData.FirstOrDefault(s => s.StatTitle == "Top Tracks")?.ChildStats;
+                TopArtists = reportData.FirstOrDefault(s => s.StatTitle == "Top Artists")?.ChildStats;
+                TopAlbums = reportData.FirstOrDefault(s => s.StatTitle == "Top Albums")?.ChildStats;
+
+                ListeningClockData = reportData.FirstOrDefault(s => s.StatTitle == "Listening Clock");
+                MusicByDecadeData = reportData.FirstOrDefault(s => s.StatTitle == "Music By Decade");
+                TopTagsEvolutionData = reportData.FirstOrDefault(s => s.StatTitle == "Top Tags Evolution");
+
+
+                // --- Unique Count Cards (NEW) ---
+                UniqueTracksStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Tracks");
+                UniqueArtistsStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Artists");
+                UniqueAlbumsStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Albums");
+
+                // --- Listening Fingerprint (NEW) ---
+                ConsistencyStat = reportData.FirstOrDefault(s => s.StatTitle == "Consistency");
+                DiscoveryRateStat = reportData.FirstOrDefault(s => s.StatTitle == "Discovery Rate");
+                VarianceStat = reportData.FirstOrDefault(s => s.StatTitle == "Variance");
+                ConcentrationStat = reportData.FirstOrDefault(s => s.StatTitle == "Concentration");
+                ReplayRateStat = reportData.FirstOrDefault(s => s.StatTitle == "Replay Rate");
+
+                // --- Quick Facts (NEW) ---
+                TotalListeningTimeStat = reportData.FirstOrDefault(s => s.StatTitle == "Total Listening Time");
+                AverageScrobblesPerDayStat = reportData.FirstOrDefault(s => s.StatTitle == "Average Scrobbles/Day");
+                MostActiveDayStat = reportData.FirstOrDefault(s => s.StatTitle == "Most Active Day");
+
+                // --- Advanced Plots (NEW) ---
+                ListeningConcentrationStat = reportData.FirstOrDefault(s => s.StatTitle == "Listening Concentration (Pareto)");
+                EddingtonNumberStat = reportData.FirstOrDefault(s => s.StatTitle == "Music Eddington Number");
+            }
+        }
+        catch (Exception ex)
         {
-            ClearSingleSongStats();
-            return;
+            _logger.LogError(ex, "Failed to generate weekly report.");
+            // Handle error, maybe show a message to the user
         }
-
-
-
-
-        //SongPlayTypeDistribution = TopStats.GetPlayTypeDistribution(songEvents).ToObservableCollection();
-        //SongPlayDistributionByHour = TopStats.GetPlayDistributionByHour(songEvents).ToObservableCollection();
-        //SongBingeFactor = TopStats.GetBingeFactor(songEvents, song.Id);
-        //SongAverageListenThrough = TopStats.GetAverageListenThroughPercent(songEvents, song.DurationInSeconds);
-        //SongsFirstImpression = TopStats.GetSongsFirstImpression(songEvents);
-
-        //SongListeningStreak = TopStats.GetListeningStreak(songEvents);
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
+    #region Main Cards & Charts
+    [ObservableProperty]
+    public partial DimmerStats? TotalScrobblesStat { get; set; }
 
+    [ObservableProperty]
+    public partial DimmerStats? ListeningClockData { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? MusicByDecadeData { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? TopTagsEvolutionData { get; set; }
+    #endregion
+
+    #region Top Lists
+    [ObservableProperty]
+    public partial List<DimmerStats>? TopTracks { get; set; }
+
+    [ObservableProperty]
+    public partial List<DimmerStats>? TopArtists { get; set; }
+
+    [ObservableProperty]
+    public partial List<DimmerStats>? TopAlbums { get; set; }
+    #endregion
+
+    #region Unique Count Cards
+    [ObservableProperty]
+    public partial DimmerStats? UniqueTracksStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? UniqueArtistsStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? UniqueAlbumsStat { get; set; }
+    #endregion
+
+    #region Listening Fingerprint
+    [ObservableProperty]
+    public partial DimmerStats? ConsistencyStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? DiscoveryRateStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? VarianceStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? ConcentrationStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? ReplayRateStat { get; set; }
+    #endregion
+
+    #region Quick Facts
+    [ObservableProperty]
+    public partial DimmerStats? TotalListeningTimeStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? AverageScrobblesPerDayStat { get; set; }
+
+    [ObservableProperty]
+    public partial DimmerStats? MostActiveDayStat { get; set; }
+    #endregion
+
+    #region Advanced Plots
+    [ObservableProperty]
+    public partial DimmerStats? ListeningConcentrationStat { get; set; } // Pareto
+
+    [ObservableProperty]
+    public partial DimmerStats? EddingtonNumberStat { get; set; }
+    #endregion
+    private ListeningReportGenerator _reportGenerator;
+
+    [ObservableProperty]
+    public partial List<DimmerStats> ReportData { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLoading { get; set; }
     private void ClearSingleSongStats()
     {
         SongPlayTypeDistribution = null;
@@ -3611,7 +3565,17 @@ _playbackQueueSource.Connect()
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
         _folderMgtService.RemoveFolderFromWatchListAsync(path);
-        _settingsService.UserMusicFoldersPreference.Remove(path);
+
+        var realm = RealmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+   
+        realm.Write(() =>
+        {
+                
+            appModel.UserMusicFoldersPreference.Remove(path);
+            realm.Add(appModel, true);
+        });
+
     }
 
 
@@ -5537,6 +5501,262 @@ _playbackQueueSource.Connect()
         }
     }
 
+    #region lastfm
+    [RelayCommand]
+    public async Task LoadUserLastFMInfo()
+    {
+        if (!lastfmService.IsAuthenticated)
+        {
+            return;
+        }
+        var usr = await lastfmService.GetUserInfoAsync();
+        if (usr is null)
+        {
+            _logger.LogWarning("Failed to load Last.fm user info.");
+            return;
+        }
+        UserLocal.LastFMAccountInfo.Name = usr.Name;
+        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
+        UserLocal.LastFMAccountInfo.Url = usr.Url;
+        UserLocal.LastFMAccountInfo.Country = usr.Country;
+        UserLocal.LastFMAccountInfo.Age = usr.Age;
+        UserLocal.LastFMAccountInfo.Playcount= usr.Playcount;
+        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
+        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
+        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
+        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
+        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        var rlm = RealmFactory.GetRealmInstance();
+        rlm.Write(() =>
+        {
+            var usre = rlm.All<UserModel>().ToList();
+            if (usre is not null)
+            {
+                var usrr = usre.FirstOrDefault();
+                if (usrr is not null)
+                {
+                    usrr.LastFMAccountInfo=new();
+                    usrr.LastFMAccountInfo.Name = usr.Name;
+                    usrr.LastFMAccountInfo.RealName = usr.RealName;
+                    usrr.LastFMAccountInfo.Url = usr.Url;
+                    usrr.LastFMAccountInfo.Country = usr.Country;
+                    usrr.LastFMAccountInfo.Age = usr.Age;
+                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
+                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
+                    usrr.LastFMAccountInfo.Registered = usr.Registered;
+                    usrr.LastFMAccountInfo.Gender = usr.Gender;
+
+                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
+                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
+                    rlm.Add(usrr, update: true);
+                }
+                else
+                {
+                    usrr = new UserModel();
+                    usrr.LastFMAccountInfo=new();
+                    usrr.Id=new();
+                    usrr.UserName= usr.Name;
+                    usrr.LastFMAccountInfo.Name = usr.Name;
+                    usrr.LastFMAccountInfo.RealName = usr.RealName;
+                    usrr.LastFMAccountInfo.Url = usr.Url;
+                    usrr.LastFMAccountInfo.Country = usr.Country;
+                    usrr.LastFMAccountInfo.Age = usr.Age;
+                    usrr.LastFMAccountInfo.Playcount= usr.Playcount;
+                    usrr.LastFMAccountInfo.Playlists = usr.Playlists;
+                    usrr.LastFMAccountInfo.Registered = usr.Registered;
+                    usrr.LastFMAccountInfo.Gender = usr.Gender;
+                    usrr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
+                    usrr.LastFMAccountInfo.Image.Url=usr.Images.LastOrDefault().Url;
+                    usrr.LastFMAccountInfo.Image.Size=usr.Images.LastOrDefault().Size;
+
+                    rlm.Add(usrr, update: true);
+                }
+            }
+        });
+    }
+
+
+    [ObservableProperty]
+    public partial bool IsLastfmAuthenticated { get; set; }
+
+
+    [ObservableProperty]
+    public partial bool LastFMLoginBtnVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool lastFMCOmpleteLoginBtnVisible { get; set; }
+    [ObservableProperty]
+    public partial bool IsLastFMNeedsToConfirm { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLastFMNeedsUsername { get; set; }
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial string LastfmUsername { get; set; }
+
+    [RelayCommand]
+    public void LoadLastFMSession()
+    {
+        lastfmService.LoadSession();
+        IsLastfmAuthenticated = lastfmService.IsAuthenticated;
+        if (IsLastfmAuthenticated)
+        {
+            LastFMLoginBtnVisible=false;
+            lastFMCOmpleteLoginBtnVisible=false;
+            IsLastFMNeedsToConfirm=false;
+            _ = LoadUserLastFMInfo();
+        }
+    }
+
+    [RelayCommand]
+    public async Task LoginToLastfm()
+    {
+        if (string.IsNullOrEmpty(UserLocal.LastFMAccountInfo.Name))
+        {
+            IsLastFMNeedsUsername=true;
+            return;
+        }
+        IsBusy = true;
+        try
+        {
+
+            string url = await lastfmService.GetAuthenticationUrlAsync();
+            IsLastFMNeedsToConfirm=true;
+            LastFMLoginBtnVisible=false;
+            lastFMCOmpleteLoginBtnVisible=true;
+            await Launcher.Default.OpenAsync(new Uri(url));
+
+
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
+            IsBusy = false;
+            return;
+        }
+
+    }
+    [RelayCommand]
+    public async Task CompleteLoginAsync()
+    {
+        IsBusy = true;
+        try
+        {
+
+            IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
+            if (IsLastfmAuthenticated)
+            {
+                IsLastFMNeedsToConfirm=false;
+                lastFMCOmpleteLoginBtnVisible=false;
+                await LoadUserLastFMInfo();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while completing Last.fm login.");
+
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+    public async Task LoadSelectedSongLastFMData()
+    {
+        if (SelectedSong is not null)
+        {
+            SelectedSongLastFMData = null;
+            CorrectedSelectedSongLastFMData = null;
+
+            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
+
+
+
+            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
+            await LoadSongLastFMData();
+
+        }
+    }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
+
+    public async Task LoadSongLastFMData()
+    {
+        return;
+        if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
+        {
+            return;
+        }
+
+
+
+        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        artistName ??=string.Empty;
+        SelectedSongLastFMData= await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
+        if (SelectedSongLastFMData is null)
+        {
+            return;
+        }
+        SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
+
+    }
+
+    public void LoadSongLastFMMoreData()
+    {
+        if (SelectedSong is null)
+        {
+            return;
+        }
+        //SimilarTracks=   await lastfmService.GetSimilarAsync(SelectedSong.ArtistName, SelectedSong.Title);
+
+        //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
+        //AllLyricsResultsLrcLib = s.ToObservableCollection();
+
+    }
+
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs { get; set; } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
+    #endregion
+
+    [RelayCommand]
+    public void OpenSongInOnlineSearch(string? service)
+    {
+        service ??= "google";
+        if (SelectedSong is null && CurrentPlayingSongView is not null)
+        {
+            SelectedSong = CurrentPlayingSongView;
+        }
+        if (SelectedSong is null)
+            return;
+        string query = $"{SelectedSong.Title} {SelectedSong.ArtistName}";
+        string url = service.ToLower() switch
+        {
+            "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
+            "youtube" => $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}",
+            "last.fm" => $"https://www.last.fm/search?q={Uri.EscapeDataString(query)}",
+            "spotify" => $"https://open.spotify.com/search/{Uri.EscapeDataString(query)}",
+            "apple music" => $"https://music.apple.com/us/search?term={Uri.EscapeDataString(query)}",
+            "deezer" => $"https://www.deezer.com/en/search/{Uri.EscapeDataString(query)}",
+            _ => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
+        };
+    }
+
+
+    
 }
 
 

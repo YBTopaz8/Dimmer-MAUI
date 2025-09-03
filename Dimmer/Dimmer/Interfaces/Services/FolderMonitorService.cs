@@ -12,37 +12,44 @@ public class FolderMonitorService : IFolderMonitorService
     public event Action<FileSystemEventArgs>? OnDeleted;
     public event Action<RenamedEventArgs>? OnRenamed;
 
-    public void Start(IEnumerable<string> paths)
+    public Task StartAsync(IEnumerable<string> paths)
     {
-
-        Stop();
-        if (paths == null || !paths.Any())
-            return;
-        foreach (var p in paths)
+        return Task.Run(() =>
         {
-            if (!Directory.Exists(p))
-                continue;
-            var w = new FileSystemWatcher(p)
+            Stop(); // Stop should be called on the same background thread
+
+            Stop();
+            if (paths == null || !paths.Any())
+                return;
+            foreach (var p in paths)
             {
-                IncludeSubdirectories = true,
-                EnableRaisingEvents = true
-            };
-            w.Changed += (_, e) => OnChanged?.Invoke(e.FullPath);
-            w.Created += (_, e) => OnCreated?.Invoke(e);
-            w.Renamed += (_, e) => OnRenamed?.Invoke(e);
-            w.Deleted += (_, e) => OnDeleted?.Invoke(e);
-            _watchers.Add(w);
-        }
+                if (!Directory.Exists(p))
+                    continue;
+                var w = new FileSystemWatcher(p)
+                {
+                    IncludeSubdirectories = true,
+                    EnableRaisingEvents = true
+                };
+                w.Changed += (_, e) => OnChanged?.Invoke(e.FullPath);
+                w.Created += (_, e) => OnCreated?.Invoke(e);
+                w.Renamed += (_, e) => OnRenamed?.Invoke(e);
+                w.Deleted += (_, e) => OnDeleted?.Invoke(e);
+                _watchers.Add(w);
+            }
+        });
     }
 
     public void Stop()
     {
-        foreach (var w in _watchers)
+        lock (_watchers)
         {
-            w.EnableRaisingEvents = false;
-            w.Dispose();
+            foreach (var w in _watchers)
+            {
+                w.EnableRaisingEvents = false;
+                w.Dispose();
+            }
+            _watchers.Clear();
         }
-        _watchers.Clear();
     }
 
     protected virtual void Dispose(bool disposing)
