@@ -319,7 +319,7 @@ public class StatsRecalculator
     /// <returns>The Eddington Number.</returns>
     private int CalculateEddingtonNumber(List<int> playCounts)
     {
-        if (playCounts == null || !playCounts.Any())
+        if (playCounts == null || playCounts.Count==0)
             return 0;
 
         var sortedCounts = playCounts.OrderByDescending(c => c).ToList();
@@ -353,7 +353,7 @@ public class StatsRecalculator
         topItemsCount = 0;
         percentageOfTotalPlays = 0;
 
-        if (playCounts == null || !playCounts.Any())
+        if (playCounts == null || playCounts.Count==0)
             return;
 
         var sortedCounts = playCounts.OrderByDescending(c => c).ToList();
