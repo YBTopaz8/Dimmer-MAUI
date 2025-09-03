@@ -419,18 +419,29 @@ Value="False">
                                         Clicked="DeleteSongs_Clicked" TextColor="White"/>
                             </HorizontalStackLayout>
                         </Border>
-                        <Button Text="Search" BorderWidth="2" 
-                    x:Name="SearchBtn" BackgroundColor="Transparent"
-                    windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
-                    windows:VisualElement.AccessKey="F"
-                    windows:VisualElement.AccessKeyPlacement="Right"
-                                 Clicked="SearchSongSB_Clicked"
-                                 HorizontalOptions="Start"
-                               Loaded="SearchBtn_Loaded"  >
-                           
-                        </Button>
-                        <HorizontalStackLayout>
+                     
+                        
+                        <HorizontalStackLayout Spacing="10">
+                            <Button Text="Search" BorderWidth="2" 
+x:Name="SearchBtn" BackgroundColor="Transparent"
+windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
+windows:VisualElement.AccessKey="F"
+windows:VisualElement.AccessKeyPlacement="Right"
+             Clicked="SearchSongSB_Clicked"
+             HorizontalOptions="Start"
+           Loaded="SearchBtn_Loaded"  >
 
+                            </Button>
+                            <Button Text="Clear" BorderWidth="2" 
+x:Name="ClearQueueBtn" BackgroundColor="Transparent"
+windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
+windows:VisualElement.AccessKey="C"
+windows:VisualElement.AccessKeyPlacement="Auto"
+             Command="{Binding ClearQueueCommand}"
+             HorizontalOptions="Start"
+                                    >
+
+                            </Button>
                         </HorizontalStackLayout>
                         <Border IsVisible="{Binding IsCreatingSegment}"
         BackgroundColor="#A0000000"

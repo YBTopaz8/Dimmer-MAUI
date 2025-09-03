@@ -614,12 +614,14 @@ public sealed partial class AllSongsListPage : Page
         //Debug.WriteLine($"Character received: {xterPressed}");
         if (xterPressed == '\r' || xterPressed == '\n')
         {
+
             MyViewModel.SearchSongSB_TextChanged(text);
             // Handle Enter key press
             Debug.WriteLine("Enter key pressed.");
             // You can trigger your search or any other action here
 
         }
+            MyViewModel.SearchSongSB_TextChanged(text);
     }
 
     private void SearchAutoSuggestBox_CopyingToClipboard(TextBox sender, TextControlCopyingToClipboardEventArgs args)

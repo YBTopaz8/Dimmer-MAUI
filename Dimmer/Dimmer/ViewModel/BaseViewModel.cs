@@ -3421,10 +3421,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 MusicByDecadeData = reportData.FirstOrDefault(s => s.StatTitle == "Music By Decade");
                 TopTagsEvolutionData = reportData.FirstOrDefault(s => s.StatTitle == "Top Tags Evolution");
 
-                // --- Top Lists (Already Done) ---
-                TopTracks = reportData.FirstOrDefault(s => s.StatTitle == "Top Tracks")?.ChildStats;
-                TopArtists = reportData.FirstOrDefault(s => s.StatTitle == "Top Artists")?.ChildStats;
-                TopAlbums = reportData.FirstOrDefault(s => s.StatTitle == "Top Albums")?.ChildStats;
 
                 // --- Unique Count Cards (NEW) ---
                 UniqueTracksStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Tracks");
