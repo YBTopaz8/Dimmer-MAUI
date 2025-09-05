@@ -627,9 +627,8 @@ public partial class HomePage : ContentPage
 
     private void MoreIcon_Tap(object sender, HandledEventArgs e)
     {
-
-        //MoreModal.IsOpen=true;
-
+        MoreBtmSheet.State = BottomSheetState.HalfExpanded;
+       
     }
 
     private void ViewSongOnly_Clicked_1(object sender, EventArgs e)
@@ -839,9 +838,9 @@ public partial class HomePage : ContentPage
 
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
-        if (MainViewTabView.SelectedItemIndex != 1)
+        if (MainViewTabView.SelectedItemIndex != 0)
         {
-            MainViewTabView.SelectedItemIndex=1;
+            MainViewTabView.SelectedItemIndex=0;
         }
         var send = (TextEdit)sender;
 
@@ -1204,7 +1203,7 @@ public partial class HomePage : ContentPage
 
     private void SearchBtn_Clicked(object sender, EventArgs e)
     {
-        MainViewTabView.SelectedItemIndex = 1;
+        MainViewTabView.SelectedItemIndex = 0;
         SearchBy.Focus();
     }
 
@@ -1260,6 +1259,11 @@ public partial class HomePage : ContentPage
     }
 
     private void MainViewTabView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void MoreBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
 
     }

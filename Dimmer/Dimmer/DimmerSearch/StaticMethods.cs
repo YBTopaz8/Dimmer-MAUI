@@ -11,7 +11,7 @@ public static class StaticMethods
     /// </summary>
     /// <param name="key">The search key (e.g., "artist", "album").</param>
     /// <param name="value">The value to search for.</param>
-    public static string SetQuotedSearch(string key, string value)
+    public static string SetQuotedSearch(string? key, string? value)
     {
         // Basic validation
         if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
