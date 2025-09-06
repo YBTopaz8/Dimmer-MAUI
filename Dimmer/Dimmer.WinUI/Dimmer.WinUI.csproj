@@ -171,6 +171,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
+
     <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
   </ItemGroup>
 

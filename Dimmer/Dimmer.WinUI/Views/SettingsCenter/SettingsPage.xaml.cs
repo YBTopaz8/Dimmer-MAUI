@@ -90,11 +90,12 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        await MyViewModel.CheckForAppUpdatesAsync();
+        MyViewModel.ReloadFolderPathsCommand.Execute(null);
+        //await MyViewModel.CheckForAppUpdatesAsync();
 #if Release
 ViewAdminUpdate.IsVisible = false;
 #endif
@@ -224,4 +225,8 @@ ViewAdminUpdate.IsVisible = false;
         await Browser.Default.OpenAsync(urll, BrowserLaunchMode.SystemPreferred);
     }
 
+    private void RescanFolder_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

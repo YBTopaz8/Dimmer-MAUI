@@ -1873,6 +1873,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                ,
         });
 
+        ReloadFolderPaths();
+    }
+
+    [RelayCommand]
+    private void ReloadFolderPaths()
+    {
         var realmm = RealmFactory.GetRealmInstance();
 
         var appModel = realmm.All<AppStateModel>().ToList();
@@ -3061,15 +3067,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void SeekTrackPosition(double positionSeconds)
     {
 
-
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
+
         audioService.Seek(positionSeconds);
-        //_baseAppFlow.UpdateDatabaseWithPlayEvent( RealmFactory,CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
-
-
-
-        //_songsMgtFlow.RequestSeek(positionSeconds);
-
 
     }
 

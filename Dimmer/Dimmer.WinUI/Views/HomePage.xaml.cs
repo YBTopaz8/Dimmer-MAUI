@@ -5,6 +5,9 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml;
+
+using Vanara.PInvoke;
+
 //using Microsoft.UI.Xaml.Controls;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
@@ -151,11 +154,15 @@ namespace Dimmer.WinUI.Views;
     }
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
+        bool isAddNext = false;
         var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
         var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
 
         if (!properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
         {
+
+            // middle click means they wanna add the or artist or genre to queue, depending on who is clicked
+            isAddNext= true;
             return;
 
             
@@ -194,9 +201,17 @@ namespace Dimmer.WinUI.Views;
 
             return;
         }
-
+       
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        if (isAddNext)
+        {
+            MyViewModel.AddToQueueEnd(MyViewModel.SearchResults);
+
+            return;
+        }
+
+        _windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
     }
 

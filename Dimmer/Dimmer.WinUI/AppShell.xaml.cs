@@ -7,6 +7,8 @@ using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml.Media.Animation;
 
+using Vanara.PInvoke;
+
 
 namespace Dimmer.WinUI;
 
@@ -103,10 +105,10 @@ public partial class AppShell : Shell
     //    // Finally, call the base navigation method, but provide our custom transition info!
     //    base.OnNavigate(args, transitionInfo);
     //}
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-
+    
         MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         this.BindingContext = MyViewModel;
 
@@ -325,7 +327,13 @@ public partial class AppShell : Shell
 
     private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+
         MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
+
+
         return;
 
 
@@ -355,12 +363,14 @@ public partial class AppShell : Shell
     }
 
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
-    {  var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+    {  
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
+        var ee = e.PlatformArgs?.PointerRoutedEventArgs.KeyModifiers;
        
         var send = (Microsoft.Maui.Controls.View)sender;
-        var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+        PointerGestureRecognizer? gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
+
         if (gest is null)
         {
             return;

@@ -229,10 +229,14 @@ Value="False">
 
                             <Grid>
 
-                                <Image Source="heart.png"
-                                       IsVisible="{Binding IsFavorite}"/>
+                            <Image Source="heart.png"
+                                       ZIndex="1" Opacity="0.6"
+                                       IsVisible="{Binding IsFavorite}">
+                                
+                            </Image>
                                 <Image Source="{Binding CoverImagePath}"
                                       HeightRequest="120"
+                                       ZIndex="-1"
                                        WidthRequest="120" Aspect="AspectFit"/>
 
                             </Grid>

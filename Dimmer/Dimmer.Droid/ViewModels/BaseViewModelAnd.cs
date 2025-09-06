@@ -99,7 +99,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial bool IsNowPlayingQueue { get; set; }
     [ObservableProperty]
-    public partial bool IsNowAllSongsQueue { get; set; }
+    public partial bool IsNowAllSongsQueue { get; set; } = true;
     partial void OnNowPlayingQueueItemSpanChanged(int oldValue, int newValue)
     {
         // Handle any additional logic when NowPlayingQueueItemSpan changes, if needed.
