@@ -18,8 +18,11 @@
     x:DataType="vm:BaseViewModelWin"
     Shell.NavBarIsVisible="False">
     <Grid IsVisible="True" RowDefinitions="auto,*">
-        <VerticalStackLayout Grid.Row="0">
-            <Label Text="{Binding LatestAppLog.Log}"/>
+        <VerticalStackLayout 
+            
+            Grid.Row="0">
+            <Label Text="{Binding LatestScanningLog}" FontSize="35" HorizontalOptions="Center"
+                   />
             <ProgressBar
       x:Name="MyProgressBar"
       IsVisible="False"
@@ -34,6 +37,96 @@
                          
                          x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
 
+            <syncf:SfTabItem Header="Main">
+
+                <syncf:SfTabItem.Content>
+                    <Grid RowDefinitions="*" Margin="10,0">
+                        <Grid Grid.Row="1" RowDefinitions="auto,*">
+
+                            <VerticalStackLayout 
+                                Grid.Row="0" HorizontalOptions="Start"
+                                BackgroundColor="Transparent"
+                                Spacing="10">
+                                <Button Text="Validate Songs"
+Command="{Binding ValidateLibraryCommand}" IsVisible="False"
+/>
+                                
+                                <Button
+                                    Clicked="AddNewMusicFolder_Clicked"
+                                    HorizontalOptions="Start"
+                                    Text="Add New Folder" />
+                                
+                                
+                                <Button
+                                    Clicked="RefreshLyrics_Clicked"
+                                    HorizontalOptions="Start"
+                                    Text="Refresh Lyrc" />
+                                
+                                <Button
+                                    x:Name="ReScanAllBtn"
+                                    BorderColor="DarkSlateBlue"
+                                    Command="{Binding RescanSongsCommand}"
+                                    Text="Rescan folders" />
+                                <Button IsVisible="False"
+                                    x:Name="Reconcile"
+                                    BorderColor="DarkSlateBlue"
+                                    Command="{Binding ReconcileLibraryCommand}"
+                                    Text="Reconcile Songs" />
+                                <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
+    Clicked="FindDupes_Clicked" IsVisible="False"
+                                        BackgroundColor="SlateBlue"/>
+
+
+                            </VerticalStackLayout>
+                            <CollectionView
+                                x:Name="ListOfFolders"
+                                Grid.Row="1" SelectionMode="None"
+                                Header="List of Folders"
+                                ItemsSource="{Binding FolderPaths}"
+                                >
+                                <CollectionView.EmptyView>
+                                    <VerticalStackLayout>
+                                        <Label
+                                            Margin="0,40,0,0"
+                                            FontAttributes="Italic"
+                                            Text="No Folders In Preferences.." />
+                                    </VerticalStackLayout>
+                                </CollectionView.EmptyView>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Grid ColumnDefinitions="*,*">
+
+                                            <Label Grid.Column="0" Text="{Binding .}" />
+
+                                            <HorizontalStackLayout Grid.Column="1" Spacing="25">
+                                                <ImageButton
+                                                    x:Name="ChangeFolder"
+                                                    Clicked="ChangeFolder_Clicked"
+                                                    CommandParameter="{Binding .}"
+                                                    Source="foldera.png" />
+
+                                                <ImageButton
+                                                    x:Name="DeleteBtn"
+                                                    Clicked="DeleteBtn_Clicked"
+                                                    CommandParameter="{Binding .}"
+                                                    Source="delete.png" />
+                                                <syncf:SfChip ImageSource="repeat.png"
+             Clicked="RescanFolder_Clicked" CommandParameter="{Binding .}"
+                                                              
+                                                              x:Name="RescanFolder" ImageSize="50"
+                                                              WidthRequest="65"/>
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                            
+                        </Grid>
+
+
+                    </Grid>
+                </syncf:SfTabItem.Content>
+            </syncf:SfTabItem>
 
             <syncf:SfTabItem 
                              
@@ -182,92 +275,6 @@
             </syncf:SfTabItem>
             
             
-            <syncf:SfTabItem Header="Main">
-
-                <syncf:SfTabItem.Content>
-                    <Grid RowDefinitions="*" Margin="10,0">
-                        <Grid Grid.Row="1" RowDefinitions="auto,*">
-
-                            <VerticalStackLayout 
-                                Grid.Row="0" HorizontalOptions="Start"
-                                BackgroundColor="Transparent"
-                                Spacing="10">
-                                <Button Text="Validate Songs"
-Command="{Binding ValidateLibraryCommand}" IsVisible="False"
-/>
-                                
-                                <Button
-                                    Clicked="AddNewMusicFolder_Clicked"
-                                    HorizontalOptions="Start"
-                                    Text="Add New Folder" />
-                                
-                                
-                                <Button
-                                    Clicked="RefreshLyrics_Clicked"
-                                    HorizontalOptions="Start"
-                                    Text="Refresh Lyrc" />
-                                
-                                <Button
-                                    x:Name="ReScanAllBtn"
-                                    BorderColor="DarkSlateBlue"
-                                    Command="{Binding RescanSongsCommand}"
-                                    Text="Rescan folders" />
-                                <Button IsVisible="False"
-                                    x:Name="Reconcile"
-                                    BorderColor="DarkSlateBlue"
-                                    Command="{Binding ReconcileLibraryCommand}"
-                                    Text="Reconcile Songs" />
-                                <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
-    Clicked="FindDupes_Clicked" IsVisible="False"
-                                        BackgroundColor="SlateBlue"/>
-
-
-                            </VerticalStackLayout>
-                            <CollectionView
-                                x:Name="ListOfFolders"
-                                Grid.Row="1"
-                                Header="List of Folders"
-                                ItemsSource="{Binding FolderPaths}"
-                                >
-                                <CollectionView.EmptyView>
-                                    <VerticalStackLayout>
-                                        <Label
-                                            Margin="0,40,0,0"
-                                            FontAttributes="Italic"
-                                            Text="No Folders In Preferences.." />
-                                    </VerticalStackLayout>
-                                </CollectionView.EmptyView>
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="x:String">
-                                        <Grid ColumnDefinitions="*,*">
-
-                                            <Label Grid.Column="0" Text="{Binding .}" />
-
-                                            <HorizontalStackLayout Grid.Column="1" Spacing="25">
-                                                <ImageButton
-                                                    x:Name="ChangeFolder"
-                                                    Clicked="ChangeFolder_Clicked"
-                                                    CommandParameter="{Binding .}"
-                                                    Source="foldera.png" />
-
-                                                <ImageButton
-                                                    x:Name="DeleteBtn"
-                                                    Clicked="DeleteBtn_Clicked"
-                                                    CommandParameter="{Binding .}"
-                                                    Source="delete.png" />
-
-                                            </HorizontalStackLayout>
-                                        </Grid>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                            
-                        </Grid>
-
-
-                    </Grid>
-                </syncf:SfTabItem.Content>
-            </syncf:SfTabItem>
 
 
 

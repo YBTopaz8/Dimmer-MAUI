@@ -42,7 +42,7 @@ public partial class DimmerStateService : IDimmerStateService
 
         // Initialize with default/empty values where appropriate
         _latestDeviceLog = new BehaviorSubject<AppLogModel>(new AppLogModel { Log = $"StateService Initialized. + {DateTimeOffset.UtcNow}" });
-        _playbackState = new BehaviorSubject<PlaybackStateInfo>(new PlaybackStateInfo(DimmerPlaybackState.Opening, null, null, null));
+        _playbackState = new BehaviorSubject<PlaybackStateInfo>(new PlaybackStateInfo(DimmerUtilityEnum.Opening, null, null, null));
 
         // Derived state: Reset position and duration when song changes to null (or a new song)
         _disposables.Add(

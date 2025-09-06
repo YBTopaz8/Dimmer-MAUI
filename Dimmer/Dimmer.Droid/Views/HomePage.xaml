@@ -21,7 +21,7 @@
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                       Dark=#1131314}"
     Shell.NavBarIsVisible="False"
-    Shell.TabBarIsVisible="True">
+    Shell.TabBarIsVisible="False">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -378,16 +378,17 @@ x:FieldModifier="Public">
                     </Grid>
 
                     <Grid Grid.Row="1">
-                        <dx:TabView x:Name="MainViewTabView" HeaderPanelPosition="Bottom"
-                                    HeaderPanelHeight="50" ScrollAnimationEnabled="True"
-                                   
+                        <dx:TabView x:Name="MainViewTabView" HeaderPanelPosition="Top"
+                                    HeaderPanelHeight="0" ScrollAnimationEnabled="True"
+                                    HeaderPanelBackgroundColor="Transparent"
                                     SelectedItemIndex="{Binding NowPlayingTabIndex, Mode=TwoWay}"
-                               ItemHeaderFontFamily="MatRoundReg" HeaderPanelBackgroundColor="#131314"
-                                    >
-                       
-                            
+                               ItemHeaderFontFamily="MatRoundReg"  
+                                    HeaderPanelMinWidth="1"
+                                    HeaderPanelPadding="-50"
+                                    SelectedItemIndicatorColor="{Binding CurrentPlaySongDominantColor}">
+
+
                             <dx:TabViewItem 
-                                HeaderIcon="musical_notes.png"
                                 >
                                 <Grid>
                                     
@@ -451,7 +452,7 @@ Tap="ScrollToCurrSong_Tap" />
                             </dx:TabViewItem>
                         
 
-                            <dx:TabViewItem HeaderIcon="musicaa.png">
+                            <dx:TabViewItem>
 
                                 <Grid
                                 Margin="5"
@@ -1120,7 +1121,15 @@ FontAttributes="Bold"                                                        Hor
                 </Grid>
             </dx:DXDockLayout>
         </dx:SafeKeyboardAreaView>
-      
+        <dx:BottomSheet
+            
+            x:Name="MoreBtmSheet" StateChanged="MoreBtmSheet_StateChanged">
+            <dx:BottomSheet.Content>
+                <VerticalStackLayout>
+                    <Label Text="Empty"/>
+                </VerticalStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
   
     </Grid>
 

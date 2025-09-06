@@ -145,7 +145,7 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                                    PointerReleased="MySongsTableView_PointerReleased"
                                    
                                    PointerEntered="MySongsTableView_PointerEntered"
-                                   AllowFocusOnInteraction="True"
+                                   AllowFocusOnInteraction="False"
                                    PointerExited="MySongsTableView_PointerExited"
                                    AllowFocusWhenDisabled="False"
                                    CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"

@@ -714,18 +714,21 @@ ToolTipProperties.Text="Save Has Favorite">
                                     </Grid>
 
                                     <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.StatTitle}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle}"/>
                                         <Label FontSize="26" Text="{Binding ListeningClockData.StatExplanation}"/>
-                                        <Label FontSize="26" Text="{Binding ListeningClockData.Name}"/>
-                                        <Label FontSize="26" Text="{Binding ListeningClockData.Count}"/>
                                     <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle2}"/>
-                                        <Grid ColumnDefinitions="*">
-                                            <VerticalStackLayout>
-                                                
-                                            </VerticalStackLayout>
-                                           
-                                    </Grid>
-                                </VerticalStackLayout>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.Name}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.Count, StringFormat='{0} Dimms'}"/>
+                                        
+                                            <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.StatExplanation}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle2}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.Name}"/>
+                                        <Label FontSize="26" Text="{Binding ListeningClockData.Count, StringFormat='{0} Dimms'}"/>
+
+
+                                    </VerticalStackLayout>
                             </Grid>
 
                             </ScrollView>

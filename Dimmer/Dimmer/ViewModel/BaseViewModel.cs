@@ -11,7 +11,7 @@ using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Maui.Graphics;
-
+using System.Reactive.Linq;
 using Parse.LiveQuery;
 //using MoreLinq;
 //using MoreLinq.Extensions;
@@ -22,6 +22,7 @@ using Realms;
 
 using System;
 using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
@@ -71,7 +72,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this._musicDataService=musicDataService;
         this.appInitializerService=appInitializerService;
-        _subsManager = subsManager ?? new SubscriptionManager();
+        _subsMgr = subsManager ?? new SubscriptionManager();
         _folderMgtService = folderMgtService;
         this.songRepo=_songRepo;
         _lyricsMetadataService= lyricsMetadataService ?? throw new ArgumentNullException(nameof(lyricsMetadataService));
@@ -81,7 +82,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.genreRepo=genreModel;
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
-        this.audioService= audioServ;
+        this._audioService= audioServ;
         UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
         _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
@@ -107,6 +108,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.musicArtistryService=new(RealmFactory);
 
         this.musicStatsService=new(RealmFactory);
+        DragStartedCommand = ReactiveCommand.Create(() => { });
+        DragCompletedCommand = ReactiveCommand.Create(() => { });
 
 
         _searchQuerySubject = new BehaviorSubject<string>("");
@@ -120,6 +123,49 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
            .Bind(out _searchResults)
            .Subscribe()
            .DisposeWith(Disposables);
+        var isDraggingStream = Observable.Merge(
+                DragStartedCommand.Select(_ => true),
+                DragCompletedCommand.Select(_ => false)
+            ).StartWith(false);
+
+        isDraggingStream
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(isDragging => IsUserDraggingSlider = isDragging)
+            .DisposeWith(_subsManager);
+
+        Observable.FromEventPattern<double>(h => _audioService.PositionChanged += h, h => _audioService.PositionChanged -= h)
+              .Select(evt => evt.EventArgs)
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(position =>
+              {
+                  // Always update the "true" position
+                  CurrentTrackPositionSeconds = position;
+
+                  // Only update the UI if the user isn't interacting with it
+                  if (!IsUserDraggingSlider)
+                  {
+                      SliderPosition  = position;
+                  }
+              }, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
+              .DisposeWith(_subsManager);
+
+        // 3. Handle ALL User-Initiated Seeks (Drag AND Tap).
+        // *** THE FIX: Read from the UI property, not the service property ***
+        DragCompletedCommand
+            .WithLatestFrom(this.WhenAnyValue(vm => vm.SliderPosition), (_, position) => position)
+            .Where(x=>x > 1)
+            .Subscribe(position =>
+            {
+                _audioService.Seek(position);
+            }, ex => _logger.LogError(ex, "Error in user seek subscription"))
+            .DisposeWith(_subsManager);
+
+        // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
+        Observable.FromEventPattern<double>(h => _audioService.SeekCompleted += h, h => _audioService.SeekCompleted -= h)
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
+            .DisposeWith(_subsManager);
     }
 
     [ObservableProperty]
@@ -628,7 +674,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
                 appmodel.LastKnownPosition=CurrentTrackPositionSeconds;
                 appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
-                appmodel.VolumeLevelPreference=audioService.Volume;
+                appmodel.VolumeLevelPreference=_audioService.Volume;
 
 
             });
@@ -849,7 +895,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private readonly MusicDataService _musicDataService;
     private IAppInitializerService appInitializerService;
     protected IDimmerStateService _stateService;
-    protected SubscriptionManager _subsManager;
+    protected SubscriptionManager _subsMgr;
     protected IFolderMgtService _folderMgtService;
     private IRepository<SongModel> songRepo;
     private IRepository<ArtistModel> artistRepo;
@@ -863,10 +909,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private MusicArtistryService musicArtistryService;
     private MusicStatsService musicStatsService;
     protected ILogger<BaseViewModel> _logger;
-    private IDimmerAudioService audioService;
+    private IDimmerAudioService _audioService;
     private ILibraryScannerService libService;
 
-    
+
+    private readonly CompositeDisposable _subsManager = new CompositeDisposable();
 
 
 
@@ -1097,6 +1144,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial double CurrentTrackPositionSeconds { get; set; }
 
     [ObservableProperty]
+    public partial double SliderPosition { get; set; }
+
+    partial void OnCurrentTrackPositionSecondsChanged(double oldValue, double newValue)
+    {
+        // a
+    }
+
+    [ObservableProperty]
     public partial double CurrentTrackDurationSeconds { get; set; } = 1;
 
     [ObservableProperty]
@@ -1109,7 +1164,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         double newVolume = Math.Clamp(newValue, 0.0, 1.0);
         _logger.LogDebug("AudioEngine: UI Requesting SetVolume to {Volume}", newVolume);
 
-        audioService.Volume = newVolume;
+        _audioService.Volume = newVolume;
 
     }
     [ObservableProperty]
@@ -1154,12 +1209,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #region audio device management
     public void LoadAllAudioDevices()
     {
-        var devices = audioService.GetAllAudioDevices();
+        var devices = _audioService.GetAllAudioDevices();
         AudioDevices = new ObservableCollection<AudioOutputDevice>(devices);
         //SelectedAudioDevice = AudioDevices.FirstOrDefault(d => d.IsSource) ?? AudioDevices.FirstOrDefault();
         //if (SelectedAudioDevice != null)
         //{
-        //    audioService.SetPreferredOutputDevice(SelectedAudioDevice);
+        //    _audioService.SetPreferredOutputDevice(SelectedAudioDevice);
         //}
     }
 
@@ -1168,7 +1223,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (device == null)
             return;
-        audioService.SetPreferredOutputDevice(device);
+        _audioService.SetPreferredOutputDevice(device);
         SelectedAudioDevice = device;
         LoadAllAudioDevices();
     }
@@ -1759,13 +1814,26 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await NextTrackAsync();
     }
 
+    [ObservableProperty]
+    public partial bool IsUserDraggingSlider { get; set; }
+ 
     private void OnSeekCompleted(double newPosition)
     {
-
+        return;
         _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(RealmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), newPosition);
     }
-
+    [RelayCommand]
+    private void SliderValueChanged()
+    {
+        // This command is triggered by the user releasing the drag (DragCompleted)
+        // or tapping on the slider track.
+        if (!IsUserDraggingSlider) // This ensures it only seeks on tap, not during drag
+        {
+            SeekTrackPosition(CurrentTrackPositionSeconds);
+        }
+    }
+ 
     private void OnPositionChanged(double positionSeconds)
     {
         CurrentTrackPositionSeconds = positionSeconds;
@@ -1867,12 +1935,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
 
-        _stateService.SetCurrentLogMsg(new AppLogModel()
-        {
-            Log = "Scan completed, but no new songs were passed to the UI."
-               ,
-        });
+        ReloadFolderPaths();
+    }
 
+    [RelayCommand]
+    private void ReloadFolderPaths()
+    {
         var realmm = RealmFactory.GetRealmInstance();
 
         var appModel = realmm.All<AppStateModel>().ToList();
@@ -1887,7 +1955,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     protected virtual async Task ProcessSongChangeAsync(SongModelView value)
     {
-        if (audioService.IsPlaying)
+        if (_audioService.IsPlaying)
         {
             value.IsCurrentPlayingHighlight = true;
 
@@ -2034,9 +2102,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         else if (songIndex == _playbackQueueIndex)
         {
-            if (audioService.IsPlaying)
+            if (_audioService.IsPlaying)
             {
-                audioService.Stop();
+                _audioService.Stop();
             }
             if (_playbackQueueSource.Items.Count > 0)
             {
@@ -2058,9 +2126,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void ClearQueue()
     {
-        if (audioService.IsPlaying)
+        if (_audioService.IsPlaying)
         {
-            audioService.Stop();
+            _audioService.Stop();
         }
         _playbackQueueSource.Clear();
         _playbackQueueIndex = -1;
@@ -2086,9 +2154,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
                 else if (songIndex == _playbackQueueIndex)
                 {
-                    if (audioService.IsPlaying)
+                    if (_audioService.IsPlaying)
                     {
-                        audioService.Stop();
+                        _audioService.Stop();
                     }
                     if (_playbackQueueSource.Items.Count > 0)
                     {
@@ -2122,8 +2190,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // A. Stop current playback and clear UI if the new song is null.
         if (songToPlay == null)
         {
-            if (audioService.IsPlaying)
-                audioService.Stop();
+            if (_audioService.IsPlaying)
+                _audioService.Stop();
             UpdateSongSpecificUi(null);
             return false;
         }
@@ -2139,9 +2207,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             // C. Stop any currently playing audio.
-            if (audioService.IsPlaying)
+            if (_audioService.IsPlaying)
             {
-                audioService.Stop();
+                _audioService.Stop();
             }
 
             // D. Determine the start position. Reset if it's a new song.
@@ -2152,7 +2220,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
 
             // E. Initialize the audio service with the new track.
-            await audioService.InitializeAsync(songToPlay, startPosition);
+            await _audioService.InitializeAsync(songToPlay, startPosition);
 
             // F. Update history and UI state *after* successful initialization.
             PlaybackManager.AddSongToHistory(songToPlay);
@@ -2435,7 +2503,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task PlayPauseToggle()
     {
-        if (!audioService.IsPlaying && CurrentPlayingSongView?.Title == null)
+        if (!_audioService.IsPlaying && CurrentPlayingSongView?.Title == null)
         {
             var firstSong = _searchResults.FirstOrDefault();
             if (firstSong != null)
@@ -2446,13 +2514,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
 
-        if (audioService.IsPlaying)
+        if (_audioService.IsPlaying)
         {
-            audioService.Pause();
+            _audioService.Pause();
         }
         else
         {
-            audioService.Play(CurrentTrackPositionSeconds);
+            _audioService.Play(CurrentTrackPositionSeconds);
         }
     }
 
@@ -2535,9 +2603,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task PreviousTrack()
     {
-        if (audioService.CurrentPosition > 3)
+        if (_audioService.CurrentPosition > 3)
         {
-            audioService.Seek(0);
+            _audioService.Seek(0);
             return;
         }
         if (IsPlaying && CurrentPlayingSongView != null)
@@ -2800,7 +2868,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 _logger.LogInformation("Sleep timer expired. Pausing playback.");
                 if (IsPlaying)
                 {
-                    audioService.Pause();
+                    _audioService.Pause();
                 }
                 IsSleepTimerActive = false;
             });
@@ -2834,8 +2902,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (!_playbackQueue.Any() || CurrentPlayingSongView.Title == null)
         {
-            if (audioService.IsPlaying)
-                audioService.Stop();
+            if (_audioService.IsPlaying)
+                _audioService.Stop();
 
             _playbackQueueSource.Edit(updater =>
             {
@@ -2920,24 +2988,24 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// 
     private void SubscribeToStateServiceEvents()
     {
-        //_subsManager.Add(_stateService.CurrentSong
+        //_subsMgr.Add(_stateService.CurrentSong
         //    .ObserveOn(RxApp.MainThreadScheduler)
         //    .Subscribe(/*OnCurrentSongChanged*/ ex => _logger.LogError(ex, "Error in CurrentSong subscription")));
 
-        _subsManager.Add(_stateService.IsShuffleActive
+        _subsMgr.Add(_stateService.IsShuffleActive
             .Subscribe(isShuffle => IsShuffleActive = isShuffle, ex => _logger.LogError(ex, "Error in IsShuffleActive subscription")));
 
-        _subsManager.Add(_stateService.DeviceVolume
+        _subsMgr.Add(_stateService.DeviceVolume
             .Subscribe(volume => DeviceVolumeLevel = volume, ex => _logger.LogError(ex, "Error in DeviceVolume subscription")));
 
 
         var playbackStateObservable = _stateService.CurrentPlayBackState.Publish().RefCount();
 
-        _subsManager.Add(playbackStateObservable
-            .Where(s => s.State == DimmerPlaybackState.FolderScanCompleted)
+        _subsMgr.Add(playbackStateObservable
+            .Where(s => s.State == DimmerUtilityEnum.FolderScanCompleted)
             .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
 
-        _subsManager.Add(_stateService.LatestDeviceLog
+        _subsMgr.Add(_stateService.LatestDeviceLog
             .Where(s => s.Log is not null)
             .Subscribe(obv =>
             {
@@ -2950,13 +3018,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     private void SubscribeToLyricsFlow()
     {
-        _subsManager.Add(_lyricsMgtFlow.CurrentLyric
+        _subsMgr.Add(_lyricsMgtFlow.CurrentLyric
             .ObserveOn(RxApp.MainThreadScheduler).Subscribe(line => CurrentLine = line));
-        _subsManager.Add(_lyricsMgtFlow.AllSyncLyrics
+        _subsMgr.Add(_lyricsMgtFlow.AllSyncLyrics
             .ObserveOn(RxApp.MainThreadScheduler)
            .Subscribe(lines => AllLines = lines.ToObservableCollection()));
 
-        _subsManager.Add(_lyricsMgtFlow.PreviousLyric
+        _subsMgr.Add(_lyricsMgtFlow.PreviousLyric
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(line =>
             {
@@ -2969,7 +3037,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
             }));
 
-        _subsManager.Add(_lyricsMgtFlow.NextLyric
+        _subsMgr.Add(_lyricsMgtFlow.NextLyric
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(line =>
             {
@@ -2981,11 +3049,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     private void SubscribeToAudioServiceEvents()
     {
+       
 
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.PlaybackStateChanged += h,
-                h => audioService.PlaybackStateChanged -= h)
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => _audioService.PlaybackStateChanged += h,
+                h => _audioService.PlaybackStateChanged -= h)
             .Select(evt => evt.EventArgs)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
@@ -2993,9 +3061,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.IsPlayingChanged += h,
-                h => audioService.IsPlayingChanged -= h)
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => _audioService.IsPlayingChanged += h,
+                h => _audioService.IsPlayingChanged -= h)
             .Select(evt => evt.EventArgs.IsPlaying)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(isPlaying =>
@@ -3006,40 +3074,48 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             , ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
 
 
-        _subsManager.Add(Observable.FromEventPattern<double>(
-                h => audioService.PositionChanged += h,
-                h => audioService.PositionChanged -= h)
-            .Select(evt => evt.EventArgs)
+            _subsMgr.Add(Observable.FromEventPattern<double>(
+                    h => _audioService.PositionChanged += h,
+                    h => _audioService.PositionChanged -= h)
+                .Select(evt => evt.EventArgs)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
+
+            //_subsMgr.Add(Observable.FromEventPattern<double>(
+            //        h => _audioService.SeekCompleted += h,
+            //        h => _audioService.SeekCompleted -= h)
+            //    .Select(evt => evt.EventArgs)
+            //    .ObserveOn(RxApp.MainThreadScheduler)
+            //    .Subscribe(newPost =>
+            //    {
+            //        OnSeekCompleted(newPost);
+            //    }, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
+
+
+
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => _audioService.PlayEnded += h,
+                h => _audioService.PlayEnded -= h)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
-
-        _subsManager.Add(Observable.FromEventPattern<double>(
-                h => audioService.SeekCompleted += h,
-                h => audioService.SeekCompleted -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
+            .Subscribe(async _ =>
+            {
+                await OnPlaybackEnded();
+            }, ex => _logger.LogError(ex, "Error in PlayEnded subscription")));
 
 
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.PlayEnded += h,
-                h => audioService.PlayEnded -= h)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription")));
-
-
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.MediaKeyNextPressed += h,
-                h => audioService.MediaKeyNextPressed -= h)
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => _audioService.MediaKeyNextPressed += h,
+                h => _audioService.MediaKeyNextPressed -= h)
             .Subscribe(async _ => await NextTrackAsync(), ex => _logger.LogError(ex, "Error in MediaKeyNextPressed subscription")));
 
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-                h => audioService.MediaKeyPreviousPressed += h,
-                h => audioService.MediaKeyPreviousPressed -= h)
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+                h => _audioService.MediaKeyPreviousPressed += h,
+                h => _audioService.MediaKeyPreviousPressed -= h)
             .Subscribe(async _ => await PreviousTrack(), ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
 
+    public ReactiveCommand<Unit, Unit> DragStartedCommand { get; }
+    public ReactiveCommand<Unit, Unit> DragCompletedCommand { get; }
 
 
     private void LatestDeviceLog(AppLogModel model)
@@ -3061,15 +3137,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void SeekTrackPosition(double positionSeconds)
     {
 
-
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
-        audioService.Seek(positionSeconds);
-        //_baseAppFlow.UpdateDatabaseWithPlayEvent( RealmFactory,CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), positionSeconds);
 
-
-
-        //_songsMgtFlow.RequestSeek(positionSeconds);
-
+        _audioService.Seek(positionSeconds);
 
     }
 
@@ -3141,23 +3211,97 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     }
-    [RelayCommand]
-    public void RescanSongs()
-    {
-        Task.Run(() => libService.ScanLibrary(null));
 
-    }
     [RelayCommand]
     public void LoadInSongsAndEvents()
     {
         //Task.Run(() => libService.LoadInSongsAndEvents());
 
     }
+
+    [RelayCommand]
     public async Task AddMusicFolderByPassingToService(string folderPath)
     {
         _logger.LogInformation("User requested to add music folder.");
         await _folderMgtService.AddFolderToWatchListAndScan(folderPath);
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, folderPath, null, null));
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderAdded, folderPath, null, null));
+    }
+
+    [ObservableProperty]
+    public partial ObservableCollection<PlaylistModelView> Playlists { get; set; } = new();
+    [RelayCommand]
+    public void LoadPlaylists()
+    {
+        var playlistsFromDb = _playlistRepo.GetAll().OrderByDescending(p => p.LastPlayedDate).ToList();
+        Playlists.Clear();
+        foreach (var pl in playlistsFromDb)
+        {
+            Playlists.Add(_mapper.Map<PlaylistModelView>(pl));
+        }
+    }
+
+
+    public void UpdatePlaylistDescription(PlaylistModelView? playlist, string newDescription)
+    {
+        if (playlist == null)
+            return;
+        _playlistRepo.Update(playlist.Id, pl =>
+        {
+            pl.Description = newDescription;
+        });
+        var songIdInPl = playlist.SongsIdsInPlaylist?.ToList();
+        if (songIdInPl == null || songIdInPl.Count>0)
+            return;
+        foreach (var songId in songIdInPl)
+        {
+            var songInDb = songRepo.GetById(songId);
+
+            if (songInDb == null)
+                continue;
+
+            songInDb.UserNotes.Add(
+                new UserNoteModel()
+                {
+                    UserMessageText = newDescription,
+                });
+        }
+        LoadPlaylists();
+    }
+
+
+
+    [RelayCommand]
+    public void DeletePlaylist(PlaylistModelView? playlist)
+    {
+        if (playlist == null)
+            return;
+        _playlistRepo.Delete(_mapper.Map<PlaylistModel>(playlist));
+        Playlists.Remove(playlist);
+    }
+
+    public void RenamePlaylist(ObjectId plId, string newName)
+    {
+        var pl = _playlistRepo.GetById(plId);
+        if (pl == null)
+            return;
+        pl.PlaylistName = newName;
+
+        _playlistRepo.Update(plId, pl =>
+        {
+            pl.PlaylistName= newName;
+            
+        });
+        LoadPlaylists();
+    }
+
+
+
+    [RelayCommand]
+    public async Task ReScanMusicFolderByPassingToService(string folderPath)
+    {
+        _logger.LogInformation("User requested to add music folder.");
+        await _folderMgtService.ReScanFolder(folderPath);
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderReScanned, folderPath, null, null));
     }
     public void AddMusicFoldersByPassingToService(List<string> folderPaths)
     {
@@ -3716,7 +3860,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _realmSubscription?.Dispose();
             _playEventSource.Dispose();
             realm.Dispose();
-
+            _subsManager.Dispose();
             Disposables.Dispose();
         }
 
@@ -4915,7 +5059,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
 
-        var currentTime = TimeSpan.FromSeconds(audioService.CurrentPosition);
+        var currentTime = TimeSpan.FromSeconds(_audioService.CurrentPosition);
         var timestampString = currentTime.ToString(@"mm\:ss\.ff");
 
 
@@ -5054,9 +5198,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // Or, you could decide to insert it. For now, let's play it as a one-off.
 
         // Stop any current playback
-        if (audioService.IsPlaying)
+        if (_audioService.IsPlaying)
         {
-            audioService.Stop();
+            _audioService.Stop();
         }
 
         _logger.LogInformation("Playing transferred song '{Title}' and seeking to {Position}s.", transferredSong.Title, startPositionSeconds);
@@ -5065,12 +5209,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPlayingSongView = transferredSong;
 
         // Load and play the new file
-        await audioService.InitializeAsync(transferredSong, startPositionSeconds);
+        await _audioService.InitializeAsync(transferredSong, startPositionSeconds);
 
         // Now, seek to the correct position
         if (startPositionSeconds > 0 && startPositionSeconds < transferredSong.DurationInSeconds)
         {
-            audioService.Seek(startPositionSeconds);
+            _audioService.Seek(startPositionSeconds);
         }
     }
 

@@ -2,6 +2,8 @@ using Dimmer.DimmerLive;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 
+using System.Threading.Tasks;
+
 namespace Dimmer.WinUI.Views.SettingsCenter;
 
 public partial class SettingsPage : ContentPage
@@ -90,11 +92,12 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        await MyViewModel.CheckForAppUpdatesAsync();
+        MyViewModel.ReloadFolderPathsCommand.Execute(null);
+        //await MyViewModel.CheckForAppUpdatesAsync();
 #if Release
 ViewAdminUpdate.IsVisible = false;
 #endif
@@ -120,12 +123,6 @@ ViewAdminUpdate.IsVisible = false;
         {
             await MyViewModel.LoadUserLastFMInfo();
         }
-    }
-
-    private void RescanFolderPath_Clicked(object sender, EventArgs e)
-    {
-        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        MyViewModel.RescanFolderPath(selectedFolder);
     }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
@@ -224,4 +221,14 @@ ViewAdminUpdate.IsVisible = false;
         await Browser.Default.OpenAsync(urll, BrowserLaunchMode.SystemPreferred);
     }
 
+    private void RescanFolder_Clicked(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        var comParam = send.CommandParameter as string;
+
+        if (comParam is null)
+            return;
+
+       MyViewModel.ReScanMusicFolderByPassingToServiceCommand.Execute(comParam);
+    }
 }

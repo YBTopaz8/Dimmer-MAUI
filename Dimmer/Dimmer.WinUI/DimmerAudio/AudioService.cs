@@ -115,6 +115,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #endregion
 
+    private double _requestedSeekPosition = -1;
     #region Events (Interface + Additional)
 
 
@@ -478,22 +479,31 @@ success = true;
     /// <returns>Task indicating completion of the seek request (not necessarily the completion of the seek operation itself).</returns>
     public void Seek(double positionSeconds)
     {
-        ThrowIfDisposed();
+        ThrowIfDisposed(); 
+
         if (_mediaPlayer.PlaybackSession.CanSeek)
         {
-            var targetPosition = TimeSpan.FromSeconds(Math.Clamp(positionSeconds, 0, Duration));
+            
+            var targetPositionSeconds = Math.Clamp(positionSeconds, 0, _mediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds);
+            var targetPosition = TimeSpan.FromSeconds(targetPositionSeconds);
 
+            
             if (Math.Abs(_mediaPlayer.PlaybackSession.Position.TotalSeconds - targetPosition.TotalSeconds) > 0.2)
             {
-                Debug.WriteLine($"[AudioService] Seeking to: {targetPosition}");
-                _mediaPlayer.PlaybackSession.Position = targetPosition;
+                
+                _requestedSeekPosition = targetPositionSeconds;
 
+                Debug.WriteLine($"[AudioService] Storing requested position ({_requestedSeekPosition}) and seeking to: {targetPosition}");
+
+                
+                _mediaPlayer.PlaybackSession.Position = targetPosition;
             }
         }
         else
         {
-            CurrentPosition= positionSeconds;
-            Debug.WriteLine("[AudioService] SeekAsync requested but cannot seek.");
+            
+            CurrentPosition = positionSeconds;
+            Debug.WriteLine("[AudioService] Seek requested but session cannot seek.");
         }
     }
 
@@ -644,11 +654,27 @@ success = true;
 
     private void PlaybackSession_SeekCompleted(MediaPlaybackSession sender, object args)
     {
-        var seekedPosition = sender.Position.TotalSeconds;
-        Debug.WriteLine($"[AudioService] SeekCompleted at: {seekedPosition}");
-        CurrentPosition = seekedPosition;
-        SeekCompleted?.Invoke(this, seekedPosition);
 
+        if (_requestedSeekPosition >= 0)
+        {
+            var confirmedPosition = _requestedSeekPosition;
+            _requestedSeekPosition = -1; // Reset for the next operation
+
+            // This debug line will now show the CORRECT value
+            Debug.WriteLine($"[AudioService] PlaybackSession_SeekCompleted fired. Using confirmed position: {confirmedPosition}");
+
+            // Update your service's internal state
+            CurrentPosition = confirmedPosition;
+
+            // Invoke your custom event with the RELIABLE data
+            SeekCompleted?.Invoke(this, confirmedPosition);
+        }
+        else
+        {
+            // This might happen if the player seeks for its own reasons (e.g., buffering).
+            // You can decide if you want to handle this or just log it.
+            Debug.WriteLine($"[AudioService] PlaybackSession_SeekCompleted fired unexpectedly. Sender position: {sender.Position.TotalSeconds}");
+        }
     }
 
     private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)

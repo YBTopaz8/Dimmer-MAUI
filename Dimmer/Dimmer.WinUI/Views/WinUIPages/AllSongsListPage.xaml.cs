@@ -791,7 +791,7 @@ public sealed partial class AllSongsListPage : Page
     }
 
 
-    private SongModelView _storedSong;
+    private SongModelView? _storedSong;
 
     private void MyPageGrid_Loaded(object sender, RoutedEventArgs e)
     {
@@ -810,7 +810,7 @@ public sealed partial class AllSongsListPage : Page
             MySongsTableView.ScrollIntoView(songToAnimate, ScrollIntoViewAlignment.Default);
 
             // 3. Queue the animation logic using the LOCAL variable.
-            DispatcherQueue.TryEnqueue(async () =>
+            DispatcherQueue.TryEnqueue( () =>
             {
                 ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
                 if (animation != null)

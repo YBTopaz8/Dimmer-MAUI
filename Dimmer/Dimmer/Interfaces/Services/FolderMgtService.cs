@@ -101,7 +101,7 @@ public class FolderMgtService : IFolderMgtService
 
         await _folderMonitor.StartAsync(foldersToWatchPaths);
         _isCurrentlyWatching = true;
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderWatchStarted, null, null, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderWatchStarted, null, null, null));
     }
 
 
@@ -149,7 +149,7 @@ public class FolderMgtService : IFolderMgtService
         _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
 
 
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path, null, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderAdded, path, null, null));
 
         _logger.LogInformation("Triggering scan for newly added folder: {Path}", path);
         await _libraryScanner.ScanSpecificPaths(new List<string> { path }, isIncremental: false);
@@ -198,7 +198,7 @@ public class FolderMgtService : IFolderMgtService
           await  StartWatchingConfiguredFoldersAsync();
 
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, path, null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderRemoved, path, null, null));
 
 
             _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
@@ -220,7 +220,7 @@ public class FolderMgtService : IFolderMgtService
         foldersToWatchPaths.Clear();
        await StartWatchingConfiguredFoldersAsync();
 
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));
 
         _logger.LogInformation("Triggering library scan with empty folder list (to clear library).");
         await _libraryScanner.ScanLibrary(new List<string>());
@@ -361,5 +361,10 @@ public class FolderMgtService : IFolderMgtService
             (_folderMonitor as IDisposable)?.Dispose();
         }
         _disposed = true;
+    }
+
+    public async Task ReScanFolder(string folderPath)
+    {
+        await _libraryScanner.ScanSpecificPaths(new List<string> { folderPath }, isIncremental: false);
     }
 }
