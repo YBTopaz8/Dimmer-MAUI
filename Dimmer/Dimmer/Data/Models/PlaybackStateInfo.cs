@@ -3,14 +3,14 @@ public partial class PlaybackStateInfo : IEquatable<PlaybackStateInfo>
 {
     public SongModel? Songdb;
 
-    public DimmerPlaybackState State { get; set; }
+    public DimmerUtilityEnum State { get; set; }
     public object? ExtraParameter { get; set; }
     public SongModelView? SongView { get; set; }
 
     public double? ContextSongPositionSeconds { get; set; } = 0.0;
-    // ... other properties ...
+   
 
-    public PlaybackStateInfo(DimmerPlaybackState state, object? extParam, SongModelView? song, SongModel? songdb)
+    public PlaybackStateInfo(DimmerUtilityEnum state, object? extParam, SongModelView? song, SongModel? songdb)
     {
         SongView    =song;
         State = state;

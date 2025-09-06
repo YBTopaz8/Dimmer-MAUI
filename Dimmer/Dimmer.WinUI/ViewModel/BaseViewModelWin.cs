@@ -19,6 +19,7 @@ using Dimmer.WinUI.Views.WinUIPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
@@ -251,14 +252,7 @@ public partial class BaseViewModelWin: BaseViewModel
         }
     }
 
-    public void RescanFolderPath(string folderPath)
-    {
-        if (string.IsNullOrEmpty(folderPath))
-        {
-            return;
-        }
-        AddMusicFolderByPassingToService(folderPath);
-    }
+   
     public async Task AddMusicFolderViaPickerAsync()
     {
 

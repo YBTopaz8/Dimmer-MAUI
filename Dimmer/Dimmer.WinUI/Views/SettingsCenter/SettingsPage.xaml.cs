@@ -2,6 +2,8 @@ using Dimmer.DimmerLive;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 
+using System.Threading.Tasks;
+
 namespace Dimmer.WinUI.Views.SettingsCenter;
 
 public partial class SettingsPage : ContentPage
@@ -123,12 +125,6 @@ ViewAdminUpdate.IsVisible = false;
         }
     }
 
-    private void RescanFolderPath_Clicked(object sender, EventArgs e)
-    {
-        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        MyViewModel.RescanFolderPath(selectedFolder);
-    }
-
     private void DeleteBtn_Clicked(object sender, EventArgs e)
     {
         var send = (ImageButton)sender;
@@ -227,6 +223,12 @@ ViewAdminUpdate.IsVisible = false;
 
     private void RescanFolder_Clicked(object sender, EventArgs e)
     {
+        var send = (SfChip)sender;
+        var comParam = send.CommandParameter as string;
 
+        if (comParam is null)
+            return;
+
+       MyViewModel.ReScanMusicFolderByPassingToServiceCommand.Execute(comParam);
     }
 }

@@ -65,11 +65,11 @@ public class LibraryScannerService : ILibraryScannerService
             if (folderPaths == null || folderPaths.Count == 0)
             {
                 _logger.LogWarning("No folder paths found to scan.");
-                return null;
+                return default!;
             }
 
             _logger.LogInformation("Starting library scan for paths: {Paths}", string.Join(", ", folderPaths));
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanStarted, string.Join(";", folderPaths), null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanStarted, string.Join(";", folderPaths), null, null));
             _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
 
             MusicMetadataService currentScanMetadataService = new();
@@ -79,8 +79,8 @@ public class LibraryScannerService : ILibraryScannerService
             if (allFiles.Count == 0)
             {
                 _state.SetCurrentLogMsg(new AppLogModel { Log = "No audio files found in the selected paths." });
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, "No audio files found.", null, null));
-                return null;
+                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No audio files found.", null, null));
+                return default!;
             }
 
             _logger.LogDebug("Loading existing metadata from database and detaching for processing...");
@@ -107,7 +107,7 @@ public class LibraryScannerService : ILibraryScannerService
             {
                 _logger.LogInformation("Scan complete. No new music found.");
                 _state.SetCurrentLogMsg(new AppLogModel { Log = "Your library is up-to-date." });
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, "No new files.", null, null));
+                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No new files.", null, null));
                 return new LoadSongsResult { /* Indicate success with no changes */ };
             }
 
@@ -254,7 +254,7 @@ public class LibraryScannerService : ILibraryScannerService
                     }
                 });
             }
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderScanCompleted, extParam: newSongs,null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,null, null));
 
 
             return new LoadSongsResult { /* ... */ };

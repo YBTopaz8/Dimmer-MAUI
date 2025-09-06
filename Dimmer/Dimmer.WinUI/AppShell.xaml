@@ -371,12 +371,16 @@ ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat
                         <Slider Margin="2,0"
 x:Name="TrackProgressSlider"
 Grid.Column="1"
-DragCompleted="Slider_DragCompleted"
 Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
 Minimum="0" MaximumTrackColor="{AppThemeBinding Dark=White,Light=Black}"
 MinimumTrackColor="DarkSlateBlue"
+                               DragStartedCommand="{Binding DragStartedCommand}" 
 ThumbColor="{Binding CurrentPlaySongDominantColor}"
-Value="{Binding CurrentTrackPositionSeconds}" />
+                                 Value="{Binding SliderPosition, Mode=TwoWay}"
+                                DragCompleted="TrackProgressSlider_DragCompleted"
+                                DragStarted="TrackProgressSlider_DragStarted"
+                                DragCompletedCommand="{Binding DragCompletedCommand}"
+ />
                         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                             <Label HorizontalTextAlignment="Start"
                        TextColor="{AppThemeBinding Light=DarkSlateblue,Dark=white}"

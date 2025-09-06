@@ -18,8 +18,11 @@
     x:DataType="vm:BaseViewModelWin"
     Shell.NavBarIsVisible="False">
     <Grid IsVisible="True" RowDefinitions="auto,*">
-        <VerticalStackLayout Grid.Row="0">
-            <Label Text="{Binding LatestAppLog.Log}"/>
+        <VerticalStackLayout 
+            
+            Grid.Row="0">
+            <Label Text="{Binding LatestScanningLog}" FontSize="35" HorizontalOptions="Center"
+                   />
             <ProgressBar
       x:Name="MyProgressBar"
       IsVisible="False"
@@ -77,7 +80,7 @@ Command="{Binding ValidateLibraryCommand}" IsVisible="False"
                             </VerticalStackLayout>
                             <CollectionView
                                 x:Name="ListOfFolders"
-                                Grid.Row="1"
+                                Grid.Row="1" SelectionMode="None"
                                 Header="List of Folders"
                                 ItemsSource="{Binding FolderPaths}"
                                 >
@@ -107,8 +110,11 @@ Command="{Binding ValidateLibraryCommand}" IsVisible="False"
                                                     Clicked="DeleteBtn_Clicked"
                                                     CommandParameter="{Binding .}"
                                                     Source="delete.png" />
-                                                <ImageButton Source="repeat.png"
-             Clicked="RescanFolder_Clicked" x:Name="RescanFolder"/>
+                                                <syncf:SfChip ImageSource="repeat.png"
+             Clicked="RescanFolder_Clicked" CommandParameter="{Binding .}"
+                                                              
+                                                              x:Name="RescanFolder" ImageSize="50"
+                                                              WidthRequest="65"/>
                                             </HorizontalStackLayout>
                                         </Grid>
                                     </DataTemplate>

@@ -157,11 +157,6 @@ public partial class AppShell : Shell
         }
     }
 
-    private void RescanFolderPath_Clicked(object sender, EventArgs e)
-    {
-        var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-        MyViewModel.RescanFolderPath(selectedFolder);
-    }
 
     private void DeleteBtn_Clicked(object sender, EventArgs e)
     {
@@ -680,5 +675,17 @@ public partial class AppShell : Shell
     {
       
 
+    }
+
+    private void TrackProgressSlider_DragCompleted(object sender, EventArgs e)
+    {
+        MyViewModel.DragCompletedCommand.Execute(System.Reactive.Unit.Default);
+    }
+
+   
+
+    private void TrackProgressSlider_DragStarted(object sender, EventArgs e)
+    {
+        MyViewModel.DragStartedCommand.Execute(default);
     }
 }
