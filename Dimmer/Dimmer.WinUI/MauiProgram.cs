@@ -9,6 +9,7 @@ using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
+using Dimmer.WinUI.Views.PlaylistPages;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Colors = Microsoft.Maui.Graphics.Colors;
@@ -220,6 +221,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SocialViewModelWin>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<SongDetailPage>();
+        builder.Services.AddSingleton<AllPlaylists>();
         return builder.Build();
     }
 

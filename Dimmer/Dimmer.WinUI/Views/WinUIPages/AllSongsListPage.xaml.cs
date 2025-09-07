@@ -618,6 +618,7 @@ public sealed partial class AllSongsListPage : Page
             MyViewModel.SearchSongSB_TextChanged(text);
             // Handle Enter key press
             Debug.WriteLine("Enter key pressed.");
+            return;
             // You can trigger your search or any other action here
 
         }
@@ -690,11 +691,16 @@ public sealed partial class AllSongsListPage : Page
     private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         var OldValue = e.OldValue;
-        var newValue = e.NewValue;
+        TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
         var propValue = e.Property;
         Debug.WriteLine(propValue?.GetType());
         Debug.WriteLine(OldValue?.GetType());
-        Debug.WriteLine(newValue?.GetType());
+
+        List<TableViewCellSlot> cells = new List<TableViewCellSlot>();
+        cells.Add(newValue);
+
+        var we=  MySongsTableView.GetCellsContent(cells, true);
+        var ee =  MySongsTableView.GetSelectedContent(true);
     }
 
     private void MySongsTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -907,7 +913,7 @@ public sealed partial class AllSongsListPage : Page
             }
 
             MyViewModel = vm;
-
+            MyViewModel.MySongsTableView = MySongsTableView;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }

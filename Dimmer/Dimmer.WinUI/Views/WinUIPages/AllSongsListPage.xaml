@@ -128,6 +128,16 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
 
             </StackPanel>
 
+            <!--<StackPanel Orientation="Horizontal"
+                        >
+                <Button Content="Filter by This" Command="{x:Bind MyViewModel.FilterBySelectionCommand}" />
+                <Button Content="And..." Command="{x:Bind MyViewModel.AddFilterFromSelectionCommand}" />
+                <Button Content="Or..." Command="{x:Bind MyViewModel.IncludeSelectionCommand}" />
+                <Button Content="But Not..." Command="{x:Bind MyViewModel.ExcludeSelectionCommand}" />
+                
+                <Button Content="Reset Search" Command="{x:Bind MyViewModel.ResetSearchCommand}" />
+            </StackPanel>-->
+            
         </StackPanel>
 
 

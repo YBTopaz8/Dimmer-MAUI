@@ -85,6 +85,7 @@
     <None Remove="Views\ExperimentsPage.xaml" />
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
+    <None Remove="Views\PlaylistPages\AllPlaylists.xaml" />
     <None Remove="Views\PlaylistWindow.xaml" />
     <None Remove="Views\SettingsCenter\LibSanityPage.xaml" />
     <None Remove="Views\SettingsCenter\SettingsPage.xaml" />
@@ -116,6 +117,7 @@
     <Page Remove="Views\ExperimentsPage.xaml" />
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
+    <Page Remove="Views\PlaylistPages\AllPlaylists.xaml" />
     <Page Remove="Views\PlaylistWindow.xaml" />
     <Page Remove="Views\SettingsCenter\LibSanityPage.xaml" />
     <Page Remove="Views\SettingsCenter\SettingsPage.xaml" />
@@ -250,6 +252,9 @@
   </ItemGroup>
   <ItemGroup>
     <MauiXaml Include="Views\OnlinePageManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\PlaylistPages\AllPlaylists.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\PlaylistWindow.xaml">

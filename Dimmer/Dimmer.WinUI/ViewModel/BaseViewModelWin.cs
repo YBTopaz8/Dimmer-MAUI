@@ -379,18 +379,20 @@ public partial class BaseViewModelWin: BaseViewModel
         // 1. Let the base class do all of its work first.
         await base.ProcessSongChangeAsync(value);
 
-        
+
         if (value.IsCurrentPlayingHighlight)
         {
-            
+
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
-            
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
+            if (SongColView.IsLoaded)
+            { 
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
 
-                SongColView?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
+                    SongColView?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
 
-            });
+                });
+            }
         }
     }
 
@@ -431,6 +433,97 @@ public partial class BaseViewModelWin: BaseViewModel
         Debug.WriteLine(win.Visible);
         Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
+    [RelayCommand]
+    private void FilterBySelection()
+    {
+        // This command REPLACES the current query with one based on the selected cell.
+        // Use case: "I don't care what I was searching for, show me *only* this."
+
+        // Assuming 'MySongsTableView' is the name of your TableView control instance
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (!string.IsNullOrWhiteSpace(tqlClause))
+        {
+            CurrentTqlQuery = tqlClause;
+            _searchQuerySubject.OnNext(CurrentTqlQuery);
+        }
+    }
+    [ObservableProperty]
+    public partial TableView MySongsTableView { get; set; }
+
+
+    [RelayCommand]
+    private void AddFilterFromSelection()
+    {
+        // This command APPENDS the new filter to the existing one.
+        // Use case: "I'm looking at songs from 2004. Now, narrow it down to *only* this artist."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
+
+        // If the current query is empty or just a directive, replace it.
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentTqlQuery = tqlClause;
+        }
+        else
+        {
+            CurrentTqlQuery = $"{CurrentTqlQuery} {tqlClause}"; // Implicit AND
+        }
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
+
+    [RelayCommand]
+    private void IncludeSelection()
+    {
+        // This command uses the TQL 'add' keyword (OR logic).
+        // Use case: "I'm looking at Kanye West. Now, show me Jay-Z *as well*."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
+
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentTqlQuery = tqlClause;
+        }
+        else
+        {
+            CurrentTqlQuery = $"{CurrentTqlQuery} add {tqlClause}";
+        }
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
+
+    [RelayCommand]
+    private void ExcludeSelection()
+    {
+        // This command uses the TQL 'remove' keyword (AND NOT logic).
+        // Use case: "I'm looking at Rock music. Now, *remove* anything that is also Pop."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
+
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            // Excluding from "everything" doesn't make sense, so just start a new query
+            CurrentTqlQuery = $"NOT ({tqlClause})";
+        }
+        else
+        {
+            CurrentTqlQuery = $"{CurrentTqlQuery} remove {tqlClause}";
+        }
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
+
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {

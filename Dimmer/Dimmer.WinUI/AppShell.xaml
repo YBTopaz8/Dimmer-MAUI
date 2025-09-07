@@ -44,15 +44,33 @@
             <syncf:SfTabItem x:FieldModifier="Public" x:Name="MediaControlsView">
                 <syncf:SfTabItem.Content>
 
-                        <ScrollView>
+                        <ScrollView x:Name="SideBarScrollView">
+                            <ScrollView.GestureRecognizers>
+                                <PointerGestureRecognizer
+                                    PointerEntered="ScrollVPointer_PointerEntered" 
+                                    PointerExited="ScrollVPointer_PointerExited"
+                                    
+                                    x:Name="ScrollVPointer">
+                                    
+                                </PointerGestureRecognizer>
+                            </ScrollView.GestureRecognizers>
+                            
+                            
+                            
+                            
                     <VerticalStackLayout
             HorizontalOptions="Start"
             x:Name="BottomLeft" Spacing="10"
             Grid.Row="1" BackgroundColor="Transparent"
             Margin="10,10">
                         <HorizontalStackLayout HorizontalOptions="End" IsVisible="True">
-
-                            <ImageButton Source="settings.png" 
+                                    <syncf:SfChip
+                                        ImageSize="50"
+                                        WidthRequest="60"
+                                        x:Name="ShowPlaylistHistory"
+                                        Clicked="ShowPlaylistHistory_Clicked"
+                                        ImageSource="playlista.png"/>
+                                    <ImageButton Source="settings.png" 
                                           WidthRequest="55"
                                           Clicked="SettingsNavChips_ChipClicked">
                                 <ImageButton.Behaviors>
@@ -267,7 +285,13 @@ ImageSource="shuffle.png"
 ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
          
 StyleClass="MediaBtnChip">
-                                <Button.Triggers>
+                                        <Button.Behaviors
+>
+                                            <toolkit:IconTintColorBehavior
+            TintColor="{Binding CurrentPlaySongDominantColor}"
+            />
+                                        </Button.Behaviors>
+                                        <Button.Triggers>
                                     <DataTrigger
         Binding="{Binding IsShuffleActive}"
         TargetType="Button"
@@ -280,7 +304,7 @@ StyleClass="MediaBtnChip">
                             </Button>
 
 
-                            <Button
+                                    <Button
                            x:Name="SkipPrev"
                            windows:VisualElement.AccessKey="B"
                            windows:VisualElement.AccessKeyPlacement="Bottom"
@@ -288,7 +312,14 @@ StyleClass="MediaBtnChip">
                     BorderWidth="0"
                            Command="{Binding PreviousTrackCommand}"
                            ImageSource="skipprevious.png"
-                           StyleClass="MediaBtnChip" />
+                           StyleClass="MediaBtnChip" >
+                                        <Button.Behaviors
+>
+                                            <toolkit:IconTintColorBehavior
+            TintColor="{Binding CurrentPlaySongDominantColor}"
+            />
+                                        </Button.Behaviors>
+                                    </Button>
                             <Button
                            x:Name="PlayPauseBtn" BorderWidth="0"
                            windows:VisualElement.AccessKey="P"
@@ -297,6 +328,12 @@ StyleClass="MediaBtnChip">
                            Command="{Binding PlayPauseToggleCommand}"
                            ImageSource="play.png"
                            StyleClass="MediaBtnChip">
+                                        <Button.Behaviors
+                                    >
+                                            <toolkit:IconTintColorBehavior
+                                                TintColor="{Binding CurrentPlaySongDominantColor}"
+                                                />
+                                        </Button.Behaviors>
 
                                 <Button.Triggers>
                                     <DataTrigger
@@ -314,14 +351,21 @@ StyleClass="MediaBtnChip">
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button BorderWidth="0"
+                                    <Button BorderWidth="0"
                            x:Name="SkipNext"
                            windows:VisualElement.AccessKey="N"
                            windows:VisualElement.AccessKeyPlacement="Bottom"
                            Background="Transparent"
                            Command="{Binding NextTrackCommand}"
                            ImageSource="skipnext.png"
-                           StyleClass="MediaBtnChip" />
+                           StyleClass="MediaBtnChip" >
+                                        <Button.Behaviors
+>
+                                            <toolkit:IconTintColorBehavior
+            TintColor="{Binding CurrentPlaySongDominantColor}"
+            />
+                                        </Button.Behaviors>
+                                    </Button>
 
 
                             <Button
@@ -331,7 +375,13 @@ Command="{Binding ToggleRepeatModeCommand}"
 ImageSource="repeat.png"
 StyleClass="MediaBtnChip"
 ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
-                                <Button.Triggers>
+                                        <Button.Behaviors
+>
+                                            <toolkit:IconTintColorBehavior
+            TintColor="{Binding CurrentPlaySongDominantColor}"
+            />
+                                        </Button.Behaviors>
+                                        <Button.Triggers>
                                     <DataTrigger
         Binding="{Binding CurrentRepeatMode}"
         TargetType="Button"
@@ -373,7 +423,7 @@ x:Name="TrackProgressSlider"
 Grid.Column="1"
 Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
 Minimum="0" MaximumTrackColor="{AppThemeBinding Dark=White,Light=Black}"
-MinimumTrackColor="DarkSlateBlue"
+MinimumTrackColor="{Binding CurrentPlaySongDominantColor}"
                                DragStartedCommand="{Binding DragStartedCommand}" 
 ThumbColor="{Binding CurrentPlaySongDominantColor}"
                                  Value="{Binding SliderPosition, Mode=TwoWay}"

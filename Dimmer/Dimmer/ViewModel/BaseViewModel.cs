@@ -1814,6 +1814,92 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await NextTrackAsync();
     }
 
+    [RelayCommand]
+    public async Task CleanseDBOfDupeEvents()
+    {
+        var realm = RealmFactory.GetRealmInstance();
+
+        await realm.WriteAsync(() =>
+        {
+
+
+            var allSongs = realm.All<SongModel>();
+            var songEventPairs = allSongs.ToDictionary(
+                song => song.Id,
+                song => song.PlayHistory.OrderBy(e => e.EventDate).ToList()
+            );
+
+            // now cleanse each song's events
+            var eventsToRemove = new List<DimmerPlayEvent>();
+            foreach (var eventList in songEventPairs.Values)
+            {
+                for (int i = 0; i < eventList.Count - 1; i++)
+                {
+                    var currentEvent = eventList[i];
+                    var nextEvent = eventList[i + 1];
+                    // Check for duplicate "Played" events within 10 minutes
+                    if (currentEvent.PlayType == 1 && nextEvent.PlayType == 1 &&
+                        (nextEvent.EventDate - currentEvent.EventDate).TotalMinutes < 10)
+                    {
+                        eventsToRemove.Add(nextEvent);
+                    }
+                    // Check for duplicate "Skipped" events within 5 minutes
+                    if (currentEvent.PlayType == 5 && nextEvent.PlayType == 5 &&
+                        (nextEvent.EventDate - currentEvent.EventDate).TotalMinutes < 5)
+                    {
+                        eventsToRemove.Add(nextEvent);
+                    }
+                    // Check for duplicate "Paused" events within 5 minutes
+                    if (currentEvent.PlayType == 3 && nextEvent.PlayType == 3 &&
+                        (nextEvent.EventDate - currentEvent.EventDate).TotalMinutes < 5)
+                    {
+                        eventsToRemove.Add(nextEvent);
+                    }
+                    // Check for duplicate "Resumed" events within 5 minutes
+                    if (currentEvent.PlayType == 4 && nextEvent.PlayType == 4 &&
+                        (nextEvent.EventDate - currentEvent.EventDate).TotalMinutes < 5)
+                    {
+                        eventsToRemove.Add(nextEvent);
+                    }
+
+                }
+            }
+
+            foreach (var evt in eventsToRemove)
+            {
+                realm.Remove(evt);
+            }
+
+            // handle case where events are not linked to any song
+            var orphanedEvents = realm.All<DimmerPlayEvent>().Where(e => e.SongId == null);
+            // Optionally log or inspect these orphaned events before deletion
+            
+            var orphanCount = orphanedEvents.Count();
+            if (orphanCount > 0)
+            {
+                _logger.LogInformation("Found {Count} orphaned play events not linked to any song. Removing them.", orphanCount);
+            }
+
+
+            foreach (var orphan in orphanedEvents)
+            {
+                realm.Remove(orphan);
+            }
+            eventsToRemove.AddRange(orphanedEvents);
+
+
+            foreach (var eventToRemove in orphanedEvents)
+            {
+                realm.Remove(eventToRemove);
+            }
+
+            _logger.LogInformation("Removed {Count} duplicate play events from the database.", eventsToRemove.Count);
+        });
+
+         LoadLastHundredPlayEvents();
+    }
+
+
     [ObservableProperty]
     public partial bool IsUserDraggingSlider { get; set; }
  
@@ -1897,7 +1983,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #region Current Playing Song and Color Management
 
     [ObservableProperty]
-    public partial Color? CurrentPlaySongDominantColor { get; set; } = Colors.DarkSlateBlue;
+    public partial Color? CurrentPlaySongDominantColor { get; set; }
  
     async partial void OnCurrentPlayingSongViewChanged(SongModelView value)
     {
@@ -1955,19 +2041,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     protected virtual async Task ProcessSongChangeAsync(SongModelView value)
     {
-        if (_audioService.IsPlaying)
-        {
+      
             value.IsCurrentPlayingHighlight = true;
 
             AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
            await LoadSongDominantColorIfNotYetDoneAsync(value);
 
 
-        }
-        else
-        {
-            value.IsCurrentPlayingHighlight=false;
-        }
+      
     }
 
 
@@ -3239,6 +3320,27 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             Playlists.Add(_mapper.Map<PlaylistModelView>(pl));
         }
     }
+    [RelayCommand]
+    public void LoadLastHundredPlayEvents()
+    {
+
+        DimmerPlayEventList?.Clear();
+        
+        var realm = RealmFactory.GetRealmInstance();
+        var allQSongs = realm.All<SongModel>();
+        SongToEventsDict = allQSongs.ToDictionary(s => s, s => s.PlayHistory.ToList());
+
+        var eventsFromDb = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Take(200).ToList();
+        DimmerPlayEventList = _mapper.Map<IEnumerable<DimmerPlayEventView>>(eventsFromDb).ToObservableCollection();
+
+        _logger.LogInformation("Loaded {Count} recent play events from the database.", DimmerPlayEventList.Count);
+       
+
+    }
+
+    [ObservableProperty]
+    public partial Dictionary<SongModel, List<DimmerPlayEvent>>? SongToEventsDict { get; set; }
+
 
 
     public void UpdatePlaylistDescription(PlaylistModelView? playlist, string newDescription)
@@ -3527,22 +3629,30 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// <summary>
     /// Loads ALL statistics for a single song. Call this when a song is selected.
     /// </summary>
+    [RelayCommand]
     public async Task LoadStatsForSelectedSong(SongModelView? song)
     {
         song ??= SelectedSong;
+        var endDate = DateTimeOffset.Now;
+        var startDate = endDate.AddDays(-7);
 
-        if (song == null)
-        {
-            ClearSingleSongStats();
-            return;
-        }
-
-        _reportGenerator = new ListeningReportGenerator(RealmFactory, _logger,_mapper);
+        realm = RealmFactory.GetRealmInstance();
+        // Phase 1: Data Preparation
+        var scrobblesInPeriod = realm.All<DimmerPlayEvent>()
+                                             //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
+                                             //            (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed))
+                                             //.OrderBy(p => p.EventDate) // Important for sequential analysis
+                                             .ToList();
+        var allSongs = realm.All<SongModel>().ToList();
+        _reportGenerator = new ListeningReportGenerator(allSongs,scrobblesInPeriod, _logger,_mapper);
        await GenerateWeeklyReportAsync();
     }
     [RelayCommand]
     private async Task GenerateWeeklyReportAsync()
     {
+        // clear all the stats first
+        ClearSingleSongStats();
+
         IsLoading = true;
         try
         {
@@ -3562,6 +3672,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 TopAlbums = reportData.FirstOrDefault(s => s.StatTitle == "Top Albums")?.ChildStats;
 
                 ListeningClockData = reportData.FirstOrDefault(s => s.StatTitle == "Listening Clock");
+             
                 MusicByDecadeData = reportData.FirstOrDefault(s => s.StatTitle == "Music By Decade");
                 TopTagsEvolutionData = reportData.FirstOrDefault(s => s.StatTitle == "Top Tags Evolution");
 
@@ -3686,6 +3797,38 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SongWeeklyOHLC = null;
         SongBingeFactor = null;
         SongAverageListenThrough = null;
+        TotalScrobblesStat = null;
+
+        TopTracks = null;
+        TopArtists = null;
+        TopAlbums = null;
+
+        ListeningClockData = null;
+
+        MusicByDecadeData = null;
+        TopTagsEvolutionData = null;
+
+
+        // --- Unique Count Cards (NEW) ---
+        UniqueTracksStat = null;
+        UniqueArtistsStat = null;
+        UniqueAlbumsStat = null;
+
+        // --- Listening Fingerprint (NEW) ---
+        ConsistencyStat = null;
+        DiscoveryRateStat = null;
+        VarianceStat = null;
+        ConcentrationStat = null;
+        ReplayRateStat = null;
+
+        // --- Quick Facts (NEW) ---
+        TotalListeningTimeStat = null;
+        AverageScrobblesPerDayStat = null;
+        MostActiveDayStat = null;
+
+        // --- Advanced Plots (NEW) ---
+        ListeningConcentrationStat = null;
+        EddingtonNumberStat = null;
 
 
         SongListeningStreak = null;

@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Behaviors;
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
+using Dimmer.WinUI.Views.PlaylistPages;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml.Media.Animation;
@@ -17,7 +18,7 @@ public partial class AppShell : Shell
     public AppShell(BaseViewModelWin baseViewModel)
     {
         InitializeComponent();
-
+        MyViewModel=baseViewModel;
 
         Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
@@ -29,6 +30,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ExperimentsPage), typeof(ExperimentsPage));
         Routing.RegisterRoute(nameof(SocialView), typeof(SocialView));
         Routing.RegisterRoute(nameof(AllArtistsPage), typeof(AllArtistsPage));
+        Routing.RegisterRoute(nameof(AllPlaylists), typeof(AllPlaylists));
         
         Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
         Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
@@ -687,5 +689,37 @@ public partial class AppShell : Shell
     private void TrackProgressSlider_DragStarted(object sender, EventArgs e)
     {
         MyViewModel.DragStartedCommand.Execute(default);
+    }
+
+    private async void ShowPlaylistHistory_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            
+            await GoToAsync(nameof(AllPlaylists));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
+    }
+
+    private void ScrollVPointer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        //create a resour style to set button behavior and change tint color to myviewmodel.currentdominantcolor
+
+        //var send = (ScrollView)sender;
+        
+
+
+        //SideBarScrollView.Resources.
+        //    Add(  
+        //    );
+    }
+
+    private void ScrollVPointer_PointerExited(object sender, PointerEventArgs e)
+    {
+
     }
 }
