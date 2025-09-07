@@ -4,6 +4,7 @@ using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 using Dimmer.WinUI.Views.PlaylistPages;
+using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml.Media.Animation;
@@ -33,6 +34,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(AllPlaylists), typeof(AllPlaylists));
         
         Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
+        Routing.RegisterRoute(nameof(TqlTutorialPage), typeof(TqlTutorialPage));
         Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
     }
 
@@ -324,14 +326,7 @@ public partial class AppShell : Shell
 
     private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-
-        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
-
-
-        return;
+      
 
 
 
@@ -721,5 +716,33 @@ public partial class AppShell : Shell
     private void ScrollVPointer_PointerExited(object sender, PointerEventArgs e)
     {
 
+    }
+
+    private void ViewNPQ_TouchUp(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void NowPlayingQueueGestRecog_PointerReleased(object sender, PointerEventArgs e)
+    {
+        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
+
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+
+        if (properties.IsRightButtonPressed)
+        {
+            MyViewModel.AddToNext();
+            return;
+
+
+        }
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
+
+
+        return;
     }
 }

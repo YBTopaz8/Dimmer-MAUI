@@ -76,16 +76,12 @@ x:Name="MyPageGrid"
                           />
             </StackPanel>
             <TextBlock FontSize="25" FontStretch="Expanded"
- FontWeight="ExtraBold" FocusVisualPrimaryBrush="DarkSlateBlue"                        x:Name="SearchSongSB" HorizontalAlignment="Center"
-                         CharacterReceived="SearchSongSB_CharacterReceived"
-                         ContextMenuOpening="SearchSongSB_ContextMenuOpening"
-                         KeyDown="SearchSongSB_KeyDown"
+ FontWeight="ExtraBold" FocusVisualPrimaryBrush="DarkSlateBlue"                      
+                       x:Name="SearchSongSB" HorizontalAlignment="Center"
                         Text="{Binding CurrentTqlQuery}"
-                         PointerWheelChanged="SearchSongSB_PointerWheelChanged"
-                         SelectionChanged="SearchSongSB_SelectionChanged"
+                       
                              
                        />
-            <TextBlock Text="{Binding TQLUserSearchErrorMessage}" HorizontalAlignment="Center" />
 
 
 
@@ -95,18 +91,17 @@ Spacing="10"
 
 
                 <TextBox
-x:Name="SearchAutoSuggestBox"
+x:Name="SearchTetxBox"
 PlaceholderText="Search with TQL..." 
-Width="450" 
+Width="550" 
+                    TextChanged="SearchAutoSuggestBox_TextChanged"
                         KeyboardAcceleratorPlacementMode="Auto"
                         AccessKey="F"
+                    BorderThickness="2"
                         AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
-                        CharacterReceived="SearchAutoSuggestBox_CharacterReceived"
-                        CopyingToClipboard="SearchAutoSuggestBox_CopyingToClipboard"
-                        CuttingToClipboard="SearchAutoSuggestBox_CuttingToClipboard"
-                        GettingFocus="SearchAutoSuggestBox_GettingFocus"
-                        BeforeTextChanging="SearchAutoSuggestBox_BeforeTextChanging"
-Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
+Text="{x:Bind MyViewModel.CurrentTqlQuery}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="Run" Command="{Binding SearchSongSB_TextChangedCommand}"
                             CommandParameter="{Binding CurrentTqlQuery}"/>
                 <Button Content="Clear" Command="{Binding ResetSearchCommand}"/>
@@ -153,12 +148,12 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}"/>
                               BringIntoViewRequested="TableView_BringIntoViewRequested"
                               ExportSelectedContent="TableView_ExportSelectedContent"
                                    PointerReleased="MySongsTableView_PointerReleased"
-                                   
                                    PointerEntered="MySongsTableView_PointerEntered"
                                    AllowFocusOnInteraction="False"
                                    PointerExited="MySongsTableView_PointerExited"
                                    AllowFocusWhenDisabled="False"
-                                   CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
+                           ProcessKeyboardAccelerators="MySongsTableView_ProcessKeyboardAccelerators"
+                           CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
                                    ClearSorting="MySongsTableView_ClearSorting"
                                    DragItemsStarting="MySongsTableView_DragItemsStarting"
                                    Holding="MySongsTableView_Holding"

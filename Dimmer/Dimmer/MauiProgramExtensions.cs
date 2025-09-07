@@ -117,7 +117,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
-
+        
         builder.Services.AddSingleton<StatisticsService>();
         builder.Services.AddSingleton<StatisticsViewModel>();
 

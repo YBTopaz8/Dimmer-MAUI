@@ -410,7 +410,7 @@ x:Name="ScrollToCurrSong"
 BorderThickness="0"
 Icon="eye.png"
                     IconColor="{Binding CurrentPlaySongDominantColor}"
-IconSize="55,55" BackgroundColor="Black"
+IconSize="55,55" 
 IsIconVisible="True"
 Tap="ScrollToCurrSong_Tap" />
 
@@ -1126,7 +1126,68 @@ FontAttributes="Bold"                                                        Hor
             x:Name="MoreBtmSheet" StateChanged="MoreBtmSheet_StateChanged">
             <dx:BottomSheet.Content>
                 <VerticalStackLayout>
-                    <Label Text="Empty"/>
+                    
+                        <Button 
+                ImageSource="eye.png" HeightRequest="20" WidthRequest="160"
+               Text="{Binding Title, StringFormat='View Song'}"
+    Clicked="NavigateToSelectedSongPageContextMenuAsync">
+                            
+                        </Button>
+
+                    <Button HeightRequest="20" WidthRequest="160"
+Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
+CommandParameter="Black" ImageSource="chatdots.png"
+                    >
+                            <Button.Text>
+                                <MultiBinding StringFormat="{}Add Quick Note to: {0} by {1}">
+                                    <Binding Path="Title" />
+                                    <Binding Path="ArtistName" />
+                                </MultiBinding>
+                            </Button.Text>
+                            
+                        </Button>
+
+
+
+
+
+
+                    <Button HeightRequest="20" WidthRequest="160"
+                     Text="{Binding OtherArtistsName,StringFormat='Quick View Artist : {0}'}"
+                               ImageSource="artist.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="QuickSearchArtist_Clicked"
+                     x:Name="ViewArtistMFI"/>
+                    <Button HeightRequest="20" WidthRequest="160"
+                     Text="{Binding AlbumName,StringFormat='Quick View Album : {0}'}"
+                                ImageSource="albummm.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="QuickSearchAlbum_Clicked"
+                     x:Name="ViewAlbumMFI"/>
+                    <Button HeightRequest="20" WidthRequest="160"
+                     Text="{Binding GenreName,StringFormat='Quick View Genre : {0}'}"
+                                ImageSource="albumm.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="ViewGenreMFI_Clicked"
+                     x:Name="ViewGenreMFI"/>
+
+
+
+                    <Button Text="Open File in Explorer" HeightRequest="20" WidthRequest="160"
+    Clicked="OnLabelClicked"
+    CommandParameter="OpenFileExp" />
+                    <Button Text="Open File in Folder" HeightRequest="20" WidthRequest="160"
+    Clicked="OnLabelClicked" CommandParameter="{Binding .}"
+                  Command="{Binding OpenFileInFolderCommand,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+/>
+                    <Button Text="Delete from system" HeightRequest="20" WidthRequest="160"
+    Clicked="OnLabelClicked" ImageSource="deletesonginterfacesymbol.png" 
+    
+                                    CommandParameter="DeleteSys" />
+                    <Button Text="Sync" HeightRequest="20" WidthRequest="160"
+     ImageSource="roundtransferhorizontal.png"
+    CommandParameter="SyncShare" />
+                    
                 </VerticalStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>

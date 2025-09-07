@@ -2,6 +2,7 @@
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml;
@@ -1248,7 +1249,10 @@ await this.FadeIn(500, 1.0);
         MainPagePopup.IsOpen = !MainPagePopup.IsOpen;
     }
 
-  
+    private async void TQLL_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(TqlTutorialPage), true);
+    }
 }
 
 public class SongViewTemplateSelector : DataTemplateSelector

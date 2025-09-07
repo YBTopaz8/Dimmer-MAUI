@@ -195,6 +195,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DimmerSearch\Model\" />
     <Folder Include="DimmerSearch\TQLActions\" />
     <Folder Include="Resources\AppIcon\NewFolder\" />
     <Folder Include="Utilities\UIHelpers\" />

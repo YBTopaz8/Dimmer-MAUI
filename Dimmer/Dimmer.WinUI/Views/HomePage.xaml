@@ -436,6 +436,10 @@ windows:VisualElement.AccessKeyPlacement="Right"
            Loaded="SearchBtn_Loaded"  >
 
                             </Button>
+                            <Button 
+                                Text="TQLL"
+                                x:Name="TQLL"
+                                    Clicked="TQLL_Clicked"/>
                             <Button Text="Clear" BorderWidth="2" 
 x:Name="ClearQueueBtn" BackgroundColor="Transparent"
 windows:SearchBar.IsSpellCheckEnabled="True" TextColor="{AppThemeBinding Light=Black,Dark=WHite}"

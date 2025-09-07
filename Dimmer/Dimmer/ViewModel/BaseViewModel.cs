@@ -1080,7 +1080,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _searchQuerySubject.OnNext("random");
         CurrentTqlQuery= "random";
     }
-
+   
     private SourceList<DimmerPlayEventView> _playEventSource = new();
     private CompositeDisposable _disposables = new();
     private IDisposable? _realmSubscription;
@@ -2064,7 +2064,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         songs ??=_searchResults;
       
         _playbackQueueSource.AddRange(songs);
-        //AddNextEvent?.Invoke(this, EventArgs.Empty);
 
         
 
@@ -2357,8 +2356,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 // *** SIMPLIFIED QUEUE SLICING LOGIC ***
                 // Take a window of 150 songs (50 before, 100 after) for performance.
-                const int songsToTakeBefore = 50;
-                const int songsToTakeAfter = 100;
+                const int songsToTakeBefore = 100;
+                const int songsToTakeAfter = 300;
                 const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
                 int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
@@ -3648,6 +3647,25 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
        await GenerateWeeklyReportAsync();
     }
     [RelayCommand]
+    public async Task LoadStatsForSpecificSong(SongModelView? song)
+    {
+        song ??= SelectedSong;
+        var endDate = DateTimeOffset.Now;
+        var startDate = endDate.AddDays(-7);
+
+        realm = RealmFactory.GetRealmInstance();
+        // Phase 1: Data Preparation
+        var scrobblesInPeriod = realm.Find<SongModel>(song.Id)
+            .PlayHistory
+                                             //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
+                                             //            (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed))
+                                             //.OrderBy(p => p.EventDate) // Important for sequential analysis
+                                             .ToList();
+        var allSongs = realm.All<SongModel>().ToList();
+        _reportGenerator = new ListeningReportGenerator(allSongs,scrobblesInPeriod, _logger,_mapper);
+       await GenerateWeeklyReportAsync();
+    }
+    [RelayCommand]
     private async Task GenerateWeeklyReportAsync()
     {
         // clear all the stats first
@@ -3661,42 +3679,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var startDate = endDate.AddDays(-7);
 
             var reportData = await _reportGenerator.GenerateReportAsync(startDate, endDate);
-            if (reportData != null && reportData.Count>0)
+            if (reportData)
             {
                 // Find each stat by its title and assign it to the correct property.
                 // Use FirstOrDefault to avoid exceptions if a stat isn't generated.
-                TotalScrobblesStat = reportData.FirstOrDefault(s => s.StatTitle == "Total Scrobbles");
+                TotalScrobblesStat = _reportGenerator.GetTotalScrobbles();
 
-                TopTracks = reportData.FirstOrDefault(s => s.StatTitle == "Top Tracks")?.ChildStats;
-                TopArtists = reportData.FirstOrDefault(s => s.StatTitle == "Top Artists")?.ChildStats;
-                TopAlbums = reportData.FirstOrDefault(s => s.StatTitle == "Top Albums")?.ChildStats;
+                TopTracks = _reportGenerator.GetTopTracks();
+                TopArtists = _reportGenerator.GetTopArtists();
+                TopAlbums = _reportGenerator.GetTopAlbums();
 
-                ListeningClockData = reportData.FirstOrDefault(s => s.StatTitle == "Listening Clock");
+                ListeningClockData = _reportGenerator.GetListeningClock();
              
-                MusicByDecadeData = reportData.FirstOrDefault(s => s.StatTitle == "Music By Decade");
-                TopTagsEvolutionData = reportData.FirstOrDefault(s => s.StatTitle == "Top Tags Evolution");
+                MusicByDecadeData = _reportGenerator.GetMusicByDecade();
 
 
                 // --- Unique Count Cards (NEW) ---
-                UniqueTracksStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Tracks");
-                UniqueArtistsStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Artists");
-                UniqueAlbumsStat = reportData.FirstOrDefault(s => s.StatTitle == "Unique Albums");
+                UniqueTracksStat = _reportGenerator.GetUniqueTracks();
+                UniqueArtistsStat = _reportGenerator.GetUniqueArtists();
+                UniqueAlbumsStat = _reportGenerator.GetUniqueAlbums();
 
                 // --- Listening Fingerprint (NEW) ---
-                ConsistencyStat = reportData.FirstOrDefault(s => s.StatTitle == "Consistency");
-                DiscoveryRateStat = reportData.FirstOrDefault(s => s.StatTitle == "Discovery Rate");
-                VarianceStat = reportData.FirstOrDefault(s => s.StatTitle == "Variance");
-                ConcentrationStat = reportData.FirstOrDefault(s => s.StatTitle == "Concentration");
-                ReplayRateStat = reportData.FirstOrDefault(s => s.StatTitle == "Replay Rate");
+                ConsistencyStat = _reportGenerator.GetConsistence();
+                DiscoveryRateStat = _reportGenerator.GetDiscoveryRate();
+                VarianceStat = _reportGenerator.GetVariance();
+                ConcentrationStat = _reportGenerator.GetConcentration();
+                ReplayRateStat = _reportGenerator.GetReplayRate();
 
                 // --- Quick Facts (NEW) ---
-                TotalListeningTimeStat = reportData.FirstOrDefault(s => s.StatTitle == "Total Listening Time");
-                AverageScrobblesPerDayStat = reportData.FirstOrDefault(s => s.StatTitle == "Average Scrobbles/Day");
-                MostActiveDayStat = reportData.FirstOrDefault(s => s.StatTitle == "Most Active Day");
+                TotalListeningTimeStat = _reportGenerator.GetTotalListeningTime();
+                AverageScrobblesPerDayStat = _reportGenerator.GetAverageScrobblesDay();
+                MostActiveDayStat = _reportGenerator.GetMostActiveDay();
 
                 // --- Advanced Plots (NEW) ---
-                ListeningConcentrationStat = reportData.FirstOrDefault(s => s.StatTitle == "Listening Concentration (Pareto)");
-                EddingtonNumberStat = reportData.FirstOrDefault(s => s.StatTitle == "Music Eddington Number");
+                ListeningConcentrationStat = _reportGenerator.GetListeningConcentration();
+                EddingtonNumberStat = _reportGenerator.GetMusicEddingtonNumber();
             }
         }
         catch (Exception ex)
@@ -4797,8 +4814,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _searchQuerySubject.OnNext($"{queryWithoutDirectives} {sortClause}");
     }
+    public void UpdateQueryWithClause(string tqlClause, bool isExclusion)
+    {
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
 
 
+
+        var currentQuery = CurrentTqlQuery.Trim();
+        string newQuery;
+
+        // The clause from the UI might contain spaces, so if we're appending it,
+        // it's safest to wrap it in parentheses to ensure it's treated as a single unit.
+        // e.g., "year:>2000 add (artist:\"Red Hot Chili Peppers\")"
+        string clauseUnit = tqlClause.Contains(' ') ? $"({tqlClause})" : tqlClause;
+
+        // Case 1: The search box is empty, or just a non-filter keyword.
+        // In this case, the new clause becomes the entire query. We don't use 'add' or 'exclude'.
+        if (string.IsNullOrWhiteSpace(currentQuery) || currentQuery.Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            // If the first action is an exclusion, it's implicitly "everything BUT this".
+            // Your parser handles "not (...)" correctly at the start of a query.
+            newQuery = isExclusion ? $"not {clauseUnit}" : clauseUnit;
+        }
+        // Case 2: There is an existing query to modify.
+        else
+        {
+            // Use the powerful TQL keywords your parser understands.
+            string connector = isExclusion ? "exclude" : "add";
+            newQuery = $"{currentQuery} {connector} {clauseUnit}";
+        }
+
+        // Update the property and trigger the search pipeline
+        CurrentTqlQuery = newQuery;
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
     public ObservableCollection<ActiveFilterViewModel> ActiveFilters { get; } = new();
 
     [ObservableProperty]

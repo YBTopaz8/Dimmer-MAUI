@@ -139,24 +139,26 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="tooltipTemplateTwo" x:DataType="syncf:TooltipInfo">
+        <DataTemplate x:Key="ListeninClickTooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
-                <Label
-FontAttributes="Bold"
-FontSize="19"
-HorizontalOptions="Center"
-Text="{Binding Item.Name, StringFormat='{0}'}"
-TextColor="{AppThemeBinding Dark=White, Light=Black}"
-VerticalOptions="Center" />
-
-
                 <Label
 FontAttributes="Bold"
 FontSize="21"
 HorizontalOptions="Center"
-Text="{Binding Item.Count, StringFormat=' {0} Times'}"
+Text="{Binding Item.Value, StringFormat='{0} Dimms '}"
 TextColor="DarkSlateBlue"
 VerticalOptions="Center" />
+                <Label
+FontAttributes="Bold"
+FontSize="19"
+HorizontalOptions="Center"
+Text="{Binding Item.Label, StringFormat=' at {0}'}"
+TextColor="{AppThemeBinding Dark=White, Light=Black}"
+VerticalOptions="Center" />
+
+
+
+               
             </HorizontalStackLayout>
         </DataTemplate>
     </ContentPage.Resources>
@@ -783,22 +785,26 @@ ToolTipProperties.Text="Save Has Favorite">
                             </VerticalStackLayout>
 
                             <Grid Grid.Row="1">
-                                <syncf:SfPolarChart>
+                                <syncf:SfPolarChart 
+                                   >
                                     <syncf:SfPolarChart.PrimaryAxis>
-                                        <syncf:CategoryAxis />
+                                        <syncf:CategoryAxis ShowMajorGridLines="True" />
                                     </syncf:SfPolarChart.PrimaryAxis>
 
                                     <syncf:SfPolarChart.SecondaryAxis>
-                                        <syncf:NumericalAxis />
+                                        <syncf:NumericalAxis ShowMajorGridLines="True"
+                                                             ShowTrackballLabel="False"
+                                                             ShowMinorGridLines="True"/>
                                     </syncf:SfPolarChart.SecondaryAxis>
 
                                     <syncf:PolarLineSeries
                                           ShowDataLabels="True" EnableTooltip="True"
                                         EnableAnimation="True"
+                                        TooltipTemplate="{StaticResource ListeninClickTooltipTemplate}"
                                         Fill="{Binding CurrentPlaySongDominantColor}"
                                         ItemsSource="{Binding ListeningClockData.PlotData}" XBindingPath="Label" YBindingPath="Value"/>
 
-                                    </syncf:SfPolarChart>
+                                </syncf:SfPolarChart>
                             </Grid>
                         </Grid>
                     </syncf:SfTabItem.Content>

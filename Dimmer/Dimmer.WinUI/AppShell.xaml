@@ -47,8 +47,7 @@
                         <ScrollView x:Name="SideBarScrollView">
                             <ScrollView.GestureRecognizers>
                                 <PointerGestureRecognizer
-                                    PointerEntered="ScrollVPointer_PointerEntered" 
-                                    PointerExited="ScrollVPointer_PointerExited"
+                               
                                     
                                     x:Name="ScrollVPointer">
                                     
@@ -551,17 +550,22 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
                     </Button.Triggers>
                 </Button>
 
-                <Button
+                <syncf:SfEffectsView
  windows:VisualElement.AccessKey="Q"
                     windows:VisualElement.AccessKeyPlacement="Bottom"
-Clicked="ViewNPQ_Clicked" x:Name="ViewNPQ"  TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
+
+                    x:Name="ViewNPQ"  
                     BackgroundColor="Transparent"
 ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}"
-                    Text="View Now Playing Queue">
+                    >
+                    <syncf:SfEffectsView.GestureRecognizers>
+                        <PointerGestureRecognizer 
+                            PointerReleased="NowPlayingQueueGestRecog_PointerReleased" x:Name="NowPlayingQueueGestRecog"
+                            />
+                    </syncf:SfEffectsView.GestureRecognizers>
+                    <Label Text="View Now Playing Queue"/>
+                </syncf:SfEffectsView>
 
-                </Button>
-
-               
 
                 <Grid ColumnDefinitions="auto,*" ColumnSpacing="10">
 

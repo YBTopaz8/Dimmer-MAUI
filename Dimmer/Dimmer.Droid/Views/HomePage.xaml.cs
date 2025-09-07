@@ -24,6 +24,7 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Button = Microsoft.Maui.Controls.Button;
 using Color = Microsoft.Maui.Graphics.Color;
 using Platform = Microsoft.Maui.ApplicationModel.Platform;
 
@@ -591,7 +592,19 @@ public partial class HomePage : ContentPage
 
     private bool SwitchUINowPlayingOrNot()
     {
+        switch (MainViewTabView.SelectedItemIndex)
+        {
+            case 0:
+                MainViewTabView.SelectedItemIndex=1;
+                break;
+                
+            case 1:
+                MainViewTabView.SelectedItemIndex=0;
+                break;
 
+            default:
+                break;
+        }
 
 
 
@@ -792,9 +805,19 @@ public partial class HomePage : ContentPage
     }
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
-        //int itemHandle = SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-        //SongsColView.ScrollTo(itemHandle, DXScrollToPosition.StartAsync);
 
+        if (MyViewModel.CurrentPlayingSongView.Title is not null)
+        {
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+            });
+           
+
+
+        }
     }
     private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
@@ -1025,19 +1048,22 @@ public partial class HomePage : ContentPage
                     {
                         try
                         {
-                            if (MyViewModel.CurrentPlayingSongView.Title is not null)
-                            {
+                            MainViewTabView.SelectedItemIndex = 1;
+                            btmBarHeight=send.Height;
 
-                                MainThread.BeginInvokeOnMainThread(() =>
-                                {
-                                    int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-                                    MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
-                                });
-                                btmBarHeight=send.Height;
+                            //if (MyViewModel.CurrentPlayingSongView.Title is not null)
+                            //{
+
+                            //    MainThread.BeginInvokeOnMainThread(() =>
+                            //    {
+                            //        int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                            //        MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+                            //    });
+                            //    btmBarHeight=send.Height;
 
 
 
-                            }
+                            //}
                         }
                         catch { }
                     }
@@ -1263,9 +1289,107 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
+    {
+
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
+
+    }
+
+    private async void QuickSearchArtist_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var song = send.BindingContext as SongModelView;
+        var val = song.OtherArtistsName;
+        char[] dividers = [',', ';', ':', '|', '-'];
+
+        var namesList = val
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+            .Select(name => name.Trim())                           // Trim whitespace from each name
+            .ToArray();                                             // Convert to a List
+        if (namesList is not null && namesList.Length==1)
+        {
+            SearchSongSB_Clicked(sender, e);
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
+
+            return;
+        }
+        var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+        if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+        {
+            return;
+        }
+
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+
+        return;
+    }
+    private void SearchSongSB_Clicked(object sender, EventArgs e)
+    {
+       
+    }
+
     private void MoreBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
 
+    }
+
+    private async void OnAddQuickNoteClicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var song = send.BindingContext as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        // Prompt the user for a note
+
+
+        await MyViewModel.SaveUserNoteToSong(song);
+
+    }
+
+    private void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ViewGenreMFI_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void OnLabelClicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var song = send.BindingContext as SongModelView;
+
+        var param = send.CommandParameter as string;
+
+        if (song is null && param is not null)
+        {
+            return;
+        }
+
+        switch (param)
+        {
+            case "DeleteSys":
+
+                var listOfSongsToDelete = new List<SongModelView> { song };
+
+                await MyViewModel.DeleteSongs(listOfSongsToDelete);
+                break;
+            case "OpenFileExp":
+
+                await MyViewModel.OpenFileInOtherApp(song);
+                break;
+
+            default:
+                break;
+        }
     }
 }
 

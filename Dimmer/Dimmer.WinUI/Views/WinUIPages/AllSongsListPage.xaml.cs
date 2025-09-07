@@ -35,7 +35,8 @@ public sealed partial class AllSongsListPage : Page
         this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
     }
     BaseViewModelWin MyViewModel { get; set; }
-  
+
+    private TableViewCellSlot _lastActiveCellSlot;
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
 
@@ -43,7 +44,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-
+        ProcessCellClick(isExclusion: false);
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -125,7 +126,8 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-    private void SearchSongSB_TextChanged(object sender, RoutedEventArgs e)
+    private void SearchSongSB_Text
+        (object sender, RoutedEventArgs e)
     {
         var send = sender as TextBox;
         if (send == null)
@@ -150,10 +152,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        var send = sender as global::WinUI.TableView.TableView;
-        if (send == null)
-            return;
-
+        ProcessCellClick(isExclusion: true);
 
     }
 
@@ -168,26 +167,7 @@ public sealed partial class AllSongsListPage : Page
         MyViewModel.SearchSongSB_TextChanged(text);
     }
 
-    private void SearchSongSB_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-
-        var box = sender as RichEditBox;
-        if (box == null)
-            return;
-
-        // Get the full text from the box
-        box.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out string text);
-
-        // Prevent recursive event firing
-        box.TextChanged -= SearchSongSB_TextChanged;
-
-        // Highlight the syntax
-        HighlightSyntax(box.TextDocument, text);
-
-        // Restore the event handler
-        box.TextChanged += SearchSongSB_TextChanged;
-
-    }
+  
     private void HighlightSyntax(Microsoft.UI.Text.RichEditTextDocument document, string text)
     {
         // First, clear all previous formatting by setting the whole range to the default color
@@ -287,7 +267,6 @@ public sealed partial class AllSongsListPage : Page
     private void SearchAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         
-        MyViewModel.SearchSongSB_TextChanged(sender.Text);
     }
 
     private void SearchAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
@@ -566,7 +545,10 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
     {
-
+        Debug.WriteLine(e.Column?.Header);
+        Debug.WriteLine(e.Column?.Order);
+        Debug.WriteLine(e.Handled);
+        // latter, log it in vm
     }
 
     private void MySongsTableView_Loading(FrameworkElement sender, object args)
@@ -690,17 +672,38 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        var OldValue = e.OldValue;
-        TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
-        var propValue = e.Property;
-        Debug.WriteLine(propValue?.GetType());
-        Debug.WriteLine(OldValue?.GetType());
+        //var OldValue = e.OldValue;
+        //TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
+        //var propValue = e.Property;
+        //Debug.WriteLine(propValue?.GetType());
+        //Debug.WriteLine(OldValue?.GetType());
 
-        List<TableViewCellSlot> cells = new List<TableViewCellSlot>();
-        cells.Add(newValue);
+        //List<TableViewCellSlot> cells = new List<TableViewCellSlot>();
+        //cells.Add(newValue);
 
-        var we=  MySongsTableView.GetCellsContent(cells, true);
-        var ee =  MySongsTableView.GetSelectedContent(true);
+        //var we=  MySongsTableView.GetCellsContent(cells, true);
+        //var ee =  MySongsTableView.GetSelectedContent(true);
+
+        // This event tells us exactly which cell the user just moved to or clicked on.
+        // We just store its location for the Tapped/RightTapped event to use.
+        if (e.NewValue is TableViewCellSlot newSlot)
+        {
+            _lastActiveCellSlot = newSlot;
+        }
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        if (nativeElement == null)
+            return;
+        // figure out if it is right click
+
+        //var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+
+        //if (properties.IsRightButtonPressed)
+        //{
+        //    MyViewModel.AddToNext();
+        //    return;
+
+
+        //}
     }
 
     private void MySongsTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -917,5 +920,71 @@ public sealed partial class AllSongsListPage : Page
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
+    }
+
+    private void SearchAutoSuggestBox_TextChanged_1(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        
+        MyViewModel.SearchSongSB_TextChanged(SearchTetxBox.Text);
+    }
+   
+    private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
+    {
+
+    }
+
+    private void ProcessCellClick(bool isExclusion)
+    {
+        // 1. Check if we have a valid cell location from the CurrentCellChanged event.
+        if (_lastActiveCellSlot.Equals(default(TableViewCellSlot)))
+        {
+            Debug.WriteLine("[ProcessCellClick] Aborted: _lastActiveCellSlot is not set.");
+            return;
+        }
+
+        // 2. Use the TableView's own API to get the content.
+        string tableViewContent = MySongsTableView.GetCellsContent(
+            slots: new[] { _lastActiveCellSlot },
+            includeHeaders: true
+        );
+
+        Debug.WriteLine($"[ProcessCellClick] GetCellsContent returned: \"{tableViewContent?.Replace("\n", "\\n")}\"");
+
+        // 3. --- NEW, MORE ROBUST VALIDATION ---
+        // First, check if the string is fundamentally empty.
+        if (string.IsNullOrWhiteSpace(tableViewContent))
+        {
+            Debug.WriteLine("[ProcessCellClick] Aborted: tableViewContent is null or whitespace.");
+            return;
+        }
+
+        // Second, split the content to ensure we have BOTH a header and a value.
+        var parts = tableViewContent.Split(new[] { '\n' }, 2);
+        if (parts.Length < 2 || string.IsNullOrWhiteSpace(parts[1]))
+        {
+            // This is the critical check. If parts[1] is empty, it means the cell
+            // had no value, and we should not proceed.
+            Debug.WriteLine("[ProcessCellClick] Aborted: Cell value is empty. No clause generated.");
+            return;
+        }
+        // --- END OF NEW VALIDATION ---
+
+        // 4. Use your existing TQL converter.
+        string tqlClause = TqlConverter.ConvertTableViewContentToTql(tableViewContent);
+        if (string.IsNullOrEmpty(tqlClause))
+        {
+            Debug.WriteLine($"[ProcessCellClick] Aborted: TqlConverter failed to convert content.");
+            return;
+        }
+
+        Debug.WriteLine($"[ProcessCellClick] Generated TQL Clause: \"{tqlClause}\" | IsExclusion: {isExclusion}");
+
+        // 5. Call the ViewModel to update the query.
+        MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion);
     }
 }

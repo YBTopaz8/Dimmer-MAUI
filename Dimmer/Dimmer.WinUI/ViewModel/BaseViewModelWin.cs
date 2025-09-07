@@ -534,4 +534,6 @@ public partial class BaseViewModelWin: BaseViewModel
         }
 
     }
+
+   
 }
