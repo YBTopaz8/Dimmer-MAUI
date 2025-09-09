@@ -319,6 +319,22 @@ ToolTipProperties.Text="Save Has Favorite">
                                                 IconImageSource="lastfm.png"
                                                 Command="{Binding OpenSongInOnlineSearchCommand}"
                                                 CommandParameter="lastFM"/>
+                                <MenuFlyoutItem Text="View on Google" 
+                                                IconImageSource="google.png"
+                                                Command="{Binding OpenSongInOnlineSearchCommand}"
+                                                CommandParameter="google"/>
+                                <MenuFlyoutItem Text="View on YouTube" 
+                                                IconImageSource="lastfm.png"
+                                                Command="{Binding OpenSongInOnlineSearchCommand}"
+                                                CommandParameter="youtube"/>
+                                <MenuFlyoutItem Text="View on Spotify" 
+                                                IconImageSource="lastfm.png"
+                                                Command="{Binding OpenSongInOnlineSearchCommand}"
+                                                CommandParameter="spotify"/>
+                                <MenuFlyoutItem Text="View on Deezer" 
+                                                IconImageSource="lastfm.png"
+                                                Command="{Binding OpenSongInOnlineSearchCommand}"
+                                                CommandParameter="deezer"/>
                                 <MenuFlyoutItem Text="Share Title Only" 
                          Clicked="ShowBtmSheet_Clicked"
                          IconImageSource="textitalicsquare.png"/>
@@ -656,8 +672,8 @@ ToolTipProperties.Text="Save Has Favorite">
                                 
                             <Grid >
                                 <VerticalStackLayout Spacing="10">
-                                    <Grid ColumnDefinitions="*,*">
-                                        <Border Padding="5" Grid.Column="0">
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <Border Grid.Column="0" Stroke="{Binding CurrentPlaySongDominantColor}" Padding="10">
 
                                             <VerticalStackLayout >
                                                  
@@ -686,7 +702,8 @@ ToolTipProperties.Text="Save Has Favorite">
                                             </VerticalStackLayout>
 
                                         </Border>
-                                        <Border Grid.Column="1" Padding="5">
+                                            <Border Grid.Column="1" Padding="10"  Stroke="{Binding CurrentPlaySongDominantColor}"
+                                                ToolTipProperties.Text="{Binding SelectedSong.SyncLyrics, StringFormat='Lyrics: {0}'}">
                                             
                                             <VerticalStackLayout >
                                                     <Label Text="Length"
@@ -716,52 +733,11 @@ ToolTipProperties.Text="Save Has Favorite">
                                         </Border>
                                     </Grid>
 
-                                            <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.StatExplanation}"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.Value}"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.ComparisonLabel}"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.ComparisonValue}"/>
-                                        <Label FontSize="26" Text="{Binding TotalScrobblesStat.Count, StringFormat='{0} Dimms'}"/>
-
-                                        
-                                            <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                        <Label FontSize="26" Text="{Binding UniqueArtistsStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueArtistsStat.ComparisonLabel}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueArtistsStat.ComparisonValue}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueArtistsStat.Count, StringFormat='{0} Artists'}"/>
-
-                                        <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                        <Label FontSize="26" Text="{Binding UniqueTracksStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueTracksStat.ComparisonLabel}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueTracksStat.ComparisonValue}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueTracksStat.Count, StringFormat='{0} Tracks'}"/>
+                                        <Label Text="{Binding SelectedSongLastFMData.Wiki.Content}"/>
+                                        <Label Text="{Binding SelectedSongLastFMData.Wiki.Published}"/>
+                                        <Label Text="{Binding SelectedSongLastFMData.Wiki.Summary}"/>
 
 
-                                        <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                        <Label FontSize="26" Text="{Binding UniqueAlbumsStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueAlbumsStat.ComparisonLabel}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueAlbumsStat.ComparisonValue}"/>
-                                        <Label FontSize="26" Text="{Binding UniqueAlbumsStat.Count, StringFormat='{0} Albums'}"/>
-
-
-                                        <Label FontSize="26" Text="{Binding ConsistencyStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding ConsistencyStat.StatExplanation}"/>
-                                        <Label FontSize="26" Text="{Binding ConsistencyStat.Value}"/>
-
-                                        <Label FontSize="26" Text="{Binding DiscoveryRateStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding DiscoveryRateStat.StatExplanation}"/>
-                                        <Label FontSize="26" Text="{Binding DiscoveryRateStat.Value}"/>
-
-                                        <Label FontSize="26" Text="{Binding TotalListeningTimeStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding TotalListeningTimeStat.TimeSpanValue}"/>
-
-                                        <Label FontSize="26" Text="{Binding AverageScrobblesPerDayStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding AverageScrobblesPerDayStat.Value}"/>
-
-                                        <Label FontSize="26" Text="{Binding MostActiveDayStat.StatTitle}"/>
-                                        <Label FontSize="26" Text="{Binding MostActiveDayStat.DateValue, StringFormat='{0:dd MMM yyyy}'}"/>
-                                        <Label FontSize="26" Text="{Binding MostActiveDayStat.Count}"/>
                                     </VerticalStackLayout>
                             </Grid>
 
@@ -769,43 +745,11 @@ ToolTipProperties.Text="Save Has Favorite">
                         </Grid>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
-                <syncf:SfTabItem>
+                <syncf:SfTabItem Header="Stats">
                     <syncf:SfTabItem.Content>
                         <Grid RowDefinitions="auto,*">
-                            <VerticalStackLayout Grid.Row="0">
-
-                                <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                                <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle}"/>
-                                <Label FontSize="26" Text="{Binding ListeningClockData.StatExplanation}"/>
-                                <Label FontSize="26" Text="{Binding ListeningClockData.StatTitle2}"/>
-                                <Label FontSize="26" Text="{Binding ListeningClockData.Name}"/>
-                                <Label FontSize="26" Text="{Binding ListeningClockData.Count, StringFormat='{0} Dimms'}"/>
-
-                                <BoxView HeightRequest="2" Color="DarkSlateBlue"/>
-                            </VerticalStackLayout>
-
-                            <Grid Grid.Row="1">
-                                <syncf:SfPolarChart 
-                                   >
-                                    <syncf:SfPolarChart.PrimaryAxis>
-                                        <syncf:CategoryAxis ShowMajorGridLines="True" />
-                                    </syncf:SfPolarChart.PrimaryAxis>
-
-                                    <syncf:SfPolarChart.SecondaryAxis>
-                                        <syncf:NumericalAxis ShowMajorGridLines="True"
-                                                             ShowTrackballLabel="False"
-                                                             ShowMinorGridLines="True"/>
-                                    </syncf:SfPolarChart.SecondaryAxis>
-
-                                    <syncf:PolarLineSeries
-                                          ShowDataLabels="True" EnableTooltip="True"
-                                        EnableAnimation="True"
-                                        TooltipTemplate="{StaticResource ListeninClickTooltipTemplate}"
-                                        Fill="{Binding CurrentPlaySongDominantColor}"
-                                        ItemsSource="{Binding ListeningClockData.PlotData}" XBindingPath="Label" YBindingPath="Value"/>
-
-                                </syncf:SfPolarChart>
-                            </Grid>
+                           
+                            
                         </Grid>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
@@ -826,8 +770,14 @@ ToolTipProperties.Text="Save Has Favorite">
                                     <Entry Grid.Row="0" Grid.Column="1" Text="{Binding SelectedSong.Title}"/>
 
                                     <Label Grid.Row="1" Grid.Column="0" Text="Artist(s)" Style="{StaticResource FieldLabel}"/>
-                                    <Entry Grid.Row="1" Grid.Column="1" Text="{Binding SelectedSong.OtherArtistsName}" Placeholder="e.g. Artist A, Artist B"/>
-
+                                        <HorizontalStackLayout  Grid.Row="1" Grid.Column="1">
+                                            <Entry Text="{Binding SelectedSong.OtherArtistsName}" Placeholder="e.g. Artist A, Artist B"/>
+                                            <Picker ItemsSource="{Binding AllArtistsInDb}"
+                                                    ItemDisplayBinding="{Binding Name}"
+                                                    >
+                                            </Picker>
+                                            <Button Command="{Binding LoadAllArtistsFromOurDatabaseCommand}"/>
+                                        </HorizontalStackLayout>
                                     <Label Grid.Row="2" Grid.Column="0" Text="Album" Style="{StaticResource FieldLabel}"/>
                                     <Entry Grid.Row="2" Grid.Column="1" Text="{Binding SelectedSong.AlbumName}"/>
 

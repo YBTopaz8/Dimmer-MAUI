@@ -544,6 +544,6 @@ public partial class SingleSongPage : ContentPage
     private void MoreBtn_Clicked(object sender, EventArgs e)
     {
         Button btn = (Button)sender;
-        btn.ShowContextMenu();
+        //btn.ShowContextMenu();
     }
 }

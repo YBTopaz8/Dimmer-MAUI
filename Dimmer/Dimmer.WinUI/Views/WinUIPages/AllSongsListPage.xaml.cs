@@ -44,7 +44,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        ProcessCellClick(isExclusion: false);
+        return;
+        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+        if (isCtlrKeyPressed)
+            ProcessCellClick(isExclusion: false);
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -152,7 +157,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        ProcessCellClick(isExclusion: true);
+        return;
+        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+        if (isCtlrKeyPressed)
+            ProcessCellClick(isExclusion: true);
 
     }
 
@@ -928,8 +938,7 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-        
+    {        
         MyViewModel.SearchSongSB_TextChanged(SearchTetxBox.Text);
     }
    
@@ -940,6 +949,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void ProcessCellClick(bool isExclusion)
     {
+        return;
         // 1. Check if we have a valid cell location from the CurrentCellChanged event.
         if (_lastActiveCellSlot.Equals(default(TableViewCellSlot)))
         {

@@ -23,8 +23,8 @@ public partial class ArtistsPage : ContentPage
     }
     public void LoadArtists()
     {
-        var s = DeviceStaticUtils.SelectedArtistOne;
-        MyViewModel.ViewArtistDetails(s);
+        //var s = DeviceStaticUtils.SelectedArtistOne;
+        //MyViewModel.ViewArtistDetails(s);
 
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
