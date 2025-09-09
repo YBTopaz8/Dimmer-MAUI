@@ -3530,72 +3530,42 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             });
         });
     }
-    public void ViewArtistDetails(ArtistModelView? artView)
+
+    [RelayCommand]
+    public void LoadAllArtistsFromOurDatabase()
     {
-
-        if (artView?.Id == null)
-        {
-            _logger.LogWarning("ViewArtistDetails called with a null artist view or ID.");
-
-        }
-
-        SelectedArtistAlbums ??=new();
-
-        SelectedArtistAlbums.Clear();
-
-
-
-
         var db = RealmFactory.GetRealmInstance();
-
-
-        var artistIdToFind = artView.Id;
-
-
-        var songsByArtist = db.All<SongModel>()
-                              .Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistIdToFind)
-                              .ToList();
-
-        if (songsByArtist.Count==0)
+        var allArts = db.All<ArtistModel>().ToList().OrderBy(a => a.Name).ToList();
+        
+        AllArtistsInDb?.Clear();
+        AllArtistsInDb = new ObservableCollection<ArtistModelView>();
+        foreach (var art in allArts)
         {
-            _logger.LogWarning("No songs found for artist with ID {ArtistId}", artistIdToFind);
-
-            SelectedArtist = artView;
-            return;
+            AllArtistsInDb.Add(art.ToModelView(_mapper));
         }
+        _logger.LogInformation("Loaded {ArtistCount} artists from the database.", AllArtistsInDb.Count);
+    }
 
-
-
-        var albumsByArtist = songsByArtist
-            .Where(s => s.Album != null)
-            .Select(s => s.Album)
-            .Distinct()
-            .ToList();
-
-
-        SelectedArtist = artView;
-
-
-        var firstSong = songsByArtist[0];
-        Track tt = new(firstSong.FilePath);
-        SelectedArtist.ImageBytes = tt.EmbeddedPictures.FirstOrDefault()?.PictureData;
-
-
-        foreach (var song in songsByArtist)
+    [RelayCommand]
+    public void LoadAllAlbumsFromOurDatabase()
+    {
+        var db = RealmFactory.GetRealmInstance();
+        var allAlbs = db.All<AlbumModel>().ToList().OrderBy(a => a.Name).ToList();
+        AllAlbumsInDb?.Clear();
+        AllAlbumsInDb = new ObservableCollection<AlbumModelView>();
+        foreach (var alb in allAlbs)
         {
-
+            AllAlbumsInDb.Add(alb.ToModelView(_mapper));
         }
-        foreach (var album in albumsByArtist)
-        {
-            SelectedArtistAlbums.Add(album.ToModelView(_mapper));
-        }
-
-        _logger.LogInformation("Successfully prepared details for artist: {ArtistName}", SelectedArtist.Name);
-
-
+        _logger.LogInformation("Loaded {AlbumCount} albums from the database.", AllAlbumsInDb.Count);
     }
 
 
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? AllAlbumsInDb { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView>? AllArtistsInDb { get; set; }
 
     [ObservableProperty]
     public partial DimmerStats? SongListeningStreak { get; set; }
@@ -6011,7 +5981,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
 
-            _ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
+            //_ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
 
 
 
@@ -6028,7 +5998,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task LoadSongLastFMData()
     {
-        return;
+
         if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
         {
             return;
@@ -6070,7 +6040,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #endregion
 
     [RelayCommand]
-    public void OpenSongInOnlineSearch(string? service)
+    public async Task OpenSongInOnlineSearch(string? service)
     {
         service ??= "google";
         if (SelectedSong is null && CurrentPlayingSongView is not null)
@@ -6084,16 +6054,72 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
             "youtube" => $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}",
-            "last.fm" => $"https://www.last.fm/search?q={Uri.EscapeDataString(query)}",
+            "lastfm" => $"https://www.last.fm/search?q={Uri.EscapeDataString(query)}",
             "spotify" => $"https://open.spotify.com/search/{Uri.EscapeDataString(query)}",
             "apple music" => $"https://music.apple.com/us/search?term={Uri.EscapeDataString(query)}",
             "deezer" => $"https://www.deezer.com/en/search/{Uri.EscapeDataString(query)}",
             _ => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
         };
+        await Launcher.Default.OpenAsync(new Uri(url));
+
+        
+    }
+    [RelayCommand]
+    public async Task SharePlaylistByFullTQLManualGeneration()
+    {
+        var StringTQLQueryToAddSongTitleAndArtistName = string.Empty;
+        // say SearchResults has 3 songs, then the resulting TQL should be:
+        // (title:"Song1" AND artist:"Artist1") Add (title:"Song2" AND artist:"Artist2") Add (title:"Song3" AND artist:"Artist3")
+        foreach (var song in SearchResults)
+        {
+            if (!string.IsNullOrWhiteSpace(StringTQLQueryToAddSongTitleAndArtistName))
+            {
+                StringTQLQueryToAddSongTitleAndArtistName += " Add ";
+            }
+            StringTQLQueryToAddSongTitleAndArtistName += $"(title:\"{song.Title}\" AND artist:\"{song.ArtistName}\")";
+        }
+
+        // Now share this TQL string
+        var shareText = $"Here is my playlist:\n{StringTQLQueryToAddSongTitleAndArtistName}\n\nYou can use this TQL query in the app to load the same playlist.";
+        ShareTextRequest request = new ShareTextRequest
+        {
+            Title = "Share Playlist TQL",
+            Text = shareText,
+            Subject = "My Playlist TQL",
+        };
+        await Share.RequestAsync(request);
+        await Clipboard.Default.SetTextAsync(shareText);
+    }
+    [RelayCommand]
+    public async Task ShareSongDetailsAsText()
+    {
+        if (SelectedSong is null && CurrentPlayingSongView is not null)
+        {
+            SelectedSong = CurrentPlayingSongView;
+        }
+        if (SelectedSong is null)
+            return;
+        string details = $"Title: {SelectedSong.Title}\nArtist: {SelectedSong.ArtistName}\nAlbum: {SelectedSong.AlbumName}\nDuration: {TimeSpan.FromSeconds(SelectedSong.DurationInSeconds):mm\\:ss}\nPath: {SelectedSong.FilePath}";
+       await  Clipboard.Default.SetTextAsync(details);
+        ShareFileRequest request = new ShareFileRequest
+        {
+            Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
+            File = new ShareFile(SelectedSong.CoverImagePath),
+        };
     }
 
+    [RelayCommand]
+    public void LoadSongsWithUserNotes()
+    {
 
-    
+         SongsWithNotes = SearchResults.Where(s => !string.IsNullOrWhiteSpace(s.UserNoteAggregatedText)).ToObservableCollection();
+         DifferentUniqueNotes = SearchResults.Select(s => s.UserNoteAggregatedText).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().ToObservableCollection();
+    }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SongsWithNotes { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<string?>? DifferentUniqueNotes { get; set; }
+
 }
 
 

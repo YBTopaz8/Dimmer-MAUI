@@ -161,6 +161,7 @@ Value="False">
                                                     PressedBackgroundColor="DarkSlateBlue"
                                                     PressedBorderColor="DarkSlateBlue"
                                                     Tap="MoreIcon_Tap"
+                            TapCommandParameter="{Binding .}"
                                                   Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
                                                     
                                                 TextColor="{AppThemeBinding Dark=White,
@@ -1129,7 +1130,7 @@ FontAttributes="Bold"                                                        Hor
                     
                         <Button 
                 ImageSource="eye.png" HeightRequest="20" WidthRequest="160"
-               Text="{Binding Title, StringFormat='View Song'}"
+               Text="{Binding SelectedSong.Title, StringFormat='View Song'}"
     Clicked="NavigateToSelectedSongPageContextMenuAsync">
                             
                         </Button>
@@ -1153,19 +1154,19 @@ CommandParameter="Black" ImageSource="chatdots.png"
 
 
                     <Button HeightRequest="20" WidthRequest="160"
-                     Text="{Binding OtherArtistsName,StringFormat='Quick View Artist : {0}'}"
+                     Text="{Binding SelectedSong.OtherArtistsName,StringFormat='Quick View Artist : {0}'}"
                                ImageSource="artist.png"
                      CommandParameter="{Binding .}"
                      Clicked="QuickSearchArtist_Clicked"
                      x:Name="ViewArtistMFI"/>
                     <Button HeightRequest="20" WidthRequest="160"
-                     Text="{Binding AlbumName,StringFormat='Quick View Album : {0}'}"
+                     Text="{Binding SelectedSong.AlbumName,StringFormat='Quick View Album : {0}'}"
                                 ImageSource="albummm.png"
                      CommandParameter="{Binding .}"
                      Clicked="QuickSearchAlbum_Clicked"
                      x:Name="ViewAlbumMFI"/>
                     <Button HeightRequest="20" WidthRequest="160"
-                     Text="{Binding GenreName,StringFormat='Quick View Genre : {0}'}"
+                     Text="{Binding SelectedSong.GenreName,StringFormat='Quick View Genre : {0}'}"
                                 ImageSource="albumm.png"
                      CommandParameter="{Binding .}"
                      Clicked="ViewGenreMFI_Clicked"

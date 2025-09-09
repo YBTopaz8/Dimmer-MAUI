@@ -640,6 +640,9 @@ public partial class HomePage : ContentPage
 
     private void MoreIcon_Tap(object sender, HandledEventArgs e)
     {
+        var send = (View)sender;
+        var song = send.BindingContext as SongModelView;
+        MyViewModel.SelectedSong = song;
         MoreBtmSheet.State = BottomSheetState.HalfExpanded;
        
     }
@@ -1340,7 +1343,7 @@ public partial class HomePage : ContentPage
     private async void OnAddQuickNoteClicked(object sender, EventArgs e)
     {
         var send = (Button)sender;
-        var song = send.BindingContext as SongModelView;
+        var song = send.CommandParameter as SongModelView;
         if (song is null)
         {
             return;
@@ -1365,7 +1368,7 @@ public partial class HomePage : ContentPage
     private async void OnLabelClicked(object sender, EventArgs e)
     {
         var send = (Button)sender;
-        var song = send.BindingContext as SongModelView;
+        var song = send.CommandParameter as SongModelView;
 
         var param = send.CommandParameter as string;
 

@@ -49,7 +49,7 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
 
             <dx:DXButton Content="Chat" Icon="chatdimmer.png"
                          Clicked="DXButton_Clicked"
-                         />
+             IsVisible="False"            />
 
             <!--<Button
 x:Name="RescanLyrics"
