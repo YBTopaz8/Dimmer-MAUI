@@ -63,6 +63,41 @@
             Grid.Row="1" BackgroundColor="Transparent"
             Margin="10,10">
                         <HorizontalStackLayout HorizontalOptions="End" IsVisible="True">
+                                    <ImageButton 
+                                        HeightRequest="65"
+                                        WidthRequest="65"
+                                        Source="more1.png"
+                                        x:Name="MoreIcon"
+                                        BackgroundColor="Transparent"
+                                        CommandParameter="{Binding .}"
+                                        Clicked="MoreIcon_Clicked">
+                                        <FlyoutBase.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="View on Last FM" 
+                           IconImageSource="lastfm.png"
+                           Command="{Binding OpenSongInOnlineSearchCommand}"
+                           CommandParameter="lastFM"/>
+                                                <MenuFlyoutItem Text="View on Google" 
+                           IconImageSource="google.png"
+                           Command="{Binding OpenSongInOnlineSearchCommand}"
+                           CommandParameter="google"/>
+                                                <MenuFlyoutItem Text="View on YouTube" 
+                           IconImageSource="youtube.png"
+                           Command="{Binding OpenSongInOnlineSearchCommand}"
+                           CommandParameter="youtube"/>
+                                                <MenuFlyoutItem Text="View on Spotify" 
+                           IconImageSource="spotify.png"
+                           Command="{Binding OpenSongInOnlineSearchCommand}"
+                           CommandParameter="spotify"/>
+                                                <MenuFlyoutItem Text="View on Deezer" 
+                           IconImageSource="deezer.png"
+                           Command="{Binding OpenSongInOnlineSearchCommand}"
+                           CommandParameter="deezer"/>
+
+                                            </MenuFlyout>
+                                        </FlyoutBase.ContextFlyout>
+                                    </ImageButton>
+                            
                                     <syncf:SfChip
                                         ImageSize="50"
                                         WidthRequest="60"
@@ -417,20 +452,16 @@ ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat
                                 </Button.Triggers>
                             </Button>
                         </HorizontalStackLayout>
-                        <Slider Margin="2,0"
+                                <Slider
 x:Name="TrackProgressSlider"
 Grid.Column="1"
+DragCompleted="Slider_DragCompleted"
 Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
 Minimum="0" MaximumTrackColor="{AppThemeBinding Dark=White,Light=Black}"
-MinimumTrackColor="{Binding CurrentPlaySongDominantColor}"
-                               DragStartedCommand="{Binding DragStartedCommand}" 
+MinimumTrackColor="DarkSlateBlue"
 ThumbColor="{Binding CurrentPlaySongDominantColor}"
-                                 Value="{Binding SliderPosition, Mode=TwoWay}"
-                                DragCompleted="TrackProgressSlider_DragCompleted"
-                                DragStarted="TrackProgressSlider_DragStarted"
-                                DragCompletedCommand="{Binding DragCompletedCommand}"
- />
-                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+Value="{Binding CurrentTrackPositionSeconds}" />
+                                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                             <Label HorizontalTextAlignment="Start"
                        TextColor="{AppThemeBinding Light=DarkSlateblue,Dark=white}"
                                 Grid.Column="0" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" >

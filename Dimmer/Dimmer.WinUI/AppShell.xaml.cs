@@ -333,7 +333,8 @@ public partial class AppShell : Shell
     }
 
     private bool _isThrottling = false;
-    private readonly int throttleDelay = 300; // Time in milliseconds
+    private readonly int throttleDelay = 200; // Time in milliseconds
+  
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
         var send = (Slider)sender;
@@ -674,17 +675,7 @@ public partial class AppShell : Shell
 
     }
 
-    private void TrackProgressSlider_DragCompleted(object sender, EventArgs e)
-    {
-        MyViewModel.DragCompletedCommand.Execute(System.Reactive.Unit.Default);
-    }
 
-   
-
-    private void TrackProgressSlider_DragStarted(object sender, EventArgs e)
-    {
-        MyViewModel.DragStartedCommand.Execute(default);
-    }
 
     private async void ShowPlaylistHistory_Clicked(object sender, EventArgs e)
     {
@@ -745,4 +736,22 @@ public partial class AppShell : Shell
 
         return;
     }
+
+    private void MoreBtn_Clicked(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void MoreIcon_Clicked(object sender, EventArgs e)
+    {
+        ImageButton btn = (ImageButton)sender;
+        //btn.ShowContextMenu();
+        var param = btn.CommandParameter;
+        Debug.WriteLine(param);
+        Debug.WriteLine(param.GetType());
+    }
+
+    // Section for Songs With UserNotes.
+
+
 }

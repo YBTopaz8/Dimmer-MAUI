@@ -292,6 +292,7 @@ public static class PlatUtils
         var platformView = element.Handler?.PlatformView as Microsoft.UI.Xaml.FrameworkElement;
         if (platformView != null)
         {
+            
             // The native way to show a context flyout on WinUI
             FlyoutBase.ShowAttachedFlyout(platformView);
         }

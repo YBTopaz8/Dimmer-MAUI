@@ -225,6 +225,7 @@ public partial class BaseViewModelWin: BaseViewModel
         GeneratedTqlQuery = fullQueryString; // Update the UI property
         _searchQuerySubject.OnNext(fullQueryString); // Execute the query
     }
+
     [ObservableProperty]
     public partial string GeneratedTqlQuery { get; set; }
     [ObservableProperty]
@@ -232,11 +233,13 @@ public partial class BaseViewModelWin: BaseViewModel
 
     [ObservableProperty]
     public partial int MediaBarGridRowPosition { get; set; }
-    public CollectionView SongColView { get; internal set; }
+
+    [ObservableProperty]
+    public partial CollectionView SongColView { get;  set; }
 
 
     [ObservableProperty]
-    public partial List<string> DraggedAudioFiles { get; internal set; }
+    public partial List<string> DraggedAudioFiles { get;  set; }
     public Window CurrentWinUIPage { get; internal set; }
 
     [RelayCommand]
