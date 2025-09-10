@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Shell
+<Shell xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+ 
     x:Class="Dimmer.WinUI.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -16,8 +17,7 @@
     xmlns:views="clr-namespace:Dimmer.WinUI.Views"
     FlyoutWidth="380"
         xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    Shell.FlyoutBehavior="Flyout"  xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
-  FlyoutBackgroundColor="Transparent"
+    Shell.FlyoutBehavior="Flyout"  FlyoutBackgroundColor="Transparent"
     x:DataType="vm:BaseViewModelWin">
     
     <Shell.Resources>
@@ -210,7 +210,8 @@ IsVisible="True">
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Share Song" IconImageSource="shared.png"
-                                                   Command="{Binding ShareCurrentPlayingAsStoryInCardLikeGradientCommand}" />
+                                                    CommandParameter="{Binding CurrentPlayingSongView}"
+                                                   Command="{Binding ShareSongDetailsAsTextCommand}" />
                                     <MenuFlyoutItem Text="Share Title Only" 
                                                     Clicked="ShowBtmSheet_Clicked"
                                                     IconImageSource="textitalicsquare.png"/>
@@ -219,37 +220,55 @@ IsVisible="True">
 
                         </Label>
                         <HorizontalStackLayout HorizontalOptions="Center">
-                            <Button 
-                        Command="{Binding ToggleFavSongCommand}"
-                        CommandParameter="{Binding CurrentPlayingSongView}"
+                                    <Border
+                                        x:Name="AddFavoriteRatingToSong"
+                                        
+>
+                                        <Border.GestureRecognizers>
+                                            <PointerGestureRecognizer
+                                                PointerReleased="AddFavoriteRatingToSongPtrGest_PointerReleased"
+                                                PointerReleasedCommandParameter="{Binding
+                                                CurrentPlayingSongView}"
+                                                x:Name="AddFavoriteRatingToSongPtrGest"
+                                                />
+                                        </Border.GestureRecognizers>
+                                        <Grid >
+
+
+                            <Image
                         BackgroundColor="Transparent"
                         
-                        BorderWidth="0"
                                     
                                     windows:VisualElement.AccessKey="H"
-                        ImageSource="heart.png"
+                        Source="heart.png"
                         WidthRequest="58">
-                                <Button.Triggers>
+                                <Image.Triggers>
                                     <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                TargetType="Button"
+                                TargetType="Image"
                                 Value="False">
-                                        <Setter Property="ImageSource" Value="heartbroken.png" />
+                                        <Setter Property="Source" Value="heartbroken.png" />
                                         <Setter Property="ToolTipProperties.Text" Value="Not Favorite" />
 
                                     </DataTrigger>
                                     <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                TargetType="Button"
+                                TargetType="Image"
                                 Value="True">
-                                        <Setter Property="ImageSource" Value="heartlock.png" />
+                                                <Setter Property="Source" Value="heartlock.png" />
                                         <Setter Property="ToolTipProperties.Text" Value="Favorite" />
 
 
                                     </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
+                                </Image.Triggers>
+                            </Image>
+                                            <Label 
+                                                HorizontalOptions="Center"
+                                                Text="{Binding CurrentPlayingSongView.NumberOfTimesFaved}"/>
+
+                                        </Grid>
+                                    </Border>
+                                    <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
                         Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
                        Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
 
@@ -543,7 +562,30 @@ HorizontalTextAlignment="Center" FontSize="24" TextColor="DarkSlateBlue"
 
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
-
+                <syncf:SfTabItem >
+                    <Grid RowDefinitions="auto,*">
+                        <CollectionView 
+                            ItemsSource="{Binding PlaybackQueue}"
+                            Grid.Row="1">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:SongModelView">
+                                    <syncf:SfEffectsView
+                                        TouchUp="SelectedSongChip_TouchUp" 
+                                        TouchUpCommandParameter="{Binding .}"
+                                        x:Name="SelectedSongChip">
+                                        <VerticalStackLayout HorizontalOptions="Start">
+                                            <Label Text="{Binding Title}" FontSize="21"/>
+                                            <Label Text="{Binding ArtistName}"
+                                                   FontAttributes="Italic"/>
+                                            
+                                        </VerticalStackLayout>
+                                    </syncf:SfEffectsView>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                            
+                        </CollectionView>
+                    </Grid>
+                </syncf:SfTabItem>
           </syncf:SfTabView>
 
         </Grid>

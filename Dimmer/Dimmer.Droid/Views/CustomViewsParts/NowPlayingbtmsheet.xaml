@@ -126,7 +126,7 @@
                              BorderThickness="0.1" FontFamily="AleySans"
                              FontSize="18" Icon="heartbroken.png"
                              IsIconVisible="True" Tap="ArtistChip_Tap"
-                             LongPressCommand="{Binding ToggleFavSongCommand}"
+                             LongPressCommand="{Binding AddFavoriteRatingToSongCommand}"
                              >
                         <dx:Chip.Triggers>
                             <DataTrigger Binding="{Binding CurrentPlayingSongView.IsFavorite}"

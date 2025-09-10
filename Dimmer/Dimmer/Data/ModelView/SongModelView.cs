@@ -12,6 +12,10 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string TitleDurationKey { get; set; }
 
+    [ObservableProperty]
+    public partial int NumberOfTimesFaved { get; set; }
+
+    
 
     public void SetTitleAndDuration(string title, double duration)
     {
@@ -188,7 +192,7 @@ public partial class SongModelView : ObservableObject
         {
             PlayCount = PlayEvents.Count;
             PlayCompletedCount = PlayEvents.Count(p => p.PlayType == (int)PlayType.Completed);
-
+            NumberOfTimesFaved= PlayEvents.Count(p => p.PlayType == (int)PlayType.Favorited);
             var lastPlayEvent = PlayEvents
                 .Where(p => p.PlayType == (int)PlayType.Completed)
                 .OrderByDescending(p => p.EventDate)

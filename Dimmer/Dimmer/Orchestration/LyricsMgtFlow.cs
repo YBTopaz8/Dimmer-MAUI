@@ -213,12 +213,14 @@ public class LyricsMgtFlow : IDisposable
         _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
         var onlineResults = await _lyricsMetadataService.GetAllLyricsOnlineAsync(song, cts.Token);
         var onlineLyrics = onlineResults?.FirstOrDefault();
+        
         if (onlineLyrics != null)
         {
-            _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
+            _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
+          
             // Optionally, save to DB or local storage here.
-            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id,onlineLyrics.PlainLyrics,onlineLyrics.SyncedLyrics);
+            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id,onlineLyrics.PlainLyrics,onlineLyrics.SyncedLyrics,true);
             return onlineLyrics.SyncedLyrics;
 
         }

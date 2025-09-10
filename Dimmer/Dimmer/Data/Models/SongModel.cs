@@ -20,6 +20,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public bool IsHidden { get; set; }
 
     public int? ReleaseYear { get; set; }
+    public int NumberOfTimesFaved { get; set; }
     public int? TrackNumber { get; set; }
     public string FileFormat { get; set; } = string.Empty;
     public string Lyricist { get; set; } = string.Empty;

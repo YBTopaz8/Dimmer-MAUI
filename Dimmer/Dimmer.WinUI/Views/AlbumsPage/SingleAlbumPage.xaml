@@ -15,6 +15,7 @@
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
     
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
@@ -23,7 +24,8 @@
     x:Name="myPage"
     xmlns:local="clr-namespace:Dimmer.WinUI.Views"
     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
-    Shell.FlyoutBehavior="Locked"
+    
+    Shell.FlyoutBehavior="Flyout"
  
     
     x:DataType="vm:BaseViewModelWin"
@@ -31,11 +33,75 @@
     
     Shell.NavBarIsVisible="False"
     >
-    <VerticalStackLayout>
+
+    <ScrollView>
         
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+        <Grid RowDefinitions="auto,*,*,*">
+            <HorizontalStackLayout Grid.Row="0">
+
+                <Label 
+                Text="Welcome to .NET MAUI!"
+                VerticalOptions="Center" 
+                HorizontalOptions="Center" />
+            </HorizontalStackLayout>
+            
+            <Grid Grid.Row="1">
+
+                <Image 
+                  Source="{Binding CurrentCoverImagePath}"  
+                VerticalOptions="Center" 
+                HorizontalOptions="Center" />
+
+                <Grid ColumnDefinitions="*,*">
+                    <Label 
+                        Text="{Binding SelectedSong.Title}" 
+                        VerticalOptions="Center" 
+                        HorizontalOptions="Center" 
+                        Grid.Column="0"/>
+                    <Label 
+                        Text="{Binding SelectedSong.AlbumName}" 
+                        VerticalOptions="Center" 
+                        HorizontalOptions="Center" 
+                        Grid.Column="1"/>
+                </Grid>
+                
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <CollectionView ItemsSource="{Binding ArtistBingeScore}"
+                                />
+            </Grid>
+
+            <Grid Grid.Row="3">
+                <CollectionView ItemsSource="{Binding SearchResults}"
+                                >
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:SongModelView">
+                            <Grid ColumnDefinitions="*,*,*">
+                                <Image Grid.Column="0" />
+
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="{Binding Title}"/>
+                                    <Button Text="{Binding OtherArtistsName}"
+                                                  x:Name="ViewAlbumArtists"
+                                            CommandParameter="{Binding .}"
+                                            Loaded="ViewAlbumArtists_Loaded"
+                                            Unloaded="ViewAlbumArtists_Unloaded"
+                                            Clicked="ViewAlbumArtists_Clicked">
+                                        
+                                    </Button>
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+            
+            
+        </Grid>
+
+            
+    </ScrollView>
+
 </ContentPage>

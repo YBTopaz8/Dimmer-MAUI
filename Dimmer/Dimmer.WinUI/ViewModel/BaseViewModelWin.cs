@@ -19,8 +19,11 @@ using Dimmer.WinUI.Views.WinUIPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+
+using Windows.Storage.Pickers;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using TableView = WinUI.TableView.TableView;
@@ -454,7 +457,7 @@ public partial class BaseViewModelWin: BaseViewModel
     }
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
-
+    public string PickFilesOutputText { get; private set; }
 
     [RelayCommand]
     private void AddFilterFromSelection()
@@ -538,5 +541,36 @@ public partial class BaseViewModelWin: BaseViewModel
 
     }
 
-   
+
+    [RelayCommand]
+    public async Task LoadPlainLyricsFromFile()
+    {
+
+        var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+
+        // Set options for your file picker
+        openPicker.ViewMode = PickerViewMode.List;
+        openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+        openPicker.FileTypeFilter.Add("*");
+
+        // Open the picker for the user to pick a file
+        IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
+        if (files.Count > 0)
+        {
+            StringBuilder output = new StringBuilder("Picked files:\n");
+            foreach (StorageFile file in files)
+            {
+                output.Append(file.Name + "\n");
+            }
+            PickFilesOutputText = output.ToString();
+        }
+        else
+        {
+            PickFilesOutputText = "Operation cancelled.";
+        }
+
+        await LoadPlainLyricsFromFile(PickFilesOutputText);
+
+
+    }
 }

@@ -59,5 +59,6 @@ public enum PlayType
     AddToPlaylist = 37,
     RemoveFromPlaylist = 37,
     ShareSong = 38,
-    ReceiveShare=39
+    ReceiveShare=39,
+    Favorited = 40
 }
