@@ -1,5 +1,7 @@
 using AndroidX.Lifecycle;
 
+using DevExpress.Maui.Editors;
+
 using Dimmer.DimmerSearch;
 using Dimmer.ViewModel;
 using Dimmer.Views.Stats;
@@ -258,7 +260,7 @@ public partial class AppShell : Shell
     private readonly int throttleDelay = 300; // Time in milliseconds
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
-        var send = (Slider)sender;
+        var send = (DXSlider)sender;
         if (_isThrottling)
             return;
 
@@ -278,21 +280,25 @@ public partial class AppShell : Shell
 
     private void ViewDeviceAudio_Clicked(object sender, EventArgs e)
     {
-        if (ShellTabView.SelectedIndex == 1)
-        {
-            ShellTabView.SelectedIndex = 0;
-            return;
+        var audioTab = ShellTabView.Items.Where(x => x.Header=="AudioSection").FirstOrDefault();
+
+        var audioTabIndex = ShellTabView.Items.IndexOf(audioTab);
+
+        if (audioTab != null) {
+            ShellTabView.SelectedIndex = audioTabIndex;
         }
-        ShellTabView.SelectedIndex = 1;
+
+        //if (ShellTabView.SelectedIndex == 1)
+        //{
+        //    ShellTabView.SelectedIndex = 0;
+        //    return;
+        //}
+        //ShellTabView.SelectedIndex = 1;
     }
 
     private void MoreIcon_Clicked(object sender, EventArgs e)
     {
-        ImageButton btn = (ImageButton)sender;
-        //btn.ShowContextMenu();
-        var param = btn.CommandParameter;
-        Debug.WriteLine(param);
-        Debug.WriteLine(param.GetType());
+       
     }
 
     private void SelectedSongChip_Clicked(object sender, EventArgs e)
@@ -420,5 +426,30 @@ public partial class AppShell : Shell
     private void VolumeSlider_Unloaded(object sender, EventArgs e)
     {
 
+    }
+
+    private void TrackProgressSlider_ValueChanged(object sender, EventArgs e)
+    {
+
+    }
+    private async void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+      
+    }
+    private async void TrackProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        var send = (DXSlider)sender;
+
+
+        if (_isThrottling)
+            return;
+
+        _isThrottling = true;
+
+        MyViewModel.SeekTrackPosition(send.Value);
+
+
+        await Task.Delay(throttleDelay);
+        _isThrottling = false;
     }
 }

@@ -49,7 +49,11 @@
         <Grid RowDefinitions="Auto, *" BackgroundColor="{AppThemeBinding Dark=#1e1e1e,
                                                Light=White}">
             <VerticalStackLayout Grid.Row="0">
-                <ProgressBar x:Name="MyProgressBar"/>
+                
+                <Label Text="{Binding LatestAppLog.Log}"
+                       HorizontalOptions="Center"/>
+                
+                <ProgressBar x:Name="MyProgressBar" IsVisible="False"/>
                 <Label x:Name="MyProgressLabel"/>
             </VerticalStackLayout>
         
@@ -235,13 +239,39 @@ x:Name="AcceptBtn"
                                             </dx:DXCollectionView.HeaderTemplate>
                                             <dx:DXCollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="x:String">
-                                                    <Grid RowDefinitions="*,*" RowSpacing="10">
-<dx:Chip 
-         Grid.Row="0" Text="{Binding .}" />
+                                                        <Grid ColumnDefinitions="*,*">
 
+                                                            <Label Grid.Column="0" Text="{Binding .}" />
 
-                                                    </Grid>
-                                                </DataTemplate>
+                                                            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+                                                                <dx:DXButton IconHeight="45"
+                                                                             IconWidth="45"
+                                                                             WidthRequest="60"
+                                                                             IconColor="DarkSlateBlue"
+                                       x:Name="ChangeFolder"
+                                       Clicked="ChangeFolder_Clicked"
+                                       CommandParameter="{Binding .}"
+                                      Icon ="foldera.png" />
+
+                                                                <dx:DXButton IconHeight="45"
+                                                                             IconWidth="45"
+                                                                             WidthRequest="60"
+                                                                             IconColor="DarkSlateBlue"
+                                       x:Name="DeleteBtn"
+                                       Clicked="DeleteBtn_Clicked"
+                                       CommandParameter="{Binding .}"
+                                       Icon="delete.png" />
+                                                                <dx:DXButton Icon="repeat.png"
+Clicked="RescanFolder_Clicked" CommandParameter="{Binding .}"
+                                                 
+                                                 x:Name="RescanFolder" IconHeight="45"
+                                                                             IconWidth="45"
+                                                                             WidthRequest="60"
+                                                                             IconColor="DarkSlateBlue"
+                                                 />
+                                                            </HorizontalStackLayout>
+                                                        </Grid>
+                                                    </DataTemplate>
                                             </dx:DXCollectionView.ItemTemplate>
                                         </dx:DXCollectionView>
                                         <VerticalStackLayout
@@ -249,19 +279,22 @@ x:Name="AcceptBtn"
                                  BackgroundColor="Transparent"
                                  Spacing="10">
 
-                                            <Button
+                                                <dx:DXButton TextColor="{AppThemeBinding Dark=white}"
                                      Clicked="AddNewMusicFolder_Clicked"
-                                     HorizontalOptions="Start"
-                                     Text="Add New Folder" />
-                                            <Button
-                                     x:Name="ReScanAllBtn"
-                                     BorderColor="DarkSlateBlue"
-                                     Command="{Binding RescanSongsCommand}"
-                                     Text="Rescan folders" />
-                                            <Button
-                                     x:Name="RescanLyrics"
-                                     BorderColor="DarkSlateBlue"
-                                     Text="Rescan Lyrics" 
+                                     HorizontalOptions="Start" Icon="addcircle.png"
+                                                             IconHeight="60"
+                                                             IconWidth="50"
+                                                             IconColor="DarkSlateBlue"
+                                     />
+
+                                                <ImageButton Source="albumm.png"
+                                                         Command="{Binding }"/>
+                                                <dx:DXButton 
+                                     x:Name="RescanLyrics" Icon="restartcircle.png"
+                                     BorderColor="DarkSlateBlue" IconHeight="60"
+IconWidth="50"
+IconColor="DarkSlateBlue"
+                                     Content="Rescan Lyrics" TextColor="{AppThemeBinding Dark=white}"
                                                 Clicked="RefreshLyrics_Clicked"/>
 
                                         </VerticalStackLayout>

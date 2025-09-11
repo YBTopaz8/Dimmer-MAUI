@@ -506,7 +506,7 @@ public class ExoPlayerService : MediaSessionService
             }
             else
             {
-                CurrentSongContext.CoverImagePath = string.Empty;
+                //CurrentSongContext.CoverImagePath = string.Empty;
 
             }
             if (awDTT is not null)

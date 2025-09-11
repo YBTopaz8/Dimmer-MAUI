@@ -246,7 +246,7 @@ public partial class SyncLyrics : EmbeddedObject
 public partial class UserNoteModel : EmbeddedObject
 {
 
-    public string Id { get; set; } = AudioFileUtils.GenerateId("UNote");
+    public string Id { get; set; } = TaggingUtils.GenerateId("UNote");
     public string? UserMessageText { get; set; }
     public string? UserMessageImagePath { get; set; }
     public string? UserMessageAudioPath { get; set; }

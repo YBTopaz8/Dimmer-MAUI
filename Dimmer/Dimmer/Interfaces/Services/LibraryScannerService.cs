@@ -74,7 +74,7 @@ public class LibraryScannerService : ILibraryScannerService
 
             MusicMetadataService currentScanMetadataService = new();
 
-            List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
+            List<string> allFiles = TaggingUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
 
             if (allFiles.Count == 0)
             {

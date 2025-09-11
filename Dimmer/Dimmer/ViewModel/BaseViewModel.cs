@@ -1738,6 +1738,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Finished pre-caching cover art process.");
     }
 
+    [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
         var allSongsFromDb = await songRepo.GetAllAsync();
@@ -6176,7 +6177,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task LoadSongLastFMData()
     {
-
+        return;
         if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
         {
             return;
