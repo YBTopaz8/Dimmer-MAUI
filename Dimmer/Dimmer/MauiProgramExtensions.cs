@@ -19,6 +19,8 @@ using Parse.LiveQuery;
 
 using SkiaSharp.Views.Maui.Controls.Hosting;
 
+using Syncfusion.Maui.Toolkit.Chips;
+
 using System.Reflection;
 
 namespace Dimmer;
@@ -49,6 +51,7 @@ public static class MauiProgramExtensions
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");
             })
+           
             .ConfigureSyncfusionToolkit();
 
 #if DEBUG

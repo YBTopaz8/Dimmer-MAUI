@@ -1,5 +1,6 @@
 ﻿
 using Dimmer.Data;
+using Dimmer.Data.Models;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
@@ -11,7 +12,7 @@ using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Maui.Graphics;
-using System.Reactive.Linq;
+
 using Parse.LiveQuery;
 //using MoreLinq;
 //using MoreLinq.Extensions;
@@ -20,10 +21,13 @@ using ReactiveUI;
 
 using Realms;
 
+using Syncfusion.Maui.Toolkit.TextInputLayout;
+
 using System;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -1368,6 +1372,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial CurrentPage CurrentPageContext { get; set; }
 
     [ObservableProperty]
+    public partial Page? CurrentMAUIPage { get; set; }
+
+    [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
 
     async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
@@ -1731,6 +1738,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Finished pre-caching cover art process.");
     }
 
+    [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
         var allSongsFromDb = await songRepo.GetAllAsync();
@@ -1905,7 +1913,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
  
     private void OnSeekCompleted(double newPosition)
     {
-        return;
+
         _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
         _baseAppFlow.UpdateDatabaseWithPlayEvent(RealmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Seeked), newPosition);
     }
@@ -2321,7 +2329,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
 
         // We pass the full search results as the source for the new queue.
-        await PlaySong(songToPlay, CurrentPage.AllSongs, _searchResults);
+        await PlaySong(songToPlay, Utilities.Enums.CurrentPage.AllSongs, _searchResults);
     }
 
     public async Task PlaySong(SongModelView? songToPlay, CurrentPage curPage = CurrentPage.AllSongs, IEnumerable<SongModelView>? songs = null)
@@ -2341,7 +2349,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var sourceList = new List<SongModelView>();
         int startIndex = -1;
 
-        if (curPage == CurrentPage.AllSongs)
+        if (curPage == Utilities.Enums.CurrentPage.AllSongs)
         {
             var songSource = (songs ?? _searchResults).ToList();
             startIndex = songSource.IndexOf(songToPlay);
@@ -2367,7 +2375,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 startIndex = sourceList.IndexOf(songToPlay);
             }
         }
-        else if (curPage == CurrentPage.HomePage)
+        else if (curPage == Utilities.Enums.CurrentPage.HomePage)
         {
             sourceList = _playbackQueue.ToList();
             startIndex = sourceList.IndexOf(songToPlay);
@@ -3875,7 +3883,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _stateService.SetCurrentSong(song);
     }
     [RelayCommand]
-    public async Task ToggleFavSong(SongModelView songModel)
+    public async Task AddFavoriteRatingToSong(SongModelView songModel)
     {
 
 
@@ -3887,23 +3895,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if (songModel == null)
         {
-            _logger.LogWarning("ToggleFavSong: Could not map CurrentPlayingSongView to SongModel.");
+            _logger.LogWarning("AddFavoriteRatingToSong: Could not map CurrentPlayingSongView to SongModel.");
             return;
         }
-        songModel.IsFavorite = !songModel.IsFavorite;
-        var song = songRepo.Upsert(songModel.ToModel(_mapper));
-
-        if (songModel.IsFavorite)
+        if (songModel.NumberOfTimesFaved <=0)
         {
+            songModel.NumberOfTimesFaved = 1;
+
             _= await lastfmService.LoveTrackAsync(songModel);
-        }
-        else
-        {
-            _= await lastfmService.UnloveTrackAsync(songModel);
 
         }
+        else if (songModel.NumberOfTimesFaved > 0)
+        {
+            _baseAppFlow.UpdateDatabaseWithPlayEvent(RealmFactory, CurrentPlayingSongView, StatesMapper.Map(DimmerPlaybackState.Favorited), CurrentTrackPositionSeconds);
+
+            songModel.NumberOfTimesFaved++;
+        }
+        songModel.IsFavorite=true;
+    
+            var song = songRepo.Upsert(songModel.ToModel(_mapper));
     }
 
+    [RelayCommand]
+    public async Task UnloveSong(SongModelView songModel)
+    {
+        if (songModel == null)
+        {
+            _logger.LogWarning("AddFavoriteRatingToSong: Could not map CurrentPlayingSongView to SongModel.");
+            return;
+        }
+        _= await lastfmService.UnloveTrackAsync(songModel);
+        songModel.NumberOfTimesFaved = 0;
+        songModel.IsFavorite=false;
+
+        var song = songRepo.Upsert(songModel.ToModel(_mapper));
+    }
 
     public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
@@ -5203,6 +5229,24 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Started lyrics editing session with {Count} lines.", lines.Count);
     }
 
+    async partial void OnIsLyricEditorActiveChanged(bool oldValue, bool newValue)
+    {
+        
+        if (newValue)
+        {
+            IsTimestampingInProgress = true;
+            Shell.Current.FlyoutIsPresented = false;
+            Shell.Current.FlyoutBehavior= FlyoutBehavior.Disabled;
+        }
+        else
+        {
+            IsTimestampingInProgress = false;
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+
+        }
+
+        await PlayPauseToggle();
+    }
     [ObservableProperty]
     public partial bool IsTimestampingInProgress { get; set; }
 
@@ -5214,8 +5258,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// and applies it to the current lyric line.
     /// </summary>
     [RelayCommand]
-    public void TimestampCurrentLyricLine()
+    public void TimestampCurrentLyricLine(LyricEditingLineViewModel lyricIndex)
     {
+        _currentLineIndexToTimestamp = LyricsInEditor.IndexOf(lyricIndex);
+        
         if (!IsLyricEditorActive || _currentLineIndexToTimestamp >= LyricsInEditor.Count)
         {
             return;
@@ -5226,13 +5272,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var timestampString = currentTime.ToString(@"mm\:ss\.ff");
 
 
-        var currentLine = LyricsInEditor[_currentLineIndexToTimestamp];
+        LyricEditingLineViewModel? currentLine = lyricIndex;
         currentLine.Timestamp = $"[{timestampString}]";
         currentLine.IsTimed = true;
         currentLine.IsCurrentLine = false;
 
 
-        _currentLineIndexToTimestamp++;
 
 
         if (_currentLineIndexToTimestamp < LyricsInEditor.Count)
@@ -5247,6 +5292,74 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
+    public void SaveLyricEditedByUserBeforeTimestamping(LyricEditingLineViewModel lyricIndex,
+        string newText)
+    {
+        if (!IsLyricEditorActive)
+        {
+            return;
+        }
+        var line = lyricIndex;
+        line.Text = newText;
+    }
+
+
+    [RelayCommand]
+    public void DeleteTimestampFromLine(LyricEditingLineViewModel lyricIndex)
+    {
+        if (!IsLyricEditorActive)
+        {
+            return;
+        }
+
+        var line = lyricIndex;
+        LyricsInEditor.Remove(line);
+        line.Timestamp = string.Empty;
+        line.IsTimed = false;
+        line.IsCurrentLine = false;
+    }
+
+    [RelayCommand]
+    public async Task ContributeToLrcLib()
+    {
+        if (SelectedSong == null || string.IsNullOrWhiteSpace(SelectedSong.SyncLyrics))
+            return;
+        var syncedLyrics = SelectedSong.SyncLyrics;
+        var plainLyrics = SelectedSong.UnSyncLyrics;
+        //ensure plain lyrics does not have timestamps
+        
+        var timestampPattern = new Regex(@"\[\d{2}:\d{2}(?:\.\d{2})?\]");
+
+        plainLyrics = timestampPattern.Replace(plainLyrics ?? string.Empty, string.Empty).Trim();
+
+
+
+
+        LrcLibPublishRequest newRequest = new LrcLibPublishRequest
+        {
+            TrackName = SelectedSong.Title,
+            ArtistName = SelectedSong.ArtistName,
+            AlbumName = SelectedSong.AlbumName ?? string.Empty,
+            Duration = (int)SelectedSong.DurationInSeconds,
+            PlainLyrics = plainLyrics ?? string.Empty,
+            SyncedLyrics = syncedLyrics ?? string.Empty
+        };
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+       var res =  await _lyricsMetadataService.PublishLyricsAsync(newRequest, cancellationTokenSource.Token);
+        if(res)
+        {
+            await _dialogueService.ShowAlertAsync("Thank you!", "Your contribution has been submitted to the LRC library. It may take some time for it to be reviewed and published.", "OK");
+
+        }
+        else
+        {
+            await _dialogueService.ShowAlertAsync("Submission Failed", "There was an error submitting your lyrics. Please try again later.", "OK");
+        }
+
+
+
+    }
 
     /// <summary>
     /// Builds the final LRC content from the editor and saves it using the existing service.
@@ -5275,9 +5388,37 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         await _lyricsMetadataService.SaveLyricsForSongAsync(songToUpdate.Id, CurrentSongPlainLyricsEdit,finalLrcContent);
 
+        await Clipboard.Default.SetTextAsync(finalLrcContent);
 
         IsLyricEditorActive = false;
         LyricsInEditor.Clear();
+        // offer to save file Next to MusicFile as .lrc 
+        var userSaveChoice = await _dialogueService.ShowConfirmationAsync(
+            "Lyrics Saved",
+            "The timestamped lyrics have been saved to the database and copied to your clipboard. Would you like to save a copy as an .lrc file next to the music file?",
+            "Yes, Save .lrc",
+            "No, Thanks");
+        if (!userSaveChoice)
+        {
+            return;
+        }
+        else
+        {
+            try
+            {
+                var musicFilePath = songToUpdate.FilePath;
+                var lrcFilePath = Path.ChangeExtension(musicFilePath, ".lrc");
+                await File.WriteAllTextAsync(lrcFilePath, finalLrcContent);
+                _logger.LogInformation("Saved .lrc file to '{LrcPath}'", lrcFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save .lrc file.");
+                await _dialogueService.ShowAlertAsync("Error", "Failed to save .lrc file.", "OK");
+            }
+        }
+
+
     }
 
     [RelayCommand]
@@ -5286,6 +5427,44 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsLyricEditorActive = false;
         LyricsInEditor?.Clear();
         _logger.LogInformation("Lyrics editing session cancelled.");
+    }
+
+    public async Task LoadPlainLyricsFromFile(string PickedPath)
+    {
+       
+
+        var fileContent = await File.ReadAllTextAsync(PickedPath);
+        StartLyricsEditingSession(fileContent);
+
+    }
+
+    [RelayCommand]
+    public async Task LoadSyncLyricsFromLrcFileOnly()
+    {
+        var res = await FilePicker.PickAsync(new PickOptions
+        {
+            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.iOS, new[] { "public.lrc" } },
+                { DevicePlatform.Android, new[] { "text/x-lrc", "application/octet-stream" } },
+                { DevicePlatform.WinUI, new[] { ".lrc" } },
+                { DevicePlatform.Tizen, new[] { "*/*" } },
+                { DevicePlatform.MacCatalyst, new[] { "public.lrc" } },
+            }),
+            PickerTitle = "Select an LRC file with synced lyrics"
+        });
+        if (res == null)
+            return;
+        var fileContent = await File.ReadAllTextAsync(res.FullPath);
+       
+        var parsedLyrics = await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong.Id,string.Empty, fileContent);
+        if (!parsedLyrics)
+        {
+            await _dialogueService.ShowAlertAsync("No synced lyrics found in the selected LRC file.", "Invalid LRC", "OK");
+            return;
+        }
+       
+
     }
     public enum PlaylistEditMode { Add, Remove }
 
@@ -5998,7 +6177,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task LoadSongLastFMData()
     {
-
+        return;
         if (SelectedSong is null || SelectedSong.ArtistName=="Unknown Artist")
         {
             return;
@@ -6058,6 +6237,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             "spotify" => $"https://open.spotify.com/search/{Uri.EscapeDataString(query)}",
             "apple music" => $"https://music.apple.com/us/search?term={Uri.EscapeDataString(query)}",
             "deezer" => $"https://www.deezer.com/en/search/{Uri.EscapeDataString(query)}",
+            //"lrclib" => $"https://www.lrclib.com/search?query={Uri.EscapeDataString(query)}",   
             _ => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
         };
         await Launcher.Default.OpenAsync(new Uri(url));
@@ -6091,21 +6271,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await Clipboard.Default.SetTextAsync(shareText);
     }
     [RelayCommand]
-    public async Task ShareSongDetailsAsText()
+    public async Task ShareSongDetailsAsText(object songs)
     {
-        if (SelectedSong is null && CurrentPlayingSongView is not null)
+        Debug.WriteLine(songs.GetType());
+        SongModelView? song= songs as SongModelView;
+        if (song is null)
         {
-            SelectedSong = CurrentPlayingSongView;
+            song = SelectedSong;
         }
-        if (SelectedSong is null)
-            return;
-        string details = $"Title: {SelectedSong.Title}\nArtist: {SelectedSong.ArtistName}\nAlbum: {SelectedSong.AlbumName}\nDuration: {TimeSpan.FromSeconds(SelectedSong.DurationInSeconds):mm\\:ss}\nPath: {SelectedSong.FilePath}";
-       await  Clipboard.Default.SetTextAsync(details);
-        ShareFileRequest request = new ShareFileRequest
+        if (song is null && CurrentPlayingSongView is not null)
         {
-            Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
-            File = new ShareFile(SelectedSong.CoverImagePath),
-        };
+            song = CurrentPlayingSongView;
+        }
+        if (song is null)
+            return;
+
+        string? WelDoneMessage = AppUtils.GetWellFormattedSharingTextHavingSongStats(song);
+        string details = $"Title: {song.Title}\nArtist: {song.ArtistName}\nAlbum: {song.AlbumName}\nDuration: {TimeSpan.FromSeconds(song.DurationInSeconds):mm\\:ss}\nPath: {song.FilePath}";
+       await  Clipboard.Default.SetTextAsync(details);
+        //await Share.Default.RequestAsync(new ShareTextRequest
+        //{
+        //    Title = $"Share {song.Title} by {song.ArtistName}",
+        //    Text = WelDoneMessage,
+            
+        //});
+
+        await Share.Default.RequestAsync(new ShareFileRequest
+        {
+            Title = $"Share {song.Title} by {song.ArtistName}",
+            File = new ShareFile(song.CoverImagePath),
+            
+        });
+
+        // if multiple
+        // Files = new List<ShareFile> { new ShareFile(file1), new ShareFile(file2) }
+
     }
 
     [RelayCommand]
