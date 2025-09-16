@@ -27,3 +27,4 @@
 *.json
 /Dimmer/Dimmer/DimmerLive/Orchestration/ApiKeys.cs
 /Dimmer/Dimmer.Tests/obj/Release/net9.0
+/Dimmer/Dimmer/Orchestration/ApiKeys.cs
