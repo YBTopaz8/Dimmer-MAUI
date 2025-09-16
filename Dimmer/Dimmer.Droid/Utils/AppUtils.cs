@@ -5,9 +5,15 @@ using Window = Microsoft.Maui.Controls.Window;
 namespace Dimmer.Utils;
 public class AppUtil : IAppUtil
 {
+    public AppUtil(BaseViewModelAnd vm)
+    {
+        baseViewModelAnd = vm;
+
+    }
+    BaseViewModelAnd baseViewModelAnd { get; }
     public Shell GetShell()
     {
-        return new AppShell();
+        return new AppShell(baseViewModelAnd);
     }
 
     public Window LoadWindow()

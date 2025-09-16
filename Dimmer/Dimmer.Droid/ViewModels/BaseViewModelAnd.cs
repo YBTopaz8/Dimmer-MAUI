@@ -148,42 +148,51 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public async Task AddMusicFolderViaPickerAsync(string? selectedFolder = null)
     {
 
-        _logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
-        var status = await Permissions.RequestAsync<CheckPermissions>();
-
-        if (status == PermissionStatus.Granted)
+        try
         {
-            var res = await folderPicker.PickAsync(CancellationToken.None);
 
-            if (res is not null)
+            _logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
+            var status = await Permissions.RequestAsync<CheckPermissions>();
+
+            if (status == PermissionStatus.Granted)
             {
+                
+                var res = await FolderPicker.Default.PickAsync(CancellationToken.None);
 
-
-                string? selectedFolderPath = res?.Folder?.Path;
-
-
-
-                if (!string.IsNullOrEmpty(selectedFolderPath))
+                if (res is not null)
                 {
-                    _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
-                    // The FolderManagementService should handle adding to settings and triggering the scan.
-                    // We just need to tell it the folder was selected by the user.
 
-                  await  AddMusicFolderByPassingToService(selectedFolderPath);
-                }
-                else
-                {
-                    _logger.LogInformation("No folder selected by user.");
-                }
 
+                    string? selectedFolderPath = res?.Folder?.Path;
+
+
+
+                    if (!string.IsNullOrEmpty(selectedFolderPath))
+                    {
+                        _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
+                        // The FolderManagementService should handle adding to settings and triggering the scan.
+                        // We just need to tell it the folder was selected by the user.
+
+                        await AddMusicFolderByPassingToService(selectedFolderPath);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No folder selected by user.");
+                    }
+
+
+                }
 
             }
-
+            else
+            {
+                _logger.LogWarning("Storage permission denied for adding music folder.");
+                // TODO: Show message to user explaining why permission is needed.
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogWarning("Storage permission denied for adding music folder.");
-            // TODO: Show message to user explaining why permission is needed.
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
 
     }

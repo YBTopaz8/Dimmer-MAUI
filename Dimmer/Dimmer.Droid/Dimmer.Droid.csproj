@@ -45,22 +45,22 @@
   <ItemGroup>
     <!-- Dimmer Dependencies -->
     <PackageReference Include="AutoMapper" Version="14.0.0" />
-    <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.8" />
-    <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.8" />
-    <PackageReference Include="DevExpress.Maui.Core" Version="24.2.8" />
-    <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.8" />
-    <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.8" />
-    <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.8" />
+    <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.10" />
+    <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.10" />
+    <PackageReference Include="DevExpress.Maui.Core" Version="24.2.10" />
+    <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.10" />
+    <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.10" />
+    <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.10" />
 
     <!-- MAUI Dependencies -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.100" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.100" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.110" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.110" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
 
 
 
 
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
 
 
     <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9" />
@@ -132,6 +132,9 @@
       <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
     </MauiXaml>
     <MauiXaml Update="Views\AlbumPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\AllPlaylists.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\AnimationSettingsPage.xaml">
