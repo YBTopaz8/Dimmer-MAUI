@@ -207,5 +207,19 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-   
+    private void RescanFolder_Clicked(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        var comParam = send.CommandParameter as string;
+
+        if (comParam is null)
+            return;
+
+        MyViewModel.ReScanMusicFolderByPassingToServiceCommand.Execute(comParam);
+    }
+
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

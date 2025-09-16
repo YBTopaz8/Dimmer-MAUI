@@ -626,7 +626,7 @@ FontAttributes="Bold"                                                        Hor
                                                 FontSize="18"
                                                 Icon="heartbroken.png"
                                                 IsIconVisible="True"
-                                                LongPressCommand="{Binding ToggleFavSongCommand}"
+                                                LongPressCommand="{Binding AddFavoriteRatingToSongCommand}"
                                                 Tap="ArtistChip_Tap">
                                                             <dx:Chip.Triggers>
                                                                 <DataTrigger
@@ -782,36 +782,29 @@ FontAttributes="Bold"                                                        Hor
                                             BackgroundColor="Transparent"
                                             ColumnDefinitions="*,0.4*,0.4*"
                                             ColumnSpacing="10">
-                                                        <dx:DXButton
-                                                Grid.Column="0"
-                                                AnimationDuration="1500"
+                                                        <ImageButton
+                                                Grid.Column="0" 
+                                                            
                                                 Command="{Binding PlayPauseToggleCommand}"
                                                 HeightRequest="120"
-                                                Icon="play.png"
-                                                IconColor="{AppThemeBinding Dark=White,Light=Black}"
-                                                IconHeight="60"
-                                                IconWidth="60"
-                                BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                                                Opacity="0.8"
-                                                PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}">
-                                                            <dx:DXButton.Triggers>
+                                                Source="play.png"
+                                                Opacity="0.8">
+                                                            <ImageButton.Triggers>
 
                                                                 <DataTrigger
                                                         Binding="{Binding IsPlaying}"
-                                                        TargetType="dx:DXButton"
+                                                        TargetType="ImageButton"
                                                         Value="True">
-                                                                    <Setter Property="BorderThickness" Value="2" />
-                                                                    <Setter Property="Icon" Value="pause.png" />
+                                                                    <Setter Property="Source" Value="pause.png" />
                                                                 </DataTrigger>
                                                                 <DataTrigger
                                                         Binding="{Binding IsPlaying}"
-                                                        TargetType="dx:DXButton"
+                                                        TargetType="ImageButton"
                                                         Value="False">
-                                                                    <Setter Property="BorderThickness" Value="0" />
-                                                                    <Setter Property="Icon" Value="play.png" />
+                                                                    <Setter Property="Source" Value="play.png" />
                                                                 </DataTrigger>
-                                                            </dx:DXButton.Triggers>
-                                                        </dx:DXButton>
+                                                            </ImageButton.Triggers>
+                                                        </ImageButton>
 
                                                         <dx:DXToggleButton
                                                 Grid.Column="1"
@@ -1122,31 +1115,32 @@ FontAttributes="Bold"                                                        Hor
                 </Grid>
             </dx:DXDockLayout>
         </dx:SafeKeyboardAreaView>
+
         <dx:BottomSheet
             
             x:Name="MoreBtmSheet" StateChanged="MoreBtmSheet_StateChanged">
             <dx:BottomSheet.Content>
                 <VerticalStackLayout>
-                    
-                        <Button 
-                ImageSource="eye.png" HeightRequest="20" WidthRequest="160"
-               Text="{Binding SelectedSong.Title, StringFormat='View Song'}"
+
+                    <Button 
+                ImageSource="shared.png" HeightRequest="20" WidthRequest="160"
+               Command="{Binding ShareSongDetailsAsTextCommand}"
     Clicked="NavigateToSelectedSongPageContextMenuAsync">
-                            
-                        </Button>
+
+                    </Button>
 
                     <Button HeightRequest="20" WidthRequest="160"
 Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
 CommandParameter="Black" ImageSource="chatdots.png"
                     >
-                            <Button.Text>
-                                <MultiBinding StringFormat="{}Add Quick Note to: {0} by {1}">
-                                    <Binding Path="Title" />
-                                    <Binding Path="ArtistName" />
-                                </MultiBinding>
-                            </Button.Text>
-                            
-                        </Button>
+                        <Button.Text>
+                            <MultiBinding StringFormat="{}Add Quick Note to: {0} by {1}">
+                                <Binding Path="Title" />
+                                <Binding Path="ArtistName" />
+                            </MultiBinding>
+                        </Button.Text>
+
+                    </Button>
 
 
 
@@ -1156,13 +1150,13 @@ CommandParameter="Black" ImageSource="chatdots.png"
                     <Button HeightRequest="20" WidthRequest="160"
                      Text="{Binding SelectedSong.OtherArtistsName,StringFormat='Quick View Artist : {0}'}"
                                ImageSource="artist.png"
-                     CommandParameter="{Binding .}"
+                     CommandParameter="{Binding SelectedSong}"
                      Clicked="QuickSearchArtist_Clicked"
                      x:Name="ViewArtistMFI"/>
                     <Button HeightRequest="20" WidthRequest="160"
                      Text="{Binding SelectedSong.AlbumName,StringFormat='Quick View Album : {0}'}"
                                 ImageSource="albummm.png"
-                     CommandParameter="{Binding .}"
+                     CommandParameter="{Binding SelectedSong}"
                      Clicked="QuickSearchAlbum_Clicked"
                      x:Name="ViewAlbumMFI"/>
                     <Button HeightRequest="20" WidthRequest="160"
@@ -1188,11 +1182,10 @@ CommandParameter="Black" ImageSource="chatdots.png"
                     <Button Text="Sync" HeightRequest="20" WidthRequest="160"
      ImageSource="roundtransferhorizontal.png"
     CommandParameter="SyncShare" />
-                    
+
                 </VerticalStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>
-  
     </Grid>
 
     <!--</dx:DXScrollView>-->

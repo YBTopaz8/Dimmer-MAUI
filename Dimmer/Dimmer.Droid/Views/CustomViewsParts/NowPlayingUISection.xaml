@@ -200,7 +200,7 @@ FontAttributes="Bold"
                                                 FontSize="18"
                                                 Icon="heartbroken.png"
                                                 IsIconVisible="True"
-                                                LongPressCommand="{Binding ToggleFavSongCommand}"
+                                                LongPressCommand="{Binding AddFavoriteRatingToSongCommand}"
                                                 Tap="ArtistChip_Tap">
                                 <dx:Chip.Triggers>
                                     <DataTrigger
