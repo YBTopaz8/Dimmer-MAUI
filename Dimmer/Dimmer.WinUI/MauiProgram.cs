@@ -35,18 +35,18 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-                Microsoft.Maui.Handlers.LabelHandler.Mapper.AppendToMapping(
-                    nameof(FlyoutBase.ContextFlyoutProperty), (handler, view) =>
-                {
-                    if (handler.PlatformView is Microsoft.UI.Xaml.FrameworkElement nativeView && view is Element element)
-                    {
-                        var contextFlyout = FlyoutBase.GetContextFlyout(element);
-                        if (contextFlyout?.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase nativeFlyout)
-                        {
-                            Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase.SetAttachedFlyout(nativeView, nativeFlyout);
-                        }
-                    }
-                });
+                //Microsoft.Maui.Handlers.LabelHandler.Mapper.AppendToMapping(
+                //    nameof(FlyoutBase.ContextFlyoutProperty), (handler, view) =>
+                //{
+                //    if (handler.PlatformView is Microsoft.UI.Xaml.FrameworkElement nativeView && view is Element element)
+                //    {
+                //        var contextFlyout = FlyoutBase.GetContextFlyout(element);
+                //        if (contextFlyout?.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase nativeFlyout)
+                //        {
+                //            Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase.SetAttachedFlyout(nativeView, nativeFlyout);
+                //        }
+                //    }
+                //});
 
 
                 Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
@@ -225,6 +225,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<AllPlaylists>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
         builder.Services.AddSingleton<TqlTutorialPage>();
+        builder.Services.AddSingleton<SingleAlbumPage>();
         return builder.Build();
     }
 

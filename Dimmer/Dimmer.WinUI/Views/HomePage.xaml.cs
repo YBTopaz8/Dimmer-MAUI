@@ -28,7 +28,17 @@ namespace Dimmer.WinUI.Views;
         public BaseViewModelWin MyViewModel { get; internal set; }
 
 
-
+    //<Button.Behaviors>
+    //                                        <toolkit:TouchBehavior
+    //                                            HoveredScale = "1.5"
+    //                                            HoveredAnimationEasing="BounceOut"
+    //                                            HoveredAnimationDuration="450"
+    //                                            x:Name="OnArtistButton"
+    //                                           CommandParameter="{Binding .}"
+                                                
+    //                                            TouchGestureCompleted="OnArtistButton_TouchGestureCompleted"
+    //                                            LongPressCommandParameter="{Binding .}"/>
+    //                                    </Button.Behaviors>
         public HomePage(BaseViewModelWin vm , IWinUIWindowMgrService windowMgrService)
         {
             InitializeComponent();
@@ -232,7 +242,9 @@ namespace Dimmer.WinUI.Views;
         MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
         MyViewModel.SongColView = SongsColView;
 
-       await MyViewModel.InitializeParseUser();
+        MyViewModel.CurrentMAUIPage = null;
+        MyViewModel.CurrentMAUIPage = this;
+        await MyViewModel.InitializeParseUser();
     }
 
 
@@ -1247,6 +1259,8 @@ await this.FadeIn(500, 1.0);
     private void ViewSongDetails_Clicked(object sender, EventArgs e)
     {
         MainPagePopup.IsOpen = !MainPagePopup.IsOpen;
+
+        //SfChip btn = (SfChip)sender;
     }
 
     private async void TQLL_Clicked(object sender, EventArgs e)
@@ -1307,8 +1321,11 @@ public class SongViewTemplateSelector : DataTemplateSelector
             parent = parent.Parent;
         }
 
+
         // If we reach the top without finding the parent, return null.
         return null;
+    
+    
     }
 }
 

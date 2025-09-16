@@ -2,6 +2,7 @@ using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 using Dimmer.WinUI.Views.PlaylistPages;
 using Dimmer.WinUI.Views.TQLCentric;
@@ -36,6 +37,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
         Routing.RegisterRoute(nameof(TqlTutorialPage), typeof(TqlTutorialPage));
         Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
+        Routing.RegisterRoute(nameof(SingleAlbumPage), typeof(SingleAlbumPage));
     }
 
 
@@ -649,7 +651,6 @@ public partial class AppShell : Shell
 
     private void Quickalbumsearch_Clicked(object sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var send = (SfEffectsView)sender;
       
@@ -749,6 +750,67 @@ public partial class AppShell : Shell
         var param = btn.CommandParameter;
         Debug.WriteLine(param);
         Debug.WriteLine(param.GetType());
+    }
+
+    private void SelectedSongChip_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void SelectedSongChip_TouchUp(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+
+        if (send is null)
+            return;
+
+        var param = send.TouchUpCommandParameter as SongModelView;
+
+        if (param is null)
+            return;
+
+
+        MyViewModel.SelectedSong = param;
+
+    }
+
+    private void SfEffectsView_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFavoriteRatingToSong_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFavoriteRatingToSong_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void AddFavoriteRatingToSong_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void AddFavoriteRatingToSongPtrGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+
+        var platEvents = e.PlatformArgs;
+        var routedEvents = platEvents.PointerRoutedEventArgs;
+
+
+        var properties = routedEvents.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+        if(properties.IsLeftButtonPressed)
+        {
+            await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+        }
+        if (properties.IsRightButtonPressed)
+        {
+           await MyViewModel.UnloveSong(MyViewModel.CurrentPlayingSongView);
+            return;
+        }
     }
 
     // Section for Songs With UserNotes.

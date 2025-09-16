@@ -6,7 +6,7 @@ public partial class ArtistsPage : ContentPage
     {
         InitializeComponent();
 
-        //= IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+        //= IPlatformApplication.Current!.Services.GetService<MyViewModel>()!;
         MyViewModel=viewModel;
         BindingContext=MyViewModel;
     }
