@@ -26,3 +26,12 @@
 *.pfx
 *.json
 /Dimmer/Dimmer/DimmerLive/Orchestration/ApiKeys.cs
+/Dimmer/Dimmer.Tests/obj/Debug/net9.0/Dimmer.Tests.AssemblyInfo.cs
+/Dimmer/Dimmer.Tests/obj/Debug/net9.0/Dimmer.Tests.assets.cache
+/Dimmer/Dimmer.Tests/obj/Release/net9.0/Dimmer.Tests.AssemblyInfo.cs
+/Dimmer/Dimmer.Tests/obj/Debug/net9.0/Dimmer.Tests.AssemblyInfoInputs.cache
+/Dimmer/Dimmer.Tests/obj/Debug/net9.0/Dimmer.Tests.GeneratedMSBuildEditorConfig.editorconfig
+/Dimmer/Dimmer.Tests/obj/Debug/net9.0/Dimmer.Tests.GlobalUsings.g.cs
+/Dimmer/Dimmer.Tests/obj/Release/net9.0/.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+/Dimmer/Dimmer.Tests/obj/Release/net9.0
+/Dimmer-MAUI.rar
