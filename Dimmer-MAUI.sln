@@ -11,13 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ATL", "Dimmer\atldotnet-mai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.Droid", "Dimmer\Dimmer.Droid\Dimmer.Droid.csproj", "{42820A7A-B3D9-ED7B-C0F1-879E856F23A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "Dimmer\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{C8459EB5-1733-D9C5-8395-48ECF97A6476}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "Dimmer\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioSwitcher.AudioApi.CoreAudio", "Dimmer\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj", "{3A096C30-340D-E187-2422-0D1503DD6489}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioSwitcher.AudioApi", "Dimmer\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj", "{FF17C190-D1B7-CAC3-5324-276D80A957AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{BC63A063-98DB-4E36-2BFC-ADF891F208E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,14 +45,6 @@ Global
 		{42820A7A-B3D9-ED7B-C0F1-879E856F23A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42820A7A-B3D9-ED7B-C0F1-879E856F23A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{42820A7A-B3D9-ED7B-C0F1-879E856F23A8}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{C8459EB5-1733-D9C5-8395-48ECF97A6476}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C8459EB5-1733-D9C5-8395-48ECF97A6476}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C8459EB5-1733-D9C5-8395-48ECF97A6476}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C8459EB5-1733-D9C5-8395-48ECF97A6476}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EBC3EB65-9BD1-16DF-1433-E32C6503CA8A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A096C30-340D-E187-2422-0D1503DD6489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3A096C30-340D-E187-2422-0D1503DD6489}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A096C30-340D-E187-2422-0D1503DD6489}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,6 +53,14 @@ Global
 		{FF17C190-D1B7-CAC3-5324-276D80A957AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF17C190-D1B7-CAC3-5324-276D80A957AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF17C190-D1B7-CAC3-5324-276D80A957AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
