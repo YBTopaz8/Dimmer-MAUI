@@ -53,8 +53,8 @@
     <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.10" />
 
     <!-- MAUI Dependencies -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.110" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.110" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.100" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.100" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
 
 

@@ -140,10 +140,10 @@
     <PackageReference Include="Realm" Version="20.1.0" />
 
 
-    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.110" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.100" />
     <PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.110" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.100" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
 
 
@@ -202,9 +202,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+    <ProjectReference Include="..\..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
     <ProjectReference Include="..\atldotnet-main\ATL\ATL.csproj" />
-    <ProjectReference Include="..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
-    <ProjectReference Include="..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
+	  
   </ItemGroup>
 
   <ItemGroup>
