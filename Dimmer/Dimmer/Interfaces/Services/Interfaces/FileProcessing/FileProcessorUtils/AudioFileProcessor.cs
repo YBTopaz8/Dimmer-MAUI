@@ -180,4 +180,10 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         return result;
     }
+
+    internal void Cleanup()
+    {
+        _metadataService.ClearAll();
+        
+    }
 }

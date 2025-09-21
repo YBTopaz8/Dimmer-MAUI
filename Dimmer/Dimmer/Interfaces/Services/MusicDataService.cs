@@ -14,7 +14,7 @@ namespace Dimmer.Interfaces.Services;
 /// </summary>
 public class MusicDataService
 {
-    private readonly IRealmFactory _realmFactory; // Assuming you have a factory to get Realm instances
+    private readonly IRealmFactory _realmFactory; 
     private readonly ILogger<MusicDataService> _logger;
 
     public MusicDataService(IRealmFactory realmFactory, ILogger<MusicDataService> logger)

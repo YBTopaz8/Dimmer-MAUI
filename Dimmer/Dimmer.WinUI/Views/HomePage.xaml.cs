@@ -238,13 +238,31 @@ namespace Dimmer.WinUI.Views;
 
     protected async override void OnAppearing()
     {
-        base.OnAppearing();
-        MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
-        MyViewModel.SongColView = SongsColView;
+        try
+        {
+            base.OnAppearing();
+            MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
+            MyViewModel.SongColView = SongsColView;
 
-        MyViewModel.CurrentMAUIPage = null;
-        MyViewModel.CurrentMAUIPage = this;
-        await MyViewModel.InitializeParseUser();
+            MyViewModel.CurrentMAUIPage = null;
+            MyViewModel.CurrentMAUIPage = this;
+            await MyViewModel.InitializeParseUser();
+        }
+        catch (Exception ex)
+        {
+
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
+        if(!MyViewModel.ShowWelcomeScreen)
+        {
+
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
+            await Shell.Current.GoToAsync(nameof(WelcomePage), true);
+        }
+        else
+        {
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+        }
     }
 
 

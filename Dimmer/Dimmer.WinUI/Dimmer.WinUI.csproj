@@ -94,6 +94,7 @@
     <None Remove="Views\SongNotifierWindow.xaml" />
     <None Remove="Views\StatisticsPage.xaml" />
     <None Remove="Views\TQLCentric\TqlTutorialPage.xaml" />
+    <None Remove="Views\WelcomePage.xaml" />
     <None Remove="Views\WinUIPages\AllSongsListPage.xaml" />
     <None Remove="Views\WinUIPages\AllSongsWindow.xaml" />
     <None Remove="Views\WinUIPages\SongDetailPage.xaml" />
@@ -128,6 +129,7 @@
     <Page Remove="Views\SongNotifierWindow.xaml" />
     <Page Remove="Views\StatisticsPage.xaml" />
     <Page Remove="Views\TQLCentric\TqlTutorialPage.xaml" />
+    <Page Remove="Views\WelcomePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -279,6 +281,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\TQLCentric\TqlTutorialPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\WelcomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

@@ -9,7 +9,7 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui" xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
              x:DataType="vm:BaseViewModelWin" 
              Shell.NavBarIsVisible="False"
-             Shell.FlyoutBehavior="Flyout"
+             
       xmlns:lastfmmodels="clr-namespace:Hqub.Lastfm.Entities;assembly=Hqub.Lastfm" 
                xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
      >

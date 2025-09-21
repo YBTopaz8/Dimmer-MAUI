@@ -22,7 +22,7 @@
     x:Name="myPage"
     xmlns:local="clr-namespace:Dimmer.WinUI.Views"
                     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
-Shell.FlyoutBehavior="Locked"
+
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=transparent}"

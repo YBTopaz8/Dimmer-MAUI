@@ -271,9 +271,16 @@ public class LastfmService : ILastfmService
     {
         try
         {
-            // This calls the second method from your fork. It uses the internally stored token.
-            await _client.AuthenticateViaWebAsync();
+            if (_client.Session.Authenticated)
+            {
+                return true; // Already authenticated
+            }
 
+                // This calls the second method from your fork. It uses the internally stored token.
+            if (!await _client.AuthenticateViaWebAsync())
+            {
+                return false;
+            }
             if (_client.Session.Authenticated)
             {
 
