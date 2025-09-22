@@ -112,8 +112,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.musicArtistryService=new(RealmFactory);
 
         this.musicStatsService=new(RealmFactory);
-        DragStartedCommand = ReactiveCommand.Create(() => { });
-        DragCompletedCommand = ReactiveCommand.Create(() => { });
 
 
         _searchQuerySubject = new BehaviorSubject<string>("");
@@ -127,15 +125,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
            .Bind(out _searchResults)
            .Subscribe()
            .DisposeWith(Disposables);
-        var isDraggingStream = Observable.Merge(
-                DragStartedCommand.Select(_ => true),
-                DragCompletedCommand.Select(_ => false)
-            ).StartWith(false);
 
-        isDraggingStream
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(isDragging => IsUserDraggingSlider = isDragging)
-            .DisposeWith(_subsManager);
 
         Observable.FromEventPattern<double>(h => _audioService.PositionChanged += h, h => _audioService.PositionChanged -= h)
               .Select(evt => evt.EventArgs)
@@ -153,16 +143,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
               }, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
               .DisposeWith(_subsManager);
 
-        // 3. Handle ALL User-Initiated Seeks (Drag AND Tap).
-        // *** THE FIX: Read from the UI property, not the service property ***
-        DragCompletedCommand
-            .WithLatestFrom(this.WhenAnyValue(vm => vm.SliderPosition), (_, position) => position)
-            .Where(x=>x > 1)
-            .Subscribe(position =>
-            {
-                _audioService.Seek(position);
-            }, ex => _logger.LogError(ex, "Error in user seek subscription"))
-            .DisposeWith(_subsManager);
+        
 
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
         Observable.FromEventPattern<double>(h => _audioService.SeekCompleted += h, h => _audioService.SeekCompleted -= h)
@@ -699,20 +680,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefault();
-        if (appModel != null)
+        if (appModel != null && appModel.Id != ObjectId.Empty)
         {
+                if (appModel.LastKnownPlaybackQuery is not null)
+                {
+                    var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
 
-            var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
+                    removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:\d+!", "", RegexOptions.IgnoreCase);
+                    removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:end!", "", RegexOptions.IgnoreCase);
+                    CurrentTqlQuery = removeCOmmandFromLastSaved;
+                    removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addnext!", "", RegexOptions.IgnoreCase);
+                    CurrentPlaybackQuery = removeCOmmandFromLastSaved;
+                }
 
-            removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:\d+!", "", RegexOptions.IgnoreCase);
-            removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:end!", "", RegexOptions.IgnoreCase);
-            CurrentTqlQuery = removeCOmmandFromLastSaved;
-            removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addnext!", "", RegexOptions.IgnoreCase);
-
-
-
-
-            CurrentPlaybackQuery =removeCOmmandFromLastSaved; 
             _playbackQueueIndex = appModel.LastKnownPlaybackQueueIndex;
             IsShuffleActive = appModel.LastKnownShuffleState;
             CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
@@ -1670,7 +1650,37 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
+        if(embeddedPicture is null)
+        {
+            _logger.LogTrace("No embedded cover art found in audio file: {FilePath}", song.FilePath);
+            //Trying lastfm
+            var lastfmTrack = await lastfmService.GetTrackInfoAsync(song.ArtistName, song.Title);
 
+            if(lastfmTrack.Images is not null && lastfmTrack.Images.Count>0)
+            {
+            
+                var imageUrl = lastfmTrack.Images[0].Url;
+
+                //save to disc and use that path
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    try
+                    {
+                        var tempImagePath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.jpg");
+                        using var httpClient = new HttpClient();
+                        var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
+                        await File.WriteAllBytesAsync(tempImagePath, imageBytes);
+                        embeddedPicture = PictureInfo.fromBinaryData(imageBytes, PictureInfo.PIC_TYPE.CD);
+                        _logger.LogTrace("Fetched cover art from Last.fm for {Title} by {Artist}", song.Title, song.ArtistName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to fetch or save cover art from Last.fm for {Title} by {Artist}", song.Title, song.ArtistName);
+                    }
+                }
+                return;
+            }
+        }
 
         string? finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.FilePath, embeddedPicture);
 
@@ -3202,8 +3212,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .Subscribe(async _ => await PreviousTrack(), ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
 
-    public ReactiveCommand<Unit, Unit> DragStartedCommand { get; }
-    public ReactiveCommand<Unit, Unit> DragCompletedCommand { get; }
 
 
     private void LatestDeviceLog(AppLogModel model)
@@ -3311,8 +3319,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public async Task AddMusicFolderByPassingToService(string folderPath)
     {
         _logger.LogInformation("User requested to add music folder.");
-        await _folderMgtService.AddFolderToWatchListAndScan(folderPath);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderAdded, folderPath, null, null));
+        _ = Task.Run(async ()=> await _folderMgtService.AddFolderToWatchListAndScan(folderPath));
     }
 
     [ObservableProperty]

@@ -261,36 +261,29 @@ public partial class BaseViewModelWin: BaseViewModel
    
     public async Task AddMusicFolderViaPickerAsync()
     {
-
-
-        var res = await _folderPicker.PickAsync(CancellationToken.None);
-
-        if (res is not null && res.Folder is not null)
+        try
         {
 
 
-            string? selectedFolderPath = res!.Folder!.Path;
+            var res = await _folderPicker.PickAsync(CancellationToken.None);
 
-
-
-            if (!string.IsNullOrEmpty(selectedFolderPath))
+            if (res is not null && res.Folder is not null)
             {
-                AddMusicFolderByPassingToService(selectedFolderPath);
-            }
-            else
-            {
+                string? selectedFolderPath = res!.Folder!.Path;
+
+                if (!string.IsNullOrEmpty(selectedFolderPath))
+                {
+                    _ = Task.Run(async () => await AddMusicFolderByPassingToService(selectedFolderPath));
+                }
 
             }
         }
-        else
+        catch (Exception ex)
         {
-
+            Debug.WriteLine(ex.Message);
         }
     }
-    public async Task PickFolderToScan()
-    {
-        await AddMusicFolderViaPickerAsync();
-    }
+
 
     public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
     {

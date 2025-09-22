@@ -244,6 +244,7 @@ Text="{x:Bind MyViewModel.CurrentTqlQuery}" />
                 <dgView:TableViewTextColumn IsReadOnly="True" MaxWidth="180"  Header="Album" Binding="{Binding AlbumName}" />
 
                 <dgView:TableViewTextColumn IsReadOnly="True" Header="Genre" Binding="{Binding GenreName}"/>
+                <dgView:TableViewTextColumn IsReadOnly="True" Header="Format" Binding="{Binding FileFormat}"/>
                 <dgView:TableViewTextColumn IsReadOnly="True" Header="Duration" Binding="{Binding DurationFormatted}"/>
                 <dgView:TableViewTextColumn  IsFiltered="False"
                                                     CanFilter="False"

@@ -256,12 +256,11 @@ public class LibraryScannerService : ILibraryScannerService
             }
             _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,null, null));
 
-
             return new LoadSongsResult { /* ... */ };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred during ScanLibrary.");
+            _logger.LogError(ex, $"An unhandled exception occurred during ScanLibrary.{ex.Message}");
             return null;
         }
     }
