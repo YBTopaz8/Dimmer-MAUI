@@ -1170,8 +1170,7 @@ ToolTipProperties.Text="Save Has Favorite">
                                             </MenuFlyout>
                                         </FlyoutBase.ContextFlyout>
                                         <Label Text="Current Image" FontSize="Header"/>
-                                        <Image HeightRequest="500"
-                                               WidthRequest="500"
+                                        <Image Aspect="Center"
                                                Source="{Binding SelectedSong.CoverImagePath}"/>
                                     </VerticalStackLayout>
                                     <VerticalStackLayout>

@@ -779,9 +779,10 @@ public partial class AppShell : Shell
 
     }
 
-    private void AddFavoriteRatingToSong_TouchUp(object sender, EventArgs e)
+    private async void AddFavoriteRatingToSong_TouchUp(object sender, EventArgs e)
     {
 
+        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
     }
 
     private void AddFavoriteRatingToSong_Loaded(object sender, EventArgs e)
@@ -811,6 +812,11 @@ public partial class AppShell : Shell
            await MyViewModel.UnloveSong(MyViewModel.CurrentPlayingSongView);
             return;
         }
+    }
+
+    private void AddFavoriteRatingToSong_TouchUp_1(object sender, EventArgs e)
+    {
+
     }
 
     // Section for Songs With UserNotes.

@@ -220,32 +220,28 @@ IsVisible="True">
 
                         </Label>
                         <HorizontalStackLayout HorizontalOptions="Center">
-                                    <Border
+                                    <syncf:SfEffectsView
                                         x:Name="AddFavoriteRatingToSong"
+                                        TouchUp="AddFavoriteRatingToSong_TouchUp"
                                         
->
-                                        <Border.GestureRecognizers>
-                                            <PointerGestureRecognizer
-                                                PointerReleased="AddFavoriteRatingToSongPtrGest_PointerReleased"
-                                                PointerReleasedCommandParameter="{Binding
+                                        TouchUpCommandParameter="{Binding
                                                 CurrentPlayingSongView}"
-                                                x:Name="AddFavoriteRatingToSongPtrGest"
-                                                />
-                                        </Border.GestureRecognizers>
+                                        >
+                                      
                                         <Grid >
 
 
-                            <Image
+                            <ImageButton
                         BackgroundColor="Transparent"
-                        
-                                    
+                        Command="{Binding AddFavoriteRatingToSongCommand}"
+                                    CommandParameter="{Binding CurrentPlayingSongView}"
                                     windows:VisualElement.AccessKey="H"
                         Source="heart.png"
                         WidthRequest="58">
-                                <Image.Triggers>
+                                <ImageButton.Triggers>
                                     <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                TargetType="Image"
+                                TargetType="ImageButton"
                                 Value="False">
                                         <Setter Property="Source" Value="heartbroken.png" />
                                         <Setter Property="ToolTipProperties.Text" Value="Not Favorite" />
@@ -253,21 +249,21 @@ IsVisible="True">
                                     </DataTrigger>
                                     <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                TargetType="Image"
+                                TargetType="ImageButton"
                                 Value="True">
                                                 <Setter Property="Source" Value="heartlock.png" />
                                         <Setter Property="ToolTipProperties.Text" Value="Favorite" />
 
 
                                     </DataTrigger>
-                                </Image.Triggers>
-                            </Image>
+                                </ImageButton.Triggers>
+                            </ImageButton>
                                             <Label 
                                                 HorizontalOptions="Center"
                                                 Text="{Binding CurrentPlayingSongView.NumberOfTimesFaved}"/>
 
                                         </Grid>
-                                    </Border>
+                                    </syncf:SfEffectsView>
                                     <Button WidthRequest="60" BackgroundColor="{Binding CurrentPlaySongDominantColor}"  TextColor="{AppThemeBinding Light=Black,Dark=White}" BorderWidth="0"
                         Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}" 
                        Opacity="0.6"     Clicked="NavigateToSelectedSongPageContextMenuAsync"/>
