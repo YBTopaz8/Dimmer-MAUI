@@ -28,6 +28,7 @@ public static class FieldRegistry
             new("GenreName", FieldType.Text, new[]{"genre","g"}, "The song's genre", nameof(SongModel.GenreName)),
             new("Composer", FieldType.Text, new[]{"comp"}, "The composer", nameof(SongModel.Composer)),
             new("FilePath", FieldType.Text, new[]{"path"}, "The file path", nameof(SongModel.FilePath)),
+            new("Format", FieldType.Text, new[]{"type"}, "The file path", nameof(SongModel.FileFormat)),
 
             // --- Numeric Fields ---
             new("ReleaseYear", FieldType.Numeric, new[]{"year"}, "The song's release year", nameof(SongModel.ReleaseYear)),

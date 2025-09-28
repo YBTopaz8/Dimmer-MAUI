@@ -16,6 +16,27 @@ public enum DuplicateAction
     Ignore // "Save aside"
 }
 
+[Flags]
+public enum DuplicateReason
+{
+    None = 0,
+    // Metadata Matches
+    SameTitle = 1,
+    SameArtist = 2,
+    SameAlbum = 4,
+
+    // File/Audio Property Matches
+    SimilarDuration = 8,
+    SameFileSize = 16,
+
+    // Quality & Location Differences
+    LowerBitrate = 32,
+    DifferentFileFormat = 64,
+    DifferentFolder = 128,
+
+    // --- Placeholder for future advanced comparison ---
+    IdenticalAudioFingerprint = 256
+}
 
 public partial class DuplicateItemViewModel : ObservableObject
 {
@@ -24,6 +45,8 @@ public partial class DuplicateItemViewModel : ObservableObject
 
     // Is this the original or a duplicate? (For UI styling)
     public DuplicateStatus Status { get; }
+    
+    public DuplicateReason Reasons { get; }
 
     // What does the user want to do with this item?
     [ObservableProperty]

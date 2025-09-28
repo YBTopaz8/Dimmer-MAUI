@@ -17,6 +17,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         _mapper = mapper;
         _logger = logger;
     }
+
     public DuplicateSearchResult FindDuplicates(DuplicateCriteria criteria, IProgress<string>? progress = null)
     {
         if (criteria == DuplicateCriteria.None)
@@ -32,7 +33,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         progress?.Report("Loading all songs from the database...");
 
         // Materialize the list now that we need to process it
-        List<SongModel>? allSongsList = allSongsQuery.ToList();
+        List<SongModelView>? allSongsList = _mapper.Map<List<SongModelView>>(allSongsQuery.ToList());
 
         var result = new DuplicateSearchResult
         {
@@ -55,30 +56,26 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         foreach (var group in duplicateGroups)
         {
-            // Use the first song as a representative for the set's display info
-            var representativeSong = group.First();
+            if (!group.Any()) continue; // Safety check
+
+            // --- REFACTORED LOGIC ---
+            // Instead of a fixed sort, we now determine the best song based on a score.
+            var originalSong = DetermineBestSong(group);
+
             var set = new DuplicateSetViewModel(
-                representativeSong.Title,
-                representativeSong.DurationInSeconds
+                originalSong.Title,
+                originalSong.DurationInSeconds
             );
 
-            // Sort songs in the group to determine the "original" vs. "duplicates"
-            // A good heuristic: best quality (BitRate), then oldest file.
-            var sortedSongs = group
-                .OrderByDescending(s => s.BitRate ?? 0)
-                .ThenByDescending(s => s.FileSize)
-                .ThenBy(s => s.DateCreated)
-                .ToList();
+            // Add our designated "Original" to the set
+            set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(originalSong), DuplicateStatus.Original));
 
-            // The first item in the sorted list is our designated "Original"
-            var originalSongModel = sortedSongs.First();
-            set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(originalSongModel), DuplicateStatus.Original));
-
-            // All other items are duplicates
-            foreach (var duplicateSongModel in sortedSongs.Skip(1))
+            // Add all other songs from the group as "Duplicates"
+            foreach (var duplicateSongModel in group.Where(s => s.Id != originalSong.Id))
             {
                 set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(duplicateSongModel), DuplicateStatus.Duplicate));
             }
+            // --- END REFACTORED LOGIC ---
 
             result.DuplicateSets.Add(set);
         }
@@ -88,7 +85,75 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         return result;
     }
-   
+
+    /// <summary>
+    /// Evaluates a group of duplicate songs and returns the one deemed "best" based on a scoring system.
+    /// </summary>
+    /// <param name="duplicateGroup">A collection of songs that are considered duplicates of each other.</param>
+    /// <returns>The SongModelView with the highest score.</returns>
+    private SongModelView DetermineBestSong(IEnumerable<SongModelView> duplicateGroup)
+    {
+        SongModelView? bestSong = null;
+        int highestScore = -1;
+
+        foreach (var song in duplicateGroup)
+        {
+            int currentScore = 0;
+
+            // --- HEURISTICS & SCORING ---
+            // You can easily add, remove, or change the weights of these criteria.
+
+            // 1. Bitrate: Higher is better. Give a significant boost for high quality.
+            if (song.BitRate.HasValue)
+            {
+                currentScore += song.BitRate.Value; // e.g., 320kbps adds 320 points
+            }
+
+            // 2. File Format: Prefer lossless formats.
+            var extension = Path.GetExtension(song.FilePath)?.ToLowerInvariant();
+            if (extension == ".flac" || extension == ".wav" || extension == ".alac")
+            {
+                currentScore += 500; // Major bonus for being lossless
+            }
+
+            // 3. Metadata Completeness: Reward songs with more complete data.
+            if (song.HasLyrics) currentScore += 50;
+            if (song.IsFavorite) currentScore += 100;
+            if (song.Rating > 0) currentScore += song.Rating * 20; // A 5-star rating adds 100 points
+            if (!string.IsNullOrEmpty(song.CoverImagePath) || (song.CoverImageBytes?.Length > 0)) currentScore += 75;
+
+            // 4. File Path: Prefer files in a "canonical" or non-temporary location.
+            // This is subjective and should be configured based on your library structure.
+            if (song.FilePath.Contains(@"D:\Music\Library", StringComparison.OrdinalIgnoreCase))
+            {
+                currentScore += 200; // Bonus for being in a preferred folder
+            }
+            if (song.FilePath.Contains(@"Downloads", StringComparison.OrdinalIgnoreCase) || song.FilePath.Contains(@"\Temp\", StringComparison.OrdinalIgnoreCase))
+            {
+                currentScore -= 300; // Penalty for being in a temporary/download folder
+            }
+
+            // 5. File Age: Older might mean it's the original import.
+            // This can be a good tie-breaker.
+            if (song.DateCreated.HasValue)
+            {
+                // Give a small bonus for age to act as a tie-breaker
+                // The older the file, the smaller the number of days, the higher the score.
+                currentScore += (int)(DateTime.UtcNow - song.DateCreated.Value).TotalDays / 100;
+            }
+
+            // Compare with the current best song
+            if (currentScore > highestScore)
+            {
+                highestScore = currentScore;
+                bestSong = song;
+            }
+        }
+
+        // Fallback to the first item if for some reason no best song was found (shouldn't happen)
+        return bestSong ?? duplicateGroup.First();
+    }
+
     public async Task<int> ResolveDuplicatesAsync(IEnumerable<DuplicateItemViewModel> itemsToDelete)
     {
         var songIdsToDelete = itemsToDelete.Select(i => i.Song.Id).ToList();
@@ -277,7 +342,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         };
     }
 
-    private string GenerateGroupingKey(SongModel song, DuplicateCriteria criteria)
+    private string GenerateGroupingKey(SongModelView song, DuplicateCriteria criteria)
     {
         var keyParts = new List<string>();
 
@@ -351,8 +416,8 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.Composer = string.IsNullOrWhiteSpace(survivor.Composer) ? ghost.Composer : survivor.Composer;
         survivor.Conductor = string.IsNullOrWhiteSpace(survivor.Conductor) ? ghost.Conductor : survivor.Conductor;
         survivor.Language = string.IsNullOrWhiteSpace(survivor.Language) ? ghost.Language : survivor.Language;
-        survivor.IsInstrumental = survivor.IsInstrumental ?? ghost.IsInstrumental;
-        survivor.CoverImageBytes = survivor.CoverImageBytes ?? ghost.CoverImageBytes;
+        survivor.IsInstrumental ??= ghost.IsInstrumental;
+        survivor.CoverImageBytes ??= ghost.CoverImageBytes;
 
 
         // Ensure the survivor has the earliest creation date.
@@ -372,7 +437,7 @@ public enum DuplicateCriteria
     Duration = 8,
     FileSize = 16,
     // Add any other SongModel properties you want to compare
-
+    AudioFingerprint = 32,
     // --- Common Presets ---
     Default = Title | Duration,
     Strict = Title | Artist | Album | Duration,
@@ -384,5 +449,5 @@ public class DuplicateSearchResult
     public DuplicateCriteria CriteriaUsed { get; set; }
     public List<DuplicateSetViewModel> DuplicateSets { get; set; } = new();
     public int TotalSongsScanned { get; set; }
-    public List<SongModel>? ResultSongs { get; set; } = null;
+    public List<SongModelView>? ResultSongs { get; set; } = null;
 }
