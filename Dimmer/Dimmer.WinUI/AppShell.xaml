@@ -17,8 +17,15 @@
     xmlns:views="clr-namespace:Dimmer.WinUI.Views"
     FlyoutWidth="380"
         xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    Shell.FlyoutBehavior="Flyout"  FlyoutBackgroundColor="Transparent"
+   FlyoutBackgroundColor="Transparent"
     x:DataType="vm:BaseViewModelWin">
+    <Shell.Triggers>
+        <DataTrigger TargetType="Shell" Binding="{Binding IsLibraryEmpty}"
+                     Value="True">
+            <Setter Property="FlyoutBehavior" Value="Disabled" />
+
+        </DataTrigger>
+    </Shell.Triggers>
     
     <Shell.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />

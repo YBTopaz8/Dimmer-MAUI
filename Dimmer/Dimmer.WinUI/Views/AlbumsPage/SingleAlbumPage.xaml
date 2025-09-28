@@ -25,7 +25,7 @@
     xmlns:local="clr-namespace:Dimmer.WinUI.Views"
     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
     
-    Shell.FlyoutBehavior="Flyout"
+    
  
     
     x:DataType="vm:BaseViewModelWin"

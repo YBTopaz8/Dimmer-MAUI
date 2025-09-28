@@ -24,7 +24,6 @@ xmlns:vm="clr-namespace:Dimmer.ViewModels"
     x:Name="myPage"
     xmlns:local="clr-namespace:Dimmer.Views"
                     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
-Shell.FlyoutBehavior="Flyout"
              
     x:DataType="vm:BaseViewModelAnd"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=transparent}"

@@ -5,14 +5,22 @@ namespace Dimmer;
 
 public partial class AppShell : Shell
 {
-    public AppShell()
+    public AppShell(BaseViewModel baseVM)
     {
         InitializeComponent();
+        MyViewModel = baseVM;
+        BindingContext = MyViewModel;
     }
+
+    BaseViewModel MyViewModel { get; }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (MyViewModel.ShowWelcomeScreen)
+        {
+
+        }
     }
    
 }

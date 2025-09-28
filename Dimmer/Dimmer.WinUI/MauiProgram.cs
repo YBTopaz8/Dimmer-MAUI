@@ -122,7 +122,7 @@ public static class MauiProgram
 
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddScoped<BaseViewModelWin>();
+        builder.Services.AddSingleton<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<AllArtistsPage>();
@@ -226,6 +226,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<TqlTutorialViewModel>();
         builder.Services.AddSingleton<TqlTutorialPage>();
         builder.Services.AddSingleton<SingleAlbumPage>();
+        builder.Services.AddSingleton<WelcomePage>();
         return builder.Build();
     }
 

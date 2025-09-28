@@ -10,9 +10,6 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
-// Assuming SkiaSharp and ZXing.SkiaSharp are correctly referenced for barcode scanning
-
-// Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
@@ -64,6 +61,15 @@ public partial class BaseViewModelWin: BaseViewModel
         };
         windowManager = mauiWindowManagerService;
         AddNextEvent +=BaseViewModelWin_AddNextEvent;
+        //MainWindowActivated
+    }
+
+    public void MainMAUIWindow_Activated()
+    {
+        //MainWindowActivated?.Invoke(this, EventArgs.Empty);
+        MainWindow_Activated();
+       
+
     }
 
     private async void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
@@ -373,6 +379,18 @@ public partial class BaseViewModelWin: BaseViewModel
         }
 
     }
+    
+    public override async Task AppSetupPageNextBtnClick()
+    {
+        await base.AppSetupPageNextBtnClick();
+        var nextInd = (WelcomeTabViewIndex + 1);
+        if ((int)nextInd == WelcomeTabViewItemsCount)
+        {
+            ShowWelcomeScreen = true;
+            await Shell.Current.GoToAsync("..");
+            return;
+        }
+    }
     protected override async Task ProcessSongChangeAsync(SongModelView value)
     {
         // 1. Let the base class do all of its work first.
@@ -438,7 +456,6 @@ public partial class BaseViewModelWin: BaseViewModel
         // This command REPLACES the current query with one based on the selected cell.
         // Use case: "I don't care what I was searching for, show me *only* this."
 
-        // Assuming 'MySongsTableView' is the name of your TableView control instance
         var selectedContent = MySongsTableView.GetSelectedContent(true);
         var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
 
@@ -450,7 +467,6 @@ public partial class BaseViewModelWin: BaseViewModel
     }
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
-    public string PickFilesOutputText { get; private set; }
 
     [RelayCommand]
     private void AddFilterFromSelection()
@@ -565,5 +581,11 @@ public partial class BaseViewModelWin: BaseViewModel
         await LoadPlainLyricsFromFile(PickFilesOutputText);
 
 
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+    
     }
 }

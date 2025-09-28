@@ -1,39 +1,23 @@
-﻿
-using Dimmer.Data;
-using Dimmer.Data.Models;
-using Dimmer.DimmerLive.ParseStatics;
+﻿using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using Dimmer.UIUtils.CustomPopups;
 using Dimmer.Utils;
 
 using DynamicData;
 using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Maui.Graphics;
 
 using Parse.LiveQuery;
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
 using ReactiveUI;
-
-using Realms;
-
-using Syncfusion.Maui.Toolkit.TextInputLayout;
-
-using System;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
-using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
-
 using EventHandler = System.EventHandler;
 
 
@@ -112,6 +96,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         this.musicArtistryService=new(RealmFactory);
 
         this.musicStatsService=new(RealmFactory);
+     
+        DragCompletedCommand = ReactiveCommand.Create(() => { });
+
+        DragCompletedCommand = ReactiveCommand.Create(() => { });
 
 
         _searchQuerySubject = new BehaviorSubject<string>("");
@@ -121,11 +109,26 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory, _mapper);
 
         searchResultsHolder.Connect()
-           .ObserveOn(RxApp.MainThreadScheduler) // Important for UI updates
-           .Bind(out _searchResults)
-           .Subscribe()
-           .DisposeWith(Disposables);
+     
+        var isDraggingStream = Observable.Merge(
+                DragStartedCommand.Select(_ => true),
+                DragCompletedCommand.Select(_ => false)
+            ).StartWith(false);
 
+        isDraggingStream
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(isDragging => IsUserDraggingSlider = isDragging)
+            .DisposeWith(_subsManager);
+
+        var isDraggingStream = Observable.Merge(
+                DragStartedCommand.Select(_ => true),
+                DragCompletedCommand.Select(_ => false)
+            ).StartWith(false);
+
+        isDraggingStream
+       
+
+            .DisposeWith(_subsManager);
 
         Observable.FromEventPattern<double>(h => _audioService.PositionChanged += h, h => _audioService.PositionChanged -= h)
               .Select(evt => evt.EventArgs)
@@ -133,7 +136,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
               .Subscribe(position =>
               {
                   // Always update the "true" position
-                  CurrentTrackPositionSeconds = position;
+        // 3. Handle ALL User-Initiated Seeks (Drag AND Tap).
+        // *** THE FIX: Read from the UI property, not the service property ***
+        DragCompletedCommand
+            .WithLatestFrom(this.WhenAnyValue(vm => vm.SliderPosition), (_, position) => position)
+            .Where(x=>x > 1)
+            .Subscribe(position =>
+            {
+                _audioService.Seek(position);
+            }, ex => _logger.LogError(ex, "Error in user seek subscription"))
+            .DisposeWith(_subsManager);
 
                   // Only update the UI if the user isn't interacting with it
                   if (!IsUserDraggingSlider)
@@ -143,7 +155,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
               }, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
               .DisposeWith(_subsManager);
 
-        
+        // 3. Handle ALL User-Initiated Seeks (Drag AND Tap).
+        // *** THE FIX: Read from the UI property, not the service property ***
+        DragCompletedCommand
+            .WithLatestFrom(this.WhenAnyValue(vm => vm.SliderPosition), (_, position) => position)
+            .Where(x=>x > 1)
+            .Subscribe(position =>
+            {
+                _audioService.Seek(position);
+            }, ex => _logger.LogError(ex, "Error in user seek subscription"))
+            .DisposeWith(_subsManager);
 
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
         Observable.FromEventPattern<double>(h => _audioService.SeekCompleted += h, h => _audioService.SeekCompleted -= h)
@@ -171,6 +192,77 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var startTime = DateTime.Now;
 
+        // subscribe to realm's directChanges for certain models to keep in sync
+
+        var realm = RealmFactory.GetRealmInstance();
+        var _isLibraryEmpty = new BehaviorSubject<bool>(true);
+
+
+        ShowWelcomeScreen = realm.All<SongModel>().Count() == 0;
+        realm.All<SongModel>()
+         .AsObservableChangeSet()
+         .Select(_ => realm.All<SongModel>().Count() == 0) // Check the count after any change
+         
+         .DistinctUntilChanged() // Only notify subscribers if the empty-state actually changes
+         .Subscribe(isEmpty =>
+         {
+             Debug.WriteLine($"[Library Status]: Is empty = {isEmpty}");
+             _isLibraryEmpty.OnNext(true);
+
+            if(IsLibraryEmpty is not null)
+             { 
+                 IsLibraryEmpty.ObserveOn(RxApp.MainThreadScheduler).Subscribe(showWelcomeScreen => 
+                 { 
+                    if(showWelcomeScreen)
+                         ShowWelcomeScreen = true;
+                    else
+                        ShowWelcomeScreen = false;
+                 });
+             }
+
+         }, ex => _logger.LogError(ex, "Error observing library empty state."))
+         .DisposeWith(Disposables);
+
+
+
+        var realmSub = realm.All<SongModel>().AsObservableChangeSet()
+     
+            .Where(changes => changes.Any())
+            .Subscribe(changes =>
+            {
+                // Handle the changes here
+                foreach (var change in changes)
+                {
+                    switch(change.Reason)
+                    {
+                        case ListChangeReason.Add:
+                            // Handle addition
+                            break;
+                        case ListChangeReason.Remove:
+                            // Handle removal
+                            break;
+                      
+
+                        case ListChangeReason.Refresh:
+                            break;
+                        case
+                            ListChangeReason.Moved:
+                            break;
+        case ListChangeReason.Clear:
+                            break;
+        case ListChangeReason.RemoveRange:
+                            break;
+        case ListChangeReason.AddRange:
+                            break;
+        }
+
+                
+                }
+            },
+            ex => _logger.LogError(ex, "Error observing SongModel changes"))
+            .DisposeWith(Disposables);
+
+        
 
 
         Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
@@ -378,13 +470,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
 
-        //await EnsureAllCoverArtCachedForSongsAsync();
-
 
         Debug.WriteLine($"{DateTime.Now}: Subscriptions to services set up.");
-        // --- STAGE 2: KICK OFF LONG-RUNNING BACKGROUND TASKS ---
-        // We start these tasks on a background thread and DO NOT await them.
-        // This is the "fire and forget" part that prevents UI freeze.
+      
         _ = PerformBackgroundInitializationAsync();
 
         var endTime = DateTime.Now;
@@ -392,8 +480,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         Debug.WriteLine($"{DateTime.Now}: Finished InitializeAllVMCoreComponentsAsync in {duration.TotalSeconds} seconds.");
 
 
-        // The method can now return immediately, making the UI responsive.
-        return; // Or await Task.CompletedTask; if you prefer
+        return; 
     }
 
     /// <summary>
@@ -404,6 +491,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         try
         {
+            await ValidateLibraryAsync();
             _logger.LogInformation("Starting background initialization tasks...");
 
             // Task 1: Check for App Updates (Network I/O)
@@ -511,6 +599,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     
     public event EventHandler? ToggleNowPlayingUI;
+    public event Action? MainWindowActivatedAction;
+    public event EventHandler? MainWindowActivatedEventHandler;
+    public event Action? MainWindowDeactivated;
+    public void MainWindow_Activated()
+    {
+        MainWindowActivatedEventHandler?.Invoke(this, EventArgs.Empty);
+
+    }
+
     private void HandleCommandAction(ICommandAction action)
     {
         if (action is null)
@@ -681,7 +778,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             });
-            realm.Add(appmodel, true);
+            realmm.Add(appmodel, true);
         }
     }
 
@@ -1419,7 +1516,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         songToUpdate.ArtistName = string.Join(" | ", artistNames);
     }
 
-    public async Task SaveUserNoteToSong(SongModelView songWithNote)
+    public virtual async Task SaveUserNoteToSong(SongModelView songWithNote)
     {
         
 
@@ -4249,6 +4346,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var missingIds = validationResult.MissingSongs.Select(s => s.Id).ToHashSet();
             await songRepo.DeleteManyAsync(missingIds); // Assuming your repo has a DeleteManyAsync
 
+            var allSongs = await songRepo.GetAllAsync();
+            Debug.WriteLine(allSongs.Count);
             // --- REPLACED: Refresh the UI by re-running the current search ---
             _searchQuerySubject.OnNext(CurrentTqlQuery);
             await ShowNotification($"{validationResult.MissingCount} missing songs removed from library.");
@@ -4284,7 +4383,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Starting library reconciliation...");
 
 
-        try
+        await ApplyGenreToSongsAsync();
         {
             var allSongs = await songRepo.GetAllAsync();
             if (allSongs == null || allSongs.Count == 0)
@@ -4303,7 +4402,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
 
 
-
+        ApplyGenreToSongsAsync();
             var songsToRemove = new List<SongModelView>();
 
 
@@ -4322,6 +4421,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
 
+        ApplyGenreToSongsAsync();
 
             _logger.LogInformation("UI updated. Removed {RemoveCount} entries, added back {AddCount} updated entries.", songsToRemove.Count, songsToAdd.Count);
         }
@@ -6181,7 +6281,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     }
     [RelayCommand]
-    public async Task CompleteLoginAsync()
+    public async Task CompleteLastFMLoginAsync()
     {
         IsBusy = true;
         try
@@ -6203,9 +6303,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         finally
         {
+            if(IsLastFMNeedsToConfirm)
+            {
+                await Shell.Current.DisplayAlert("Error", "Failed to authenticate with Last.fm. Please ensure you have authorized the app in the browser and try again.", "OK");
+            }
             IsBusy = false;
         }
     }
+    
     public async Task LoadSelectedSongLastFMData()
     {
         if (SelectedSong is not null)
@@ -6372,7 +6477,63 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial ObservableCollection<SongModelView>? SongsWithNotes { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<string?>? DifferentUniqueNotes { get; set; }
+    [ObservableProperty]
+    public partial bool ShowWelcomeScreen { get; set; }
+    [ObservableProperty]
+    public partial WelcomeTabViewIndexEnum WelcomeTabViewIndex { get; set; }
 
+    
+    [ObservableProperty]
+    public partial int WelcomeTabViewItemsCount { get; set; }
+
+    
+   
+
+    private readonly BehaviorSubject<bool> _isLibraryEmpty;
+    public IObservable<bool> IsLibraryEmpty => _isLibraryEmpty;
+
+    [ObservableProperty]
+    public partial string PickFilesOutputText { get;  set; }
+    [ObservableProperty]
+    public partial string WelcomeStep { get;  set; }
+
+    [RelayCommand]
+    public void AppSetupPagePreviouusBtnClick()
+    {
+        var prevInd = (WelcomeTabViewIndex - 1);
+        
+        if (prevInd < 0)
+        {
+            return;
+        }
+        WelcomeTabViewIndex--;
+    }
+    public virtual async Task AppSetupPageNextBtnClick()
+    {
+        var nextInd = (WelcomeTabViewIndex + 1);
+       
+        if ((int)nextInd > WelcomeTabViewItemsCount)
+        {
+            await Shell.Current.DisplayAlert(Shell.Current.Title, "You have completed the setup wizard. You can access it later from the Help menu.", "OK");
+            return;
+        }
+        WelcomeTabViewIndex++;
+        switch (WelcomeTabViewIndex)
+        {
+           case WelcomeTabViewIndexEnum.Folders:
+                WelcomeStep="Step 1 of 3: Add Music Folders";
+                break;
+            case WelcomeTabViewIndexEnum.LastFM:
+                WelcomeStep="Step 2 of 3: Connect Last.fm (Optional)";
+                break;
+            case WelcomeTabViewIndexEnum.TQL:
+                WelcomeStep="Step 3 of 3: Learn TQL (Optional)";
+                break;
+            default:
+                WelcomeStep=string.Empty;
+                break;
+        }
+    }
 }
 
 

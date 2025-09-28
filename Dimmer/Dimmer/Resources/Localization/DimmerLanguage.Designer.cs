@@ -19,7 +19,7 @@ namespace Dimmer.Resources.Localization {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class DimmerLanguage {
@@ -75,6 +75,15 @@ namespace Dimmer.Resources.Localization {
         public static string gettingstart_txt_wlc {
             get {
                 return ResourceManager.GetString("gettingstart_txt_wlc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Next.
+        /// </summary>
+        public static string next_btn {
+            get {
+                return ResourceManager.GetString("next_btn", resourceCulture);
             }
         }
         

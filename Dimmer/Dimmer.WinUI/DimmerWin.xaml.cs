@@ -69,13 +69,16 @@ public partial class DimmerWin : Window
       
 
     }
+
+    public event EventHandler? WindowActivated;
     protected override void OnActivated()
     {
         base.OnActivated();
+        MyViewModel.MainMAUIWindow_Activated();
+        WindowActivated?.Invoke(this, EventArgs.Empty);
         var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
         if (nativeElement != null)
-        {
-            
+        {            
             nativeElement.PointerPressed += OnGlobalPointerPressed;
         }
     }
