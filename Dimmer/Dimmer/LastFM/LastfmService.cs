@@ -431,11 +431,15 @@ public class LastfmService : ILastfmService
     {
         try
         { 
+            if (!string.IsNullOrEmpty(albumName) && !string.IsNullOrEmpty(artistName))
+            {
+                return new Album() { IsNull = true };
+            }
             return await _client.Album.GetInfoAsync(artistName, albumName); 
         }
         catch 
-        { 
-            return new Album(); 
+        {
+            return new Album() { IsNull = true };
         }
     }
 
@@ -448,7 +452,8 @@ public class LastfmService : ILastfmService
         }
         catch 
         {
-            return new ObservableCollection<Track>();
+            
+            return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
 
@@ -481,13 +486,13 @@ public class LastfmService : ILastfmService
     public async Task<Track> GetTrackInfoAsync(string artistName, string trackName)
     {
         try
-        { 
-          
-            return await _client.Track.GetInfoAsync(trackName, artistName); 
+        {
+
+            return await _client.Track.GetInfoAsync(trackName, artistName);
         }
-        catch 
-        { 
-            return new Track(); 
+        catch
+        {
+            return new Track() { IsNull = true }; 
         }
     }
 
@@ -499,9 +504,9 @@ public class LastfmService : ILastfmService
           
             return await _client.Track.GetCorrectionAsync(trackName, artistName); 
         }
-        catch 
-        { 
-            return new Track(); 
+        catch
+        {
+            return new Track() { IsNull = true };
         }
     }
 
@@ -543,7 +548,7 @@ public class LastfmService : ILastfmService
         }
         catch 
         {
-            return new ObservableCollection<Track>();
+            return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
 
@@ -557,7 +562,7 @@ public class LastfmService : ILastfmService
         }
         catch
         {
-            return new ObservableCollection<Album>();
+            return Enumerable.Empty<Album>().ToObservableCollection();
         }
     }
 
@@ -599,7 +604,8 @@ public class LastfmService : ILastfmService
         }
         catch 
         {
-            return new ObservableCollection<Track>();
+            
+            return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
 
@@ -613,7 +619,8 @@ public class LastfmService : ILastfmService
         }
         catch 
         {
-            return new ObservableCollection<Track>();
+
+            return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
 
@@ -636,18 +643,20 @@ public class LastfmService : ILastfmService
     public async Task<ObservableCollection<Track>> GetUserRecentTracksAsync(string username, int limit)
     {
         if (string.IsNullOrEmpty(username))
-            return new ObservableCollection<Track>();
+            
+            return Enumerable.Empty<Track>().ToObservableCollection();
         try
         {
             var pagedResponse = await _client.User.GetRecentTracksAsync(username, page: 1, limit: limit);
             return pagedResponse.Items.ToObservableCollection();
         }
-        catch (Exception ex) { _logger.LogWarning(ex, "Failed to get recent tracks for user {User}", username); return new ObservableCollection<Track>(); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to get recent tracks for user {User}", username); 
+            return Enumerable.Empty<Track>().ToObservableCollection(); }
     }
 
     public async Task<bool> LoveTrackAsync(SongModelView song)
     {
-        if (!((ILastfmService)this).IsAuthenticated || song is null)
+        if (!((ILastfmService)this).IsAuthenticated || song is null || song.Id == ObjectId.Empty)
             return false;
         try
         {
@@ -668,7 +677,7 @@ public class LastfmService : ILastfmService
 
     public async Task<bool> UnloveTrackAsync(SongModelView song)
     {
-        if (!((ILastfmService)this).IsAuthenticated || song is null)
+        if (!((ILastfmService)this).IsAuthenticated || song is null || song.Id == ObjectId.Empty)
             return false;
         try
         {

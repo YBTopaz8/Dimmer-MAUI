@@ -156,6 +156,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsAppToDate { get; set; }
 
+    private SourceList<DuplicateSetViewModel> _duplicateSource = new();
+
+
+    private ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
+
+
+    public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
+
     Timer? _bootTimer;
     public void InitializeAllVMCoreComponentsAsync()
     {
@@ -189,15 +197,25 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         //SubscribeToCommandEvaluatorEvents();
 
-        _playbackQueueSource.Connect()
-    .ObserveOn(RxApp.MainThreadScheduler)
-    .Bind(out _playbackQueue)
-    .Subscribe( x =>
-    {
-        OnPropertyChanged(nameof(PlaybackQueue)); // Manually notify that the collection has changed
-    })
+        _duplicateSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out _duplicateSets)
+            .Subscribe(x=>             
+            {
+                OnPropertyChanged(nameof(DuplicateSets)); // Manually notify that the collection has changed
+            })
+            .DisposeWith(Disposables);
+        Debug.WriteLine($"{DateTime.Now}: Duplicate sets subscription set up.");
 
-    .DisposeWith(Disposables);
+        _playbackQueueSource.Connect()
+        .ObserveOn(RxApp.MainThreadScheduler)
+        .Bind(out _playbackQueue)
+        .Subscribe( x =>
+        {
+            OnPropertyChanged(nameof(PlaybackQueue)); // Manually notify that the collection has changed
+        })
+
+        .DisposeWith(Disposables);
 
         Debug.WriteLine($"{DateTime.Now}: Playback queue subscription set up.");
 
@@ -1627,7 +1645,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             song.CoverImagePath=string.Empty;
         }
 
-        if (song.CoverImageBytes != null && song.CoverImageBytes.Length>1 || !string.IsNullOrEmpty(song.CoverImagePath))
+        if (song.CoverImageBytes?.Length > 1 && song.CoverImageBytes.Length>1 || !string.IsNullOrEmpty(song.CoverImagePath))
         {
             CurrentCoverImagePath= song.CoverImagePath;
             return;
@@ -1655,11 +1673,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogTrace("No embedded cover art found in audio file: {FilePath}", song.FilePath);
             //Trying lastfm
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(song.ArtistName, song.Title);
-
-            if(lastfmTrack.Images is not null && lastfmTrack.Images.Count>0)
+            if (lastfmTrack.IsNull)
+                return;
+            var album = await lastfmService.GetAlbumInfoAsync(lastfmTrack.Artist?.Name, lastfmTrack.Album?.Name);
+            var imgs = album.Images;
+            if(imgs is not null && imgs.Count>0)
             {
             
-                var imageUrl = lastfmTrack.Images[0].Url;
+                var imageUrl = imgs[0].Url;
 
                 //save to disc and use that path
                 if (!string.IsNullOrEmpty(imageUrl))
@@ -2786,67 +2807,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _logger.LogInformation("Saved playback context for query: \"{query}\"", query);
     }
 
-    [RelayCommand]
-    private async Task ReconcileLibraryAsync()
-    {
-        if (IsReconcilingLibrary)
-            return;
-
-        IsReconcilingLibrary = true;
-        _logger.LogInformation("Starting library reconciliation...");
-
-
-        try
-        {
-            var allSongs = await songRepo.GetAllAsync();
-            if (allSongs == null || allSongs.Count == 0)
-            {
-                _logger.LogInformation("No songs found in the library. Nothing to reconcile.");
-                return;
-            }
-            _logger.LogInformation("Found {Count} songs in the library to reconcile.", allSongs.Count);
-            var songItems = _mapper.Map<IEnumerable<SongModelView>>(allSongs);
-            var result = await Task.Run(() => _duplicateFinderService.ReconcileLibraryAsync(songItems));
-
-            if (result.MigratedCount == 0 && result.UnresolvedCount == 0)
-            {
-                _logger.LogInformation("Reconciliation complete. Library is already in a perfect state.");
-                return;
-            }
-
-
-
-            var songsToRemove = new List<SongModelView>();
-
-
-            songsToRemove.AddRange(result.UnresolvedMissingSongs);
-
-
-            songsToRemove.AddRange(result.MigratedSongs.Select(m => m.From));
-
-
-
-            songsToRemove.AddRange(result.MigratedSongs.Select(m => m.To));
-
-
-            var songsToAdd = result.MigratedSongs.Select(m => m.To).ToList();
-
-
-
-
-
-            _logger.LogInformation("UI updated. Removed {RemoveCount} entries, added back {AddCount} updated entries.", songsToRemove.Count, songsToAdd.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred during library reconciliation.");
-
-        }
-        finally
-        {
-            IsReconcilingLibrary = false;
-        }
-    }
 
     [RelayCommand]
     public void ToggleRepeatMode()
@@ -3858,7 +3818,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var realm = RealmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-   
+        if (appModel is null) return;
         realm.Write(() =>
         {
                 
@@ -3872,7 +3832,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public void RateSong(int newRating)
     {
-        if (CurrentPlayingSongView == null)
+        if (CurrentPlayingSongView == null || CurrentPlayingSongView.Id == ObjectId.Empty)
         {
             _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
             return;
@@ -3895,7 +3855,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
 
 
-        if (CurrentPlayingSongView == null)
+        if (CurrentPlayingSongView == null || songModel.Id == ObjectId.Empty)
         {
             _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
             return;
@@ -3927,7 +3887,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task UnloveSong(SongModelView songModel)
     {
-        if (songModel == null)
+        if (songModel == null || songModel.Id == ObjectId.Empty)
         {
             _logger.LogWarning("AddFavoriteRatingToSong: Could not map CurrentPlayingSongView to SongModel.");
             return;
@@ -3941,7 +3901,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
-        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || songsToAdd.Count()==0)
+        if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
         {
             _logger.LogWarning("AddToPlaylist called with invalid parameters.");
             return;
@@ -4153,15 +4113,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     );
 
 
-    private SourceList<DuplicateSetViewModel> _duplicateSource = new();
-
-
-    private ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
-
-
-    public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
-
-    public bool HasDuplicates => _duplicateSets.Any();
 
     [ObservableProperty]
     public partial bool IsFindingDuplicates { get; set; }
@@ -4177,6 +4128,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial bool UseDurationCriteria { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool UseFileSizeCriteria { get; set; } = true;
     [RelayCommand]
     private async Task FindDuplicatesAsync()
     {
@@ -4189,6 +4143,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             criteria |= DuplicateCriteria.Album;
         if (UseDurationCriteria)
             criteria |= DuplicateCriteria.Duration;
+        if(UseFileSizeCriteria)
+            criteria |= DuplicateCriteria.FileSize;
+        
 
         if (criteria == DuplicateCriteria.None)
         {
@@ -4203,33 +4160,60 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         });
 
         // 2. Call the new flexible service method
-        var result = _duplicateFinderService.FindDuplicates(criteria, progress);
+        DuplicateSearchResult? result = await Task.Run(() =>
+       _duplicateFinderService.FindDuplicates(criteria, progress));
+        //DuplicateSearchResult? result = _duplicateFinderService.FindDuplicates(criteria, progress);
 
         // 3. Update the UI with the results
         _duplicateSource.Clear();
         _duplicateSource.AddRange(result.DuplicateSets);
         IsBusy = false;
     }
+
+
+    [RelayCommand]
+    public void ClearDuplicateResults()
+    {
+        _duplicateSource.Clear();
+    }
+
     [RelayCommand]
     private async Task ApplyDuplicateActionsAsync()
     {
-        var itemsToDelete = DuplicateSets
+        var setsWithDeletions = DuplicateSets
+       .Where(set => set.Items.Any(item => item.Action == DuplicateAction.Delete))
+       .ToList();
+
+        var itemsToDelete = setsWithDeletions
             .SelectMany(set => set.Items)
             .Where(item => item.Action == DuplicateAction.Delete)
             .ToList();
 
-        if (itemsToDelete.Count==0)
+        if (itemsToDelete.Count == 0)
             return;
 
         var deletedCount = await _duplicateFinderService.ResolveDuplicatesAsync(itemsToDelete);
         _logger.LogInformation("Successfully resolved duplicates, deleting {Count} items.", deletedCount);
+        _duplicateSource.RemoveMany(setsWithDeletions);
 
-        // --- REPLACED: Refresh the UI by re-running the current search ---
-        // The duplicate items are gone from the DB, so a refresh will remove them from the UI.
-        _searchQuerySubject.OnNext(CurrentTqlQuery);
-
-        // Clear the local list of duplicate sets
         await ShowNotification($"{deletedCount} duplicate songs have been removed.");
+
+        //var itemsToDelete = DuplicateSets
+        //    .SelectMany(set => set.Items)
+        //    .Where(item => item.Action == DuplicateAction.Delete)
+        //    .ToList();
+
+        //if (itemsToDelete.Count==0)
+        //    return;
+
+        //var deletedCount = await _duplicateFinderService.ResolveDuplicatesAsync(itemsToDelete);
+        //_logger.LogInformation("Successfully resolved duplicates, deleting {Count} items.", deletedCount);
+
+
+        //_searchQuerySubject.OnNext(CurrentTqlQuery);
+
+        //// Clear the local list of duplicate sets
+        //await ShowNotification($"{deletedCount} duplicate songs have been removed.");
     }
 
 
@@ -4281,15 +4265,76 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public void RefreshSongMissingMetaDataWithSourceAsFile(SongModelView? song)
+    public async Task RefreshSongMissingMetaDataWithSourceAsFile(SongModelView? song)
     {
         if (song is null)
             return;
 
-        ApplyGenreToSongsAsync();
+       await ApplyGenreToSongsAsync();
 
     }
 
+    [RelayCommand]
+    private async Task ReconcileLibraryAsync()
+    {
+        if (IsReconcilingLibrary)
+            return;
+
+        IsReconcilingLibrary = true;
+        _logger.LogInformation("Starting library reconciliation...");
+
+
+        try
+        {
+            var allSongs = await songRepo.GetAllAsync();
+            if (allSongs == null || allSongs.Count == 0)
+            {
+                _logger.LogInformation("No songs found in the library. Nothing to reconcile.");
+                return;
+            }
+            _logger.LogInformation("Found {Count} songs in the library to reconcile.", allSongs.Count);
+            var songItems = _mapper.Map<IEnumerable<SongModelView>>(allSongs);
+            var result = await Task.Run(() => _duplicateFinderService.ReconcileLibraryAsync(songItems));
+
+            if (result.MigratedCount == 0 && result.UnresolvedCount == 0)
+            {
+                _logger.LogInformation("Reconciliation complete. Library is already in a perfect state.");
+                return;
+            }
+
+
+
+            var songsToRemove = new List<SongModelView>();
+
+
+            songsToRemove.AddRange(result.UnresolvedMissingSongs);
+
+
+            songsToRemove.AddRange(result.MigratedSongs.Select(m => m.From));
+
+
+
+            songsToRemove.AddRange(result.MigratedSongs.Select(m => m.To));
+
+
+            var songsToAdd = result.MigratedSongs.Select(m => m.To).ToList();
+
+
+
+
+
+            _logger.LogInformation("UI updated. Removed {RemoveCount} entries, added back {AddCount} updated entries.", songsToRemove.Count, songsToAdd.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred during library reconciliation.");
+
+        }
+        finally
+        {
+            IsReconcilingLibrary = false;
+        }
+    }
 
     [RelayCommand]
     private async Task ValidateSongAsync(SongModelView song)
