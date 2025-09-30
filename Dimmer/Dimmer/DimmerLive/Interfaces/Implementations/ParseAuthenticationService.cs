@@ -35,10 +35,6 @@ public class ParseAuthenticationService : IAuthenticationService
             {
                 var usr = await ParseClient.Instance.BecomeAsync(Tokenn);
 
-                if (usr != null)
-                {
-
-                }
             }
 
         }

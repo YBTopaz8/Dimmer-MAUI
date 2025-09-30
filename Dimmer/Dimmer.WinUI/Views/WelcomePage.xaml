@@ -39,7 +39,7 @@
             Grid.Row="1"
             SelectionChanged="WelcomeTabView_SelectionChanged"
             Loaded="WelcomeTabView_Loaded"
-            SelectedIndex="{Binding WelcomeTabViewIndex}"
+            SelectedIndex="{Binding WelcomeTabIndexEnum}"
             >
             <syncf:SfTabItem x:Name="StepOne" HorizontalOptions="Center">
                 <Grid

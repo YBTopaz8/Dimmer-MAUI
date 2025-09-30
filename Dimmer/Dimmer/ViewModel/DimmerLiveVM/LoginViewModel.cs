@@ -142,27 +142,29 @@ public partial class LoginViewModel : ObservableObject
     [RelayCommand]
     public async Task InitializeAsync()
     {
+        if(Connectivity.NetworkAccess == NetworkAccess.Internet)
+        {     
 
         await _authService.AutoLoginAsync();
 
-        if (ParseClient.Instance.CurrentUser is not null)
-        {
-
-            var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
-                .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
-
-            var usr = await qr.FirstOrDefaultAsync();
-            if (usr is null)
+            if (ParseClient.Instance.CurrentUser is not null)
             {
 
-                UserModelOnline newUsr = new UserModelOnline(ParseUser.CurrentUser);
+                var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
+                    .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
 
-                await newUsr.SaveAsync();
-                CurrentUser=newUsr;
-                return ;
+                var usr = await qr.FirstOrDefaultAsync();
+                if (usr is null)
+                {
+
+                    UserModelOnline newUsr = new UserModelOnline(ParseUser.CurrentUser);
+
+                    await newUsr.SaveAsync();
+                    CurrentUser = newUsr;
+                    return;
+                }
+                CurrentUser = usr;
             }
-            CurrentUser = usr;
-
 
         }
     }

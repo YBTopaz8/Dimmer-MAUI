@@ -389,6 +389,7 @@ public partial class BaseViewModelWin: BaseViewModel
         {
             ShowWelcomeScreen = true;
             await Shell.Current.GoToAsync("..");
+            _= Task.Run(EnsureAllCoverArtCachedForSongsAsync);
             return;
         }
     }

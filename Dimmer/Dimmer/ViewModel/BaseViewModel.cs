@@ -15,6 +15,7 @@ using Parse.LiveQuery;
 
 using ReactiveUI;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
@@ -1693,8 +1694,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        if(embeddedPicture is null)
-        {
+        Debug.WriteLine(Connectivity.Current);
+        if (embeddedPicture is null && Connectivity.NetworkAccess == NetworkAccess.Internet)
+        { 
+
             _logger.LogTrace("No embedded cover art found in audio file: {FilePath}", song.FilePath);
             //Trying lastfm
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(song.ArtistName, song.Title);
@@ -1711,11 +1714,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 {
                     try
                     {
-                        var tempImagePath = Path.Combine(FileSystem.CacheDirectory, $"{Guid.NewGuid()}.jpg");
+                        var tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.jpg");
+                      
                         using var httpClient = new HttpClient();
                         var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
-                        await File.WriteAllBytesAsync(tempImagePath, imageBytes);
-                        embeddedPicture = PictureInfo.fromBinaryData(imageBytes, PictureInfo.PIC_TYPE.CD);
+                        embeddedPicture = PictureInfo.fromBinaryData(imageBytes);
                         _logger.LogTrace(
                             "Fetched cover art from Last.fm for {Title} by {Artist}",
                             song.Title,
@@ -1764,10 +1767,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     () =>
                     {
                         var songToUpdate = realm.Find<SongModel>(song.Id);
-                        if(songToUpdate != null)
-                        {
-                            songToUpdate.CoverImagePath = finalImagePath;
-                        }
+                        songToUpdate?.CoverImagePath = finalImagePath;
                     });
             }
         } catch(Exception ex)
@@ -1798,7 +1798,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
-        var allSongsFromDb = await songRepo.GetAllAsync();
+        realm = RealmFactory.GetRealmInstance();
+        var allSongsFromDb = realm.All<SongModel>();
         var songsToProcess = _mapper.Map<List<SongModelView>>(allSongsFromDb);
 
         using var semaphore = new SemaphoreSlim(8); // Limit to 8 concurrent operations
@@ -2393,6 +2394,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if(songToPlay == null)
             return;
 
+        
+        
         Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
         // Quick exit check. The more detailed check is in PlayInternalAsync.
         if(string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
@@ -6402,7 +6405,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial bool ShowWelcomeScreen { get; set; }
 
     [ObservableProperty]
-    public partial WelcomeTabViewIndexEnum WelcomeTabViewIndex { get; set; }
+    public partial WelcomeTabViewIndexEnum WelcomeTabIndexEnum { get; set; }
 
 
     [ObservableProperty]
@@ -6420,7 +6423,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial string WelcomeStep { get; set; }
 
     [ObservableProperty]
-    public partial string NextBtnText { get; set; }
+    public partial string NextBtnText { get; set; } = DimmerLanguage.next_btn;
 
     [ObservableProperty]
     public partial string PreviousBtnText { get; set; }
@@ -6428,14 +6431,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void AppSetupPagePreviousBtnClick()
     {
-        var prevInd = (WelcomeTabViewIndex - 1);
+        var prevInd = (WelcomeTabIndexEnum - 1);
 
         if(prevInd < 0)
         {
             return;
         }
         NextBtnText = DimmerLanguage.next_btn;
-        WelcomeTabViewIndex--;
+        WelcomeTabIndexEnum--;
     }
 
     public virtual async Task AppSetupPageNextBtnClick(bool isLastTab)
@@ -6453,9 +6456,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     "OK");
             return;
         }
-        WelcomeTabViewIndex++;
+        WelcomeTabIndexEnum++;
 
-        switch (WelcomeTabViewIndex)
+        switch (WelcomeTabIndexEnum)
         {
             case WelcomeTabViewIndexEnum.Folders:
                 WelcomeStep = "Step 1 of 3: Add Music Folders";
