@@ -568,6 +568,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
                 var objectToDelete = realm.Find<T>(id);
                 if (objectToDelete != null)
                 {
+
                     realm.Remove(objectToDelete);
                 }
             }

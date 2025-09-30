@@ -482,7 +482,7 @@ namespace Dimmer.WinUI.Views;
     }
 
 
-    private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
         
 

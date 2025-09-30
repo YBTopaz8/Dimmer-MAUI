@@ -136,7 +136,7 @@ public class FolderMgtService : IFolderMgtService
         }
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        await realm.WriteAsync(async () =>
+        await realm.WriteAsync(() =>
         {
 
             var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();

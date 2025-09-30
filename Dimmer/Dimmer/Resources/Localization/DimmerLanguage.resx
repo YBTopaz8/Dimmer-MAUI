@@ -261,4 +261,25 @@
   <data name="next_btn" xml:space="preserve">
     <value>Next</value>
   </data>
+  <data name="txt_finished" xml:space="preserve">
+    <value>Finished</value>
+  </data>
+  <data name="txt_done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="txt_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="txt_save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="txt_execute" xml:space="preserve">
+    <value>Execute</value>
+  </data>
+  <data name="txt_share" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="txt_stepthree" xml:space="preserve">
+    <value>Step 3 of 3: Learn TQL (Optional)</value>
+  </data>
 </root>

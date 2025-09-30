@@ -14,7 +14,7 @@ public partial class AppShell : Shell
 
     BaseViewModel MyViewModel { get; }
 
-    protected override async void OnAppearing()
+    protected override  void OnAppearing()
     {
         base.OnAppearing();
         if (MyViewModel.ShowWelcomeScreen)

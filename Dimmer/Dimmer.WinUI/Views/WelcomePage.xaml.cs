@@ -1,3 +1,5 @@
+using Dimmer.Resources.Localization;
+
 namespace Dimmer.WinUI.Views;
 
 public partial class WelcomePage : ContentPage
@@ -76,13 +78,30 @@ public partial class WelcomePage : ContentPage
 
     }
 
-    private void NextBtnTwo_Clicked(object sender, EventArgs e)
+    private async void NextBtnTwo_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.AppSetupPageNextBtnClick();
+        
+        if (NextBtnTwo.Text == DimmerLanguage.txt_done)
+        {
+            await MyViewModel.AppSetupPageNextBtnClick(true);
+            return;
+        }
+        await MyViewModel.AppSetupPageNextBtnClick(false);
+
     }
 
     private void TryCommand_Clicked(object sender, EventArgs e)
     {
 
+    }
+
+
+    private void WelcomeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+        var isEnd = e.NewIndex == (WelcomeTabView.Items.Count - 1);
+        if(isEnd)
+        {
+            NextBtnTwo.Text = DimmerLanguage.txt_done;
+        }
     }
 }

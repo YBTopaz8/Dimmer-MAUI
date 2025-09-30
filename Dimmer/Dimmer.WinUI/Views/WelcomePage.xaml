@@ -1,78 +1,94 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.WinUI.Views.WelcomePage"
-                 xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+<ContentPage x:Name="myPage"
+    x:Class="Dimmer.WinUI.Views.WelcomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:behv="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+    xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.WinUI.Views"
     xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-    
-    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    xmlns:behv ="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
-    x:Name="myPage"
-    xmlns:local="clr-namespace:Dimmer.WinUI.Views"
-                    xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
-
-             Shell.NavBarIsVisible="False"
+    Title="Welcome Page"
     x:DataType="vm:BaseViewModelWin"
-    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=transparent}"
-    
-             Title="Welcome Page">
+    BackgroundColor="{AppThemeBinding Light=#F5F5F5,
+                                      Dark=transparent}"
+    Shell.NavBarIsVisible="False"
+    >
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
     <Grid RowDefinitions="auto,*,auto">
 
         <VerticalStackLayout Grid.Row="0">
-            <Label Text="{Binding LatestAppLog.Log}"/> 
+            <Label Text="{Binding LatestAppLog.Log}" />
         </VerticalStackLayout>
 
-        <syncf:SfTabView x:Name="WelcomeTabView" SelectedIndex="{Binding WelcomeTabViewIndex}"
-                         Loaded="WelcomeTabView_Loaded"
-                         
-                         
-                         Grid.Row="1">
+        <syncf:SfTabView x:Name="WelcomeTabView"
+            Grid.Row="1"
+            SelectionChanged="WelcomeTabView_SelectionChanged"
+            Loaded="WelcomeTabView_Loaded"
+            SelectedIndex="{Binding WelcomeTabViewIndex}"
+            >
             <syncf:SfTabItem x:Name="StepOne" HorizontalOptions="Center">
-                <Grid RowDefinitions="auto,*,auto"
-                      RowSpacing="10"
-                      
-                      HorizontalOptions="Center">
-                    <Border StrokeShape="RoundRectangle 20"
-                        StrokeThickness="1"
+                <Grid
+                    HorizontalOptions="Center"
+                    RowDefinitions="auto,*,auto"
+                    RowSpacing="10"
+                    >
+                    <Border
+                        Grid.Row="0"
+                        Padding="20"
                         Stroke="DarkSlateBlue"
-                        Grid.Row="0" Padding="20" >
+                        StrokeShape="RoundRectangle 20"
+                        StrokeThickness="1"
+                        >
 
-                        <VerticalStackLayout  Padding="20" Spacing="10">
-                            <Label Text="{Static lang:DimmerLanguage.gettingstart_txt_wlc}" 
-                           
-                           FontSize="24" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#333333, Dark=White}"
-                           >
+                        <VerticalStackLayout Padding="20" Spacing="10">
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="24"
+                                Text="{Static lang:DimmerLanguage.gettingstart_txt_wlc}"
+                                TextColor="{AppThemeBinding Light=#333333,
+                                                            Dark=White}"
+                                >
                                 <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding WelcomeTabViewIndex}"
-                                             Value="0">
-                                        <Setter Property="Text" Value="{Static lang:DimmerLanguage.gettingstart_txt_wlc}"/>
+                                    <DataTrigger
+                                        Binding="{Binding WelcomeTabViewIndex}"
+                                        TargetType="Label"
+                                        Value="0"
+                                        >
+                                        <Setter Property="Text" Value="{Static lang:DimmerLanguage.gettingstart_txt_wlc}" />
 
                                     </DataTrigger>
 
 
-                                    <DataTrigger TargetType="Label" Binding="{Binding WelcomeTabViewIndex}"
-                                             Value="1">
-                                        <Setter Property="Text" Value="Last FM Section"/>
+                                    <DataTrigger
+                                        Binding="{Binding WelcomeTabViewIndex}"
+                                        TargetType="Label"
+                                        Value="1"
+                                        >
+                                        <Setter Property="Text" Value="Last FM Section" />
 
                                     </DataTrigger>
 
-                                    <DataTrigger TargetType="Label" Binding="{Binding WelcomeTabViewIndex}"
-                                             Value="2">
-                                        <Setter Property="Text" Value="TQL !"/>
+                                    <DataTrigger
+                                        Binding="{Binding WelcomeTabViewIndex}"
+                                        TargetType="Label"
+                                        Value="2"
+                                        >
+                                        <Setter Property="Text" Value="TQL !" />
 
                                     </DataTrigger>
 
@@ -81,251 +97,326 @@
                                 </Label.Triggers>
                             </Label>
 
-                            <Label Text="Still Under Construction for now ... 🛠️"></Label>
+                            <Label Text="Still Under Construction for now ... 🛠️" />
 
-                            <Label Text="You can Add folders " FontSize="Header" />
+                            <Label FontSize="Header" Text="You can Add folders " />
                         </VerticalStackLayout>
 
                     </Border>
 
-                    <Grid x:Name="MiddleView" HorizontalOptions="Center"
-                          WidthRequest="800" RowSpacing="10"
-                Grid.Row="1" RowDefinitions="auto,*">
+                    <Grid x:Name="MiddleView"
+                        Grid.Row="1"
+                        HorizontalOptions="Center"
+                        RowDefinitions="auto,*"
+                        RowSpacing="10"
+                        WidthRequest="800"
+                        >
 
-                        <CollectionView Grid.Row="1" 
-                                x:Name="ListOfFolders"
-                                SelectionMode="None"
-                                Header="List of Folders"
-                                ItemsSource="{Binding FolderPaths}"
-                                >
-                        <CollectionView.EmptyView>
-                            <VerticalStackLayout>
-                                <Label
-                                            Margin="0,40,0,0"
-                                            FontAttributes="Italic"
-                                            Text="No Folders In Preferences.." />
-                            </VerticalStackLayout>
-                        </CollectionView.EmptyView>
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Grid ColumnDefinitions="*,*" Padding="15">
-
-                                        <VisualStateManager.VisualStateGroups>
-                                            
-                                        <VisualStateGroup Name="CommonStates">
-                                            <VisualState Name="Normal">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                                </VisualState.Setters>
-                                            </VisualState>
-                                            <VisualState Name="Selected">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                                </VisualState.Setters>
-                                            </VisualState>
-                                            <VisualState Name="PointerOver">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                                </VisualState.Setters>
-                                            </VisualState>
-                                        </VisualStateGroup>
-                                        </VisualStateManager.VisualStateGroups>
-
-
+                        <CollectionView x:Name="ListOfFolders"
+                            Grid.Row="1"
+                            Header="List of Folders"
+                            ItemsSource="{Binding FolderPaths}"
+                            SelectionMode="None"
+                            >
+                            <CollectionView.EmptyView>
+                                <VerticalStackLayout>
+                                    <Label
+                                        Margin="0,40,0,0"
+                                        FontAttributes="Italic"
+                                        Text="No Folders In Preferences.."
+                                        />
+                                </VerticalStackLayout>
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Grid Padding="15" ColumnDefinitions="*,*">
                                         <Label Grid.Column="0" Text="{Binding .}" />
 
-                                    <HorizontalStackLayout Grid.Column="1" Spacing="25">
-                                        <ImageButton
-                                                    x:Name="ChangeFolder"
-                                                    Clicked="ChangeFolder_Clicked"
-                                                    CommandParameter="{Binding .}"
-                                                    Source="foldera.png" />
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="25">
+                                            <ImageButton x:Name="ChangeFolder"
+                                                Clicked="ChangeFolder_Clicked"
+                                                CommandParameter="{Binding .}"
+                                                Source="foldera.png"
+                                                />
 
-                                            <ImageButton
-                                                    x:Name="DeleteBtn"
-                                                    Clicked="DeleteBtn_Clicked"
-                                                    CommandParameter="{Binding .}"
-                                                    >
+                                            <ImageButton x:Name="DeleteBtn"
+                                                Clicked="DeleteBtn_Clicked"
+                                                CommandParameter="{Binding .}"
+                                                >
                                                 <ImageButton.Source>
-                                                    <FontImageSource FontFamily="FontAwesomeRegular"
-                                                                     Glyph="trash-can"
-                                                                     Color="{AppThemeBinding Light=Black, Dark=White}"
-                                                                     Size="20"/>
-                                                
+                                                    <FontImageSource
+                                                        FontFamily="FontAwesomeRegular"
+                                                        Glyph="trash-can"
+                                                        Size="20"
+                                                        Color="{AppThemeBinding Light=Black,
+                                                                                Dark=White}"
+                                                        />
+
                                                 </ImageButton.Source>
                                             </ImageButton>
-                                        <syncf:SfChip ImageSource="repeat.png"
-             Clicked="RescanFolder_Clicked" CommandParameter="{Binding .}"
-                                                              
-                                                              x:Name="RescanFolder" ImageSize="50"
-                                                              WidthRequest="65"/>
-                                    </HorizontalStackLayout>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                                            <syncf:SfChip x:Name="RescanFolder"
+                                                Clicked="RescanFolder_Clicked"
+                                                CommandParameter="{Binding .}"
+                                                ImageSize="50"
+                                                ImageSource="repeat.png"
+                                                WidthRequest="65"
+                                                />
+                                        </HorizontalStackLayout>
 
-                    <VerticalStackLayout Grid.Row="0">
+                                        <VisualStateManager.VisualStateGroups>
 
-                        <Button
-                                    Clicked="AddNewMusicFolder_Clicked"
-                                    HorizontalOptions="Start"
-                                    Text="Add New Folder" />
+                                            <VisualStateGroup Name="CommonStates">
+                                                <VisualState Name="Normal">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <VisualState Name="Selected">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <VisualState Name="PointerOver">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateManager.VisualStateGroups>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
 
-                    </VerticalStackLayout>
-                                         
+                        <VerticalStackLayout Grid.Row="0">
+
+                            <Button
+                                Clicked="AddNewMusicFolder_Clicked"
+                                HorizontalOptions="Start"
+                                Text="Add New Folder"
+                                />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+
+
+
                 </Grid>
-                
-               
 
-
-            </Grid>
-            
-        </syncf:SfTabItem>
-        <syncf:SfTabItem x:Name="StepTwo" HorizontalOptions="Center">
-                <Grid RowDefinitions="auto,*,auto" HorizontalOptions="Center">
-                <VerticalStackLayout Grid.Row="0" Padding="20" Spacing="10">
-                    <Label Text="{Binding WelcomeStep}" 
-                           x:Name="WelcomPageTitle"
-                           FontSize="24" FontAttributes="Bold" 
-                           TextColor="{AppThemeBinding Light=#333333, Dark=White}"/>
+            </syncf:SfTabItem>
+            <syncf:SfTabItem x:Name="StepTwo" HorizontalOptions="Center">
+                <Grid HorizontalOptions="Center" RowDefinitions="auto,*,auto">
+                    <VerticalStackLayout
+                        Grid.Row="0"
+                        Padding="20"
+                        Spacing="10"
+                        >
+                        <Label x:Name="WelcomPageTitle"
+                            FontAttributes="Bold"
+                            FontSize="24"
+                            Text="{Binding WelcomeStep}"
+                            TextColor="{AppThemeBinding Light=#333333,
+                                                        Dark=White}"
+                            />
                     </VerticalStackLayout>
 
 
-                    <Grid x:Name="MiddleViewTwo"  HorizontalOptions="Center"
-                Grid.Row="1" >
+                    <Grid x:Name="MiddleViewTwo"
+                        Grid.Row="1"
+                        HorizontalOptions="Center"
+                        >
 
                         <Border StyleClass="Elevation2">
-                            
-                    <VerticalStackLayout Margin="10" Spacing="10" >
+
+                            <VerticalStackLayout Margin="10" Spacing="10">
 
 
-                                <Label Text="{Binding IsLastfmAuthenticated}"/>
+                                <Label Text="{Binding IsLastfmAuthenticated}" />
                                 <HorizontalStackLayout Spacing="10">
-                                    
-                                    <Label Text="User Name:" FontSize="30"/>
-                                    <Editor Placeholder="UserName" FontSize="20"
-                    PlaceholderColor="{AppThemeBinding Dark=White,Light=Black}" WidthRequest="180"
-                    Text="{Binding UserLocal.LastFMAccountInfo.Name}">
-                                    <Editor.Triggers>
-                                        <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                            <Setter Property="IsVisible" Value="False"/>
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                            <Setter Property="IsVisible" Value="True"/>
-                                        </DataTrigger>
-                                    </Editor.Triggers>
-                                </Editor>
+
+                                    <Label FontSize="30" Text="User Name:" />
+                                    <Editor
+                                        FontSize="20"
+                                        Placeholder="UserName"
+                                        PlaceholderColor="{AppThemeBinding Dark=White,
+                                                                           Light=Black}"
+                                        Text="{Binding UserLocal.LastFMAccountInfo.Name}"
+                                        WidthRequest="180"
+                                        >
+                                        <Editor.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding IsLastfmAuthenticated}"
+                                                TargetType="Editor"
+                                                Value="True"
+                                                >
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger
+                                                Binding="{Binding IsLastfmAuthenticated}"
+                                                TargetType="Editor"
+                                                Value="False"
+                                                >
+                                                <Setter Property="IsVisible" Value="True" />
+                                            </DataTrigger>
+                                        </Editor.Triggers>
+                                    </Editor>
 
 
                                 </HorizontalStackLayout>
 
 
-                                <Button 
-                IsVisible="{Binding LoginToLastfmCommand}" Text="Login"
-                HorizontalOptions="Start" Command="{Binding LoginToLastfmCommand}" BorderWidth="2" >
-                            </Button>
+                                <Button
+                                    BorderWidth="2"
+                                    Command="{Binding LoginToLastfmCommand}"
+                                    HorizontalOptions="Start"
+                                    IsVisible="{Binding LoginToLastfmCommand}"
+                                    Text="Login"
+                                    />
 
-                            <VerticalStackLayout BackgroundColor="Transparent">
-                                <VerticalStackLayout.Triggers>
-                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                        <Setter Property="IsVisible" Value="True"/>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                        <Setter Property="IsVisible" Value="False"/>
-                                    </DataTrigger>
-                                </VerticalStackLayout.Triggers>
+                                <VerticalStackLayout BackgroundColor="Transparent">
+                                    <VerticalStackLayout.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding IsLastfmAuthenticated}"
+                                            TargetType="VerticalStackLayout"
+                                            Value="True"
+                                            >
+                                            <Setter Property="IsVisible" Value="True" />
+                                        </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding IsLastfmAuthenticated}"
+                                            TargetType="VerticalStackLayout"
+                                            Value="False"
+                                            >
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </VerticalStackLayout.Triggers>
 
-                                <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
+                                    <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
 
-                                    <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180"/>
+                                        <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180" />
 
-                                </Border>
-                                <Label Text="{Binding UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
-                                <Label Text="{Binding UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                                    </Border>
+                                    <Label
+                                        FontSize="20"
+                                        HorizontalOptions="Center"
+                                        Text="{Binding UserLocal.LastFMAccountInfo.Name}"
+                                        TextColor="DarkSlateBlue"
+                                        />
+                                    <Label
+                                        FontSize="15"
+                                        HorizontalOptions="Center"
+                                        Text="{Binding UserLocal.LastFMAccountInfo.Country}"
+                                        TextColor="DarkSlateBlue"
+                                        />
 
+                                </VerticalStackLayout>
                             </VerticalStackLayout>
-                        </VerticalStackLayout>
 
 
                         </Border>
-        </Grid>
-                
-               
+                    </Grid>
 
 
-            </Grid>
-            
-        </syncf:SfTabItem>
-        <syncf:SfTabItem x:Name="StepThree">
-            <Grid RowDefinitions="auto,*,auto" HorizontalOptions="Center">
-                <VerticalStackLayout Grid.Row="0" Padding="20" Spacing="10">
-                    <Label Text="{Binding WelcomeStep}" 
-                           FontSize="24" FontAttributes="Bold" 
-                           TextColor="{AppThemeBinding Light=#333333, Dark=White}"/>
+
+
+                </Grid>
+
+            </syncf:SfTabItem>
+            <syncf:SfTabItem x:Name="StepThree">
+                <Grid HorizontalOptions="Center" RowDefinitions="auto,*,auto">
+                    <VerticalStackLayout
+                        Grid.Row="0"
+                        Padding="20"
+                        Spacing="10"
+                        >
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="24"
+                            Text="{Binding WelcomeStep}"
+                            TextColor="{AppThemeBinding Light=#333333,
+                                                        Dark=White}"
+                            />
                     </VerticalStackLayout>
 
 
-                <Grid x:Name="MiddleViewThree"
-                Grid.Row="1">
-                        <VerticalStackLayout>
+                    <Grid x:Name="MiddleViewThree" Grid.Row="1">
+                        <VerticalStackLayout IsVisible="False">
                             <Border x:Name="TQLBox" x:FieldModifier="Public">
                                 <HorizontalStackLayout x:Name="MainHSL" x:FieldModifier="Public">
-                                    <VerticalStackLayout x:FieldModifier="Public" x:Name="LeftSide">
-                                        <Label Text="And Command" x:Name="CommandTitle" 
-                                               x:FieldModifier="Public"/>
-                                        <Label Text="songs by drake and songs by rihanna" x:Name="CommandLiveExample" 
-                                               x:FieldModifier="Public" />
+                                    <VerticalStackLayout x:Name="LeftSide" x:FieldModifier="Public">
+                                        <Label x:Name="CommandTitle"
+                                            x:FieldModifier="Public"
+                                            Text="And Command"
+                                            />
+                                        <Label x:Name="CommandLiveExample"
+                                            x:FieldModifier="Public"
+                                            Text="songs by drake and songs by rihanna"
+                                            />
                                     </VerticalStackLayout>
-                                    <VerticalStackLayout x:Name="RightSide" x:FieldModifier="Public">
-                                        
-                                    </VerticalStackLayout>
-                                    <Button Text="Try !" x:FieldModifier="Public" 
-                                            x:Name="TryCommand" Clicked="TryCommand_Clicked"/> 
+                                    <VerticalStackLayout x:Name="RightSide" x:FieldModifier="Public" />
+                                    <Button x:Name="TryCommand"
+                                        x:FieldModifier="Public"
+                                        Clicked="TryCommand_Clicked"
+                                        Text="Try !"
+                                        />
                                 </HorizontalStackLayout>
                             </Border>
 
                         </VerticalStackLayout>
-                   
+
+                    </Grid>
+
+
+
                 </Grid>
-                
+
+            </syncf:SfTabItem>
+            <syncf:SfTabItem x:Name="StepLast">
+                <Grid RowDefinitions="auto,*,auto">
+                    <VerticalStackLayout
+                        Grid.Row="0"
+                        Padding="20"
+                        Spacing="10"
+                        >
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="24"
+                            HorizontalOptions="Center"
+                            Text="{Static lang:DimmerLanguage.gettingstart_txt_wlc}"
+                            TextColor="{AppThemeBinding Light=#333333,
+                                                        Dark=White}"
+                            />
 
 
-            </Grid>
-            
-        </syncf:SfTabItem>
-        <syncf:SfTabItem x:Name="StepFour">
-            <Grid RowDefinitions="auto,*,auto">
-                <VerticalStackLayout Grid.Row="0" Padding="20" Spacing="10">
-                    <Label Text="{Static lang:DimmerLanguage.gettingstart_txt_wlc}" FontSize="24" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#333333, Dark=White}"/>
-                    
-                
-                </VerticalStackLayout>
+                    </VerticalStackLayout>
 
 
-                <Grid x:Name="MiddleViewFour"
-                Grid.Row="1">
-                    
+                    <Grid x:Name="MiddleViewFour" Grid.Row="1" />
+
+
+
+
                 </Grid>
-                
-               
 
+            </syncf:SfTabItem>
+        </syncf:SfTabView>
 
-            </Grid>
-            
-        </syncf:SfTabItem>
-    </syncf:SfTabView>
-
-        <VerticalStackLayout HorizontalOptions="Center" Grid.Row="2" Padding="20" Spacing="10"
-                             WidthRequest="250"  >
-            <Button Text="{Static lang:DimmerLanguage.txt_previous}"
-                  Command="{Binding AppSetupPagePreviouusBtnClickCommand}"/>
-            <Button Text="{Static lang:DimmerLanguage.next_btn}" 
-             
-             x:Name="NextBtnTwo" Clicked="NextBtnTwo_Clicked"
-             
-             TextColor="White"
-             CornerRadius="8"/>
+        <VerticalStackLayout
+            Grid.Row="2"
+            Padding="20"
+            HorizontalOptions="Center"
+            Spacing="10"
+            WidthRequest="250"
+            >
+            <Button Command="{Binding AppSetupPagePreviousBtnClickCommand}" Text="{Static lang:DimmerLanguage.txt_previous}" />
+            <Button x:Name="NextBtnTwo"
+                Clicked="NextBtnTwo_Clicked"
+                CornerRadius="8"
+                Text="{Binding NextBtnText}"
+                TextColor="White"
+                />
         </VerticalStackLayout>
     </Grid>
 

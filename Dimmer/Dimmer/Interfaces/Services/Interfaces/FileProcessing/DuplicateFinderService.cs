@@ -208,7 +208,7 @@ public class DuplicateFinderService : IDuplicateFinderService
             return new LibraryValidationResult
             {
                 ScannedCount = 0,
-                MissingSongs = new List<SongModelView>()
+                MissingSongs = Enumerable.Empty<SongModelView>().ToList()
             };
         }
 

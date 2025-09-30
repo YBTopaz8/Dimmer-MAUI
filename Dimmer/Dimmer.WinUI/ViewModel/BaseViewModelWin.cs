@@ -10,6 +10,7 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
+using Dimmer.Resources.Localization;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
@@ -380,11 +381,11 @@ public partial class BaseViewModelWin: BaseViewModel
 
     }
     
-    public override async Task AppSetupPageNextBtnClick()
+    public override async Task AppSetupPageNextBtnClick(bool isLastTab)
     {
-        await base.AppSetupPageNextBtnClick();
-        var nextInd = (WelcomeTabViewIndex + 1);
-        if ((int)nextInd == WelcomeTabViewItemsCount)
+        await base.AppSetupPageNextBtnClick(isLastTab);
+       
+        if (isLastTab)
         {
             ShowWelcomeScreen = true;
             await Shell.Current.GoToAsync("..");

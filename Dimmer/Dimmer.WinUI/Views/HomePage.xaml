@@ -3,7 +3,7 @@
     x:Class="Dimmer.WinUI.Views.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:behv="[behv ]clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+    xmlns:behv="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
@@ -21,9 +21,6 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:Name="myPage"
-    xmlns:local="clr-namespace:Dimmer.WinUI.Views"
-                    xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
-
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
