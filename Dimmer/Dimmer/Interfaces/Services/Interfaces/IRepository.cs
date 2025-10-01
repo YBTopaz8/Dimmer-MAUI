@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IRepository<T> where T : new()
 {
-    T? Upsert(T entity);
+    T? Upsert(T? entity);
     void Delete(T entity);
 
     IReadOnlyCollection<T> GetAll(bool IsShuffled = false);

@@ -24,6 +24,7 @@ using Microsoft.Extensions.Logging;
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 using SwipeItem = DevExpress.Maui.CollectionView.SwipeItem;
 
@@ -454,15 +455,18 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private void SongsColView_SwipeItemShowing(object? sender, SwipeItemShowingEventArgs e)
     {
         DXCollectionView send = sender as DXCollectionView;
+
         var w = e.SwipeItem as SwipeItemBase;
         var song = e.Item as SongModelView;
+        if (song is null) return;
+        if (send is null) return;
         var swipee = e.RowHandle;
 
         var addEndAction = new SwipeContainerItem()
         {
             Caption = "Add to End",
             BackgroundColor = Colors.DarkGreen,
-            Command = AddToQueueEndCommand, // Assuming you have this command
+            Command = AddListOfSongsToQueueEndCommand, // Assuming you have this command
             CommandParameter = new List<SongModelView> { song } // Pass a list
         };
 
@@ -779,11 +783,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
-    protected override void HandlePlaybackStateChange(PlaybackEventArgs args)
+    protected override async Task HandlePlaybackStateChange(PlaybackEventArgs args)
     {
         // STEP 1: Always a good practice to let the base class do its work first.
         // This will run the logic in A (setting IsPlaying, etc.).
-        base.HandlePlaybackStateChange(args);
+        await base.HandlePlaybackStateChange(args);
 
 
         PlayType? state = StatesMapper.Map(args.EventType);

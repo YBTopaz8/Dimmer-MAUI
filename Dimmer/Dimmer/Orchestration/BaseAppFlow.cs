@@ -108,8 +108,12 @@ public class BaseAppFlow : IDisposable
 
     Dictionary<ObjectId, PlayType> lastEvent = new Dictionary<ObjectId, PlayType>();
 
-    public void UpdateDatabaseWithPlayEvent(IRealmFactory realmFactory, SongModelView? songView, PlayType? type, double? position = null)
+    public async Task UpdateDatabaseWithPlayEvent(IRealmFactory realmFactory, SongModelView? songView, PlayType? type, double? position = null)
     {
+        if (songView == null)
+        {
+            return;
+        }
 
         if(lastEvent.ContainsKey(songView?.Id ?? ObjectId.Empty))
         {
@@ -173,7 +177,7 @@ public class BaseAppFlow : IDisposable
 
 
             var realm = realmFactory.GetRealmInstance();
-            realm.Write(() =>
+            await realm.WriteAsync(() =>
             {
                 var pl = realm.Add(playEvent, true);
 

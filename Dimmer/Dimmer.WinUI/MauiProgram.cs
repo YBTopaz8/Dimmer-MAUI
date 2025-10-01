@@ -143,6 +143,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<ExperimentsPage>();
         builder.Services.AddSingleton<SessionTransferVMWin>();
 
+        builder.Services.AddSingleton<DuplicatesMgtWindow>();
+
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
 

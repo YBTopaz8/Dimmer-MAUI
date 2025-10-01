@@ -143,6 +143,9 @@
                                                 Clicked="DeleteBtn_Clicked"
                                                 CommandParameter="{Binding .}"
                                                 >
+                                                <ImageButton.Behaviors>
+                                                    <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                                </ImageButton.Behaviors>
                                                 <ImageButton.Source>
                                                     <FontImageSource
                                                         FontFamily="FontAwesomeRegular"

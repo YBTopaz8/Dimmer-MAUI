@@ -469,32 +469,8 @@ public partial class SingleSongPage : ContentPage
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
-        {
-            try
-            {
-                // The argument string is correct.
-                string argument = $"/select, \"{song.FilePath}\"";
-
-                // Use ProcessStartInfo for more control and reliability.
-                var startInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "explorer.exe",
-                    Arguments = argument,
-                    // These are the defaults, but it's good to be explicit
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                };
-
-                System.Diagnostics.Process.Start(startInfo);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or show an error message to the user.
-                Console.WriteLine($"Error opening file explorer: {ex.Message}");
-            }
-        }
-
+        // offer to open OPEN AS in android
+        
 
     }
 

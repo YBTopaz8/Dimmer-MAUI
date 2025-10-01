@@ -1,4 +1,11 @@
-﻿using Dimmer.DimmerLive.ParseStatics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
@@ -14,12 +21,9 @@ using Parse.LiveQuery;
 //using MoreLinq.Extensions;
 
 using ReactiveUI;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+
+using Realms;
+
 using EventHandler = System.EventHandler;
 
 
@@ -144,11 +148,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var _isLibraryEmpty = new BehaviorSubject<bool>(true);
 
 
-        ShowWelcomeScreen = realm.All<SongModel>().Count() == 0;
+        ShowWelcomeScreen = !realm.All<SongModel>().Any();
         realm.All<SongModel>()
             .AsObservableChangeSet()
-            .Select(_ => realm.All<SongModel>().Count() == 0) // Check the count after any change
-
+            .Select(_ => realm.All<SongModel>().Any()) // Check the count after any change
             .DistinctUntilChanged() // Only notify subscribers if the empty-state actually changes
             .Subscribe(
                 isEmpty =>
@@ -156,18 +159,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     Debug.WriteLine($"[Library Status]: Is empty = {isEmpty}");
                     _isLibraryEmpty.OnNext(true);
 
-                    if(IsLibraryEmpty is not null)
-                    {
-                        IsLibraryEmpty.ObserveOn(RxApp.MainThreadScheduler)
+                    IsLibraryEmpty?.ObserveOn(RxApp.MainThreadScheduler)
                             .Subscribe(
                                 showWelcomeScreen =>
                                 {
                                     if(showWelcomeScreen)
                                         ShowWelcomeScreen = true;
-            else
+                                    else
                                         ShowWelcomeScreen = false;
                                 });
-                    }
                 },
                 ex => _logger.LogError(ex, "Error observing library empty state."))
             .DisposeWith(Disposables);
@@ -1694,7 +1694,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        Debug.WriteLine(Connectivity.Current);
         if (embeddedPicture is null && Connectivity.NetworkAccess == NetworkAccess.Internet)
         { 
 
@@ -1703,18 +1702,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(song.ArtistName, song.Title);
             if(lastfmTrack.IsNull)
                 return;
-            var album = await lastfmService.GetAlbumInfoAsync(lastfmTrack.Artist?.Name, lastfmTrack.Album?.Name);
-            var imgs = album.Images;
+            if(lastfmTrack.Album is null || lastfmTrack.Album?.Images is null)
+                return;
+            var imgs = lastfmTrack.Album.Images;
             if(imgs is not null && imgs.Count > 0)
             {
-                var imageUrl = imgs[0].Url;
+                var imageUrl = imgs.LastOrDefault()?.Url;
 
                 //save to disc and use that path
                 if(!string.IsNullOrEmpty(imageUrl))
                 {
                     try
                     {
-                        var tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.jpg");
+                        var tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.png");
                       
                         using var httpClient = new HttpClient();
                         var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
@@ -1850,7 +1850,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
     }
 
-    private void OnPlaybackResumed(PlaybackEventArgs args)
+    private async Task OnPlaybackResumed(PlaybackEventArgs args)
     {
         if(args.MediaSong is null)
         {
@@ -1860,7 +1860,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(
+       await _baseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             args.MediaSong,
             StatesMapper.Map(DimmerPlaybackState.Resumed),
@@ -2130,13 +2130,37 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     #region Playback Commands (User Intent)
 
+
+    public void LoadLastTenPlayedSongsFromDBToPlayBackQueue()
+    {
+        realm = RealmFactory.GetRealmInstance();
+        // i need the RQL code to get the last events as they have the songs IDs we can get to pass in list
+        var lastSongsId = realm.All<DimmerPlayEvent>().Filter("PlayType == 3").ToList().Select(x => x.SongId).Take(10);
+        List<SongModelView> listOfCorrespondingSongsFromIDs = new();
+        foreach (var idd in lastSongsId)
+        {
+            var song = SearchResults.FirstOrDefault(x => x.Id == idd);
+            if (song is null) continue;
+            listOfCorrespondingSongsFromIDs.Add(song);
+        }
+        _playbackQueueSource.AddRange(listOfCorrespondingSongsFromIDs);
+
+    }
+
     #region Queue Manipulation Commands
     [RelayCommand]
     public void AddToNext(IEnumerable<SongModelView>? songs = null)
     {
-        songs ??= _searchResults;
 
-        _playbackQueueSource.AddRange(songs);
+        songs ??= _searchResults;
+        if (CurrentPlayingSongView.Title == null)
+        {
+            _playbackQueueSource.AddRange(songs);
+            return;
+        }
+        
+        var CurrentSongIndex = _playbackQueue.IndexOf(CurrentPlayingSongView);
+        _playbackQueueSource.InsertRange(songs, CurrentSongIndex);
     }
 
     [RelayCommand]
@@ -3021,7 +3045,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
 
 
-        AddToQueueEnd(new List<SongModelView> { song });
+        AddListOfSongsToQueueEnd(new List<SongModelView> { song });
     }
 
     /// <summary>
@@ -3030,7 +3054,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
 
     [RelayCommand]
-    public void AddToQueueEnd(IEnumerable<SongModelView>? songs)
+    public void AddListOfSongsToQueueEnd(IEnumerable<SongModelView>? songs)
     {
         if(songs == null || !songs.Any())
             return;
@@ -3045,7 +3069,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     private SongModelView? _songToScrobble;
 
-    protected virtual void HandlePlaybackStateChange(PlaybackEventArgs args)
+    protected virtual async Task HandlePlaybackStateChange(PlaybackEventArgs args)
     {
         PlayType? state = StatesMapper.Map(args.EventType);
 
@@ -3057,7 +3081,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
 
             case PlayType.Resume:
-                OnPlaybackResumed(args);
+                await OnPlaybackResumed(args);
                 LoadAllAudioDevices();
                 break;
 
@@ -3152,7 +3176,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 .Select(evt => evt.EventArgs)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(
-                    HandlePlaybackStateChange,
+                    async x => await HandlePlaybackStateChange(x),
                     ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
 
 
@@ -3901,50 +3925,87 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task AddFavoriteRatingToSong(SongModelView songModel)
     {
-        if(CurrentPlayingSongView == null || songModel.Id == ObjectId.Empty)
+        if (songModel is null || songModel.Id == ObjectId.Empty || CurrentPlayingSongView is null)
         {
-            _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
+            _logger.LogWarning("AddFavoriteRatingToSong called with invalid parameters.");
             return;
         }
 
-        if(songModel == null)
+        // IsBusy = true; // Optional: To show a loading spinner in the UI
+
+        try
         {
-            _logger.LogWarning("AddFavoriteRatingToSong: Could not map CurrentPlayingSongView to SongModel.");
-            return;
+            // --- Perform Logic and I/O Operations ---
+            if (songModel.NumberOfTimesFaved <= 0)
+            {
+                // 1. This is an I/O (network) call. Await it directly inside the try block.
+                await lastfmService.LoveTrackAsync(songModel);
+                songModel.NumberOfTimesFaved = 1;
+            }
+            else
+            {
+                // 2. This is a synchronous DB call. Move it to a background thread.
+                await Task.Run(() => _baseAppFlow.UpdateDatabaseWithPlayEvent(
+                    RealmFactory,
+                    CurrentPlayingSongView,
+                    StatesMapper.Map(DimmerPlaybackState.Favorited),
+                    CurrentTrackPositionSeconds));
+
+                songModel.NumberOfTimesFaved++;
+            }
+
+            // --- All operations succeeded, now update the state and save ---
+            songModel.IsFavorite = true;
+
+            // 3. This is another synchronous DB call. Move it to a background thread.
+            await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)));
         }
-        if(songModel.NumberOfTimesFaved <= 0)
+        catch (Exception ex)
         {
-            songModel.NumberOfTimesFaved = 1;
-
-            _ = await lastfmService.LoveTrackAsync(songModel);
-        } else if(songModel.NumberOfTimesFaved > 0)
-        {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(
-                RealmFactory,
-                CurrentPlayingSongView,
-                StatesMapper.Map(DimmerPlaybackState.Favorited),
-                CurrentTrackPositionSeconds);
-
-            songModel.NumberOfTimesFaved++;
+            // 4. Catch ANY exception from the network or database and handle it gracefully.
+            _logger.LogError(ex, "Failed to add favorite rating for song: {SongTitle}", songModel.Title);
+            // Optional: Show an error message to the user
+            // await Shell.Current.DisplayAlert("Error", "Could not favorite song. Please try again later.", "OK");
         }
-        songModel.IsFavorite = true;
-
-        var song = songRepo.Upsert(songModel.ToModel(_mapper));
+        finally
+        {
+            // IsBusy = false; // Optional: Hide the loading spinner
+        }
     }
 
     [RelayCommand]
     public async Task UnloveSong(SongModelView songModel)
     {
-        if(songModel == null || songModel.Id == ObjectId.Empty)
+        if (songModel is null || songModel.Id == ObjectId.Empty)
         {
-            _logger.LogWarning("AddFavoriteRatingToSong: Could not map CurrentPlayingSongView to SongModel.");
+            _logger.LogWarning("UnloveSong called with invalid SongModel.");
             return;
         }
-        _ = await lastfmService.UnloveTrackAsync(songModel);
-        songModel.NumberOfTimesFaved = 0;
-        songModel.IsFavorite = false;
 
-        var song = songRepo.Upsert(songModel.ToModel(_mapper));
+        // IsBusy = true;
+
+        try
+        {
+            // 1. Await the I/O network call correctly.
+            await lastfmService.UnloveTrackAsync(songModel);
+
+            // 2. Update local model state ONLY after the network call succeeds.
+            songModel.NumberOfTimesFaved = 0;
+            songModel.IsFavorite = false;
+
+            // 3. Move the synchronous DB work to a background thread.
+            await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)));
+        }
+        catch (Exception ex)
+        {
+            // 4. Gracefully handle network or database errors.
+            _logger.LogError(ex, "Failed to unlove song: {SongTitle}", songModel.Title);
+            // Optional: Show an error message to the user
+        }
+        finally
+        {
+            // IsBusy = false;
+        }
     }
 
     public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
@@ -6403,6 +6464,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial bool ShowWelcomeScreen { get; set; }
+    partial void OnShowWelcomeScreenChanged(bool oldValue, bool newValue)
+    {
+        if(newValue)
+        {
+
+        }
+    }
 
     [ObservableProperty]
     public partial WelcomeTabViewIndexEnum WelcomeTabIndexEnum { get; set; }
@@ -6474,6 +6542,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 break;
         }
     }
+
+    
 }
 
 

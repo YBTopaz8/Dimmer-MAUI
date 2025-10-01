@@ -82,6 +82,7 @@
     <None Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
     <None Remove="Views\DimmerLiveUI\SocialView.xaml" />
     <None Remove="Views\DimmerSongWindow.xaml" />
+    <None Remove="Views\DuplicatesMgtWindow.xaml" />
     <None Remove="Views\ExperimentsPage.xaml" />
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\OnlinePageManagement.xaml" />
@@ -116,6 +117,7 @@
     <Page Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
     <Page Remove="Views\DimmerLiveUI\SocialView.xaml" />
     <Page Remove="Views\DimmerSongWindow.xaml" />
+    <Page Remove="Views\DuplicatesMgtWindow.xaml" />
     <Page Remove="Views\ExperimentsPage.xaml" />
     <Page Remove="Views\HomePage.xaml" />
     <Page Remove="Views\OnlinePageManagement.xaml" />
@@ -239,6 +241,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\DimmerSongWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\DuplicatesMgtWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\ExperimentsPage.xaml">

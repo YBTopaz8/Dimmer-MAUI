@@ -17,6 +17,7 @@ using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 
 using Page = Microsoft.UI.Xaml.Controls.Page;
+using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -452,7 +453,7 @@ public sealed partial class AllSongsListPage : Page
                 break;
             case "AddToQueue":
                 // Add the selected songs to the queue
-                MyViewModel.AddToQueueEnd(selectedSongs);
+                MyViewModel.AddListOfSongsToQueueEnd(selectedSongs);
                 break;
             case "DeleteSelected":
                 // Delete the selected songs
@@ -772,10 +773,26 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void CheckBox_Click(object sender, RoutedEventArgs e)
+    private async void CheckBox_Click(object sender, RoutedEventArgs e)
     {
+        try
+        {
 
+            var ee = (CheckBox)e.OriginalSource;
+            var song = (SongModelView)ee.DataContext;
+            if (song == null)
+            {
+
+                return;
+            }
+            await MyViewModel.AddFavoriteRatingToSong(song);
+        }
+        catch (Exception ex)
+        {
+            
+        }
     }
+
     public static T? FindVisualChild<T>(DependencyObject? parent, string? childName) where T : FrameworkElement
     {
         if (parent == null)
@@ -996,5 +1013,10 @@ public sealed partial class AllSongsListPage : Page
 
         // 5. Call the ViewModel to update the query.
         MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion);
+    }
+
+    private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
+    {
+
     }
 }

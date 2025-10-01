@@ -217,7 +217,7 @@ namespace Dimmer.WinUI.Views;
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
         if (isAddNext)
         {
-            MyViewModel.AddToQueueEnd(MyViewModel.SearchResults);
+            MyViewModel.AddListOfSongsToQueueEnd(MyViewModel.SearchResults);
 
             return;
         }
@@ -253,15 +253,20 @@ namespace Dimmer.WinUI.Views;
 
             await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
-        if(!MyViewModel.ShowWelcomeScreen)
+        if(MyViewModel.ShowWelcomeScreen)
         {
 
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
             await Shell.Current.GoToAsync(nameof(WelcomePage), true);
         }
+        
         else
         {
+            
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+
+            await Task.Delay(8000);
+            MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
         }
     }
 

@@ -387,7 +387,7 @@ public partial class BaseViewModelWin: BaseViewModel
        
         if (isLastTab)
         {
-            ShowWelcomeScreen = true;
+            ShowWelcomeScreen = false;
             await Shell.Current.GoToAsync("..");
             _= Task.Run(EnsureAllCoverArtCachedForSongsAsync);
             return;
@@ -545,12 +545,24 @@ public partial class BaseViewModelWin: BaseViewModel
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {
         var songsToAdd = SearchResults.Where(s => songIds.Contains(s.Id.ToString()));
-        if (songsToAdd is not null && songsToAdd.Count()>0)
+        if (songsToAdd is not null && songsToAdd.Any())
         {
-            AddToQueueEnd(songsToAdd);
+            AddListOfSongsToQueueEnd(songsToAdd);
         }
 
     }
+
+    [RelayCommand]
+    public static void OpenAndSelectFileInExplorer(SongModelView song)
+    {
+        if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
+        {
+            string argument = "/select, \"" + song.FilePath + "\"";
+            System.Diagnostics.Process.Start("explorer.exe", argument);
+        }
+    }
+
+
 
 
     [RelayCommand]
@@ -590,4 +602,5 @@ public partial class BaseViewModelWin: BaseViewModel
         base.Dispose(disposing);
     
     }
+
 }

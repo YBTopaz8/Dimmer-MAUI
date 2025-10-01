@@ -39,6 +39,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
         Routing.RegisterRoute(nameof(SingleAlbumPage), typeof(SingleAlbumPage));
         Routing.RegisterRoute(nameof(WelcomePage), typeof(WelcomePage));
+
+        Routing.RegisterRoute(nameof(DuplicatesMgtWindow), typeof(DuplicatesMgtWindow));
     }
 
 
@@ -724,6 +726,8 @@ public partial class AppShell : Shell
         MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
 
         var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        if (e.PlatformArgs is null)
+            return;
         var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
 
         if (properties.IsRightButtonPressed)
@@ -749,6 +753,7 @@ public partial class AppShell : Shell
 
     private void MoreIcon_Clicked(object sender, EventArgs e)
     {
+        return;
         ImageButton btn = (ImageButton)sender;
         //btn.ShowContextMenu();
         var param = btn.CommandParameter;

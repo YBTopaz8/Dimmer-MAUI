@@ -263,7 +263,7 @@
                         Grid.Column="2"
                         HorizontalOptions="Center"
                         HorizontalTextAlignment="Justify"
-                        Text="{Binding Title}"
+                        Text="{Binding CoverImagePath.Length}"
                         ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
                         VerticalOptions="Center"
                         >
@@ -447,6 +447,7 @@
                     FontSize="19"
                     HorizontalTextAlignment="Center"
                     Text="{Binding CurrentTqlQuery, StringFormat='Current Query : {0}'}"
+                    IsVisible="{Binding PlaybackQueue, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                     />
 
                 <Grid ColumnDefinitions="*,auto,auto" ColumnSpacing="5">
@@ -475,6 +476,17 @@
 
 
                         <HorizontalStackLayout Spacing="10">
+
+                            <Button x:Name="ScrollToSong"
+                                windows:VisualElement.AccessKey="S"
+                                windows:VisualElement.AccessKeyPlacement="Bottom"
+                                BackgroundColor="Transparent"
+                                BorderWidth="1"
+                                Clicked="ScrollToSong_Clicked"
+                                HeightRequest="50"
+                                ImageSource="eye.png"
+                                WidthRequest="50"
+                                />
                             <Button x:Name="SearchBtn"
                                 windows:SearchBar.IsSpellCheckEnabled="True"
                                 windows:VisualElement.AccessKey="F"
@@ -488,10 +500,7 @@
                                 TextColor="{AppThemeBinding Light=Black,
                                                             Dark=WHite}"
                                 />
-                            <Button x:Name="TQLL"
-                                Clicked="TQLL_Clicked"
-                                Text="TQLL"
-                                />
+
                             <Button x:Name="ClearQueueBtn"
                                 windows:SearchBar.IsSpellCheckEnabled="True"
                                 windows:VisualElement.AccessKey="C"
@@ -605,6 +614,7 @@
                             IsVisible="False"
                             WidthRequest="50"
                             />
+
                     </HorizontalStackLayout>
                     <Label
                         FontAttributes="Italic"
@@ -637,16 +647,6 @@
                             </ResourceDictionary>
                         </VerticalStackLayout.Resources>
 
-                        <Button x:Name="ScrollToSong"
-                            windows:VisualElement.AccessKey="S"
-                            windows:VisualElement.AccessKeyPlacement="Bottom"
-                            BackgroundColor="Transparent"
-                            BorderWidth="1"
-                            Clicked="ScrollToSong_Clicked"
-                            HeightRequest="50"
-                            ImageSource="eye.png"
-                            WidthRequest="58"
-                            />
                     </VerticalStackLayout>
                     <ProgressBar x:Name="MyProgressBar"
                         IsVisible="False"
@@ -673,81 +673,97 @@
                         WidthRequest="58"
                         />
 
-                    <syncf:SfChip x:Name="MoreBtn"
-                        windows:VisualElement.AccessKey="E"
-                        windows:VisualElement.AccessKeyPlacement="Bottom"
-                        BackgroundColor="Transparent"
-                        Clicked="OnNavigateToExperimentalPage"
-                        HeightRequest="50"
-                        ImageSize="45"
-                        ImageSource="more1.png"
-                        StrokeThickness="1"
-                        TextColor="{AppThemeBinding Dark=WHite,
-                                                    Light=Black}"
-                        WidthRequest="58"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding ToggleShuffleCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="Shuffle"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding GroupSongsInQueueByAlbumCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="G. Album"
-                        ToolTipProperties.Text="Group By Album"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding GroupSongsInQueueByArtistCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="G. Artist"
-                        ToolTipProperties.Text="Group By Artist"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding GroupSongsInQueueByGenreCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="G. Genre"
-                        ToolTipProperties.Text="Group By Genre"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding OrderQueueByAlbumCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="O. Album"
-                        ToolTipProperties.Text="Order By Album"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding OrderQueueByArtistCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="O. Artist"
-                        ToolTipProperties.Text="Order By Artist"
-                        />
-                    <syncf:SfChip
-                        BackgroundColor="Transparent"
-                        Command="{Binding OrderQueueByTitleCommand}"
-                        HeightRequest="50"
-                        ShowIcon="False"
-                        StrokeThickness="1"
-                        Text="O. Title"
-                        ToolTipProperties.Text="Order By Title"
-                        />
+                    <toolkit:Expander>
+                        <toolkit:Expander.Header>
+                            <HorizontalStackLayout HorizontalOptions="End">
+                                <Border
+                                    Margin="0,0,0,10"
+                                    StrokeThickness="1"
+                                    Stroke="#3D3D3D"
+                                    >
+
+                                    <Image
+                                        Source="filtertwo.png"
+                                        HeightRequest="50"
+                                        WidthRequest="50"
+                                        >
+
+                                        <Image.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                        </Image.Behaviors>
+                                    </Image>
+                                </Border>
+                            </HorizontalStackLayout>
+                        </toolkit:Expander.Header>
+                        <toolkit:Expander.Content>
+                            <HorizontalStackLayout Spacing="10">
+
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding ToggleShuffleCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="Shuffle"
+                                    />
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding GroupSongsInQueueByAlbumCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="G. Album"
+                                    ToolTipProperties.Text="Group By Album"
+                                    />
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding GroupSongsInQueueByArtistCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="G. Artist"
+                                    ToolTipProperties.Text="Group By Artist"
+                                    />
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding GroupSongsInQueueByGenreCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="G. Genre"
+                                    ToolTipProperties.Text="Group By Genre"
+                                    />
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding OrderQueueByAlbumCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="O. Album"
+                                    ToolTipProperties.Text="Order By Album"
+                                    />
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding OrderQueueByArtistCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="O. Artist"
+                                    ToolTipProperties.Text="Order By Artist"
+                                    />
+                                <syncf:SfChip
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding OrderQueueByTitleCommand}"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    StrokeThickness="1"
+                                    Text="O. Title"
+                                    ToolTipProperties.Text="Order By Title"
+                                    />
+                            </HorizontalStackLayout>
+                        </toolkit:Expander.Content>
+                    </toolkit:Expander>
+
                 </HorizontalStackLayout>
 
             </Grid>
