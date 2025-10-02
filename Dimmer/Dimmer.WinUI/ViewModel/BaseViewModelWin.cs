@@ -553,7 +553,7 @@ public partial class BaseViewModelWin: BaseViewModel
     }
 
     [RelayCommand]
-    public static void OpenAndSelectFileInExplorer(SongModelView song)
+    public void OpenAndSelectFileInExplorer(SongModelView song)
     {
         if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
         {

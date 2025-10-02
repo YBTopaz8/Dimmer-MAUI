@@ -206,38 +206,51 @@
 
             <dgView:TableView.ContextFlyout>
                 <MenuFlyout>
-                   
+
 
                     <MenuFlyoutItem x:Name="OpenFileExplorer"
                         Click="OpenFileExplorer_Click"
                         Text="View in Explorer"
-                        Icon="eye.png"
-                        />
+                        >
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE7B3;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
                     <MenuFlyoutSeparator />
-
-
-                    <MenuFlyoutItem x:Name="AddToEnd"
-                        Command="{x:Bind MyViewModel.AddListOfSongsToQueueEndCommand}"
-                        CommandParameter="{x:Bind MySongsTableView.ItemsSource}"
-                        Text="Add to End of Queue"
-                        />
-                    <MenuFlyoutSeparator />
-
 
                     <MenuFlyoutItem x:Name="AddToNext"
-                        Command="{x:Bind MyViewModel.AddToQueueCommand}"
-                        CommandParameter="{x:Bind MySongsTableView.ItemsSource}"
-                        Text="Add to End of Queue"
-                        />
+                        Click="AddToNext_Click"
+                        Text="Add to Next of Queue"
+                        >
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xe893;" />
+
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
                     <MenuFlyoutSeparator />
+
+                    <MenuFlyoutItem x:Name="AddToEnd"
+                        Click="AddToEnd_Click"
+                        Text="Add to End of Queue"
+                        >
+
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xe81b;" />
+
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator />
+
+
 
 
 
                     <MenuFlyoutItem Text="Option with an Icon">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xE71E;" />
-                            <!--  This is a 'Save' icon  -->
+
                         </MenuFlyoutItem.Icon>
+
                     </MenuFlyoutItem>
                 </MenuFlyout>
 

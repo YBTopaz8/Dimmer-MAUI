@@ -2400,6 +2400,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
+    [ObservableProperty]
+    public partial CurrentPage CurrentPagePlayingSong { get; set; }
+
     [RelayCommand]
     private async Task PlayFromSearchResultsAsync(SongModelView? songToPlay)
     {
@@ -2429,10 +2432,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
+        CurrentPagePlayingSong = curPage;
+
         var sourceList = new List<SongModelView>();
         int startIndex = -1;
 
-        if(curPage == Utilities.Enums.CurrentPage.AllSongs)
+        if(CurrentPagePlayingSong == Utilities.Enums.CurrentPage.AllSongs)
         {
             var songSource = (songs ?? _searchResults).ToList();
             startIndex = songSource.IndexOf(songToPlay);
@@ -2456,7 +2461,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 // The start index is now relative to this new, smaller list.
                 startIndex = sourceList.IndexOf(songToPlay);
             }
-        } else if(curPage == Utilities.Enums.CurrentPage.HomePage)
+        } 
+        else if(CurrentPagePlayingSong == Utilities.Enums.CurrentPage.HomePage)
         {
             sourceList = _playbackQueue.ToList();
             startIndex = sourceList.IndexOf(songToPlay);
@@ -2548,6 +2554,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             finalQueue = initialSongList;
             finalStartIndex = startIndex;
         }
+        if(CurrentPagePlayingSong != CurrentPage.HomePage)
+        {
 
         _playbackQueueSource.Edit(
             updater =>
@@ -2556,6 +2564,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 updater.AddRange(finalQueue);
             });
 
+        }
         // The index is a separate variable, we can set it directly.
         _playbackQueueIndex = finalStartIndex;
 

@@ -18,6 +18,7 @@ using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 
 using Page = Microsoft.UI.Xaml.Controls.Page;
 using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
+using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -682,7 +683,7 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
+     {
         //var OldValue = e.OldValue;
         //TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
         //var propValue = e.Property;
@@ -1016,6 +1017,22 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
+    {
+        //MyViewModel.OpenAndSelectFileInExplorer()
+    }
+
+    private void AddToEnd_Click(object sender, RoutedEventArgs e)
+    {
+        //Command = "{x:Bind MyViewModel.AddListOfSongsToQueueEndCommand}"
+        //                CommandParameter = "{x:Bind MySongsTableView.ItemsSource}"
+        Debug.WriteLine(MySongsTableView.Items.GetType());
+        var firstTen = MySongsTableView.Items.Take(10) as IEnumerable<SongModelView>;
+
+        Debug.WriteLine(firstTen is null);
+        //MyViewModel.AddListOfSongsToQueueEnd();
+    }
+
+    private void AddToNext_Click(object sender, RoutedEventArgs e)
     {
 
     }

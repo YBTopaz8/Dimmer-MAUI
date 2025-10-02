@@ -68,6 +68,41 @@ namespace Dimmer.WinUI.Views;
 
     }
 
+
+    protected async override void OnAppearing()
+    {
+        try
+        {
+            base.OnAppearing();
+            MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
+            MyViewModel.SongColView = SongsColView;
+
+            MyViewModel.CurrentMAUIPage = null;
+            MyViewModel.CurrentMAUIPage = this;
+            await MyViewModel.InitializeParseUser();
+        }
+        catch (Exception ex)
+        {
+
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
+        if (MyViewModel.ShowWelcomeScreen)
+        {
+
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
+            await Shell.Current.GoToAsync(nameof(WelcomePage), true);
+        }
+
+        else
+        {
+
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+
+            await Task.Delay(6000);
+            MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+        }
+    }
+
     private void OnAnyWindowClosing(object? sender, WinUIWindowMgrService.WindowClosingEventArgs e)
     {
         Debug.WriteLine($"A window is trying to close: {e.Window.Title}");
@@ -234,41 +269,6 @@ namespace Dimmer.WinUI.Views;
 
 
 
-
-
-    protected async override void OnAppearing()
-    {
-        try
-        {
-            base.OnAppearing();
-            MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
-            MyViewModel.SongColView = SongsColView;
-
-            MyViewModel.CurrentMAUIPage = null;
-            MyViewModel.CurrentMAUIPage = this;
-            await MyViewModel.InitializeParseUser();
-        }
-        catch (Exception ex)
-        {
-
-            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
-        }
-        if(MyViewModel.ShowWelcomeScreen)
-        {
-
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
-            await Shell.Current.GoToAsync(nameof(WelcomePage), true);
-        }
-        
-        else
-        {
-            
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
-
-            await Task.Delay(8000);
-            MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
-        }
-    }
 
 
     private void MainSongsColView_Loaded(object sender, EventArgs e)

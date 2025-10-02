@@ -263,7 +263,7 @@
                         Grid.Column="2"
                         HorizontalOptions="Center"
                         HorizontalTextAlignment="Justify"
-                        Text="{Binding CoverImagePath.Length}"
+                        Text="{Binding Title}"
                         ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
                         VerticalOptions="Center"
                         >
