@@ -140,7 +140,7 @@
                                 />
                             <MenuFlyoutItem
                                 Clicked="OnLabelClicked"
-                                Command="{Binding OpenFileInFolderCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelWin}}}"
+                                Command="{Binding OpenAndSelectFileInExplorerCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelWin}}}"
                                 CommandParameter="{Binding .}"
                                 Text="Open File in Folder"
                                 />
@@ -161,11 +161,10 @@
                 </FlyoutBase.ContextFlyout>
 
                 <Grid
-                    ColumnDefinitions="40,auto,*,*,*,auto,80,80,80"
+                    ColumnDefinitions="40,auto,*,*,*,auto,80,50,50,50"
                     ColumnSpacing="5"
                     RowDefinitions="120"
                     >
-
                     <Grid.GestureRecognizers>
 
                         <TapGestureRecognizer x:Name="TapGestRec"
@@ -177,6 +176,13 @@
                     <Grid.Resources>
                         <Style TargetType="Label">
                             <Setter Property="FontSize" Value="15" />
+
+
+                            <Setter Property="HorizontalOptions" Value="Center" />
+                            <Setter Property="HorizontalTextAlignment" Value="Center" />
+                            <Setter Property="VerticalTextAlignment" Value="Center" />
+                            <Setter Property="VerticalOptions" Value="Center" />
+
                         </Style>
                     </Grid.Resources>
                     <Label
@@ -246,12 +252,14 @@
                                 Source="heart.png"
                                 ZIndex="1"
                                 />
-                            <Image
+                            <ImageButton x:Name="SongCoverImage"
                                 Aspect="AspectFit"
                                 HeightRequest="120"
                                 Source="{Binding CoverImagePath}"
+                                         HandlerChanged="SongCoverImage_HandlerChanged"
                                 WidthRequest="120"
                                 ZIndex="-1"
+                                Clicked="SongCoverImage_Clicked"
                                 />
 
                         </Grid>
@@ -262,10 +270,10 @@
                     <Label
                         Grid.Column="2"
                         HorizontalOptions="Center"
+                        VerticalOptions="Center"
                         HorizontalTextAlignment="Justify"
                         Text="{Binding Title}"
                         ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
-                        VerticalOptions="Center"
                         >
                         <Label.Triggers>
                             <DataTrigger
@@ -301,12 +309,10 @@
                         </syncf:SfEffectsView.GestureRecognizers>
 
                         <Label
-                            HorizontalTextAlignment="Center"
                             LineBreakMode="WordWrap"
                             Text="{Binding OtherArtistsName}"
                             TextColor="{AppThemeBinding Light=Black,
                                                         Dark=White}"
-                            VerticalOptions="Center"
                             />
                     </syncf:SfEffectsView>
                     <syncf:SfEffectsView Grid.Column="4">
@@ -370,7 +376,15 @@
                                                     Dark=White}"
                         VerticalOptions="Center"
                         />
-                    <syncf:SfEffectsView Grid.Column="8">
+                    <Label
+                        Grid.Column="8"
+                        HorizontalTextAlignment="Center"
+                        Text="{Binding FileFormat}"
+                        TextColor="{AppThemeBinding Light=Black,
+                                                    Dark=White}"
+                        VerticalOptions="Center"
+                        />
+                    <syncf:SfEffectsView Grid.Column="9">
 
                         <Label
                             HorizontalOptions="Center"
@@ -675,7 +689,46 @@
 
                     <toolkit:Expander>
                         <toolkit:Expander.Header>
-                            <HorizontalStackLayout HorizontalOptions="End">
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+
+                                <Border
+                                    Margin="0,0,0,10"
+                                    StrokeThickness="1"
+                                    Stroke="#3D3D3D"
+                                    >
+
+                                    <ImageButton x:Name="DeleteSeleted"
+                                        Source="delete.png"
+                                        HeightRequest="50"
+                                        WidthRequest="50"
+                                        Clicked="DeleteSeleted_Clicked"
+                                        >
+
+                                        <ImageButton.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                        </ImageButton.Behaviors>
+                                    </ImageButton>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,10"
+                                    StrokeThickness="1"
+                                    Stroke="#3D3D3D"
+                                    >
+
+                                    <ImageButton x:Name="ToggleMultiSelect"
+                                        Source="selectmultiple.png"
+                                        HeightRequest="50"
+                                        WidthRequest="50"
+                                        Clicked="ToggleMultiSelect_Clicked"
+                                        >
+
+                                        <ImageButton.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                        </ImageButton.Behaviors>
+                                    </ImageButton>
+                                </Border>
+
                                 <Border
                                     Margin="0,0,0,10"
                                     StrokeThickness="1"

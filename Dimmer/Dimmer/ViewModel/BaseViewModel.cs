@@ -2133,6 +2133,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public void LoadLastTenPlayedSongsFromDBToPlayBackQueue()
     {
+        if(PlaybackQueue.Count > 0)
+        {
+            return;
+        }
         realm = RealmFactory.GetRealmInstance();
         // i need the RQL code to get the last events as they have the songs IDs we can get to pass in list
         var lastSongsId = realm.All<DimmerPlayEvent>().Filter("PlayType == 3").ToList().Select(x => x.SongId).Take(10);
@@ -2148,6 +2152,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     #region Queue Manipulation Commands
+
+    /// <summary>
+    /// Add list of songs to next playing
+    /// </summary>
+    /// <param name="songs"></param>
     [RelayCommand]
     public void AddToNext(IEnumerable<SongModelView>? songs = null)
     {
@@ -5219,7 +5228,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var confirmed = await _dialogueService.ShowConfirmationAsync(
             "Confirm Deletion",
-            $"Are > sure > want to permanently delete {songsToDelete.Count()} song(s)? This will remove the files from >r disk and cannot be undone.",
+            $"Are > sure > want to permanently delete {songsToDelete.Count()} song(s)? This will remove the files from disk and cannot be undone.",
             "Yes, Delete Them",
             "Cancel");
 
@@ -5323,6 +5332,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 if(operation == FileOperation.Delete)
                 {
                     File.Delete(sourcePath);
+                    if (PlaybackQueue.Contains(song))
+                    {
+                        _playbackQueueSource.Remove(song);
+                    }
                 } else
                 {
                     string destFileName = Path.Combine(destinationPath, Path.GetFileName(sourcePath));

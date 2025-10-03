@@ -617,4 +617,9 @@ public partial class SingleSongPage : ContentPage
     {
 
     }
+
+    private void ViewLyricsIndex_Clicked(object sender, EventArgs e)
+    {
+        SongTabView.SelectedIndex = 5;
+    }
 }

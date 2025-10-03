@@ -1035,5 +1035,6 @@ public sealed partial class AllSongsListPage : Page
     private void AddToNext_Click(object sender, RoutedEventArgs e)
     {
 
+        //MyViewModel.AddToNext()
     }
 }

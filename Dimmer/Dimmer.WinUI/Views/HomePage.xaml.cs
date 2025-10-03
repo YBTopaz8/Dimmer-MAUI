@@ -98,7 +98,7 @@ namespace Dimmer.WinUI.Views;
 
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
 
-            await Task.Delay(6000);
+            await Task.Delay(4000);
             MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
         }
     }
@@ -1289,6 +1289,39 @@ await this.FadeIn(500, 1.0);
     private async void TQLL_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(TqlTutorialPage), true);
+    }
+
+    private void SongCoverImage_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ToggleMultiSelect_Clicked(object sender, EventArgs e)
+    {
+        switch (SongsColView.SelectionMode)
+        {
+            case SelectionMode.None:
+                break;
+            case SelectionMode.Single:
+                SongsColView.SelectionMode = SelectionMode.Multiple;
+                break;
+            case SelectionMode.Multiple:
+                SongsColView.SelectionMode = SelectionMode.Single;
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    private void DeleteSeleted_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SongCoverImage_HandlerChanged(object sender, EventArgs e)
+    {
+        var natImgBtn = 
     }
 }
 

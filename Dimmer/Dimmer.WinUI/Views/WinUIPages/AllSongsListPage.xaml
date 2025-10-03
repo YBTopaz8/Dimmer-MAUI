@@ -221,6 +221,7 @@
                     <MenuFlyoutItem x:Name="AddToNext"
                         Click="AddToNext_Click"
                         Text="Add to Next of Queue"
+                                    
                         >
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xe893;" />
