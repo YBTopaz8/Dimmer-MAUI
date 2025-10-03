@@ -248,7 +248,7 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", $"Failed to scrobble on Last.fm. {ex.Message}", "OK");
+            //await Shell.Current.DisplayAlert("Error", $"Failed to scrobble on Last.fm. {ex.Message}", "OK");
 
             // Log error
         }
@@ -413,7 +413,7 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", $"Failed to update now playing on Last.fm. {ex.Message}", "OK");
+            Debug.WriteLine($"Error Failed to update now playing on Last.fm. {ex.Message}");
             // Log error
         }
     }
