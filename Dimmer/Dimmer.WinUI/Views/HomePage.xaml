@@ -256,7 +256,7 @@
                                 Aspect="AspectFit"
                                 HeightRequest="120"
                                 Source="{Binding CoverImagePath}"
-                                         HandlerChanged="SongCoverImage_HandlerChanged"
+                                HandlerChanged="SongCoverImage_HandlerChanged"
                                 WidthRequest="120"
                                 ZIndex="-1"
                                 Clicked="SongCoverImage_Clicked"
@@ -628,16 +628,28 @@
                             IsVisible="False"
                             WidthRequest="50"
                             />
+                        <Label x:Name="PlaybackAndSelectedSongsLabel"
+                            FontAttributes="Italic"
+                            FontSize="21"
+                            HorizontalOptions="Center"
+                            Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}"
+                            TextColor="{AppThemeBinding Light=Black,
+                                                        Dark=#999999}"
+                            />
 
                     </HorizontalStackLayout>
-                    <Label
-                        FontAttributes="Italic"
-                        FontSize="21"
-                        HorizontalOptions="Center"
-                        Text="{Binding PlaybackQueue.Count, StringFormat='Songs : {0}'}"
-                        TextColor="{AppThemeBinding Light=Black,
-                                                    Dark=#999999}"
-                        />
+
+                    <Border x:Name="PlaybackAndSelectedSongsBorder" IsVisible="False">
+                        <Image
+                            Source="eye.png"
+                            HeightRequest="60"
+                            WidthRequest="60"
+                            >
+                            <Image.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="DarkSlateGray" />
+                            </Image.Behaviors>
+                        </Image>
+                    </Border>
                 </VerticalStackLayout>
                 <Border x:Name="LyricsBoxView"
                     Grid.Column="1"
@@ -691,61 +703,47 @@
                         <toolkit:Expander.Header>
                             <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
 
-                                <Border
-                                    Margin="0,0,0,10"
-                                    StrokeThickness="1"
-                                    Stroke="#3D3D3D"
+
+
+                                <ImageButton x:Name="DeleteSeleted"
+                                    Source="delete.png"
+                                    HeightRequest="50"
+                                    WidthRequest="50"
+                                    IsVisible="False"
+                                    Clicked="DeleteSeleted_Clicked"
                                     >
 
-                                    <ImageButton x:Name="DeleteSeleted"
-                                        Source="delete.png"
-                                        HeightRequest="50"
-                                        WidthRequest="50"
-                                        Clicked="DeleteSeleted_Clicked"
-                                        >
+                                    <ImageButton.Behaviors>
+                                        <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                    </ImageButton.Behaviors>
+                                </ImageButton>
 
-                                        <ImageButton.Behaviors>
-                                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
-                                        </ImageButton.Behaviors>
-                                    </ImageButton>
-                                </Border>
 
-                                <Border
-                                    Margin="0,0,0,10"
-                                    StrokeThickness="1"
-                                    Stroke="#3D3D3D"
+
+                                <ImageButton x:Name="ToggleMultiSelect"
+                                    Source="selectmultiple.png"
+                                    HeightRequest="50"
+                                    WidthRequest="50"
+                                    Clicked="ToggleMultiSelect_Clicked"
                                     >
 
-                                    <ImageButton x:Name="ToggleMultiSelect"
-                                        Source="selectmultiple.png"
-                                        HeightRequest="50"
-                                        WidthRequest="50"
-                                        Clicked="ToggleMultiSelect_Clicked"
-                                        >
+                                    <ImageButton.Behaviors>
+                                        <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                    </ImageButton.Behaviors>
+                                </ImageButton>
 
-                                        <ImageButton.Behaviors>
-                                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
-                                        </ImageButton.Behaviors>
-                                    </ImageButton>
-                                </Border>
 
-                                <Border
-                                    Margin="0,0,0,10"
-                                    StrokeThickness="1"
-                                    Stroke="#3D3D3D"
+
+                                <Image
+                                    Source="filtertwo.png"
+                                    HeightRequest="50"
+                                    WidthRequest="50"
                                     >
 
-                                    <Image
-                                        Source="filtertwo.png"
-                                        HeightRequest="50"
-                                        WidthRequest="50"
-                                        >
-
-                                        <Image.Behaviors>
-                                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
-                                        </Image.Behaviors>
-                                    </Image>
-                                </Border>
+                                    <Image.Behaviors>
+                                        <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                    </Image.Behaviors>
+                                </Image>
                             </HorizontalStackLayout>
                         </toolkit:Expander.Header>
                         <toolkit:Expander.Content>
@@ -842,6 +840,7 @@
                 Loaded="MainSongsColView_Loaded"
                 ScrollToRequested="SongsColView_ScrollToRequested"
                 Scrolled="SongsColView_Scrolled"
+                SelectionChanged="SongsColView_SelectionChanged"
                 SelectedItem="{Binding SelectedSong}"
                 SelectionMode="Single"
                 VerticalOptions="Start"
@@ -856,9 +855,15 @@
             AutoSizeMode="Both"
             HorizontalOptions="Center"
             IsFullScreen="False"
+            IsVisible="False"
+            Background="Red"
+            BackgroundColor="Red"
+            IsOpen="False"
             ShowCloseButton="True"
             ShowFooter="True"
             ShowHeader="True"
+            HeightRequest="200"
+            WidthRequest="600"
             ShowOverlayAlways="True"
             VerticalOptions="Center"
             >

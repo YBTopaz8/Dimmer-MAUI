@@ -422,7 +422,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         Debug.WriteLine($"{DateTime.Now}: Subscriptions to services set up.");
 
-        _ = PerformBackgroundInitializationAsync();
 
         var endTime = DateTime.Now;
         var duration = endTime - startTime;
@@ -437,7 +436,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// Contains all long-running, non-essential initialization tasks that can be performed in the background without
     /// blocking the UI.
     /// </summary>
-    private async Task PerformBackgroundInitializationAsync()
+    public async Task PerformBackgroundInitializationAsync()
     {
         try
         {

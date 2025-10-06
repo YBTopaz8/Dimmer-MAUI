@@ -142,6 +142,8 @@
 
                 <TextBlock VerticalAlignment="Center" Text="Songs Found" />
 
+                <TextBlock VerticalAlignment="Center" Text="{x:Bind MySongsTableView.Items.Count}" />
+                <TextBlock VerticalAlignment="Center" Text="{x:Bind MySongsTableView.ItemsSource.Count}" />
 
 
             </StackPanel>
@@ -221,7 +223,6 @@
                     <MenuFlyoutItem x:Name="AddToNext"
                         Click="AddToNext_Click"
                         Text="Add to Next of Queue"
-                                    
                         >
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xe893;" />

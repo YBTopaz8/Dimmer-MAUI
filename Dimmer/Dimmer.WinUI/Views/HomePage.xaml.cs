@@ -1,4 +1,8 @@
 ﻿//using Dimmer.DimmerLive.Models;
+using System.Diagnostics;
+
+using CommunityToolkit.Maui.Extensions;
+
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
@@ -8,6 +12,9 @@ using Dimmer.WinUI.Views.WinUIPages;
 using Microsoft.UI.Xaml;
 
 using Vanara.PInvoke;
+
+using Colors = Microsoft.Maui.Graphics.Colors;
+
 
 //using Microsoft.UI.Xaml.Controls;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
@@ -100,6 +107,7 @@ namespace Dimmer.WinUI.Views;
 
             await Task.Delay(4000);
             MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+            _ = MyViewModel.PerformBackgroundInitializationAsync();
         }
     }
 
@@ -1301,12 +1309,16 @@ await this.FadeIn(500, 1.0);
         switch (SongsColView.SelectionMode)
         {
             case SelectionMode.None:
-                break;
+                 break;
             case SelectionMode.Single:
                 SongsColView.SelectionMode = SelectionMode.Multiple;
+                SongsColView.BackgroundColorTo(Colors.DarkSlateGray, 16, 450, easing: Easing.SpringOut);
+                DeleteSeleted.IsVisible = false;
                 break;
             case SelectionMode.Multiple:
                 SongsColView.SelectionMode = SelectionMode.Single;
+                MainThread.BeginInvokeOnMainThread(() => SongsColView.BackgroundColorTo(Colors.Transparent, 16, 450, easing: Easing.SpringIn));
+                DeleteSeleted.IsVisible = true;
                 break;
             default:
                 break;
@@ -1321,7 +1333,32 @@ await this.FadeIn(500, 1.0);
 
     private void SongCoverImage_HandlerChanged(object sender, EventArgs e)
     {
-        var natImgBtn = 
+        //var natImgBtn =  
+    }
+
+    private void SongsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        Debug.WriteLine(e.CurrentSelection.GetType());
+        var oldItems = e.PreviousSelection as List<object>;
+        var currentItems = e.CurrentSelection as List<object>;
+
+        if (currentItems is null) return;
+
+        if (currentItems.Count >0)
+        {
+            bool isOneSelected = currentItems.Count == 1;
+            PlaybackAndSelectedSongsBorder.IsVisible = true;
+            if(isOneSelected)
+            {
+                PlaybackAndSelectedSongsLabel.Text = $"{currentItems.Count} Song Selected";
+            }
+            else
+            {
+
+                PlaybackAndSelectedSongsLabel.Text = $"{currentItems.Count} Songs Selected";
+
+            }
+        }
     }
 }
 
