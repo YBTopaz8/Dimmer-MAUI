@@ -93,12 +93,11 @@ public partial class DimmerStateService : IDimmerStateService
         _allEventsInLibrary.OnNext(eventsList.AsReadOnly());
     }
 
-    public void SetCurrentSong(SongModel? songModel)
+    public void SetCurrentSong(SongModelView? newSongView)
     {
-        SongModelView? newSongView = null;
-        if (songModel != null)
+        if (newSongView == null)
         {
-            newSongView = _mapper.Map<SongModelView>(songModel);
+            return;
         }
 
         // Check if the ID has changed to avoid redundant notifications for the same song

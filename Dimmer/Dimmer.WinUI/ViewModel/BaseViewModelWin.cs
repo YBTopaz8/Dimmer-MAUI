@@ -403,7 +403,8 @@ public partial class BaseViewModelWin: BaseViewModel
         {
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
-            if (SongColView.IsLoaded)
+
+            if (SongColView is not null && SongColView.IsLoaded)
             { 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {

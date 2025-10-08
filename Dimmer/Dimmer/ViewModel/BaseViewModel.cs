@@ -2146,8 +2146,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             if (song is null) continue;
             listOfCorrespondingSongsFromIDs.Add(song);
         }
+        _stateService.SetCurrentSong(listOfCorrespondingSongsFromIDs[0]);
         _playbackQueueSource.AddRange(listOfCorrespondingSongsFromIDs);
-
+        
     }
 
     #region Queue Manipulation Commands
@@ -3114,9 +3115,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// 
     private void SubscribeToStateServiceEvents()
     {
-        //_subsMgr.Add(_stateService.CurrentSong
-        //    .ObserveOn(RxApp.MainThreadScheduler)
-        //    .Subscribe(/*OnCurrentSongChanged*/ ex => _logger.LogError(ex, "Error in CurrentSong subscription")));
+        _subsMgr.Add(_stateService.CurrentSong
+            .DistinctUntilChanged()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(
+                    newSong =>
+                    {
+                        if (newSong is null || newSong.TitleDurationKey == null) return;
+                        CurrentPlayingSongView = newSong;
+                    }));
 
         _subsMgr.Add(
             _stateService.IsShuffleActive
@@ -3377,7 +3384,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var realm = RealmFactory.GetRealmInstance();
         var allQSongs = realm.All<SongModel>();
-        SongToEventsDict = allQSongs.ToDictionary(s => s, s => s.PlayHistory.ToList());
+        SongToEventsDict =  allQSongs.ToDictionary(s => s, s => s.PlayHistory.ToList());
 
         var eventsFromDb = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Take(200).ToList();
         DimmerPlayEventList = _mapper.Map<IEnumerable<DimmerPlayEventView>>(eventsFromDb).ToObservableCollection();
@@ -3936,7 +3943,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var song = songRepo.Upsert(songModel);
         _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
-        _stateService.SetCurrentSong(song);
+        _stateService.SetCurrentSong(song.ToModelView());
     }
 
     [RelayCommand]
@@ -5509,12 +5516,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         line.IsTimed = false;
         line.IsCurrentLine = false;
     }
-
+    [ObservableProperty]
+    public partial int SingleSongPageTabIndex { get; set; }
     [RelayCommand]
     public async Task ContributeToLrcLib()
     {
-        if(SelectedSong == null || string.IsNullOrWhiteSpace(SelectedSong.SyncLyrics))
+        if (SelectedSong == null)
             return;
+        if (string.IsNullOrWhiteSpace(SelectedSong.SyncLyrics))
+        {
+            var ress = await Shell.Current.DisplayAlert("No Lyrics", "Do You Wish to synchronize and contribute?", "Yes", "Cancel");
+            if (!ress) return;
+
+            SingleSongPageTabIndex = 1;
+            return;
+        }
         var syncedLyrics = SelectedSong.SyncLyrics;
         var plainLyrics = SelectedSong.UnSyncLyrics;
         //ensure plain lyrics does not have timestamps

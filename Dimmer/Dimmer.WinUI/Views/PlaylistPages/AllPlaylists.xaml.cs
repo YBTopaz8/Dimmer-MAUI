@@ -10,16 +10,16 @@ public partial class AllPlaylists : ContentPage
 	{
 		InitializeComponent();
 		BindingContext = baseViewModel;
-		ViewModel = baseViewModel;
+		MyViewModel = baseViewModel;
     }
 
-	public BaseViewModelWin ViewModel{ get; }
+	public BaseViewModelWin MyViewModel{ get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        ViewModel.LoadLastHundredPlayEventsCommand.Execute(null);
+        MyViewModel.LoadLastHundredPlayEventsCommand.Execute(null);
     }
 
     private void collectionView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
@@ -93,9 +93,29 @@ public partial class AllPlaylists : ContentPage
 
     }
 
-    private void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
-
+        try
+        {
+            var send = (Microsoft.Maui.Controls.View)sender;
+            var song = MyViewModel.SelectedSong;
+            if (song is null)
+            {
+                return;
+            }
+            if (MyViewModel.CurrentPlayingSongView == song)
+            {
+                await MyViewModel.PlayPauseToggle();
+            }
+            else
+            {
+                await MyViewModel.PlaySong(song);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)

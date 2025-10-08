@@ -22,7 +22,7 @@ public partial class SingleSongPage : ContentPage
         MyViewModel.CurrentPageContext=CurrentPage.SingleSongPage;
         //await MyViewModel.LoadSongLastFMData();
         //await MyViewModel.LoadSongLastFMMoreData();
-
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         _availableLayouts = new List<DataTemplate>
         {
 
