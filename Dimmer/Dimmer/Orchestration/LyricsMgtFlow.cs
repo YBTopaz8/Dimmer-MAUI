@@ -180,9 +180,12 @@ public class LyricsMgtFlow : IDisposable
         {
 
             //get lyrics from online source
-            var res = await GetLyricsContentAsync(song);
-            LoadLyrics(res);
             ClearLyrics();
+            var res = await GetLyricsContentAsync(song);
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                LoadLyrics(res);
+            }
         }
     }
 

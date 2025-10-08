@@ -3158,11 +3158,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void SubscribeToLyricsFlow()
     {
         _subsMgr.Add(
-            _lyricsMgtFlow.CurrentLyric.ObserveOn(RxApp.MainThreadScheduler).Subscribe(line => CurrentLine = line));
+            _lyricsMgtFlow.CurrentLyric.ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(line =>
+            {
+                CurrentLine = line;
+            }));
         _subsMgr.Add(
             _lyricsMgtFlow.AllSyncLyrics
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(lines => AllLines = lines.ToObservableCollection()));
+                .Subscribe(lines =>
+                {
+                    AllLines = lines.ToObservableCollection();
+                }));
 
         _subsMgr.Add(
             _lyricsMgtFlow.PreviousLyric
