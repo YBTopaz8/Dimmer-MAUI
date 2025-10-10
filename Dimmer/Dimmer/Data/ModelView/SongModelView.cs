@@ -73,11 +73,16 @@ public partial class SongModelView : ObservableObject
     public partial int Rating { get; set; } = 0;
     [ObservableProperty]
     public partial bool HasLyrics { get; set; }
-   
-    public bool HasSyncedLyrics => SyncLyrics.Length > 0;
+
+    [ObservableProperty]
+    public partial bool HasSyncedLyrics { get; internal set; }
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
+    partial void OnSyncLyricsChanged(string value)
+    {
+        HasSyncedLyrics = !string.IsNullOrEmpty(value);
 
+    }
 
     [ObservableProperty]
     public partial bool IsInstrumental { get; set; }

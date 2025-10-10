@@ -3215,6 +3215,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 .Subscribe(lines =>
                 {
                     AllLines = lines.ToObservableCollection();
+                   
                 }));
 
         _subsMgr.Add(

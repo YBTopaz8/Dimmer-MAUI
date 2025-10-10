@@ -665,8 +665,6 @@
                     windows:VisualElement.AccessKeyPlacement="Bottom"
                     Background="Transparent"
                     BorderWidth="0"
-                    Command="{Binding NextTrackCommand}"
-                    StyleClass="MediaBtnChip"
                     Text="View Now Playing Queue"
                     ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}">
                     <Button.GestureRecognizers>
