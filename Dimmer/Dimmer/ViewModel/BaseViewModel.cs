@@ -518,8 +518,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public void SearchSongSB_TextChanged(string searchText)
+    public void SearchSongSB_TextChanged(string? searchText)
     {
+        if (string.IsNullOrEmpty(searchText))
+        {
+            // load the album songs of currentplaying songs
+            var albumName = CurrentPlayingSongView.AlbumName;
+            if (!string.IsNullOrEmpty(albumName))
+            {
+                searchText = $"album:\"{albumName}\"";
+            }
+        }
+
         string currentText = CurrentTqlQuery;
 
         string processedNewText = NaturalLanguageProcessor.Process(searchText);
@@ -817,29 +827,29 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 if (lastAppEvent is not null)
                 {
-                    var lastSongId = lastAppEvent.SongId;
-                    if (lastSongId != null)
+                    var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
+                    if (lastSong != null)
                     {
-                        var lastSong = realm.All<SongModel>().FirstOrDefault(s => s.Id == lastSongId)?.ToModelView();
-                        if (lastSong != null)
-                        {
-                            CurrentPlayingSongView = lastSong;
-                            _playbackQueueSource.Edit(
-                                updater =>
-                                {
-                                    updater.Clear();
-                                    updater.Add(CurrentPlayingSongView);
-                                });
-                        }
-                        else
-                        {
-                            CurrentPlayingSongView = new();
-                        }
+
+
+
+                        CurrentPlayingSongView = lastSong.ToModelView();
+                        _playbackQueueSource.Edit(
+                            updater =>
+                            {
+                                updater.Clear();
+                                updater.Add(CurrentPlayingSongView);
+                            });
+                    }
+                    else
+                    {
+                        CurrentPlayingSongView = new();
                     }
                     CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
                 }
             }
         }
+        
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
