@@ -1236,11 +1236,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var imgg = track.EmbeddedPictures?.FirstOrDefault()?.PictureData;
             if(imgg is null)
             {
-                newValue.CoverImageBytes = null;
                 return;
             }
 
-            newValue.CoverImageBytes = ImageResizer.ResizeImage(imgg);
+            //newValue.CoverImageBytes = ImageResizer.ResizeImage(imgg);
         }
     }
 
@@ -1529,7 +1528,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 });
             _logger.LogInformation("Successfully updated cover image for song '{Title}'", SelectedSong.Title);
 
-            SelectedSong.CoverImageBytes = ImageResizer.ResizeImage(File.ReadAllBytes(file));
         } catch(Exception ex)
         {
             _logger.LogError(ex, "Failed to update cover image for song '{Title}'", SelectedSong?.Title);
@@ -1642,7 +1640,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial string CurrentCoverImagePath { get; set; }
 
-    private void UpdateSongSpecificUi(SongModelView? song)
+    private async Task UpdateSongSpecificUi(SongModelView? song)
     {
         if(song is null)
         {
@@ -1654,7 +1652,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
 
 
-        _ = LoadAndCacheCoverArtAsync(song);
+        await LoadAndCacheCoverArtAsync(song);
     }
 
 
@@ -1669,9 +1667,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             song.CoverImagePath = string.Empty;
         }
 
-        if(song.CoverImageBytes?.Length > 1 &&
-            song.CoverImageBytes.Length > 1 ||
-            !string.IsNullOrEmpty(song.CoverImagePath))
+        if(!string.IsNullOrEmpty(song.CoverImagePath))
         {
             CurrentCoverImagePath = song.CoverImagePath;
             return;
@@ -1686,8 +1682,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 return;
             }
             var track = new Track(song.FilePath);
-            embeddedPicture = track.EmbeddedPictures?.FirstOrDefault(p => p.PictureData?.Length > 0);
-        } catch(Exception ex)
+            embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
+            if (embeddedPicture is null)
+            {
+                // treat as "no art"
+            }
+            else
+            {
+                // good art; use embeddedPicture.PictureData
+            }
+
+            
+        } 
+        catch(Exception ex)
         {
             _logger.LogError(ex, "Failed to read audio file with ATL: {FilePath}", song.FilePath);
             return;
@@ -1700,6 +1707,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             //Trying lastfm
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(song.ArtistName, song.Title);
             if(lastfmTrack.IsNull)
+
                 return;
             if(lastfmTrack.Album is null || lastfmTrack.Album?.Images is null)
                 return;
@@ -1731,11 +1739,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                             song.ArtistName);
                     }
                 }
-                return;
             }
         }
 
-        string? finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.FilePath, embeddedPicture);
+        string? finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.Id,song.FilePath, embeddedPicture);
 
         if(finalImagePath == null)
         {
@@ -1748,7 +1755,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             CurrentCoverImagePath = finalImagePath;
 
-            song.CoverImageBytes = ImageResizer.ResizeImage(await File.ReadAllBytesAsync(finalImagePath), 1200);
             _logger.LogTrace("Loaded cover art from new/cached path: {ImagePath}", finalImagePath);
 
 
@@ -2012,7 +2018,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             100;
     }
 
-    protected virtual void OnPlaybackStarted(PlaybackEventArgs args)
+    protected virtual async Task OnPlaybackStarted(PlaybackEventArgs args)
     {
         if(args.MediaSong is null)
         {
@@ -2027,12 +2033,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             args.MediaSong,
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
-        UpdateSongSpecificUi(CurrentPlayingSongView);
+        await UpdateSongSpecificUi(CurrentPlayingSongView);
     }
     #endregion
 
@@ -2271,7 +2277,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [RelayCommand]
-    public void RemoveFromQueue(SongModelView song)
+    public async Task RemoveFromQueue(SongModelView song)
     {
         if(song == null || !_playbackQueueSource.Items.Contains(song))
             return;
@@ -2296,14 +2302,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             } else
             {
                 _playbackQueueIndex = -1;
-                UpdateSongSpecificUi(null);
+               await UpdateSongSpecificUi(null);
             }
         }
         //RemoveFromQueueEvent?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
-    public void ClearQueue()
+    public async Task ClearQueue()
     {
         if(_audioService.IsPlaying)
         {
@@ -2311,12 +2317,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         _playbackQueueSource.Clear();
         _playbackQueueIndex = -1;
-        UpdateSongSpecificUi(null);
+        await UpdateSongSpecificUi(null);
         //ClearQueueEvent?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
-    public void RemoveManyFromQueue(IEnumerable<SongModelView> songs)
+    public async Task RemoveManyFromQueue(IEnumerable<SongModelView> songs)
     {
         if(songs == null || !songs.Any())
             return;
@@ -2346,7 +2352,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     } else
                     {
                         _playbackQueueIndex = -1;
-                        UpdateSongSpecificUi(null);
+                       await UpdateSongSpecificUi(null);
                     }
                 }
             }
@@ -2368,7 +2374,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             if(_audioService.IsPlaying)
                 _audioService.Stop();
-            UpdateSongSpecificUi(null);
+            await UpdateSongSpecificUi(null);
             return false;
         }
 
@@ -4277,6 +4283,45 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool UseFileSizeCriteria { get; set; } = true;
 
+    private CancellationTokenSource _findDuplicatesCts;
+    [RelayCommand]
+    public async Task FindDuplicatesForSongAsync(SongModelView song)
+    {
+        if (song == null) return;
+
+        // For simplicity, you might use a predefined criteria or pop a small dialog
+        // to let the user choose the criteria for this specific search.
+        var criteria = DuplicateCriteria.Title | DuplicateCriteria.Artist | DuplicateCriteria.Duration;
+
+        IsBusy = true;
+        try
+        {
+            // This call is fast, so Task.Run might be optional but is still good practice.
+            var result = await Task.Run(() => _duplicateFinderService.FindDuplicatesForSong(song, criteria));
+
+            if (result.DuplicateSets.Count == 0)
+            {
+                await Shell.Current.DisplayAlert("No Duplicates", "No duplicates found for this song based on the selected criteria.", "OK");
+                return;
+            }
+            _duplicateSource.Clear();
+            _duplicateSource.AddRange(result.DuplicateSets);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Duplicate find operation was canceled.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to find duplicates.");
+            // Optionally, display an error message to the user
+            await Shell.Current.DisplayAlert("Error", "An unexpected error occurred while searching for duplicates.", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
     [RelayCommand]
     private async Task FindDuplicatesAsync()
     {
@@ -4301,7 +4346,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         IsBusy = true;
-        var progress = new Progress<string>(
+        _findDuplicatesCts = new CancellationTokenSource();
+        try
+        {
+            var progress = new Progress<string>(
             message =>
             {
                 LatestAppLog?.Log = message;
@@ -4314,10 +4362,29 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // 3. Update the UI with the results
         _duplicateSource.Clear();
         _duplicateSource.AddRange(result.DuplicateSets);
-        IsBusy = false;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Duplicate find operation was canceled.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to find duplicates.");
+            // Optionally, display an error message to the user
+            await Shell.Current.DisplayAlert("Error", "An unexpected error occurred while searching for duplicates.", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
 
+    [RelayCommand]
+    private void CancelFindDuplicates()
+    {
+        _findDuplicatesCts?.Cancel();
+    }
     [RelayCommand]
     public void ClearDuplicateResults() { _duplicateSource.Clear(); }
 
@@ -5981,7 +6048,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 }
                 foreach(var song in songsInAlbum)
                 {
-                    song.CoverImageBytes = songInDb.CoverImageBytes;
                     song.CoverImagePath = songInDb.CoverImagePath;
                 }
 

@@ -1480,7 +1480,7 @@
                                             </Label>
 
                                             <!--  This is the inner list of the actual song files  -->
-                                            <CollectionView HeightRequest="210" ItemsSource="{Binding Items}">
+                                            <CollectionView HeightRequest="410" ItemsSource="{Binding Items}">
                                                 <CollectionView.ItemTemplate>
                                                     <DataTemplate x:DataType="libSanity:DuplicateItemViewModel">
                                                         <Grid Padding="5" ColumnDefinitions="Auto, *, Auto">
@@ -1503,8 +1503,12 @@
                                                             </Image>
 
                                                             <!--  The crucial song info  -->
-                                                            <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                                                <Label FontAttributes="Bold" Text="{Binding Song.FilePath}" />
+                                                            <VerticalStackLayout Grid.Column="1" Spacing="12">
+                                                                <Label
+                                                                    FontAttributes="Bold"
+                                                                    FontSize="12"
+                                                                    Text="{Binding Song.FilePath}" />
+
                                                                 <Label>
                                                                     <Label.FormattedText>
                                                                         <FormattedString>

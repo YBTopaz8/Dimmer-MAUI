@@ -129,9 +129,6 @@ public static class AutoMapperConf
                 //.ForMember(dest => dest.UserNoteAggregatedCol, opt => opt.Ignore())
                                 .ForMember(dest => dest.UserNotes, opt => opt.Ignore())
                 .ForMember(dest => dest.EmbeddedSync, opt => opt.Ignore())
-                .ForMember(dest => dest.CoverImageBytes, opt => opt.Ignore())
-                .ForMember(dest => dest.ArtistImageBytes, opt => opt.Ignore())
-                .ForMember(dest => dest.AlbumImageBytes, opt => opt.Ignore())
 
 
  .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore())

@@ -498,9 +498,13 @@ public class ExoPlayerService : MediaSessionService
 
             player.Play();
             player.SeekTo(startPositionMs);
+            if (player.CurrentMediaItem is null || player.CurrentMediaItem.MediaMetadata is null)
+            {
+                return Task.CompletedTask;
+            }
             var awDT = player.CurrentMediaItem.MediaMetadata.ArtworkUri;
             var awDTT = player.CurrentMediaItem.MediaMetadata.ArtworkData;
-            if (awDT is not null)
+            if (awDT is not null && !string.IsNullOrEmpty(awDT.Path))
             {
                 CurrentSongContext.CoverImagePath=awDT.Path;
             }
@@ -508,14 +512,6 @@ public class ExoPlayerService : MediaSessionService
             {
                 //CurrentSongContext.CoverImagePath = string.Empty;
 
-            }
-            if (awDTT is not null)
-            {
-                CurrentSongContext.CoverImageBytes = [.. awDTT];
-            }
-            else
-            {
-                CurrentSongContext.CoverImageBytes=null;
             }
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
