@@ -570,30 +570,27 @@ public partial class BaseViewModelWin: BaseViewModel
     public async Task LoadPlainLyricsFromFile()
     {
 
-        var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+        await Shell.Current.DisplayAlert("Soon...", "Feature Not available Yet...", "OK");
+        //var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+        //FilePicker.Default.PickAsync
 
-        // Set options for your file picker
-        openPicker.ViewMode = PickerViewMode.List;
-        openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-        openPicker.FileTypeFilter.Add("*");
+        //// Open the picker for the user to pick a file
+        //IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
+        //if (files.Count > 0)
+        //{
+        //    StringBuilder output = new StringBuilder("Picked files:\n");
+        //    foreach (StorageFile file in files)
+        //    {
+        //        output.Append(file.Name + "\n");
+        //    }
+        //    PickFilesOutputText = output.ToString();
+        //}
+        //else
+        //{
+        //    PickFilesOutputText = "Operation cancelled.";
+        //}
 
-        // Open the picker for the user to pick a file
-        IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
-        if (files.Count > 0)
-        {
-            StringBuilder output = new StringBuilder("Picked files:\n");
-            foreach (StorageFile file in files)
-            {
-                output.Append(file.Name + "\n");
-            }
-            PickFilesOutputText = output.ToString();
-        }
-        else
-        {
-            PickFilesOutputText = "Operation cancelled.";
-        }
-
-        await LoadPlainLyricsFromFile(PickFilesOutputText);
+        //await LoadPlainLyricsFromFile(PickFilesOutputText);
 
 
     }
