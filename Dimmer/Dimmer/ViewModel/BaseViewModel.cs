@@ -736,9 +736,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefault();
-            if(appModel != null && appModel.Id != ObjectId.Empty)
+            if (appModel != null && appModel.Id != ObjectId.Empty)
             {
-                if(appModel.LastKnownPlaybackQuery is not null)
+                if (appModel.LastKnownPlaybackQuery is not null)
                 {
                     var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
 
@@ -769,17 +769,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 IsDarkModeOn = appModel.IsDarkModePreference;
 
                 // --- REPLACED: Logic to load the last played song ---
-                if(!string.IsNullOrEmpty(appModel.CurrentSongId) &&
+                if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
                 {
                     // Step 1: Query the database directly for the song by its ID.
                     var songModel = songRepo.GetById(songId); // Assuming GetById is synchronous. If not, make this method async.
 
-                    if(songModel != null)
+                    if (songModel != null)
                     {
                         // Step 2: If found, map the database model to a view model for the UI.
                         CurrentPlayingSongView = _mapper.Map<SongModelView>(songModel);
-                    } else
+                    }
+                    else
                     {
                         // Step 3: Handle the case where the song was deleted since the last session.
                         _logger.LogWarning(
@@ -787,17 +788,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                             songId);
                         CurrentPlayingSongView = new();
                     }
-                } else
+                }
+                else
                 {
                     // Handles cases where no song was playing, or the ID was invalid.
                     CurrentPlayingSongView = new();
                 }
 
 
-                if(IsDarkModeOn)
+                if (IsDarkModeOn)
                 {
                     Application.Current?.UserAppTheme = AppTheme.Dark;
-                } else
+                }
+                else
                 {
                     Application.Current?.UserAppTheme = AppTheme.Light;
                 }
@@ -810,7 +813,34 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         updater.Add(CurrentPlayingSongView);
                     });
             }
-        } catch(Exception ex)
+            else
+            {
+                if (lastAppEvent is not null)
+                {
+                    var lastSongId = lastAppEvent.SongId;
+                    if (lastSongId != null)
+                    {
+                        var lastSong = realm.All<SongModel>().FirstOrDefault(s => s.Id == lastSongId)?.ToModelView();
+                        if (lastSong != null)
+                        {
+                            CurrentPlayingSongView = lastSong;
+                            _playbackQueueSource.Edit(
+                                updater =>
+                                {
+                                    updater.Clear();
+                                    updater.Add(CurrentPlayingSongView);
+                                });
+                        }
+                        else
+                        {
+                            CurrentPlayingSongView = new();
+                        }
+                    }
+                    CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
+                }
+            }
+        }
+        catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
         }
