@@ -342,32 +342,32 @@ public class DuplicateFinderService : IDuplicateFinderService
         };
     }
 
-    private string GenerateGroupingKey(SongModelView song, DuplicateCriteria criteria)
+    private string GenerateGroupingKey(SongModelView targetSong, DuplicateCriteria criteria)
     {
         var keyParts = new List<string>();
 
         if (criteria.HasFlag(DuplicateCriteria.Title))
         {
             // Normalize the title for better matching
-            keyParts.Add(song.Title?.Trim().ToLowerInvariant() ?? string.Empty);
+            keyParts.Add(targetSong.Title?.Trim().ToLowerInvariant() ?? string.Empty);
         }
         if (criteria.HasFlag(DuplicateCriteria.Artist))
         {
             // Normalize artist name, maybe even sort multiple artists
-            keyParts.Add(song.ArtistName?.Trim().ToLowerInvariant() ?? string.Empty);
+            keyParts.Add(targetSong.ArtistName?.Trim().ToLowerInvariant() ?? string.Empty);
         }
         if (criteria.HasFlag(DuplicateCriteria.Album))
         {
-            keyParts.Add(song.AlbumName?.Trim().ToLowerInvariant() ?? string.Empty);
+            keyParts.Add(targetSong.AlbumName?.Trim().ToLowerInvariant() ?? string.Empty);
         }
         if (criteria.HasFlag(DuplicateCriteria.Duration))
         {
             // Round duration to the nearest second to catch minor discrepancies
-            keyParts.Add(Math.Round(song.DurationInSeconds).ToString());
+            keyParts.Add(Math.Round(targetSong.DurationInSeconds).ToString());
         }
         if (criteria.HasFlag(DuplicateCriteria.FileSize))
         {
-            keyParts.Add(song.FileSize.ToString());
+            keyParts.Add(targetSong.FileSize.ToString());
         }
 
         // Join the parts with a separator that is unlikely to appear in the data
@@ -453,10 +453,14 @@ public class DuplicateFinderService : IDuplicateFinderService
         }
         if (criteria.HasFlag(DuplicateCriteria.Duration))
         {
-            // Be careful with floating-point comparisons. A small tolerance is better.
-            var targetDuration = Math.Round(targetSong.DurationInSeconds);
-            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => Math.Round(s.DurationInSeconds) == targetDuration);
+            const double durationTolerance = 0.5; // Find songs within +/- 0.5 seconds
+            double lowerBound = targetSong.DurationInSeconds - durationTolerance;
+            double upperBound = targetSong.DurationInSeconds + durationTolerance;
+
+            potentialDuplicatesQuery = potentialDuplicatesQuery
+                .Where(s => s.DurationInSeconds > lowerBound && s.DurationInSeconds < upperBound);
         }
+
 
         var duplicates = _mapper.Map<List<SongModelView>>(potentialDuplicatesQuery.ToList());
 
