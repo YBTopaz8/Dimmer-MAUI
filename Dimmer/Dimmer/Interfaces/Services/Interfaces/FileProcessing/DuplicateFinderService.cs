@@ -120,7 +120,7 @@ public class DuplicateFinderService : IDuplicateFinderService
             if (song.HasLyrics) currentScore += 50;
             if (song.IsFavorite) currentScore += 100;
             if (song.Rating > 0) currentScore += song.Rating * 20; // A 5-star rating adds 100 points
-            if (!string.IsNullOrEmpty(song.CoverImagePath) || (song.CoverImageBytes?.Length > 0)) currentScore += 75;
+            if (!string.IsNullOrEmpty(song.CoverImagePath)) currentScore += 75;
 
             // 4. File Path: Prefer files in a "canonical" or non-temporary location.
             // This is subjective and should be configured based on your library structure.
@@ -400,7 +400,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.OtherArtistsName = string.IsNullOrWhiteSpace(survivor.OtherArtistsName) ? ghost.OtherArtistsName : survivor.OtherArtistsName;
         survivor.Genre = survivor.Genre is null ? ghost.Genre : survivor.Genre;  
         survivor.BitRate = survivor.BitRate > ghost.BitRate ? survivor.BitRate : ghost.BitRate; // Keep the highest bitrate 
-        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName)? survivor.GenreName: ghost.GenreName; // Keep the highest sample rate
+        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName)? ghost.GenreName: survivor.GenreName; 
         survivor.TrackNumber = survivor.TrackNumber != 0 ? survivor.TrackNumber : ghost.TrackNumber;
         survivor.DiscNumber = survivor.DiscNumber != 0 ? survivor.DiscNumber : ghost.DiscNumber;
         survivor.ReleaseYear = survivor.ReleaseYear != 0 ? survivor.ReleaseYear : ghost.ReleaseYear;
@@ -417,7 +417,6 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.Conductor = string.IsNullOrWhiteSpace(survivor.Conductor) ? ghost.Conductor : survivor.Conductor;
         survivor.Language = string.IsNullOrWhiteSpace(survivor.Language) ? ghost.Language : survivor.Language;
         survivor.IsInstrumental ??= ghost.IsInstrumental;
-        survivor.CoverImageBytes ??= ghost.CoverImageBytes;
 
 
         // Ensure the survivor has the earliest creation date.
@@ -426,6 +425,69 @@ public class DuplicateFinderService : IDuplicateFinderService
             survivor.DateCreated = ghost.DateCreated;
         }
     }
+
+    public DuplicateSearchResult FindDuplicatesForSong(SongModelView targetSong, DuplicateCriteria criteria)
+    {
+        if (criteria == DuplicateCriteria.None)
+        {
+            return new DuplicateSearchResult();
+        }
+
+        using var realm = _realmFactory.GetRealmInstance();
+        var allSongsQuery = realm.All<SongModel>();
+
+        IQueryable<SongModel> potentialDuplicatesQuery = realm.All<SongModel>()
+                                                         .Where(s => s.Id != targetSong.Id); // Exclude the song itself
+
+        if (criteria.HasFlag(DuplicateCriteria.Title))
+        {
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => s.Title == targetSong.Title);
+        }
+        if (criteria.HasFlag(DuplicateCriteria.Artist))
+        {
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => s.ArtistName == targetSong.ArtistName);
+        }
+        if (criteria.HasFlag(DuplicateCriteria.Album))
+        {
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => s.AlbumName == targetSong.AlbumName);
+        }
+        if (criteria.HasFlag(DuplicateCriteria.Duration))
+        {
+            // Be careful with floating-point comparisons. A small tolerance is better.
+            var targetDuration = Math.Round(targetSong.DurationInSeconds);
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => Math.Round(s.DurationInSeconds) == targetDuration);
+        }
+
+        var duplicates = _mapper.Map<List<SongModelView>>(potentialDuplicatesQuery.ToList());
+
+        if (duplicates.Count == 0)
+        {
+            return new DuplicateSearchResult(); // No duplicates found
+        }
+
+        // Since we found duplicates, we need to create a single DuplicateSet
+        var allItemsInSet = new List<SongModelView> { targetSong };
+        allItemsInSet.AddRange(duplicates);
+
+        // Use your existing logic to find the best one to keep
+        var originalSong = DetermineBestSong(allItemsInSet);
+
+        var set = new DuplicateSetViewModel(originalSong.Title, originalSong.DurationInSeconds);
+        set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original));
+
+        foreach (var duplicateSong in allItemsInSet.Where(s => s.Id != originalSong.Id))
+        {
+            set.Items.Add(new DuplicateItemViewModel(duplicateSong, DuplicateStatus.Duplicate));
+        }
+
+        return new DuplicateSearchResult
+        {
+            CriteriaUsed = criteria,
+            TotalSongsScanned = duplicates.Count + 1, // The found songs + the original
+            DuplicateSets = new List<DuplicateSetViewModel> { set }
+        };
+    }
+
 }
 [Flags]
 public enum DuplicateCriteria

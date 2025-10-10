@@ -11,7 +11,7 @@ public class ProcessingConfig
         {
             // Default to LocalApplicationData for user-specific, app-managed data
             CoverArtBasePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
                 "DimmerApp", // Application-specific folder
                 "CoverImages");
         }
