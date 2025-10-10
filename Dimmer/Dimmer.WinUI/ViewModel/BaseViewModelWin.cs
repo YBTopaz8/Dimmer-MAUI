@@ -294,16 +294,15 @@ public partial class BaseViewModelWin: BaseViewModel
 
     public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
     {
-        if (selectedSec is null)
+        if (selectedSec is null )
         {
-            if (SelectedSong is null)
+            if(CurrentPlayingSongView is null)
             {
-                SelectedSong=CurrentPlayingSongView;
+                await Shell.Current.DisplayAlert("No Song Selected", "Please select a song to view its details.", "OK");
+                return;
             }
-            else
-            {
-                SelectedSong = SongColView.SelectedItem as SongModelView;
-            }
+            SelectedSong??=CurrentPlayingSongView;
+         
         }
         else
         {
