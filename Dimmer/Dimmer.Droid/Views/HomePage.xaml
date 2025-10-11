@@ -1113,6 +1113,95 @@
             </dx:DXDockLayout>
         </dx:SafeKeyboardAreaView>
 
+        <dx:BottomSheet x:Name="MoreBtmSheet" StateChanged="MoreBtmSheet_StateChanged">
+            <dx:BottomSheet.Content>
+                <VerticalStackLayout>
+
+                    <Button
+                        Clicked="NavigateToSelectedSongPageContextMenuAsync"
+                        Command="{Binding ShareSongDetailsAsTextCommand}"
+                        HeightRequest="20"
+                        ImageSource="shared.png"
+                        WidthRequest="160" />
+
+                    <Button
+                        x:Name="AddQuickNote"
+                        Clicked="OnAddQuickNoteClicked"
+                        CommandParameter="Black"
+                        HeightRequest="20"
+                        ImageSource="chatdots.png"
+                        WidthRequest="160">
+                        <Button.Text>
+                            <MultiBinding StringFormat="{}Add Quick Note to: {0} by {1}">
+                                <Binding Path="Title" />
+                                <Binding Path="ArtistName" />
+                            </MultiBinding>
+                        </Button.Text>
+
+                    </Button>
+
+
+
+
+
+
+                    <Button
+                        x:Name="ViewArtistMFI"
+                        Clicked="QuickSearchArtist_Clicked"
+                        CommandParameter="{Binding SelectedSong}"
+                        HeightRequest="20"
+                        ImageSource="artist.png"
+                        Text="{Binding SelectedSong.OtherArtistsName, StringFormat='Quick View Artist : {0}'}"
+                        WidthRequest="160" />
+                    <Button
+                        x:Name="ViewAlbumMFI"
+                        Clicked="QuickSearchAlbum_Clicked"
+                        CommandParameter="{Binding SelectedSong}"
+                        HeightRequest="20"
+                        ImageSource="albummm.png"
+                        Text="{Binding SelectedSong.AlbumName, StringFormat='Quick View Album : {0}'}"
+                        WidthRequest="160" />
+                    <Button
+                        x:Name="ViewGenreMFI"
+                        Clicked="ViewGenreMFI_Clicked"
+                        CommandParameter="{Binding .}"
+                        HeightRequest="20"
+                        ImageSource="albumm.png"
+                        Text="{Binding SelectedSong.GenreName, StringFormat='Quick View Genre : {0}'}"
+                        WidthRequest="160" />
+
+
+
+                    <Button
+                        Clicked="OnLabelClicked"
+                        CommandParameter="OpenFileExp"
+                        HeightRequest="20"
+                        Text="Open File in Explorer"
+                        WidthRequest="160" />
+                    <Button
+                        Clicked="OnLabelClicked"
+                        Command="{Binding OpenFileInFolderCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+                        CommandParameter="{Binding .}"
+                        HeightRequest="20"
+                        Text="Open File in Folder"
+                        WidthRequest="160" />
+                    <Button
+                        Clicked="OnLabelClicked"
+                        CommandParameter="DeleteSys"
+                        HeightRequest="20"
+                        ImageSource="deletesonginterfacesymbol.png"
+                        Text="Delete from system"
+                        WidthRequest="160" />
+                    <Button
+                        CommandParameter="SyncShare"
+                        HeightRequest="20"
+                        ImageSource="roundtransferhorizontal.png"
+                        Text="Sync"
+                        WidthRequest="160" />
+
+                </VerticalStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 
     <!--</dx:DXScrollView>-->
