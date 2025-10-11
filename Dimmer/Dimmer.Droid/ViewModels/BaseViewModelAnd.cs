@@ -369,18 +369,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         if (selectedSec is null)
         {
-            if (SelectedSong is null)
+            if (CurrentPlayingSongView is null)
             {
-                SelectedSong=CurrentPlayingSongView;
+                await Shell.Current.DisplayAlert("No Song Selected", "Please select a song to view its details.", "OK");
+                return;
             }
-            else
-            {
-                SelectedSong = SongsColView.SelectedItem as SongModelView;
-            }
+            SelectedSong ??= CurrentPlayingSongView;
+
         }
         else
         {
-            SelectedSong=selectedSec;
+            SelectedSong = selectedSec;
         }
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }

@@ -82,10 +82,13 @@
                                         ImageSource="playlista.png"
                                         WidthRequest="60" />
                                     <dx:DXButton
+                                        BackgroundColor="Transparent"
                                         Clicked="SettingsNavChips_ChipClicked"
                                         Icon="settings.png"
                                         IconColor="DarkSlateBlue"
-                                        WidthRequest="55" />
+                                        IconHeight="45"
+                                        IconWidth="45"
+                                        WidthRequest="50" />
                                 </HorizontalStackLayout>
 
                                 <Border
