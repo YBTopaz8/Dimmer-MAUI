@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.Views.AllPlaylists"
+             Title="AllPlaylists"
+             
+
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:cw="clr-namespace:Dimmer.Views.CustomViewsParts"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+             
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+xmlns:vm="clr-namespace:Dimmer.ViewModels"
+             
+    xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+    x:Name="myPage"
+    xmlns:local="clr-namespace:Dimmer.Views"
+                    xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
+             
+    x:DataType="vm:BaseViewModelAnd"
+    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=transparent}"
+    
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+
+        <ResourceDictionary>
+            <Style TargetType="syncf:SfChip" >
+                <Setter Property="HeightRequest" Value="60"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=#999999, Light=Black}"/>
+            </Style>
+        </ResourceDictionary>
+
+
+        <DataTemplate  x:Key="OGView" x:DataType="models:SongModelView">
+
+            <Border Padding="10" StrokeShape="RoundRectangle 20">
+                <Border.GestureRecognizers>
+                    <PointerGestureRecognizer
+                        x:Name="GlobalColView"
+                        PointerPressed="GlobalColView_PointerPressed"
+                        >
+
+                    </PointerGestureRecognizer>
+                </Border.GestureRecognizers>
+                <FlyoutBase.ContextFlyout >
+                    <MenuFlyout>
+                        <!--<MenuFlyoutItem Text="Blacklist Song" x:Name="BlackListSong"
+                                        Clicked="BlackListSong_Clicked" 
+                                        CommandParameter="{Binding .}"/>-->
+
+
+                        <!-- Create New Artist for This Song -->
+                        <!--<MenuFlyoutItem Text="Create New Artist for Song" 
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateArtistAndAssignSongsCommand}" 
+                            CommandParameter="{Binding .}"/>-->
+                        <MenuFlyoutItem Text="View Song Details" 
+x:Name="ViewSongDetails" 
+                                    Clicked="ViewSongDetails_Clicked"
+                                            />
+                        <MenuFlyoutItem 
+                IconImageSource="eye.png"
+               Text="{Binding Title, StringFormat='View Song'}"
+    Clicked="NavigateToSelectedSongPageContextMenuAsync">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator
+Key="V" />
+
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+
+                        <MenuFlyoutItem 
+Clicked="OnAddQuickNoteClicked" x:Name="AddQuickNote"
+CommandParameter="Black" IconImageSource="chatdots.png"
+                    >
+                            <MenuFlyoutItem.Text>
+                                <MultiBinding StringFormat="{}Add Quick Note to: {0} by {1}">
+                                    <Binding Path="Title" />
+                                    <Binding Path="ArtistName" />
+                                </MultiBinding>
+                            </MenuFlyoutItem.Text>
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator
+                 Key="N"
+                 Modifiers="None"
+                  />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+
+
+
+
+
+
+                        <MenuFlyoutItem 
+                     Text="{Binding OtherArtistsName,StringFormat='Quick View Artist : {0}'}"
+                               IconImageSource="artist.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="QuickSearchArtist_Clicked"
+                     x:Name="ViewArtistMFI"/>
+                        <MenuFlyoutItem 
+                     Text="{Binding AlbumName,StringFormat='Quick View Album : {0}'}"
+                                IconImageSource="albummm.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="QuickSearchAlbum_Clicked"
+                     x:Name="ViewAlbumMFI"/>
+                        <MenuFlyoutItem 
+                     Text="{Binding GenreName,StringFormat='Quick View Genre : {0}'}"
+                                IconImageSource="albumm.png"
+                     CommandParameter="{Binding .}"
+                     Clicked="ViewGenreMFI_Clicked"
+                     x:Name="ViewGenreMFI"/>
+
+
+                        <MenuFlyoutSubItem Text="File Tools"
+                                               IconImageSource="settingssliders.png">
+                            <MenuFlyoutItem Text="Open File in Explorer"
+    Clicked="OnLabelClicked"
+    CommandParameter="OpenFileExp" />
+                            <MenuFlyoutItem Text="Open File in Folder"
+    Clicked="OnLabelClicked" CommandParameter="{Binding .}"
+                  Command="{Binding OpenFileInFolderCommand,Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+/>
+                            <MenuFlyoutItem Text="Delete from system"
+    Clicked="OnLabelClicked" IconImageSource="deletesonginterfacesymbol.png"
+    IsDestructive="True"  CommandParameter="DeleteSys" />
+                            <MenuFlyoutItem Text="Sync"
+     IconImageSource="roundtransferhorizontal.png"
+    CommandParameter="SyncShare" />
+                        </MenuFlyoutSubItem>
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Border.Triggers>
+                    <DataTrigger
+                         Binding="{Binding IsCurrentPlayingHighlight}"
+                         TargetType="Border"
+                         Value="True">
+                        <Setter Property="StrokeThickness" Value="2"/>
+                        <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}"/>
+                    </DataTrigger>
+
+                </Border.Triggers>
+
+                <Grid RowDefinitions="120"
+                                ColumnDefinitions="40,auto,*,*,*,auto,80,80,80"
+                                ColumnSpacing="5">
+
+                    <Grid.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                                        x:Name="TapGestRec"
+                                        CommandParameter="{Binding .}"
+                                        NumberOfTapsRequired="2"
+                                        Tapped="PlaySongGestRec_Tapped" />
+                    </Grid.GestureRecognizers>
+                    <Grid.Resources>
+                        <Style TargetType="Label">
+                            <Setter Property="FontSize" Value="15" />
+                        </Style>
+                    </Grid.Resources>
+                    <Label Grid.Column="0" 
+                                           ToolTipProperties.Text="{Binding Title,StringFormat='Title : {0}'}"
+                            TextColor="{AppThemeBinding Dark=White, Light=Black}"
+                  Text="{Binding TrackNumber,StringFormat='#{0}'}"
+                  VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger
+                          Binding="{Binding IsFavorite}"
+                          TargetType="Label"
+                          Value="True">
+                                <Setter Property="TextColor" Value="LightPink"/>
+                            </DataTrigger>
+                            <DataTrigger
+                          Binding="{Binding IsCurrentPlayingHighlight}"
+                          TargetType="Label"
+                          Value="True">
+                                <Setter Property="FontSize" Value="19" />
+                                <Setter Property="TextColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                <Setter Property="FontAttributes" Value="Bold" />
+                            </DataTrigger>
+                            <DataTrigger
+                          Binding="{Binding IsCurrentPlayingHighlight}"
+                          TargetType="Label"
+                          Value="False">
+                                <Setter Property="FontSize" Value="15" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}" />
+                                <Setter Property="FontAttributes" Value="None" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+
+                    <Border StrokeShape="RoundRectangle 20" Grid.Column="1"
+                                            >
+                        <Border.Triggers>
+                            <DataTrigger
+Binding="{Binding SyncLyrics.Length,Converter={converters:CollectionSizeToVisibility}}"
+TargetType="Border"
+Value="True">
+                                <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                <Setter Property="StrokeThickness" Value="3" />
+
+                            </DataTrigger>
+                            <DataTrigger
+Binding="{Binding HasSyncedLyrics}"
+TargetType="Border"
+Value="False">
+                                <Setter Property="Stroke" Value="Transparent" />
+
+                            </DataTrigger>
+                        </Border.Triggers>
+
+
+                        <Grid>
+
+                            <Image Source="heart.png"
+                                       ZIndex="1" Opacity="0.6"
+                                       IsVisible="{Binding IsFavorite}">
+
+                            </Image>
+                            <Image Source="{Binding CoverImagePath}"
+                                      HeightRequest="120"
+                                       ZIndex="-1"
+                                       WidthRequest="120" Aspect="AspectFit"/>
+
+                        </Grid>
+
+
+                    </Border>
+
+                    <Label  Grid.Column="2" HorizontalTextAlignment="Justify"
+                            HorizontalOptions="Center"
+                             ToolTipProperties.Text="{Binding Title, StringFormat='{0} '}"
+
+                        Text="{Binding Title}"
+                            
+                                        VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger
+                                                Binding="{Binding IsCurrentPlayingHighlight}"
+                                                TargetType="Label"
+                                                Value="True">
+                                <Setter Property="FontAttributes" Value="Bold" />
+                            </DataTrigger>
+                            <DataTrigger
+                                                Binding="{Binding IsCurrentPlayingHighlight}"
+                                                TargetType="Label"
+                                                Value="False">
+                                <Setter Property="FontSize" Value="15" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}" />
+                                <Setter Property="FontAttributes" Value="None" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+
+                    <syncf:SfEffectsView Grid.Column="3"
+                                    x:Name="ArtistsEffectsView"
+                                    
+                                    BackgroundColor="Transparent"
+                                    ToolTipProperties.Text="{Binding ArtistName, StringFormat='Press and Hold Ctrl The Left Click to quickly view Artist {0} '}">
+                        <syncf:SfEffectsView.GestureRecognizers>
+                            <PointerGestureRecognizer
+                                            PointerPressedCommandParameter="{Binding OtherArtistsName}"
+                                            PointerReleased="QuickFilterGest_PointerReleased"
+                                            PointerReleasedCommandParameter="artist" />
+                        </syncf:SfEffectsView.GestureRecognizers>
+
+                        <Label
+                                        HorizontalTextAlignment="Center"
+                                        LineBreakMode="WordWrap"
+                            TextColor="{AppThemeBinding Light=Black,Dark=White}"
+                                        Text="{Binding OtherArtistsName}"
+                                        VerticalOptions="Center" />
+                    </syncf:SfEffectsView>
+                    <syncf:SfEffectsView    Grid.Column="4">
+                        <syncf:SfEffectsView.GestureRecognizers>
+                            <PointerGestureRecognizer
+                                            PointerPressedCommandParameter="{Binding AlbumName}"
+                                            PointerReleased="QuickFilterGest_PointerReleased"
+                                            PointerReleasedCommandParameter="album" />
+                        </syncf:SfEffectsView.GestureRecognizers>
+                        <Label
+                                        LineBreakMode="TailTruncation"
+                                        Text="{Binding AlbumName}"
+                                        TextColor="{AppThemeBinding Light=Black,Dark=White}"
+                                        HorizontalTextAlignment="Center"
+                                        ToolTipProperties.Text="{Binding AlbumName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}"
+                                        VerticalOptions="Center" />
+                    </syncf:SfEffectsView>
+
+                    <syncf:SfEffectsView x:Name="ArtistSfEffectsView" Grid.Column="5">
+
+                        <Label
+                                        TextColor="{AppThemeBinding Light=Black,Dark=White}"
+                                        HorizontalTextAlignment="Center"
+                                        LineBreakMode="TailTruncation"
+                                        Text="{Binding GenreName}"
+                                        VerticalOptions="Center" />
+                    </syncf:SfEffectsView>
+
+
+
+                    <syncf:SfEffectsView Grid.Column="6" ToolTipProperties.Text="{Binding GenreName, StringFormat='Press and Hold Ctrl The Left Click to quickly view songs from :{0}'}">
+
+                        <Label
+                            TextColor="{AppThemeBinding Light=Black,Dark=WHite}"
+                                        HorizontalTextAlignment="Center"
+                                        Text="{Binding ReleaseYear}"
+                                        VerticalOptions="Center" />
+                        <FlyoutBase.ContextFlyout>
+                            <!-- Reference your well-designed MenuFlyout here -->
+                            <MenuFlyout >
+                                <MenuFlyoutItem Text="="/>
+                                <MenuFlyoutItem Text="="/>
+                                <MenuFlyoutItem Text=">"/>
+                            </MenuFlyout>
+
+                        </FlyoutBase.ContextFlyout>
+
+                    </syncf:SfEffectsView>
+                    <Label Grid.Column="7" TextColor="{AppThemeBinding Light=Black,Dark=White}"
+                  HorizontalTextAlignment="Center"
+                  Text="{Binding PlayCompletedCount}"
+                  VerticalOptions="Center" />
+                    <syncf:SfEffectsView Grid.Column="8">
+
+                        <Label TextColor="{AppThemeBinding Light=Black,Dark=White}"
+                                        HorizontalOptions="Center"
+                                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                                        VerticalOptions="Center" />
+                        <syncf:SfEffectsView.GestureRecognizers>
+                            <PointerGestureRecognizer
+                                            PointerPressedCommandParameter="{Binding DurationInSeconds}"
+                                            PointerReleased="QuickFilterGest_PointerReleased"
+                                            PointerReleasedCommandParameter="len" />
+                        </syncf:SfEffectsView.GestureRecognizers>
+
+                    </syncf:SfEffectsView>
+                </Grid>
+
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                            </VisualState.Setters>
+                        </VisualState>
+
+                        <VisualState Name="PointerOver">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+            </Border>
+        </DataTemplate>
+
+
+
+    </ContentPage.Resources>
+
+    <Grid 
+                    ColumnDefinitions="*,*"
+                    Grid.Row="1" Grid.Column="0"
+      x:Name="contentLabel" 
+                    
+                    >
+        <Grid RowDefinitions="auto,*">
+            <HorizontalStackLayout 
+                            HorizontalOptions="Center"
+                            Grid.Row="0">
+                <Label Text="{Binding DimmerPlayEventList.Count}"/>
+                <HorizontalStackLayout>
+                    <syncf:SfChip Command="{Binding CleanseDBOfDupeEventsCommand}"
+                                  Text="Clean"
+                                  TextColor="{AppThemeBinding Dark=White,Light=black}"/>
+                </HorizontalStackLayout>
+            </HorizontalStackLayout>
+
+            <Grid Grid.Row="1">
+
+
+                <CollectionView ItemsSource="{Binding SongToEventsDict}" Grid.Row="1">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:DimmerPlayEventView">
+                            <Grid ColumnDefinitions="*,*,*,*,*">
+                                <Label Text="{Binding SongName}" Grid.Column="0"/>
+                                <Label Text="{Binding SongName}" Grid.Column="1"/>
+                                <Label Text="{Binding PlayTypeStr}" Grid.Column="2"/>
+                                <Label Text="{Binding PositionInSeconds}" Grid.Column="3"/>
+                                <Label Text="{Binding EventDate, Converter={converters:DatetTimeOffsetToHowLongAgoConverter}}"
+                                                   ToolTipProperties.Text="{Binding EventDate, StringFormat='{0:ddd mmm yyyy}'}"
+                                                   Grid.Column="4"/>
+
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+
+        </Grid>
+
+        <Grid RowDefinitions="auto,*" Grid.Column="1">
+            <VerticalStackLayout Grid.Row="0">
+                <Label Text="G0 R0"/>
+            </VerticalStackLayout>
+
+
+            <VerticalStackLayout Grid.Row="1">
+                <Label Text="G0 R1"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+
+
+
+</ContentPage>
+    

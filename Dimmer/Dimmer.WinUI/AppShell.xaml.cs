@@ -2,7 +2,10 @@ using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
+using Dimmer.WinUI.Views.PlaylistPages;
+using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml.Media.Animation;
@@ -17,7 +20,7 @@ public partial class AppShell : Shell
     public AppShell(BaseViewModelWin baseViewModel)
     {
         InitializeComponent();
-
+        MyViewModel = baseViewModel;
 
         Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
         Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
@@ -29,16 +32,22 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ExperimentsPage), typeof(ExperimentsPage));
         Routing.RegisterRoute(nameof(SocialView), typeof(SocialView));
         Routing.RegisterRoute(nameof(AllArtistsPage), typeof(AllArtistsPage));
-        
+        Routing.RegisterRoute(nameof(AllPlaylists), typeof(AllPlaylists));
+
         Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
+        Routing.RegisterRoute(nameof(TqlTutorialPage), typeof(TqlTutorialPage));
         Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
+        Routing.RegisterRoute(nameof(SingleAlbumPage), typeof(SingleAlbumPage));
+        Routing.RegisterRoute(nameof(WelcomePage), typeof(WelcomePage));
+
+        Routing.RegisterRoute(nameof(DuplicatesMgtWindow), typeof(DuplicatesMgtWindow));
     }
 
 
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-        
+
     }
 
     protected override void OnNavigating(ShellNavigatingEventArgs args)
@@ -59,8 +68,8 @@ public partial class AppShell : Shell
 
     //protected override void OnNavigated(ShellNavigatedEventArgs args)
     //{
-    
-        
+
+
 
     //    // Get the animation service via the DI container
     //    var animationService = this.Handler?.MauiContext?.Services.GetService<IAnimationService>();
@@ -108,12 +117,11 @@ public partial class AppShell : Shell
     protected override void OnAppearing()
     {
         base.OnAppearing();
-    
-        MyViewModel= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         this.BindingContext = MyViewModel;
 
         MyViewModel.InitializeAllVMCoreComponentsAsync();
-
 
     }
 
@@ -205,9 +213,13 @@ public partial class AppShell : Shell
 
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
-        this.IsBusy=true;
+        if(Shell.Current.CurrentPage.GetType() == typeof(SettingsPage))
+        {
+            return;
+        }
+        this.IsBusy = true;
         await Shell.Current.GoToAsync(nameof(SettingsPage));
-        this.IsBusy=false;
+        this.IsBusy = false;
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
@@ -225,7 +237,7 @@ public partial class AppShell : Shell
 
         await MyViewModel.ProcessAndMoveToViewSong(null);
     }
-    private  void TogglePanelClicked(object sender, PointerEventArgs e)
+    private void TogglePanelClicked(object sender, PointerEventArgs e)
     {
         //var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(send).Properties;
 
@@ -280,10 +292,10 @@ public partial class AppShell : Shell
                 .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
                 .Select(name => name.Trim())                           // Trim whitespace from each name
                 .ToArray();                                             // Convert to a List
-            string res =string.Empty;
-            if (namesList.Length>1)
-            { 
-              res   = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+            string res = string.Empty;
+            if (namesList.Length > 1)
+            {
+                res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
                 if (string.IsNullOrEmpty(res) || res == "Cancel")
                 {
@@ -291,9 +303,9 @@ public partial class AppShell : Shell
                 }
 
             }
-            if(namesList.Length==1)
+            if (namesList.Length == 1)
             {
-                res=namesList[0];
+                res = namesList[0];
             }
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
 
@@ -316,27 +328,21 @@ public partial class AppShell : Shell
             val = MyViewModel.CurrentPlayingSongView.DurationInSeconds.ToString();
         }
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
 
     private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-
-        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
-
-
-        return;
 
 
 
     }
 
     private bool _isThrottling = false;
-    private readonly int throttleDelay = 300; // Time in milliseconds
+    private readonly int throttleDelay = 200; // Time in milliseconds
+
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
         var send = (Slider)sender;
@@ -354,15 +360,15 @@ public partial class AppShell : Shell
 
     private void ViewAllSongsWindow_Clicked(object sender, EventArgs e)
     {
-       
+
     }
 
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
-    {  
+    {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var ee = e.PlatformArgs?.PointerRoutedEventArgs.KeyModifiers;
-       
+
         var send = (Microsoft.Maui.Controls.View)sender;
         PointerGestureRecognizer? gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
 
@@ -381,9 +387,9 @@ public partial class AppShell : Shell
                 .Select(name => name.Trim())                           // Trim whitespace from each name
                 .ToArray();                                             // Convert to a List
             string res = string.Empty;
-            if (namesList.Length>1)
+            if (namesList.Length > 1)
             {
-                res   = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+                res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
                 if (string.IsNullOrEmpty(res) || res == "Cancel")
                 {
@@ -391,20 +397,20 @@ public partial class AppShell : Shell
                 }
 
             }
-            if (namesList.Length==1)
+            if (namesList.Length == 1)
             {
-                res=namesList[0];
+                res = namesList[0];
             }
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
-          
-             winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
+
+            winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
             return;
         }
 
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
-     
+
         var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
@@ -412,7 +418,7 @@ public partial class AppShell : Shell
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
         // move and resize to the center of the screen
 
@@ -448,30 +454,30 @@ public partial class AppShell : Shell
 
     private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-                var current = e.CurrentSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
+        var current = e.CurrentSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
 
         var past = e.PreviousSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
 
-            if (past is not null)
-            {
+        if (past is not null)
+        {
 
-                past.NowPlayingLyricsFontSize = 25;
-
-
-            }
-        
-            if (current != null)
-            {
+            past.NowPlayingLyricsFontSize = 25;
 
 
-                    current.NowPlayingLyricsFontSize = 30;
-                
-            }
-      
-            //AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
-        
+        }
+
+        if (current != null)
+        {
+
+
+            current.NowPlayingLyricsFontSize = 30;
+
+        }
+
+        //AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
+
     }
-    
+
 
     private void Slider_Loaded(object sender, EventArgs e)
     {
@@ -500,14 +506,14 @@ public partial class AppShell : Shell
     private void MainLayout_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
         var pointerPoint = e.GetCurrentPoint(null);
-        
+
         int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
 
         if (mouseWheelDelta != 0)
         {
             if (mouseWheelDelta > 0)
             {
-                if (MyViewModel.DeviceVolumeLevel >=1)
+                if (MyViewModel.DeviceVolumeLevel >= 1)
                 {
                     return;
                 }
@@ -555,7 +561,7 @@ public partial class AppShell : Shell
     {
         var send = (View)sender;
         var dev = send.BindingContext as AudioOutputDevice;
-        
+
         if (dev is null)
             return;
 
@@ -593,9 +599,9 @@ public partial class AppShell : Shell
                 .Select(name => name.Trim())                           // Trim whitespace from each name
                 .ToArray();                                             // Convert to a List
             string res = string.Empty;
-            if (namesList.Length>1)
+            if (namesList.Length > 1)
             {
-                res   = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+                res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
                 if (string.IsNullOrEmpty(res) || res == "Cancel")
                 {
@@ -603,14 +609,14 @@ public partial class AppShell : Shell
                 }
 
             }
-            if (namesList.Length==1)
+            if (namesList.Length == 1)
             {
-                res=namesList[0];
+                res = namesList[0];
             }
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
             var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-            var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
+            var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
         }
         catch (Exception ex)
         {
@@ -651,17 +657,16 @@ public partial class AppShell : Shell
 
     private void Quickalbumsearch_Clicked(object sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var send = (SfEffectsView)sender;
-      
+
         var val = send.TouchUpCommandParameter as string;
         var field = send.TouchDownCommandParameter as string;
-       
+
         SearchSongSB_Clicked(sender, e);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
-    
+
         //win.Activate();
     }
 
@@ -673,19 +678,151 @@ public partial class AppShell : Shell
 
     private void NowPlayingSong_Clicked(object sender, EventArgs e)
     {
-      
+
 
     }
 
-    private void TrackProgressSlider_DragCompleted(object sender, EventArgs e)
+
+
+    private async void ShowPlaylistHistory_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.DragCompletedCommand.Execute(System.Reactive.Unit.Default);
+        try
+        {
+
+            await GoToAsync(nameof(AllPlaylists));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
     }
 
-   
-
-    private void TrackProgressSlider_DragStarted(object sender, EventArgs e)
+    private void ScrollVPointer_PointerEntered(object sender, PointerEventArgs e)
     {
-        MyViewModel.DragStartedCommand.Execute(default);
+        //create a resour style to set button behavior and change tint color to myviewmodel.currentdominantcolor
+
+        //var send = (ScrollView)sender;
+
+
+
+        //SideBarScrollView.Resources.
+        //    Add(  
+        //    );
     }
+
+    private void ScrollVPointer_PointerExited(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void ViewNPQ_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void NowPlayingQueueGestRecog_PointerReleased(object sender, PointerEventArgs e)
+    {
+       
+    }
+
+    private void MoreBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void MoreIcon_Clicked(object sender, EventArgs e)
+    {
+        return;
+        ImageButton btn = (ImageButton)sender;
+        //btn.ShowContextMenu();
+        var param = btn.CommandParameter;
+        Debug.WriteLine(param);
+        Debug.WriteLine(param.GetType());
+    }
+
+    private void SelectedSongChip_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SelectedSongChip_TouchUp(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+
+        if (send is null)
+            return;
+
+        var param = send.TouchUpCommandParameter as SongModelView;
+
+        if (param is null)
+            return;
+
+
+        MyViewModel.SelectedSong = param;
+
+    }
+
+    private void SfEffectsView_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void AddFavoriteRatingToSong_TouchUp(object sender, EventArgs e)
+    {
+
+        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+    }
+
+    private void AddFavoriteRatingToSong_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFavoriteRatingToSong_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void AddFavoriteRatingToSongPtrGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+
+        var platEvents = e.PlatformArgs;
+        var routedEvents = platEvents.PointerRoutedEventArgs;
+
+
+        var properties = routedEvents.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+        if (properties.IsLeftButtonPressed)
+        {
+            await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+        }
+        if (properties.IsRightButtonPressed)
+        {
+            await MyViewModel.UnloveSong(MyViewModel.CurrentPlayingSongView);
+            return;
+        }
+    }
+
+    private void AddFavoriteRatingToSong_TouchUp_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
+    {
+        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
+
+       
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
+
+
+        return;
+    }
+
+    // Section for Songs With UserNotes.
+
+
 }

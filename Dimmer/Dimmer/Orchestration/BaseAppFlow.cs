@@ -105,8 +105,34 @@ public class BaseAppFlow : IDisposable
 
 
     }
-    public void UpdateDatabaseWithPlayEvent(IRealmFactory realmFactory, SongModelView? songView, PlayType? type, double? position = null)
+
+    Dictionary<ObjectId, PlayType> lastEvent = new Dictionary<ObjectId, PlayType>();
+
+    public async Task UpdateDatabaseWithPlayEvent(IRealmFactory realmFactory, SongModelView? songView, PlayType? type, double? position = null)
     {
+        if (songView == null)
+        {
+            return;
+        }
+
+        if(lastEvent.ContainsKey(songView?.Id ?? ObjectId.Empty))
+        {
+            if(lastEvent[songView?.Id ?? ObjectId.Empty] == type)
+            {
+                //same event as last time for this song, ignore
+                Debug.WriteLine($"Ignoring duplicate event {type} for song {songView?.Title} of id {songView?.Id}");
+                return;
+            }
+            lastEvent[songView?.Id ?? ObjectId.Empty] = type ?? PlayType.LogEvent;
+        }
+        else
+        {
+            lastEvent[songView?.Id ?? ObjectId.Empty] = type ?? PlayType.LogEvent;
+        }
+
+
+        Debug.WriteLine($"Current Event {type} song is {songView.Title} of id {songView.Id} pos is {position}");
+
         if (type ==PlayType.Pause)
         {
 
@@ -151,7 +177,7 @@ public class BaseAppFlow : IDisposable
 
 
             var realm = realmFactory.GetRealmInstance();
-            realm.Write(() =>
+            await realm.WriteAsync(() =>
             {
                 var pl = realm.Add(playEvent, true);
 

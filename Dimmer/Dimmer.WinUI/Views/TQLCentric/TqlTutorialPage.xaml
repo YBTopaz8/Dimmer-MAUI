@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.TQLCentric.TqlTutorialPage"
+             Title="TqlTutorialPage"
+              xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+ xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+ xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
+ xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+ xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+ xmlns:behv ="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+ xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+ x:Name="myPage"
+             xmlns:tqlvm="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+ xmlns:local="clr-namespace:Dimmer.WinUI.Views"
+             xmlns:vmm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+             x:DataType="vmm:TqlTutorialViewModel"
+                 xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials">
+    <Grid ColumnDefinitions="400, *">
+
+        <!-- Column 0: The Tutorial Lessons -->
+        <ScrollView Grid.Column="0" Padding="10">
+            <VerticalStackLayout Spacing="15">
+                <Label Text="TQL Playground" FontSize="Header" FontAttributes="Bold" HorizontalOptions="Center" />
+                <Label Text="Learn how to build powerful queries. Click 'Try It Now!' on any lesson to see it in action on the right."
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       />
+
+                <CollectionView ItemsSource="{Binding Lessons}"
+                                >
+                    <CollectionView.GroupHeaderTemplate>
+                        <DataTemplate x:DataType="models:TqlLesson">
+                            <Label Text="{Binding Category}"
+                                   FontSize="Large"
+                                   FontAttributes="Bold"
+                                   Padding="0,15,0,5" />
+                        </DataTemplate>
+                    </CollectionView.GroupHeaderTemplate>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:TqlLesson">
+                            <Border Stroke="Gray" StrokeThickness="1" Padding="10" Margin="0,0,0,10">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="{Binding Title}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Explanation}"  LineBreakMode="WordWrap"/>
+                                    <Border Padding="8" Stroke="CornflowerBlue" StrokeShape="RoundRectangle 5">
+                                        <Label Text="{Binding TqlQuery}" FontFamily="Consolas,Monospace" />
+                                    </Border>
+                                    <Button Text="Try It Now!"
+                                            Clicked="Button_Clicked"
+                                          
+                                            CommandParameter="{Binding TqlQuery}"
+                                            HorizontalOptions="End" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <CollectionView 
+            Grid.Column="1" ItemsSource="{Binding MainViewModel.SearchResults}"
+                        Header="{Binding MainViewModel.SearchResults.Count}"
+                        />
+
+    </Grid>
+</ContentPage>

@@ -218,4 +218,9 @@ public class MainApplication : MauiApplication
     {
         return MauiProgram.CreateMauiApp();
     }
+
+    internal static void HandleIntent(Intent? intent)
+    {
+        Debug.WriteLine($"HandleIntent invoked with Intent: {intent}"); // Add logging!
+    }
 }

@@ -34,7 +34,6 @@ public interface IDimmerStateService : IDisposable
 
     // --- Methods to Update State ---
 
-    void SetCurrentSong(SongModel? song);
     void SetCurrentState(PlaybackStateInfo state);
     void SetCurrentPlaylist(PlaylistModel? playlist);
     void SetShuffleActive(bool isShuffleOn);
@@ -52,6 +51,7 @@ public interface IDimmerStateService : IDisposable
     void SetSyncLyrics(IEnumerable<LyricPhraseModel>? lyrics);
     void SetCurrentLyric(LyricPhraseModel? lyric);
     void LoadAllPlayHistory(IEnumerable<DimmerPlayEvent> events);
+    void SetCurrentSong(SongModelView? newSongView);
 
     // Removed:
     // - IObservable<SongModel?> SecondSelectedSong

@@ -5,7 +5,7 @@ using SkiaSharp;
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public interface ICoverArtService
 {
-    Task<string?> SaveOrGetCoverImageAsync(string audioFilePath, PictureInfo? embeddedPictureInfo);
+    Task<string?> SaveOrGetCoverImageAsync(ObjectId songId, string audioFilePath, PictureInfo? embeddedPictureInfo);
     string? GetExistingCoverImageAsync(string audioFilePath);
     /// <summary>
                                                              /// Applies a single cover art image (from a local path or URL) to a list of song files
@@ -109,7 +109,7 @@ public class CoverArtService : ICoverArtService
 ;
     }
 
-    public async Task<string?> SaveOrGetCoverImageAsync(string audioFilePath, PictureInfo? embeddedPictureInfo)
+    public async Task<string?> SaveOrGetCoverImageAsync(ObjectId songId, string audioFilePath, PictureInfo? embeddedPictureInfo)
     {
         if (string.IsNullOrWhiteSpace(audioFilePath))
             return null;
@@ -135,8 +135,14 @@ public class CoverArtService : ICoverArtService
 
         try
         {
+
             await File.WriteAllBytesAsync(targetFilePath, embeddedPictureInfo.PictureData);
-            return targetFilePath;
+            if (File.Exists(targetFilePath))
+            {
+                await SaveCoverArtToSingleSongGivenAudioPathAsync(songId, audioFilePath, targetFilePath);
+                return targetFilePath;
+            }
+            return null;
         }
         catch (Exception ex)
         {
@@ -223,6 +229,79 @@ public class CoverArtService : ICoverArtService
             // This is how you can force an image to refresh if it's bound with a cache-busting mechanism
             //song.CoverArtCacheBuster = Guid.NewGuid().ToString();
         }
+
+        return true;
+    }
+
+    public async Task<bool> SaveCoverArtToSingleSongGivenAudioPathAsync(ObjectId songId, string audioPath, string coverArtSource)
+    {
+        if ( string.IsNullOrWhiteSpace(coverArtSource)|| string.IsNullOrEmpty(audioPath)|| !File.Exists(audioPath))
+        {
+            _logger.LogWarning("ApplyCoverArtToSongsAsync called with invalid arguments.");
+            return false;
+        }
+
+        // --- Step 1: Get the image data, either from web or local file ---
+        byte[]? imageData = await GetImageDataAsync(coverArtSource);
+        if (imageData == null || imageData.Length == 0)
+        {
+            _logger.LogError("Failed to retrieve or read image data from source: {Source}", coverArtSource);
+            return false;
+        }
+
+        var picInfo = PictureInfo.fromBinaryData(imageData);
+        var coverArtHash =  ComputeHash(imageData); // A unique ID for this specific image
+
+        // --- Step 2: Loop through songs and embed the image into the file tags ---
+
+        //string tempPath = Path.GetTempFileName();
+
+        //File.Copy(audioPath, tempPath, true);
+
+        //try
+        //{
+        //    var track = new Track(tempPath);
+        //    track.EmbeddedPictures.Clear();
+        //    track.EmbeddedPictures.Add(picInfo);
+        //    await track.SaveAsync();
+
+        //    // Replace original
+        //    File.Copy(tempPath, audioPath, true);
+        //}
+        //catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Failed to embed cover art into file: {FilePath}", audioPath);
+        //    }
+        //finally
+        //{
+        //    File.Delete(tempPath);
+        //}
+
+        // --- Step 3: Update all processed songs in the database in a single transaction ---
+        try
+        {
+            using var realm = _realmFactory.GetRealmInstance();
+            await realm.WriteAsync(() =>
+            {
+            
+                    var songInDb = realm.Find<SongModel>(songId);
+                    if (songInDb != null)
+                    {
+                        // IMPORTANT: Add a CoverArtHash property to your SongModel
+                        songInDb.CoverArtHash = coverArtHash;
+                    songInDb.CoverImagePath = coverArtSource;
+                        songInDb.LastDateUpdated = DateTimeOffset.UtcNow;
+                    }
+                
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update song records in database with new CoverArtHash.");
+            return false; // DB update failed
+        }
+
+      
 
         return true;
     }

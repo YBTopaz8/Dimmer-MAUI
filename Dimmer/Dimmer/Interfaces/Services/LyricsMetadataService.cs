@@ -150,15 +150,18 @@ IRepository<SongModel> songRepository, // Inject the repository
         {
             _logger.LogInformation("Found precise lyrics match for '{Track}' using /api/get.", song.Title);
             List<LrcLibLyrics>? lrcs = [preciseMatch];
-            return lrcs;
+            if (lrcs is not null && !string.IsNullOrEmpty(lrcs.First().SyncedLyrics))
+            {
+                return lrcs;
+            }
         }
 
         // If no precise match, fall back to the broader /api/search
         _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
         var searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
-
+        var resultsWithSynced = searchResults.Where(r => !string.IsNullOrEmpty(r.SyncedLyrics));
         // Return the first result from the search, if any
-        return searchResults.ToList();
+        return resultsWithSynced.ToList();
     }
 
     /// <summary>
@@ -274,7 +277,16 @@ IRepository<SongModel> songRepository, // Inject the repository
         {
             // Step 1: Request the challenge
             _logger.LogInformation("Requesting proof-of-work challenge from LRCLIB.");
-            var challenge = await client.GetFromJsonAsync<LrcLibChallengeResponse>("api/request-challenge", token);
+            var challengeResponse = await client.PostAsync("api/request-challenge", null, token);
+
+            // Check if the request was successful before trying to read the content.
+            if (!challengeResponse.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to get a valid challenge from LRCLIB. Status: {Status}", challengeResponse.StatusCode);
+                return false;
+            }
+
+            var challenge = await challengeResponse.Content.ReadFromJsonAsync<LrcLibChallengeResponse>(cancellationToken: token);
             if (challenge == null || string.IsNullOrEmpty(challenge.Prefix))
             {
                 _logger.LogError("Failed to get a valid challenge from LRCLIB.");
@@ -300,6 +312,8 @@ IRepository<SongModel> songRepository, // Inject the repository
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Successfully published lyrics for '{Track}'.", lyricsToPublish.TrackName);
+               
+                await Shell.Current.DisplayAlert(nonce, "Successfully published lyrics to LRCLIB!", "OK");
                 return true;
             }
 
@@ -356,13 +370,11 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// Saves lyrics to both the audio file's metadata and the local Realm database.
     /// </summary>
     /// <returns>True if both operations succeed.</returns>
-    public async Task<bool> SaveLyricsForSongAsync(ObjectId SongID, string? plainLyrics, string? syncedLyrics)
+    public async Task<bool> SaveLyricsForSongAsync(ObjectId SongID, string? plainLyrics, string? syncedLyrics,bool isInstrument=false)
     {
         var song = _songRepository.GetById(SongID);
         if (string.IsNullOrEmpty(song?.FilePath))
             return false;
-
-        bool isInstrumental = string.IsNullOrEmpty(plainLyrics) && string.IsNullOrEmpty(syncedLyrics);
 
         var newLyricsInfo = new LyricsInfo
         {
@@ -397,8 +409,27 @@ IRepository<SongModel> songRepository, // Inject the repository
         // Step 2: Save to the Realm database using the repository.
         try
         {
-            await SaveLyricsToDB(isInstrumental, plainLyrics ?? string.Empty, song, syncedLyrics ?? string.Empty, newLyricsInfo);
+            await SaveLyricsToDB(isInstrument, plainLyrics ?? string.Empty, song, syncedLyrics ?? string.Empty, newLyricsInfo);
             _logger.LogInformation("Successfully saved lyrics to file and database for '{Track}'.", song.Title);
+
+            if(!isInstrument)
+            {
+
+            // try to publish if not instru to online
+            LrcLibPublishRequest newRequest = new LrcLibPublishRequest
+            {
+                TrackName = song.Title,
+                ArtistName = song.ArtistName,
+                AlbumName = song.AlbumName ?? string.Empty,
+                Duration = (int)song.DurationInSeconds,
+                PlainLyrics = plainLyrics ?? string.Empty,
+                SyncedLyrics = syncedLyrics ?? string.Empty
+            };
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+            await PublishLyricsAsync(newRequest, cancellationTokenSource.Token);
+
+            }
             return true;
         }
         catch (Exception ex)

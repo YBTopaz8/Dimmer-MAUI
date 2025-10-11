@@ -35,7 +35,7 @@ public partial class ChatView : ContentPage
         var audEngine = IPlatformApplication.Current.Services.GetService<IDimmerAudioService>();
 
         await ChatViewModelWin.ChatService.ShareSongAsync(audEngine.CurrentTrackMetadata,audEngine.CurrentPosition);
-        //await ChatViewModelWin.SessionTransferViewModel.TransferToDevice(dev,ChatViewModelWin.BaseViewModel.CurrentPlayingSongView);
+        //await ChatViewModelWin.SessionTransferViewModel.TransferToDevice(dev,ChatViewModelWin.MyViewModel.CurrentPlayingSongView);
     }
 
     private void SendMsg_Clicked(object sender, EventArgs e)

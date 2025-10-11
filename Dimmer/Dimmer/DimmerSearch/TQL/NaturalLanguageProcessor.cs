@@ -52,6 +52,8 @@ public static class NaturalLanguageProcessor
 
     public static string Process(string naturalQuery)
     {
+        if (string.IsNullOrEmpty(naturalQuery))
+            return string.Empty;
         var processedQuery = Regex.Replace(naturalQuery, @"(\w+)'s music", "music by $1", RegexOptions.IgnoreCase);
 
         foreach (var (pattern, replacement) in _rules)

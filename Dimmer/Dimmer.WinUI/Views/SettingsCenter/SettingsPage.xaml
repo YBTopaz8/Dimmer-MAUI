@@ -12,75 +12,86 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    
-             xmlns:idk="clr-namespace:Indiko.Maui.Controls.Markdown;assembly=Indiko.Maui.Controls.Markdown"     
+    xmlns:libSanity="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
+    xmlns:idk="clr-namespace:Indiko.Maui.Controls.Markdown;assembly=Indiko.Maui.Controls.Markdown"
     Title="Settings"
     x:DataType="vm:BaseViewModelWin"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    Shell.FlyoutBehavior="Flyout"
+    >
     <Grid IsVisible="True" RowDefinitions="auto,*">
-        <VerticalStackLayout 
-            
-            Grid.Row="0">
-            <Label Text="{Binding LatestScanningLog}" FontSize="35" HorizontalOptions="Center"
-                   />
-            <ProgressBar
-      x:Name="MyProgressBar"
-      IsVisible="False"
-      WidthRequest="80" />
+        <VerticalStackLayout Grid.Row="0">
             <Label
-      x:Name="MyProgressLabel"
-      IsVisible="False"
-      WidthRequest="180" />
+                Text="{Binding LatestScanningLog}"
+                FontSize="35"
+                HorizontalOptions="Center"
+                />
+            <ProgressBar x:Name="MyProgressBar"
+                IsVisible="False"
+                WidthRequest="80"
+                />
+            <Label x:Name="MyProgressLabel"
+                IsVisible="False"
+                WidthRequest="180"
+                />
 
         </VerticalStackLayout>
-        <syncf:SfTabView Grid.Row="1"
-                         
-                         x:Name="NavTab" TabBarPlacement="Top" SelectionChanged="NavTab_SelectionChanged">
+        <syncf:SfTabView x:Name="NavTab"
+            Grid.Row="1"
+            TabBarPlacement="Top"
+            SelectionChanged="NavTab_SelectionChanged"
+            >
 
             <syncf:SfTabItem Header="Main">
 
                 <syncf:SfTabItem.Content>
-                    <Grid RowDefinitions="*" Margin="10,0">
+                    <Grid Margin="10,0" RowDefinitions="*">
                         <Grid Grid.Row="1" RowDefinitions="auto,*">
 
-                            <VerticalStackLayout 
-                                Grid.Row="0" HorizontalOptions="Start"
+                            <VerticalStackLayout
+                                Grid.Row="0"
+                                HorizontalOptions="Start"
                                 BackgroundColor="Transparent"
-                                Spacing="10">
-                                <Button Text="Validate Songs"
-Command="{Binding ValidateLibraryCommand}" IsVisible="False"
-/>
-                                
+                                Spacing="10"
+                                >
+                                <Button
+                                    Text="Validate Songs"
+                                    Command="{Binding ValidateLibraryCommand}"
+                                    IsVisible="False"
+                                    />
+
                                 <Button
                                     Clicked="AddNewMusicFolder_Clicked"
                                     HorizontalOptions="Start"
-                                    Text="Add New Folder" />
-                                
-                                
+                                    Text="Add New Folder"
+                                    />
+
+
                                 <Button
                                     Clicked="RefreshLyrics_Clicked"
                                     HorizontalOptions="Start"
-                                    Text="Refresh Lyrc" />
-                                
-                                <Button
-                                    x:Name="ReScanAllBtn"
-                                    BorderColor="DarkSlateBlue"
-                                    Command="{Binding RescanSongsCommand}"
-                                    Text="Rescan folders" />
-                                <Button IsVisible="False"
-                                    x:Name="Reconcile"
+                                    Text="Refresh Lyrc"
+                                    />
+
+
+                                <Button x:Name="Reconcile"
+                                    IsVisible="False"
                                     BorderColor="DarkSlateBlue"
                                     Command="{Binding ReconcileLibraryCommand}"
-                                    Text="Reconcile Songs" />
-                                <Button Text="Find Duplicate Songs and Files" x:Name="FindDupes"
-    Clicked="FindDupes_Clicked" IsVisible="False"
-                                        BackgroundColor="SlateBlue"/>
+                                    Text="Reconcile Songs"
+                                    />
+                                <Button x:Name="FindDupes"
+                                    Text="Find Duplicate Songs and Files"
+                                    Clicked="FindDupes_Clicked"
+                                    IsVisible="False"
+                                    BackgroundColor="SlateBlue"
+                                    />
 
 
                             </VerticalStackLayout>
-                            <CollectionView
-                                x:Name="ListOfFolders"
-                                Grid.Row="1" SelectionMode="None"
+                            <CollectionView x:Name="ListOfFolders"
+                                Grid.Row="1"
+                                SelectionMode="None"
                                 Header="List of Folders"
                                 ItemsSource="{Binding FolderPaths}"
                                 >
@@ -89,7 +100,8 @@ Command="{Binding ValidateLibraryCommand}" IsVisible="False"
                                         <Label
                                             Margin="0,40,0,0"
                                             FontAttributes="Italic"
-                                            Text="No Folders In Preferences.." />
+                                            Text="No Folders In Preferences.."
+                                            />
                                     </VerticalStackLayout>
                                 </CollectionView.EmptyView>
                                 <CollectionView.ItemTemplate>
@@ -99,28 +111,30 @@ Command="{Binding ValidateLibraryCommand}" IsVisible="False"
                                             <Label Grid.Column="0" Text="{Binding .}" />
 
                                             <HorizontalStackLayout Grid.Column="1" Spacing="25">
-                                                <ImageButton
-                                                    x:Name="ChangeFolder"
+                                                <ImageButton x:Name="ChangeFolder"
                                                     Clicked="ChangeFolder_Clicked"
                                                     CommandParameter="{Binding .}"
-                                                    Source="foldera.png" />
+                                                    Source="foldera.png"
+                                                    />
 
-                                                <ImageButton
-                                                    x:Name="DeleteBtn"
+                                                <ImageButton x:Name="DeleteBtn"
                                                     Clicked="DeleteBtn_Clicked"
                                                     CommandParameter="{Binding .}"
-                                                    Source="delete.png" />
-                                                <syncf:SfChip ImageSource="repeat.png"
-             Clicked="RescanFolder_Clicked" CommandParameter="{Binding .}"
-                                                              
-                                                              x:Name="RescanFolder" ImageSize="50"
-                                                              WidthRequest="65"/>
+                                                    Source="delete.png"
+                                                    />
+                                                <syncf:SfChip x:Name="RescanFolder"
+                                                    ImageSource="repeat.png"
+                                                    Clicked="RescanFolder_Clicked"
+                                                    CommandParameter="{Binding .}"
+                                                    ImageSize="50"
+                                                    WidthRequest="65"
+                                                    />
                                             </HorizontalStackLayout>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                            
+
                         </Grid>
 
 
@@ -128,153 +142,328 @@ Command="{Binding ValidateLibraryCommand}" IsVisible="False"
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
 
-            <syncf:SfTabItem 
-                             
-                             TextColor="{AppThemeBinding Light=Black, Dark=White}" Header="LastFM Tab">
+            <syncf:SfTabItem Header="Dupes Mgt">
+
+
+                <Grid RowDefinitions="Auto, *">
+
+                    <!--  1. The Initiation Controls  -->
+                    <VerticalStackLayout Grid.Row="0" Spacing="10">
+                        <ActivityIndicator IsRunning="{Binding IsFindingDuplicates}" IsVisible="{Binding IsFindingDuplicates}" />
+                        <Label Text="Find songs with the same title and duration. You can then choose which versions to keep or delete." />
+                        <Label Text="{Binding DuplicateSets.Count, StringFormat='# Duplicates found : {0}'}" />
+                        <Button Text="Find Duplicate Songs" Command="{Binding FindDuplicatesCommand}" />
+
+
+                        <Button
+                            Text="Apply Changes"
+                            Command="{Binding ApplyDuplicateActionsCommand}"
+                            BackgroundColor="Red"
+                            />
+                    </VerticalStackLayout>
+
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding DuplicateSets}">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout
+                                Span="3"
+                                HorizontalItemSpacing="5"
+                                VerticalItemSpacing="5"
+                                Orientation="Vertical"
+                                />
+                        </CollectionView.ItemsLayout>
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="libSanity:DuplicateSetViewModel">
+
+                                <!--  This is the card for a single set of duplicates  -->
+                                <Border
+                                    Margin="10"
+                                    Padding="10"
+                                    Stroke="LightGray"
+                                    StrokeThickness="1"
+                                    >
+                                    <VerticalStackLayout Spacing="5">
+                                        <Label FontSize="Default" FontAttributes="Bold">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="Duplicate Set: " />
+                                                    <Span Text="{Binding Title}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+
+                                        <!--  This is the inner list of the actual song files  -->
+                                        <CollectionView ItemsSource="{Binding Items}" HeightRequest="210">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="libSanity:DuplicateItemViewModel">
+                                                    <Grid Padding="5" ColumnDefinitions="Auto, *, Auto">
+
+                                                        <!--  Visual cue for Original vs Duplicate  -->
+                                                        <Image
+                                                            Grid.Column="0"
+                                                            Margin="0,0,10,0"
+                                                            HeightRequest="30"
+                                                            Source="addcircle.png"
+                                                            VerticalOptions="Center"
+                                                            >
+                                                            <Image.Triggers>
+                                                                <DataTrigger
+                                                                    TargetType="Image"
+                                                                    Binding="{Binding Status}"
+                                                                    Value="Duplicate"
+                                                                    >
+                                                                    <Setter Property="IsVisible" Value="False" />
+                                                                </DataTrigger>
+                                                            </Image.Triggers>
+                                                        </Image>
+
+                                                        <!--  The crucial song info  -->
+                                                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                            <Label Text="{Binding Song.FilePath}" FontAttributes="Bold" />
+                                                            <Label>
+                                                                <Label.FormattedText>
+                                                                    <FormattedString>
+                                                                        <Span Text="Size: " />
+                                                                        <Span Text="{Binding Song.FileSize, Converter={converters:BytesToMegabytesConverter}, StringFormat='{0} MB'}" />
+                                                                        <!--  Add a converter for bytes to MB  -->
+                                                                        <Span Text="  |  Bitrate: " />
+                                                                        <Span Text="{Binding Song.BitRate, StringFormat='{0} kbps'}" />
+                                                                        <Span Text="  |  Added: " />
+                                                                        <Span Text="{Binding Song.DateCreated, StringFormat='{0:yyyy-MM-dd}'}" />
+                                                                    </FormattedString>
+                                                                </Label.FormattedText>
+                                                            </Label>
+                                                        </VerticalStackLayout>
+
+                                                        <!--  The Action Selector  -->
+                                                        <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
+                                                            <!--  Note: RadioButton binding can be complex. You might need a command on the item viewmodel  -->
+                                                            <!--  or use a Picker for simplicity  -->
+                                                            <Picker SelectedItem="{Binding Action, Mode=TwoWay}" FontSize="Small">
+                                                                <Picker.ItemsSource>
+                                                                    <x:Array Type="{x:Type libSanity:DuplicateAction}">
+                                                                        <libSanity:DuplicateAction>Keep</libSanity:DuplicateAction>
+                                                                        <libSanity:DuplicateAction>Delete</libSanity:DuplicateAction>
+                                                                        <libSanity:DuplicateAction>Ignore</libSanity:DuplicateAction>
+                                                                    </x:Array>
+                                                                </Picker.ItemsSource>
+                                                            </Picker>
+                                                        </HorizontalStackLayout>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                        <CollectionView.EmptyView>
+                            <Label
+                                HorizontalTextAlignment="Center"
+                                Text="Click 'Find Duplicates' to begin."
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                />
+                        </CollectionView.EmptyView>
+
+                    </CollectionView>
+
+                    <!--  3. The Finalization Button  -->
+
+                </Grid>
+
+            </syncf:SfTabItem>
+            <syncf:SfTabItem TextColor="{AppThemeBinding Light=Black, Dark=White}" Header="LastFM Tab">
                 <syncf:SfTabItem.Content>
                     <VerticalStackLayout Margin="10" Spacing="10">
-                        <Editor Placeholder="UserName" 
-                            PlaceholderColor="{AppThemeBinding Dark=White,Light=Black}"
-                            Text="{Binding UserLocal.LastFMAccountInfo.Name}">
+                        <Editor
+                            Placeholder="UserName"
+                            PlaceholderColor="{AppThemeBinding Dark=White,
+                                                               Light=Black}"
+                            Text="{Binding UserLocal.LastFMAccountInfo.Name}"
+                            >
                             <Editor.Triggers>
-                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="False"/>
+                                <DataTrigger
+                                    TargetType="Editor"
+                                    Binding="{Binding IsLastfmAuthenticated}"
+                                    Value="True"
+                                    >
+                                    <Setter Property="IsVisible" Value="False" />
                                 </DataTrigger>
-                                <DataTrigger TargetType="Editor" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                    <Setter Property="IsVisible" Value="True"/>
+                                <DataTrigger
+                                    TargetType="Editor"
+                                    Binding="{Binding IsLastfmAuthenticated}"
+                                    Value="False"
+                                    >
+                                    <Setter Property="IsVisible" Value="True" />
                                 </DataTrigger>
                             </Editor.Triggers>
                         </Editor>
                         <FlexLayout JustifyContent="SpaceBetween">
 
-                            <Label Text="Last FM Status: "/>
+                            <Label Text="Last FM Status: " />
                             <Button Command="{Binding LogoutFromLastfmCommand}">
                                 <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                        <Setter Property="Text" Value="Logged In"/>
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}"/>
+                                    <DataTrigger
+                                        TargetType="Button"
+                                        Binding="{Binding IsLastfmAuthenticated}"
+                                        Value="True"
+                                        >
+                                        <Setter Property="Text" Value="Logged In" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
                                     </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                        <Setter Property="Text" Value="Logged Out"/>
-                                        <Setter Property="TextColor" Value="DarkRed"/>
+                                    <DataTrigger
+                                        TargetType="Button"
+                                        Binding="{Binding IsLastfmAuthenticated}"
+                                        Value="False"
+                                        >
+                                        <Setter Property="Text" Value="Logged Out" />
+                                        <Setter Property="TextColor" Value="DarkRed" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
 
                         </FlexLayout>
 
-                        
-                        
-                        <Button HorizontalOptions="Start"  IsVisible="{Binding LastFMLoginBtnVisible}"
-                             Text="Login"   Command="{Binding LoginToLastfmCommand}" BorderWidth="2" >
-                        </Button>
 
-                        <Button 
-                            IsVisible="{Binding lastFMCOmpleteLoginBtnVisible}" Text="Confirm Login"
-                            HorizontalOptions="Start" Command="{Binding CompleteLoginCommand}" BorderWidth="2" >
-                        </Button>
+
+                        <Button
+                            HorizontalOptions="Start"
+                            IsVisible="{Binding LastFMLoginBtnVisible}"
+                            Text="Login"
+                            Command="{Binding LoginToLastfmCommand}"
+                            BorderWidth="2"
+                            />
+
+                        <Button
+                            IsVisible="{Binding lastFMCOmpleteLoginBtnVisible}"
+                            Text="Confirm Login"
+                            HorizontalOptions="Start"
+                            Command="{Binding CompleteLoginCommand}"
+                            BorderWidth="2"
+                            />
 
                         <VerticalStackLayout BackgroundColor="Transparent">
                             <VerticalStackLayout.Triggers>
-                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="True">
-                                    <Setter Property="IsVisible" Value="True"/>
+                                <DataTrigger
+                                    TargetType="VerticalStackLayout"
+                                    Binding="{Binding IsLastfmAuthenticated}"
+                                    Value="True"
+                                    >
+                                    <Setter Property="IsVisible" Value="True" />
                                 </DataTrigger>
-                                <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsLastfmAuthenticated}" Value="False">
-                                    <Setter Property="IsVisible" Value="False"/>
+                                <DataTrigger
+                                    TargetType="VerticalStackLayout"
+                                    Binding="{Binding IsLastfmAuthenticated}"
+                                    Value="False"
+                                    >
+                                    <Setter Property="IsVisible" Value="False" />
                                 </DataTrigger>
                             </VerticalStackLayout.Triggers>
 
                             <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 150">
 
-                                <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180"/>
+                                <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" WidthRequest="180" />
 
                             </Border>
-                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Name}" FontSize="20" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
-                            <Label Text="{Binding UserLocal.LastFMAccountInfo.Country}" FontSize="15" HorizontalOptions="Center" TextColor="DarkSlateBlue"/>
+                            <Label
+                                Text="{Binding UserLocal.LastFMAccountInfo.Name}"
+                                FontSize="20"
+                                HorizontalOptions="Center"
+                                TextColor="DarkSlateBlue"
+                                />
+                            <Label
+                                Text="{Binding UserLocal.LastFMAccountInfo.Country}"
+                                FontSize="15"
+                                HorizontalOptions="Center"
+                                TextColor="DarkSlateBlue"
+                                />
 
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
                 </syncf:SfTabItem.Content>
             </syncf:SfTabItem>
-            <syncf:SfTabItem Header="Latest Update">
-                <VerticalStackLayout Spacing="15" Margin="10,0">
-                    <Label Text="{Binding AppUpdateObj.title}" HorizontalOptions="Center"
-                           FontSize="36"/>
-                    <idk:MarkdownView
-                        TextColor="{AppThemeBinding Dark=White,Light=Black}"
+            <syncf:SfTabItem x:Name="ViewUpdate" Header="Latest Update">
+                <VerticalStackLayout Margin="10,0" Spacing="15">
+                    <Label
+                        Text="{Binding AppUpdateObj.title}"
+                        HorizontalOptions="Center"
+                        FontSize="36"
+                        />
+                    <idk:MarkdownView x:Name="RelLinkss"
+                        TextColor="{AppThemeBinding Dark=White,
+                                                    Light=Black}"
                         MarkdownText="{Binding AppUpdateObj.notes}"
-                         H1FontSize="25"
-    H1Color="CadetBlue"   ParagraphSpacing="5"
-    H2FontSize="23"
-    H2Color="DeepSkyBlue"
-    H3FontSize="19"
-    H3Color="BlueViolet"
-    CodeBlockBackgroundColor="#1e1e1e"
-    CodeBlockTextColor="DimGrey"
-    CodeBlockBorderColor="DarkSlateGray"
-    
-    CodeBlockFontSize="12"
-    BlockQuoteBackgroundColor="LightYellow"
-    BlockQuoteTextColor="LightGray"
-    BlockQuoteBorderColor="YellowGreen"
-    
-                        
-    TextFontSize="13"
-    TableHeaderBackgroundColor="DarkGray"
-    
-    TableHeaderFontSize="13"
-    TableHeaderTextColor="WhiteSmoke"
-    
-    TableRowFontSize="11"
-    ImageAspect="Fill"
-    HyperlinkColor="AliceBlue"
-    LineColor="LightSlateGray"
-    LinkCommand="{Binding LinkReceivedCommand}"
-    OnHyperLinkClicked="RelLinkss_OnHyperLinkClicked" x:Name="RelLinkss"
-    LineHeightMultiplier="1.2"
-    >
-                        
-                    </idk:MarkdownView>
-                    
-                    
-                    <Label Text="{Binding AppUpdateObj.url}"/>
-                  
-                    
+                        H1FontSize="25"
+                        H1Color="CadetBlue"
+                        ParagraphSpacing="5"
+                        H2FontSize="23"
+                        H2Color="DeepSkyBlue"
+                        H3FontSize="19"
+                        H3Color="BlueViolet"
+                        CodeBlockBackgroundColor="#1e1e1e"
+                        CodeBlockTextColor="DimGrey"
+                        CodeBlockBorderColor="DarkSlateGray"
+                        CodeBlockFontSize="12"
+                        BlockQuoteBackgroundColor="LightYellow"
+                        BlockQuoteTextColor="LightGray"
+                        BlockQuoteBorderColor="YellowGreen"
+                        TextFontSize="13"
+                        TableHeaderBackgroundColor="DarkGray"
+                        TableHeaderFontSize="13"
+                        TableHeaderTextColor="WhiteSmoke"
+                        TableRowFontSize="11"
+                        ImageAspect="Fill"
+                        HyperlinkColor="AliceBlue"
+                        LineColor="LightSlateGray"
+                        LinkCommand="{Binding LinkReceivedCommand}"
+                        OnHyperLinkClicked="RelLinkss_OnHyperLinkClicked"
+                        LineHeightMultiplier="1.2"
+                        />
 
-                    <Button x:Name="DownloadAndInstall" Command="{Binding DownloadAndInstallCommand}"
-             Text="Download And Install"/>
+
+                    <Label Text="{Binding AppUpdateObj.url}" />
+
+
+
+                    <Button x:Name="DownloadAndInstall"
+                        Command="{Binding DownloadAndInstallCommand}"
+                        Text="Download And Install"
+                        />
 
                 </VerticalStackLayout>
             </syncf:SfTabItem>
-            <syncf:SfTabItem Header="App Center" x:Name="ViewAdminUpdate">
+            <syncf:SfTabItem x:Name="ViewAdminUpdate" Header="App Center">
                 <VerticalStackLayout>
-                    <Label Text="App Center"/>
-                    <Button Text="Check for App Updates"
-                      Command="{Binding CheckForAppUpdatesCommand}"     />
+                    <Label Text="App Center" />
+                    <Button Text="Check for App Updates" Command="{Binding CheckForAppUpdatesCommand}" />
                     <!--<Button Text="App Center"
                       Command="{Binding CheckForAppUpdatesCommand}"   />-->
 
                     <Border>
-                        
-                         <VerticalStackLayout>
-                            <Label Text="New Release"/>
-                            <Editor Placeholder="Release Title"  HeightRequest="200"
-                                 x:Name="RelTitle"/>
-                            <Editor Placeholder="Release Notes"
-                                 x:Name="RelNotes"/>
-                            <Editor Placeholder="Release Url"
-                                 x:Name="RelLink"/>
-                       
-                            <Button x:Name="PostUpdate" Clicked="PostUpdate_Clicked"
-                                     Text="Post Update"/>
-                   
+
+                        <VerticalStackLayout>
+                            <Label Text="New Release" />
+                            <Editor x:Name="RelTitle"
+                                Placeholder="Release Title"
+                                HeightRequest="200"
+                                />
+                            <Editor x:Name="RelNotes" Placeholder="Release Notes" />
+                            <Editor x:Name="RelLink" Placeholder="Release Url" />
+
+                            <Button x:Name="PostUpdate"
+                                Clicked="PostUpdate_Clicked"
+                                Text="Post Update"
+                                />
+
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
             </syncf:SfTabItem>
-            
-            
+
+
 
 
 

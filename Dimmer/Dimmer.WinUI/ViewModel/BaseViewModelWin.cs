@@ -1,6 +1,7 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
 
 using CommunityToolkit.Maui.Storage;
+using CommunityToolkit.WinUI;
 
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView.DimmerSearch;
@@ -10,17 +11,18 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
-// Assuming SkiaSharp and ZXing.SkiaSharp are correctly referenced for barcode scanning
-
-// Assuming Vanara.PInvoke.Shell32 and TaskbarList are for Windows-specific taskbar progress
+using Dimmer.Resources.Localization;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+
+using Windows.Storage.Pickers;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using TableView = WinUI.TableView.TableView;
@@ -61,6 +63,15 @@ public partial class BaseViewModelWin: BaseViewModel
         };
         windowManager = mauiWindowManagerService;
         AddNextEvent +=BaseViewModelWin_AddNextEvent;
+        //MainWindowActivated
+    }
+
+    public void MainMAUIWindow_Activated()
+    {
+        //MainWindowActivated?.Invoke(this, EventArgs.Empty);
+        MainWindow_Activated();
+       
+
     }
 
     private async void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
@@ -225,6 +236,7 @@ public partial class BaseViewModelWin: BaseViewModel
         GeneratedTqlQuery = fullQueryString; // Update the UI property
         _searchQuerySubject.OnNext(fullQueryString); // Execute the query
     }
+
     [ObservableProperty]
     public partial string GeneratedTqlQuery { get; set; }
     [ObservableProperty]
@@ -232,11 +244,13 @@ public partial class BaseViewModelWin: BaseViewModel
 
     [ObservableProperty]
     public partial int MediaBarGridRowPosition { get; set; }
-    public CollectionView SongColView { get; internal set; }
+
+    [ObservableProperty]
+    public partial CollectionView SongColView { get;  set; }
 
 
     [ObservableProperty]
-    public partial List<string> DraggedAudioFiles { get; internal set; }
+    public partial List<string> DraggedAudioFiles { get;  set; }
     public Window CurrentWinUIPage { get; internal set; }
 
     [RelayCommand]
@@ -255,49 +269,41 @@ public partial class BaseViewModelWin: BaseViewModel
    
     public async Task AddMusicFolderViaPickerAsync()
     {
-
-
-        var res = await _folderPicker.PickAsync(CancellationToken.None);
-
-        if (res is not null && res.Folder is not null)
+        try
         {
 
 
-            string? selectedFolderPath = res!.Folder!.Path;
+            var res = await _folderPicker.PickAsync(CancellationToken.None);
 
-
-
-            if (!string.IsNullOrEmpty(selectedFolderPath))
+            if (res is not null && res.Folder is not null)
             {
-                AddMusicFolderByPassingToService(selectedFolderPath);
-            }
-            else
-            {
+                string? selectedFolderPath = res!.Folder!.Path;
+
+                if (!string.IsNullOrEmpty(selectedFolderPath))
+                {
+                    _ = Task.Run(async () => await AddMusicFolderByPassingToService(selectedFolderPath));
+                }
 
             }
         }
-        else
+        catch (Exception ex)
         {
-
+            Debug.WriteLine(ex.Message);
         }
     }
-    public async Task PickFolderToScan()
-    {
-        await AddMusicFolderViaPickerAsync();
-    }
+
 
     public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
     {
-        if (selectedSec is null)
+        if (selectedSec is null )
         {
-            if (SelectedSong is null)
+            if(CurrentPlayingSongView is null)
             {
-                SelectedSong=CurrentPlayingSongView;
+                await Shell.Current.DisplayAlert("No Song Selected", "Please select a song to view its details.", "OK");
+                return;
             }
-            else
-            {
-                SelectedSong = SongColView.SelectedItem as SongModelView;
-            }
+            SelectedSong??=CurrentPlayingSongView;
+         
         }
         else
         {
@@ -374,23 +380,39 @@ public partial class BaseViewModelWin: BaseViewModel
         }
 
     }
+    
+    public override async Task AppSetupPageNextBtnClick(bool isLastTab)
+    {
+        await base.AppSetupPageNextBtnClick(isLastTab);
+       
+        if (isLastTab)
+        {
+            ShowWelcomeScreen = false;
+            await Shell.Current.GoToAsync("..");
+            _= Task.Run(EnsureAllCoverArtCachedForSongsAsync);
+            return;
+        }
+    }
     protected override async Task ProcessSongChangeAsync(SongModelView value)
     {
         // 1. Let the base class do all of its work first.
         await base.ProcessSongChangeAsync(value);
 
-        
+
         if (value.IsCurrentPlayingHighlight)
         {
-            
+
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
-            
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
 
-                SongColView?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
+            if (SongColView is not null && SongColView.IsLoaded)
+            { 
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
 
-            });
+                    SongColView?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
+
+                });
+            }
         }
     }
 
@@ -431,14 +453,166 @@ public partial class BaseViewModelWin: BaseViewModel
         Debug.WriteLine(win.Visible);
         Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
+    [RelayCommand]
+    private void FilterBySelection()
+    {
+        // This command REPLACES the current query with one based on the selected cell.
+        // Use case: "I don't care what I was searching for, show me *only* this."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (!string.IsNullOrWhiteSpace(tqlClause))
+        {
+            CurrentTqlQuery = tqlClause;
+            _searchQuerySubject.OnNext(CurrentTqlQuery);
+        }
+    }
+    [ObservableProperty]
+    public partial TableView MySongsTableView { get; set; }
+
+    [RelayCommand]
+    private void AddFilterFromSelection()
+    {
+        // This command APPENDS the new filter to the existing one.
+        // Use case: "I'm looking at songs from 2004. Now, narrow it down to *only* this artist."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
+
+        // If the current query is empty or just a directive, replace it.
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentTqlQuery = tqlClause;
+        }
+        else
+        {
+            CurrentTqlQuery = $"{CurrentTqlQuery} {tqlClause}"; // Implicit AND
+        }
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
+
+    [RelayCommand]
+    private void IncludeSelection()
+    {
+        // This command uses the TQL 'add' keyword (OR logic).
+        // Use case: "I'm looking at Kanye West. Now, show me Jay-Z *as well*."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
+
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentTqlQuery = tqlClause;
+        }
+        else
+        {
+            CurrentTqlQuery = $"{CurrentTqlQuery} add {tqlClause}";
+        }
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
+
+    [RelayCommand]
+    private void ExcludeSelection()
+    {
+        // This command uses the TQL 'remove' keyword (AND NOT logic).
+        // Use case: "I'm looking at Rock music. Now, *remove* anything that is also Pop."
+
+        var selectedContent = MySongsTableView.GetSelectedContent(true);
+        var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
+
+        if (string.IsNullOrWhiteSpace(tqlClause))
+            return;
+
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
+        {
+            // Excluding from "everything" doesn't make sense, so just start a new query
+            CurrentTqlQuery = $"NOT ({tqlClause})";
+        }
+        else
+        {
+            CurrentTqlQuery = $"{CurrentTqlQuery} remove {tqlClause}";
+        }
+        _searchQuerySubject.OnNext(CurrentTqlQuery);
+    }
+
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {
         var songsToAdd = SearchResults.Where(s => songIds.Contains(s.Id.ToString()));
-        if (songsToAdd is not null && songsToAdd.Count()>0)
+        if (songsToAdd is not null && songsToAdd.Any())
         {
-            AddToQueueEnd(songsToAdd);
+            AddListOfSongsToQueueEnd(songsToAdd);
         }
 
+    }
+
+    [RelayCommand]
+    public void OpenAndSelectFileInExplorer(SongModelView song)
+    {
+        if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
+        {
+            string argument = "/select, \"" + song.FilePath + "\"";
+            System.Diagnostics.Process.Start("explorer.exe", argument);
+        }
+    }
+
+
+
+
+    [RelayCommand]
+    public async Task LoadPlainLyricsFromFile()
+    {
+
+        await Shell.Current.DisplayAlert("Soon...", "Feature Not available Yet...", "OK");
+        //var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
+        //FilePicker.Default.PickAsync
+
+        //// Open the picker for the user to pick a file
+        //IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
+        //if (files.Count > 0)
+        //{
+        //    StringBuilder output = new StringBuilder("Picked files:\n");
+        //    foreach (StorageFile file in files)
+        //    {
+        //        output.Append(file.Name + "\n");
+        //    }
+        //    PickFilesOutputText = output.ToString();
+        //}
+        //else
+        //{
+        //    PickFilesOutputText = "Operation cancelled.";
+        //}
+
+        //await LoadPlainLyricsFromFile(PickFilesOutputText);
+
+
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+    
+    }
+    [RelayCommand]
+    private async Task ScrollToCurrentPlayingSong()
+    {
+
+        try
+        {
+            //MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
+           await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
+                false, true);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+        }
     }
 }

@@ -5,6 +5,8 @@ using Dimmer.Utilities.Events;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
+using ReactiveUI;
+
 
 namespace Dimmer.Orchestration;
 
@@ -59,7 +61,10 @@ public class LyricsMgtFlow : IDisposable
          .Select(args => args.MediaSong)
          //.DistinctUntilChanged(song => song?.Id)
          .Subscribe(
-             async song => await ProcessExistingLyricsForSong(song),
+             async song =>
+             {
+                 await ProcessExistingLyricsForSong(song);
+             },
              ex => _logger.LogError(ex, "Error processing new song for lyrics from audio service event.")
          ));
 
@@ -177,9 +182,12 @@ public class LyricsMgtFlow : IDisposable
         {
 
             //get lyrics from online source
-            var res = await GetLyricsContentAsync(song);
-            LoadLyrics(res);
             ClearLyrics();
+            var res = await GetLyricsContentAsync(song);
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                LoadLyrics(res);
+            }
         }
     }
 
@@ -192,7 +200,7 @@ public class LyricsMgtFlow : IDisposable
     private async Task<string?> GetLyricsContentAsync(SongModelView song)
     {
         CancellationTokenSource cts= new();
-        var instru = song.IsInstrumental;
+        var instru = song.IsInstrumental && song.SyncLyrics.Length<1;
         if (instru)
         {
             return string.Empty;
@@ -213,12 +221,14 @@ public class LyricsMgtFlow : IDisposable
         _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
         var onlineResults = await _lyricsMetadataService.GetAllLyricsOnlineAsync(song, cts.Token);
         var onlineLyrics = onlineResults?.FirstOrDefault();
+        
         if (onlineLyrics != null)
         {
-            _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
+            _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
+          
             // Optionally, save to DB or local storage here.
-            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id,onlineLyrics.PlainLyrics,onlineLyrics.SyncedLyrics);
+            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id,onlineLyrics.PlainLyrics,onlineLyrics.SyncedLyrics,true);
             return onlineLyrics.SyncedLyrics;
 
         }
@@ -263,31 +273,23 @@ public class LyricsMgtFlow : IDisposable
 
     private void SubscribeToPosition()
     {
-        // Stream 1: A stream that tells us if we are currently playing or not.
-        // We start with the current value and get subsequent changes.
-        var isPlayingStream = Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.IsPlayingChanged += h, h => _audioService.IsPlayingChanged -= h)
-            .Select(evt => evt.EventArgs.IsPlaying)
-            .StartWith(_audioService.IsPlaying); // IMPORTANT: Get the initial state
-
-        // Stream 2: Our existing stream of position updates.
-        var positionStream = AudioEnginePositionObservable;
-
         _subsManager.Add(
-            // Combine the two streams.
-            // We only care about the position WHEN the isPlayingStream's latest value is 'true'.
-            positionStream
-                .WithLatestFrom(isPlayingStream, (position, isPlaying) => new { position, isPlaying }) // Combine into an anonymous object
-                .Where(x => x.isPlaying && _synchronizer != null) // Now we filter based on the combined data
-                .Select(x => x.position) // We only need the position from here on
-                .Sample(TimeSpan.FromMilliseconds(100))
-                .DistinctUntilChanged()
-                .Subscribe(
-                    positionInSeconds =>
-                    {
-                        UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
-                    },
-                    ex => _logger.LogError(ex, "Error in position subscription.")
-                )
+      AudioEnginePositionObservable
+          .Sample(TimeSpan.FromMilliseconds(100)) // We still sample to avoid too many updates.
+          .DistinctUntilChanged() // And only take distinct position values.
+          .ObserveOn(RxApp.MainThreadScheduler)
+          .Subscribe(
+              positionInSeconds =>
+              {
+                  // Check our conditions right here, in the moment.
+                  // This avoids the complex stream logic and potential race conditions.
+                  if (_audioService.IsPlaying && _synchronizer != null)
+                  {
+                      UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
+                  }
+              },
+              ex => _logger.LogError(ex, "Error in position subscription.")
+          )
         );
     }
 

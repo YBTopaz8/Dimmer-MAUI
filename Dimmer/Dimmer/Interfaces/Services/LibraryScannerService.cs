@@ -74,7 +74,7 @@ public class LibraryScannerService : ILibraryScannerService
 
             MusicMetadataService currentScanMetadataService = new();
 
-            List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
+            List<string> allFiles = TaggingUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
 
             if (allFiles.Count == 0)
             {
@@ -108,7 +108,8 @@ public class LibraryScannerService : ILibraryScannerService
                 _logger.LogInformation("Scan complete. No new music found.");
                 _state.SetCurrentLogMsg(new AppLogModel { Log = "Your library is up-to-date." });
                 _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No new files.", null, null));
-                return new LoadSongsResult { /* Indicate success with no changes */ };
+
+                return default!;
             }
 
             _logger.LogInformation("Found {TotalFiles} new audio files to process.", totalFilesToProcess);
@@ -254,14 +255,33 @@ public class LibraryScannerService : ILibraryScannerService
                     }
                 });
             }
+
+            realm.Dispose();
             _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,null, null));
 
 
-            return new LoadSongsResult { /* ... */ };
+            // clear up and clean memory 
+            currentScanMetadataService.ClearAll();
+            //audioFileProcessor.Cleanup();
+            GC.Collect();
+            _state.SetCurrentLogMsg(new AppLogModel { Log = "Music scan complete." });
+            _logger.LogInformation("Library scan completed successfully.");
+
+
+            return new LoadSongsResult
+            {
+                
+                NewSongsAddedCount = newSongs.Count,
+                NewSongsAdded = newSongs,
+                Albums = newAlbums,
+                Artists = newArtists,
+                Genres = newGenres,
+                ProcessingResults = processedResults
+            };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred during ScanLibrary.");
+            _logger.LogError(ex, $"An unhandled exception occurred during ScanLibrary.{ex.Message}");
             return null;
         }
     }

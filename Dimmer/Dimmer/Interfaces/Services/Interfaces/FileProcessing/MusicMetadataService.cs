@@ -173,4 +173,23 @@ public class MusicMetadataService : IMusicMetadataService
     {
         return _existingFilePaths.Contains(filePath);
     }
-}
+
+    public void ClearAll()
+    {
+       
+            // Clear all dictionaries and lists to free up memory
+            _artistsByName.Clear();
+            _albumsByName.Clear();
+            _genresByName.Clear();
+            _existingFilePaths.Clear();
+            NewArtists.Clear();
+            NewAlbums.Clear();
+            NewGenres.Clear();
+            _processedSongsInThisScan.Clear();
+            _existingSongKeys.Clear();
+            _updatedEntityIds.Clear();
+
+
+        }
+
+    }

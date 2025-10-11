@@ -136,16 +136,20 @@ public class FolderMgtService : IFolderMgtService
         }
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
-
-        if (!foldersToWatchPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+        await realm.WriteAsync(() =>
         {
 
-           await StartWatchingConfiguredFoldersAsync();
+            var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
 
-            foldersToWatchPaths?.Add(path);
-        }
+            if (!foldersToWatchPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+            {
 
+                foldersToWatchPaths?.Add(path);
+
+            }
+        });
+
+                await StartWatchingConfiguredFoldersAsync();
         _logger.LogInformation("Adding folder to watch list and settings: {Path}", path);
 
 

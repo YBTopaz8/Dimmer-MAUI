@@ -40,7 +40,7 @@ public  partial class ChatViewModelWin : ChatViewModel
 
     // You can also add a command to explicitly go to the general chat
     [RelayCommand]
-    private async Task GoToGeneralChat()
+    private void GoToGeneralChat()
     {
          InitializeGeneralChat();
     }

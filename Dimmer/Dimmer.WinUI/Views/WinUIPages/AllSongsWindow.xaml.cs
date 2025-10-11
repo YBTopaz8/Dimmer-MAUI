@@ -30,11 +30,16 @@ public sealed partial class AllSongsWindow : Window
             {
                 return;
             }
+
+            
             MyViewModel.CurrentWinUIPage = this;
             var removeCOmmandFromLastSaved = MyViewModel.CurrentTqlQuery;
             removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:\d+!", "", RegexOptions.IgnoreCase);
+
             removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:end!", "", RegexOptions.IgnoreCase);
+
             removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addnext!", "", RegexOptions.IgnoreCase);
+
 
 
             // Focus the search box
@@ -63,7 +68,7 @@ public sealed partial class AllSongsWindow : Window
 
     private void AllSongsWindow_Closed(object sender, WindowEventArgs args)
     {
-
+        this.Closed -= AllSongsWindow_Closed;
     }
 
     public ObservableCollection<string> _liveArtists;
@@ -72,6 +77,7 @@ public sealed partial class AllSongsWindow : Window
 
     public BaseViewModelWin MyViewModel { get; internal set; }
 
+    
     
   
 }

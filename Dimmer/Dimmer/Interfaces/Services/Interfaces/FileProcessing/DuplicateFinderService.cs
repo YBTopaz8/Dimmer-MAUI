@@ -17,6 +17,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         _mapper = mapper;
         _logger = logger;
     }
+
     public DuplicateSearchResult FindDuplicates(DuplicateCriteria criteria, IProgress<string>? progress = null)
     {
         if (criteria == DuplicateCriteria.None)
@@ -32,7 +33,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         progress?.Report("Loading all songs from the database...");
 
         // Materialize the list now that we need to process it
-        List<SongModel>? allSongsList = allSongsQuery.ToList();
+        List<SongModelView>? allSongsList = _mapper.Map<List<SongModelView>>(allSongsQuery.ToList());
 
         var result = new DuplicateSearchResult
         {
@@ -55,30 +56,26 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         foreach (var group in duplicateGroups)
         {
-            // Use the first song as a representative for the set's display info
-            var representativeSong = group.First();
+            if (!group.Any()) continue; // Safety check
+
+            // --- REFACTORED LOGIC ---
+            // Instead of a fixed sort, we now determine the best song based on a score.
+            var originalSong = DetermineBestSong(group);
+
             var set = new DuplicateSetViewModel(
-                representativeSong.Title,
-                representativeSong.DurationInSeconds
+                originalSong.Title,
+                originalSong.DurationInSeconds
             );
 
-            // Sort songs in the group to determine the "original" vs. "duplicates"
-            // A good heuristic: best quality (BitRate), then oldest file.
-            var sortedSongs = group
-                .OrderByDescending(s => s.BitRate ?? 0)
-                .ThenByDescending(s => s.FileSize)
-                .ThenBy(s => s.DateCreated)
-                .ToList();
+            // Add our designated "Original" to the set
+            set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(originalSong), DuplicateStatus.Original));
 
-            // The first item in the sorted list is our designated "Original"
-            var originalSongModel = sortedSongs.First();
-            set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(originalSongModel), DuplicateStatus.Original));
-
-            // All other items are duplicates
-            foreach (var duplicateSongModel in sortedSongs.Skip(1))
+            // Add all other songs from the group as "Duplicates"
+            foreach (var duplicateSongModel in group.Where(s => s.Id != originalSong.Id))
             {
                 set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(duplicateSongModel), DuplicateStatus.Duplicate));
             }
+            // --- END REFACTORED LOGIC ---
 
             result.DuplicateSets.Add(set);
         }
@@ -88,7 +85,75 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         return result;
     }
-   
+
+    /// <summary>
+    /// Evaluates a group of duplicate songs and returns the one deemed "best" based on a scoring system.
+    /// </summary>
+    /// <param name="duplicateGroup">A collection of songs that are considered duplicates of each other.</param>
+    /// <returns>The SongModelView with the highest score.</returns>
+    private SongModelView DetermineBestSong(IEnumerable<SongModelView> duplicateGroup)
+    {
+        SongModelView? bestSong = null;
+        int highestScore = -1;
+
+        foreach (var song in duplicateGroup)
+        {
+            int currentScore = 0;
+
+            // --- HEURISTICS & SCORING ---
+            // You can easily add, remove, or change the weights of these criteria.
+
+            // 1. Bitrate: Higher is better. Give a significant boost for high quality.
+            if (song.BitRate.HasValue)
+            {
+                currentScore += song.BitRate.Value; // e.g., 320kbps adds 320 points
+            }
+
+            // 2. File Format: Prefer lossless formats.
+            var extension = Path.GetExtension(song.FilePath)?.ToLowerInvariant();
+            if (extension == ".flac" || extension == ".wav" || extension == ".alac")
+            {
+                currentScore += 500; // Major bonus for being lossless
+            }
+
+            // 3. Metadata Completeness: Reward songs with more complete data.
+            if (song.HasLyrics) currentScore += 50;
+            if (song.IsFavorite) currentScore += 100;
+            if (song.Rating > 0) currentScore += song.Rating * 20; // A 5-star rating adds 100 points
+            if (!string.IsNullOrEmpty(song.CoverImagePath)) currentScore += 75;
+
+            // 4. File Path: Prefer files in a "canonical" or non-temporary location.
+            // This is subjective and should be configured based on your library structure.
+            if (song.FilePath.Contains(@"D:\Music\Library", StringComparison.OrdinalIgnoreCase))
+            {
+                currentScore += 200; // Bonus for being in a preferred folder
+            }
+            if (song.FilePath.Contains(@"Downloads", StringComparison.OrdinalIgnoreCase) || song.FilePath.Contains(@"\Temp\", StringComparison.OrdinalIgnoreCase))
+            {
+                currentScore -= 300; // Penalty for being in a temporary/download folder
+            }
+
+            // 5. File Age: Older might mean it's the original import.
+            // This can be a good tie-breaker.
+            if (song.DateCreated.HasValue)
+            {
+                // Give a small bonus for age to act as a tie-breaker
+                // The older the file, the smaller the number of days, the higher the score.
+                currentScore += (int)(DateTime.UtcNow - song.DateCreated.Value).TotalDays / 100;
+            }
+
+            // Compare with the current best song
+            if (currentScore > highestScore)
+            {
+                highestScore = currentScore;
+                bestSong = song;
+            }
+        }
+
+        // Fallback to the first item if for some reason no best song was found (shouldn't happen)
+        return bestSong ?? duplicateGroup.First();
+    }
+
     public async Task<int> ResolveDuplicatesAsync(IEnumerable<DuplicateItemViewModel> itemsToDelete)
     {
         var songIdsToDelete = itemsToDelete.Select(i => i.Song.Id).ToList();
@@ -143,7 +208,7 @@ public class DuplicateFinderService : IDuplicateFinderService
             return new LibraryValidationResult
             {
                 ScannedCount = 0,
-                MissingSongs = new List<SongModelView>()
+                MissingSongs = Enumerable.Empty<SongModelView>().ToList()
             };
         }
 
@@ -277,32 +342,32 @@ public class DuplicateFinderService : IDuplicateFinderService
         };
     }
 
-    private string GenerateGroupingKey(SongModel song, DuplicateCriteria criteria)
+    private string GenerateGroupingKey(SongModelView targetSong, DuplicateCriteria criteria)
     {
         var keyParts = new List<string>();
 
         if (criteria.HasFlag(DuplicateCriteria.Title))
         {
             // Normalize the title for better matching
-            keyParts.Add(song.Title?.Trim().ToLowerInvariant() ?? string.Empty);
+            keyParts.Add(targetSong.Title?.Trim().ToLowerInvariant() ?? string.Empty);
         }
         if (criteria.HasFlag(DuplicateCriteria.Artist))
         {
             // Normalize artist name, maybe even sort multiple artists
-            keyParts.Add(song.ArtistName?.Trim().ToLowerInvariant() ?? string.Empty);
+            keyParts.Add(targetSong.ArtistName?.Trim().ToLowerInvariant() ?? string.Empty);
         }
         if (criteria.HasFlag(DuplicateCriteria.Album))
         {
-            keyParts.Add(song.AlbumName?.Trim().ToLowerInvariant() ?? string.Empty);
+            keyParts.Add(targetSong.AlbumName?.Trim().ToLowerInvariant() ?? string.Empty);
         }
         if (criteria.HasFlag(DuplicateCriteria.Duration))
         {
             // Round duration to the nearest second to catch minor discrepancies
-            keyParts.Add(Math.Round(song.DurationInSeconds).ToString());
+            keyParts.Add(Math.Round(targetSong.DurationInSeconds).ToString());
         }
         if (criteria.HasFlag(DuplicateCriteria.FileSize))
         {
-            keyParts.Add(song.FileSize.ToString());
+            keyParts.Add(targetSong.FileSize.ToString());
         }
 
         // Join the parts with a separator that is unlikely to appear in the data
@@ -335,7 +400,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.OtherArtistsName = string.IsNullOrWhiteSpace(survivor.OtherArtistsName) ? ghost.OtherArtistsName : survivor.OtherArtistsName;
         survivor.Genre = survivor.Genre is null ? ghost.Genre : survivor.Genre;  
         survivor.BitRate = survivor.BitRate > ghost.BitRate ? survivor.BitRate : ghost.BitRate; // Keep the highest bitrate 
-        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName)? survivor.GenreName: ghost.GenreName; // Keep the highest sample rate
+        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName)? ghost.GenreName: survivor.GenreName; 
         survivor.TrackNumber = survivor.TrackNumber != 0 ? survivor.TrackNumber : ghost.TrackNumber;
         survivor.DiscNumber = survivor.DiscNumber != 0 ? survivor.DiscNumber : ghost.DiscNumber;
         survivor.ReleaseYear = survivor.ReleaseYear != 0 ? survivor.ReleaseYear : ghost.ReleaseYear;
@@ -351,8 +416,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.Composer = string.IsNullOrWhiteSpace(survivor.Composer) ? ghost.Composer : survivor.Composer;
         survivor.Conductor = string.IsNullOrWhiteSpace(survivor.Conductor) ? ghost.Conductor : survivor.Conductor;
         survivor.Language = string.IsNullOrWhiteSpace(survivor.Language) ? ghost.Language : survivor.Language;
-        survivor.IsInstrumental = survivor.IsInstrumental ?? ghost.IsInstrumental;
-        survivor.CoverImageBytes = survivor.CoverImageBytes ?? ghost.CoverImageBytes;
+        survivor.IsInstrumental ??= ghost.IsInstrumental;
 
 
         // Ensure the survivor has the earliest creation date.
@@ -361,6 +425,73 @@ public class DuplicateFinderService : IDuplicateFinderService
             survivor.DateCreated = ghost.DateCreated;
         }
     }
+
+    public DuplicateSearchResult FindDuplicatesForSong(SongModelView targetSong, DuplicateCriteria criteria)
+    {
+        if (criteria == DuplicateCriteria.None)
+        {
+            return new DuplicateSearchResult();
+        }
+
+        using var realm = _realmFactory.GetRealmInstance();
+        var allSongsQuery = realm.All<SongModel>();
+
+        IQueryable<SongModel> potentialDuplicatesQuery = realm.All<SongModel>()
+                                                         .Where(s => s.Id != targetSong.Id); // Exclude the song itself
+
+        if (criteria.HasFlag(DuplicateCriteria.Title))
+        {
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => s.Title == targetSong.Title);
+        }
+        if (criteria.HasFlag(DuplicateCriteria.Artist))
+        {
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => s.ArtistName == targetSong.ArtistName);
+        }
+        if (criteria.HasFlag(DuplicateCriteria.Album))
+        {
+            potentialDuplicatesQuery = potentialDuplicatesQuery.Where(s => s.AlbumName == targetSong.AlbumName);
+        }
+        if (criteria.HasFlag(DuplicateCriteria.Duration))
+        {
+            const double durationTolerance = 0.5; // Find songs within +/- 0.5 seconds
+            double lowerBound = targetSong.DurationInSeconds - durationTolerance;
+            double upperBound = targetSong.DurationInSeconds + durationTolerance;
+
+            potentialDuplicatesQuery = potentialDuplicatesQuery
+                .Where(s => s.DurationInSeconds > lowerBound && s.DurationInSeconds < upperBound);
+        }
+
+
+        var duplicates = _mapper.Map<List<SongModelView>>(potentialDuplicatesQuery.ToList());
+
+        if (duplicates.Count == 0)
+        {
+            return new DuplicateSearchResult(); // No duplicates found
+        }
+
+        // Since we found duplicates, we need to create a single DuplicateSet
+        var allItemsInSet = new List<SongModelView> { targetSong };
+        allItemsInSet.AddRange(duplicates);
+
+        // Use your existing logic to find the best one to keep
+        var originalSong = DetermineBestSong(allItemsInSet);
+
+        var set = new DuplicateSetViewModel(originalSong.Title, originalSong.DurationInSeconds);
+        set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original));
+
+        foreach (var duplicateSong in allItemsInSet.Where(s => s.Id != originalSong.Id))
+        {
+            set.Items.Add(new DuplicateItemViewModel(duplicateSong, DuplicateStatus.Duplicate));
+        }
+
+        return new DuplicateSearchResult
+        {
+            CriteriaUsed = criteria,
+            TotalSongsScanned = duplicates.Count + 1, // The found songs + the original
+            DuplicateSets = new List<DuplicateSetViewModel> { set }
+        };
+    }
+
 }
 [Flags]
 public enum DuplicateCriteria
@@ -372,7 +503,7 @@ public enum DuplicateCriteria
     Duration = 8,
     FileSize = 16,
     // Add any other SongModel properties you want to compare
-
+    AudioFingerprint = 32,
     // --- Common Presets ---
     Default = Title | Duration,
     Strict = Title | Artist | Album | Duration,
@@ -384,5 +515,5 @@ public class DuplicateSearchResult
     public DuplicateCriteria CriteriaUsed { get; set; }
     public List<DuplicateSetViewModel> DuplicateSets { get; set; } = new();
     public int TotalSongsScanned { get; set; }
-    public List<SongModel>? ResultSongs { get; set; } = null;
+    public List<SongModelView>? ResultSongs { get; set; } = null;
 }

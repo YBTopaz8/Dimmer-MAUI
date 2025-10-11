@@ -63,7 +63,7 @@ public partial class SettingsPage : ContentPage
 
 
 
-        var progressReporter = new Progress<LyricsProcessingProgress>(progress =>
+        Progress<LyricsProcessingProgress>? progressReporter = new Progress<LyricsProcessingProgress>(progress =>
         {
             MyProgressBar.Progress = (double)progress.ProcessedCount / progress.TotalCount;
             MyProgressLabel.Text = $"Processing: {progress.CurrentFile} {Environment.NewLine}" +

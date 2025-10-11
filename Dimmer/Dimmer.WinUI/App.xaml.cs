@@ -79,7 +79,7 @@ public partial class App : MauiWinUIApplication
         errorHandler?.HandleError((Exception)e.ExceptionObject);
         Exception exx = (Exception)e.ExceptionObject;
 
-        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+        string errorDetails = $"********** UNHANDLED EXCEPTION! Winui **********\n" +
                                  $"Exception Type: {exx.GetType()}\n" +
                                  $"Message: {exx.Message}\n" +
                                  $"Source: {exx.Source}\n" +

@@ -2,6 +2,8 @@
 
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
+using System.Collections.Concurrent;
+
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
@@ -21,183 +23,167 @@ public class AudioFileProcessor : IAudioFileProcessor
         _metadataService = metadataService;
         _config = config;
     }
-
     public List<FileProcessingResult> ProcessFiles(IEnumerable<string> filePaths)
     {
-        var results = new List<FileProcessingResult>();
+        // This parallel processing approach can significantly speed up scanning large libraries on multi-core CPUs.
+        var results = new ConcurrentBag<FileProcessingResult>();
 
-        foreach (var path in filePaths)
+        Parallel.ForEach(filePaths, filePath =>
         {
             try
             {
-                // We call ProcessFile for each path.
-                // If an exception happens inside ProcessFile, we will catch it here.
-                var singleResult = ProcessFile(path);
+                var singleResult = ProcessFile(filePath);
                 results.Add(singleResult);
             }
             catch (Exception ex)
             {
-                // --- THIS IS THE SAFETY NET ---
-                // An unexpected exception occurred while processing a single file.
-                // This could be the ATL library crash or something else.
-
-                // Log the error with the specific file path so you can debug it later.
-                Debug.WriteLine($"A critical, unhandled error occurred while processing file: {path}. Skipping this file.");
-
-                // Create a result object indicating failure for this specific file.
-                var errorResult = new FileProcessingResult();
-                errorResult.Errors.Add($"A critical error occurred: {ex.Message}. The file was skipped.");
+                Debug.WriteLine($"CRITICAL FAILURE processing file '{filePath}': {ex.Message}. This file will be skipped.");
+                var errorResult = new FileProcessingResult(filePath);
+                errorResult.Errors.Add($"A critical, unhandled exception occurred: {ex.Message}");
                 results.Add(errorResult);
-
-                // The 'continue' statement is implied by the end of the loop block.
-                // The loop will simply move on to the next file path.
             }
-        }
-        return results;
+        });
+
+        return results.ToList();
     }
 
     public FileProcessingResult ProcessFile(string filePath)
     {
-        var result = new FileProcessingResult();
+        var result = new FileProcessingResult(filePath);
 
-        if (!AudioFileUtils.IsValidFile(filePath, _config.SupportedAudioExtensions))
+        if (!TaggingUtils.IsValidFile(filePath, _config.SupportedAudioExtensions))
         {
-            result.Errors.Add($"File is invalid or not supported: {filePath}");
+            result.Errors.Add("File is invalid, non-existent, or has an unsupported extension.");
             return result;
         }
 
-        Track track;
+        var track = new Track(filePath);
 
-        track = new Track(filePath);
+        // --- Step 1: Intelligent Metadata Aggregation ---
+        // We gather info from both tags and the filename, then merge them.
 
+        // From tags
+        string tagTitle = track.Title;
+        string tagArtist = track.Artist;
+        string tagAlbumArtist = track.AlbumArtist;
 
-        string title = track.Title;
-        string primaryArtist = track.Artist;
-        string albumArtist = track.AlbumArtist;
+        // From filename
+        var (parsedArtist, parsedTitle) = FilenameParser.Parse(filePath);
 
-        // --- Step 1: Check if the embedded tags are weak or missing ---
-        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(primaryArtist))
+        // --- Step 2: Merge and Sanitize Title ---
+        // Prefer tag title, but fall back to parsed filename title.
+        string rawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : parsedTitle ?? Path.GetFileNameWithoutExtension(filePath);
+        var (finalTitle, versionInfo) = TaggingUtils.ParseTrackTitle(rawTitle);
+
+        if (string.IsNullOrWhiteSpace(finalTitle))
         {
-            Debug.WriteLine($"Weak metadata tags for {filePath}. Attempting to parse from filename.");
-
-            // Use our new smart parser
-            var (parsedArtist, parsedTitle) = FilenameParser.Parse(filePath);
-
-            // Overwrite the weak tags with our parsed values if they are better.
-            if (string.IsNullOrWhiteSpace(title))
-                title = parsedTitle;
-            if (string.IsNullOrWhiteSpace(primaryArtist))
-                primaryArtist = parsedArtist;
+            finalTitle = "Unknown Title"; // Final fallback
         }
 
-        // --- Step 2: Sanitize and Fallback ---
-        title = AudioFileUtils.SanitizeTrackTitle(title);
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            title = Path.GetFileNameWithoutExtension(filePath); // Final fallback
-        }
+        // --- Step 3: Merge and Extract Artists ---
+        // Prefer tag artists, but fall back to parsed filename artist.
+        string primaryArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : parsedArtist;
+        string albumArtist = tagAlbumArtist; // No filename equivalent for this
 
+        List<string> artistNames = TaggingUtils.ExtractArtists(primaryArtist, albumArtist);
 
+        // --- Step 4: Check for Duplicates (using your logic) ---
+        // It's better to perform this check in the service layer after processing,
+        // but if you must do it here:
+        // var existingSong = _metadataService.FindSongByTitleAndDuration(finalTitle, track.Duration);
+        // if (existingSong != null) { ... return existing song ... }
 
-        // --- IT'S A NEW SONG! Proceed with creation. ---
-        Debug.WriteLine($"Song '{title}' is new. Creating new entry.");
+        // --- Step 5: Create and Populate Rich SongModelView ---
+        string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
+        string allArtistsString = string.Join(", ", artistNames);
 
-        // --- Artist Processing ---
-
-        List<string> rawArtistNames = AudioFileUtils.ExtractArtistNames(primaryArtist, albumArtist);
-        var artists = new List<ArtistModelView>();
-        foreach (var name in rawArtistNames)
-        {
-            artists.Add(_metadataService.GetOrCreateArtist(track, name));
-        }
-        string artistString = string.Join(", ", artists.Select(a => a.Name));
-
-        // --- Album Processing ---
-
+        // Album Processing
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
-        // Try to get cover art path early to associate with album
+        var album = _metadataService.GetOrCreateAlbum(track, albumName, primaryArtistName); // Pass artist for context
 
-        var album = _metadataService.GetOrCreateAlbum(track, albumName, string.Empty
-            );
-
-
-        // --- Genre Processing ---
+        // Genre Processing
         string genreName = string.IsNullOrWhiteSpace(track.Genre) ? "Unknown Genre" : track.Genre.Trim();
         var genre = _metadataService.GetOrCreateGenre(track, genreName);
 
-
-        // --- Song Model Creation ---
         var song = new SongModelView
         {
+            Id = ObjectId.GenerateNewId(), // Assuming you use MongoDB ObjectId
             FilePath = filePath,
-            Title = title,
+            Title = finalTitle,
+            Description = versionInfo ?? track.Description ?? string.Empty, // Store version info in Description!
+
+            // Artist Info
+            ArtistName = primaryArtistName,
+            OtherArtistsName = allArtistsString,
+
+            // Album Info
             Album = album,
             AlbumName = album.Name,
-            ArtistName= artists.FirstOrDefault()?.Name ?? "Unknown Artist",
-            OtherArtistsName= artistString,
+
+            // Genre Info
             Genre = genre,
-            GenreName=track.Genre,
-            BPM = track.BPM,
-            Composer = track.Composer,
+            GenreName = genre.Name,
+
+            // Technical Info
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
-            TrackNumber= track.TrackNumber,
             FileSize = new FileInfo(filePath).Length,
             FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
+
+            // Tag Info
             ReleaseYear = track.Year,
+            TrackNumber = track.TrackNumber,
             DiscNumber = track.DiscNumber,
             DiscTotal = track.DiscTotal,
-            Description= track.Description ?? string.Empty,
+            BPM = track.BPM,
+            Composer = track.Composer,
+            Conductor = track.Conductor ?? string.Empty,
             Language = track.Language ?? string.Empty,
-            IsNew=true,
-            Conductor= track.Conductor ?? string.Empty,
-            Id= ObjectId.GenerateNewId()
-            ,
+            PopularityScore = track.Popularity ?? 0, // Map ATL's Popularity to Rating
 
+            IsNew = true,
+            DateCreated = DateTimeOffset.UtcNow,
+            LastDateUpdated = DateTimeOffset.UtcNow
         };
-        try
+
+        // Your logic to set the unique key
+        song.SetTitleAndDuration(song.Title, song.DurationInSeconds);
+
+        // Associate Artists with the song
+        song.ArtistToSong = new();
+        foreach (var name in artistNames)
         {
-
-
-            foreach (var id in artists)
-            {
-                if (song.ArtistToSong is null)
-                {
-                    song.ArtistToSong =new();
-
-                    song.ArtistToSong.Add(id);
-                }
-            }
-
-
-            song.LastDateUpdated = DateTimeOffset.UtcNow;
-            result.ProcessedSong = song;
-            Debug.WriteLine($"Processed: {song.Title} by {song.ArtistName}");
-
-            song.HasLyrics = track.Lyrics.Any();
-            if (track.Lyrics is not null && track.Lyrics.Count > 0)
-            {
-                song.UnSyncLyrics = track.Lyrics[0].UnsynchronizedLyrics;
-                if(song.EmbeddedSync is null)
-                {
-                    song.EmbeddedSync = new ObservableCollection<LyricPhraseModelView>();
-                }
-
-                // Basic to string, real app might parse into a structured format or just store raw
-                foreach (var item in track.Lyrics[0].SynchronizedLyrics)
-                {
-                    song.EmbeddedSync.Add(new LyricPhraseModelView(item));
-                }
-
-
-            }
-            _metadataService.AddSong(song);
+            var artistModel = _metadataService.GetOrCreateArtist(track, name);
+            song.ArtistToSong.Add(artistModel);
         }
-        catch (Exception ex)
+
+        // Lyrics Processing
+        song.HasLyrics = track.Lyrics is { Count: > 0 };
+        if (song.HasLyrics)
         {
-            Debug.WriteLine(ex.Message);
+            var lyricsInfo = track.Lyrics.First();
+            song.UnSyncLyrics = lyricsInfo.UnsynchronizedLyrics;
+            song.EmbeddedSync = new(lyricsInfo.SynchronizedLyrics.Select(p => new LyricPhraseModelView(p)));
         }
+
+        // TODO: Cover Art Processing
+        // var pictureInfo = track.EmbeddedPictures.FirstOrDefault();
+        // if (pictureInfo != null)
+        // {
+        //     song.CoverArtHash = _coverArtService.SaveCoverArt(pictureInfo.PictureData, album.Id);
+        //     song.CoverImageBytes = pictureInfo.PictureData; // Or however you handle it
+        // }
+
+        result.ProcessedSong = song;
+        // The service layer should be responsible for calling AddSong
+        // _metadataService.AddSong(song); 
+
         return result;
+    }
 
+    internal void Cleanup()
+    {
+        _metadataService.ClearAll();
+        
     }
 }

@@ -67,34 +67,10 @@ public static class StatesMapper
             DimmerPlaybackState.PlayPreviousUser => PlayType.Previous,
             DimmerPlaybackState.PausedDimmer => PlayType.Pause,
             DimmerPlaybackState.Seeked => PlayType.Seeked,
-
+            DimmerPlaybackState.Favorited => PlayType.Favorited,
             // states that have no meaningful PlayType:
 
             _ => null
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         };
     }

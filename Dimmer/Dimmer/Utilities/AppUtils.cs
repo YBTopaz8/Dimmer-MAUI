@@ -8,6 +8,45 @@ public static class AppUtils
 
     public static bool IsUserFirstTimeOpening { get; set; } = false;
 
+    public static string GetWellFormattedSharingTextHavingSongStats(SongModelView selectedSong)
+    {
+
+        //Do a well formatted sharing text having song stats including
+        //title, artist, album, duration, play count, last played date (humanized), and a link to the app.
+        // and playcompletedcount , skipped, paused count, rank in album etc
+        string title = string.IsNullOrWhiteSpace(selectedSong.Title) ? "Unknown Title" : selectedSong.Title;
+        string artist = string.IsNullOrWhiteSpace(selectedSong.ArtistName) ? "Unknown Artist" : selectedSong.ArtistName;
+        string album = string.IsNullOrWhiteSpace(selectedSong.AlbumName) ? "Unknown Album" : selectedSong.AlbumName;
+        string duration = TimeUtils.FormatDuration(selectedSong.DurationInSeconds);
+        string playCount = selectedSong.PlayCount > 0 ? selectedSong.PlayCount.ToString() : "0";
+        string lastPlayed = selectedSong.LastPlayed.HasValue ? TimeUtils.HumanizeDate(selectedSong.LastPlayed.Value) : "Never";
+        string playCompletedCount = selectedSong.PlayCompletedCount > 0 ? selectedSong.PlayCompletedCount.ToString() : "0";
+        string skippedCount = selectedSong.SkipCount > 0 ? selectedSong.SkipCount.ToString() : "0";
+        string pausedCount = selectedSong.PauseCount > 0 ? selectedSong.SkipCount.ToString() : "0";
+        string rankInAlbum = selectedSong.RankInAlbum > 0 ? selectedSong.RankInAlbum.ToString() : "N/A";
+            string seekCount = selectedSong.SeekCount > 0 ? selectedSong.SeekCount.ToString() : "0";
+        string rankInArtist = selectedSong.RankInArtist > 0 ? selectedSong.RankInArtist.ToString() : "N/A";
+        string numberOfFavs = selectedSong.NumberOfTimesFaved > 0 ? selectedSong.NumberOfTimesFaved.ToString() : "0";
+
+        string appLink = "https://github.com/YBTopaz8/Dimmer-MAUI/releases/"; // Replace with your actual app link
+        string shareText = $"🎵 Now Playing: \"{title}\" by {artist}\n" +
+                           $"💿 Album: {album}\n" +
+                           $"⏱ Duration: {duration}\n" +
+                           $"▶️ Play Count: {playCount}\n" +
+                           $"✅ Completed Plays: {playCompletedCount}\n" +
+                           $"⏭ Skips: {skippedCount}\n" +
+                           $"⏸ Pauses: {pausedCount}\n" +
+                           $"🔄 Seeks: {seekCount}\n" +
+                           $"🏆 Rank in Album: {rankInAlbum}\n" +
+                           $"🏅 Rank in Artist: {rankInArtist}\n" +
+                           $"❤️ Favorited: {numberOfFavs} times\n" +
+                           $"🕒 Last Played: {lastPlayed}\n\n" +
+                            $"Listen on Dimmer: {appLink}\n" +
+                           $"Shared via Dimmer";
+        return shareText;
+
+
+    }
 }
 public static class UserFriendlyLogGenerator
 {
@@ -600,4 +639,6 @@ public static class TimeUtils
             return years <= 1 ? "one year ago" : years + " years ago";
         }
     }
+
 }
+

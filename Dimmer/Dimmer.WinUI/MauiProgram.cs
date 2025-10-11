@@ -9,6 +9,8 @@ using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.AlbumsPage;
 using Dimmer.WinUI.Views.DimmerLiveUI;
+using Dimmer.WinUI.Views.PlaylistPages;
+using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Colors = Microsoft.Maui.Graphics.Colors;
@@ -33,18 +35,18 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-                Microsoft.Maui.Handlers.LabelHandler.Mapper.AppendToMapping(
-                    nameof(FlyoutBase.ContextFlyoutProperty), (handler, view) =>
-                {
-                    if (handler.PlatformView is Microsoft.UI.Xaml.FrameworkElement nativeView && view is Element element)
-                    {
-                        var contextFlyout = FlyoutBase.GetContextFlyout(element);
-                        if (contextFlyout?.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase nativeFlyout)
-                        {
-                            Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase.SetAttachedFlyout(nativeView, nativeFlyout);
-                        }
-                    }
-                });
+                //Microsoft.Maui.Handlers.LabelHandler.Mapper.AppendToMapping(
+                //    nameof(FlyoutBase.ContextFlyoutProperty), (handler, view) =>
+                //{
+                //    if (handler.PlatformView is Microsoft.UI.Xaml.FrameworkElement nativeView && view is Element element)
+                //    {
+                //        var contextFlyout = FlyoutBase.GetContextFlyout(element);
+                //        if (contextFlyout?.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase nativeFlyout)
+                //        {
+                //            Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase.SetAttachedFlyout(nativeView, nativeFlyout);
+                //        }
+                //    }
+                //});
 
 
                 Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
@@ -120,7 +122,7 @@ public static class MauiProgram
 
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddScoped<BaseViewModelWin>();
+        builder.Services.AddSingleton<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<AllArtistsPage>();
@@ -140,6 +142,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<DimmerLivePage>();
         builder.Services.AddSingleton<ExperimentsPage>();
         builder.Services.AddSingleton<SessionTransferVMWin>();
+
+        builder.Services.AddSingleton<DuplicatesMgtWindow>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
@@ -205,7 +209,7 @@ public static class MauiProgram
                 
             });
 
-            
+           
         });
 
 
@@ -220,6 +224,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<SocialViewModelWin>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<SongDetailPage>();
+        builder.Services.AddSingleton<AllPlaylists>();
+        builder.Services.AddSingleton<TqlTutorialViewModel>();
+        builder.Services.AddSingleton<TqlTutorialPage>();
+        builder.Services.AddSingleton<SingleAlbumPage>();
+        builder.Services.AddSingleton<WelcomePage>();
         return builder.Build();
     }
 

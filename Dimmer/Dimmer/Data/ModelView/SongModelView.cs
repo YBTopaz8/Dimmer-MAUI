@@ -12,6 +12,10 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string TitleDurationKey { get; set; }
 
+    [ObservableProperty]
+    public partial int NumberOfTimesFaved { get; set; }
+
+    
 
     public void SetTitleAndDuration(string title, double duration)
     {
@@ -69,13 +73,16 @@ public partial class SongModelView : ObservableObject
     public partial int Rating { get; set; } = 0;
     [ObservableProperty]
     public partial bool HasLyrics { get; set; }
-   
-    public bool HasSyncedLyrics => SyncLyrics.Length > 0;
-    [ObservableProperty]
-    public partial string SyncLyrics { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial byte[]? CoverImageBytes { get; set; }
+    public partial bool HasSyncedLyrics { get; internal set; }
+    [ObservableProperty]
+    public partial string SyncLyrics { get; set; } = string.Empty;
+    partial void OnSyncLyricsChanged(string value)
+    {
+        HasSyncedLyrics = !string.IsNullOrEmpty(value);
+
+    }
 
     [ObservableProperty]
     public partial bool IsInstrumental { get; set; }
@@ -188,7 +195,7 @@ public partial class SongModelView : ObservableObject
         {
             PlayCount = PlayEvents.Count;
             PlayCompletedCount = PlayEvents.Count(p => p.PlayType == (int)PlayType.Completed);
-
+            NumberOfTimesFaved= PlayEvents.Count(p => p.PlayType == (int)PlayType.Favorited);
             var lastPlayEvent = PlayEvents
                 .Where(p => p.PlayType == (int)PlayType.Completed)
                 .OrderByDescending(p => p.EventDate)

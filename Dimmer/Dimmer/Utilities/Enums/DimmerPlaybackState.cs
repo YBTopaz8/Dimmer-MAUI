@@ -38,4 +38,5 @@ public enum DimmerPlaybackState
     ChatLeftChannel,
     Buffering,
     Error,
+    Favorited,
 }

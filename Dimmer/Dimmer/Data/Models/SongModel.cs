@@ -20,6 +20,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public bool IsHidden { get; set; }
 
     public int? ReleaseYear { get; set; }
+    public int NumberOfTimesFaved { get; set; }
     public int? TrackNumber { get; set; }
     public string FileFormat { get; set; } = string.Empty;
     public string Lyricist { get; set; } = string.Empty;
@@ -38,9 +39,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public bool? IsInstrumental { get; set; }
     public string? SyncLyrics { get; set; } = string.Empty;
     public string? CoverImagePath { get; set; }
-    public byte[]? CoverImageBytes { get; set; }
-    public byte[]? ArtistImageBytes { get; set; }
-    public byte[]? AlbumImageBytes { get; set; }
+    
     public string? UnSyncLyrics { get; set; }
 
     public bool IsFavorite { get; set; }
@@ -245,7 +244,7 @@ public partial class SyncLyrics : EmbeddedObject
 public partial class UserNoteModel : EmbeddedObject
 {
 
-    public string Id { get; set; } = AudioFileUtils.GenerateId("UNote");
+    public string Id { get; set; } = TaggingUtils.GenerateId("UNote");
     public string? UserMessageText { get; set; }
     public string? UserMessageImagePath { get; set; }
     public string? UserMessageAudioPath { get; set; }

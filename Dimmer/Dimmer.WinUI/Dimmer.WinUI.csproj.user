@@ -20,6 +20,18 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\DuplicatesMgtWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\WelcomePage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\TQLCentric\TqlTutorialPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\PlaylistPages\AllPlaylists.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <Page Update="Views\WinUIPages\AllSongsListPage.xaml">
       <SubType>Designer</SubType>
     </Page>

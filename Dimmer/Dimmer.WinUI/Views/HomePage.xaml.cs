@@ -1,12 +1,20 @@
 ﻿//using Dimmer.DimmerLive.Models;
+using System.Diagnostics;
+
+using CommunityToolkit.Maui.Extensions;
+
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml;
 
 using Vanara.PInvoke;
+
+using Colors = Microsoft.Maui.Graphics.Colors;
+
 
 //using Microsoft.UI.Xaml.Controls;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
@@ -27,7 +35,17 @@ namespace Dimmer.WinUI.Views;
         public BaseViewModelWin MyViewModel { get; internal set; }
 
 
-
+//<Button.Behaviors>
+//    <toolkit:TouchBehavior
+//        HoveredScale = "1.5"
+//        HoveredAnimationEasing="BounceOut"
+//        HoveredAnimationDuration="450"
+//        x:Name="OnArtistButton"
+//        CommandParameter="{Binding .}"
+                                                
+//        TouchGestureCompleted="OnArtistButton_TouchGestureCompleted"
+//        LongPressCommandParameter="{Binding .}"/>
+//</Button.Behaviors>
         public HomePage(BaseViewModelWin vm , IWinUIWindowMgrService windowMgrService)
         {
             InitializeComponent();
@@ -39,22 +57,59 @@ namespace Dimmer.WinUI.Views;
 
         //MyViewModel.TranslatedSearch= TranslatedSearch;
         //MyViewModel.SongsCountLabel = SongsCountLabel;
-        _availableLayouts = new List<DataTemplate>
-        {
-            (DataTemplate)Resources["OGView"],
-        };
-        _availableItemsLayouts = new List<IItemsLayout>
-        {
-            new LinearItemsLayout(ItemsLayoutOrientation.Vertical) { ItemSpacing = 5 },
-            new GridItemsLayout(ItemsLayoutOrientation.Vertical) { Span = 6, VerticalItemSpacing = 10, HorizontalItemSpacing = 5 }
-        };
-        _windowMgrService = windowMgrService;
+        //_availableLayouts = new List<DataTemplate>
+        //{
+        //    (DataTemplate)Resources["OGView"],
+        //};
+        //_availableItemsLayouts = new List<IItemsLayout>
+        //{
+        //    new LinearItemsLayout(ItemsLayoutOrientation.Vertical) { ItemSpacing = 5 },
+        //    new GridItemsLayout(ItemsLayoutOrientation.Vertical) { Span = 6, VerticalItemSpacing = 10, HorizontalItemSpacing = 5 }
+        //};
+        //_windowMgrService = windowMgrService;
 
-        // Subscribe to the new events
-        _windowMgrService.WindowActivated += OnAnyWindowActivated;
-        _windowMgrService.WindowClosed += OnAnyWindowClosed;
-        _windowMgrService.WindowClosing += OnAnyWindowClosing;
+        //// Subscribe to the new events
+        //_windowMgrService.WindowActivated += OnAnyWindowActivated;
+        //_windowMgrService.WindowClosed += OnAnyWindowClosed;
+        //_windowMgrService.WindowClosing += OnAnyWindowClosing;
 
+    }
+
+
+    /*
+    protected async override void OnAppearing()
+    {
+        try
+        {
+            base.OnAppearing();
+            MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
+            MyViewModel.SongColView = SongsColView;
+
+            MyViewModel.CurrentMAUIPage = null;
+            MyViewModel.CurrentMAUIPage = this;
+            await MyViewModel.InitializeParseUser();
+        }
+        catch (Exception ex)
+        {
+
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
+        if (MyViewModel.ShowWelcomeScreen)
+        {
+
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
+            await Shell.Current.GoToAsync(nameof(WelcomePage), true);
+        }
+
+        else
+        {
+
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+
+            await Task.Delay(4000);
+            MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+            _ = MyViewModel.PerformBackgroundInitializationAsync();
+        }
     }
 
     private void OnAnyWindowClosing(object? sender, WinUIWindowMgrService.WindowClosingEventArgs e)
@@ -152,6 +207,7 @@ namespace Dimmer.WinUI.Views;
         var selectedSec = view.BindingContext as SongModelView;
         await MyViewModel.ProcessAndMoveToViewSong(selectedSec);
     }
+    */
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
         bool isAddNext = false;
@@ -206,61 +262,25 @@ namespace Dimmer.WinUI.Views;
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
         if (isAddNext)
         {
-            MyViewModel.AddToQueueEnd(MyViewModel.SearchResults);
+            MyViewModel.AddListOfSongsToQueueEnd(MyViewModel.SearchResults);
 
             return;
         }
 
-        _windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
+        //_windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
     }
 
-
-    ////////
-
-
-
-
-
-
-
-
-    protected async override void OnAppearing()
-    {
-        base.OnAppearing();
-        MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
-        MyViewModel.SongColView = SongsColView;
-
-       await MyViewModel.InitializeParseUser();
-    }
-
-
-    private void MainSongsColView_Loaded(object sender, EventArgs e)
-    {
-
-        //MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery+ " >>addend!");
-    }
-
-    private async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
-    {
-        var send = (MenuFlyoutItem)sender;
-        var song = send.BindingContext as SongModelView;
-
-        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
-        {
-            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-        }
-    }
 
     private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Microsoft.Maui.Controls.View)sender;
         var song = send.BindingContext as SongModelView;
-        if(MyViewModel.PlaybackQueue.Count<1)
+        if (MyViewModel.PlaybackQueue.Count < 1)
         {
             MyViewModel.SearchSongSB_TextChanged(">>addnext!");
         }
-      await  MyViewModel.PlaySong(song, CurrentPage.HomePage);
+        await MyViewModel.PlaySong(song, CurrentPage.HomePage);
         //ScrollToSong_Clicked(sender, e);
     }
 
@@ -288,6 +308,74 @@ namespace Dimmer.WinUI.Views;
         //    await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
         //}
     }
+    private void GlobalColView_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var sendd = (View)sender;
+
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+
+        if (properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        {
+            ScrollToSong_Clicked(sender, e);
+            return;
+
+
+        }
+
+
+    }
+    private void ScrollToSong_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            //Debug.WriteLine(SongsColView.ItemsSource.GetType());
+            //var obsCol = SongsColView.ItemsSource as ReadOnlyObservableCollection<SongModelView>;
+
+            //var index = obsCol.ToList();
+            //var iind = index.FindIndex(x => x.Id == MyViewModel.CurrentPlayingSongView.Id);
+            //if (iind < 0)
+            //{
+            //    return;
+            //}
+            //SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+    private void SongCoverImage_Clicked(object sender, EventArgs e)
+    {
+
+    }
+    ////////
+
+
+
+
+
+
+
+    /*
+    private void MainSongsColView_Loaded(object sender, EventArgs e)
+    {
+
+        //MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery+ " >>addend!");
+    }
+
+    private async void ArtistsEffectsView_LongPressed(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+
+        if (await MyViewModel.SelectedArtistAndNavtoPage(song))
+        {
+            await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
+        }
+    }
+
 
     private bool isOnFocusMode;
 
@@ -374,28 +462,7 @@ namespace Dimmer.WinUI.Views;
         //PlaylistPopup.IsOpen = !PlaylistPopup.IsOpen;
         //MyViewModel.ActivePlaylistModel
     }
-    private void ScrollToSong_Clicked(object sender, EventArgs e)
-    {
-        try
-        {
-            //Debug.WriteLine(SongsColView.ItemsSource.GetType());
-            var obsCol = SongsColView.ItemsSource as ReadOnlyObservableCollection<SongModelView>;
-
-            var index = obsCol.ToList();
-            var iind = index.FindIndex(x => x.Id== MyViewModel.CurrentPlayingSongView.Id);
-            if (iind<0)
-            {
-                return;
-            }
-            SongsColView.ScrollTo(index: iind, -1, ScrollToPosition.Start, true);
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
+    
     private void PlaylistsChip_Clicked(object sender, EventArgs e)
     {
     }
@@ -451,7 +518,7 @@ namespace Dimmer.WinUI.Views;
     }
 
 
-    private async void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
     {
         
 
@@ -692,7 +759,6 @@ namespace Dimmer.WinUI.Views;
 
     }
     
-    */
     private void LyricsChip_Clicked(object sender, EventArgs e)
     {
         //await Task.WhenAll(LyricsView.AnimateFadeInFront(400), SongsGrid.AnimateFadeOutBack(300), AllEventsBorder.AnimateFadeOutBack(300));
@@ -1125,7 +1191,7 @@ await this.FadeIn(500, 1.0);
     {
 
     }
-
+    */
     private void SearchSongSB_Clicked(object sender, EventArgs e)
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
@@ -1148,164 +1214,216 @@ await this.FadeIn(500, 1.0);
 
     }
 
-    private void SongsColView_Unloaded(object sender, EventArgs e)
-    {
+    /*
+private void SongsColView_Unloaded(object sender, EventArgs e)
+{
 
-    }
+}
 
-    private void ColvViewGest_PointerEntered(object sender, PointerEventArgs e)
-    {
-        
-    }
+private void ColvViewGest_PointerEntered(object sender, PointerEventArgs e)
+{
 
-    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
-    {
+}
 
-    }
+private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+{
 
-    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
-    {
+}
 
-    }
+private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+{
 
-    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
-    {
+}
 
-    }
+private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+{
 
-    private void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
-    {
+}
 
-    }
+private void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
+{
 
-    private void PlayNext_Clicked(object sender, EventArgs e)
-    {
+}
 
-    }
+private void PlayNext_Clicked(object sender, EventArgs e)
+{
 
-    private void AddQueue_Clicked(object sender, EventArgs e)
-    {
+}
 
-    }
+private void AddQueue_Clicked(object sender, EventArgs e)
+{
 
-    private void ViewArtist_Clicked(object sender, EventArgs e)
-    {
+}
 
-    }
+private void ViewArtist_Clicked(object sender, EventArgs e)
+{
 
-    private void PointerGestureRecognizer_PointerPressed_1(object sender, PointerEventArgs e)
-    {
+}
 
-    }
+private void PointerGestureRecognizer_PointerPressed_1(object sender, PointerEventArgs e)
+{
 
-    private void GlobalColView_PointerPressed(object sender, PointerEventArgs e)
-    {
-        var sendd = (View)sender;
-        
-        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
-        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
-
-        if (properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
-        {
-            ScrollToSong_Clicked(sender, e);
-            return;
+}
 
 
-        }
+private void BlackListSong_Clicked(object sender, EventArgs e)
+{
+
+}
+
+private void CopySongs_Clicked(object sender, EventArgs e)
+{
+
+}
+
+private async void DeleteSongs_Clicked(object sender, EventArgs e)
+{
+   await MyViewModel.DeleteSongs(MyViewModel.SearchResults);
+}
+
+private void SearchBtn_Loaded(object sender, EventArgs e)
+{
 
 
-    }
+   //SearchBtn.Behaviors.Add(new Microsoft.);
+}
 
-    private void BlackListSong_Clicked(object sender, EventArgs e)
-    {
+private void SearchBtn_Unloaded(object sender, EventArgs e)
+{
+   SearchBtn.Behaviors.Clear();
+}
 
-    }
+private void ViewSongDetails_Clicked(object sender, EventArgs e)
+{
+   MainPagePopup.IsOpen = !MainPagePopup.IsOpen;
 
-    private void CopySongs_Clicked(object sender, EventArgs e)
-    {
+   //SfChip btn = (SfChip)sender;
+}
 
-    }
+private async void TQLL_Clicked(object sender, EventArgs e)
+{
+   await Shell.Current.GoToAsync(nameof(TqlTutorialPage), true);
+}
 
-    private async void DeleteSongs_Clicked(object sender, EventArgs e)
-    {
-        await MyViewModel.DeleteSongs(MyViewModel.SearchResults);
-    }
 
-    private void SearchBtn_Loaded(object sender, EventArgs e)
-    {
-      
 
-        //SearchBtn.Behaviors.Add(new Microsoft.);
-    }
+private void ToggleMultiSelect_Clicked(object sender, EventArgs e)
+{
+   switch (SongsColView.SelectionMode)
+   {
+       case SelectionMode.None:
+            break;
+       case SelectionMode.Single:
+           SongsColView.SelectionMode = SelectionMode.Multiple;
+           SongsColView.BackgroundColorTo(Colors.DarkSlateGray, 16, 450, easing: Easing.SpringOut);
+           DeleteSeleted.IsVisible = false;
+           break;
+       case SelectionMode.Multiple:
+           SongsColView.SelectionMode = SelectionMode.Single;
+           MainThread.BeginInvokeOnMainThread(() => SongsColView.BackgroundColorTo(Colors.Transparent, 16, 450, easing: Easing.SpringIn));
+           DeleteSeleted.IsVisible = true;
+           break;
+       default:
+           break;
+   }
+}
 
-    private void SearchBtn_Unloaded(object sender, EventArgs e)
-    {
-        SearchBtn.Behaviors.Clear();
-    }
 
-    private void ViewSongDetails_Clicked(object sender, EventArgs e)
-    {
-        MainPagePopup.IsOpen = !MainPagePopup.IsOpen;
-    }
+private void DeleteSeleted_Clicked(object sender, EventArgs e)
+{
 
-  
+}
+
+private void SongCoverImage_HandlerChanged(object sender, EventArgs e)
+{
+   //var natImgBtn =  
+}
+
+private void SongsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+{
+   Debug.WriteLine(e.CurrentSelection.GetType());
+   var oldItems = e.PreviousSelection as List<object>;
+   var currentItems = e.CurrentSelection as List<object>;
+
+   if (currentItems is null) return;
+   if (SongsColView.SelectionMode == SelectionMode.Single) return;
+   if (currentItems.Count >0)
+   {
+       bool isOneSelected = currentItems.Count == 1;
+       PlaybackAndSelectedSongsBorder.IsVisible = true;
+       if(isOneSelected)
+       {
+           PlaybackAndSelectedSongsLabel.Text = $"{currentItems.Count} Song Selected";
+       }
+       else
+       {
+
+           PlaybackAndSelectedSongsLabel.Text = $"{currentItems.Count} Songs Selected";
+
+       }
+   }
+}
 }
 
 public class SongViewTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate? ListTemplate { get; set; }
-    public DataTemplate? GridTemplate { get; set; }
+public DataTemplate? ListTemplate { get; set; }
+public DataTemplate? GridTemplate { get; set; }
 
-    protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
-    {
-        // 'container' in MAUI is typically the ContentPresenter or ViewCell for the item.
-        // We need to walk up the tree from this container to find the CollectionView.
-        var collectionView = FindParent<CollectionView>(container);
+protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
+{
+   // 'container' in MAUI is typically the ContentPresenter or ViewCell for the item.
+   // We need to walk up the tree from this container to find the CollectionView.
+   var collectionView = FindParent<CollectionView>(container);
 
-        if (collectionView == null)
-        {
-            // If we can't find the CollectionView, we can't determine the mode.
-            // Fall back to a default template.
-            return GridTemplate!;
-        }
+   if (collectionView == null)
+   {
+       // If we can't find the CollectionView, we can't determine the mode.
+       // Fall back to a default template.
+       return GridTemplate!;
+   }
 
-        // Once we have the CollectionView, we can get its BindingContext, which is our ViewModel.
-        if (collectionView.BindingContext is BaseViewModelWin viewModel)
-        {
-            // THE MAGIC: Check the CurrentViewMode property on the ViewModel
-            // and return the appropriate template.
-            return viewModel.CurrentViewMode == CollectionViewMode.Grid
-                ? GridTemplate!
-                : ListTemplate!;
-        }
+   // Once we have the CollectionView, we can get its BindingContext, which is our ViewModel.
+   if (collectionView.BindingContext is BaseViewModelWin viewModel)
+   {
+       // THE MAGIC: Check the CurrentViewMode property on the ViewModel
+       // and return the appropriate template.
+       return viewModel.CurrentViewMode == CollectionViewMode.Grid
+           ? GridTemplate!
+           : ListTemplate!;
+   }
 
-        // If the BindingContext isn't the expected ViewModel, fall back to the default.
-        return GridTemplate!;
-    }
+   // If the BindingContext isn't the expected ViewModel, fall back to the default.
+   return GridTemplate!;
+}
 
-    /// <summary>
-    /// A helper method to traverse the MAUI logical tree upwards to find a parent of a specific type.
-    /// This is the MAUI equivalent of traversing the visual tree.
-    /// </summary>
-    private T? FindParent<T>(BindableObject bindable) where T : BindableObject
-    {
-        Element? parent = bindable as Element;
+/// <summary>
+/// A helper method to traverse the MAUI logical tree upwards to find a parent of a specific type.
+/// This is the MAUI equivalent of traversing the visual tree.
+/// </summary>
+private T? FindParent<T>(BindableObject bindable) where T : BindableObject
+{
+   Element? parent = bindable as Element;
 
-        while (parent != null)
-        {
-            // Check if the current parent is the type we're looking for.
-            if (parent is T correctlyTyped)
-            {
-                return correctlyTyped;
-            }
+   while (parent != null)
+   {
+       // Check if the current parent is the type we're looking for.
+       if (parent is T correctlyTyped)
+       {
+           return correctlyTyped;
+       }
 
-            // Move up to the next parent in the logical tree.
-            parent = parent.Parent;
-        }
+       // Move up to the next parent in the logical tree.
+       parent = parent.Parent;
+   }
 
-        // If we reach the top without finding the parent, return null.
-        return null;
-    }
+
+   // If we reach the top without finding the parent, return null.
+   return null;
+
+
+}
+*/
 }
 
 

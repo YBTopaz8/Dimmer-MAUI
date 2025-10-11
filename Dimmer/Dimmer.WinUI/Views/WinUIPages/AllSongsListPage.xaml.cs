@@ -1,13 +1,22 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
+
+using Dimmer.DimmerSearch;
+using Dimmer.DimmerSearch.TQL;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Dimmer.DimmerSearch.TQL;
 using Microsoft.UI.Xaml.Media.Animation;
+
 using Windows.UI.Text;
 
 using WinUI.TableView;
 
+using static Dimmer.DimmerSearch.StaticMethods;
+
+using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using Colors = Microsoft.UI.Colors;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using DataTemplateSelector = Microsoft.UI.Xaml.Controls.DataTemplateSelector;
@@ -15,7 +24,6 @@ using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-
 using Page = Microsoft.UI.Xaml.Controls.Page;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -35,7 +43,8 @@ public sealed partial class AllSongsListPage : Page
         this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
     }
     BaseViewModelWin MyViewModel { get; set; }
-  
+
+    private TableViewCellSlot _lastActiveCellSlot;
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
 
@@ -43,7 +52,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-
+        return;
+        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+        if (isCtlrKeyPressed)
+            ProcessCellClick(isExclusion: false);
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -125,7 +139,8 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-    private void SearchSongSB_TextChanged(object sender, RoutedEventArgs e)
+    private void SearchSongSB_Text
+        (object sender, RoutedEventArgs e)
     {
         var send = sender as TextBox;
         if (send == null)
@@ -150,10 +165,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        var send = sender as global::WinUI.TableView.TableView;
-        if (send == null)
-            return;
-
+        return;
+        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+        if (isCtlrKeyPressed)
+            ProcessCellClick(isExclusion: true);
 
     }
 
@@ -168,26 +185,7 @@ public sealed partial class AllSongsListPage : Page
         MyViewModel.SearchSongSB_TextChanged(text);
     }
 
-    private void SearchSongSB_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-
-        var box = sender as RichEditBox;
-        if (box == null)
-            return;
-
-        // Get the full text from the box
-        box.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out string text);
-
-        // Prevent recursive event firing
-        box.TextChanged -= SearchSongSB_TextChanged;
-
-        // Highlight the syntax
-        HighlightSyntax(box.TextDocument, text);
-
-        // Restore the event handler
-        box.TextChanged += SearchSongSB_TextChanged;
-
-    }
+  
     private void HighlightSyntax(Microsoft.UI.Text.RichEditTextDocument document, string text)
     {
         // First, clear all previous formatting by setting the whole range to the default color
@@ -287,7 +285,6 @@ public sealed partial class AllSongsListPage : Page
     private void SearchAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         
-        MyViewModel.SearchSongSB_TextChanged(sender.Text);
     }
 
     private void SearchAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
@@ -463,7 +460,7 @@ public sealed partial class AllSongsListPage : Page
                 break;
             case "AddToQueue":
                 // Add the selected songs to the queue
-                MyViewModel.AddToQueueEnd(selectedSongs);
+                MyViewModel.AddListOfSongsToQueueEnd(selectedSongs);
                 break;
             case "DeleteSelected":
                 // Delete the selected songs
@@ -507,7 +504,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CellContextFlyoutOpening(object sender, TableViewCellContextFlyoutEventArgs e)
     {
-
+        e.Handled = true;
     }
 
     private void MySongsTableView_ClearSorting(object sender, TableViewClearSortingEventArgs e)
@@ -556,6 +553,67 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CellSelectionChanged(object sender, TableViewCellSelectionChangedEventArgs e)
     {
+    
+    //    var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+
+
+    //    if (properties.IsXButton1Pressed)
+    //    {
+    //    }
+    //    else if (properties.IsXButton2Pressed)
+    //    {
+
+    //    }
+    
+    //var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+    //       (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+    //        Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+    //    if (isCtlrKeyPressed)
+    //        ProcessCellClick(isExclusion: false);
+
+        switch (MySongsTableView.SelectionMode)
+        {
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None:
+                break;
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Single:
+
+                if (e.AddedCells.Count > 0)
+                {
+                    var currSelection = e.AddedCells[0];
+                    var selectedColumnField = MySongsTableView.Columns[currSelection.Column].Header as string;
+
+                    var currentCellValue = MySongsTableView.GetCellsContent(e.AddedCells,false);
+                    // now i have the field and value, if it's album/artist then we want to update query to find all of said album/artist
+                    if(!string.IsNullOrEmpty(selectedColumnField) && !string.IsNullOrEmpty(currentCellValue))
+                    {
+                        string tqlQuery = string.Empty;
+                        switch (selectedColumnField)
+                        {
+                            case "Album":
+                                tqlQuery = PresetQueries.ByAlbum(currentCellValue);
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery); 
+                                break;
+                            case "Artist":
+                                tqlQuery = PresetQueries.ByArtist(currentCellValue);
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                break;
+                            case "Genre":
+                                tqlQuery = PresetQueries.ByGenre(currentCellValue);
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                break;
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Multiple:
+                break;
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Extended:
+                break;
+            default:
+                break;
+        }
 
     }
 
@@ -564,9 +622,15 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
+    
+
+
     private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
     {
-
+        Debug.WriteLine(e.Column?.Header);
+        Debug.WriteLine(e.Column?.Order);
+        Debug.WriteLine(e.Handled);
+        // latter, log it in vm
     }
 
     private void MySongsTableView_Loading(FrameworkElement sender, object args)
@@ -618,6 +682,7 @@ public sealed partial class AllSongsListPage : Page
             MyViewModel.SearchSongSB_TextChanged(text);
             // Handle Enter key press
             Debug.WriteLine("Enter key pressed.");
+            return;
             // You can trigger your search or any other action here
 
         }
@@ -652,16 +717,24 @@ public sealed partial class AllSongsListPage : Page
         Debug.WriteLine(MySongsTableView.ItemsSource?.GetType());
     }
 
-    private void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private async void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         Debug.WriteLine(e.Pointer.PointerId);
         Debug.WriteLine(e.OriginalSource.GetType());
-
-        // if it is a middle click, exclude in tql explictly
-        if (e.GetCurrentPoint(null).Properties.IsMiddleButtonPressed)
+        Microsoft.UI.Input.PointerPointProperties? pointerProps = e.GetCurrentPoint(null).Properties;
+        
+        if (pointerProps == null)
         {
-            var currentTql = MyViewModel.CurrentTqlQuery;
+            return;
+        }
+        var updateKind = pointerProps.PointerUpdateKind;
+        // if it is a middle click, exclude in tql explictly
 
+        if (updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased
+            || updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonPressed)
+        {
+            
+            await MyViewModel.ScrollToCurrentPlayingSongCommand.ExecuteAsync(null);
 
 
         }
@@ -688,13 +761,39 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        var OldValue = e.OldValue;
-        var newValue = e.NewValue;
-        var propValue = e.Property;
-        Debug.WriteLine(propValue?.GetType());
-        Debug.WriteLine(OldValue?.GetType());
-        Debug.WriteLine(newValue?.GetType());
+     {
+        //var OldValue = e.OldValue;
+        //TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
+        //var propValue = e.Property;
+        //Debug.WriteLine(propValue?.GetType());
+        //Debug.WriteLine(OldValue?.GetType());
+
+        //List<TableViewCellSlot> cells = new List<TableViewCellSlot>();
+        //cells.Add(newValue);
+
+        //var we=  MySongsTableView.GetCellsContent(cells, true);
+        //var ee =  MySongsTableView.GetSelectedContent(true);
+
+        // This event tells us exactly which cell the user just moved to or clicked on.
+        // We just store its location for the Tapped/RightTapped event to use.
+        if (e.NewValue is TableViewCellSlot newSlot)
+        {
+            _lastActiveCellSlot = newSlot;
+        }
+        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
+        if (nativeElement == null)
+            return;
+        // figure out if it is right click
+
+        //var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+
+        //if (properties.IsRightButtonPressed)
+        //{
+        //    MyViewModel.AddToNext();
+        //    return;
+
+
+        //}
     }
 
     private void MySongsTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -753,10 +852,26 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void CheckBox_Click(object sender, RoutedEventArgs e)
+    private async void CheckBox_Click(object sender, RoutedEventArgs e)
     {
+        try
+        {
 
+            var ee = (CheckBox)e.OriginalSource;
+            var song = (SongModelView)ee.DataContext;
+            if (song == null)
+            {
+
+                return;
+            }
+            await MyViewModel.AddFavoriteRatingToSong(song);
+        }
+        catch (Exception ex)
+        {
+            
+        }
     }
+
     public static T? FindVisualChild<T>(DependencyObject? parent, string? childName) where T : FrameworkElement
     {
         if (parent == null)
@@ -907,9 +1022,99 @@ public sealed partial class AllSongsListPage : Page
             }
 
             MyViewModel = vm;
-
+            MyViewModel.MySongsTableView = MySongsTableView;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
+    }
+
+    private void SearchAutoSuggestBox_TextChanged_1(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {        
+        MyViewModel.SearchSongSB_TextChanged(SearchTetxBox.Text);
+    }
+   
+    private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
+    {
+
+    }
+
+    private void ProcessCellClick(bool isExclusion)
+    {
+        return;
+        // 1. Check if we have a valid cell location from the CurrentCellChanged event.
+        if (_lastActiveCellSlot.Equals(default(TableViewCellSlot)))
+        {
+            Debug.WriteLine("[ProcessCellClick] Aborted: _lastActiveCellSlot is not set.");
+            return;
+        }
+
+        // 2. Use the TableView's own API to get the content.
+        string tableViewContent = MySongsTableView.GetCellsContent(
+            slots: new[] { _lastActiveCellSlot },
+            includeHeaders: true
+        );
+
+        Debug.WriteLine($"[ProcessCellClick] GetCellsContent returned: \"{tableViewContent?.Replace("\n", "\\n")}\"");
+
+        // 3. --- NEW, MORE ROBUST VALIDATION ---
+        // First, check if the string is fundamentally empty.
+        if (string.IsNullOrWhiteSpace(tableViewContent))
+        {
+            Debug.WriteLine("[ProcessCellClick] Aborted: tableViewContent is null or whitespace.");
+            return;
+        }
+
+        // Second, split the content to ensure we have BOTH a header and a value.
+        var parts = tableViewContent.Split(new[] { '\n' }, 2);
+        if (parts.Length < 2 || string.IsNullOrWhiteSpace(parts[1]))
+        {
+            // This is the critical check. If parts[1] is empty, it means the cell
+            // had no value, and we should not proceed.
+            Debug.WriteLine("[ProcessCellClick] Aborted: Cell value is empty. No clause generated.");
+            return;
+        }
+        // --- END OF NEW VALIDATION ---
+
+        // 4. Use your existing TQL converter.
+        string tqlClause = TqlConverter.ConvertTableViewContentToTql(tableViewContent);
+        if (string.IsNullOrEmpty(tqlClause))
+        {
+            Debug.WriteLine($"[ProcessCellClick] Aborted: TqlConverter failed to convert content.");
+            return;
+        }
+
+        Debug.WriteLine($"[ProcessCellClick] Generated TQL Clause: \"{tqlClause}\" | IsExclusion: {isExclusion}");
+
+        // 5. Call the ViewModel to update the query.
+        MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion);
+    }
+
+    private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
+    {
+        
+
+        //MyViewModel.OpenAndSelectFileInExplorer()
+    }
+
+    private void AddToEnd_Click(object sender, RoutedEventArgs e)
+    {
+        //Command = "{x:Bind MyViewModel.AddListOfSongsToQueueEndCommand}"
+        //                CommandParameter = "{x:Bind MySongsTableView.ItemsSource}"
+        Debug.WriteLine(MySongsTableView.Items.GetType());
+        var firstTen = MySongsTableView.Items.Take(10) as IEnumerable<SongModelView>;
+
+        Debug.WriteLine(firstTen is null);
+        //MyViewModel.AddListOfSongsToQueueEnd();
+    }
+
+    private void AddToNext_Click(object sender, RoutedEventArgs e)
+    {
+
+        //MyViewModel.AddToNext()
     }
 }
