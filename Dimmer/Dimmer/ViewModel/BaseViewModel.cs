@@ -109,7 +109,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         searchResultsHolder.Connect()
             .ObserveOn(RxApp.MainThreadScheduler) // Important for UI updates
             .Bind(out _searchResults)
-            .Subscribe()
+            .Subscribe( x=>
+            {
+                Debug.WriteLine(x.Count);
+            })
             .DisposeWith(Disposables);
 
 
@@ -1695,7 +1698,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         await LoadAndCacheCoverArtAsync(song);
     }
 
-
+    
     /// <summary>
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
@@ -1709,8 +1712,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         if(!string.IsNullOrEmpty(song.CoverImagePath))
         {
-            CurrentCoverImagePath = song.CoverImagePath;
-            return;
+            if (File.Exists(song.CoverImagePath))
+            {
+                CurrentCoverImagePath = song.CoverImagePath;
+            
+                return;
+            }
         }
 
 
@@ -1857,7 +1864,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 {
                     if(string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
                     {
+                        _stateService.SetCurrentLogMsg(new AppLogModel()
+                        {
+                            ViewSongModel = song,
+                            Log = $"Now on song {song.Title} by {song.ArtistName}"
+                        });
                         await LoadAndCacheCoverArtAsync(song);
+                                                
                     }
                 } finally
                 {
@@ -2079,6 +2092,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
+        await FindDuplicatesForSongAsync(CurrentPlayingSongView);
     }
     #endregion
 
@@ -4342,11 +4356,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             if (result.DuplicateSets.Count == 0)
             {
-                await Shell.Current.DisplayAlert("No Duplicates", "No duplicates found for this song based on the selected criteria.", "OK");
+                if(CurrentPageContext== CurrentPage.SingleSongPage)
+                {
+
+                    await Shell.Current.DisplayAlert("No Duplicates", "No duplicates found for this song based on the selected criteria.", "OK");
+
+                }
                 return;
             }
+            IsDuplicateFound = true;
             _duplicateSource.Clear();
             _duplicateSource.AddRange(result.DuplicateSets);
+
+            await Task.Delay(4000);
+            IsDuplicateFound = false;
         }
         catch (OperationCanceledException)
         {
@@ -4420,7 +4443,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
+    [ObservableProperty]
+    public partial bool IsDuplicateFound { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsAboutToConsolidateDupes { get; set; }
     [RelayCommand]
     private void CancelFindDuplicates()
     {
@@ -5556,7 +5583,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             IsTimestampingInProgress = true;
             Shell.Current.FlyoutIsPresented = false;
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         } else
         {
             IsTimestampingInProgress = false;

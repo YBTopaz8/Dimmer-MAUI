@@ -281,7 +281,7 @@
                         Grid.Column="3"
                         BackgroundColor="Transparent"
                         ToolTipProperties.Text="{Binding ArtistName, StringFormat='Press and Hold Ctrl The Left Click to quickly view Artist {0} '}">
-                   
+
 
                         <Label
                             LineBreakMode="WordWrap"
@@ -379,7 +379,13 @@
 
     </ContentPage.Resources>
 
-
+    <VerticalStackLayout IsVisible="{Binding IsDuplicateFound}">
+        <Label Text="{Binding DuplicateSets.Count, StringFormat='There are {0} duplicates for this song'}" />
+        <Button
+            x:Name="ConsolidateDuplicates"
+            Clicked="ConsolidateDuplicates_Clicked"
+            Text="Consolidate" />
+    </VerticalStackLayout>
 
 
 
