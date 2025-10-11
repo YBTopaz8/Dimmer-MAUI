@@ -150,15 +150,18 @@ IRepository<SongModel> songRepository, // Inject the repository
         {
             _logger.LogInformation("Found precise lyrics match for '{Track}' using /api/get.", song.Title);
             List<LrcLibLyrics>? lrcs = [preciseMatch];
-            return lrcs;
+            if (lrcs is not null && !string.IsNullOrEmpty(lrcs.First().SyncedLyrics))
+            {
+                return lrcs;
+            }
         }
 
         // If no precise match, fall back to the broader /api/search
         _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
         var searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
-
+        var resultsWithSynced = searchResults.Where(r => !string.IsNullOrEmpty(r.SyncedLyrics));
         // Return the first result from the search, if any
-        return searchResults.ToList();
+        return resultsWithSynced.ToList();
     }
 
     /// <summary>

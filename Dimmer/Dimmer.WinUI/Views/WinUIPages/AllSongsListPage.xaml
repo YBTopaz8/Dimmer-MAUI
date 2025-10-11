@@ -118,11 +118,15 @@
                     Text="{x:Bind MyViewModel.CurrentTqlQuery}"
                     TextChanged="SearchAutoSuggestBox_TextChanged" />
             </StackPanel>
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="10">
                 <Button
                     Command="{x:Bind MyViewModel.SearchSongSB_TextChangedCommand}"
                     CommandParameter="{x:Bind MyViewModel.CurrentTqlQuery}"
                     Content="Run" />
+                <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
                 <Button Command="{x:Bind MyViewModel.ResetSearchCommand}" Content="Clear" />
                 <Button Command="{x:Bind MyViewModel.AddToNextCommand}" Content="Add To Next" />
                 <Button Command="{x:Bind MyViewModel.AddToQueueCommand}" Content="Add To End" />
@@ -133,9 +137,6 @@
 
 
                 <TextBlock VerticalAlignment="Center" Text="Songs Found" />
-
-                <TextBlock VerticalAlignment="Center" Text="{x:Bind MySongsTableView.Items.Count}" />
-                <TextBlock VerticalAlignment="Center" Text="{x:Bind MySongsTableView.ItemsSource.Count}" />
 
 
             </StackPanel>
@@ -205,6 +206,7 @@
                     <MenuFlyoutItem
                         x:Name="OpenFileExplorer"
                         Click="OpenFileExplorer_Click"
+                        CommandParameter="{x:Bind}"
                         Text="View in Explorer">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xE7B3;" />

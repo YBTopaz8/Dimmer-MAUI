@@ -723,27 +723,7 @@ public partial class AppShell : Shell
 
     private void NowPlayingQueueGestRecog_PointerReleased(object sender, PointerEventArgs e)
     {
-        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
-
-        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
-        if (e.PlatformArgs is null)
-            return;
-        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
-
-        if (properties.IsRightButtonPressed)
-        {
-            MyViewModel.AddToNext();
-            return;
-
-
-        }
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
-
-
-        return;
+       
     }
 
     private void MoreBtn_Clicked(object sender, EventArgs e)
@@ -826,6 +806,20 @@ public partial class AppShell : Shell
     private void AddFavoriteRatingToSong_TouchUp_1(object sender, EventArgs e)
     {
 
+    }
+
+    private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
+    {
+        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
+
+       
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+
+
+        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
+
+
+        return;
     }
 
     // Section for Songs With UserNotes.

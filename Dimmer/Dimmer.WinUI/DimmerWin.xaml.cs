@@ -102,7 +102,7 @@ public partial class DimmerWin : Window
     {
         var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
 
-
+        
         if (properties.IsXButton1Pressed)
         {
             // Handle Back Navigation

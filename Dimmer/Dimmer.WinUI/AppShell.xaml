@@ -50,7 +50,7 @@
                 x:Name="ShellTabView"
                 Grid.Row="1"
                 BackgroundColor="{AppThemeBinding Light=#999999}"
-                EnableSwiping="False"
+                EnableSwiping="True"
                 SelectedIndex="{Binding ShellTabIndex}"
                 SelectionChanging="ShellTabView_SelectionChanging"
                 TabBarHeight="0"
@@ -665,11 +665,10 @@
                     windows:VisualElement.AccessKeyPlacement="Bottom"
                     Background="Transparent"
                     BorderWidth="0"
+                    Clicked="NowPlayingQueueBtnClicked"
                     Text="View Now Playing Queue"
                     ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}">
-                    <Button.GestureRecognizers>
-                        <PointerGestureRecognizer x:Name="NowPlayingQueueGestRecog" PointerReleased="NowPlayingQueueGestRecog_PointerReleased" />
-                    </Button.GestureRecognizers>
+
                     <Button.Behaviors>
 
                         <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />

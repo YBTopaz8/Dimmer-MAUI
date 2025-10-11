@@ -1,13 +1,22 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
+
+using Dimmer.DimmerSearch;
+using Dimmer.DimmerSearch.TQL;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Dimmer.DimmerSearch.TQL;
 using Microsoft.UI.Xaml.Media.Animation;
+
 using Windows.UI.Text;
 
 using WinUI.TableView;
 
+using static Dimmer.DimmerSearch.StaticMethods;
+
+using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using Colors = Microsoft.UI.Colors;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using DataTemplateSelector = Microsoft.UI.Xaml.Controls.DataTemplateSelector;
@@ -15,10 +24,7 @@ using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-
 using Page = Microsoft.UI.Xaml.Controls.Page;
-using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
-using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -498,7 +504,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CellContextFlyoutOpening(object sender, TableViewCellContextFlyoutEventArgs e)
     {
-
+        e.Handled = true;
     }
 
     private void MySongsTableView_ClearSorting(object sender, TableViewClearSortingEventArgs e)
@@ -547,6 +553,67 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CellSelectionChanged(object sender, TableViewCellSelectionChangedEventArgs e)
     {
+    
+    //    var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+
+
+    //    if (properties.IsXButton1Pressed)
+    //    {
+    //    }
+    //    else if (properties.IsXButton2Pressed)
+    //    {
+
+    //    }
+    
+    //var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+    //       (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+    //        Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+    //    if (isCtlrKeyPressed)
+    //        ProcessCellClick(isExclusion: false);
+
+        switch (MySongsTableView.SelectionMode)
+        {
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None:
+                break;
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Single:
+
+                if (e.AddedCells.Count > 0)
+                {
+                    var currSelection = e.AddedCells[0];
+                    var selectedColumnField = MySongsTableView.Columns[currSelection.Column].Header as string;
+
+                    var currentCellValue = MySongsTableView.GetCellsContent(e.AddedCells,false);
+                    // now i have the field and value, if it's album/artist then we want to update query to find all of said album/artist
+                    if(!string.IsNullOrEmpty(selectedColumnField) && !string.IsNullOrEmpty(currentCellValue))
+                    {
+                        string tqlQuery = string.Empty;
+                        switch (selectedColumnField)
+                        {
+                            case "Album":
+                                tqlQuery = PresetQueries.ByAlbum(currentCellValue);
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery); 
+                                break;
+                            case "Artist":
+                                tqlQuery = PresetQueries.ByArtist(currentCellValue);
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                break;
+                            case "Genre":
+                                tqlQuery = PresetQueries.ByGenre(currentCellValue);
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                break;
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Multiple:
+                break;
+            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Extended:
+                break;
+            default:
+                break;
+        }
 
     }
 
@@ -554,6 +621,9 @@ public sealed partial class AllSongsListPage : Page
     {
 
     }
+
+    
+
 
     private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
     {
@@ -647,16 +717,24 @@ public sealed partial class AllSongsListPage : Page
         Debug.WriteLine(MySongsTableView.ItemsSource?.GetType());
     }
 
-    private void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private async void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         Debug.WriteLine(e.Pointer.PointerId);
         Debug.WriteLine(e.OriginalSource.GetType());
-
-        // if it is a middle click, exclude in tql explictly
-        if (e.GetCurrentPoint(null).Properties.IsMiddleButtonPressed)
+        Microsoft.UI.Input.PointerPointProperties? pointerProps = e.GetCurrentPoint(null).Properties;
+        
+        if (pointerProps == null)
         {
-            var currentTql = MyViewModel.CurrentTqlQuery;
+            return;
+        }
+        var updateKind = pointerProps.PointerUpdateKind;
+        // if it is a middle click, exclude in tql explictly
 
+        if (updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased
+            || updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonPressed)
+        {
+            
+            await MyViewModel.ScrollToCurrentPlayingSongCommand.ExecuteAsync(null);
 
 
         }
@@ -1018,6 +1096,8 @@ public sealed partial class AllSongsListPage : Page
 
     private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
     {
+        
+
         //MyViewModel.OpenAndSelectFileInExplorer()
     }
 

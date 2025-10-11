@@ -1,6 +1,7 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
 
 using CommunityToolkit.Maui.Storage;
+using CommunityToolkit.WinUI;
 
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView.DimmerSearch;
@@ -599,5 +600,19 @@ public partial class BaseViewModelWin: BaseViewModel
         base.Dispose(disposing);
     
     }
+    [RelayCommand]
+    private async Task ScrollToCurrentPlayingSong()
+    {
 
+        try
+        {
+            //MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
+           await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
+                false, true);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+        }
+    }
 }
