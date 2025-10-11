@@ -522,7 +522,7 @@ FontAttributes="Bold"
                                                 VerticalExpandMode="FromStartToEnd">
                 <dx:DXExpander.Content>
                     <Grid BackgroundColor="Transparent" RowDefinitions="*">
-                        <dx:DXImage Opacity="0.12" Source="{Binding CurrentPlayingSongView.CoverImageBytes, Converter={converters:BytesArrayToImageSource}}" />
+                        <dx:DXImage Opacity="0.12" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
                         <Grid ColumnDefinitions="*,*" ZIndex="1">
                             <StackLayout
                                                                 Grid.Column="1"

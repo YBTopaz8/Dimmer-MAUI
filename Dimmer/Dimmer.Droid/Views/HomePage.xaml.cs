@@ -1394,6 +1394,11 @@ public partial class HomePage : ContentPage
                 break;
         }
     }
+
+    private void BtmBarTap_Tapped(object sender, TappedEventArgs e)
+    {
+        MainViewTabView.SelectedItemIndex = 1;
+    }
 }
 
 
