@@ -293,6 +293,22 @@ public partial class BaseViewModelWin: BaseViewModel
     }
 
 
+    [ObservableProperty]
+    public partial FlyoutBehavior AppShellFlyOutBehavior { get; set; }
+    partial void OnAppShellFlyOutBehaviorChanged(FlyoutBehavior oldValue, FlyoutBehavior newValue)
+    {
+        switch (newValue)
+        {
+            case FlyoutBehavior.Disabled:
+                break;
+            case FlyoutBehavior.Flyout:
+                break;
+            case FlyoutBehavior.Locked:
+                break;
+            default:
+                break;
+        }
+    }
     public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
     {
         if (selectedSec is null )

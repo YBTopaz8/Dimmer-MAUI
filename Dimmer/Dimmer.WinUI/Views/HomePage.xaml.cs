@@ -1214,6 +1214,12 @@ await this.FadeIn(500, 1.0);
 
     }
 
+    private async void ConsolidateDuplicates_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.IsAboutToConsolidateDupes = true;
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
+    }
+
     /*
 private void SongsColView_Unloaded(object sender, EventArgs e)
 {

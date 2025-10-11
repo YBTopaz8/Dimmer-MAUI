@@ -30,6 +30,11 @@ public partial class SingleSongPage : ContentPage
         };
         await MyViewModel.LoadSelectedSongLastFMData();
 
+        if (MyViewModel.IsAboutToConsolidateDupes)
+        {
+            SongTabView.SelectedIndex = SongTabView.Items.Count;
+        }
+
     }
     private List<DataTemplate> _availableLayouts;
     private int _currentLayoutIndex = 0;

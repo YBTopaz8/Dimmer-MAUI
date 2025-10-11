@@ -18,7 +18,8 @@
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:DataType="vm:BaseViewModelWin"
     FlyoutBackgroundColor="Transparent"
-    FlyoutWidth="380">
+    FlyoutWidth="380"
+    Shell.FlyoutBehavior="{Binding AppShellFlyOutBehavior}">
     <Shell.Triggers>
         <DataTrigger
             Binding="{Binding IsLibraryEmpty}"
