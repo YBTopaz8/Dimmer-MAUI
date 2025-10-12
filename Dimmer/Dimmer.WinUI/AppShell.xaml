@@ -122,6 +122,7 @@
                                         WidthRequest="60" />
                                     <ImageButton
                                         Clicked="SettingsNavChips_ChipClicked"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                         Source="settings.png"
                                         WidthRequest="55">
                                         <ImageButton.Behaviors>
@@ -356,6 +357,7 @@
                                         BorderWidth="0"
                                         Command="{Binding ToggleShuffleCommand}"
                                         ImageSource="shuffle.png"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                         StyleClass="MediaBtnChip"
                                         ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
                                         WidthRequest="60">
@@ -383,6 +385,7 @@
                                         BorderWidth="0"
                                         Command="{Binding PreviousTrackCommand}"
                                         ImageSource="skipprevious.png"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                         StyleClass="MediaBtnChip">
                                         <Button.Behaviors>
                                             <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
@@ -425,6 +428,7 @@
                                         BorderWidth="0"
                                         Command="{Binding NextTrackCommand}"
                                         ImageSource="skipnext.png"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                         StyleClass="MediaBtnChip">
                                         <Button.Behaviors>
                                             <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
