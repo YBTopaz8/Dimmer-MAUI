@@ -1,8 +1,4 @@
-﻿using DynamicData;
-
-using System;
-
-namespace Dimmer.DimmerLive.Models;
+﻿namespace Dimmer.DimmerLive.Models;
 [ParseClassName("_User")]
 public class UserModelOnline : ParseUser
 {

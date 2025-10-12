@@ -1,34 +1,23 @@
-﻿
-using Dimmer.Data;
-using Dimmer.DimmerLive.ParseStatics;
+﻿using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using Dimmer.UIUtils.CustomPopups;
 using Dimmer.Utils;
 
 using DynamicData;
 using DynamicData.Binding;
 
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Maui.Graphics;
-using System.Reactive.Linq;
+
 using Parse.LiveQuery;
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
 using ReactiveUI;
 
-using Realms;
-
-using System;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using static Dimmer.Data.RealmStaticFilters.MusicPowerUserService;
 
 using EventHandler = System.EventHandler;
 

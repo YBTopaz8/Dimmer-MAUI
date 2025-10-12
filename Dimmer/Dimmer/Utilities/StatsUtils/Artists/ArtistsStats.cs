@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Dimmer.Utilities.StatsUtils.Artists;
+﻿namespace Dimmer.Utilities.StatsUtils.Artists;
 public static class ArtistStats
 {
     #region Helper Methods

@@ -1,5 +1,4 @@
-﻿using Dimmer.DimmerSearch.Exceptions;
-using Dimmer.DimmerSearch.TQL.RealmSection;
+﻿using Dimmer.DimmerSearch.TQL.RealmSection;
 
 using System.Text.RegularExpressions;
 

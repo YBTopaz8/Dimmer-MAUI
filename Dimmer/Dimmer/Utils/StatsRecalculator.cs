@@ -1,12 +1,4 @@
-﻿using Realms;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utils;
+﻿namespace Dimmer.Utils;
 public class StatsRecalculator
 {
     private readonly Realm _realm;

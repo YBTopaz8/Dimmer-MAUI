@@ -10,7 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
-    <PackageIcon>appicona.png</PackageIcon>
+    <PackageIcon>appicon.png</PackageIcon>
     <!-- Optional: Consider Central Package Management for easier version control -->
     <!-- <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> -->
 

@@ -1,6 +1,4 @@
-﻿using Dimmer.Interfaces.Services.Interfaces;
-
-namespace Dimmer.Interfaces.Services;
+﻿namespace Dimmer.Interfaces.Services;
 public class FolderMonitorService : IFolderMonitorService
 {
 

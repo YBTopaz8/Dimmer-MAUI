@@ -1,19 +1,12 @@
-﻿using Dimmer.Data.RealmStaticFilters;
-using Dimmer.DimmerLive.Interfaces.Implementations;
+﻿using Dimmer.DimmerLive.Interfaces.Implementations;
 using Dimmer.DimmerSearch.Interfaces;
-using Dimmer.DimmerSearch.TQL.TQLCommands;
-using Dimmer.Interfaces.IDatabase;
-using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
-using Dimmer.LastFM;
 using Dimmer.Utils.SmartPlaylist;
 using Dimmer.ViewModel.DimmerLiveVM;
 
 using Microsoft.Extensions.Configuration;
-using Microsoft.Maui.LifecycleEvents;
-using Microsoft.Maui.Platform;
 
 using Parse.LiveQuery;
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQL.RealmSection;
+﻿namespace Dimmer.DimmerSearch.TQL.RealmSection;
 /// <summary>
 /// Represents the complete, executable plan for a TQL query, designed for the Realm database.
 /// This replaces the in-memory ParsedQueryResult.

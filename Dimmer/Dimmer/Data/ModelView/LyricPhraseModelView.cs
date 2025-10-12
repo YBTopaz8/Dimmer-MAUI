@@ -1,6 +1,4 @@
-﻿using ATL;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public partial class LyricPhraseModelView : ObservableObject
 {
     [ObservableProperty]

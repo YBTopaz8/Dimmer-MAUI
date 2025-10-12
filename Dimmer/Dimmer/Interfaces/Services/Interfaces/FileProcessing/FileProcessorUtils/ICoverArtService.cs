@@ -1,6 +1,4 @@
-﻿using ATL;
-
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public interface ICoverArtService

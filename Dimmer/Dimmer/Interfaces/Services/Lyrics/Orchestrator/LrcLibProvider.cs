@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Json;
 
 namespace Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 public record LrcLibApiSearchResult(int Id, string TrackName, string ArtistName, string AlbumName, string? SyncedLyrics, string? PlainLyrics);

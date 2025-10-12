@@ -1,6 +1,4 @@
-﻿using Dimmer.Utilities.Extensions;
-
-namespace Dimmer.Data.ModelView.NewFolder;
+﻿namespace Dimmer.Data.ModelView.NewFolder;
 /// <summary>
 /// Provides methods for generating "Top X" ranked lists from play event data.
 /// These are designed for creating leaderboards and dynamic ranked collections.

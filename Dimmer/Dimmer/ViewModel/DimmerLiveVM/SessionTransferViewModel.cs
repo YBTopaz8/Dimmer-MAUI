@@ -1,22 +1,11 @@
-﻿using CommunityToolkit.Mvvm.Input;
-
-using Dimmer.DimmerLive.Interfaces.Implementations;
+﻿using Dimmer.DimmerLive.Interfaces.Implementations;
 using Dimmer.DimmerSearch.Interfaces;
 
 using DynamicData;
 
-using Microsoft.Maui;
-
 using ReactiveUI;
 
-using Syncfusion.Maui.Toolkit.NavigationDrawer;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.ViewModel;
 public partial class SessionTransferViewModel : ObservableObject, IDisposable

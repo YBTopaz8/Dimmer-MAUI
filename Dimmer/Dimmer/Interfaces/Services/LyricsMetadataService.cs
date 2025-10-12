@@ -1,18 +1,8 @@
-﻿using ATL;
-
-using Dimmer.Interfaces.Services.Interfaces;
-
-using System.Net.Http.Json;
-
-namespace Dimmer.Interfaces.Services;
+﻿namespace Dimmer.Interfaces.Services;
 
 using ATL;
 
-using AutoMapper;
-
 using Microsoft.Extensions.Logging;
-
-using Realms;
 
 using System.Net.Http.Json;
 using System.Security.Cryptography;

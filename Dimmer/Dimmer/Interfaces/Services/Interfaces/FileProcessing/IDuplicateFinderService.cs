@@ -1,6 +1,4 @@
-﻿using Dimmer.Data.ModelView.LibSanityModels;
-
-namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public interface IDuplicateFinderService
 {
 

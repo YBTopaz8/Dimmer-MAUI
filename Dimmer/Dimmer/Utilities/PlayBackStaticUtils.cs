@@ -1,6 +1,4 @@
-﻿using ATL;
-
-namespace Dimmer.Utilities;
+﻿namespace Dimmer.Utilities;
 public static class PlayBackStaticUtils
 {
 

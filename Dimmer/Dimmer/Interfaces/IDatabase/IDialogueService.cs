@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Interfaces.IDatabase;
+﻿namespace Dimmer.Interfaces.IDatabase;
 public  interface IDialogueService
 {
     Task<bool> ShowConfirmationAsync(string title, string message, string accept, string cancel);

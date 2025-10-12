@@ -1,6 +1,4 @@
-﻿using Dimmer.Utilities.Events;
-
-namespace Dimmer.Interfaces.Services.Interfaces;
+﻿namespace Dimmer.Interfaces.Services.Interfaces;
 public interface IDimmerAudioService
 {
 

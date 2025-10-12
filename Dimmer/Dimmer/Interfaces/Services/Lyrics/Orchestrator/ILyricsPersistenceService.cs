@@ -1,6 +1,4 @@
-﻿using ATL;
-
-namespace Dimmer.Interfaces.Services.Lyrics.Orchestrator;
+﻿namespace Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 
 public class LyricsPersistenceService : ILyricsPersistenceService
 {

@@ -1,7 +1,4 @@
-﻿
-using static ATL.LyricsInfo;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]

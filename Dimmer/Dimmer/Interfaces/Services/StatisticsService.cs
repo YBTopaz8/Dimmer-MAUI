@@ -1,14 +1,5 @@
-﻿using Dimmer.Data.ModelView.NewFolder;
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.StatsUtils;
-using Dimmer.Utilities.StatsUtils.Albums;
+﻿using Dimmer.Utilities.StatsUtils.Albums;
 using Dimmer.Utilities.StatsUtils.Artists;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.Interfaces.Services;
 

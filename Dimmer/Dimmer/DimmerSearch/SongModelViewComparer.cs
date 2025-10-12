@@ -1,8 +1,4 @@
-﻿
-using Dimmer.DimmerSearch;
-using Dimmer.DimmerSearch.TQL;
-
-public enum LimiterType { First, Last, Random }
+﻿public enum LimiterType { First, Last, Random }
 
 public class LimiterClause
 {

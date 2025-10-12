@@ -1,7 +1,4 @@
-﻿using System.Linq.Dynamic.Core.Exceptions;
-using System.Threading.Tasks;
-
-namespace Dimmer;
+﻿namespace Dimmer;
 
 public partial class AppShell : Shell
 {

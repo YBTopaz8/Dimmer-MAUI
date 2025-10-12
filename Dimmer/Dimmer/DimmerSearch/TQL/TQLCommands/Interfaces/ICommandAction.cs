@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQL.TQLCommands.Interfaces;
+﻿namespace Dimmer.DimmerSearch.TQL.TQLCommands.Interfaces;
 public interface ICommandAction { }
 
 public record SavePlaylistAction(string Name, IReadOnlyList<SongModelView> Songs) : ICommandAction;

@@ -1,6 +1,4 @@
-﻿using ATL;
-
-namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
 public class MusicMetadataService : IMusicMetadataService
 {

@@ -1,12 +1,6 @@
-﻿using CommunityToolkit.Mvvm.Input;
-
-using Dimmer.DimmerLive.Interfaces.Implementations;
+﻿using Dimmer.DimmerLive.Interfaces.Implementations;
 
 using Parse.Infrastructure;
-
-using ReactiveUI;
-
-using System.Linq.Dynamic.Core.Exceptions;
 namespace Dimmer.ViewModel;
 
 

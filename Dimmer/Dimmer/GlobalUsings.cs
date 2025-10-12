@@ -9,7 +9,6 @@ global using CommunityToolkit.Maui.Storage;
 global using Dimmer.Data;
 global using Microsoft.Extensions.Logging;
 global using Syncfusion.Maui.Toolkit.Hosting;
-global using CommunityToolkit.Maui.Views;
 
 global using Parse;
 global using System.Globalization;
@@ -36,7 +35,6 @@ global using Dimmer.LastFM;
 global using Dimmer.Utilities.Events;
 global using Dimmer.Utilities.Extensions;
 global using Dimmer.Utilities.StatsUtils;
-global using Dimmer.Utilities.ViewsUtils;
 global using CommunityToolkit.Maui.Core.Extensions;
 global using Dimmer.Data.Models;
 global using Dimmer.Orchestration;
@@ -49,9 +47,6 @@ global using Dimmer.Utilities.Enums;
 global using Dimmer.DimmerLive;
 global using Dimmer.DimmerLive.Interfaces;
 global using MongoDB.Bson;
-
-
-global using Dimmer.Interfaces.Services;
 global using System.Text;
 global using System.Text.Json;
 

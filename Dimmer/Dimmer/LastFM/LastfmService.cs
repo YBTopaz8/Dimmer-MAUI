@@ -1,7 +1,4 @@
-﻿using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Events;
-
-using Hqub.Lastfm;
+﻿using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
 using Hqub.Lastfm.Entities;
 

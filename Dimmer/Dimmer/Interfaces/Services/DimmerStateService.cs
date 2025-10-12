@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Disposables;
 // Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
-using Dimmer.Interfaces.Services.Interfaces;
 // using Dimmer.Platform; // For Window
 
 namespace Dimmer.Interfaces.Services;

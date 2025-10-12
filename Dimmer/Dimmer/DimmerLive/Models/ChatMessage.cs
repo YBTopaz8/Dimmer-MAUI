@@ -1,8 +1,4 @@
-﻿
-
-using Microsoft.Maui.Devices;
-
-namespace Dimmer.DimmerLive.Models;
+﻿namespace Dimmer.DimmerLive.Models;
 
 [ParseClassName("ChatMessage")]
 public partial class ChatMessage : ParseObject

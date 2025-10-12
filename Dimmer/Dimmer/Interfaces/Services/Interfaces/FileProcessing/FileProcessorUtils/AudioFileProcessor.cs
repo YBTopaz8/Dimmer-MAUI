@@ -1,8 +1,4 @@
-﻿using ATL;
-
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
-
-namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
 {

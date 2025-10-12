@@ -1,9 +1,6 @@
 ﻿// ----------------------------
 // RealmCoreRepo.cs
 // ----------------------------
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Utilities.Extensions;
-
 using DynamicData;
 
 using Realms.Exceptions;

@@ -1,17 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
-
-using Dimmer.Utilities.StatsUtils;
-using Dimmer.Utilities.StatsUtils.Albums;
-using Dimmer.Utilities.StatsUtils.Artists;
-
-using DynamicData;
-using DynamicData.Binding;
-
-using ReactiveUI;
-
-using System.Reactive.Disposables;
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 
 public partial class StatisticsViewModel : ObservableObject
 {

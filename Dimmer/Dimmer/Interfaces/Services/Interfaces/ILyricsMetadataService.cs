@@ -1,7 +1,4 @@
-﻿
-using ATL;
-
-namespace Dimmer.Interfaces.Services.Interfaces;
+﻿namespace Dimmer.Interfaces.Services.Interfaces;
 public interface ILyricsMetadataService
 {
     Task<List<LrcLibLyrics>?> GetAllLyricsOnlineAsync(SongModelView song, CancellationToken token);

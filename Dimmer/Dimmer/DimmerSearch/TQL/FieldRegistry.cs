@@ -1,6 +1,4 @@
-﻿using DynamicData;
-
-namespace Dimmer.DimmerSearch.TQL;
+﻿namespace Dimmer.DimmerSearch.TQL;
 public enum FieldType { Text, Numeric, Boolean, Duration, Date }
 
 public record FieldDefinition(

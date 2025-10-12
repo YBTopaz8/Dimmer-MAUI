@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Interfaces.Services.Lyrics;
+﻿namespace Dimmer.Interfaces.Services.Lyrics;
 public class LocalLrcFileProvider : ILyricsProvider
 {
     public string ProviderName => "Local .lrc File";

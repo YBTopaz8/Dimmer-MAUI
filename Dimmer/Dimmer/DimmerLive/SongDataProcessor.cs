@@ -1,9 +1,4 @@
-﻿using ATL;
-
-using Dimmer.Interfaces.Services.Interfaces;
-
-using System.Collections.Concurrent;
-using System.Threading.Tasks.Dataflow;
+﻿using System.Threading.Tasks.Dataflow;
 
 
 namespace Dimmer.DimmerLive;

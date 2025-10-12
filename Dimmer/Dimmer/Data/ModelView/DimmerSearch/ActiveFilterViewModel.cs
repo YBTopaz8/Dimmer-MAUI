@@ -1,8 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
-
-using Dimmer.DimmerSearch.TQL;
-
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace Dimmer.Data.ModelView.DimmerSearch;
 public partial class ActiveFilterViewModel : ObservableObject, IQueryComponentViewModel

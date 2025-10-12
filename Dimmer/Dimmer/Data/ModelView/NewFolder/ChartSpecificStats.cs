@@ -1,5 +1,4 @@
-﻿using Dimmer.Utilities.Extensions;
-namespace Dimmer.Data.ModelView.NewFolder;
+﻿namespace Dimmer.Data.ModelView.NewFolder;
 /// <summary>
 /// Provides methods specifically designed to generate data structures
 /// for advanced chart types like financial charts, stacked areas, and ranges.
