@@ -162,29 +162,28 @@
                                 </DataTrigger>
                             </Editor.Triggers>
                         </Editor>
-                        <FlexLayout JustifyContent="SpaceBetween">
+                        <HorizontalStackLayout HorizontalOptions="End">
 
-                            <Label Text="Last FM Status: " />
-                            <Button Command="{Binding LogoutFromLastfmCommand}">
-                                <Button.Triggers>
+
+                            <ImageButton
+                                HeightRequest="50"
+                                Source="lastfm.png"
+                                WidthRequest="50">
+                                <ImageButton.Behaviors>
+                                    <toolkit:IconTintColorBehavior TintColor="Red" />
+                                </ImageButton.Behaviors>
+                                <ImageButton.Triggers>
                                     <DataTrigger
                                         Binding="{Binding IsLastfmAuthenticated}"
-                                        TargetType="Button"
-                                        Value="True">
-                                        <Setter Property="Text" Value="Logged In" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
-                                    </DataTrigger>
-                                    <DataTrigger
-                                        Binding="{Binding IsLastfmAuthenticated}"
-                                        TargetType="Button"
+                                        TargetType="ImageButton"
                                         Value="False">
-                                        <Setter Property="Text" Value="Logged Out" />
-                                        <Setter Property="TextColor" Value="DarkRed" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
 
-                        </FlexLayout>
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="Opacity" Value="0.2" />
+                                    </DataTrigger>
+                                </ImageButton.Triggers>
+                            </ImageButton>
+                        </HorizontalStackLayout>
 
 
 
@@ -197,7 +196,7 @@
 
                         <Button
                             BorderWidth="2"
-                            Command="{Binding CompleteLoginCommand}"
+                            Command="{Binding CompleteLastFMLoginCommand}"
                             HorizontalOptions="Start"
                             IsVisible="{Binding lastFMCOmpleteLoginBtnVisible}"
                             Text="Confirm Login" />

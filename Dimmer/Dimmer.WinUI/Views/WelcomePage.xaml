@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Name="myPage"
+<ContentPage
     x:Class="Dimmer.WinUI.Views.WelcomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -20,12 +20,12 @@
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+    x:Name="myPage"
     Title="Welcome Page"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                       Dark=transparent}"
-    Shell.NavBarIsVisible="False"
-    >
+    Shell.NavBarIsVisible="False">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
@@ -35,25 +35,23 @@
             <Label Text="{Binding LatestAppLog.Log}" />
         </VerticalStackLayout>
 
-        <syncf:SfTabView x:Name="WelcomeTabView"
+        <syncf:SfTabView
+            x:Name="WelcomeTabView"
             Grid.Row="1"
-            SelectionChanged="WelcomeTabView_SelectionChanged"
             Loaded="WelcomeTabView_Loaded"
             SelectedIndex="{Binding WelcomeTabIndexEnum}"
-            >
+            SelectionChanged="WelcomeTabView_SelectionChanged">
             <syncf:SfTabItem x:Name="StepOne" HorizontalOptions="Center">
                 <Grid
                     HorizontalOptions="Center"
                     RowDefinitions="auto,*,auto"
-                    RowSpacing="10"
-                    >
+                    RowSpacing="10">
                     <Border
                         Grid.Row="0"
                         Padding="20"
                         Stroke="DarkSlateBlue"
                         StrokeShape="RoundRectangle 20"
-                        StrokeThickness="1"
-                        >
+                        StrokeThickness="1">
 
                         <VerticalStackLayout Padding="20" Spacing="10">
                             <Label
@@ -61,14 +59,12 @@
                                 FontSize="24"
                                 Text="{Static lang:DimmerLanguage.gettingstart_txt_wlc}"
                                 TextColor="{AppThemeBinding Light=#333333,
-                                                            Dark=White}"
-                                >
+                                                            Dark=White}">
                                 <Label.Triggers>
                                     <DataTrigger
                                         Binding="{Binding WelcomeTabViewIndex}"
                                         TargetType="Label"
-                                        Value="0"
-                                        >
+                                        Value="0">
                                         <Setter Property="Text" Value="{Static lang:DimmerLanguage.gettingstart_txt_wlc}" />
 
                                     </DataTrigger>
@@ -77,8 +73,7 @@
                                     <DataTrigger
                                         Binding="{Binding WelcomeTabViewIndex}"
                                         TargetType="Label"
-                                        Value="1"
-                                        >
+                                        Value="1">
                                         <Setter Property="Text" Value="Last FM Section" />
 
                                     </DataTrigger>
@@ -86,8 +81,7 @@
                                     <DataTrigger
                                         Binding="{Binding WelcomeTabViewIndex}"
                                         TargetType="Label"
-                                        Value="2"
-                                        >
+                                        Value="2">
                                         <Setter Property="Text" Value="TQL !" />
 
                                     </DataTrigger>
@@ -104,27 +98,26 @@
 
                     </Border>
 
-                    <Grid x:Name="MiddleView"
+                    <Grid
+                        x:Name="MiddleView"
                         Grid.Row="1"
                         HorizontalOptions="Center"
                         RowDefinitions="auto,*"
                         RowSpacing="10"
-                        WidthRequest="800"
-                        >
+                        WidthRequest="800">
 
-                        <CollectionView x:Name="ListOfFolders"
+                        <CollectionView
+                            x:Name="ListOfFolders"
                             Grid.Row="1"
                             Header="List of Folders"
                             ItemsSource="{Binding FolderPaths}"
-                            SelectionMode="None"
-                            >
+                            SelectionMode="None">
                             <CollectionView.EmptyView>
                                 <VerticalStackLayout>
                                     <Label
                                         Margin="0,40,0,0"
                                         FontAttributes="Italic"
-                                        Text="No Folders In Preferences.."
-                                        />
+                                        Text="No Folders In Preferences.." />
                                 </VerticalStackLayout>
                             </CollectionView.EmptyView>
                             <CollectionView.ItemTemplate>
@@ -133,16 +126,16 @@
                                         <Label Grid.Column="0" Text="{Binding .}" />
 
                                         <HorizontalStackLayout Grid.Column="1" Spacing="25">
-                                            <ImageButton x:Name="ChangeFolder"
+                                            <ImageButton
+                                                x:Name="ChangeFolder"
                                                 Clicked="ChangeFolder_Clicked"
                                                 CommandParameter="{Binding .}"
-                                                Source="foldera.png"
-                                                />
+                                                Source="foldera.png" />
 
-                                            <ImageButton x:Name="DeleteBtn"
+                                            <ImageButton
+                                                x:Name="DeleteBtn"
                                                 Clicked="DeleteBtn_Clicked"
-                                                CommandParameter="{Binding .}"
-                                                >
+                                                CommandParameter="{Binding .}">
                                                 <ImageButton.Behaviors>
                                                     <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
                                                 </ImageButton.Behaviors>
@@ -152,18 +145,17 @@
                                                         Glyph="trash-can"
                                                         Size="20"
                                                         Color="{AppThemeBinding Light=Black,
-                                                                                Dark=White}"
-                                                        />
+                                                                                Dark=White}" />
 
                                                 </ImageButton.Source>
                                             </ImageButton>
-                                            <syncf:SfChip x:Name="RescanFolder"
+                                            <syncf:SfChip
+                                                x:Name="RescanFolder"
                                                 Clicked="RescanFolder_Clicked"
                                                 CommandParameter="{Binding .}"
                                                 ImageSize="50"
                                                 ImageSource="repeat.png"
-                                                WidthRequest="65"
-                                                />
+                                                WidthRequest="65" />
                                         </HorizontalStackLayout>
 
                                         <VisualStateManager.VisualStateGroups>
@@ -196,8 +188,7 @@
                             <Button
                                 Clicked="AddNewMusicFolder_Clicked"
                                 HorizontalOptions="Start"
-                                Text="Add New Folder"
-                                />
+                                Text="Add New Folder" />
 
                         </VerticalStackLayout>
 
@@ -214,22 +205,21 @@
                     <VerticalStackLayout
                         Grid.Row="0"
                         Padding="20"
-                        Spacing="10"
-                        >
-                        <Label x:Name="WelcomPageTitle"
+                        Spacing="10">
+                        <Label
+                            x:Name="WelcomPageTitle"
                             FontAttributes="Bold"
                             FontSize="24"
                             Text="{Binding WelcomeStep}"
                             TextColor="{AppThemeBinding Light=#333333,
-                                                        Dark=White}"
-                            />
+                                                        Dark=White}" />
                     </VerticalStackLayout>
 
 
-                    <Grid x:Name="MiddleViewTwo"
+                    <Grid
+                        x:Name="MiddleViewTwo"
                         Grid.Row="1"
-                        HorizontalOptions="Center"
-                        >
+                        HorizontalOptions="Center">
 
                         <Border StyleClass="Elevation2">
 
@@ -246,21 +236,18 @@
                                         PlaceholderColor="{AppThemeBinding Dark=White,
                                                                            Light=Black}"
                                         Text="{Binding UserLocal.LastFMAccountInfo.Name}"
-                                        WidthRequest="180"
-                                        >
+                                        WidthRequest="180">
                                         <Editor.Triggers>
                                             <DataTrigger
                                                 Binding="{Binding IsLastfmAuthenticated}"
                                                 TargetType="Editor"
-                                                Value="True"
-                                                >
+                                                Value="True">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                             <DataTrigger
                                                 Binding="{Binding IsLastfmAuthenticated}"
                                                 TargetType="Editor"
-                                                Value="False"
-                                                >
+                                                Value="False">
                                                 <Setter Property="IsVisible" Value="True" />
                                             </DataTrigger>
                                         </Editor.Triggers>
@@ -275,23 +262,20 @@
                                     Command="{Binding LoginToLastfmCommand}"
                                     HorizontalOptions="Start"
                                     IsVisible="{Binding LoginToLastfmCommand}"
-                                    Text="Login"
-                                    />
+                                    Text="Login" />
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
                                     <VerticalStackLayout.Triggers>
                                         <DataTrigger
                                             Binding="{Binding IsLastfmAuthenticated}"
                                             TargetType="VerticalStackLayout"
-                                            Value="True"
-                                            >
+                                            Value="True">
                                             <Setter Property="IsVisible" Value="True" />
                                         </DataTrigger>
                                         <DataTrigger
                                             Binding="{Binding IsLastfmAuthenticated}"
                                             TargetType="VerticalStackLayout"
-                                            Value="False"
-                                            >
+                                            Value="False">
                                             <Setter Property="IsVisible" Value="False" />
                                         </DataTrigger>
                                     </VerticalStackLayout.Triggers>
@@ -305,14 +289,12 @@
                                         FontSize="20"
                                         HorizontalOptions="Center"
                                         Text="{Binding UserLocal.LastFMAccountInfo.Name}"
-                                        TextColor="DarkSlateBlue"
-                                        />
+                                        TextColor="DarkSlateBlue" />
                                     <Label
                                         FontSize="15"
                                         HorizontalOptions="Center"
                                         Text="{Binding UserLocal.LastFMAccountInfo.Country}"
-                                        TextColor="DarkSlateBlue"
-                                        />
+                                        TextColor="DarkSlateBlue" />
 
                                 </VerticalStackLayout>
                             </VerticalStackLayout>
@@ -332,15 +314,13 @@
                     <VerticalStackLayout
                         Grid.Row="0"
                         Padding="20"
-                        Spacing="10"
-                        >
+                        Spacing="10">
                         <Label
                             FontAttributes="Bold"
                             FontSize="24"
                             Text="{Binding WelcomeStep}"
                             TextColor="{AppThemeBinding Light=#333333,
-                                                        Dark=White}"
-                            />
+                                                        Dark=White}" />
                     </VerticalStackLayout>
 
 
@@ -349,21 +329,21 @@
                             <Border x:Name="TQLBox" x:FieldModifier="Public">
                                 <HorizontalStackLayout x:Name="MainHSL" x:FieldModifier="Public">
                                     <VerticalStackLayout x:Name="LeftSide" x:FieldModifier="Public">
-                                        <Label x:Name="CommandTitle"
+                                        <Label
+                                            x:Name="CommandTitle"
                                             x:FieldModifier="Public"
-                                            Text="And Command"
-                                            />
-                                        <Label x:Name="CommandLiveExample"
+                                            Text="And Command" />
+                                        <Label
+                                            x:Name="CommandLiveExample"
                                             x:FieldModifier="Public"
-                                            Text="songs by drake and songs by rihanna"
-                                            />
+                                            Text="songs by drake and songs by rihanna" />
                                     </VerticalStackLayout>
                                     <VerticalStackLayout x:Name="RightSide" x:FieldModifier="Public" />
-                                    <Button x:Name="TryCommand"
+                                    <Button
+                                        x:Name="TryCommand"
                                         x:FieldModifier="Public"
                                         Clicked="TryCommand_Clicked"
-                                        Text="Try !"
-                                        />
+                                        Text="Try !" />
                                 </HorizontalStackLayout>
                             </Border>
 
@@ -381,16 +361,14 @@
                     <VerticalStackLayout
                         Grid.Row="0"
                         Padding="20"
-                        Spacing="10"
-                        >
+                        Spacing="10">
                         <Label
                             FontAttributes="Bold"
                             FontSize="24"
                             HorizontalOptions="Center"
                             Text="{Static lang:DimmerLanguage.gettingstart_txt_wlc}"
                             TextColor="{AppThemeBinding Light=#333333,
-                                                        Dark=White}"
-                            />
+                                                        Dark=White}" />
 
 
                     </VerticalStackLayout>
@@ -411,15 +389,14 @@
             Padding="20"
             HorizontalOptions="Center"
             Spacing="10"
-            WidthRequest="250"
-            >
+            WidthRequest="250">
             <Button Command="{Binding AppSetupPagePreviousBtnClickCommand}" Text="{Static lang:DimmerLanguage.txt_previous}" />
-            <Button x:Name="NextBtnTwo"
+            <Button
+                x:Name="NextBtnTwo"
                 Clicked="NextBtnTwo_Clicked"
                 CornerRadius="8"
                 Text="{Binding NextBtnText}"
-                TextColor="White"
-                />
+                TextColor="White" />
         </VerticalStackLayout>
     </Grid>
 

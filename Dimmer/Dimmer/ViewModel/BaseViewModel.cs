@@ -6705,7 +6705,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         string query = $"{SelectedSong.Title} {SelectedSong.ArtistName}";
         string url = service.ToLower() switch
-        {
+        { 
             "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
             "youtube" => $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}",
             "lastfm" => $"https://www.last.fm/search?q={Uri.EscapeDataString(query)}",
@@ -6716,6 +6716,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _ => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
         };
         await Launcher.Default.OpenAsync(new Uri(url));
+    }
+
+    [RelayCommand]
+    public async Task SearchSongPlainLyricsnOnlineSearch(string? service)
+    {
+        // searhc for lyrics online similar to searching for song only 
+        //await Launcher.Default.OpenAsync(new Uri(url));
+        
     }
 
     [RelayCommand]

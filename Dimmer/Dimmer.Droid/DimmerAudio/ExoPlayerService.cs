@@ -290,19 +290,19 @@ public class ExoPlayerService : MediaSessionService
     private Runnable? positionRunnable;
     private async Task InitializeMediaControllerAsync()
     {
-        System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+        Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync START");
         try
         {
             if (mediaSession?.Token == null)
             {
-                System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+                Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
                 return;
             }
 
             var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
             var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
             mediaController = (MediaController?)controllerObject;
-            System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+            Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
         }
         catch (Java.Lang.Throwable ex)
         {
@@ -532,19 +532,54 @@ public class ExoPlayerService : MediaSessionService
 
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
+            Console.WriteLine($"{DateTime.Now} CURRENT REASON {reason}");
+
+            if (oldPosition is null) return;
+            Console.WriteLine($"{DateTime.Now} Old Position {oldPosition.ContentPositionMs} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old PositionMs {oldPosition.PositionMs} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old PeriodIndex {oldPosition.PeriodIndex} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old MediaItemIndex {oldPosition.MediaItemIndex} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old WindowUid {oldPosition.WindowUid} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old Title {oldPosition.MediaItem?.MediaMetadata?.Title} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old Artist {oldPosition?.MediaItem?.MediaMetadata?.Artist} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old TrackNumber {oldPosition?.MediaItem?.MediaMetadata?.TrackNumber} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old AlbumTitle {oldPosition?.MediaItem?.MediaMetadata?.AlbumTitle} {reason}");
+            Console.WriteLine($"{DateTime.Now} Old Description {oldPosition?.MediaItem?.MediaMetadata?.Description} {reason}");
+
+            if (newPosition is null) return;
             if (reason == 1)
             {
                 service.RaiseSeekCompleted(newPosition.PositionMs);
+                return;
             }
+            if (newPosition is null || newPosition.MediaItem?.MediaMetadata?.Title is null)
+            {
+                return;
+            }
+            Console.WriteLine($"{DateTime.Now} New Position {newPosition.ContentPositionMs} {reason}");
+            Console.WriteLine($"{DateTime.Now} New PositionMs {newPosition.PositionMs} {reason}");
+            Console.WriteLine($"{DateTime.Now} New PeriodIndex {newPosition.PeriodIndex} {reason}");
+            Console.WriteLine($"{DateTime.Now} New MediaItemIndex {newPosition.MediaItemIndex} {reason}");
+            Console.WriteLine($"{DateTime.Now} New WindowUid {newPosition.WindowUid} {reason}");
+            Console.WriteLine($"{DateTime.Now} New Title {newPosition.MediaItem?.MediaMetadata?.Title} {reason}");
+            Console.WriteLine($"{DateTime.Now} New Artist {newPosition?.MediaItem?.MediaMetadata?.Artist} {reason}");
+            Console.WriteLine($"{DateTime.Now} New TrackNumber {newPosition?.MediaItem?.MediaMetadata?.TrackNumber} {reason}");
+            Console.WriteLine($"{DateTime.Now} New AlbumTitle {newPosition?.MediaItem?.MediaMetadata?.AlbumTitle} {reason}");
+            Console.WriteLine($"{DateTime.Now} New Description {newPosition?.MediaItem?.MediaMetadata?.Description} {reason}");
 
         }
         public void OnPlaybackStateChanged(int playbackState)
         {
             if (playbackState == 4)
             {
-                service.player.Stop();
+                service.player?.Stop();
                 service.RaisePlayingEnded();
             }
+
+            //1 == Player.STATE_IDLE
+            //2 == STATE_BUFFERING
+            // 3 == STATE_READY
+            // 4 == STATE_ENDED
         }
         public void OnLoadingChanged(bool isLoading)
         {
@@ -629,12 +664,12 @@ public class ExoPlayerService : MediaSessionService
         public void OnSurfaceSizeChanged(int p0, int p1) { /* Video related */ }
         public void OnTimelineChanged(Timeline? timeline, int reason)
         {
-            Console.WriteLine($"[PlayerEventListener] TimelineChanged: {timeline?.ToString()} Reason={reason}");
+            Console.WriteLine($"{DateTime.Now}  [PlayerEventListener] TimelineChanged: {timeline?.ToString()} Reason={reason}");
         }
         public void OnTrackSelectionParametersChanged(TrackSelectionParameters? p0) { /* Log if needed */ }
         public void OnTracksChanged(Tracks? tracks)
         {
-            Console.WriteLine($"[PlayerEventListener] TracksChanged: {tracks?.ToString()}");
+            Console.WriteLine($"{DateTime.Now} [PlayerEventListener] TracksChanged: {tracks?.ToString()}");
             /* Log if needed */
         }
         public void OnVideoSizeChanged(VideoSize? p0) { /* Video related */ }
@@ -659,14 +694,14 @@ public class ExoPlayerService : MediaSessionService
                 service.player?.Stop();
                 service.RaisePlayingEnded();
                 Console.WriteLine($"[ExoPlayerService] MediaItemTransition: {mediaItem.MediaId} Reason={reason}");
-                System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
+                Console.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
             }
         }
         public void OnPlayerError(PlaybackException? error)
         {
             // It's crucial to have this method to handle errors.
             // At a minimum, you should log it.
-            System.Diagnostics.Debug.WriteLine($"[ExoPlayerService] PLAYER ERROR: {error.Message}");
+            Console.WriteLine($"[ExoPlayerService] PLAYER ERROR: {error.Message}");
             // You could also raise a service event here to notify the UI.
         }
 

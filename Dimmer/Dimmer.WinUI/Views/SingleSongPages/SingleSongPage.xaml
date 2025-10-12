@@ -1008,7 +1008,8 @@
 
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout>
-
+                                    <Button Text="Search On Google"
+                                            Command="{Binding OpenSongInOnlineSearchCommand}"/>
                                     <Button
                                         x:Name="StartSesion"
                                         BackgroundColor="Transparent"

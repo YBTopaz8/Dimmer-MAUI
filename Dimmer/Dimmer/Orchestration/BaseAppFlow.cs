@@ -188,7 +188,7 @@ public class BaseAppFlow : IDisposable
 
             });
 
-            _logger.LogInformation("Added play event {EventId} to history of song {SongTitle}", playEvent.Id, songView.Title);
+            _logger.LogInformation("Added play event {EventId} of type {PlayType} to history of song {SongTitle}", playEvent.Id,playEvent.PlayTypeStr,songView.Title);
 
             // Step 3: Update the UI state.
             string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);
