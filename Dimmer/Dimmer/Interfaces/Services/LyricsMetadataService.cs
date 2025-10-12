@@ -132,7 +132,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// Fetches lyrics for a song using a tiered online strategy.
     /// First, it tries a highly specific match, then falls back to a broader search.
     /// </summary>
-    public async Task<List<LrcLibLyrics>?> GetAllLyricsOnlineAsync(SongModelView song, CancellationToken token)
+    public async Task<List<LrcLibLyrics>?> GetAllSyncLyricsOnlineAsync(SongModelView song, CancellationToken token)
     {
         // First, attempt the most efficient API call: /api/get
         var preciseMatch = await GetLyricsBySignatureAsync(song.Title, song.ArtistName, song.AlbumName, (int)song.DurationInSeconds, token);
@@ -150,6 +150,32 @@ IRepository<SongModel> songRepository, // Inject the repository
         _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
         var searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
         var resultsWithSynced = searchResults.Where(r => !string.IsNullOrEmpty(r.SyncedLyrics));
+        // Return the first result from the search, if any
+        return resultsWithSynced.ToList();
+    }
+
+    /// <summary>
+    /// Fetches lyrics for a song using a tiered online strategy.
+    /// First, it tries a highly specific match, then falls back to a broader search.
+    /// </summary>
+    public async Task<List<LrcLibLyrics>?> GetAllPlainLyricsOnlineAsync(SongModelView song, CancellationToken token)
+    {
+        // First, attempt the most efficient API call: /api/get
+        var preciseMatch = await GetLyricsBySignatureAsync(song.Title, song.ArtistName, song.AlbumName, (int)song.DurationInSeconds, token);
+        if (preciseMatch != null)
+        {
+            _logger.LogInformation("Found precise lyrics match for '{Track}' using /api/get.", song.Title);
+            List<LrcLibLyrics>? lrcs = [preciseMatch];
+            if (lrcs is not null && !string.IsNullOrEmpty(lrcs.First().PlainLyrics))
+            {
+                return lrcs;
+            }
+        }
+
+        // If no precise match, fall back to the broader /api/search
+        _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
+        var searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
+        var resultsWithSynced = searchResults.Where(r => !string.IsNullOrEmpty(r.PlainLyrics));
         // Return the first result from the search, if any
         return resultsWithSynced.ToList();
     }

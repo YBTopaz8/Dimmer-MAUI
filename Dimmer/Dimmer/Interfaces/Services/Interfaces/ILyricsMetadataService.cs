@@ -1,7 +1,8 @@
 ﻿namespace Dimmer.Interfaces.Services.Interfaces;
 public interface ILyricsMetadataService
 {
-    Task<List<LrcLibLyrics>?> GetAllLyricsOnlineAsync(SongModelView song, CancellationToken token);
+    Task<List<LrcLibLyrics>?> GetAllPlainLyricsOnlineAsync(SongModelView song, CancellationToken token);
+    Task<List<LrcLibLyrics>?> GetAllSyncLyricsOnlineAsync(SongModelView song, CancellationToken token);
     Task<string?> GetLocalLyricsAsync(SongModelView song);
     Task<LrcLibLyrics?> GetLyricsByIdAsync(int id, CancellationToken token);
     Task<LrcLibLyrics?> GetLyricsBySignatureAsync(string trackName, string artistName, string albumName, int duration, CancellationToken token, bool useCacheOnly = false);
