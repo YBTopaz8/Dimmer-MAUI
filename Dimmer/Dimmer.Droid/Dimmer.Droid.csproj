@@ -134,6 +134,9 @@
     <MauiXaml Update="Views\AlbumPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\AllPlaylists.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\AnimationSettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

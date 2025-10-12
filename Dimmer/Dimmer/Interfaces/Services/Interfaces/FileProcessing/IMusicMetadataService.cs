@@ -21,5 +21,5 @@ public interface IMusicMetadataService
     void MarkAsUpdated(SongModelView song);
     bool DoesSongExist(string title, double durationInSeconds);
     bool HasFileBeenProcessed(string filePath);
-   
+    void ClearAll();
 }

@@ -92,9 +92,20 @@ public static class RqlGenerator
 
             case FuzzyDateNode.Qualifier.Ago when node.OlderThan.HasValue:
                 var boundaryDate = now.Subtract(node.OlderThan.Value);
-                string agoOperator = node.Operator switch { ">" => ">", "<" => "<", _ => ">" };
-
-                        return $"{fieldDef.PropertyName} {agoOperator} {FormatValue(boundaryDate, FieldType.Date)}";
+                // The TQL operator's meaning is inverted for date values.
+                // ">" (older than) means the date value is LESS THAN the boundary.
+                // "<" (newer than) means the date value is GREATER THAN the boundary.
+                string rqlOperator = node.Operator switch
+                {
+                    ">" => "<",
+                    "<" => ">",
+                    ">=" => "<=",
+                    "<=" => ">=",
+                    // Default to "newer than" for operators like 'contains' or '='.
+                    // e.g., played:ago("30d") means "played within the last 30 days".
+                    _ => ">"
+                };
+                return $"{fieldDef.PropertyName} {rqlOperator} {FormatValue(boundaryDate, FieldType.Date)}";
 
             case FuzzyDateNode.Qualifier.Between when node.OlderThan.HasValue && node.NewerThan.HasValue:
                 var olderBoundary = now.Subtract(node.OlderThan.Value);

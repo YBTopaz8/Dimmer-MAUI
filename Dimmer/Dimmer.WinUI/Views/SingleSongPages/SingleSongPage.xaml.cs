@@ -22,13 +22,18 @@ public partial class SingleSongPage : ContentPage
         MyViewModel.CurrentPageContext=CurrentPage.SingleSongPage;
         //await MyViewModel.LoadSongLastFMData();
         //await MyViewModel.LoadSongLastFMMoreData();
-
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         _availableLayouts = new List<DataTemplate>
         {
 
             (DataTemplate)Resources["GridOfFour"]
         };
         await MyViewModel.LoadSelectedSongLastFMData();
+
+        if (MyViewModel.IsAboutToConsolidateDupes)
+        {
+            SongTabView.SelectedIndex = SongTabView.Items.Count;
+        }
 
     }
     private List<DataTemplate> _availableLayouts;
@@ -533,7 +538,7 @@ public partial class SingleSongPage : ContentPage
 
         PlainLyricsEditor.Text = clipboardText;
 
-         MyViewModel.StartLyricsEditingSession(clipboardText);
+        MyViewModel.StartLyricsEditingSession(clipboardText);
     }
 
     private void ShowBtmSheet_Clicked(object sender, EventArgs e)
@@ -544,6 +549,82 @@ public partial class SingleSongPage : ContentPage
     private void MoreBtn_Clicked(object sender, EventArgs e)
     {
         Button btn = (Button)sender;
-        btn.ShowContextMenu();
+        //btn.ShowContextMenu();
+    }
+
+    private void TimestampCurrentLyricLineBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+
+        var param = send.CommandParameter as LyricEditingLineViewModel;
+
+        if (param is null)
+        {
+            return;
+        }
+
+        MyViewModel.TimestampCurrentLyricLine(param);
+
+    }
+
+    private void DeleteCurrentLyricLineBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+
+        var param = send.CommandParameter as LyricEditingLineViewModel;
+
+        if (param is null)
+        {
+            return;
+        }
+
+
+        var te = MyViewModel.LyricsInEditor.IndexOf(param);
+
+        if (te < 0)
+        {
+            return;
+        }
+        MyViewModel.DeleteTimestampFromLine(param);
+    }
+
+    private void AcceptUserEditedLyricsBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+
+    private void SyncLyricEditor_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        var send = (Editor)sender;
+        var lyVM = send.BindingContext as LyricEditingLineViewModel;
+        if (lyVM is null)
+        {
+            return;
+        }
+        var newText = e.NewTextValue;
+        if (newText is null)
+        {
+            newText = string.Empty;
+        }
+
+        lyVM.Text = newText;
+
+        MyViewModel.SaveLyricEditedByUserBeforeTimestamping(lyVM, newText);
+    }
+
+    private void ShowOnlyCompletedPlays_CheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+
+    }
+
+    private void ShowOnlySkippedPlays_CheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+
+    }
+
+    private void ViewLyricsIndex_Clicked(object sender, EventArgs e)
+    {
+        SongTabView.SelectedIndex = 5;
     }
 }

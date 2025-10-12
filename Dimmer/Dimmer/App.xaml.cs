@@ -16,7 +16,7 @@ public partial class App : Application
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-        if (ParseSetup.InitializeParseClient())
+        if (Connectivity.NetworkAccess == NetworkAccess.Internet && ParseSetup.InitializeParseClient())
         {
             ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
             ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
@@ -44,7 +44,7 @@ public partial class App : Application
         return AppUtil.LoadWindow();
     }
 
-    private static readonly object _logLock = new();
+    private static readonly Lock _logLock = new();
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         var ex = e.Exception;

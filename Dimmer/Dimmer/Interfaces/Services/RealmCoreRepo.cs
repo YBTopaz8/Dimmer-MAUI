@@ -110,8 +110,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     /// <param name="entity">An unmanaged instance of the object to upsert.</param>
     /// <returns>The frozen, thread-safe copy of the upserted object.</returns>
-    public T Upsert(T entity)
+    public T? Upsert(T? entity)
     {
+        if (entity is null) return null;
         if (entity.Id == ObjectId.Empty)
         {
             // If no ID, it's a create operation.
@@ -565,6 +566,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
                 var objectToDelete = realm.Find<T>(id);
                 if (objectToDelete != null)
                 {
+
                     realm.Remove(objectToDelete);
                 }
             }

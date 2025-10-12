@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces;
+﻿
+namespace Dimmer.Interfaces.Services.Interfaces;
 
 public class LoadSongsResult // Define this class (or similar) if needed
 {
@@ -8,7 +9,9 @@ public class LoadSongsResult // Define this class (or similar) if needed
     public IReadOnlyList<GenreModelView> Genres { get; set; } = Array.Empty<GenreModelView>();
     public int FilesProcessed { get; set; }
     public int FilesSkipped { get; set; }
-    public int NewSongsAdded { get; set; }
+    public int NewSongsAddedCount { get; set; }
+    public List<FileProcessingResult> ProcessingResults { get; internal set; }
+    public List<SongModelView?> NewSongsAdded { get; internal set; }
 }
 
 //public interface ILibraryService

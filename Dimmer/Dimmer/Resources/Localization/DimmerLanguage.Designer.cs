@@ -79,6 +79,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Next.
+        /// </summary>
+        public static string next_btn {
+            get {
+                return ResourceManager.GetString("next_btn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add Folder.
         /// </summary>
         public static string txt_addfolder {
@@ -160,6 +169,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Done.
+        /// </summary>
+        public static string txt_done {
+            get {
+                return ResourceManager.GetString("txt_done", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
         public static string txt_edit {
@@ -178,6 +196,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Execute.
+        /// </summary>
+        public static string txt_execute {
+            get {
+                return ResourceManager.GetString("txt_execute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explore.
         /// </summary>
         public static string txt_explore {
@@ -192,6 +219,15 @@ namespace Dimmer.Resources.Localization {
         public static string txt_favorites {
             get {
                 return ResourceManager.GetString("txt_favorites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished.
+        /// </summary>
+        public static string txt_finished {
+            get {
+                return ResourceManager.GetString("txt_finished", resourceCulture);
             }
         }
         
@@ -367,6 +403,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Save.
+        /// </summary>
+        public static string txt_save {
+            get {
+                return ResourceManager.GetString("txt_save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scan.
         /// </summary>
         public static string txt_scan {
@@ -394,11 +439,29 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Share.
+        /// </summary>
+        public static string txt_share {
+            get {
+                return ResourceManager.GetString("txt_share", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sign Up.
         /// </summary>
         public static string txt_signup {
             get {
                 return ResourceManager.GetString("txt_signup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start.
+        /// </summary>
+        public static string txt_Start {
+            get {
+                return ResourceManager.GetString("txt_Start", resourceCulture);
             }
         }
         
@@ -417,6 +480,15 @@ namespace Dimmer.Resources.Localization {
         public static string txt_stats {
             get {
                 return ResourceManager.GetString("txt_stats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Step 3 of 3: Learn TQL (Optional).
+        /// </summary>
+        public static string txt_stepthree {
+            get {
+                return ResourceManager.GetString("txt_stepthree", resourceCulture);
             }
         }
         

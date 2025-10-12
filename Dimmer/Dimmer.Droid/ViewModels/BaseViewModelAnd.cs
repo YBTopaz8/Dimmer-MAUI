@@ -24,6 +24,7 @@ using Microsoft.Extensions.Logging;
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 using SwipeItem = DevExpress.Maui.CollectionView.SwipeItem;
 
@@ -148,42 +149,51 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public async Task AddMusicFolderViaPickerAsync(string? selectedFolder = null)
     {
 
-        _logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
-        var status = await Permissions.RequestAsync<CheckPermissions>();
-
-        if (status == PermissionStatus.Granted)
+        try
         {
-            var res = await folderPicker.PickAsync(CancellationToken.None);
 
-            if (res is not null)
+            _logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
+            var status = await Permissions.RequestAsync<CheckPermissions>();
+
+            if (status == PermissionStatus.Granted)
             {
+                
+                var res = await FolderPicker.Default.PickAsync(CancellationToken.None);
 
-
-                string? selectedFolderPath = res?.Folder?.Path;
-
-
-
-                if (!string.IsNullOrEmpty(selectedFolderPath))
+                if (res is not null)
                 {
-                    _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
-                    // The FolderManagementService should handle adding to settings and triggering the scan.
-                    // We just need to tell it the folder was selected by the user.
 
-                  await  AddMusicFolderByPassingToService(selectedFolderPath);
-                }
-                else
-                {
-                    _logger.LogInformation("No folder selected by user.");
-                }
 
+                    string? selectedFolderPath = res?.Folder?.Path;
+
+
+
+                    if (!string.IsNullOrEmpty(selectedFolderPath))
+                    {
+                        _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
+                        // The FolderManagementService should handle adding to settings and triggering the scan.
+                        // We just need to tell it the folder was selected by the user.
+
+                        await AddMusicFolderByPassingToService(selectedFolderPath);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No folder selected by user.");
+                    }
+
+
+                }
 
             }
-
+            else
+            {
+                _logger.LogWarning("Storage permission denied for adding music folder.");
+                // TODO: Show message to user explaining why permission is needed.
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogWarning("Storage permission denied for adding music folder.");
-            // TODO: Show message to user explaining why permission is needed.
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
 
     }
@@ -359,18 +369,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         if (selectedSec is null)
         {
-            if (SelectedSong is null)
+            if (CurrentPlayingSongView is null)
             {
-                SelectedSong=CurrentPlayingSongView;
+                await Shell.Current.DisplayAlert("No Song Selected", "Please select a song to view its details.", "OK");
+                return;
             }
-            else
-            {
-                SelectedSong = SongsColView.SelectedItem as SongModelView;
-            }
+            SelectedSong ??= CurrentPlayingSongView;
+
         }
         else
         {
-            SelectedSong=selectedSec;
+            SelectedSong = selectedSec;
         }
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
@@ -445,15 +454,18 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private void SongsColView_SwipeItemShowing(object? sender, SwipeItemShowingEventArgs e)
     {
         DXCollectionView send = sender as DXCollectionView;
+
         var w = e.SwipeItem as SwipeItemBase;
         var song = e.Item as SongModelView;
+        if (song is null) return;
+        if (send is null) return;
         var swipee = e.RowHandle;
 
         var addEndAction = new SwipeContainerItem()
         {
             Caption = "Add to End",
             BackgroundColor = Colors.DarkGreen,
-            Command = AddToQueueEndCommand, // Assuming you have this command
+            Command = AddListOfSongsToQueueEndCommand, // Assuming you have this command
             CommandParameter = new List<SongModelView> { song } // Pass a list
         };
 
@@ -770,11 +782,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
-    protected override void HandlePlaybackStateChange(PlaybackEventArgs args)
+    protected override async Task HandlePlaybackStateChange(PlaybackEventArgs args)
     {
         // STEP 1: Always a good practice to let the base class do its work first.
         // This will run the logic in A (setting IsPlaying, etc.).
-        base.HandlePlaybackStateChange(args);
+        await base.HandlePlaybackStateChange(args);
 
 
         PlayType? state = StatesMapper.Map(args.EventType);

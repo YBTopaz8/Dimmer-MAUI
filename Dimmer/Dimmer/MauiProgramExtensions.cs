@@ -12,6 +12,8 @@ using Parse.LiveQuery;
 
 using SkiaSharp.Views.Maui.Controls.Hosting;
 
+using Syncfusion.Maui.Toolkit.Chips;
+
 using System.Reflection;
 
 namespace Dimmer;
@@ -42,6 +44,7 @@ public static class MauiProgramExtensions
                 fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
                 fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");
             })
+           
             .ConfigureSyncfusionToolkit();
 
 #if DEBUG
@@ -56,6 +59,7 @@ public static class MauiProgramExtensions
             client.BaseAddress = new Uri("https://lrclib.net/");
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer/2.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
         });
+
 
         
         builder.Services.AddSingleton(FolderPicker.Default);
@@ -110,7 +114,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
-
+        
         builder.Services.AddSingleton<StatisticsService>();
         builder.Services.AddSingleton<StatisticsViewModel>();
 

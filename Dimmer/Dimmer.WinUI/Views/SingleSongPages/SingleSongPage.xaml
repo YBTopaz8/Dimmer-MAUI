@@ -144,7 +144,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="tooltipTemplateTwo" x:DataType="syncf:TooltipInfo">
+        <DataTemplate x:Key="ListeninClickTooltipTemplate" x:DataType="syncf:TooltipInfo">
             <HorizontalStackLayout>
                 <Label
                     FontAttributes="Bold"
@@ -375,7 +375,10 @@
                             </MenuFlyout>
                         </FlyoutBase.ContextFlyout>
                     </Button>
-
+                    <Button
+                        Command="{Binding LoadStatsForSelectedSongCommand}"
+                        CommandParameter="{Binding SelectedSong}"
+                        Text="Reload" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
             <Grid Grid.Column="0" BackgroundColor="Transparent">
@@ -790,12 +793,12 @@
                                                             <Label Text="{Binding SelectedSong.TrackNumber, StringFormat='Popularity Score : {0}'}" />
                                                         </VerticalStackLayout>
 
-                                                        <VerticalStackLayout>
+                                                    <VerticalStackLayout>
 
                                                             <Label Text="{Binding SongAverageListenThrough.Name}" />
                                                             <Label Text="{Binding SongAverageListenThrough.Value, StringFormat='{0:n2}%'}" />
 
-                                                        </VerticalStackLayout>
+                                                    </VerticalStackLayout>
 
                                                     </HorizontalStackLayout>
 
@@ -848,11 +851,16 @@
                                         <Label FontSize="26" Text="{Binding ListeningClockData.Name}" />
                                         <Label FontSize="26" Text="{Binding ListeningClockData.Count, StringFormat='{0} Dimms'}" />
 
+                                                            <DataTrigger
+                                                                Binding="{Binding PlayTypeStr}"
+                                                                TargetType="Border"
+                                                                Value="Seeked">
+                                                                <Setter Property="Stroke" Value="LightSteelBlue" />
+                                                            </DataTrigger>
 
                                     </VerticalStackLayout>
                                 </Grid>
 
-                            </ScrollView>
                         </Grid>
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
@@ -906,6 +914,15 @@
                                             Grid.Column="1"
                                             Text="{Binding SelectedSong.AlbumName}" />
 
+                                        <Label
+                                            Grid.Row="4"
+                                            Grid.Column="0"
+                                            Style="{StaticResource FieldLabel}"
+                                            Text="Genre" />
+                                        <Entry
+                                            Grid.Row="4"
+                                            Grid.Column="1"
+                                            Text="{Binding SelectedSong.GenreName}" />
 
                                         <Label
                                             Grid.Row="4"
@@ -1223,7 +1240,140 @@
 
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
+                <syncf:SfTabItem Header="Duplicate Finder">
 
+
+
+                    <Grid RowDefinitions="Auto, *">
+
+                        <!--  1. The Initiation Controls  -->
+                        <VerticalStackLayout Grid.Row="0" Spacing="10">
+                            <ActivityIndicator IsRunning="{Binding IsFindingDuplicates}" IsVisible="{Binding IsFindingDuplicates}" />
+                            <Label Text="Find songs with the same title and duration. You can then choose which versions to keep or delete." />
+                            <Label Text="{Binding DuplicateSets.Count, StringFormat='# Duplicates found : {0}'}" />
+                            <Button
+                                Command="{Binding FindDuplicatesForSongCommand}"
+                                CommandParameter="{Binding SelectedSong}"
+                                Text="Find Duplicates" />
+
+
+                            <Button
+                                BackgroundColor="DarkRed"
+                                Command="{Binding ApplyDuplicateActionsCommand}"
+                                Text="Apply Changes" />
+                        </VerticalStackLayout>
+
+                        <CollectionView Grid.Row="1" ItemsSource="{Binding DuplicateSets}">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout
+                                    HorizontalItemSpacing="5"
+                                    Orientation="Vertical"
+                                    Span="3"
+                                    VerticalItemSpacing="5" />
+                            </CollectionView.ItemsLayout>
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="libSanity:DuplicateSetViewModel">
+
+                                    <!--  This is the card for a single set of duplicates  -->
+                                    <Border
+                                        Margin="10"
+                                        Padding="10"
+                                        Stroke="LightGray"
+                                        StrokeThickness="1">
+                                        <VerticalStackLayout Spacing="5">
+                                            <Label FontAttributes="Bold" FontSize="Default">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="Duplicate Set: " />
+                                                        <Span Text="{Binding Title}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+
+                                            <!--  This is the inner list of the actual song files  -->
+                                            <CollectionView HeightRequest="410" ItemsSource="{Binding Items}">
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="libSanity:DuplicateItemViewModel">
+                                                        <Grid Padding="5" ColumnDefinitions="Auto, *, Auto">
+
+                                                            <!--  Visual cue for Original vs Duplicate  -->
+                                                            <Image
+                                                                Grid.Column="0"
+                                                                Margin="0,0,10,0"
+                                                                HeightRequest="30"
+                                                                Source="addcircle.png"
+                                                                VerticalOptions="Center">
+                                                                <Image.Triggers>
+                                                                    <DataTrigger
+                                                                        Binding="{Binding Status}"
+                                                                        TargetType="Image"
+                                                                        Value="Duplicate">
+                                                                        <Setter Property="IsVisible" Value="False" />
+                                                                    </DataTrigger>
+                                                                </Image.Triggers>
+                                                            </Image>
+
+                                                            <!--  The crucial song info  -->
+                                                            <VerticalStackLayout Grid.Column="1" Spacing="12">
+                                                                <Label
+                                                                    FontAttributes="Bold"
+                                                                    FontSize="12"
+                                                                    Text="{Binding Song.FilePath}" />
+
+                                                                <Label>
+                                                                    <Label.FormattedText>
+                                                                        <FormattedString>
+                                                                            <Span Text="Size: " />
+                                                                            <Span Text="{Binding Song.FileSize, Converter={converters:BytesToMegabytesConverter}, StringFormat='{0} MB'}" />
+                                                                            <!--  Add a converter for bytes to MB  -->
+                                                                            <Span Text="  |  Bitrate: " />
+                                                                            <Span Text="{Binding Song.BitRate, StringFormat='{0} kbps'}" />
+                                                                            <Span Text="  |  Added: " />
+                                                                            <Span Text="{Binding Song.DateCreated, StringFormat='{0:yyyy-MM-dd}'}" />
+                                                                        </FormattedString>
+                                                                    </Label.FormattedText>
+                                                                </Label>
+                                                            </VerticalStackLayout>
+
+                                                            <!--  The Action Selector  -->
+                                                            <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center">
+                                                                <!--  Note: RadioButton binding can be complex. You might need a command on the item viewmodel  -->
+                                                                <!--  or use a Picker for simplicity  -->
+                                                                <Picker FontSize="Small" SelectedItem="{Binding Action, Mode=TwoWay}">
+                                                                    <Picker.ItemsSource>
+                                                                        <x:Array Type="{x:Type libSanity:DuplicateAction}">
+                                                                            <libSanity:DuplicateAction>Keep</libSanity:DuplicateAction>
+                                                                            <libSanity:DuplicateAction>Delete</libSanity:DuplicateAction>
+                                                                            <libSanity:DuplicateAction>Ignore</libSanity:DuplicateAction>
+                                                                        </x:Array>
+                                                                    </Picker.ItemsSource>
+                                                                </Picker>
+                                                            </HorizontalStackLayout>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+
+                            <CollectionView.EmptyView>
+                                <Label
+                                    HorizontalOptions="Center"
+                                    HorizontalTextAlignment="Center"
+                                    Text="Click 'Find Duplicates' to begin."
+                                    VerticalOptions="Center" />
+                            </CollectionView.EmptyView>
+
+                        </CollectionView>
+
+                        <!--  3. The Finalization Button  -->
+
+                    </Grid>
+
+                </syncf:SfTabItem>
 
             </syncf:SfTabView>
         </Grid>

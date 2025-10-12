@@ -1,23 +1,28 @@
 using AndroidX.Lifecycle;
 
+using DevExpress.Maui.Editors;
+
 using Dimmer.DimmerSearch;
 using Dimmer.ViewModel;
 using Dimmer.Views.Stats;
 
 using Syncfusion.Maui.Toolkit.Chips;
+using Syncfusion.Maui.Toolkit.EffectsView;
 
 using System.Threading.Tasks;
 
 using Button = Microsoft.Maui.Controls.Button;
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
+using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer;
 
 public partial class AppShell : Shell
 {
-    public AppShell()
+    public AppShell(BaseViewModelAnd baseViewModel)
     {
         InitializeComponent();
+        MyViewModel=baseViewModel;
         Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
         Routing.RegisterRoute(nameof(DimmerSettings), typeof(DimmerSettings));
         Routing.RegisterRoute(nameof(SearchSongPage), typeof(SearchSongPage));
@@ -29,13 +34,13 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
         Routing.RegisterRoute(nameof(AlbumPage), typeof(AlbumPage));
         Routing.RegisterRoute(nameof(DimmerVault), typeof(DimmerVault));
+        Routing.RegisterRoute(nameof(AllPlaylists), typeof(AllPlaylists));
     }
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        MyViewModel  = IPlatformApplication.Current.Services.GetService<BaseViewModelAnd>();
         if ((MyViewModel is null))
         {
             return;
@@ -255,7 +260,187 @@ public partial class AppShell : Shell
     private readonly int throttleDelay = 300; // Time in milliseconds
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
-        var send = (Slider)sender;
+        var send = (DXSlider)sender;
+        if (_isThrottling)
+            return;
+
+        _isThrottling = true;
+
+        MyViewModel.SeekTrackPosition(send.Value);
+
+
+        await Task.Delay(throttleDelay);
+        _isThrottling = false;
+    }
+
+    private void ShellTabView_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.TabView.SelectionChangingEventArgs e)
+    {
+
+    }
+
+    private void ViewDeviceAudio_Clicked(object sender, EventArgs e)
+    {
+        var audioTab = ShellTabView.Items.Where(x => x.Header=="AudioSection").FirstOrDefault();
+
+        var audioTabIndex = ShellTabView.Items.IndexOf(audioTab);
+
+        if (audioTab != null) {
+            ShellTabView.SelectedIndex = audioTabIndex;
+        }
+
+        //if (ShellTabView.SelectedIndex == 1)
+        //{
+        //    ShellTabView.SelectedIndex = 0;
+        //    return;
+        //}
+        //ShellTabView.SelectedIndex = 1;
+    }
+
+    private void MoreIcon_Clicked(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void SelectedSongChip_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SelectedSongChip_TouchUp(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+
+        if (send is null)
+            return;
+
+        var param = send.TouchUpCommandParameter as SongModelView;
+
+        if (param is null)
+            return;
+
+
+        MyViewModel.SelectedSong = param;
+
+    }
+
+    private void SfEffectsView_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFavoriteRatingToSong_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFavoriteRatingToSong_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddFavoriteRatingToSong_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void AddFavoriteRatingToSongPtrGest_PointerReleased(object sender, PointerEventArgs e)
+    {
+
+        var platEvents = e.PlatformArgs;
+        var routedEvents = platEvents.MotionEvent;
+
+        var ss = routedEvents.Pressure;
+
+    }
+
+    private async void ShowPlaylistHistory_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+
+            await GoToAsync(nameof(AllPlaylists));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
+    }
+
+    private void NowPlayingSong_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+
+    }
+
+    private void QuickFilterBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void Quickalbumsearch_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SetPrefdevice_Clicked(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        var dev = send.BindingContext as AudioOutputDevice;
+
+        if (dev is null)
+            return;
+
+        MyViewModel.SetPreferredAudioDevice(dev);
+    }
+
+    private void TogglePanelClicked(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void NowPlayingQueueGestRecog_PointerReleased(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void SfEffectsView_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SfEffectsView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void VolumeSlider_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void VolumeSlider_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void TrackProgressSlider_ValueChanged(object sender, EventArgs e)
+    {
+
+    }
+    private async void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+      
+    }
+    private async void TrackProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        var send = (DXSlider)sender;
+
+
         if (_isThrottling)
             return;
 

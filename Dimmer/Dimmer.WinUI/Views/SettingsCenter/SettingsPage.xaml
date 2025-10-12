@@ -7,6 +7,7 @@
     xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
     xmlns:idk="clr-namespace:Indiko.Maui.Controls.Markdown;assembly=Indiko.Maui.Controls.Markdown"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:libSanity="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
@@ -15,6 +16,7 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     Title="Settings"
     x:DataType="vm:BaseViewModelWin"
+    Shell.FlyoutBehavior="Flyout"
     Shell.NavBarIsVisible="False">
     <Grid IsVisible="True" RowDefinitions="auto,*">
         <VerticalStackLayout Grid.Row="0">

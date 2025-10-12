@@ -70,7 +70,7 @@ public class StatisticsService
         /// The main method to get all library-wide statistics based on a filter.
         /// This is the only method the ViewModel needs to call for global stats.
         /// </summary>
-        public async Task<LibraryStatsBundle> GetLibraryStatisticsAsync(DateRangeFilter filter)
+    public LibraryStatsBundle GetLibraryStatistics(DateRangeFilter filter)
     {
         _logger.LogInformation("Calculating library statistics for filter: {Filter}", filter);
 
@@ -171,7 +171,7 @@ public class StatisticsService
         return bundle;
     }
 
-    public async Task<ArtistStatsBundle?> GetArtistStatisticsAsync(ObjectId artistId, DateRangeFilter filter)
+    public ArtistStatsBundle? GetArtistStatisticsAsync(ObjectId artistId, DateRangeFilter filter)
     {
         var artist =  _artistRepo.GetById(artistId);
         if (artist == null)
@@ -203,7 +203,7 @@ public class StatisticsService
         return bundle;
     }
 
-    public async Task<AlbumStatsBundle?> GetAlbumStatisticsAsync(ObjectId albumId, DateRangeFilter filter)
+    public AlbumStatsBundle? GetAlbumStatisticsAsync(ObjectId albumId, DateRangeFilter filter)
     {
         var album =  _albumRepo.GetById(albumId);
         if (album == null)

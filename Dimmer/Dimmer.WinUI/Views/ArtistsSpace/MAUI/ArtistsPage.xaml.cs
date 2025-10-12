@@ -6,7 +6,7 @@ public partial class ArtistsPage : ContentPage
     {
         InitializeComponent();
 
-        //= IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+        //= IPlatformApplication.Current!.Services.GetService<MyViewModel>()!;
         MyViewModel=viewModel;
         BindingContext=MyViewModel;
     }
@@ -23,8 +23,8 @@ public partial class ArtistsPage : ContentPage
     }
     public void LoadArtists()
     {
-        var s = DeviceStaticUtils.SelectedArtistOne;
-        MyViewModel.ViewArtistDetails(s);
+        //var s = DeviceStaticUtils.SelectedArtistOne;
+        //MyViewModel.ViewArtistDetails(s);
 
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)

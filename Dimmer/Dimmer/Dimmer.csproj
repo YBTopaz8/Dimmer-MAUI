@@ -86,7 +86,7 @@
 
 
 
-    <PackageReference Include="Fastenshtein" Version="1.0.10" />
+    <PackageReference Include="Fastenshtein" Version="1.0.11" />
 
 
 
@@ -147,7 +147,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
 
 
-    <PackageReference Include="ReactiveUI.Maui" Version="20.4.1" />
+    <PackageReference Include="ReactiveUI.Maui" Version="21.0.1" />
 
 
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.7" />
@@ -195,6 +195,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DimmerSearch\Model\" />
     <Folder Include="DimmerSearch\TQLActions\" />
     <Folder Include="Resources\AppIcon\NewFolder\" />
     <Folder Include="Utilities\UIHelpers\" />

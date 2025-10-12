@@ -16,4 +16,5 @@ public interface IDuplicateFinderService
     /// </summary>
     Task<LibraryReconciliationResult> ReconcileLibraryAsync(IEnumerable<SongModelView> allSongs);
     DuplicateSearchResult FindDuplicates(DuplicateCriteria criteria, IProgress<string>? progress = null);
+    DuplicateSearchResult FindDuplicatesForSong(SongModelView targetSong, DuplicateCriteria criteria);
 }

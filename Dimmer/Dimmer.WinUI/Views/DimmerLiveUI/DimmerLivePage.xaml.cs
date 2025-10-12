@@ -19,7 +19,7 @@ public partial class DimmerLivePage : ContentPage
     {
 
     }
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 

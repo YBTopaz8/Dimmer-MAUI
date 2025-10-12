@@ -58,7 +58,7 @@ public partial class StatisticsViewModel : ObservableObject
     /// Command to load the main library statistics. Called on page load and when the filter changes.
     /// </summary>
     [RelayCommand]
-    private async Task LoadLibraryStatsAsync()
+    private void LoadLibraryStatsAsync()
     {
         if (IsBusy)
             return;
@@ -69,7 +69,7 @@ public partial class StatisticsViewModel : ObservableObject
         {
             // Clear old stats to prevent showing stale data
             ClearAllStats();
-            LibraryStats = await _statsService.GetLibraryStatisticsAsync(SelectedFilter);
+            LibraryStats = _statsService.GetLibraryStatistics(SelectedFilter);
         }
         catch (Exception ex)
         {
@@ -127,7 +127,7 @@ public partial class StatisticsViewModel : ObservableObject
         try
         {
             ClearAllStats();
-            ArtistStats = await _statsService.GetArtistStatisticsAsync(artist.Id, SelectedFilter);
+            ArtistStats = _statsService.GetArtistStatisticsAsync(artist.Id, SelectedFilter);
         }
         catch (Exception ex)
         {
@@ -155,7 +155,7 @@ public partial class StatisticsViewModel : ObservableObject
         try
         {
             ClearAllStats();
-            AlbumStats = await _statsService.GetAlbumStatisticsAsync(album.Id, SelectedFilter);
+            AlbumStats = _statsService.GetAlbumStatisticsAsync(album.Id, SelectedFilter);
         }
         catch (Exception ex)
         {
@@ -180,7 +180,7 @@ public partial class StatisticsViewModel : ObservableObject
         // When the user changes the time filter, we should re-load whatever
         // stats are currently being displayed.
         if (LibraryStats is not null)
-            await LoadLibraryStatsAsync();
+            LoadLibraryStatsAsync();
         else if (SongStats is not null)
             await LoadSongStatsAsync(new SongModelView { Id = new ObjectId(SongStats.Summary.SongTitle) /* hack - needs proper ID*/ }); // You'd need a way to get the original song ID
         else if (ArtistStats is not null)

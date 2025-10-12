@@ -5,8 +5,16 @@ public class PathToImageConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)
-            return null;
+            return "musicnotess.png";
+        if(value.GetType() == typeof(string))
+        {
+            string strvalue = (string)value;
+            if (string.IsNullOrEmpty(strvalue))
+            {
+                return "musicnotess.png";
 
+            }
+        }
 
         return value;
     }
