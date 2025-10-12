@@ -1,6 +1,13 @@
-﻿using Dimmer.DimmerLive.ParseStatics;
+﻿using System.ComponentModel;
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Text.RegularExpressions;
+
+using Dimmer.Data.Models;
+using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using Dimmer.Resources.Localization;
 using Dimmer.Utils;
 
 using DynamicData;
@@ -14,10 +21,7 @@ using Parse.LiveQuery;
 
 using ReactiveUI;
 
-using System.ComponentModel;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Text.RegularExpressions;
+using static Google.Cloud.AIPlatform.V1.Artifact.Types;
 
 using EventHandler = System.EventHandler;
 
@@ -4353,9 +4357,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 if(CurrentPageContext== CurrentPage.SingleSongPage)
                 {
-
-                    await Shell.Current.DisplayAlert("No Duplicates", "No duplicates found for this song based on the selected criteria.", "OK");
-
+                    _stateService.SetCurrentLogMsg(new AppLogModel
+                    {
+                        Log = $"No duplicates found for '{song.Title}'.",
+                        ViewSongModel = song
+                    });
                 }
                 return;
             }
@@ -4366,15 +4372,19 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             await Task.Delay(4000);
             IsDuplicateFound = false;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            _logger.LogInformation("Duplicate find operation was canceled.");
+            _logger.LogInformation($"Duplicate find operation was canceled. {ex.Message}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to find duplicates.");
             // Optionally, display an error message to the user
-            await Shell.Current.DisplayAlert("Error", "An unexpected error occurred while searching for duplicates.", "OK");
+            _stateService.SetCurrentLogMsg(new AppLogModel
+            {
+                Log = $"Error when searching duplicates for {song.Title} {Environment.NewLine}Error: {ex.Message}",
+                ViewSongModel = song
+            });
         }
         finally
         {

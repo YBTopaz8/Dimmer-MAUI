@@ -1,4 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using Dimmer.Data.ModelView.LibSanityModels;
+
+using DynamicData;
+
+using System.Collections.Concurrent;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public class DuplicateFinderService : IDuplicateFinderService
@@ -156,10 +160,10 @@ public class DuplicateFinderService : IDuplicateFinderService
         var filePathsToDelete = itemsToDelete.Select(i => i.Song.FilePath).ToList();
         int deletedCount = 0;
 
-        if (songIdsToDelete.Count==0)
+        if (songIdsToDelete.Count == 0)
             return 0;
 
-       
+
         using var realm = _realmFactory.GetRealmInstance();
         await realm.WriteAsync(() =>
         {
@@ -175,7 +179,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         });
         _logger.LogInformation("Deleted {Count} song entries from the database.", deletedCount);
 
-       
+
         foreach (var path in filePathsToDelete)
         {
             try
@@ -189,14 +193,14 @@ public class DuplicateFinderService : IDuplicateFinderService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete file: {FilePath}. Please remove it manually.", path);
-               
+
             }
         }
 
         return deletedCount;
     }
 
-    
+
     public async Task<LibraryValidationResult> ValidateMultipleFilesPresenceAsync(IList<SongModelView>? allSongs)
     {
         if (allSongs == null || allSongs.Count == 0)
@@ -210,10 +214,10 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         _logger.LogInformation("Starting file presence validation for {Count} songs.", allSongs.Count);
 
-       
+
         var missingSongs = new ConcurrentBag<SongModelView>();
 
-       
+
         await Parallel.ForEachAsync(allSongs, (song, cancellationToken) =>
         {
             if (string.IsNullOrEmpty(song.FilePath) || !File.Exists(song.FilePath))
@@ -226,8 +230,8 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         _logger.LogInformation("Validation complete. Found {Count} missing files.", missingSongs.Count);
 
-       
-        var missingSongViews =missingSongs.ToList();
+
+        var missingSongViews = missingSongs.ToList();
 
         return new LibraryValidationResult
         {
@@ -264,7 +268,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         var migratedDetails = new List<MigrationDetail>();
         var unresolvedMissing = new List<SongModelView>();
 
-       
+
         var existingSongs = new List<SongModelView>();
         var potentialGhosts = new List<SongModelView>();
         foreach (var song in allSongsList)
@@ -279,7 +283,7 @@ public class DuplicateFinderService : IDuplicateFinderService
             }
         }
 
-        if (potentialGhosts.Count==0)
+        if (potentialGhosts.Count == 0)
         {
             _logger.LogInformation("Reconciliation complete. No missing files found.");
             return new LibraryReconciliationResult { ScannedCount = allSongsList.Count };
@@ -290,18 +294,18 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         using var realm = _realmFactory.GetRealmInstance();
 
-       
+
         foreach (var ghostSong in potentialGhosts)
         {
             var songIdentityKey = $"{ghostSong.Title.Trim()}|{ghostSong.DurationInSeconds}";
 
-           
+
             if (existingSongsLookup.Contains(songIdentityKey))
             {
-               
-               
-               
-               
+
+
+
+
                 var replacementSong = existingSongsLookup[songIdentityKey].First();
 
                 await realm.WriteAsync(() =>
@@ -323,12 +327,12 @@ public class DuplicateFinderService : IDuplicateFinderService
             }
             else
             {
-               
+
                 unresolvedMissing.Add(ghostSong);
             }
         }
 
-       
+
 
         return new LibraryReconciliationResult
         {
@@ -394,16 +398,16 @@ public class DuplicateFinderService : IDuplicateFinderService
         survivor.HasSyncedLyrics = survivor.HasSyncedLyrics || ghost.HasSyncedLyrics;
         survivor.CoverImagePath = string.IsNullOrWhiteSpace(survivor.CoverImagePath) ? ghost.CoverImagePath : survivor.CoverImagePath;
         survivor.OtherArtistsName = string.IsNullOrWhiteSpace(survivor.OtherArtistsName) ? ghost.OtherArtistsName : survivor.OtherArtistsName;
-        survivor.Genre = survivor.Genre is null ? ghost.Genre : survivor.Genre;  
+        survivor.Genre = survivor.Genre is null ? ghost.Genre : survivor.Genre;
         survivor.BitRate = survivor.BitRate > ghost.BitRate ? survivor.BitRate : ghost.BitRate; // Keep the highest bitrate 
-        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName)? ghost.GenreName: survivor.GenreName; 
+        survivor.GenreName = string.IsNullOrWhiteSpace(survivor.GenreName) ? ghost.GenreName : survivor.GenreName;
         survivor.TrackNumber = survivor.TrackNumber != 0 ? survivor.TrackNumber : ghost.TrackNumber;
         survivor.DiscNumber = survivor.DiscNumber != 0 ? survivor.DiscNumber : ghost.DiscNumber;
         survivor.ReleaseYear = survivor.ReleaseYear != 0 ? survivor.ReleaseYear : ghost.ReleaseYear;
-        survivor.FileFormat = string.IsNullOrWhiteSpace(survivor.FileFormat) ? ghost.FileFormat: survivor.FileFormat;
+        survivor.FileFormat = string.IsNullOrWhiteSpace(survivor.FileFormat) ? ghost.FileFormat : survivor.FileFormat;
         survivor.FilePath = string.IsNullOrWhiteSpace(survivor.FilePath) ? ghost.FilePath : survivor.FilePath;
         survivor.FileSize = survivor.FileSize != 0 ? ghost.FileSize : survivor.FileSize;
-        survivor.RankInAlbum = survivor.RankInAlbum> 0 ? survivor.RankInAlbum: ghost.RankInAlbum;
+        survivor.RankInAlbum = survivor.RankInAlbum > 0 ? survivor.RankInAlbum : ghost.RankInAlbum;
         survivor.RankInArtist = survivor.RankInArtist > 0 ? survivor.RankInArtist : ghost.RankInArtist;
         survivor.GlobalRank = survivor.GlobalRank > 0 ? survivor.GlobalRank : ghost.GlobalRank;
         survivor.IsHidden = survivor.IsHidden && ghost.IsHidden; // Only hidden if both are hidden

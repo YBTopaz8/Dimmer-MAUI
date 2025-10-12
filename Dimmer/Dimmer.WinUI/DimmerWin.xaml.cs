@@ -74,7 +74,7 @@ public partial class DimmerWin : Window
     protected override void OnActivated()
     {
         base.OnActivated();
-        MyViewModel.MainMAUIWindow_Activated();
+        MyViewModel.MainWindow_Activated();
         WindowActivated?.Invoke(this, EventArgs.Empty);
         var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
         if (nativeElement != null)

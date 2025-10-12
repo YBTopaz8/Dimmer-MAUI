@@ -28,9 +28,9 @@ using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using TableView = WinUI.TableView.TableView;
 using Window = Microsoft.UI.Xaml.Window;
 
-namespace Dimmer.WinUI.ViewModel; 
+namespace Dimmer.WinUI.ViewModel;
 
-public partial class BaseViewModelWin: BaseViewModel
+public partial class BaseViewModelWin : BaseViewModel
 
 {
 
@@ -42,27 +42,27 @@ public partial class BaseViewModelWin: BaseViewModel
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
     private readonly LoginViewModel loginViewModel;
     private readonly IFolderPicker _folderPicker;
-    public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService,LoginViewModel _loginViewModel,
+    public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService, LoginViewModel _loginViewModel,
         IWinUIWindowMgrService winUIWindowMgrService,
         IMauiWindowManagerService mauiWindowManagerService,
          IDimmerStateService dimmerStateService, IFolderPicker _folderPicker,
-         IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, 
-         ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, 
-         ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,  
+         IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService,
+         ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow,
+         ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,
          IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo,
          IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel,
-         IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService,musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+         IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
     {
 
         this.winUIWindowMgrService = winUIWindowMgrService;
-        this.loginViewModel=_loginViewModel;
+        this.loginViewModel = _loginViewModel;
         this._folderPicker = _folderPicker;
         UIQueryComponents.CollectionChanged += (s, e) =>
         {
             RebuildAndExecuteQuery();
         };
         windowManager = mauiWindowManagerService;
-        AddNextEvent +=BaseViewModelWin_AddNextEvent;
+        AddNextEvent += BaseViewModelWin_AddNextEvent;
         //MainWindowActivated
     }
 
@@ -70,7 +70,7 @@ public partial class BaseViewModelWin: BaseViewModel
     {
         //MainWindowActivated?.Invoke(this, EventArgs.Empty);
         MainWindow_Activated();
-       
+
 
     }
 
@@ -78,14 +78,14 @@ public partial class BaseViewModelWin: BaseViewModel
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
+        var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
         win.Close();
 
         // wait 4s and reopen it
         await Task.Delay(4000);
 
-            var newWin = winMgr.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
-            newWin.Activate();
+        var newWin = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        newWin.Activate();
 
     }
 
@@ -97,7 +97,7 @@ public partial class BaseViewModelWin: BaseViewModel
         if (UIQueryComponents is null)
             return;
         int index = UIQueryComponents.IndexOf(filterToRemove);
-        
+
 
         if (index == -1)
             return;
@@ -112,7 +112,7 @@ public partial class BaseViewModelWin: BaseViewModel
         }
     }
 
-    
+
     public async Task AddFilterAsync(string tqlField)
     {
         if (string.IsNullOrWhiteSpace(tqlField) || !FieldRegistry.FieldsByAlias.TryGetValue(tqlField, out var fieldDef))
@@ -137,7 +137,7 @@ public partial class BaseViewModelWin: BaseViewModel
         if (tqlClause != null && displayText != null)
         {
             // If there are already filters, add a joiner first
-            if (UIQueryComponents?.Count >0)
+            if (UIQueryComponents?.Count > 0)
             {
                 var tt = new LogicalJoinerViewModel(RebuildAndExecuteQuery) as IQueryComponentViewModel;
                 UIQueryComponents.Add(tt);
@@ -203,7 +203,7 @@ public partial class BaseViewModelWin: BaseViewModel
     }
     private void RebuildAndExecuteQuery()
     {
-        if (UIQueryComponents?.Count>0)
+        if (UIQueryComponents?.Count > 0)
         {
             GeneratedTqlQuery = string.Empty;
             _searchQuerySubject.OnNext(string.Empty);
@@ -219,7 +219,7 @@ public partial class BaseViewModelWin: BaseViewModel
             if (component is ActiveFilterViewModel filter)
             {
                 // If this is not the first filter, add the preceding joiner (AND/OR)
-                if (clauses.Count >0)
+                if (clauses.Count > 0)
                 {
                     clauses.Add(nextJoiner.ToString().ToLower());
                 }
@@ -246,27 +246,27 @@ public partial class BaseViewModelWin: BaseViewModel
     public partial int MediaBarGridRowPosition { get; set; }
 
     [ObservableProperty]
-    public partial CollectionView SongColView { get;  set; }
+    public partial CollectionView SongColView { get; set; }
 
 
     [ObservableProperty]
-    public partial List<string> DraggedAudioFiles { get;  set; }
+    public partial List<string> DraggedAudioFiles { get; set; }
     public Window CurrentWinUIPage { get; internal set; }
 
     [RelayCommand]
     public void SwapMediaBarPosition()
     {
-        if (MediaBarGridRowPosition==0)
+        if (MediaBarGridRowPosition == 0)
         {
             MediaBarGridRowPosition = 1;
         }
         else
         {
-            MediaBarGridRowPosition=0;
+            MediaBarGridRowPosition = 0;
         }
     }
 
-   
+
     public async Task AddMusicFolderViaPickerAsync()
     {
         try
@@ -311,26 +311,26 @@ public partial class BaseViewModelWin: BaseViewModel
     }
     public async Task ProcessAndMoveToViewSong(SongModelView? selectedSec)
     {
-        if (selectedSec is null )
+        if (selectedSec is null)
         {
-            if(CurrentPlayingSongView is null)
+            if (CurrentPlayingSongView is null)
             {
                 await Shell.Current.DisplayAlert("No Song Selected", "Please select a song to view its details.", "OK");
                 return;
             }
-            SelectedSong??=CurrentPlayingSongView;
-         
+            SelectedSong ??= CurrentPlayingSongView;
+
         }
         else
         {
-            SelectedSong=selectedSec;
+            SelectedSong = selectedSec;
         }
-            await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
     }
 
     public async Task InitializeParseUser()
     {
-       await loginViewModel.InitializeAsync();
+        await loginViewModel.InitializeAsync();
     }
 
     // Example for the "Title" column
@@ -339,18 +339,18 @@ public partial class BaseViewModelWin: BaseViewModel
 
     // Example for the "Artist" column
     [ObservableProperty]
-    public partial string ArtistColumnFilterText {get;set;}= "";
+    public partial string ArtistColumnFilterText { get; set; } = "";
 
     // Example for the "HasLyrics" column
     [ObservableProperty]
-    public partial bool HasLyricsColumnIsFiltered {get;set;}= false;
+    public partial bool HasLyricsColumnIsFiltered { get; set; } = false;
 
     // This will hold the final, visible count
     [ObservableProperty]
-    public partial int VisibleSongCount {get;set;}= 0;
+    public partial int VisibleSongCount { get; set; } = 0;
 
     [ObservableProperty]
-    public partial TableView? MyTableVIew {get;set;}
+    public partial TableView? MyTableVIew { get; set; }
     public DimmerWin MainMAUIWindow { get; internal set; }
 
     // --- The partial OnChanged methods that are our triggers ---
@@ -385,27 +385,27 @@ public partial class BaseViewModelWin: BaseViewModel
         ActivateMainWindow();
     }
 
-    
+
 
     internal void ActivateMainWindow()
     {
-     var dimWindow = windowManager.GetWindow<DimmerWin>();
+        var dimWindow = windowManager.GetWindow<DimmerWin>();
         if (dimWindow is not null)
         {
             windowManager.ActivateWindow(dimWindow);
         }
 
     }
-    
+
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
     {
         await base.AppSetupPageNextBtnClick(isLastTab);
-       
+
         if (isLastTab)
         {
             ShowWelcomeScreen = false;
             await Shell.Current.GoToAsync("..");
-            _= Task.Run(EnsureAllCoverArtCachedForSongsAsync);
+            _ = Task.Run(EnsureAllCoverArtCachedForSongsAsync);
             return;
         }
     }
@@ -421,7 +421,7 @@ public partial class BaseViewModelWin: BaseViewModel
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
             if (SongColView is not null && SongColView.IsLoaded)
-            { 
+            {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
 
@@ -463,9 +463,9 @@ public partial class BaseViewModelWin: BaseViewModel
     }
     internal void OpenSettingWin()
     {
-        
 
-        var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this,windowFactory: () => new AllSongsWindow(this));
+
+        var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
         Debug.WriteLine(win.Visible);
         Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
@@ -614,7 +614,7 @@ public partial class BaseViewModelWin: BaseViewModel
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-    
+
     }
     [RelayCommand]
     private async Task ScrollToCurrentPlayingSong()
@@ -623,8 +623,8 @@ public partial class BaseViewModelWin: BaseViewModel
         try
         {
             //MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
-           await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
-                false, true);
+            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
+                 false, true);
         }
         catch (Exception ex)
         {

@@ -7,6 +7,7 @@
     xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:lastfmmodels="clr-namespace:Hqub.Lastfm.Entities;assembly=Hqub.Lastfm"
+    xmlns:libSanity="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
     xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
@@ -793,12 +794,12 @@
                                                             <Label Text="{Binding SelectedSong.TrackNumber, StringFormat='Popularity Score : {0}'}" />
                                                         </VerticalStackLayout>
 
-                                                    <VerticalStackLayout>
+                                                        <VerticalStackLayout>
 
                                                             <Label Text="{Binding SongAverageListenThrough.Name}" />
                                                             <Label Text="{Binding SongAverageListenThrough.Value, StringFormat='{0:n2}%'}" />
 
-                                                    </VerticalStackLayout>
+                                                        </VerticalStackLayout>
 
                                                     </HorizontalStackLayout>
 
@@ -851,15 +852,11 @@
                                         <Label FontSize="26" Text="{Binding ListeningClockData.Name}" />
                                         <Label FontSize="26" Text="{Binding ListeningClockData.Count, StringFormat='{0} Dimms'}" />
 
-                                                            <DataTrigger
-                                                                Binding="{Binding PlayTypeStr}"
-                                                                TargetType="Border"
-                                                                Value="Seeked">
-                                                                <Setter Property="Stroke" Value="LightSteelBlue" />
-                                                            </DataTrigger>
+
 
                                     </VerticalStackLayout>
                                 </Grid>
+                            </ScrollView>
 
                         </Grid>
                     </syncf:SfTabItem.Content>

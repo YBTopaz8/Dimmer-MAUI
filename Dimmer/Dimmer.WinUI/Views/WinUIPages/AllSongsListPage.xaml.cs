@@ -35,8 +35,8 @@ namespace Dimmer.WinUI.Views.WinUIPages;
 /// </summary>
 public sealed partial class AllSongsListPage : Page
 {
-    
-    public AllSongsListPage( ) 
+
+    public AllSongsListPage()
     {
         InitializeComponent();
 
@@ -61,7 +61,7 @@ public sealed partial class AllSongsListPage : Page
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-       
+
     }
 
     private void TableView_BringIntoViewRequested(UIElement sender, BringIntoViewRequestedEventArgs args)
@@ -100,7 +100,7 @@ public sealed partial class AllSongsListPage : Page
             }
             element = element.Parent as FrameworkElement;
         }
-        var songs =  MySongsTableView.Items;
+        var songs = MySongsTableView.Items;
         Debug.WriteLine(songs.Count);
 
 
@@ -185,7 +185,7 @@ public sealed partial class AllSongsListPage : Page
         MyViewModel.SearchSongSB_TextChanged(text);
     }
 
-  
+
     private void HighlightSyntax(Microsoft.UI.Text.RichEditTextDocument document, string text)
     {
         // First, clear all previous formatting by setting the whole range to the default color
@@ -219,7 +219,7 @@ public sealed partial class AllSongsListPage : Page
                 if (token.Type == TokenType.Identifier && FieldRegistry.FieldsByAlias.ContainsKey(token.Text))
                 {
                     range.CharacterFormat.ForegroundColor = Colors.CornflowerBlue;
-                    range.CharacterFormat.Bold =  Microsoft.UI.Text.FormatEffect.On; // Make keywords bold
+                    range.CharacterFormat.Bold = Microsoft.UI.Text.FormatEffect.On; // Make keywords bold
                 }
                 else // Reset for other token types
                 {
@@ -284,7 +284,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        
+
     }
 
     private void SearchAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
@@ -553,23 +553,23 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_CellSelectionChanged(object sender, TableViewCellSelectionChangedEventArgs e)
     {
-    
-    //    var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+
+        //    var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
 
 
-    //    if (properties.IsXButton1Pressed)
-    //    {
-    //    }
-    //    else if (properties.IsXButton2Pressed)
-    //    {
+        //    if (properties.IsXButton1Pressed)
+        //    {
+        //    }
+        //    else if (properties.IsXButton2Pressed)
+        //    {
 
-    //    }
-    
-    //var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
-    //       (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
-    //        Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
-    //    if (isCtlrKeyPressed)
-    //        ProcessCellClick(isExclusion: false);
+        //    }
+
+        //var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
+        //       (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
+        //        Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+        //    if (isCtlrKeyPressed)
+        //        ProcessCellClick(isExclusion: false);
 
         switch (MySongsTableView.SelectionMode)
         {
@@ -582,16 +582,16 @@ public sealed partial class AllSongsListPage : Page
                     var currSelection = e.AddedCells[0];
                     var selectedColumnField = MySongsTableView.Columns[currSelection.Column].Header as string;
 
-                    var currentCellValue = MySongsTableView.GetCellsContent(e.AddedCells,false);
+                    var currentCellValue = MySongsTableView.GetCellsContent(e.AddedCells, false);
                     // now i have the field and value, if it's album/artist then we want to update query to find all of said album/artist
-                    if(!string.IsNullOrEmpty(selectedColumnField) && !string.IsNullOrEmpty(currentCellValue))
+                    if (!string.IsNullOrEmpty(selectedColumnField) && !string.IsNullOrEmpty(currentCellValue))
                     {
                         string tqlQuery = string.Empty;
                         switch (selectedColumnField)
                         {
                             case "Album":
                                 tqlQuery = PresetQueries.ByAlbum(currentCellValue);
-                                MyViewModel.SearchSongSB_TextChanged(tqlQuery); 
+                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
                                 break;
                             case "Artist":
                                 tqlQuery = PresetQueries.ByArtist(currentCellValue);
@@ -622,7 +622,7 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    
+
 
 
     private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
@@ -672,7 +672,7 @@ public sealed partial class AllSongsListPage : Page
     {
         var xterPressed = args.Character;
         var box = sender as TextBox;
-      
+
         // Get the full text from the box
         var text = box.Text;
         //Debug.WriteLine($"Character received: {xterPressed}");
@@ -686,7 +686,7 @@ public sealed partial class AllSongsListPage : Page
             // You can trigger your search or any other action here
 
         }
-            MyViewModel.SearchSongSB_TextChanged(text);
+        MyViewModel.SearchSongSB_TextChanged(text);
     }
 
     private void SearchAutoSuggestBox_CopyingToClipboard(TextBox sender, TextControlCopyingToClipboardEventArgs args)
@@ -722,7 +722,7 @@ public sealed partial class AllSongsListPage : Page
         Debug.WriteLine(e.Pointer.PointerId);
         Debug.WriteLine(e.OriginalSource.GetType());
         Microsoft.UI.Input.PointerPointProperties? pointerProps = e.GetCurrentPoint(null).Properties;
-        
+
         if (pointerProps == null)
         {
             return;
@@ -733,7 +733,7 @@ public sealed partial class AllSongsListPage : Page
         if (updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased
             || updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonPressed)
         {
-            
+
             await MyViewModel.ScrollToCurrentPlayingSongCommand.ExecuteAsync(null);
 
 
@@ -761,7 +761,7 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
-     {
+    {
         //var OldValue = e.OldValue;
         //TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
         //var propValue = e.Property;
@@ -868,7 +868,7 @@ public sealed partial class AllSongsListPage : Page
         }
         catch (Exception ex)
         {
-            
+
         }
     }
 
@@ -925,29 +925,29 @@ public sealed partial class AllSongsListPage : Page
             MySongsTableView.ScrollIntoView(songToAnimate, ScrollIntoViewAlignment.Default);
 
             // 3. Queue the animation logic using the LOCAL variable.
-            DispatcherQueue.TryEnqueue( () =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
                 if (animation != null)
                 {
-                // Use the captured 'songToAnimate' variable, which is guaranteed to be non-null.
-                // The extra null check is no longer needed here.
-                if (animation == null)
-                {
-                    // If there's no animation prepared, do nothing.
-                    return;
-                }
+                    // Use the captured 'songToAnimate' variable, which is guaranteed to be non-null.
+                    // The extra null check is no longer needed here.
+                    if (animation == null)
+                    {
+                        // If there's no animation prepared, do nothing.
+                        return;
+                    }
 
-                // --- THE ROBUST SOLUTION ---
-                // Manually find the target element to ensure it's ready.
-                var row = MySongsTableView.ContainerFromItem(songToAnimate) as FrameworkElement;
+                    // --- THE ROBUST SOLUTION ---
+                    // Manually find the target element to ensure it's ready.
+                    var row = MySongsTableView.ContainerFromItem(songToAnimate) as FrameworkElement;
                     if (row != null)
                     {
                         // The row container has been realized, now find the image inside it.
                         var image = FindVisualChild<Image>(row, "coverArtImage");
                         if (image != null)
                         {
-                     
+
                             animation.TryStart(image);
                         }
                         else
@@ -1034,10 +1034,10 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {        
+    {
         MyViewModel.SearchSongSB_TextChanged(SearchTetxBox.Text);
     }
-   
+
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
     {
 
@@ -1096,7 +1096,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
     {
-        
+
 
         //MyViewModel.OpenAndSelectFileInExplorer()
     }
