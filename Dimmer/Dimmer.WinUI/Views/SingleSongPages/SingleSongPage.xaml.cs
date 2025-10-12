@@ -11,7 +11,7 @@ public partial class SingleSongPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
         MyViewModel = vm;
-        
+
     }
 
     public BaseViewModelWin MyViewModel { get; }
@@ -19,7 +19,7 @@ public partial class SingleSongPage : ContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentPageContext=CurrentPage.SingleSongPage;
+        MyViewModel.CurrentPageContext = CurrentPage.SingleSongPage;
         //await MyViewModel.LoadSongLastFMData();
         //await MyViewModel.LoadSongLastFMMoreData();
         Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
@@ -69,7 +69,7 @@ public partial class SingleSongPage : ContentPage
             await MyViewModel.PlaySong(song);
         }
     }
-   
+
 
 
     private void DataPointSelectionBehavior_SelectionChanging(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangingEventArgs e)
@@ -79,7 +79,7 @@ public partial class SingleSongPage : ContentPage
         var old = e.OldIndexes;
 
         var pie = sender as PieSeries;
-        if (e.NewIndexes is null || e.NewIndexes.Count<1)
+        if (e.NewIndexes is null || e.NewIndexes.Count < 1)
         {
             return;
 
@@ -99,10 +99,10 @@ public partial class SingleSongPage : ContentPage
         {
             return;
         }
-        var sss = MyViewModel.SearchResults.First(x => x.Id==songg.Song.Id);
+        var sss = MyViewModel.SearchResults.First(x => x.Id == songg.Song.Id);
 
 
-        MyViewModel.SelectedSong=sss;
+        MyViewModel.SelectedSong = sss;
         //ColViewOfTopSongs.SelectedItem=       songg;
         Debug.WriteLine($"Selected Song: {songg.Song.Title}, Played {songg.Count} times.");
 
@@ -134,32 +134,32 @@ public partial class SingleSongPage : ContentPage
 
     private async void ViewArtist_Clicked(object sender, EventArgs e)
     {
-        
+
         if (SongTabView.IsVisible)
         {
-            
-            
-            
-            
+
+
+
+
         }
 
         var send = (SfChip)sender;
         if (send.CommandParameter is not SongModelView song)
-            return; 
+            return;
 
         var val = song.OtherArtistsName;
         if (string.IsNullOrWhiteSpace(val))
-            return; 
+            return;
 
         char[] dividers = new char[] { ',', ';', ':', '|', '-' };
 
         var namesList = val
-            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) 
-            .Select(name => name.Trim())                            
-            .Where(name => !string.IsNullOrWhiteSpace(name))        
-            .ToArray();                                             
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries)
+            .Select(name => name.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToArray();
 
-        
+
         if (namesList.Length == 0)
         {
             return;
@@ -174,7 +174,7 @@ public partial class SingleSongPage : ContentPage
 
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
-        
+
         if (!ArtistAlbumView.IsVisible)
         {
             await Task.WhenAll(SongTabView.DimmOutCompletelyAndHide(), ArtistAlbumView.DimmInCompletelyAndShow());
@@ -188,7 +188,7 @@ public partial class SingleSongPage : ContentPage
 
     private void SidePage_DragOver(object sender, DragEventArgs e)
     {
-        
+
     }
 
     private void SidePage_Drop(object sender, DropEventArgs e)
@@ -206,7 +206,7 @@ public partial class SingleSongPage : ContentPage
         dd.Text = "Drop at the to view";
     }
 
-    private async    void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
+    private async void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
         await send.FadeOut(300, 0.7);
@@ -216,7 +216,7 @@ public partial class SingleSongPage : ContentPage
     {
         //if (MyViewModel.SelectedSong is null)
         //{
-        
+
         //}
         var send = (View)sender;
         var songBindingContext = send.BindingContext as SongModelView;
@@ -238,12 +238,12 @@ public partial class SingleSongPage : ContentPage
         }
         await this.FadeOut(200, 0.7);
         MyViewModel.SelectedSong = song;
-        
 
-            await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
 
-            await MyViewModel.LoadSelectedSongLastFMData();
-        
+        await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+
+        await MyViewModel.LoadSelectedSongLastFMData();
+
         await this.FadeIn(450, 1);
 
     }
@@ -255,7 +255,7 @@ public partial class SingleSongPage : ContentPage
         {
             return;
         }
-        
+
 
 
         await MyViewModel.SaveUserNoteToSong(song);
@@ -263,7 +263,7 @@ public partial class SingleSongPage : ContentPage
 
     }
     private bool _isThrottling = false;
-    private readonly int throttleDelay = 300; 
+    private readonly int throttleDelay = 300;
     private async void Slider_DragCompleted(object sender, EventArgs e)
     {
         var send = (Slider)sender;
@@ -297,7 +297,7 @@ public partial class SingleSongPage : ContentPage
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        if(MyViewModel.SelectedSong is null)
+        if (MyViewModel.SelectedSong is null)
         {
             Debug.WriteLine("is null");
         }
@@ -333,7 +333,7 @@ public partial class SingleSongPage : ContentPage
 
     private async void ToggleViewArtist_Clicked(object sender, EventArgs e)
     {
-        
+
         if (!SongTabView.IsVisible)
         {
             await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
@@ -342,28 +342,28 @@ public partial class SingleSongPage : ContentPage
             return;
         }
 
-        
 
-        
+
+
         songToRestore = MyViewModel.SelectedSong;
 
-        
+
         if (songToRestore is null)
             return;
 
-        
-        
+
+
         Button send = (Button)sender;
         var artistName = send.Text;
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
 
-        
-      
-        
-        
-        
+
+
+
+
+
         if (MyViewModel.SearchResults.Contains(songToRestore))
         {
             MyViewModel.SelectedSong = songToRestore;
@@ -372,8 +372,8 @@ public partial class SingleSongPage : ContentPage
     SongModelView? songToRestore { get; set; }
     private async void ToggleViewAlbum_Clicked(object sender, EventArgs e)
     {
-  
-        
+
+
         if (!SongTabView.IsVisible)
         {
             await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
@@ -382,29 +382,29 @@ public partial class SingleSongPage : ContentPage
             return;
         }
 
-        
 
-        
+
+
         songToRestore = MyViewModel.SelectedSong;
 
-        
+
         if (songToRestore is null)
             return;
 
-        
-        
+
+
         Button send = (Button)sender;
         var artistName = send.Text;
 
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(artistName)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(artistName) + " " + StaticMethods.PresetQueries.SortByTitleAsc());
 
-        
-       
-        
-        
-        
+
+
+
+
+
         if (MyViewModel.SearchResults.Contains(songToRestore))
         {
             MyViewModel.SelectedSong = songToRestore;
@@ -626,5 +626,10 @@ public partial class SingleSongPage : ContentPage
     private void ViewLyricsIndex_Clicked(object sender, EventArgs e)
     {
         SongTabView.SelectedIndex = 5;
+    }
+
+    private void StartSesion_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.StartLyricsEditingSession(PlainLyricsEditor.Text);
     }
 }

@@ -5572,21 +5572,142 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public void StartLyricsEditingSession(string plainText)
     {
-        if(string.IsNullOrWhiteSpace(plainText))
+        if (string.IsNullOrWhiteSpace(plainText))
             return;
 
-        var lines = plainText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(line => new LyricEditingLineViewModel { Text = line.Trim() })
+        var rawLines = plainText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Trim())
             .ToList();
 
-        if(lines.Count == 0)
+        if (rawLines.Count == 0)
             return;
-        CurrentSongPlainLyricsEdit = plainText;
-        LyricsInEditor = new ObservableCollection<LyricEditingLineViewModel>(lines);
+
+        var processedLines = new List<LyricEditingLineViewModel>();
+        LyricEditingLineViewModel? lastSectionHeader = null;
+        int i = 0;
+
+        while (i < rawLines.Count)
+        {
+            string line = rawLines[i];
+
+            // --- [1] Detect SECTION HEADERS ----------------------------------
+            if (line.StartsWith("[") && line.EndsWith("]"))
+            {
+                string sectionName = line.Trim('[', ']');
+                processedLines.Add(new LyricEditingLineViewModel
+                {
+                    Text = sectionName,
+                    IsSectionHeader = true,
+                    SectionType = GetUniversalSectionType(sectionName)
+                });
+                lastSectionHeader = processedLines.Last();
+                i++;
+                continue;
+            }
+
+            // --- [2] Detect LINE-LEVEL repeats (e.g. "Não te percas ... x2") ----
+            if (Regex.IsMatch(line, @"x\d+$"))
+            {
+                var match = Regex.Match(line, @"x(\d+)$");
+                if (match.Success && processedLines.Count > 0)
+                {
+                    int repeatCount = int.Parse(match.Groups[1].Value);
+                    var lastLine = processedLines.LastOrDefault(l => !l.IsSectionHeader);
+                    if (lastLine != null)
+                    {
+                        for (int j = 1; j < repeatCount; j++)
+                            processedLines.Add(new LyricEditingLineViewModel
+                            {
+                                Text = lastLine.Text,
+                                IsRepeated = true,
+                                BelongsToSection = lastSectionHeader?.SectionType
+                            });
+                    }
+                }
+                i++;
+                continue;
+            }
+
+            // --- [3] Detect [RepeatStart] ... [RepeatEnd xN] ---
+            if (line.Equals("[RepeatStart]", StringComparison.OrdinalIgnoreCase))
+            {
+                int start = i + 1;
+                int end = -1;
+                int repeatCount = 1;
+
+                for (int j = start; j < rawLines.Count; j++)
+                {
+                    if (Regex.IsMatch(rawLines[j], @"^\[RepeatEnd(?:\s+x(\d+))?\]$", RegexOptions.IgnoreCase))
+                    {
+                        end = j - 1;
+
+                        var match = Regex.Match(rawLines[j], @"x(\d+)", RegexOptions.IgnoreCase);
+                        if (match.Success)
+                            repeatCount = int.Parse(match.Groups[1].Value);
+                        break;
+                    }
+                }
+
+                if (end != -1)
+                {
+                    var block = rawLines.Skip(start).Take(end - start + 1).ToList();
+                    for (int r = 0; r < repeatCount; r++)
+                    {
+                        foreach (var bl in block)
+                        {
+                            processedLines.Add(new LyricEditingLineViewModel
+                            {
+                                Text = bl,
+                                BelongsToSection = lastSectionHeader?.SectionType,
+                                IsRepeated = r > 0
+                            });
+                        }
+                    }
+
+                    i = end + 2;
+                    continue;
+                }
+            }
+
+            // --- [4] Normal lyric line -----------------------------------------
+            processedLines.Add(new LyricEditingLineViewModel
+            {
+                Text = line,
+                BelongsToSection = lastSectionHeader?.SectionType
+            });
+
+            i++;
+        }
+
+        LyricsInEditor = new ObservableCollection<LyricEditingLineViewModel>(processedLines);
         _currentLineIndexToTimestamp = 0;
-        LyricsInEditor[_currentLineIndexToTimestamp].IsCurrentLine = true;
+        if (LyricsInEditor.Any())
+            LyricsInEditor[0].IsCurrentLine = true;
+
         IsLyricEditorActive = true;
-        _logger.LogInformation("Started lyrics editing session with {Count} lines.", lines.Count);
+        _logger.LogInformation("Started lyrics editing session with {Count} lines.", LyricsInEditor.Count);
+    }
+    private string GetUniversalSectionType(string name)
+    {
+        string n = name.ToLowerInvariant();
+
+        string[] intro = { "intro", "entrada", "introduction", "ouverture" };
+        string[] verse = { "verse", "couplet", "estrofe", "estrofa", "strofa" };
+        string[] prechorus = { "pre-chorus", "prechorus", "pré-refrain", "pré-chorus", "precor", "pré-coro" };
+        string[] chorus = { "chorus", "refrain", "coro", "refrao", "ritornello" };
+        string[] bridge = { "bridge", "pont", "ponte" };
+        string[] outro = { "outro", "finale", "conclusion" };
+        string[] instrumental = { "instrumental", "interlude", "solo" };
+
+        if (intro.Any(n.Contains)) return "Intro";
+        if (verse.Any(n.Contains)) return "Verse";
+        if (prechorus.Any(n.Contains)) return "Pre-Chorus";
+        if (chorus.Any(n.Contains)) return "Chorus";
+        if (bridge.Any(n.Contains)) return "Bridge";
+        if (outro.Any(n.Contains)) return "Outro";
+        if (instrumental.Any(n.Contains)) return "Instrumental";
+
+        return "Generic";
     }
 
     async partial void OnIsLyricEditorActiveChanged(bool oldValue, bool newValue)
@@ -5594,7 +5715,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if(newValue)
         {
             IsTimestampingInProgress = true;
-            Shell.Current.FlyoutIsPresented = false;
+            
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         } else
         {
@@ -5602,7 +5723,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         }
 
-        await PlayPauseToggle();
     }
 
     [ObservableProperty]
@@ -5610,6 +5730,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial string CurrentSongPlainLyricsEdit { get; set; }
+    partial void OnCurrentSongPlainLyricsEditChanged(string oldValue, string newValue)
+    {
+        if(!string.IsNullOrEmpty(newValue))
+        {
+
+        }
+    }
+    [ObservableProperty]
+    public partial List<LrcLibLyrics>? ListOfPlainLyricsFromLrcLib { get; set; }
 
     /// <summary>
     /// This is the main action button. It grabs the current playback time and applies it to the current lyric line.
@@ -5623,7 +5752,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             return;
         }
-
+        if (lyricIndex.IsSectionHeader || lyricIndex.SectionType == "Generic")
+            return;
 
         var currentTime = TimeSpan.FromSeconds(_audioService.CurrentPosition);
         var timestampString = currentTime.ToString(@"mm\:ss\.ff");
@@ -5672,17 +5802,35 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
     [ObservableProperty]
     public partial int SingleSongPageTabIndex { get; set; }
+    [ObservableProperty]
+    public partial bool IsSearchingLyricsOnline { get; set; }
     [RelayCommand]
     public async Task ContributeToLrcLib()
     {
+        CancellationTokenSource cts = new();
         if (SelectedSong == null)
             return;
         if (string.IsNullOrWhiteSpace(SelectedSong.SyncLyrics))
         {
-            var ress = await Shell.Current.DisplayAlert("No Lyrics", "Do You Wish to synchronize and contribute?", "Yes", "Cancel");
+            var ress = await Shell.Current.DisplayAlert("No Lyrics", "Do You wish to synchronize and contribute?", "Yes", "Cancel");
             if (!ress) return;
 
             SingleSongPageTabIndex = 1;
+            IsSearchingLyricsOnline = true;
+            ListOfPlainLyricsFromLrcLib = await _lyricsMetadataService.GetAllPlainLyricsOnlineAsync(SelectedSong,cts.Token);
+            if(ListOfPlainLyricsFromLrcLib is not null)
+            {
+
+                if(ListOfPlainLyricsFromLrcLib.Count == 1)
+                {
+                    var plainLyr = ListOfPlainLyricsFromLrcLib[0].PlainLyrics; 
+                    if(!string.IsNullOrEmpty(plainLyr))
+                    {
+                        CurrentSongPlainLyricsEdit = plainLyr;
+                    }
+                }
+            }
+            IsSearchingLyricsOnline = false;
             return;
         }
         var syncedLyrics = SelectedSong.SyncLyrics;

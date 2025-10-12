@@ -77,6 +77,19 @@ public partial class LyricEditingLineViewModel : ObservableObject
     public partial string Text { get; set; }
 
     [ObservableProperty]
+    public partial string SectionType { get; set; }
+
+    [ObservableProperty]
+    public partial string? BelongsToSection { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSectionHeader { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRepeated { get; set; }
+
+
+    [ObservableProperty]
     public partial bool IsTimed { get; set; } // To change color in UI once timestamped
 
     [ObservableProperty]

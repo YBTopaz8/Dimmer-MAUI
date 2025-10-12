@@ -386,11 +386,11 @@ public partial class BaseViewModelWin : BaseViewModel
     }
 
 
-
+    
     internal void ActivateMainWindow()
     {
         var dimWindow = windowManager.GetWindow<DimmerWin>();
-        dimWindow.
+        
         if (dimWindow is not null)
         {
             windowManager.ActivateWindow(dimWindow);
