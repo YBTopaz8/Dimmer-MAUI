@@ -1257,7 +1257,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static  string CurrentAppVersion = "1.0";
+    public static  string CurrentAppVersion = "1.01";
     public static  string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -1883,7 +1883,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     #region Playback Event Handlers
-    private void OnPlaybackPaused(PlaybackEventArgs args)
+    private async void OnPlaybackPaused(PlaybackEventArgs args)
     {
         if(args.MediaSong is null)
         {
@@ -1898,13 +1898,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
+        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             args.MediaSong,
             StatesMapper.Map(DimmerPlaybackState.PausedUser),
             CurrentTrackPositionSeconds);
 
-        CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
     }
 
     private async Task OnPlaybackResumed(PlaybackEventArgs args)
@@ -1936,7 +1936,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
@@ -2040,14 +2040,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsUserDraggingSlider { get; set; }
 
-    private void OnSeekCompleted(double newPosition)
+    private async void OnSeekCompleted(double newPosition)
     {
-        _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
-        _baseAppFlow.UpdateDatabaseWithPlayEvent(
-            RealmFactory,
-            CurrentPlayingSongView,
-            StatesMapper.Map(DimmerPlaybackState.Seeked),
-            newPosition);
+        try
+        {
+            _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
+            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+                RealmFactory,
+                CurrentPlayingSongView,
+                StatesMapper.Map(DimmerPlaybackState.Seeked),
+                newPosition);
+        }
+        catch (Exception ex )
+        {
+            _logger.LogError(ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -2787,7 +2794,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if(IsPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage < 90)
         {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Skipped),
@@ -2798,11 +2805,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 {
                     await lastfmService.ScrobbleAsync(_songToScrobble);
                 }
-                _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Ended manually" });
+                _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Ended manually", ViewSongModel=CurrentPlayingSongView });
             }
         } else if(IsPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
         {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
@@ -2860,7 +2867,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
         if(IsPlaying && CurrentPlayingSongView != null)
         {
-            _baseAppFlow.UpdateDatabaseWithPlayEvent(
+          await  _baseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Skipped),
@@ -4036,11 +4043,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             else
             {
                 // 2. This is a synchronous DB call. Move it to a background thread.
-                await Task.Run(() => _baseAppFlow.UpdateDatabaseWithPlayEvent(
+                await _baseAppFlow.UpdateDatabaseWithPlayEvent(
                     RealmFactory,
                     CurrentPlayingSongView,
                     StatesMapper.Map(DimmerPlaybackState.Favorited),
-                    CurrentTrackPositionSeconds));
+                    CurrentTrackPositionSeconds);
 
                 songModel.NumberOfTimesFaved++;
             }
