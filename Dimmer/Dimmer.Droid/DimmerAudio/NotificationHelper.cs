@@ -6,6 +6,7 @@ using Android.Util;
 using AndroidX.Core.App;
 using AndroidX.Core.Graphics.Drawable;
 using Android;
+using AndroidX.Media3.Common;
 
 namespace Dimmer.DimmerAudio;
 
@@ -85,27 +86,32 @@ public static class NotificationHelper
 
     public static PlayerNotificationManager BuildManager(
         MediaSessionService service,
-        MediaSession session)
+        MediaSession session, SongModelView? song)
     {
         CreateChannel(service);
+
+        var mainIntent = new Intent(service, typeof(MainActivity))
+            .SetAction(Intent.ActionMain)
+            .AddCategory(Intent.CategoryLauncher);
 
 
         var pi = PendingIntent.GetActivity(
             service, 0,
-            new Intent(service, typeof(MainActivity))
-              .SetAction(Intent.ActionMain)
-              .AddCategory(Intent.CategoryLauncher),
+            mainIntent,
             PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
         );
 
 
+        var customActionReceiver = new LyricsActionReceiver(service);
+
         var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
 
 
-        PlayerNotificationManager mgr = new PlayerNotificationManager.Builder(
+        PlayerNotificationManager? mgr = new PlayerNotificationManager.Builder(
                 service, NotificationId, ChannelId
             )
             .SetMediaDescriptionAdapter(descrAdapter)!
+        .SetCustomActionReceiver(customActionReceiver)!
             .SetNotificationListener(new NotificationListener(service))!
             .SetSmallIconResourceId(Resource.Drawable.dimmicoo)!
 
@@ -113,7 +119,13 @@ public static class NotificationHelper
 
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
-        mgr.SetUseFastForwardActionInCompactView(false);
+        if (song != null)
+        {
+            mgr.SetUseChronometer(song.HasSyncedLyrics); // optional: show time counter if lyrics exist
+        }
+
+
+            mgr.SetUseFastForwardActionInCompactView(false);
         mgr.SetUsePreviousAction(true);
         mgr.SetUseNextActionInCompactView(true);
         mgr.SetUsePreviousActionInCompactView(true);
@@ -171,20 +183,6 @@ public static class NotificationHelper
 
         }
 
-
-
-        //public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
-        //{
-
-
-
-
-
-
-
-
-
-        //}
     }
 
 
@@ -202,4 +200,133 @@ public static class NotificationHelper
 
         return builder.Build();
     }
+    class LyricsActionReceiver : Java.Lang.Object, PlayerNotificationManager.ICustomActionReceiver
+    {
+        private readonly Context _ctx;
+        private const string ActionLyrics = "ACTION_LYRICS";
+        private const string ServiceAction = "com.yvanbrunel.dimmer.ACTION_LYRICS";
+        public LyricsActionReceiver(Context ctx) => _ctx = ctx;
+
+        // List of actions this receiver supports
+        public IList<string> CreateCustomActions(Context context, PlayerNotificationManager manager)
+              => new List<string> { ActionLyrics };
+
+        // Build the action for the notification
+        public NotificationCompat.Action? GetCustomAction(Context context, string action)
+        {
+            if (action != ActionLyrics) return null;
+
+            var intent = new Intent(context, typeof(ExoPlayerService))
+                .SetAction("com.yvanbrunel.dimmer.ACTION_LYRICS");
+
+            var pendingIntent = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable);
+            var iconRes = Resource.Drawable.lyricist;
+
+            return new NotificationCompat.Action(iconRes, "Lyrics", pendingIntent);
+        }
+
+        // Handle when user taps the action
+        public void OnCustomAction(IPlayer? player, string? action, Intent? intent)
+        {
+            if (action == ActionLyrics)
+            {
+                Toast.MakeText(_ctx, "Opening synced lyrics...", ToastLength.Short)?.Show();
+                // TODO: trigger your overlay / lyrics view
+            }
+        }
+        public IList<string>? GetCustomActions(IPlayer? player)
+        => new List<string> { ActionLyrics };
+
+        // Return a map of actionId -> Action
+        public IDictionary<string, NotificationCompat.Action>? CreateCustomActions(Context? context, int instanceId)
+        {
+            if (context == null) return null;
+            var act = BuildLyricsAction(context);
+            return new Dictionary<string, NotificationCompat.Action> { { ActionLyrics, act } };
+        }
+
+        private static NotificationCompat.Action BuildLyricsAction(Context context)
+        {
+            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(ServiceAction);
+            var pi = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+            return new NotificationCompat.Action(Resource.Drawable.lyricist, "Lyrics", pi);
+        }
+    }
+
+    class MediaActionsReceiver : Java.Lang.Object, PlayerNotificationManager.ICustomActionReceiver
+    {
+        private readonly Context _ctx;
+        private const string ActionLyrics = "ACTION_LYRICS";
+        private const string ActionFavorite = "ACTION_FAVORITE";
+
+        public MediaActionsReceiver(Context ctx) => _ctx = ctx;
+
+        public IList<string> CreateCustomActions(Context context, PlayerNotificationManager manager)
+            => new List<string> { ActionLyrics, ActionFavorite };
+
+        public NotificationCompat.Action? GetCustomAction(Context context, string action)
+        {
+            if (action == ActionLyrics)
+                return BuildAction(context, ActionLyrics, "Lyrics", Resource.Drawable.lyricist);
+
+            if (action == ActionFavorite)
+            {
+                // Retrieve from shared state
+                bool isFav = ExoPlayerService.CurrentSongContext?.IsFavorite ?? false;
+                var icon = isFav ? Resource.Drawable.heart : Resource.Drawable.heartbroken;
+                return BuildAction(context, ActionFavorite, "Fav", icon);
+            }
+
+            return null;
+        }
+
+        public void OnCustomAction(IPlayer? player, string? action, Intent? intent)
+        {
+            if (action == ActionLyrics)
+            {
+                Toast.MakeText(_ctx, "Opening synced lyrics...", ToastLength.Short)?.Show();
+                // Launch your lyrics overlay/page
+            }
+            else if (action == ActionFavorite)
+            {
+                var song = ExoPlayerService.CurrentSongContext;
+                if (song != null)
+                {
+                    song.IsFavorite = !song.IsFavorite;
+                    Toast.MakeText(_ctx,
+                        song.IsFavorite ? "Added to Favorites ❤️" : "Removed from Favorites 💔",
+                        ToastLength.Short)?.Show();
+
+                    // Optionally persist and update notification
+                    ExoPlayerService.UpdateFavoriteState(song);
+                    
+                    //PlayerNotificationManagerCompat.invalidate(); // refresh notification icon
+                }
+            }
+        }
+
+        // Required legacy interfaces for your binding
+        public IList<string>? GetCustomActions(IPlayer? player)
+            => new List<string> { ActionLyrics, ActionFavorite };
+
+        public IDictionary<string, NotificationCompat.Action>? CreateCustomActions(Context? context, int instanceId)
+        {
+            if (context == null) return null;
+            var dict = new Dictionary<string, NotificationCompat.Action>
+        {
+            { ActionLyrics, BuildAction(context, ActionLyrics, "Lyrics", Resource.Drawable.lyricist) },
+            { ActionFavorite, BuildAction(context, ActionFavorite, "Fav", Resource.Drawable.heart) }
+        };
+            return dict;
+        }
+
+        private NotificationCompat.Action BuildAction(Context ctx, string action, string label, int iconRes)
+        {
+            var intent = new Intent(ctx, typeof(ExoPlayerService)).SetAction(action);
+            var pi = PendingIntent.GetService(ctx, 0, intent,
+                PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+            return new NotificationCompat.Action(iconRes, label, pi);
+        }
+    }
+
 }

@@ -78,8 +78,8 @@ public class ExoPlayerService : MediaSessionService
 
     // --- Internal State ---
     internal static MediaItem? currentMediaItem; // Choose a unique ID
-    public SongModelView? CurrentSongContext; // Choose a unique ID
-
+    public static SongModelView? CurrentSongContext; // Choose a unique ID
+    public SongModelView? CurrentSongExposed => CurrentSongContext;
     // --- Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
 
@@ -230,6 +230,9 @@ public class ExoPlayerService : MediaSessionService
                 //.SetSeekParameters(new SeekParameters(10,10))
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
+                .SetPauseAtEndOfMediaItems(true )
+                //.SetPauseAtEndOfMediaItems(true) could use this in combo with 
+                //is play changed but i'll need to expose the player position
                 
                 .Build();
 
@@ -261,7 +264,7 @@ public class ExoPlayerService : MediaSessionService
 
             // 2) NotificationManager
             NotificationHelper.CreateChannel(this);
-            _notifMgr = NotificationHelper.BuildManager(this, mediaSession!);
+            _notifMgr = NotificationHelper.BuildManager(this, mediaSession!, CurrentSongContext);
 
             _notifMgr.SetPlayer(notificationPlayer);
 
@@ -326,7 +329,7 @@ public class ExoPlayerService : MediaSessionService
     }
 
 
-    public override IBinder OnBind(Intent? intent)
+    public override IBinder? OnBind(Intent? intent)
     {
         return _binder;
     }
@@ -437,7 +440,11 @@ public class ExoPlayerService : MediaSessionService
         string? imagePath = null,
         long startPositionMs = 0)
     {
-        CurrentSongContext=song;
+
+
+        try
+        {
+            CurrentSongContext =song;
         if (player is null)
         {
 
@@ -470,23 +477,10 @@ public class ExoPlayerService : MediaSessionService
                 Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
             }
         }
-        if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
-        {
-            try
-            {
-                metadataBuilder.SetArtworkUri(Uri.FromFile(new Java.IO.File(imagePath)));
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
-            }
-        }
 
 
-        try
-        {
             currentMediaItem = new MediaItem.Builder()!
-               .SetMediaId(url)! // Use URL as Media ID for simplicity
+               .SetMediaId(song.Id.ToString())! 
                .SetUri(Uri.Parse(url))!
                .SetMediaMetadata(metadataBuilder!.Build())!
                .Build();
@@ -494,6 +488,7 @@ public class ExoPlayerService : MediaSessionService
 
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
             player.AddMediaItem(currentMediaItem);
+            
             player.Prepare();
 
             player.Play();
@@ -520,6 +515,12 @@ public class ExoPlayerService : MediaSessionService
         return Task.CompletedTask;
     }
 
+    internal static void UpdateFavoriteState(SongModelView song)
+    {
+        Toast.MakeText(Platform.AppContext, "Opening synced lyrics...", ToastLength.Short)?.Show();
+
+    }
+
 
     // --- Player Event Listener ---
     sealed class PlayerEventListener : Object, IPlayerListener // Use specific IPlayer.Listener
@@ -528,58 +529,77 @@ public class ExoPlayerService : MediaSessionService
         private readonly ExoPlayerService service;
         public PlayerEventListener(ExoPlayerService service) { this.service = service; }
 
+        private bool _endRaisedForThisItem = false;
+        private string? _lastMediaId;
+        public void OnMediaItemTransition(MediaItem? mediaItem, int reason)
+        {
 
+
+            //if (mediaItem == null) return;
+
+            //_endRaisedForThisItem = false;
+            //string? newId = mediaItem.MediaId;
+
+            //// Reason 1 = AUTO / NEXT transition (ExoPlayer constants)
+            //// If same song reappears (duplicate entry in playlist)
+            //if (newId == _lastMediaId)
+            //{
+            //    service.player?.Pause(); // immediate cut — no 1s replay
+            //    service.RaisePlayingEnded();
+            //    Console.WriteLine($"[ExoPlayerService] Duplicate transition intercepted → {newId}");
+            //    return;
+            //}
+
+            //// Normal transition
+            //_lastMediaId = newId;
+
+            ////// Update service context (look up full SongModelView by ID)
+            ////var newSongContext = SongRepository.GetById(newId);
+            ////service.CurrentSongContext = newSongContext;
+
+            Console.WriteLine($"[ExoPlayerService] MediaItemTransition: Reason={reason}");
+        }
 
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
-            Console.WriteLine($"{DateTime.Now} CURRENT REASON {reason}");
+            // reason = 0 AUTO, 1 SEEK, 4 REMOVE, etc.
+            Console.WriteLine($"{DateTime.Now} ► PositionDiscontinuity reason={reason}");
 
-            if (oldPosition is null) return;
-            Console.WriteLine($"{DateTime.Now} Old Position {oldPosition.ContentPositionMs} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old PositionMs {oldPosition.PositionMs} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old PeriodIndex {oldPosition.PeriodIndex} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old MediaItemIndex {oldPosition.MediaItemIndex} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old WindowUid {oldPosition.WindowUid} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old Title {oldPosition.MediaItem?.MediaMetadata?.Title} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old Artist {oldPosition?.MediaItem?.MediaMetadata?.Artist} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old TrackNumber {oldPosition?.MediaItem?.MediaMetadata?.TrackNumber} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old AlbumTitle {oldPosition?.MediaItem?.MediaMetadata?.AlbumTitle} {reason}");
-            Console.WriteLine($"{DateTime.Now} Old Description {oldPosition?.MediaItem?.MediaMetadata?.Description} {reason}");
+            //// Safety fallback: duplicate transition via auto-advance
+            //if (reason == 0 &&
+            //    oldPosition?.MediaItem?.MediaId != null &&
+            //    newPosition?.MediaItem?.MediaId == oldPosition.MediaItem.MediaId)
+            //{
+            //    service.player?.Pause();
+            //    service.RaisePlayingEnded();
+            //    Console.WriteLine("[ExoPlayerService] Duplicate discontinuity stopped early");
+            //    return;
+            //}
 
-            if (newPosition is null) return;
-            if (reason == 1)
+            if (reason == 1 && newPosition != null)
             {
                 service.RaiseSeekCompleted(newPosition.PositionMs);
                 return;
             }
-            if (newPosition is null || newPosition.MediaItem?.MediaMetadata?.Title is null)
-            {
-                return;
-            }
-            Console.WriteLine($"{DateTime.Now} New Position {newPosition.ContentPositionMs} {reason}");
-            Console.WriteLine($"{DateTime.Now} New PositionMs {newPosition.PositionMs} {reason}");
-            Console.WriteLine($"{DateTime.Now} New PeriodIndex {newPosition.PeriodIndex} {reason}");
-            Console.WriteLine($"{DateTime.Now} New MediaItemIndex {newPosition.MediaItemIndex} {reason}");
-            Console.WriteLine($"{DateTime.Now} New WindowUid {newPosition.WindowUid} {reason}");
-            Console.WriteLine($"{DateTime.Now} New Title {newPosition.MediaItem?.MediaMetadata?.Title} {reason}");
-            Console.WriteLine($"{DateTime.Now} New Artist {newPosition?.MediaItem?.MediaMetadata?.Artist} {reason}");
-            Console.WriteLine($"{DateTime.Now} New TrackNumber {newPosition?.MediaItem?.MediaMetadata?.TrackNumber} {reason}");
-            Console.WriteLine($"{DateTime.Now} New AlbumTitle {newPosition?.MediaItem?.MediaMetadata?.AlbumTitle} {reason}");
-            Console.WriteLine($"{DateTime.Now} New Description {newPosition?.MediaItem?.MediaMetadata?.Description} {reason}");
 
+            // (Keep logs if needed)
+            if (oldPosition?.MediaItem != null)
+                Console.WriteLine($"Old={oldPosition.MediaItem.MediaId} Pos={oldPosition.PositionMs}ms");
+            if (newPosition?.MediaItem != null)
+                Console.WriteLine($"New={newPosition.MediaItem.MediaId} Pos={newPosition.PositionMs}ms");
         }
         public void OnPlaybackStateChanged(int playbackState)
         {
-            if (playbackState == 4)
-            {
-                service.player?.Stop();
-                service.RaisePlayingEnded();
-            }
+            Console.WriteLine($"{DateTime.Now}ccccccccccccccccccccccccccccccccccccccc state changed and new state is {playbackState}");
 
-            //1 == Player.STATE_IDLE
-            //2 == STATE_BUFFERING
-            // 3 == STATE_READY
-            // 4 == STATE_ENDED
+            //if (playbackState == 4)
+            //{
+            //    Console.WriteLine($"{DateTime.Now}!!!!!!!!!!!!!!!!!!!!!!!!! state changed and new state is {playbackState}");
+            //}
+            //    //    service.player?.Pause(); // pause instead of stop for smoother state handover
+            //    //    service.RaisePlayingEnded();
+            //    //    Console.WriteLine("[ExoPlayerService] Playback ended → event raised");
+            //    //}
         }
         public void OnLoadingChanged(bool isLoading)
         {
@@ -618,7 +638,27 @@ public class ExoPlayerService : MediaSessionService
             }
         }
 
+        public void OnPlayWhenReadyChanged(bool playWhenReady, int reason)
+        {
+            Console.WriteLine($"[PlayerEventListener]$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ PlayWhenReadyChanged: {playWhenReady}, Reason={reason}");
+            const int END_OF_ITEM = 5;
 
+            if (!playWhenReady && reason == END_OF_ITEM)
+            {
+
+                // We’re exactly at the last frame of the CURRENT item.
+                // Stop/pause to prevent Exo from starting the duplicate entry.
+                
+                service.RaisePlayingEnded();
+
+                Console.WriteLine("[ExoPlayerService] END_OF_MEDIA_ITEM intercepted (pauseAtEndOfMediaItems)");
+            }
+        }
+
+        public void OnPlaybackSuppressionReasonChanged(int reason)
+        {
+            Console.WriteLine($"{DateTime.Now}@@@@@@@@@@@@@@@@@@@@@@@@@ [PlayerEventListener] PlaybackSuppressionReasonChanged: {reason}");
+        }
 
 
         // --- Other IPlayer.Listener Methods (Implement if needed, stubs are often sufficient) ---
@@ -647,13 +687,12 @@ public class ExoPlayerService : MediaSessionService
 
         public void OnMaxSeekToPreviousPositionChanged(long p0) { /* Log if needed */ }
         // public void OnMetadata(MediaMetadata? volume) {} // Superseded by OnMediaMetadataChanged? Check docs.
-        //public void OnPlayWhenReadyChanged(bool playWhenReady, int reason) { Console.WriteLine($"[PlayerEventListener] PlayWhenReadyChanged: {playWhenReady}, Reason={reason}"); }
+       
         public void OnPlaybackParametersChanged(PlaybackParameters? playbackParameters)
         {
 
             /* Log if needed */
         }
-        //public void OnPlaybackSuppressionReasonChanged(int reason) { Console.WriteLine($"[PlayerEventListener] PlaybackSuppressionReasonChanged: {reason}"); }
 
         //public void OnRenderedFirstFrame() { Console.WriteLine($"[PlayerEventListener] RenderedFirstFrame"); }
         public void OnRepeatModeChanged(int p0) { /* Log if needed */ }
@@ -678,25 +717,6 @@ public class ExoPlayerService : MediaSessionService
 
         }
         
-        public void OnMediaItemTransition(MediaItem? mediaItem, int reason)
-        {
-            // This is vital for playlists. When a song finishes and the next one starts automatically...
-            if (reason == 1 && mediaItem != null)
-            {
-                // ...you need to update the service's context.
-                // This requires a way to look up the full SongModelView from the ID.
-                // For now, a placeholder shows the concept:
-
-                // Find the full song details from a repository or a cached list
-                // SongModelView newSongContext = MySongRepository.GetById(mediaItem.MediaId);
-                // service.CurrentSongContext = newSongContext;
-                
-                service.player?.Stop();
-                service.RaisePlayingEnded();
-                Console.WriteLine($"[ExoPlayerService] MediaItemTransition: {mediaItem.MediaId} Reason={reason}");
-                Console.WriteLine($"[ExoPlayerService] Transitioned to new song: {mediaItem.MediaId}");
-            }
-        }
         public void OnPlayerError(PlaybackException? error)
         {
             // It's crucial to have this method to handle errors.

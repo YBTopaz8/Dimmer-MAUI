@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Transitions;
+using Android.Util;
 using Android.Window;
 
 using Dimmer.ViewModel;
@@ -393,6 +394,36 @@ public class MainActivity : MauiAppCompatActivity
             System.Diagnostics.Debug.WriteLine("OnBackPressed (API >= 33) called, but OnBackInvokedCallback should be active.");
             base.OnBackPressed(); // Call base just in case MAUI's base activity has specific logic
         }
+    }
+    protected override void OnUserLeaveHint()
+    {
+        base.OnUserLeaveHint();
+    
+        TryEnterPipMode();
+    }
+
+    private void TryEnterPipMode()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        {
+            var builder = new PictureInPictureParams.Builder();
+            builder.SetAspectRatio(new Rational(16, 9)); // adjust for your UI
+            EnterPictureInPictureMode(builder.Build());
+            Console.WriteLine("Entered PiP mode");
+        }
+    }
+
+    public override void OnPictureInPictureModeChanged(bool isInPipMode, Configuration? newConfig)
+    {
+        base.OnPictureInPictureModeChanged(isInPipMode, newConfig);
+
+        // Hide or show MAUI shell UI depending on mode
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var page = Shell.Current?.CurrentPage;
+            if (page != null)
+                page.IsVisible = !isInPipMode;
+        });
     }
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CS0672 // Member overrides obsolete member
