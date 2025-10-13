@@ -85,7 +85,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                
                 break;
             case 1:
-               
+                if (!IsPlaying)
+                    NowPlayingTabIndex = 0;
+
                 IsNowPlayingQueue =false;
 
                 IsNowAllSongsQueue=false;
