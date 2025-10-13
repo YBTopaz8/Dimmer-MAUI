@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class NowPlayingUISection : DXExpander

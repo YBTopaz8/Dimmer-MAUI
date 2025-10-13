@@ -2,7 +2,6 @@
 
 using Dimmer.Utilities.Events;
 
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 

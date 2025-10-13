@@ -1,7 +1,3 @@
-using Dimmer.DimmerLive;
-
-using Java.Net;
-
 using Syncfusion.Maui.Toolkit.Chips;
 
 using ImageButton = Microsoft.Maui.Controls.ImageButton;

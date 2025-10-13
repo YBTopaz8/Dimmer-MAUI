@@ -1,19 +1,8 @@
-using AndroidX.Lifecycle;
-
-using DevExpress.Maui.Editors;
-
-using Dimmer.DimmerSearch;
-using Dimmer.ViewModel;
 using Dimmer.Views.Stats;
 
 using Syncfusion.Maui.Toolkit.Chips;
-using Syncfusion.Maui.Toolkit.EffectsView;
 
-using System.Threading.Tasks;
-
-using Button = Microsoft.Maui.Controls.Button;
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
-using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer;
 

@@ -1,6 +1,4 @@
-﻿using View = Android.Views.View;
-
-namespace Dimmer.Utils.AnimsStatics;
+﻿namespace Dimmer.Utils.AnimsStatics;
 public class ViewRegistry
 {
 

@@ -1,9 +1,4 @@
-using System.ComponentModel;
-
 using DevExpress.Maui.Controls;
-using DevExpress.Maui.Editors;
-
-using Dimmer.Utilities.CustomAnimations;
 
 namespace Dimmer.Views.CustomViewsParts;
 

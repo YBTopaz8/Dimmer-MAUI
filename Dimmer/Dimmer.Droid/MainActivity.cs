@@ -4,8 +4,6 @@ using Android.OS;
 using Android.Transitions;
 using Android.Util;
 using Android.Window;
-
-using Dimmer.ViewModel;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]

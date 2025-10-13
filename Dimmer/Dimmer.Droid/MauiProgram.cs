@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 
-using Dimmer.Utils.CustomHandlers;
 using Dimmer.Utils.CustomHandlers.CollectionView;
-using Dimmer.Views.CustomViewsParts;
 using Dimmer.Views.Stats;
 
 using Microsoft.Maui.LifecycleEvents;

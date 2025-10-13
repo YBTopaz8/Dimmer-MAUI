@@ -31,8 +31,6 @@ using DeviceInfo = AndroidX.Media3.Common.DeviceInfo;
 using MediaMetadata = AndroidX.Media3.Common.MediaMetadata;
 using AudioAttributes = AndroidX.Media3.Common.AudioAttributes;
 
-using Android.Util;
-
 using Java.Util.Concurrent;
 
 using Android.Media;
@@ -40,13 +38,6 @@ using Android.Media;
 using MediaController = AndroidX.Media3.Session.MediaController;
 
 using Dimmer.Utilities.Events;
-using Dimmer.ViewModel;
-using Dimmer.Orchestration;
-
-using static Android.Icu.Text.CaseMap;
-using static Android.Provider.MediaStore.Audio;
-
-using Java.Net;
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 

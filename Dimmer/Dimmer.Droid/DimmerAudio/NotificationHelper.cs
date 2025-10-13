@@ -4,8 +4,6 @@ using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
 using Android.Util;
 using AndroidX.Core.App;
-using AndroidX.Core.Graphics.Drawable;
-using Android;
 using AndroidX.Media3.Common;
 
 namespace Dimmer.DimmerAudio;

@@ -1,14 +1,3 @@
-using AndroidX.Lifecycle;
-
-using DevExpress.Maui.Editors;
-
-using Dimmer.Data.Models;
-using Dimmer.DimmerLive;
-using Dimmer.DimmerSearch;
-using Dimmer.DimmerSearch.TQL;
-
-using System.ComponentModel;
-
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class TopBeforeColView : DXExpander

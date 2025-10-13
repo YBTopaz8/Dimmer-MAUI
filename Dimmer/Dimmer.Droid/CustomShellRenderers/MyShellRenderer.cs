@@ -1,9 +1,6 @@
 ﻿using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Fragment.App;
-using AndroidX.SavedState;
-
-using Resource = Microsoft.Maui.Resource;
 
 namespace Dimmer.CustomShellRenderers;
 

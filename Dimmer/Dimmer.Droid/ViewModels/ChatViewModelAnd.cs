@@ -1,14 +1,5 @@
 ﻿using Dimmer.DimmerLive.Models;
-using Dimmer.ViewModel;
 using Dimmer.ViewModel.DimmerLiveVM;
-
-using IntelliJ.Lang.Annotations;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.ViewModels;
 

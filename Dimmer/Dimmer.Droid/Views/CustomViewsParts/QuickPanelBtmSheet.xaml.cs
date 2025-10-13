@@ -1,11 +1,4 @@
 using DevExpress.Maui.Controls;
-using DevExpress.Maui.Editors;
-
-using Dimmer.Data.Models;
-using Dimmer.DimmerSearch.TQL;
-using Dimmer.Utilities;
-
-using System.ComponentModel;
 
 namespace Dimmer.Views.CustomViewsParts;
 

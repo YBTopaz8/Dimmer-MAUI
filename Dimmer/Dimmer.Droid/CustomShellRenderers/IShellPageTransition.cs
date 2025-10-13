@@ -1,7 +1,5 @@
 ﻿using AndroidX.Fragment.App;
 
-using Resource = Microsoft.Maui.Resource; // For Fragment, FragmentManager, FragmentTransaction
-
 namespace Dimmer.CustomShellRenderers;
 internal interface IShellPageTransition
 {

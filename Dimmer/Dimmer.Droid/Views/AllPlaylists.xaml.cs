@@ -1,5 +1,3 @@
-using AndroidX.Lifecycle;
-
 namespace Dimmer.Views;
 
 public partial class AllPlaylists : ContentPage

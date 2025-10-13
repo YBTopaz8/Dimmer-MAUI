@@ -2,7 +2,6 @@
 using Android.Views.Animations;
 
 using AColor = Android.Graphics.Color;
-using Color = Android.Graphics.Color;
 
 namespace Dimmer.Utils;
 internal static class PublicStats

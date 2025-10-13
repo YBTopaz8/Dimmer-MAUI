@@ -1,15 +1,3 @@
-using System.ComponentModel;
-using System.Threading.Tasks;
-
-using DevExpress.Maui.Controls;
-using DevExpress.Maui.Core.Internal;
-using DevExpress.Maui.Editors;
-
-using Dimmer.Utilities.CustomAnimations;
-
-using View = Microsoft.Maui.Controls.View;
-
-
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class BtmBar : DXBorder

@@ -1,34 +1,8 @@
 using CommunityToolkit.Maui.Behaviors;
 
-using DevExpress.Android.Navigation;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core.Internal;
-using DevExpress.Maui.Editors;
 
-using Dimmer.Data.Models;
-using Dimmer.DimmerLive;
-using Dimmer.DimmerSearch;
-using Dimmer.DimmerSearch.TQL;
-using Dimmer.Utilities;
-using Dimmer.Utilities.CustomAnimations;
-using Dimmer.Utilities.ViewsUtils;
-using Dimmer.ViewModel;
-using Dimmer.Views.CustomViewsParts;
-
-using Microsoft.Maui.Controls.Compatibility.Platform.Android;
-using Microsoft.Maui.Controls.Embedding;
-
-using Syncfusion.Maui.Toolkit.EffectsView;
-
-using System.ComponentModel;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using Button = Microsoft.Maui.Controls.Button;
-using Color = Microsoft.Maui.Graphics.Color;
-using Platform = Microsoft.Maui.ApplicationModel.Platform;
-
-using View = Microsoft.Maui.Controls.View;
 namespace Dimmer.Views;
 
 public partial class HomePage : ContentPage

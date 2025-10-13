@@ -2,8 +2,6 @@
 
 using AndroidX.Palette.Graphics;
 
-using Color = Microsoft.Maui.Graphics.Color;
-
 namespace Dimmer.Utils.Interfaces;
 internal interface IDominantColorService
 {

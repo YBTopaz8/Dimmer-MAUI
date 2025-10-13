@@ -1,32 +1,21 @@
 ﻿
 //using System.Reactive.Linq;
 
-using Android.Text;
-
-using AndroidX.Lifecycle;
-
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
 using DevExpress.Maui.Controls;
 
-using Dimmer.Data.Models;
-using Dimmer.DimmerLive;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.StatsUtils;
-using Dimmer.ViewModel;
 
 using Microsoft.Extensions.Logging;
 
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-using SwipeItem = DevExpress.Maui.CollectionView.SwipeItem;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable

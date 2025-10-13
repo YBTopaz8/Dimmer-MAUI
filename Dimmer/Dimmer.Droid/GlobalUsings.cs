@@ -43,6 +43,29 @@ global using Dimmer.CustomShellRenderers;
 global using Dimmer.Interfaces.Services.Interfaces;
 global using Dimmer.Utils.PageAnimations;
 global using Dimmer.Views.ArtistsSpace;
+
+global using DevExpress.Maui.Editors;
+
+global using Dimmer.Data.Models;
+global using Dimmer.DimmerLive;
+global using Dimmer.DimmerSearch;
+global using Dimmer.DimmerSearch.TQL;
+global using Dimmer.Utilities;
+global using Dimmer.Utilities.CustomAnimations;
+global using Dimmer.ViewModel;
+global using Dimmer.Views.CustomViewsParts;
+
+global using Microsoft.Maui.Controls.Compatibility.Platform.Android;
+
+global using Syncfusion.Maui.Toolkit.EffectsView;
+
+global using System.ComponentModel;
+
+global using Button = Microsoft.Maui.Controls.Button;
+global using Color = Microsoft.Maui.Graphics.Color;
+global using Platform = Microsoft.Maui.ApplicationModel.Platform;
+
+global using View = Microsoft.Maui.Controls.View;
 namespace Dimmer;
 internal class GlobalUsings
 {

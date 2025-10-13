@@ -1,5 +1,3 @@
-using Syncfusion.Maui.Toolkit.EffectsView;
-
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class MainViewExpander : DXExpander

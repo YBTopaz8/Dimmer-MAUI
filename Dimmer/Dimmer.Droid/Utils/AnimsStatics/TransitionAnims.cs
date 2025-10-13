@@ -1,6 +1,4 @@
-﻿using View = Microsoft.Maui.Controls.View;
-
-namespace Dimmer.Utils.AnimsStatics;
+﻿namespace Dimmer.Utils.AnimsStatics;
 public static class Transition
 {
    

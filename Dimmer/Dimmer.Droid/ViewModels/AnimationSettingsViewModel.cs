@@ -1,20 +1,11 @@
-﻿
-
-using Dimmer.Data.Models;
-using Dimmer.Interfaces.IDatabase;
+﻿using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
-using Dimmer.Utils.PageAnimations;
 
 using Microsoft.Extensions.Logging;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.ViewModels;
 public class AnimationSettingsViewModel : BaseViewModelAnd
