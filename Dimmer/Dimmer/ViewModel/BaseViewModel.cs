@@ -526,12 +526,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             // load the album songs of currentplaying songs
             var albumName = CurrentPlayingSongView.AlbumName;
+            if (string.IsNullOrEmpty(CurrentPlayingSongView.TitleDurationKey)) return;
             if (!string.IsNullOrEmpty(albumName))
             {
                 searchText = $"album:\"{albumName}\"";
             }
         }
-
+        if (string.IsNullOrEmpty(searchText))
+            return;
         string currentText = CurrentTqlQuery;
 
         string processedNewText = NaturalLanguageProcessor.Process(searchText);
@@ -2683,7 +2685,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             if(result == "Remove from Queue")
             {
-                RemoveFromQueue(songToPlay);
+                await RemoveFromQueue(songToPlay);
             } else if(result == "Skip to Next")
             {
                 await NextTrackAsync();
@@ -2775,6 +2777,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _audioService.Pause();
         } else
         {
+            if(_audioService.CurrentTrackMetadata is null)
+            {
+                await _audioService.InitializeAsync(CurrentPlayingSongView, CurrentTrackPositionSeconds);
+                return;
+            }
             _audioService.Play(CurrentTrackPositionSeconds);
         }
     }
@@ -3160,7 +3167,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         switch(state)
         {
             case PlayType.Play:
-                OnPlaybackStarted(args);
+                await OnPlaybackStarted(args);
                 LoadAllAudioDevices();
                 break;
 
@@ -5873,7 +5880,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// Builds the final LRC content from the editor and saves it using the existing service.
     /// </summary>
     [RelayCommand]
-    public async Task SaveTimestampedLyrics()
+    public async Task SaveTimestampedLyrics(string plainLyrics)
     {
         if(!IsLyricEditorActive || !LyricsInEditor.Any())
             return;
@@ -5892,10 +5899,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _logger.LogInformation("Saving newly timestamped lyrics for '{Title}'", songToUpdate.Title);
 
-
         await _lyricsMetadataService.SaveLyricsForSongAsync(
             songToUpdate.Id,
-            CurrentSongPlainLyricsEdit,
+            plainLyrics,
             finalLrcContent);
 
         await Clipboard.Default.SetTextAsync(finalLrcContent);
