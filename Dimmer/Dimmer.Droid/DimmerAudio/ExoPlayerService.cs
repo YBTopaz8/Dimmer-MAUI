@@ -294,9 +294,14 @@ public class ExoPlayerService : MediaSessionService
             }
 
             var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
-            var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
-            mediaController = (MediaController?)controllerObject;
-            Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+            if(controllerFuture is not null)
+            {
+
+                var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
+                mediaController = (MediaController?)controllerObject;
+                Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+
+            }
         }
         catch (Java.Lang.Throwable ex)
         {
@@ -712,7 +717,7 @@ public class ExoPlayerService : MediaSessionService
         {
             // It's crucial to have this method to handle errors.
             // At a minimum, you should log it.
-            Console.WriteLine($"[ExoPlayerService] PLAYER ERROR: {error.Message}");
+            Console.WriteLine($"[ExoPlayerService] PLAYER ERROR: {error?.Message}");
             // You could also raise a service event here to notify the UI.
         }
 
