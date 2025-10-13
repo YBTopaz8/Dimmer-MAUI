@@ -512,10 +512,12 @@ public partial class HomePage : ContentPage
 
     private void DXCollectionView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
-        DXCollectionView send = sender as DXCollectionView;
+        DXCollectionView? send = sender as DXCollectionView;
+        if (send is null) return;
         var sel = send.SelectedItem;
 
         var ind = send.FindItemHandle(sel);
+        
         send.ScrollTo(ind, DXScrollToPosition.Start);
 
         //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.cur);
@@ -1295,15 +1297,65 @@ public partial class HomePage : ContentPage
     private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
     {
 
-        SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
+      
+    }
+
+    private void SearchSongSB_Clicked(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void MoreBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
 
     }
 
-    private async void QuickSearchArtist_Clicked(object sender, EventArgs e)
+
+    private void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
     {
-        var send = (Button)sender;
+
+    }
+
+    private void ViewGenreMFI_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void OnLabelClicked(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void BtmBarTap_Tapped(object sender, TappedEventArgs e)
+    {
+        MainViewTabView.SelectedItemIndex = 1;
+    }
+
+    private void NavigateToSelectedSongPageContextMenuAsync(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private async void OnAddQuickNoteClicked(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var song = send.TapCommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        // Prompt the user for a note
+
+
+        await MyViewModel.SaveUserNoteToSong(song);
+    }
+
+    private async void QuickSearchArtist_Clicked(object sender, HandledEventArgs e)
+    {
+
+        var send = (Chip)sender;
         var song = send.BindingContext as SongModelView;
+        if (song is null) return;
         var val = song.OtherArtistsName;
         char[] dividers = [',', ';', ':', '|', '-'];
 
@@ -1311,7 +1363,7 @@ public partial class HomePage : ContentPage
             .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
             .Select(name => name.Trim())                           // Trim whitespace from each name
             .ToArray();                                             // Convert to a List
-        if (namesList is not null && namesList.Length==1)
+        if (namesList is not null && namesList.Length == 1)
         {
             SearchSongSB_Clicked(sender, e);
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
@@ -1330,47 +1382,18 @@ public partial class HomePage : ContentPage
 
         return;
     }
-    private void SearchSongSB_Clicked(object sender, EventArgs e)
-    {
-       
-    }
 
-    private void MoreBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    private void SyncShare_Tap(object sender, HandledEventArgs e)
     {
 
     }
 
-    private async void OnAddQuickNoteClicked(object sender, EventArgs e)
+    private async void OnLabelClicked(object sender, HandledEventArgs e)
     {
-        var send = (Button)sender;
-        var song = send.CommandParameter as SongModelView;
-        if (song is null)
-        {
-            return;
-        }
-        // Prompt the user for a note
+        var send = (Chip)sender;
+        var song = send.TapCommandParameter as SongModelView;
 
-
-        await MyViewModel.SaveUserNoteToSong(song);
-
-    }
-
-    private void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
-    {
-
-    }
-
-    private void ViewGenreMFI_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private async void OnLabelClicked(object sender, EventArgs e)
-    {
-        var send = (Button)sender;
-        var song = send.CommandParameter as SongModelView;
-
-        var param = send.CommandParameter as string;
+        var param = send.TapCommandParameter as string;
 
         if (song is null && param is not null)
         {
@@ -1395,9 +1418,16 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void BtmBarTap_Tapped(object sender, TappedEventArgs e)
+    private void ViewGenreMFI_Clicked(object sender, HandledEventArgs e)
     {
-        MainViewTabView.SelectedItemIndex = 1;
+
+    }
+
+    private void QuickSearchAlbum_Clicked(object sender, HandledEventArgs e)
+    {
+        SearchSongSB_Clicked(sender, e);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
+
     }
 }
 
