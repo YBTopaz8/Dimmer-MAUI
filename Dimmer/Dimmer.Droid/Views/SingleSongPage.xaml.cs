@@ -1,14 +1,7 @@
-using Dimmer.DimmerSearch;
-using Dimmer.Utilities.CustomAnimations;
-
-using Microsoft.Maui.Controls;
-
 using Syncfusion.Maui.Toolkit.Charts;
 using Syncfusion.Maui.Toolkit.Chips;
 
-using Button = Microsoft.Maui.Controls.Button;
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
-using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer.Views;
 
@@ -312,14 +305,12 @@ public partial class SingleSongPage : ContentPage
 
     }
 
-    private async void TopExpanderView_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    private void TopExpanderView_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
-        await RestOfLeftUI.FadeOut(300, 0.4);
     }
 
-    private async void TopExpanderView_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
+    private void TopExpanderView_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
-        await RestOfLeftUI.FadeIn(300, 1);
     }
 
     private void SearchSongOnline_Clicked(object sender, EventArgs e)
@@ -335,40 +326,7 @@ public partial class SingleSongPage : ContentPage
     private async void ToggleViewArtist_Clicked(object sender, EventArgs e)
     {
 
-        if (!SongTabView.IsVisible)
-        {
-            await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
-
-            await MyViewModel.LoadSelectedSongLastFMData();
-            return;
-        }
-
-
-
-
-        songToRestore = MyViewModel.SelectedSong;
-
-
-        if (songToRestore is null)
-            return;
-
-
-
-        Button send = (Button)sender;
-        var artistName = send.Text;
-        await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
-
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
-
-
-
-
-
-
-        if (MyViewModel.SearchResults.Contains(songToRestore))
-        {
-            MyViewModel.SelectedSong = songToRestore;
-        }
+        
     }
     SongModelView? songToRestore { get; set; }
     private async void ToggleViewAlbum_Clicked(object sender, EventArgs e)
@@ -598,5 +556,46 @@ public partial class SingleSongPage : ContentPage
     private void ShowOnlySkippedPlays_CheckedChanged(object sender, CheckedChangedEventArgs e)
     {
 
+    }
+
+    private async void ToggleViewArtist_Clicked(object sender, System.ComponentModel.HandledEventArgs e)
+    {
+        try
+        {
+            if (!SongTabView.IsVisible)
+            {
+                await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
+
+                await MyViewModel.LoadSelectedSongLastFMData();
+                return;
+            }
+
+
+
+
+            songToRestore = MyViewModel.SelectedSong;
+
+
+            if (songToRestore is null)
+                return;
+
+
+
+            Chip send = (Chip)sender;
+            var artistName = send.Text;
+            await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
+
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
+
+            if (MyViewModel.SearchResults.Contains(songToRestore))
+            {
+                MyViewModel.SelectedSong = songToRestore;
+            }
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine(ex.Message);
+        }
     }
 }
