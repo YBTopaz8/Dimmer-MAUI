@@ -28,7 +28,9 @@
         <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
         <converters:BoolToInverseConverter x:Key="BoolToInverse" />
         <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
         <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:SectionColorConverter x:Key="SectionColorConverter" />
         <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
         <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
         <converters:VolumeConverter x:Key="VolConverter" />
@@ -1008,8 +1010,7 @@
 
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout>
-                                    <Button Text="Search On Google"
-                                            Command="{Binding OpenSongInOnlineSearchCommand}"/>
+                                    <Button Command="{Binding OpenSongInOnlineSearchCommand}" Text="Search On Google" />
                                     <Button
                                         x:Name="StartSesion"
                                         BackgroundColor="Transparent"
@@ -1163,7 +1164,10 @@
                                     HorizontalOptions="Center"
                                     Spacing="10">
 
-                                    <Button Command="{Binding SaveTimestampedLyricsCommand}" Text="Save Lyrics" />
+                                    <Button
+                                        Command="{Binding SaveTimestampedLyricsCommand}"
+                                        CommandParameter="{Binding Text, Source={x:Reference PlainLyricsEditor}}"
+                                        Text="Save Lyrics" />
                                     <Button
                                         BackgroundColor="DarkRed"
                                         Command="{Binding CancelLyricsEditingSessionCommand}"
