@@ -74,13 +74,13 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                
                 break;
             case 1:
-                if (!IsPlaying)
-                    NowPlayingTabIndex = 0;
+                
 
                 IsNowPlayingQueue =false;
 
                 IsNowAllSongsQueue=false;
                 NowPlayingUI=true;
+
                 break;
             case 2:
                 break;
@@ -692,7 +692,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     private void SongsColView_GroupCollapsed(object? sender, DevExpress.Maui.CollectionView.ItemEventArgs e)
     {
-        DXCollectionView cv = sender as DXCollectionView;
+        DXCollectionView? cv = sender as DXCollectionView;
+        if (cv is null) return;
         var ee = e.ItemHandle;
         var item = cv.GetItem(ee);
     }
@@ -733,8 +734,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
     public void HandleSongSongMultiSelect(Microsoft.Maui.Controls.View view)
     {
+        if (SongsColView is null) return;
         SelectedSongView=view;
         var selectedSong = SongsColView.SelectedItem as SongModelView;
+        if (selectedSong is null) return;
         IsSongLongPressed=true;
 
         if (!MultiSelectViewsOfSongs.Contains(view))
