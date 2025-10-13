@@ -1,4 +1,7 @@
-﻿namespace Dimmer.Utils.AnimsStatics;
+﻿
+
+using View = Microsoft.Maui.Controls.View;
+namespace Dimmer.Utils.AnimsStatics;
 public class ViewRegistry
 {
 

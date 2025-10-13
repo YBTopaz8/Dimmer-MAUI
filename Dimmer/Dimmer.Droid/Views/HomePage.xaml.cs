@@ -1,7 +1,7 @@
-using CommunityToolkit.Maui.Behaviors;
 
-using DevExpress.Maui.Controls;
-using DevExpress.Maui.Core.Internal;
+
+using View = Microsoft.Maui.Controls.View;
+
 
 namespace Dimmer.Views;
 

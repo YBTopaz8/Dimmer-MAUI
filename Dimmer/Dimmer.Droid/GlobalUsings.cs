@@ -8,7 +8,12 @@ global using DevExpress.Maui;
 global using Dimmer.DimmerAudio;
 global using Dimmer.Utils;
 global using Dimmer.Views;
+global using CommunityToolkit.Maui.Behaviors;
+global using Dimmer.Views.Stats;
 
+global using Syncfusion.Maui.Toolkit.Chips;
+global using DevExpress.Maui.Controls;
+global using DevExpress.Maui.Core.Internal;
 global using Dimmer.Data.ModelView;
 
 global using Dimmer.DimmerLive.Interfaces;
@@ -62,10 +67,8 @@ global using Syncfusion.Maui.Toolkit.EffectsView;
 global using System.ComponentModel;
 
 global using Button = Microsoft.Maui.Controls.Button;
-global using Color = Microsoft.Maui.Graphics.Color;
 global using Platform = Microsoft.Maui.ApplicationModel.Platform;
 
-global using View = Microsoft.Maui.Controls.View;
 namespace Dimmer;
 internal class GlobalUsings
 {

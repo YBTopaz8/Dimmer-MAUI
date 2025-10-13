@@ -1,4 +1,5 @@
 ﻿using Android.Graphics;
+using Color = Microsoft.Maui.Graphics.Color;
 
 using AndroidX.Palette.Graphics;
 

@@ -1,6 +1,6 @@
 using Syncfusion.Maui.Toolkit.Charts;
 using Syncfusion.Maui.Toolkit.Chips;
-
+using View = Microsoft.Maui.Controls.View;
 using ImageButton = Microsoft.Maui.Controls.ImageButton;
 
 namespace Dimmer.Views;

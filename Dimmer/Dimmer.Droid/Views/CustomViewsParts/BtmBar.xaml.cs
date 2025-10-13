@@ -1,3 +1,7 @@
+
+
+
+using View = Microsoft.Maui.Controls.View;
 namespace Dimmer.Views.CustomViewsParts;
 
 public partial class BtmBar : DXBorder

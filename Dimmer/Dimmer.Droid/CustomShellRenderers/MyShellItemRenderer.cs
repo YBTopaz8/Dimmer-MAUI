@@ -8,6 +8,8 @@ using AColor = Android.Graphics.Color;
 using LP = Android.Views.ViewGroup.LayoutParams;
 using Orientation = Android.Widget.Orientation;
 
+using View = Android.Views.View;
+
 namespace Dimmer.CustomShellRenderers;
 public partial class MyShellItemRenderer : ShellItemRenderer
 {

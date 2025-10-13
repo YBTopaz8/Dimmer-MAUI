@@ -1,6 +1,6 @@
 ﻿using Android.Animation;
 using Android.Views.Animations;
-
+using Color = Android.Graphics.Color;
 using AColor = Android.Graphics.Color;
 
 namespace Dimmer.Utils;
