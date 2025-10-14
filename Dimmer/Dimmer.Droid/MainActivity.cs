@@ -47,9 +47,10 @@ public class MainActivity : MauiAppCompatActivity
 
     }
 
-    public MainActivity(BaseViewModelAnd vm)
+    public MainActivity()
     {
-        MyViewModel = vm;
+        
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelAnd>() ?? throw new InvalidOperationException("BaseViewModelAnd not found in DI container");
     }
     protected override void OnNewIntent(Intent? intent)
     {
@@ -437,17 +438,29 @@ public class MainActivity : MauiAppCompatActivity
 
     private void TryEnterPipMode()
     {
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        try
         {
-            var builder = new PictureInPictureParams.Builder();
-            builder.SetAspectRatio(new Rational(16, 9)); // adjust for your UI
-            var pipParams = builder.Build();
-            if (pipParams is not null)
-            {
 
-                EnterPictureInPictureMode(pipParams);
+        
+       
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                var builder = new PictureInPictureParams.Builder();
+                builder.SetAspectRatio(new Rational(16, 9)); // adjust for your UI
+                var pipParams = builder.Build();
+                if (pipParams is not null)
+                {
+
+                    EnterPictureInPictureMode(pipParams);
+                }
+                Console.WriteLine("Entered PiP mode");
             }
-            Console.WriteLine("Entered PiP mode");
+
+        }
+        catch (Exception ex)
+
+        {
+            Console.WriteLine(ex.Message);
         }
     }
 
