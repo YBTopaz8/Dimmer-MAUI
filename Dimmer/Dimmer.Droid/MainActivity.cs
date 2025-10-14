@@ -363,17 +363,23 @@ public class MainActivity : MauiAppCompatActivity
 
                 MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    var audioService = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
-                    if (audioService != null)
+                Intent mainActivityIntent = new Intent(this, typeof(MainActivity)); // <<< YOUR MAIN ACTIVITY
+                mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
+                    try
                     {
-                        // You would define a method like this on your service interface
-                        Console.WriteLine($"Searching and playing: {searchQuery}");
-                        //audioService.SearchAndPlayAsync(searchQuery);
+                        StartActivity(mainActivityIntent);
+                    }
+                    catch
+                    (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString() );
                     }
                 });
             }
         }
     }
+
+    
     // This is a helper class for the OnBackInvokedCallback
     sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
     {
