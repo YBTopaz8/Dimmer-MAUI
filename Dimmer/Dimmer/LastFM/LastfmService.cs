@@ -92,7 +92,7 @@ public class LastfmService : ILastfmService
         Observable.FromEventPattern<PlaybackEventArgs>(
                     h => audioService.PlayEnded += h,
                     h => audioService.PlayEnded -= h)
-                .ObserveOn(SynchronizationContext.Current)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"));
 
     }
@@ -173,6 +173,7 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex.Message);
             // Log the exception (e.g., invalid credentials)
         }
 
@@ -221,6 +222,7 @@ public class LastfmService : ILastfmService
 
     public async Task ScrobbleAsync(SongModelView songV)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return ;
         if (!((ILastfmService)this).IsAuthenticated || songV == null||songV.ArtistName is null )
             return;
 
@@ -246,7 +248,7 @@ public class LastfmService : ILastfmService
         catch (Exception ex)
         {
             //await Shell.Current.DisplayAlert("Error", $"Failed to scrobble on Last.fm. {ex.Message}", "OK");
-
+            Debug.WriteLine(ex);
             // Log error
         }
     }
@@ -256,16 +258,20 @@ public class LastfmService : ILastfmService
     /// Step 1: Gets a URL for the user to visit to authorize the app.
     /// The temporary token is managed internally by the LastfmClient instance.
     /// </summary>
-    public async Task<string> GetAuthenticationUrlAsync()
+    public async Task<string?> GetAuthenticationUrlAsync()
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         return await _client.GetWebAuthenticationUrlAsync();
     }
 
     /// <summary>
     /// Step 2: After the user authorizes on the website, this completes the authentication.
     /// </summary>
+    /// 
+    
     public async Task<bool> CompleteAuthenticationAsync(string authenticatedUser)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return false;
         try
         {
             if (_client.Session.Authenticated)
@@ -287,7 +293,8 @@ public class LastfmService : ILastfmService
                 SaveSession();
                 _isAuthenticatedSubject.OnNext(true);
 
-                User userInfo = await ((ILastfmService)this).GetUserInfoAsync();
+                User? userInfo = await ((ILastfmService)this).GetUserInfoAsync();
+                if (userInfo == null) return false;
                 Realm realmm = _realmFactory.GetRealmInstance()!;
                 await realmm.WriteAsync(() =>
                 {
@@ -312,7 +319,7 @@ public class LastfmService : ILastfmService
                     }
                     else
                     {
-                        UserModel newUsr = realmm.Find<UserModel>(usrs.FirstOrDefault()?.Id);
+                        UserModel? newUsr = realmm.Find<UserModel>(usrs.FirstOrDefault()?.Id);
                         if (newUsr is not null)
                         {
 
@@ -329,8 +336,8 @@ public class LastfmService : ILastfmService
                             newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
 
                             newUsr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
-                            newUsr.LastFMAccountInfo.Image.Url=userInfo.Images.LastOrDefault().Url;
-                            newUsr.LastFMAccountInfo.Image.Size=userInfo.Images.LastOrDefault().Size;
+                            newUsr.LastFMAccountInfo.Image.Url=userInfo.Images.LastOrDefault()?.Url;
+                            newUsr.LastFMAccountInfo.Image.Size=userInfo.Images.LastOrDefault()?.Size;
 
                         }
                         else
@@ -349,8 +356,8 @@ public class LastfmService : ILastfmService
                             newUsr.LastFMAccountInfo.Registered = userInfo.Registered;
                             newUsr.LastFMAccountInfo.Gender = userInfo.Gender;
                             newUsr.LastFMAccountInfo.Image =new LastFMUser.LastImage();
-                            newUsr.LastFMAccountInfo.Image.Url=userInfo.Images.LastOrDefault().Url;
-                            newUsr.LastFMAccountInfo.Image.Size=userInfo.Images.LastOrDefault().Size;
+                            newUsr.LastFMAccountInfo.Image.Url=userInfo.Images.LastOrDefault()?.Url;
+                            newUsr.LastFMAccountInfo.Image.Size=userInfo.Images.LastOrDefault()?.Size;
 
                             realmm.Add(newUsr, update: true);
                         }
@@ -367,27 +374,37 @@ public class LastfmService : ILastfmService
         return false;
     }
 
-    public async Task<User> GetUserInfoAsync()
+    public async Task<User?> GetUserInfoAsync()
     {
-        if (((ILastfmService)this).AuthenticatedUser is null)
+
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
+        try
         {
-            LoadSession();
             if (((ILastfmService)this).AuthenticatedUser is null)
             {
-                return new User("Unknown");
+                LoadSession();
+                if (((ILastfmService)this).AuthenticatedUser is null)
+                {
+                    return new User("Unknown");
+                }
+
+                return await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
             }
 
-          return  await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
+
+            return await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
         }
-
-
-        return  await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
+        catch 
+        {
+            return null;
+        }
         // Gets info for the NOW authenticated user.
     }
 
     #endregion
     public async Task UpdateNowPlayingAsync(SongModelView song)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return;
         if (!((ILastfmService)this).IsAuthenticated || song == null)
             return;
 
@@ -419,8 +436,9 @@ public class LastfmService : ILastfmService
 
     #region Data Retrieval
 
-    public async Task<Artist> GetArtistInfoAsync(string artistName)
+    public async Task<Artist?> GetArtistInfoAsync(string artistName)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
             return await _client.Artist.GetInfoAsync(artistName); 
@@ -431,8 +449,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<Album> GetAlbumInfoAsync(string artistName, string albumName)
+    public async Task<Album?> GetAlbumInfoAsync(string artistName, string albumName)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
             if (!string.IsNullOrEmpty(albumName) && !string.IsNullOrEmpty(artistName))
@@ -447,8 +466,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>> GetTopCountryTracksAsync(string country)
+    public async Task<ObservableCollection<Track>?> GetTopCountryTracksAsync(string country)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
             var res = await _client.Geo.GetTopTracksAsync(country);
@@ -461,8 +481,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Artist>> GetTopCountryArtistAsync(string country)
+    public async Task<ObservableCollection<Artist>?> GetTopCountryArtistAsync(string country)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
             var res = await _client.Geo.GetTopArtistsAsync(country);
@@ -474,8 +495,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Artist>> GetUserLibArtistsAsync(string country)
+    public async Task<ObservableCollection<Artist>?> GetUserLibArtistsAsync(string country)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
             var res = await _client.Library.GetArtistsAsync(_username, 250);
@@ -487,8 +509,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<Track> GetTrackInfoAsync(string artistName, string trackName)
+    public async Task<Track?> GetTrackInfoAsync(string artistName, string trackName)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -501,8 +524,9 @@ public class LastfmService : ILastfmService
     }
 
 
-    public async Task<Track> GetCorrectionAsync(string artistName, string trackName)
+    public async Task<Track?> GetCorrectionAsync(string artistName, string trackName)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
           
@@ -514,8 +538,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>> GetSimilarAsync(string artistName, string trackName)
+    public async Task<ObservableCollection<Track>?> GetSimilarAsync(string artistName, string trackName)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
           
@@ -528,8 +553,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Tag>> GetTagsAsync(string artistName, string trackName)
+    public async Task<ObservableCollection<Tag>?> GetTagsAsync(string artistName, string trackName)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
           
@@ -542,8 +568,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>> GetLovedTracksAsync()
+    public async Task<ObservableCollection<Track>?> GetLovedTracksAsync()
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -556,8 +583,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Album>> GetUserWeeklyAlbumChartAsync( )
+    public async Task<ObservableCollection<Album>?> GetUserWeeklyAlbumChartAsync( )
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -570,8 +598,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<ChartTimeSpan>> GetWeeklyUserChartListAsync( )
+    public async Task<ObservableCollection<ChartTimeSpan>?> GetWeeklyUserChartListAsync( )
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -584,8 +613,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Album>> GetTopUserAlbumsAsync()
+    public async Task<ObservableCollection<Album>?> GetTopUserAlbumsAsync()
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -598,8 +628,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>> GetUserTopTracksAsync( )
+    public async Task<ObservableCollection<Track>?> GetUserTopTracksAsync( )
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -613,8 +644,9 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>> GetUserWeeklyTrackChartAsync( )
+    public async Task<ObservableCollection<Track>?> GetUserWeeklyTrackChartAsync( )
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
 
@@ -629,8 +661,9 @@ public class LastfmService : ILastfmService
     }
 
 
-    public async Task<ObservableCollection<Artist>> GetTopArtistsChartAsync(int limit)
+    public async Task<ObservableCollection<Artist>?> GetTopArtistsChartAsync(int limit)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
             // The method returns a ObservableCollection<Artist>, we need the Items.
@@ -644,8 +677,9 @@ public class LastfmService : ILastfmService
     }
 
     #endregion
-    public async Task<ObservableCollection<Track>> GetUserRecentTracksAsync(string username, int limit)
+    public async Task<ObservableCollection<Track>?> GetUserRecentTracksAsync(string username, int limit)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         if (string.IsNullOrEmpty(username))
             
             return Enumerable.Empty<Track>().ToObservableCollection();
@@ -660,6 +694,7 @@ public class LastfmService : ILastfmService
 
     public async Task<bool> LoveTrackAsync(SongModelView song)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return false;
         if (!((ILastfmService)this).IsAuthenticated || song is null || song.Id == ObjectId.Empty)
             return false;
         try
@@ -674,13 +709,14 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
-            
+            Debug.WriteLine(ex);
             return false;
         }
     }
 
     public async Task<bool> UnloveTrackAsync(SongModelView song)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return false;
         if (!((ILastfmService)this).IsAuthenticated || song is null || song.Id == ObjectId.Empty)
             return false;
         try
@@ -695,13 +731,14 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
-            
+            Debug.WriteLine(ex);
             return false;
         }
     }
 
     public async Task<bool> EnrichSongMetadataAsync(ObjectId songId)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return false;
         var realm = _realmFactory.GetRealmInstance();
         var song = realm.Find<SongModel>(songId);
 
@@ -754,6 +791,7 @@ public class LastfmService : ILastfmService
 
     public async Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return 0;
         if (!((ILastfmService)this).IsAuthenticated || _username is null)
             return 0;
         _logger.LogInformation("Starting to pull Last.fm history since {Date}", since);
@@ -780,16 +818,26 @@ public class LastfmService : ILastfmService
             // A more advanced version could create stub song entries.
             if (song != null)
             {
-                newEvents.Add(new DimmerPlayEvent
+                var evt = new DimmerPlayEvent
                 {
                     SongId = song.Id,
                     SongName = song.Title,
                     PlayType = 3, // Completed
                     PlayTypeStr = "Completed",
-                    EventDate = track.Date.Value,
-                    DatePlayed = track.Date.Value,
+
                     WasPlayCompleted = true,
-                });
+                };
+                if(track.Date is not null)
+                {
+
+                    evt.EventDate = track.Date.Value;
+                }
+                if(track.Date is not null)
+                {
+
+                    evt.DatePlayed = track.Date.Value;
+                }
+                newEvents.Add(evt);
             }
         }
 

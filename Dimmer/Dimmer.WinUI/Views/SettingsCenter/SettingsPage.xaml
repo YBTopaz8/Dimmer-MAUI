@@ -168,6 +168,7 @@
                             <ImageButton
                                 HeightRequest="50"
                                 Source="lastfm.png"
+                                ToolTipProperties.Text="{Binding IsLastfmAuthenticated, StringFormat='Is Authenticated :{0} '}"
                                 WidthRequest="50">
                                 <ImageButton.Behaviors>
                                     <toolkit:IconTintColorBehavior TintColor="Red" />

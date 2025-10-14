@@ -70,8 +70,8 @@ public class ExoPlayerService : MediaSessionService
     // --- Internal State ---
     internal static MediaItem? currentMediaItem; // Choose a unique ID
     public static SongModelView? CurrentSongContext; // Choose a unique ID
-    public SongModelView? CurrentSongExposed => CurrentSongContext;
-    // --- Service Lifecycle ---
+    public static SongModelView? CurrentSongExposed => CurrentSongContext;
+    // ---  Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
 
     //public event StatusChangedEventHandler? StatusChanged;
@@ -189,6 +189,7 @@ public class ExoPlayerService : MediaSessionService
         var specDev = devices.FirstOrDefault(x => x.Id== int.Parse(dev.Id));
         if (specDev is not null)
         {
+            if (player is null) return false;
             player.SetPreferredAudioDevice(specDev);
             return true;
         }
@@ -272,6 +273,8 @@ public class ExoPlayerService : MediaSessionService
                     // Raise our event with the current position
                     RaisePositionChanged(player.CurrentPosition);
                     // Schedule the next check
+                    if (positionRunnable is null)
+                        return;
                     positionHandler?.PostDelayed(positionRunnable, 1000); // Poll every 1 second
                 }
             });
@@ -804,10 +807,13 @@ public class ExoPlayerService : MediaSessionService
                 {
 
                     case 9:
+                        service.player?.Pause();
                         service.RaisePlayNextPressed();
                         break;
 
                     case 7:
+                        service.player?.Pause();
+                        service.player?.Pause();
                         service.RaisePlayPreviousPressed();
 
                         break;

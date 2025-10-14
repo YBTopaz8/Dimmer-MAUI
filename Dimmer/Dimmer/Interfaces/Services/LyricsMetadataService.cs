@@ -112,6 +112,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// </summary>
     public async Task<LrcLibLyrics?> GetLyricsOnlineAsync(SongModelView song, CancellationToken token)
     {
+        if(Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         // First, attempt the most efficient API call: /api/get
         var preciseMatch = await GetLyricsBySignatureAsync(song.Title, song.ArtistName, song.AlbumName, (int)song.DurationInSeconds, token);
         if (preciseMatch != null)
@@ -134,6 +135,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// </summary>
     public async Task<List<LrcLibLyrics>?> GetAllSyncLyricsOnlineAsync(SongModelView song, CancellationToken token)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         // First, attempt the most efficient API call: /api/get
         var preciseMatch = await GetLyricsBySignatureAsync(song.Title, song.ArtistName, song.AlbumName, (int)song.DurationInSeconds, token);
         if (preciseMatch != null)
@@ -160,6 +162,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// </summary>
     public async Task<List<LrcLibLyrics>?> GetAllPlainLyricsOnlineAsync(SongModelView song, CancellationToken token)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         // First, attempt the most efficient API call: /api/get
         var preciseMatch = await GetLyricsBySignatureAsync(song.Title, song.ArtistName, song.AlbumName, (int)song.DurationInSeconds, token);
         if (preciseMatch != null)
@@ -185,6 +188,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// </summary>
     public async Task<LrcLibLyrics?> GetLyricsBySignatureAsync(string trackName, string artistName, string albumName, int duration, CancellationToken token, bool useCacheOnly = false)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         if (string.IsNullOrWhiteSpace(trackName) || string.IsNullOrWhiteSpace(artistName))
             return null;
 
@@ -224,8 +228,9 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// <summary>
     /// Implements the GET /api/search endpoint.
     /// </summary>
-    public async Task<IEnumerable<LrcLibLyrics>> SearchLyricsAsync(string trackName, string? artistName, string? albumName, CancellationToken token)
+    public async Task<IEnumerable<LrcLibLyrics>?> SearchLyricsAsync(string trackName, string? artistName, string? albumName, CancellationToken token)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         if (string.IsNullOrWhiteSpace(trackName))
             return Enumerable.Empty<LrcLibLyrics>();
 
@@ -257,6 +262,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// </summary>
     public async Task<LrcLibLyrics?> GetLyricsByIdAsync(int id, CancellationToken token)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         var client = CreateClient();
         var requestUri = $"api/get/{id}";
         try
@@ -287,6 +293,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// <returns>True if successfully published, otherwise false.</returns>
     public async Task<bool> PublishLyricsAsync(LrcLibPublishRequest lyricsToPublish, CancellationToken token)
     {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return false;
         var client = CreateClient();
 
         try
@@ -547,104 +554,6 @@ IRepository<SongModel> songRepository, // Inject the repository
         return null;
     }
 
-
-
-    //    #region Search Online
-
-    //    public async Task<IEnumerable<LrcLibSearchResult>> SearchOnlineAsync(SongModel song)
-    //    {
-    //        if (string.IsNullOrEmpty(song.Title) || string.IsNullOrEmpty(song.ArtistName))
-    //        {
-    //            return Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-
-    //        HttpClient client = _httpClientFactory.CreateClient("LrcLib");
-    //        var ar = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.ToLower();
-    //        string artistName=string.Empty;
-    //        if (ar is not null)
-    //        {
-
-    //             artistName = Uri.EscapeDataString(ar);
-    //        }
-    //        // URL encode the parameters to handle special characters
-    //        string trackName = Uri.EscapeDataString(song.Title);
-    //        string albumName = Uri.EscapeDataString(song.AlbumName ?? string.Empty);
-
-    //        string requestUri = $"api/search?track_name={trackName}&artist_name={artistName}&album_name={albumName}";
-
-    //        try
-    //        {
-    //            var ress = await client.GetAsync(requestUri);
-    //            if (!ress.IsSuccessStatusCode)
-    //            {
-    //                _logger.LogWarning("LrcLib search request failed with status code {StatusCode} for {TrackName}", ress.StatusCode, trackName);
-    //                return Enumerable.Empty<LrcLibSearchResult>();
-    //            }
-    //            // Deserialize the response into an array of LrcLibSearchResult
-    //            var con = await ress.Content.ReadAsStringAsync();
-
-    //            //Debug.WriteLine(con);
-    //            var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
-    //            return results ?? Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-    //        catch (HttpRequestException ex)
-    //        {
-    //            _logger.LogError(ex, "HTTP error searching for lyrics for {TrackName}", trackName);
-    //            return Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Failed to deserialize LrcLib response for {TrackName}", trackName);
-    //            return Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-    //    }
-
-    //    public async Task<IEnumerable<LrcLibSearchResult>> SearchOnlineManualParamsAsync(string songName, string songArtist , string songAlbum)
-    //    {
-    //        if (string.IsNullOrEmpty(songName) || string.IsNullOrEmpty(songArtist)|| string.IsNullOrEmpty(songAlbum))
-    //        {
-    //            return Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-
-    //        HttpClient client = _httpClientFactory.CreateClient("LrcLib");
-
-    //        // URL encode the parameters to handle special characters
-    //        string artistName = Uri.EscapeDataString(songArtist);
-    //        string trackName = Uri.EscapeDataString(songName);
-    //        string albumName = Uri.EscapeDataString(songAlbum);
-
-    //        string requestUri = $"api/search?track_name={trackName}&artist_name={artistName}&album_name={albumName}";
-
-    //        try
-    //        {
-    //            var ress = await client.GetAsync(requestUri);
-    //            if (!ress.IsSuccessStatusCode)
-    //            {
-    //                _logger.LogWarning("LrcLib search request failed with status code {StatusCode} for {TrackName}", ress.StatusCode, trackName);
-    //                return Enumerable.Empty<LrcLibSearchResult>();
-    //            }
-    //            // Deserialize the response into an array of LrcLibSearchResult
-    //            var con = await ress.Content.ReadAsStringAsync();
-
-    //            //Debug.WriteLine(con);
-    //            var results = await client.GetFromJsonAsync<LrcLibSearchResult[]>(requestUri);
-    //            return results ?? Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-    //        catch (HttpRequestException ex)
-    //        {
-    //            _logger.LogError(ex, "HTTP error searching for lyrics for {TrackName}", trackName);
-    //            return Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Failed to deserialize LrcLib response for {TrackName}", trackName);
-    //            return Enumerable.Empty<LrcLibSearchResult>();
-    //        }
-    //    }
-
-    //    #endregion
-
-    //    #region Save Lyrics
 
     public async Task<bool> SaveLyricsToDB(bool IsInstru, string planLyrics, SongModel song, string? lrcContent, LyricsInfo? lyrics)
     {

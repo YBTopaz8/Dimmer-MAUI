@@ -5969,6 +5969,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         var fileContent = await File.ReadAllTextAsync(res.FullPath);
 
+        if (SelectedSong is null) return;
         var parsedLyrics = await _lyricsMetadataService.SaveLyricsForSongAsync(
             SelectedSong.Id,
             string.Empty,
@@ -6591,7 +6592,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsBusy = true;
         try
         {
-            string url = await lastfmService.GetAuthenticationUrlAsync();
+            string? url = await lastfmService.GetAuthenticationUrlAsync();
             IsLastFMNeedsToConfirm = true;
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = true;
@@ -6610,7 +6611,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsBusy = true;
         try
         {
-            IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(UserLocal.LastFMAccountInfo.Name);
+            string? lastFMUName = UserLocal.LastFMAccountInfo.Name;
+            if (string.IsNullOrEmpty(lastFMUName))return;
+
+            IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(lastFMUName);
             if(IsLastfmAuthenticated)
             {
                 IsLastFMNeedsToConfirm = false;

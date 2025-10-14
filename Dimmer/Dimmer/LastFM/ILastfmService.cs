@@ -11,16 +11,16 @@ public interface ILastfmService
     IObservable<bool> IsAuthenticatedChanged { get; }
     string? AuthenticatedUser { get; }
     string? AuthenticatedUserSessionToken { get; }
-    Task<string> GetAuthenticationUrlAsync(); // Returns only the URL
+    Task<string?> GetAuthenticationUrlAsync(); // Returns only the URL
     Task<bool> CompleteAuthenticationAsync(string userName);
 
 
     // --- Data Retrieval ---
-    Task<Track> GetTrackInfoAsync(string artistName, string trackName);
-    Task<Album> GetAlbumInfoAsync(string artistName, string albumName);
-    Task<Artist> GetArtistInfoAsync(string artistName);
-    Task<ObservableCollection<Artist>> GetTopArtistsChartAsync(int limit = 20);
-    Task<ObservableCollection<Track>> GetUserRecentTracksAsync(string username, int limit = 20);
+    Task<Track?> GetTrackInfoAsync(string artistName, string trackName);
+    Task<Album?> GetAlbumInfoAsync(string artistName, string albumName);
+    Task<Artist?> GetArtistInfoAsync(string artistName);
+    Task<ObservableCollection<Artist>?> GetTopArtistsChartAsync(int limit = 20);
+    Task<ObservableCollection<Track>?> GetUserRecentTracksAsync(string username, int limit = 20);
 
     Task<bool> LoveTrackAsync(SongModelView song);
     Task<bool> UnloveTrackAsync(SongModelView song);
@@ -51,18 +51,18 @@ public interface ILastfmService
     /// <returns>The number of new play events added to your database.</returns>
     Task<int> PullLastfmHistoryToLocalAsync(DateTimeOffset since);
     void Start();
-    Task<User> GetUserInfoAsync();
-    Task<ObservableCollection<Tag>> GetTagsAsync(string artistName, string trackName);
-    Task<ObservableCollection<Track>> GetSimilarAsync(string artistName, string trackName);
-    Task<Track> GetCorrectionAsync(string artistName, string trackName);
-    Task<ObservableCollection<ChartTimeSpan>> GetWeeklyUserChartListAsync();
-    Task<ObservableCollection<Track>> GetLovedTracksAsync();
-    Task<ObservableCollection<Track>> GetUserTopTracksAsync();
-    Task<ObservableCollection<Track>> GetUserWeeklyTrackChartAsync();
-    Task<ObservableCollection<Album>> GetTopUserAlbumsAsync();
-    Task<ObservableCollection<Album>> GetUserWeeklyAlbumChartAsync();
-    Task<ObservableCollection<Artist>> GetTopCountryArtistAsync(string country);
-    Task<ObservableCollection<Artist>> GetUserLibArtistsAsync(string country);
+    Task<User?> GetUserInfoAsync();
+    Task<ObservableCollection<Tag>?> GetTagsAsync(string artistName, string trackName);
+    Task<ObservableCollection<Track>?> GetSimilarAsync(string artistName, string trackName);
+    Task<Track?> GetCorrectionAsync(string artistName, string trackName);
+    Task<ObservableCollection<ChartTimeSpan>?> GetWeeklyUserChartListAsync();
+    Task<ObservableCollection<Track>?> GetLovedTracksAsync();
+    Task<ObservableCollection<Track>?> GetUserTopTracksAsync();
+    Task<ObservableCollection<Track>?> GetUserWeeklyTrackChartAsync();
+    Task<ObservableCollection<Album>?> GetTopUserAlbumsAsync();
+    Task<ObservableCollection<Album>?> GetUserWeeklyAlbumChartAsync();
+    Task<ObservableCollection<Artist>?> GetTopCountryArtistAsync(string country);
+    Task<ObservableCollection<Artist>?> GetUserLibArtistsAsync(string country);
     void LoadSession();
 }
 

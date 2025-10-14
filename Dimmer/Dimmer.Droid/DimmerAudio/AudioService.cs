@@ -16,7 +16,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // Store the last known song model to provide context in events.
     private SongModelView? _currentSongModel;
-    public SongModelView? CurrentTrackMetadata => Service?.CurrentSongExposed;
+    public SongModelView? CurrentTrackMetadata => ExoPlayerService.CurrentSongExposed;
 
     #region IDimmerAudioService Implementation (Properties)
 

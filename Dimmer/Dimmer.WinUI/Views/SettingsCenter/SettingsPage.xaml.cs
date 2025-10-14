@@ -129,6 +129,7 @@ ViewAdminUpdate.IsVisible = false;
     {
         var send = (ImageButton)sender;
         var param = send.CommandParameter.ToString();
+        if (string.IsNullOrEmpty(param)) return;
         MyViewModel.DeleteFolderPath(param);
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)

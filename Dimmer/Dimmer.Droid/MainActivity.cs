@@ -4,6 +4,8 @@ using Android.OS;
 using Android.Transitions;
 using Android.Util;
 using Android.Window;
+
+using AndroidX.Lifecycle;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
@@ -35,6 +37,7 @@ public class MainActivity : MauiAppCompatActivity
     MediaPlayerServiceConnection? _serviceConnection;
     Intent? _serviceIntent;
     private ExoPlayerServiceBinder? _binder;
+    BaseViewModelAnd MyViewModel { get; set; }
     public ExoPlayerServiceBinder? Binder
     {
         get => _binder
@@ -42,6 +45,11 @@ public class MainActivity : MauiAppCompatActivity
         set => _binder = value;
 
 
+    }
+
+    public MainActivity(BaseViewModelAnd vm)
+    {
+        MyViewModel = vm;
     }
     protected override void OnNewIntent(Intent? intent)
     {
@@ -57,12 +65,33 @@ public class MainActivity : MauiAppCompatActivity
     private static bool _firstTimeSetupDone = false;
     const string FirstTimeSetupKey = "FirstTimeBubbleSetupDone";
 
-    protected override void OnResume()
+    protected async override void OnResume()
     {
-        base.OnResume();
-        Platform.OnResume(this);
-        // Log that the activity resumed
-        Console.WriteLine("MainActivity: OnResume called.");
+        try
+        {
+            base.OnResume();
+            Platform.OnResume(this);
+            if (MyViewModel.IsLastFMNeedsToConfirm)
+            {
+                bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
+                if (isLastFMAuthorized)
+                {
+                    await MyViewModel.CompleteLastFMLoginCommand.ExecuteAsync(null);
+                }
+                else
+                {
+                    MyViewModel.IsLastFMNeedsToConfirm = false;
+                    await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
+
+                }
+            }
+            // Log that the activity resumed
+            Console.WriteLine("MainActivity: OnResume called.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     const int REQUEST_WRITE_STORAGE = 1001;
@@ -325,7 +354,7 @@ public class MainActivity : MauiAppCompatActivity
         {
             // Use the constant SearchManager.Query to get the search string
             // It's just a key to look inside the Intent's "extras" data.
-            string searchQuery = intent.GetStringExtra(SearchManager.Query);
+            string? searchQuery = intent.GetStringExtra(SearchManager.Query);
 
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
@@ -334,7 +363,7 @@ public class MainActivity : MauiAppCompatActivity
 
                 MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    var audioService = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
+                    var audioService = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
                     if (audioService != null)
                     {
                         // You would define a method like this on your service interface
@@ -406,7 +435,12 @@ public class MainActivity : MauiAppCompatActivity
         {
             var builder = new PictureInPictureParams.Builder();
             builder.SetAspectRatio(new Rational(16, 9)); // adjust for your UI
-            EnterPictureInPictureMode(builder.Build());
+            var pipParams = builder.Build();
+            if (pipParams is not null)
+            {
+
+                EnterPictureInPictureMode(pipParams);
+            }
             Console.WriteLine("Entered PiP mode");
         }
     }

@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Threading.Tasks;
+
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.WinUI.Views.DimmerLiveUI;
 
@@ -71,15 +74,38 @@ public partial class DimmerWin : Window
     }
 
     public event EventHandler? WindowActivated;
-    protected override void OnActivated()
+    protected override async void OnActivated()
     {
-        base.OnActivated();
-        MyViewModel.MainWindow_Activated();
-        WindowActivated?.Invoke(this, EventArgs.Empty);
-        var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
-        if (nativeElement != null)
-        {            
-            nativeElement.PointerPressed += OnGlobalPointerPressed;
+        try
+        {
+
+            base.OnActivated();
+            if (MyViewModel.IsLastFMNeedsToConfirm)
+            {
+                bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
+                if (isLastFMAuthorized)
+                {
+                    await MyViewModel.CompleteLastFMLoginAsync();
+                }
+                else
+                {
+                    MyViewModel.IsLastFMNeedsToConfirm= false;
+                    await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
+
+                }
+            }
+            MyViewModel.MainWindow_Activated();
+            WindowActivated?.Invoke(this, EventArgs.Empty);
+            var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+            if (nativeElement != null)
+            {
+                nativeElement.PointerPressed += OnGlobalPointerPressed;
+            }
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine($"{ex.Message}");
         }
     }
     protected override void OnBackgrounding(IPersistedState state)

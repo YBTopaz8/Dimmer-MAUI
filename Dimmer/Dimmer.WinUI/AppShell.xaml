@@ -43,14 +43,19 @@
         <ResourceDictionary />
     </Shell.Resources>
     <Shell.FlyoutContent>
-        <Grid RowDefinitions="auto,*">
-            <VerticalStackLayout Grid.Row="0" Margin="10,5">
-                <Label Text="{Binding LatestAppLog.Log}" />
+        <Grid BackgroundColor="{AppThemeBinding Light=#999999}" RowDefinitions="auto,*">
+            <VerticalStackLayout
+                Grid.Row="0"
+                Margin="10,5"
+                BackgroundColor="Transparent">
+                <Label
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="WordWrap"
+                    Text="{Binding LatestAppLog.Log}" />
             </VerticalStackLayout>
             <syncf:SfTabView
                 x:Name="ShellTabView"
                 Grid.Row="1"
-                BackgroundColor="{AppThemeBinding Light=#999999}"
                 EnableSwiping="True"
                 SelectedIndex="{Binding ShellTabIndex}"
                 SelectionChanging="ShellTabView_SelectionChanging"
@@ -645,9 +650,7 @@
                     FontAttributes="Bold"
                     FontSize="13"
                     HorizontalOptions="Center"
-                    Text="{Binding IsDarkModeOn}"
-                    TextColor="{AppThemeBinding Light=Black,
-                                                Dark=WHite}">
+                    Text="{Binding IsDarkModeOn}">
                     <Button.Triggers>
                         <DataTrigger
                             Binding="{Binding IsDarkModeOn}"
