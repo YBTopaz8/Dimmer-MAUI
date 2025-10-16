@@ -192,6 +192,7 @@
                 ZIndex="0" />
 
             <VerticalStackLayout
+                x:Name="coordinatedPanel"
                 Grid.Column="1"
                 Padding="20"
                 HeightRequest="260"
@@ -416,6 +417,7 @@
                     Opacity="0.01"
                     ZIndex="1" />
                 <Image
+                    x:Name="detailedImage"
                     HeightRequest="260"
                     Opacity="0.6"
                     Source="{Binding SelectedSong.CoverImagePath}"

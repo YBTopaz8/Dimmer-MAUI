@@ -405,10 +405,20 @@
             <Grid Grid.Row="1">
 
 
-                <CollectionView Grid.Row="1" ItemsSource="{Binding DimmerPlayEventList}">
+                <CollectionView
+                    Grid.Row="1"
+                    Margin="5"
+                    ItemsSource="{Binding DimmerPlayEventList}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout
+                            ItemSpacing="10"
+                            Orientation="Vertical"
+                            SnapPointsAlignment="Center"
+                            SnapPointsType="MandatorySingle" />
+                    </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:DimmerPlayEventView">
-                            <Grid ColumnDefinitions="*,*,*,*">
+                            <Grid ColumnDefinitions="80,*,*,*,50" ColumnSpacing="5">
                                 <Grid.GestureRecognizers>
 
                                     <TapGestureRecognizer
@@ -417,14 +427,47 @@
                                         NumberOfTapsRequired="2"
                                         Tapped="PlaySongGestRec_Tapped" />
                                 </Grid.GestureRecognizers>
-                                <Label Grid.Column="0" Text="{Binding SongName}" />
-                                <Label Grid.Column="1" Text="{Binding PlayTypeStr}" />
-                                <Label Grid.Column="2" Text="{Binding PositionInSeconds}" />
+                                <Grid Grid.Column="0">
+
+                                    <toolkit:AvatarView
+                                        BorderColor="DarkSlateBlue"
+                                        HeightRequest="75"
+                                        ImageSource="{Binding CoverImagePath}"
+                                        Text="{Binding SongName}"
+                                        WidthRequest="75">
+                                        <toolkit:AvatarView.GestureRecognizers>
+                                            <PointerGestureRecognizer x:Name="ImgPointerGestureRec" 
+                                                                      PointerReleased="ImgPointerGestureRec_PointerReleased" />
+                                        </toolkit:AvatarView.GestureRecognizers>
+                                    </toolkit:AvatarView>
+                                    <Image
+                                        Margin="-3"
+                                        HeightRequest="25"
+                                        HorizontalOptions="End"
+                                        Rotation="45"
+                                        Source="favlove.png"
+                                        VerticalOptions="Start"
+                                        WidthRequest="25"
+                                        ZIndex="1" />
+                                </Grid>
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="5"
+                                    VerticalOptions="Center">
+
+                                    <Label Text="{Binding SongName}" />
+                                    <Label Text="{Binding ArtistName}" />
+                                    <Label Text="{Binding AlbumName}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding PlayTypeStr}" />
                                 <Label
-                                    Grid.Column="4"
+                                    Grid.Column="3"
                                     Text="{Binding EventDate, Converter={converters:DatetTimeOffsetToHowLongAgoConverter}}"
                                     ToolTipProperties.Text="{Binding EventDate, StringFormat='{0:ddd mmm yyyy}'}" />
-
+                                <Image
+                                    Grid.Column="4"
+                                    Rotation="90"
+                                    Source="more1.png" />
                             </Grid>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
@@ -440,9 +483,7 @@
             </VerticalStackLayout>
 
 
-            <VerticalStackLayout Grid.Row="1">
-                <Label Text="G0 R1" />
-            </VerticalStackLayout>
+            <VerticalStackLayout Grid.Row="1" />
         </Grid>
     </Grid>
 

@@ -1,5 +1,7 @@
 using Dimmer.DimmerSearch;
 
+using Microsoft.UI.Xaml.Media.Animation;
+
 using Syncfusion.Maui.Toolkit.Charts;
 
 namespace Dimmer.WinUI.Views.SingleSongPages;
@@ -295,15 +297,7 @@ public partial class SingleSongPage : ContentPage
         await this.FadeIn(350, 1);
 
     }
-    protected override void OnNavigatedTo(NavigatedToEventArgs args)
-    {
-        if (MyViewModel.SelectedSong is null)
-        {
-            Debug.WriteLine("is null");
-        }
-        base.OnNavigatedTo(args);
-    }
-
+ 
     private async void ViewSongDetails_Clicked(object sender, EventArgs e)
     {
 

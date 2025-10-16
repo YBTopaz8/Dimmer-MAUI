@@ -1,12 +1,15 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using System.Collections.Concurrent;
+using System.Diagnostics;
+
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utils;
 
+using Microsoft.Maui;
+using Microsoft.Maui.Platform;
 using Microsoft.Windows.AppLifecycle;
-
-using System.Collections.Concurrent;
 
 using Windows.ApplicationModel.Activation;
 
@@ -18,6 +21,7 @@ namespace Dimmer.WinUI;
 public partial class App : MauiWinUIApplication
 {
     private Microsoft.UI.Xaml.Window m_window;
+    
     /// <summary>
     /// Initializes the singleton application object.  This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -92,6 +96,12 @@ public partial class App : MauiWinUIApplication
     // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
+
+        Debug.WriteLine(e.Kind);
+        Debug.WriteLine(e.Data.GetType());
+        m_window= PlatUtils.GetNativeWindow();
+
+      
         // This is guaranteed to run on the main instance.
         // We need to bring the activation to the UI thread to be safe.
         m_window.DispatcherQueue.TryEnqueue(() =>
@@ -148,6 +158,7 @@ public partial class App : MauiWinUIApplication
     }
     private void ProcessFileBatch()
     {
+        m_window = PlatUtils.GetNativeWindow();
         // Drain the queue to get all file paths collected so far
         var pathsToProcess = new List<string>();
         while (_activatedFilePaths.TryDequeue(out var path))
@@ -182,7 +193,7 @@ public partial class App : MauiWinUIApplication
 
 
 
-    private static void HandleFiles(string[] paths) // paths now comes as string?[]
+    private static async void HandleFiles(string[] paths) // paths now comes as string?[]
     {
         if (paths == null || paths.Length == 0)
             return;
@@ -202,7 +213,7 @@ public partial class App : MauiWinUIApplication
             foreach (var item in validPaths)
             {
 
-                homePageVM.AddMusicFolderByPassingToService(item);
+               await homePageVM.AddMusicFolderByPassingToService(item);
             }
 
             // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe

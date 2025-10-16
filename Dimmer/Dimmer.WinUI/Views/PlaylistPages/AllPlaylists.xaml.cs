@@ -1,3 +1,4 @@
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Platform;
 
 using Syncfusion.Maui.Toolkit.NavigationDrawer;
@@ -121,5 +122,20 @@ public partial class AllPlaylists : ContentPage
     private void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
 
+    }
+
+    private void ImgPointerGestureRec_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var nativePage = this.Handler?.PlatformView as Microsoft.UI.Xaml.Controls.Page;
+        if (nativePage is null) return;
+
+        var element = (View)sender;
+        
+        var platformView = element.Handler?.PlatformView as Microsoft.UI.Xaml.FrameworkElement;
+        
+        if (platformView != null)
+        {
+            //nativePage.Frame.Navigate()
+        }
     }
 }

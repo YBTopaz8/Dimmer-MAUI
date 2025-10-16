@@ -235,7 +235,7 @@ public partial class AppShell : Shell
     private async void NavigateToSelectedSongPageContextMenuAsync(object sender, EventArgs e)
     {
 
-        await MyViewModel.ProcessAndMoveToViewSong(null);
+        await MyViewModel.ProcessAndMoveToViewSong(MyViewModel.CurrentPlayingSongView);
     }
     private void TogglePanelClicked(object sender, PointerEventArgs e)
     {
@@ -672,13 +672,22 @@ public partial class AppShell : Shell
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        var label = (Label)sender;
-        label.ShowContextMenu();
+        try
+        {
+
+            var label = (Label)sender;
+            label.ShowContextMenu();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
-    private void NowPlayingSong_Clicked(object sender, EventArgs e)
+    private async void NowPlayingSong_Clicked(object sender, EventArgs e)
     {
 
+        await MyViewModel.ProcessAndMoveToViewSong(null);
 
     }
 
@@ -759,6 +768,7 @@ public partial class AppShell : Shell
             return;
 
 
+        send.ShowContextMenu();
         MyViewModel.SelectedSong = param;
 
     }
@@ -820,6 +830,11 @@ public partial class AppShell : Shell
 
 
         return;
+    }
+
+    private void ViewNowPlayingQueue_Clicked(object sender, EventArgs e)
+    {
+        ShellTabView.SelectedIndex = 2;
     }
 
     // Section for Songs With UserNotes.

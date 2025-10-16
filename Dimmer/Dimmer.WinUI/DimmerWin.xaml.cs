@@ -212,14 +212,13 @@ public partial class DimmerWin : Window
 
     private void SettingsBtn_Clicked(object sender, EventArgs e)
     {
-     
-        MyViewModel.OpenSettingWin();
+
         //await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     private void SettingsBtnn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.OpenSettingWin();
+        MyViewModel.OpenAllSongsPageWinUICommand.Execute(null);
       
     }
 

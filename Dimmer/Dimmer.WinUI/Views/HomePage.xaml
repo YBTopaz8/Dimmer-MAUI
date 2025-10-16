@@ -25,6 +25,7 @@
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                       Dark=transparent}"
+  
     Shell.FlyoutBehavior="Locked"
     Shell.NavBarIsVisible="False">
 
@@ -379,13 +380,76 @@
 
     </ContentPage.Resources>
 
-    <VerticalStackLayout IsVisible="{Binding IsDuplicateFound}">
-        <Label Text="{Binding DuplicateSets.Count, StringFormat='There are {0} duplicates for this song'}" />
-        <Button
-            x:Name="ConsolidateDuplicates"
-            Clicked="ConsolidateDuplicates_Clicked"
-            Text="Consolidate" />
-    </VerticalStackLayout>
+    <Grid RowDefinitions="auto,*">
+
+        <VerticalStackLayout Grid.Row="0" IsVisible="{Binding IsDuplicateFound}">
+            <Label Text="{Binding DuplicateSets.Count, StringFormat='There are {0} duplicates for this song'}" />
+            <Button
+                x:Name="ConsolidateDuplicates"
+                Clicked="ConsolidateDuplicates_Clicked"
+                Text="Consolidate" />
+        </VerticalStackLayout>
+
+        <CollectionView
+            x:Name="PlaybackQueueCV"
+            Grid.Row="1"
+            Margin="10"
+            ItemsSource="{Binding PlaybackQueue}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout
+                    HorizontalOptions="Center"
+                    Spacing="20"
+                    VerticalOptions="Center">
+                    <Label
+                        HorizontalOptions="Center"
+                        Text="No Songs in Queue Yet, Play a song!"
+                        VerticalOptions="Center" />
+                    <Button
+                        Command="{Binding OpenAllSongsPageWinUICommand}"
+                        HorizontalOptions="Center"
+                        Text="List of All Songs"
+                        VerticalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongModelView">
+                    <Border
+                        Margin="5"
+                        Padding="10"
+                        Stroke="Grey"
+                        StrokeThickness="1">
+
+                        <syncf:SfEffectsView
+                            x:Name="SelectedSongChip"
+                            TouchUp="SelectedSongChip_TouchUp"
+                            TouchUpCommandParameter="{Binding .}">
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Test 1" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                            <Grid ColumnDefinitions="80,*">
+
+                                <HorizontalStackLayout Grid.Column="0">
+                                    <ImageButton
+                                        x:Name="SongCoverImg"
+                                        Clicked="SongCoverImg_Clicked"
+                                        Source="{Binding CoverImagePath}" />
+                                </HorizontalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start">
+                                    <Label FontSize="21" Text="{Binding Title}" />
+                                    <Label FontAttributes="Italic" Text="{Binding ArtistName}" />
+
+                                </VerticalStackLayout>
+                            </Grid>
+                        </syncf:SfEffectsView>
+
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+    </Grid>
 
 
 

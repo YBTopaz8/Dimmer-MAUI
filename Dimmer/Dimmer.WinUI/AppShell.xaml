@@ -65,9 +65,6 @@
                     <syncf:SfTabItem.Content>
 
                         <ScrollView x:Name="SideBarScrollView">
-                            <ScrollView.GestureRecognizers>
-                                <PointerGestureRecognizer x:Name="ScrollVPointer" />
-                            </ScrollView.GestureRecognizers>
 
 
 
@@ -164,6 +161,7 @@
                                             HeightRequest="300"
                                             Opacity="0.3"
                                             Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
+                                            ToolTipProperties.Text="Click to view song details"
                                             WidthRequest="300">
 
                                             <ImageButton.Triggers>
@@ -231,7 +229,7 @@
                                 </Border>
                                 <Label
                                     FontAttributes="Bold"
-                                    FontSize="21"
+                                    FontSize="20"
                                     HorizontalOptions="Center"
                                     HorizontalTextAlignment="Justify"
                                     LineBreakMode="WordWrap"
@@ -302,19 +300,21 @@
                                         Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}"
                                         TextColor="{AppThemeBinding Light=Black,
                                                                     Dark=White}"
+                                        ToolTipProperties.Text="Number of Dims (Click)"
                                         WidthRequest="60" />
 
                                 </HorizontalStackLayout>
 
                                 <Button
                                     x:Name="QuickFilterBtn"
-                                    Padding="10"
+                                    Padding="5"
                                     BackgroundColor="Transparent"
                                     BorderWidth="0"
                                     Clicked="QuickFilterBtn_Clicked"
                                     FontSize="16"
                                     HorizontalOptions="Start"
-                                    Text="{Binding CurrentPlayingSongView.ArtistName}">
+                                    Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                    ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}">
 
                                     <Button.GestureRecognizers>
                                         <PointerGestureRecognizer
@@ -332,6 +332,7 @@
                                     TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}">
 
                                     <Label
+                                        Padding="10"
                                         BackgroundColor="Transparent"
                                         FontSize="16"
                                         HorizontalOptions="Start"
@@ -516,6 +517,7 @@
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
+                                    <Label Text=":" />
 
                                     <Label
                                         Grid.Column="2"
@@ -599,26 +601,8 @@
 
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
-                <syncf:SfTabItem>
-                    <Grid RowDefinitions="auto,*">
-                        <CollectionView Grid.Row="1" ItemsSource="{Binding PlaybackQueue}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:SongModelView">
-                                    <syncf:SfEffectsView
-                                        x:Name="SelectedSongChip"
-                                        TouchUp="SelectedSongChip_TouchUp"
-                                        TouchUpCommandParameter="{Binding .}">
-                                        <VerticalStackLayout HorizontalOptions="Start">
-                                            <Label FontSize="21" Text="{Binding Title}" />
-                                            <Label FontAttributes="Italic" Text="{Binding ArtistName}" />
-
-                                        </VerticalStackLayout>
-                                    </syncf:SfEffectsView>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-
-                        </CollectionView>
-                    </Grid>
+                <syncf:SfTabItem x:Name="PlayBackQueueView">
+                    <Grid RowDefinitions="auto,*" />
                 </syncf:SfTabItem>
             </syncf:SfTabView>
 
@@ -638,11 +622,21 @@
             <VerticalStackLayout
                 Grid.Row="0"
                 Margin="5"
-                Spacing="10">
-                <ImageButton
-                    x:Name="ViewDeviceAudio"
-                    Clicked="ViewDeviceAudio_Clicked"
-                    Source="headphonesround.png" />
+                Spacing="5">
+                <HorizontalStackLayout HorizontalOptions="Center">
+
+                    <ImageButton
+                        x:Name="ViewDeviceAudio"
+                        Clicked="ViewDeviceAudio_Clicked"
+                        Source="headphonesround.png"
+                        ToolTipProperties.Text="View Audio Output Devices" />
+
+                    <ImageButton
+                        x:Name="ViewNowPlayingQueue"
+                        Clicked="ViewNowPlayingQueue_Clicked"
+                        Source="musicplaylist.png" />
+
+                </HorizontalStackLayout>
                 <Button
                     Grid.Row="0"
                     BackgroundColor="Transparent"

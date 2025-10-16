@@ -2,6 +2,7 @@
 using System.Diagnostics;
 
 using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.WinUI;
 
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
@@ -10,9 +11,12 @@ using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 
 using Vanara.PInvoke;
 
+using Application = Microsoft.Maui.Controls.Application;
 using Colors = Microsoft.Maui.Graphics.Colors;
 
 
@@ -20,6 +24,7 @@ using Colors = Microsoft.Maui.Graphics.Colors;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
 using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
+using Image = Microsoft.UI.Xaml.Controls.Image;
 using Label = Microsoft.Maui.Controls.Label;
 using SortOrder = Dimmer.Utilities.SortOrder;
 using View = Microsoft.Maui.Controls.View;
@@ -30,7 +35,6 @@ namespace Dimmer.WinUI.Views;
 
     public partial class HomePage : ContentPage
     {
-
 
         public BaseViewModelWin MyViewModel { get; internal set; }
 
@@ -53,6 +57,7 @@ namespace Dimmer.WinUI.Views;
             MyViewModel = vm;
 
 
+           
         // --- Keep these lines. They correctly wire up the UI. ---
 
         //MyViewModel.TranslatedSearch= TranslatedSearch;
@@ -75,6 +80,45 @@ namespace Dimmer.WinUI.Views;
 
     }
 
+   
+    private async void ConsolidateDuplicates_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.IsAboutToConsolidateDupes = true;
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
+    }
+
+    private void SongCoverImg_Clicked(object sender, EventArgs e)
+    {
+        ImageButton view = (ImageButton)sender;
+        _storedSong = view.BindingContext as SongModelView;
+        var pltView = view.Handler?.PlatformView;
+
+        Debug.WriteLine(pltView?.GetType());
+        var nativeFrameWorkElt = view.Handler?.PlatformView as FrameworkElement;
+        //if (nativeFrameWorkElt != null)
+        //{
+        //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", nativeFrameWorkElt);
+
+        //}
+
+        //var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        //Type songDetailType = typeof(SingleSongPage);
+        //var frame = this.GetNativeFrame();
+        //frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
+    }
+
+
+    private SongModelView? _storedSong;
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+    }
 
     /*
     protected async override void OnAppearing()
@@ -212,16 +256,19 @@ namespace Dimmer.WinUI.Views;
     {
         bool isAddNext = false;
         var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
-        var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
-
-        if (!properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        var properties = e.PlatformArgs?.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
+        if (properties != null)
         {
 
-            // middle click means they wanna add the or artist or genre to queue, depending on who is clicked
-            isAddNext= true;
-            return;
+            if (!properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+            {
 
-            
+                // middle click means they wanna add the or artist or genre to queue, depending on who is clicked
+                isAddNext = true;
+                return;
+
+
+            }
         }
         //var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
         //if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
@@ -236,7 +283,7 @@ namespace Dimmer.WinUI.Views;
         }
         var field = gest.PointerReleasedCommandParameter as string;
         var val = gest.PointerPressedCommandParameter as string;
-        if (field is "artist")
+        if (field is "artist" && !string.IsNullOrEmpty(val))
         {
             char[] dividers = new char[] { ',', ';', ':', '|', '-' };
 
@@ -244,18 +291,26 @@ namespace Dimmer.WinUI.Views;
                 .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
                 .Select(name => name.Trim())                           // Trim whitespace from each name
                 .ToArray();                                             // Convert to a List
-
-
-            var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
-
-            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+            string? selectedArtist= null;
+            if (namesList.Length > 1)
             {
-                return;
+                selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+                if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+                {
+                    return;
+                }
             }
+            else
+            {
+                selectedArtist = namesList[0];
+            }
+
             SearchSongSB_Clicked(sender, e);
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
             return;
+            
         }
        
         SearchSongSB_Clicked(sender, e);
@@ -350,8 +405,7 @@ namespace Dimmer.WinUI.Views;
     {
 
     }
-    ////////
-
+   
 
 
 
@@ -1214,10 +1268,18 @@ await this.FadeIn(500, 1.0);
 
     }
 
-    private async void ConsolidateDuplicates_Clicked(object sender, EventArgs e)
+    private void SelectedSongChip_TouchUp(object sender, EventArgs e)
     {
-        MyViewModel.IsAboutToConsolidateDupes = true;
-        await Shell.Current.GoToAsync(nameof(SingleSongPage));
+
+    }
+    private DispatcherQueue? GetDispatcherQueue()
+    {
+#if WINDOWS
+        var nativeWindow = Application.Current?.Windows.FirstOrDefault()?.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+        return nativeWindow?.DispatcherQueue;
+#else
+    return null;
+#endif
     }
 
     /*
