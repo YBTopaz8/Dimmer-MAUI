@@ -3425,7 +3425,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         _logger.LogTrace("SetCurrentlyPickedSongForContext called with: {SongTitle}", song?.Title ?? "None");
 
-
+        if (song is null) return;
         song.PlayEvents = DimmerPlayEventList.Where(x => x.SongId == song.Id).ToObservableCollection();
         SelectedSongForContext = song;
     }

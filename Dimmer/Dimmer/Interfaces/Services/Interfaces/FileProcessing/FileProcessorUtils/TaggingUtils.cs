@@ -92,7 +92,7 @@ public static class TaggingUtils
     private static bool IsSeparator(string input)
     {
         var lower = input.ToLowerInvariant();
-        return lower is "feat" or "ft" or "&" or "vs" or "featuring" or "with" or "x";
+        return lower is "feat" or "ft" or "&" or "vs" or "featuring" or "with";
     }
 
     /// <summary>

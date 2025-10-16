@@ -78,7 +78,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         // --- Step 3: Merge and Extract Artists ---
         // Prefer tag artists, but fall back to parsed filename artist.
-        string primaryArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : parsedArtist;
+        string? primaryArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : parsedArtist;
         string albumArtist = tagAlbumArtist; // No filename equivalent for this
 
         List<string> artistNames = TaggingUtils.ExtractArtists(primaryArtist, albumArtist);

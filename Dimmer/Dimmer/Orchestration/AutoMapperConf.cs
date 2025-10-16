@@ -85,9 +85,33 @@ public static class AutoMapperConf
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.UserPassword));
 
             cfg.CreateMap<DimmerPlayEvent, DimmerPlayEventView>()
-.ForMember(dest => dest.IsNewOrModified, opt => opt.Ignore());
+                .ForMember(dest => dest.IsNewOrModified, opt => opt.Ignore())
+                .AfterMap((src, dest) =>
+                {
+                    var ConcernedSongs = src.SongsLinkingToThisEvent;
+                    if(ConcernedSongs.Any())
+                    {
 
-            cfg.CreateMap<SyncLyrics, LyricPhraseModelView>()
+                        var concernedSong = ConcernedSongs.Where(x => x.Id == dest.SongId).FirstOrDefault();
+                        if (concernedSong is not null && ConcernedSongs != null) 
+                        {
+                            if(string.IsNullOrEmpty(concernedSong.CoverImagePath))
+                            {
+                                dest.CoverImagePath = "musicnote1.png";
+                            }
+                            else
+                            {
+                                dest.CoverImagePath = concernedSong.CoverImagePath;
+                            }
+                            dest.IsFav = concernedSong.IsFavorite;
+                            dest.ArtistName = concernedSong.ArtistName;
+                            dest.AlbumName = concernedSong.AlbumName;
+                        }
+                    }
+                });
+
+
+                cfg.CreateMap<SyncLyrics, LyricPhraseModelView>()
                 .ForMember(dest => dest.EndTimeMs, opt => opt.Ignore())
                 .ForMember(dest => dest.TimeStampMs, opt => opt.Ignore())
                 .ForMember(dest => dest.Opacity, opt => opt.Ignore())
