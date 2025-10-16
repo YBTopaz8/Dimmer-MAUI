@@ -74,18 +74,17 @@ public partial class BaseViewModelWin : BaseViewModel
 
     }
 
-    private async void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
+    private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
-        win.Close();
+        win?.Close();
+        //// wait 4s and reopen it
+        //await Task.Delay(4000);
 
-        // wait 4s and reopen it
-        await Task.Delay(4000);
-
-        var newWin = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
-        newWin.Activate();
+        //var newWin = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        //newWin.Activate();
 
     }
 
@@ -462,11 +461,20 @@ public partial class BaseViewModelWin : BaseViewModel
 
         }
     }
-    internal void OpenSettingWin()
+
+    protected override async Task OnPlaybackStarted(PlaybackEventArgs args)
+    {
+        await base.OnPlaybackStarted(args);
+        if (args.MediaSong is null) return;
+        await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
+    }
+    [RelayCommand]
+    private void OpenAllSongsPageWinUI()
     {
 
 
         var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        if (win is null) return;
         Debug.WriteLine(win.Visible);
         Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }

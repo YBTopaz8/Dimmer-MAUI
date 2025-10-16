@@ -1,10 +1,13 @@
-﻿using Microsoft.Windows.AppNotifications;
+﻿
+using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
 using System.Drawing.Imaging;
 
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using ImageSource = Microsoft.Maui.Controls.ImageSource;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
 public static class PlatUtils
@@ -209,6 +212,33 @@ public static class PlatUtils
         DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
         return DimmerHandle;
     }
+
+    public static Microsoft.UI.Xaml.Window GetNativeWindow()
+    {
+        var window = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
+
+        // Get the underlying native window (WinUI).
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window ?? throw new InvalidOperationException("Unable to retrieve the native window.");
+
+        return nativeWindow;
+    }
+ 
+    public static Microsoft.UI.Xaml.Controls.Frame? GetNativeFrame(this IElement element)
+    {
+        if (element.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement fe)
+        {
+            Microsoft.UI.Xaml.DependencyObject? parent = fe;
+            while (parent != null)
+            {
+                if (parent is Microsoft.UI.Xaml.Controls.Frame frame)
+                    return frame;
+
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+        }
+        return null;
+    }
+
     public static IntPtr GetAnyWindowHandle(Window window)
     {
 
@@ -262,20 +292,29 @@ public static class PlatUtils
 
 
 
-    public static void ShowNewSongNotification(string songTitle, string artistName, string albumArtPath)
+    public static async Task ShowNewSongNotification(string songTitle, string artistName, string albumArtPath)
     {
-        var notificationBuilder = new AppNotificationBuilder()
-            .AddArgument("action", "viewSong")
-            .AddArgument("songId", "12345")
-            .SetAppLogoOverride(new Uri(albumArtPath), AppNotificationImageCrop.Circle)
-            .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(1))
-            .AddText(artistName)
-            .AddButton(new AppNotificationButton("Play Now")
-                .AddArgument("action", "play"))
-            .AddButton(new AppNotificationButton("Queue")
-                .AddArgument("action", "queue"));
+        try
+        {
 
-        AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+            var notificationBuilder = new AppNotificationBuilder()
+                .AddArgument("action", "viewSong")
+                //.AddArgument("songId", "12345")
+                .SetAppLogoOverride(new Uri(albumArtPath), AppNotificationImageCrop.Circle, songTitle)
+                .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(2))
+                .AddText(artistName, new AppNotificationTextProperties().SetMaxLines(2));
+                
+            //.AddButton(new AppNotificationButton("View Song Details").AddArgument("action", "play"))
+            //.AddButton(new AppNotificationButton("Queue").AddArgument("action", "queue")
+
+
+            await AppNotificationManager.Default.RemoveAllAsync();
+
+            AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+        } catch(Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     public static void ShowContextMenu(this Element element)
@@ -292,9 +331,11 @@ public static class PlatUtils
         var platformView = element.Handler?.PlatformView as Microsoft.UI.Xaml.FrameworkElement;
         if (platformView != null)
         {
+            var flyoutMenu = FlyoutBase.GetAttachedFlyout(platformView);
+            if (flyoutMenu is null) return;
             
             // The native way to show a context flyout on WinUI
             FlyoutBase.ShowAttachedFlyout(platformView);
         }
     }
-    }
+}
