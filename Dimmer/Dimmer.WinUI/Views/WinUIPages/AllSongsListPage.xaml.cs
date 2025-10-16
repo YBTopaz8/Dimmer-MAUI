@@ -41,6 +41,8 @@ public sealed partial class AllSongsListPage : Page
         InitializeComponent();
 
         this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
+
+
     }
     BaseViewModelWin MyViewModel { get; set; }
 
@@ -990,12 +992,7 @@ public sealed partial class AllSongsListPage : Page
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
         Type songDetailType = typeof(SongDetailPage);
-        if (Frame != null)
-        {
-
-            Frame.Navigate(songDetailType, _storedSong, supNavTransInfo);
-
-        }
+        Frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
     }
 
     private void MyPageGrid_Unloaded(object sender, RoutedEventArgs e)

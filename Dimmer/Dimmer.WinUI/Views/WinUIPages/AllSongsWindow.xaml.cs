@@ -63,7 +63,7 @@ public sealed partial class AllSongsWindow : Window
 
         this.Closed +=AllSongsWindow_Closed;
 
-
+        
     }
 
     private void AllSongsWindow_Closed(object sender, WindowEventArgs args)

@@ -15,6 +15,7 @@ namespace Dimmer.WinUI.Views.WinUIPages;
 /// </summary>
 public sealed partial class SongDetailPage : Page
 {
+    readonly Microsoft.UI.Xaml.Controls.Page? NativeWinUIPage;
     public SongModelView DetailedSong { get; set; }
     public SongDetailPage()
     {
@@ -27,16 +28,17 @@ public sealed partial class SongDetailPage : Page
         base.OnNavigatedTo(e);
 
         // 1. Get the Song object passed from the previous page
-        DetailedSong = e.Parameter as SongModelView;
-
-        // 2. Get the animation service and retrieve the animation we prepared
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("ForwardConnectedAnimation");
-
-        if (animation != null)
+        var passedSong = e.Parameter as SongModelView;
+        if (passedSong != null)
         {
+            DetailedSong = passedSong;
+
+            // 2. Get the animation service and retrieve the animation we prepared
+            ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("ForwardConnectedAnimation");
+
             // 3. Start the animation, connecting it to our target Image.
             //    The second parameter is a list of elements to animate in coordination.
-            animation.TryStart(detailedImage, new UIElement[] { coordinatedPanel });
+            animation?.TryStart(detailedImage, new UIElement[] { coordinatedPanel });
         }
     }
 
