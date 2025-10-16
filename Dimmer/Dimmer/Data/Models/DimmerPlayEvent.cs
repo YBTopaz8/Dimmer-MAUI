@@ -117,6 +117,9 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// Initializes a new instance of the <see cref="DimmerPlayEvent"/> class.
     /// </summary>
 
-
+    public string? ArtistName { get; set; }
+    public string? AlbumName { get; set; }
+    public string? CoverImagePath { get; set; }
+    public bool IsFav { get; set; }
 }
 
