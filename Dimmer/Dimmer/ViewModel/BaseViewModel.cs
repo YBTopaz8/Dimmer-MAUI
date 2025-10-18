@@ -834,9 +834,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
                     if (lastSong != null)
                     {
-
-
-
                         CurrentPlayingSongView = lastSong.ToModelView();
                         _playbackQueueSource.Edit(
                             updater =>
@@ -850,6 +847,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         CurrentPlayingSongView = new();
                     }
                     CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
+
+                    IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
                 }
             }
         }
@@ -6085,7 +6084,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [ObservableProperty]
-    public partial bool IsDarkModeOn { get; set; }
+    public partial bool IsDarkModeOn { get; set; } 
 
     public ObservableCollection<SavedQuery> QuickQueries { get; } = new();
 

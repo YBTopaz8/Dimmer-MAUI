@@ -324,7 +324,14 @@ public partial class BaseViewModelWin : BaseViewModel
         {
             SelectedSong = selectedSec;
         }
+
+        if (string.IsNullOrEmpty(SelectedSong.TitleDurationKey))
+        {
+            await Shell.Current.DisplayAlert("Issue!", "No Song Selected To View", "Ok");
+            return;
+        }
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+        
     }
 
     public async Task InitializeParseUser()
@@ -471,8 +478,6 @@ public partial class BaseViewModelWin : BaseViewModel
     [RelayCommand]
     private void OpenAllSongsPageWinUI()
     {
-
-
         var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
         if (win is null) return;
         Debug.WriteLine(win.Visible);

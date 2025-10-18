@@ -122,6 +122,7 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<ParseLiveQueryClient>();
 
+
         var assembly = Assembly.GetExecutingAssembly();
 
         const string resourceName = "Dimmer.appsettings.json";

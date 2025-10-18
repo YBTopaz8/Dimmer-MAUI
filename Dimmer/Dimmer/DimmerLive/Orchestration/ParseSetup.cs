@@ -11,8 +11,11 @@ public static class ParseSetup
 
     public static bool InitializeParseClient()
     {
-        try
+            return false;
+       /* try
         {
+        
+
             // Validate API Keys
             if (string.IsNullOrEmpty(ApiKeys.ApplicationId) || // PUT IN YOUR APP ID HERE
                 string.IsNullOrEmpty(ApiKeys.ServerUri) || // PUT IN YOUR ServerUri ID HERE
@@ -85,6 +88,8 @@ public static class ParseSetup
             Debug.WriteLine($"Error when registering user: {ex.Message}");
             return null;
         }
+
+            */
     }
 
 
@@ -150,6 +155,7 @@ public static class ParseSetup
             }
             return false;
         }
+        
     }
 
 
