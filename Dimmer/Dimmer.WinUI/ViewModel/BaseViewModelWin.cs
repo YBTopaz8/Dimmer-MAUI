@@ -245,7 +245,7 @@ public partial class BaseViewModelWin : BaseViewModel
     public partial int MediaBarGridRowPosition { get; set; }
 
     [ObservableProperty]
-    public partial CollectionView SongColView { get; set; }
+    public partial CollectionView PlaybackQueueCV { get; set; }
 
 
     [ObservableProperty]
@@ -427,12 +427,12 @@ public partial class BaseViewModelWin : BaseViewModel
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
-            if (SongColView is not null && SongColView.IsLoaded)
+            if (PlaybackQueueCV is not null && PlaybackQueueCV.IsLoaded)
             {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
 
-                    SongColView?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
+                    PlaybackQueueCV?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
 
                 });
             }

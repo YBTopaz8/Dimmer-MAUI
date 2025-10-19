@@ -382,8 +382,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             .Subscribe(
                 async isAuthenticated =>
                 {
-                    if(IsLastfmAuthenticated)
+                    if(!isAuthenticated)
                         return;
+                    LastFMUserInfo = await lastfmService.GetUserInfoAsync();
+                    if (LastFMUserInfo is null)
+                        return;
+
                     IsLastfmAuthenticated = isAuthenticated;
                     LastfmUsername = lastfmService.AuthenticatedUser ?? "Not Logged In";
                     if(isAuthenticated)
@@ -403,7 +407,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                                     {
                                         UserModel usr = usrs.First();
                                         usr.UserName = lastfmService.AuthenticatedUser;
-
+                                        usr.LastFMAccountInfo ??= _mapper.Map<LastFMUser>(LastFMUserInfo);
 
                                         db.Add(usr, true);
                                     }
@@ -736,6 +740,33 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 });
             realmm.Add(appmodel, true);
         }
+        else
+        {
+            var newAppModel = new AppStateModel
+            {
+                LastKnownQuery = CurrentTqlQuery,
+                LastKnownPlaybackQuery = CurrentPlaybackQuery,
+                LastKnownPlaybackQueueIndex = _playbackQueueIndex,
+                LastKnownShuffleState = IsShuffleActive,
+                LastKnownRepeatState = (int)CurrentRepeatMode,
+                LastKnownPosition = CurrentTrackPositionSeconds,
+                CurrentSongId = CurrentPlayingSongView.Id.ToString(),
+                VolumeLevelPreference = _audioService.Volume,
+                IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark,
+                RepeatModePreference = (int)CurrentRepeatMode,
+                ShuffleStatePreference = IsShuffleActive,
+                IsStickToTop = IsStickToTop,
+                CurrentTheme = Application.Current?.UserAppTheme.ToString() ?? "Unspecified",
+                CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
+                CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
+            };
+            realmm.Write(
+                () =>
+                {
+                    realmm.Add(newAppModel);
+                });
+
+        }
     }
 
     public void OnAppOpening()
@@ -850,6 +881,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                     IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
                 }
+                else
+                {
+                    
+             
+                }
             }
         }
         
@@ -886,8 +922,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     var setting = existingSettings.FirstOrDefault();
                     if(setting != null)
                     {
-                        setting.IsDarkModePreference
-                    = Application.Current?.UserAppTheme == AppTheme.Dark;
+                        setting.IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark;
                     } else
                     {
                         setting = new AppStateModel
@@ -6591,11 +6626,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsBusy = true;
         try
         {
-            string? url = await lastfmService.GetAuthenticationUrlAsync();
+            string? webUrl = await lastfmService.GetAuthenticationUrlAsync();
+
+            if (string.IsNullOrEmpty(webUrl)) return;
             IsLastFMNeedsToConfirm = true;
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = true;
-            await Launcher.Default.OpenAsync(new Uri(url));
+            await Launcher.Default.OpenAsync(new Uri(webUrl));
         } catch(Exception ex)
         {
             _logger.LogError(ex, "Failed to get Last.fm authentication URL.");

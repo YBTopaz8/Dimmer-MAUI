@@ -31,8 +31,8 @@
     </Shell.BackButtonBehavior>
     <Grid RowDefinitions="auto,*,auto">
 
-        <VerticalStackLayout Grid.Row="0">
-            <Label Text="{Binding LatestAppLog.Log}" />
+        <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center">
+            <Label Text="{Binding LatestAppLog.Log}" FontSize="29" />
         </VerticalStackLayout>
 
         <syncf:SfTabView
@@ -130,7 +130,17 @@
                                                 x:Name="ChangeFolder"
                                                 Clicked="ChangeFolder_Clicked"
                                                 CommandParameter="{Binding .}"
-                                                Source="foldera.png" />
+                                                >
+                                                <ImageButton.Source>
+                                                    <FontImageSource
+         FontFamily="FontAwesomeRegular"
+         Glyph="folder"
+         Size="20"
+         Color="{AppThemeBinding Light=Black,
+                                 Dark=White}" />
+
+                                                </ImageButton.Source>
+                                            </ImageButton>
 
                                             <ImageButton
                                                 x:Name="DeleteBtn"
@@ -139,6 +149,7 @@
                                                 <ImageButton.Behaviors>
                                                     <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
                                                 </ImageButton.Behaviors>
+                                                
                                                 <ImageButton.Source>
                                                     <FontImageSource
                                                         FontFamily="FontAwesomeRegular"
@@ -153,9 +164,9 @@
                                                 x:Name="RescanFolder"
                                                 Clicked="RescanFolder_Clicked"
                                                 CommandParameter="{Binding .}"
-                                                ImageSize="50"
+                                                ImageSize="20" StrokeThickness="0"
                                                 ImageSource="repeat.png"
-                                                WidthRequest="65" />
+                                                WidthRequest="35" HeightRequest="35" />
                                         </HorizontalStackLayout>
 
                                         <VisualStateManager.VisualStateGroups>
@@ -226,43 +237,43 @@
                             <VerticalStackLayout Margin="10" Spacing="10">
 
 
-                                <Label Text="{Binding IsLastfmAuthenticated}" />
-                                <HorizontalStackLayout Spacing="10">
+                                <VerticalStackLayout Spacing="2">
 
-                                    <Label FontSize="30" Text="User Name:" />
-                                    <Editor
-                                        FontSize="20"
-                                        Placeholder="UserName"
+                                    <Label FontSize="30" Text="Enter Your LastFM User Name" />
+                                    <Entry
+                                        ReturnCommand=""
+                                        FontSize="20" 
+                                        HorizontalTextAlignment="Center"
                                         PlaceholderColor="{AppThemeBinding Dark=White,
                                                                            Light=Black}"
                                         Text="{Binding UserLocal.LastFMAccountInfo.Name}"
                                         WidthRequest="180">
-                                        <Editor.Triggers>
+                                        <Entry.Triggers>
                                             <DataTrigger
                                                 Binding="{Binding IsLastfmAuthenticated}"
-                                                TargetType="Editor"
+                                                TargetType="Entry"
                                                 Value="True">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                             <DataTrigger
                                                 Binding="{Binding IsLastfmAuthenticated}"
-                                                TargetType="Editor"
+                                                TargetType="Entry"
                                                 Value="False">
                                                 <Setter Property="IsVisible" Value="True" />
                                             </DataTrigger>
-                                        </Editor.Triggers>
-                                    </Editor>
+                                            </Entry.Triggers>
+                                    </Entry>
 
 
-                                </HorizontalStackLayout>
+                                </VerticalStackLayout>
 
 
                                 <Button
-                                    BorderWidth="2"
                                     Command="{Binding LoginToLastfmCommand}"
-                                    HorizontalOptions="Start"
-                                    IsVisible="{Binding LoginToLastfmCommand}"
-                                    Text="Login" />
+                                    HorizontalOptions="Center"
+                                    BorderWidth="0"
+                                    Text="Login to LastFM"
+                                    BackgroundColor="Red"/>
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
                                     <VerticalStackLayout.Triggers>
@@ -384,20 +395,21 @@
             </syncf:SfTabItem>
         </syncf:SfTabView>
 
-        <VerticalStackLayout
+        <HorizontalStackLayout
             Grid.Row="2"
             Padding="20"
             HorizontalOptions="Center"
             Spacing="10"
-            WidthRequest="250">
-            <Button Command="{Binding AppSetupPagePreviousBtnClickCommand}" Text="{Static lang:DimmerLanguage.txt_previous}" />
+            WidthRequest="450">
+            <Button Command="{Binding AppSetupPagePreviousBtnClickCommand}" 
+                    WidthRequest="150" Text="{Static lang:DimmerLanguage.txt_previous}" />
             <Button
                 x:Name="NextBtnTwo"
                 Clicked="NextBtnTwo_Clicked"
-                CornerRadius="8"
+                CornerRadius="8" WidthRequest="150"
                 Text="{Binding NextBtnText}"
                 TextColor="White" />
-        </VerticalStackLayout>
+        </HorizontalStackLayout>
     </Grid>
 
 </ContentPage>

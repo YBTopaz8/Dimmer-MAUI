@@ -109,36 +109,32 @@ namespace Dimmer.WinUI.Views;
 
 
     private SongModelView? _storedSong;
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-        
-    }
+
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
     }
 
-    /*
+   
     protected async override void OnAppearing()
     {
         try
         {
             base.OnAppearing();
-            MyViewModel.CurrentPageContext = CurrentPage.AllSongs;
-            MyViewModel.SongColView = SongsColView;
+            MyViewModel.CurrentPageContext = CurrentPage.HomePage;
+            MyViewModel.PlaybackQueueCV = PlaybackQueueCV;
 
             MyViewModel.CurrentMAUIPage = null;
             MyViewModel.CurrentMAUIPage = this;
-            await MyViewModel.InitializeParseUser();
+            //await MyViewModel.InitializeParseUser();
         }
         catch (Exception ex)
         {
 
             await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
-        if (MyViewModel.ShowWelcomeScreen)
+        if (!MyViewModel.ShowWelcomeScreen)
         {
 
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
@@ -156,6 +152,7 @@ namespace Dimmer.WinUI.Views;
         }
     }
 
+    /*
     private void OnAnyWindowClosing(object? sender, WinUIWindowMgrService.WindowClosingEventArgs e)
     {
         Debug.WriteLine($"A window is trying to close: {e.Window.Title}");

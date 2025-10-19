@@ -394,8 +394,14 @@ public class LastfmService : ILastfmService
 
             return await _client.User.GetInfoAsync(((ILastfmService)this).AuthenticatedUser);
         }
-        catch 
+        catch (Exception ex) 
         {
+            Debug.WriteLine(ex.Message);
+            _isAuthenticatedSubject.OnNext(false);
+            if(ex.Message == "Invalid session key - Please re-authenticate")
+            {
+                ClearSession();
+            }
             return null;
         }
         // Gets info for the NOW authenticated user.
@@ -677,7 +683,7 @@ public class LastfmService : ILastfmService
     }
 
     #endregion
-    public async Task<ObservableCollection<Track>?> GetUserRecentTracksAsync(string username, int limit)
+    public async Task<ObservableCollection<Track>?> GetUserRecentTracksAsync(string? username, int limit)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         if (string.IsNullOrEmpty(username))
