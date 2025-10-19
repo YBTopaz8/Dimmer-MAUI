@@ -1,5 +1,4 @@
-﻿using Google.Cloud.AIPlatform.V1;
-
+﻿
 namespace Dimmer.Data.Models;
 
 public class FileProcessingResult

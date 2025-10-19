@@ -18,7 +18,7 @@ global using Dimmer.Data.ModelView;
 
 global using Dimmer.DimmerLive.Interfaces;
 
-
+global using Resource = Microsoft.Maui.Resource;
 
 global using Dimmer.Utilities.Enums;
 global using System.Collections.ObjectModel;

@@ -1,5 +1,6 @@
 ﻿using AndroidX.Fragment.App;
 
+
 namespace Dimmer.CustomShellRenderers;
 internal interface IShellPageTransition
 {
