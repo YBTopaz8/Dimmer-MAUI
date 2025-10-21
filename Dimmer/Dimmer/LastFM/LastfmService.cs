@@ -422,7 +422,6 @@ public class LastfmService : ILastfmService
             // This is a workaround for the fact that Last.fm API does not handle multiple artists in the same way.
             if (string.IsNullOrEmpty(song.ArtistName))
             {
-                await Shell.Current.DisplayAlert("Error", "Artist name is empty. Cannot update now playing.", "OK");
                 return;
             }
             
