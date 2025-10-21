@@ -1,5 +1,5 @@
 ﻿using LinqKit;
-
+using CommunityToolkit.Diagnostics;
 namespace Dimmer.Utils;
 
 /// <summary>
@@ -12,10 +12,14 @@ namespace Dimmer.Utils;
 
 public class ListeningReportGenerator
 {
-
+    private readonly Dictionary<DateTimeOffset, int> _cachedDayPlayCounts = new();
+    private DateTimeOffset? _cachedStart;
+    private DateTimeOffset? _cachedEnd;
 
     private readonly ILogger _logger;
     private readonly IMapper _mapper;
+    private readonly IRealmFactory realmFactory;
+
     // Initialize collections to prevent null reference issues
     List<SongModel>  _songsInPeriod = new List<SongModel>();
     List<DimmerPlayEvent> _scrobblesInPeriod = new List<DimmerPlayEvent>();
@@ -26,12 +30,13 @@ public class ListeningReportGenerator
   
     public ListeningReportGenerator(
         List<SongModel> allSongs,
-        List<DimmerPlayEvent> allScrobbles, ILogger logger, IMapper mapper)
+        List<DimmerPlayEvent> allScrobbles, ILogger logger, IMapper mapper, IRealmFactory realmFactory)
     {
         _allSongs = allSongs ?? new List<SongModel>();
         _allScrobbles = allScrobbles ?? new List<DimmerPlayEvent>();
         _logger = logger;
         _mapper = mapper;
+        this.realmFactory = realmFactory;
 
         // Initialize collections to prevent null reference issues
         _songsInPeriod = new List<SongModel>();
@@ -39,71 +44,85 @@ public class ListeningReportGenerator
         _songPlayCounts = new Dictionary<ObjectId, int>();
         _isReportGenerated = false;
 
-        DateTimeOffset _startDate = DateTimeOffset.Now;
-        DateTimeOffset _endDate = _startDate.AddDays(-7);
     }
     DateTimeOffset _startDate;
-    DateTimeOffset _endDate;
+    DateTimeOffset _endDate; 
+    
+    private readonly object _lock = new();
     /// <summary>
     /// Filters the master data for the specified period and calculates all necessary aggregates.
     /// This MUST be called before any Get...() method.
     /// </summary>
-    public Task<bool> GenerateReportAsync(DateTimeOffset startDate, DateTimeOffset endDate)
+    public async Task<bool> GenerateReportAsync(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        try
+        lock (_lock)
         {
-            _logger.LogInformation("Preparing report data from {StartDate} to {EndDate}...", startDate, endDate);
-            _startDate = startDate;
-            _endDate = endDate;
-            _isReportGenerated = false; // Reset state
+            if (_isReportGenerated && _startDate == startDate && _endDate == endDate)
+                return true;
+        }
+        if (_cachedStart == startDate && _cachedEnd == endDate && _isReportGenerated)
+            return true; // skip
 
-            // Phase 1: Filter data for the period
-            _scrobblesInPeriod = _allScrobbles
-                .Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
-                            (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed))
-                .ToList();
-
-            if (_scrobblesInPeriod.Count == 0)
+        _cachedStart = startDate;
+        _cachedEnd = endDate;
+        
+        return await Task.Run(() =>
+        {
+            try
             {
-                _logger.LogInformation("No scrobbles found in the period. Report will be empty.");
-                // We still mark as generated, but collections will be empty.
+             
+                _logger.LogInformation("Preparing report data from {StartDate} to {EndDate}...", startDate, endDate);
+                _startDate = startDate;
+                _endDate = endDate;
+                _isReportGenerated = false; // Reset state
+
+                // Phase 1: Filter data for the period
+                _scrobblesInPeriod = _allScrobbles
+                    .Where(p => p.EventDate >= startDate && p.EventDate < endDate)
+                    .Where(IsPlayEvent)
+                    .ToList();
+
+                if (_scrobblesInPeriod.Count == 0)
+                {
+                    _logger.LogInformation("No scrobbles found in the period. Report will be empty.");
+                    // We still mark as generated, but collections will be empty.
+                    _isReportGenerated = true;
+                    return true;
+                }
+
+                var songIdsInPeriod = _scrobblesInPeriod
+                    .Where(p => p.SongId.HasValue)
+                    .Select(p => p.SongId.Value)
+                    .Distinct()
+                    .ToHashSet(); // HashSet is fast for lookups
+
+                _songsInPeriod = _allSongs
+                    .Where(s => songIdsInPeriod.Contains(s.Id))
+                    .ToList();
+
+                // Phase 2: Pre-calculate common aggregates
+                _songPlayCounts = _scrobblesInPeriod
+                    .Where(p => p.SongId.HasValue)
+                    .GroupBy(p => p.SongId.Value)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
                 _isReportGenerated = true;
-                return Task.FromResult(true);
+                _logger.LogInformation("Report data preparation complete.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to prepare report data.");
+                return false;
             }
 
-            var songIdsInPeriod = _scrobblesInPeriod
-                .Where(p => p.SongId.HasValue)
-                .Select(p => p.SongId.Value)
-                .Distinct()
-                .ToHashSet(); // HashSet is fast for lookups
+        });
 
-            _songsInPeriod = _allSongs
-                .Where(s => songIdsInPeriod.Contains(s.Id))
-                .ToList();
-
-            // Phase 2: Pre-calculate common aggregates
-            _songPlayCounts = _scrobblesInPeriod
-                .Where(p => p.SongId.HasValue)
-                .GroupBy(p => p.SongId.Value)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            _isReportGenerated = true;
-            _logger.LogInformation("Report data preparation complete.");
-            return Task.FromResult(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to prepare report data.");
-            return Task.FromResult(false);
-        }
     }
-
     private void CheckIfGenerated()
     {
-        if (!_isReportGenerated)
-        {
-            throw new InvalidOperationException("GenerateReportAsync must be called successfully before getting statistics.");
-        }
+        Guard.IsTrue(_isReportGenerated, nameof(_isReportGenerated),
+        "GenerateReportAsync must be called successfully before getting statistics.");
     }
 
     // --- BASIC STATS ---
@@ -115,13 +134,22 @@ public class ListeningReportGenerator
 
         var periodDuration = _endDate - _startDate;
         var prevStartDate = _startDate - periodDuration;
-
+        _cachedDayPlayCounts.Clear();
+        foreach (var dayGroup in _scrobblesInPeriod.GroupBy(p => p.EventDate.Date))
+            _cachedDayPlayCounts[dayGroup.Key] = dayGroup.Count();
         // Calculate previous period scrobbles from the master list
-        var prevPeriodScrobbles = _allScrobbles.Count(p => p.EventDate >= prevStartDate && p.EventDate < _startDate && (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed));
+        var prevPeriodScrobbles = _allScrobbles.Where(IsPlayEvent).Count(p => p.EventDate >= prevStartDate && p.EventDate < _startDate);
 
         double percentageChange = prevPeriodScrobbles > 0 ? ((double)(_scrobblesInPeriod.Count - prevPeriodScrobbles) / prevPeriodScrobbles) * 100 : (_scrobblesInPeriod.Count > 0 ? 100.0 : 0.0);
-        var dailyBreakdown = _scrobblesInPeriod.GroupBy(p => p.EventDate.Date).Select(g => new ChartDataPoint { Label = g.Key.ToString("ddd"), Value = g.Count(), SortKey = g.Key }).OrderBy(dp => (DateTimeOffset)dp.SortKey).ToList();
-
+        var dailyBreakdown = _cachedDayPlayCounts
+         .OrderBy(x => x.Key)
+         .Select(x => new ChartDataPoint
+         {
+             Label = x.Key.ToString("ddd"),
+             Value = x.Value,
+             SortKey = x.Key
+         })
+         .ToList();
         return new DimmerStats
         {
             StatTitle = "Total Scrobbles",
@@ -132,12 +160,12 @@ public class ListeningReportGenerator
         };
     }
 
-    public List<DimmerStats>? GetTopTracks()
+    public List<DimmerStats?>? GetTopTracks()
     {
         CheckIfGenerated();
         if (_songsInPeriod.Count == 0)
             return null;
-
+        
         var songsDict = _songsInPeriod.ToDictionary(s => s.Id);
         return _songPlayCounts
             .OrderByDescending(kvp => kvp.Value)
@@ -145,6 +173,7 @@ public class ListeningReportGenerator
             .Select(kvp => songsDict.TryGetValue(kvp.Key, out var song)
                 ? new DimmerStats { Song = song.ToModelView(), Count = kvp.Value }
                 : null)
+
             .Where(s => s != null)
             .ToList();
     }
@@ -434,4 +463,40 @@ public class ListeningReportGenerator
 
         return new DimmerStats { StatTitle = "Music Eddington Number", Value = eddingtonNumber };
     }
+    public List<DimmerStats>? GetTopGenres()
+    {
+        CheckIfGenerated();
+        if (_songsInPeriod.Count == 0) return null;
+
+        return _songsInPeriod
+            .Where(s => s.Genre != null)
+            .GroupBy(s => s.Genre.Name)
+            .Select(g => new DimmerStats { StatTitle = g.Key, Count = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
+            .OrderByDescending(x => x.Count)
+            .Take(10)
+            .ToList();
+    }
+
+    public DimmerStats? GetAverageSessionLength()
+    {
+        CheckIfGenerated();
+        if (_scrobblesInPeriod.Count == 0) return null;
+        var sessions = _scrobblesInPeriod
+            .GroupBy(e => e.DatePlayed.Date)
+            .Select(g => g.Max(e => e.PositionInSeconds))
+            .DefaultIfEmpty(0)
+            .Average();
+        return new DimmerStats { StatTitle = "Avg Session Length", Value = Math.Round(sessions / 60, 1) };
+    }
+    public List<DimmerStats>? GetTopDevices() =>
+    _scrobblesInPeriod
+        .Where(e => !string.IsNullOrEmpty(e.DeviceName))
+        .GroupBy(e => e.DeviceName!)
+        .Select(g => new DimmerStats { StatTitle = g.Key, Count = g.Count() })
+        .OrderByDescending(x => x.Count)
+        .Take(5)
+        .ToList();
+    private static bool IsPlayEvent(DimmerPlayEvent e)
+    => e.PlayType == (int)PlayType.Play || e.PlayType == (int)PlayType.Completed;
+
 }

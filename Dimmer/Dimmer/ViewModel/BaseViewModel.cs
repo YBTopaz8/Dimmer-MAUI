@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Dimmer.Data.Models;
 using Dimmer.DimmerLive.ParseStatics;
@@ -865,13 +867,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
                     if (lastSong != null)
                     {
-                        CurrentPlayingSongView = lastSong.ToModelView();
-                        _playbackQueueSource.Edit(
-                            updater =>
-                            {
-                                updater.Clear();
-                                updater.Add(CurrentPlayingSongView);
-                            });
+                        CurrentPlayingSongView = lastSong.ToModelView();                        
                     }
                     else
                     {
@@ -2232,26 +2228,120 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     #region Playback Commands (User Intent)
 
 
-    public void LoadLastTenPlayedSongsFromDBToPlayBackQueue()
+    public async Task LoadLastTenPlayedSongsFromDBToPlayBackQueue()
     {
-        if(PlaybackQueue.Count > 0)
-        {
+        if (PlaybackQueue.Count > 0)
             return;
-        }
-        realm = RealmFactory.GetRealmInstance();
-        // i need the RQL code to get the last events as they have the songs IDs we can get to pass in list
-        var lastSongsId = realm.All<DimmerPlayEvent>().Filter("PlayType == 3").ToList().Select(x => x.SongId).Take(10);
-        List<SongModelView> listOfCorrespondingSongsFromIDs = new();
-        foreach (var idd in lastSongsId)
+
+        using var realm = RealmFactory.GetRealmInstance();
+
+        // Last 10 events that have at least one linked song
+        var lastTenEvents = realm.All<DimmerPlayEvent>()
+            .Where(e => e.PlayType == 3 && e.SongsLinkingToThisEvent.Any())
+            .OrderByDescending(e => e.EventDate)
+            .ToList()
+            .Take(25);
+
+        foreach (var evt in lastTenEvents)
         {
-            var song = SearchResults.FirstOrDefault(x => x.Id == idd);
+            var song = evt.SongsLinkingToThisEvent.FirstOrDefault();
             if (song is null) continue;
-            listOfCorrespondingSongsFromIDs.Add(song);
+
+            var songView = _mapper.Map<SongModelView>(song);
+            _playbackQueueSource.Add(songView);
         }
-        _stateService.SetCurrentSong(listOfCorrespondingSongsFromIDs[0]);
-        _playbackQueueSource.AddRange(listOfCorrespondingSongsFromIDs);
-        
+
+        if (lastTenEvents.Any())
+        {
+            var song = lastTenEvents.First().SongsLinkingToThisEvent.First().ToModelView();
+            _stateService.SetCurrentSong(song);
+        }
+        await LoadDashboardAsync();
     }
+
+    #region DashBoard Region
+    [RelayCommand]
+    public async Task LoadDashboardAsync()
+    {
+        var endDate = DateTimeOffset.UtcNow.Date.AddDays(1);
+        var startDate = endDate.AddDays(-7);
+
+        DashPeriod = $"From {startDate.ToShortDateString()} - {endDate.ToShortDateString()}";
+        realm = RealmFactory.GetRealmInstance();
+        // Phase 1: Data Preparation
+        var scrobblesInPeriod = realm.All<DimmerPlayEvent>()
+            .AsEnumerable()
+            .Select(p => new DimmerPlayEvent
+            {
+                Id = p.Id,
+                EventDate = p.EventDate,
+                PlayType = p.PlayType,
+                SongId = p.SongId,
+                DeviceName = p.DeviceName,
+                PositionInSeconds = p.PositionInSeconds,
+            })
+            .ToList();
+        var allSongs = realm.All<SongModel>()
+            
+            .AsEnumerable()
+
+            .Select(s => new SongModel
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Artist = s.Artist,
+                Album = s.Album,
+                Genre = s.Genre,
+                DurationInSeconds = s.DurationInSeconds,
+                ReleaseYear = s.ReleaseYear,
+                FirstPlayed = s.FirstPlayed,
+                CoverImagePath =s.CoverImagePath,
+                FileFormat = s.FileFormat,
+                FilePath= s.FilePath,
+                OtherArtistsName = s.OtherArtistsName,
+                AlbumName=s.AlbumName,
+                TrackNumber = s.TrackNumber,
+                ArtistName =s.ArtistName,
+                
+
+            }).ToList();
+     
+        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper, RealmFactory);
+        if (!await _reportGenerator.GenerateReportAsync(startDate, endDate))
+            return;
+
+        // --- Summary cards ---
+        TotalSongs = _reportGenerator.GetUniqueTracks()?.Count ?? 0;
+        TotalDimms = _reportGenerator.GetTotalScrobbles()?.Count ?? 0;
+        TopArtist = _reportGenerator.GetTopArtists()?.FirstOrDefault()?.ArtistName ?? "-";
+        TopAlbum = _reportGenerator.GetTopAlbums()?.FirstOrDefault()?.AlbumName ?? "-";
+        TopGenre = _reportGenerator.GetVariance()?.Value.ToString() ?? "-"; // placeholder, use tags later
+        TopPlayTime = $"{_reportGenerator.GetTotalListeningTime()?.Value:F1}h";
+
+        // --- Collections ---
+        RecentSongs = new ObservableCollection<SongModelView>(
+            _reportGenerator.GetTopTracks()?.Select(s => s.Song!) ?? []);
+
+        TopArtistsDash = new ObservableCollection<ArtistModelView>(
+            _reportGenerator.GetTopArtists()?.Select(a => a.SongArtist!) ?? []);
+
+        TopAlbumsDash = new ObservableCollection<AlbumModelView>(
+            _reportGenerator.GetTopAlbums()?.Select(a => a.SongAlbum!) ?? []);
+    }
+
+    [ObservableProperty] public partial int TotalSongs { get; set; }
+    [ObservableProperty] public partial string DashPeriod { get; set; }
+    [ObservableProperty] public partial int TotalDimms{get;set;}
+    [ObservableProperty] public partial string TopArtist {get;set;} = string.Empty;
+    [ObservableProperty] public partial string TopAlbum {get;set;} = string.Empty;
+    [ObservableProperty] public partial string TopGenre {get;set;} = string.Empty;
+    [ObservableProperty] public partial string TopPlayTime { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial ObservableCollection<SongModelView> RecentSongs { get; set; } = new();
+    [ObservableProperty] public partial ObservableCollection<ArtistModelView> TopArtistsDash { get; set; } = new();
+    [ObservableProperty] public partial ObservableCollection<AlbumModelView> TopAlbumsDash { get; set; } = new();
+
+    #endregion
 
     #region Queue Manipulation Commands
 
@@ -2529,14 +2619,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPage curPage = CurrentPage.AllSongs,
         IEnumerable<SongModelView>? songs = null)
     {
-        if(songToPlay == null)
+        if (songToPlay == null)
             return;
 
-        
-        
+
+
         Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
         // Quick exit check. The more detailed check is in PlayInternalAsync.
-        if(string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
         {
             _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             await ValidateSongAsync(songToPlay);
@@ -2548,17 +2638,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         var sourceList = new List<SongModelView>();
         int startIndex = -1;
 
-        if(CurrentPagePlayingSong == Utilities.Enums.CurrentPage.AllSongs)
+        if (CurrentPagePlayingSong == Utilities.Enums.CurrentPage.AllSongs)
         {
             var songSource = (songs ?? _searchResults).ToList();
             startIndex = songSource.IndexOf(songToPlay);
 
-            if(startIndex == -1)
+            if (startIndex == -1)
             {
                 _logger.LogWarning("Song '{Title}' not in current source. Playing it alone.", songToPlay.Title);
                 sourceList.Add(songToPlay);
                 startIndex = 0;
-            } else
+            }
+            else
             {
                 // *** SIMPLIFIED QUEUE SLICING LOGIC ***
                 // Take a window of 150 songs (50 before, 100 after) for performance.
@@ -2572,25 +2663,53 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 // The start index is now relative to this new, smaller list.
                 startIndex = sourceList.IndexOf(songToPlay);
             }
-        } 
-        else if(CurrentPagePlayingSong == Utilities.Enums.CurrentPage.HomePage)
+        }
+        else if (CurrentPagePlayingSong == Utilities.Enums.CurrentPage.HomePage)
         {
-            sourceList = _playbackQueue.ToList();
-            startIndex = sourceList.IndexOf(songToPlay);
-
-            if(startIndex == -1)
+            if (songs is null)
             {
-                _logger.LogWarning("Song '{Title}' not in current queue. Playing it alone.", songToPlay.Title);
+                sourceList = _playbackQueue.ToList();
+                startIndex = sourceList.IndexOf(songToPlay);
+
+                if (startIndex == -1)
+                {
+                    _logger.LogWarning("Song '{Title}' not in current queue. Playing it alone.", songToPlay.Title);
+                    sourceList = new List<SongModelView> { songToPlay };
+                    startIndex = 0;
+                }
+            }
+            else
+            {
+                sourceList = songs.ToList();
+                startIndex = sourceList.IndexOf(songToPlay);
+                if (startIndex == -1)
+                {
+                    _logger.LogWarning("Song '{Title}' not in provided source. Playing it alone.", songToPlay.Title);
+                    sourceList = new List<SongModelView> { songToPlay };
+                    startIndex = 0;
+                }
+            }
+
+           
+        }
+        else
+        {
+            if (songs is null) return;
+            sourceList = songs.ToList();
+            startIndex = sourceList.IndexOf(songToPlay);
+            if (startIndex == -1)
+            {
+                _logger.LogWarning("Song '{Title}' not in provided source. Playing it alone.", songToPlay.Title);
                 sourceList = new List<SongModelView> { songToPlay };
                 startIndex = 0;
             }
         }
 
-        Debug.WriteLine(
-            "Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
-        await StartNewPlaybackQueue(sourceList, startIndex, CurrentTqlQuery);
-    }
 
+        Debug.WriteLine(
+                "Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
+            await StartNewPlaybackQueue(sourceList, startIndex, CurrentTqlQuery);
+    }
     /// <summary>
     /// Plays a song from a specific context, like an album or a user-created playlist. This creates a new, smaller
     /// queue containing only the songs from that specific collection.
@@ -3796,7 +3915,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             //.OrderBy(p => p.EventDate) // Important for sequential analysis
             .ToList();
         var allSongs = realm.All<SongModel>().ToList();
-        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper);
+        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper, RealmFactory);
         await GenerateWeeklyReportAsync();
     }
 
@@ -3815,7 +3934,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             //.OrderBy(p => p.EventDate) // Important for sequential analysis
             .ToList();
         var allSongs = realm.All<SongModel>().ToList();
-        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper);
+        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper, RealmFactory);
         await GenerateWeeklyReportAsync();
     }
 

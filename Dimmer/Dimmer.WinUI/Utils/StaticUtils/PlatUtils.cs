@@ -213,12 +213,32 @@ public static class PlatUtils
         return DimmerHandle;
     }
 
+    public static async Task EnsureWindowReadyAsync()
+    {
+        // Wait until the MAUI window is created and its handler exists
+        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
+        int attempts = 0;
+        while ((mauiWindow?.Handler == null) && attempts++ < 20)
+        {
+            await Task.Delay(100);
+            mauiWindow = Application.Current?.Windows.FirstOrDefault();
+        }
+
+        if (mauiWindow?.Handler == null)
+            throw new InvalidOperationException("Window handler was not ready after waiting.");
+    }
     public static Microsoft.UI.Xaml.Window GetNativeWindow()
     {
-        var window = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
+        // Ensure there’s at least one window created by MAUI
+        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
+        if (mauiWindow == null)
+            throw new InvalidOperationException("No MAUI window available yet.");
 
-        // Get the underlying native window (WinUI).
-        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window ?? throw new InvalidOperationException("Unable to retrieve the native window.");
+       
+
+        var nativeWindow = mauiWindow.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+        if (nativeWindow == null)
+            throw new InvalidOperationException("Unable to retrieve native window.");
 
         return nativeWindow;
     }
@@ -301,7 +321,9 @@ public static class PlatUtils
                 .AddArgument("action", "viewSong")
                 //.AddArgument("songId", "12345")
                 .SetAppLogoOverride(new Uri(albumArtPath), AppNotificationImageCrop.Circle, songTitle)
+                .AddText("Now Playing...", new AppNotificationTextProperties().SetMaxLines(2))
                 .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(2))
+                
                 .AddText(artistName, new AppNotificationTextProperties().SetMaxLines(2));
                 
             //.AddButton(new AppNotificationButton("View Song Details").AddArgument("action", "play"))
@@ -309,8 +331,9 @@ public static class PlatUtils
 
 
             await AppNotificationManager.Default.RemoveAllAsync();
-
-            AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+            var notif = notificationBuilder.BuildNotification();
+            
+            AppNotificationManager.Default.Show(notif);
         } catch(Exception ex)
         {
             Debug.WriteLine(ex.Message);

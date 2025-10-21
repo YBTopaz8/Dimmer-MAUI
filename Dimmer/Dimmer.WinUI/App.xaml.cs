@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Utils;
@@ -94,20 +95,34 @@ public partial class App : MauiWinUIApplication
         LogException(exx);
     }
     // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
-    private void MainInstance_Activated(object? sender, AppActivationArguments e)
+    private  void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
+        try
+        {
+            if (e.Kind == ExtendedActivationKind.ToastNotification)
+            {
+                Debug.WriteLine("OK");
+                return;
+            }
 
-        Debug.WriteLine(e.Kind);
-        Debug.WriteLine(e.Data.GetType());
-        m_window= PlatUtils.GetNativeWindow();
+            //await PlatUtils.EnsureWindowReadyAsync();
+            //m_window = PlatUtils.GetNativeWindow();
 
-      
-        // This is guaranteed to run on the main instance.
-        // We need to bring the activation to the UI thread to be safe.
-        m_window.DispatcherQueue.TryEnqueue(() =>
-         {
-             HandleActivation(e);
-         });
+
+            // This is guaranteed to run on the main instance.
+            // We need to bring the activation to the UI thread to be safe.
+            m_window.DispatcherQueue.TryEnqueue(() =>
+             {
+                 HandleActivation(e);
+             });
+        }
+        catch (Exception ex )
+        {
+            MainThread.BeginInvokeOnMainThread(async ()=>
+            {
+                await Shell.Current.DisplayAlert("Error", $"An error occurred during activation: {ex.Message}", "OK");
+            });
+        }
     }
 
 

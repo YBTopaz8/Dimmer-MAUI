@@ -13,7 +13,8 @@ public enum CurrentPage
     AllAlbumsPage,
     SpecificAlbumPage,
     OnlineChatPage,
-    HomePage
+    HomePage,
+    RecentPage
 }
 
 public enum CollectionToUpdate

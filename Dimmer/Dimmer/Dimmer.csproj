@@ -85,6 +85,9 @@
     <PackageReference Include="AutoMapper" Version="14.0.0" />
 
 
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+
+
 
     <PackageReference Include="DynamicData" Version="9.4.1" />
 

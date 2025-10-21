@@ -574,7 +574,6 @@ success = true;
             props.MusicProperties.Artist = media.OtherArtistsName ?? "Unknown Artist";
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
                 
-            props.MusicProperties.TrackNumber = (uint)media.TrackNumber!;
             if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
             {
                 try
