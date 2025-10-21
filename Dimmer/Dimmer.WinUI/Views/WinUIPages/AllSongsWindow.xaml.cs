@@ -55,11 +55,6 @@ public sealed partial class AllSongsWindow : Window
 
         };
 
-        // Initialize collections for live updates
-        var realm = MyViewModel.RealmFactory.GetRealmInstance();
-        _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
-        _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
-        _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
 
         this.Closed +=AllSongsWindow_Closed;
 

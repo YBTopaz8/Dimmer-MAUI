@@ -1,9 +1,12 @@
 ﻿
+using System.Drawing.Imaging;
+
+using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.WinUI.Views.WinUIPages;
+
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
-
-using System.Drawing.Imaging;
 
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
@@ -310,7 +313,24 @@ public static class PlatUtils
 
     }
 
+    public static void OpenAllSongsWindow(BaseViewModelWin vm)
+    {
+        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
+        var win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
+
+        // move and resize to the center of the screen
+
+        var pres = win?.AppWindow.Presenter;
+        //window.SetTitleBar()
+        if (pres is OverlappedPresenter p)
+        {
+            p.IsResizable = true;
+            p.SetBorderAndTitleBar(true, true); // Remove title bar and border
+            p.IsAlwaysOnTop = false;
+        }
+
+    }
 
     public static async Task ShowNewSongNotification(string songTitle, string artistName, string albumArtPath)
     {

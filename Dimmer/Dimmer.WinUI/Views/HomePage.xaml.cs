@@ -232,27 +232,6 @@ namespace Dimmer.WinUI.Views;
     */
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
-        bool isAddNext = false;
-        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
-        var properties = e.PlatformArgs?.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
-        if (properties != null)
-        {
-
-            if (!properties.IsMiddleButtonPressed) //also properties.IsXButton2Pressed for mouse 5
-            {
-
-                // middle click means they wanna add the or artist or genre to queue, depending on who is clicked
-                isAddNext = true;
-                return;
-
-
-            }
-        }
-        //var ee = e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers;
-        //if (e.PlatformArgs.PointerRoutedEventArgs.KeyModifiers != Windows.System.VirtualKeyModifiers.Control)
-        //{
-        //    return;
-        //}
         var send = (Microsoft.Maui.Controls.View)sender;
         var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
         if (gest is null)
@@ -284,21 +263,16 @@ namespace Dimmer.WinUI.Views;
                 selectedArtist = namesList[0];
             }
 
-            SearchSongSB_Clicked(sender, e);
+            PlatUtils.OpenAllSongsWindow(MyViewModel);
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
             return;
             
         }
-       
-        SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
-        if (isAddNext)
-        {
-            MyViewModel.AddListOfSongsToQueueEnd(MyViewModel.SearchResults);
 
-            return;
-        }
+        PlatUtils.OpenAllSongsWindow(MyViewModel);
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+    
 
         //_windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
@@ -1224,27 +1198,6 @@ await this.FadeIn(500, 1.0);
 
     }
     */
-    private void SearchSongSB_Clicked(object sender, EventArgs e)
-    {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel,windowFactory: () => new AllSongsWindow(MyViewModel));
-
-        // move and resize to the center of the screen
-
-        var pres = win?.AppWindow.Presenter;
-        //window.SetTitleBar()
-        if (pres is OverlappedPresenter p)
-        {
-            p.IsResizable = true;
-            p.SetBorderAndTitleBar(true,true); // Remove title bar and border
-            p.IsAlwaysOnTop = false;
-        }
-
-
-        Debug.WriteLine(win?.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
-
-    }
 
     private void SelectedSongChip_TouchUp(object sender, EventArgs e)
     {
@@ -1285,6 +1238,18 @@ await this.FadeIn(500, 1.0);
     private void PlaySongTap_Tapped(object sender, TappedEventArgs e)
     {
 
+    }
+
+    private async void ViewArtistTap_Tapped(object sender, TappedEventArgs e)
+    {
+        try
+        {
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     /*

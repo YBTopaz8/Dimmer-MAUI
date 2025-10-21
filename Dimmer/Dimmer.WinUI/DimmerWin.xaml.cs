@@ -74,11 +74,13 @@ public partial class DimmerWin : Window
     }
 
     public event EventHandler? WindowActivated;
+    int count;
     protected override async void OnActivated()
     {
+        count++;
         try
         {
-
+            
             base.OnActivated();
             if (MyViewModel.IsLastFMNeedsToConfirm)
             {
@@ -95,7 +97,6 @@ public partial class DimmerWin : Window
                 }
             }
             MyViewModel.MainWindow_Activated();
-            WindowActivated?.Invoke(this, EventArgs.Empty);
             var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
             if (nativeElement != null)
             {

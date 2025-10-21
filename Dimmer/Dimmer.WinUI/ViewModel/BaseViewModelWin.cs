@@ -473,7 +473,7 @@ public partial class BaseViewModelWin : BaseViewModel
     {
         await base.OnPlaybackStarted(args);
         if (args.MediaSong is null) return;
-        await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
+       // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
     }
     [RelayCommand]
     private void OpenAllSongsPageWinUI()

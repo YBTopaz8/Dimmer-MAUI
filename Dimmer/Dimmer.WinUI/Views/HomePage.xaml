@@ -537,6 +537,13 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ArtistModelView">
                     <Border Padding="5" WidthRequest="120">
+                            <Border.GestureRecognizers>
+                                <PointerGestureRecognizer
+        PointerPressedCommandParameter="{Binding OtherArtistsName}"
+        PointerReleased="QuickFilterGest_PointerReleased"
+        PointerReleasedCommandParameter="artist" />
+                            </Border.GestureRecognizers>
+
                         <VerticalStackLayout>
                             <Image
                                 Aspect="AspectFill"
@@ -573,7 +580,7 @@
 
         <CollectionView Grid.Row="5" ItemsSource="{Binding RecentSongs}">
             <CollectionView.ItemsLayout>
-                <LinearItemsLayout ItemSpacing="5" Orientation="Horizontal" />
+                <GridItemsLayout Orientation="Vertical" Span="5" />
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
@@ -593,6 +600,7 @@
                                 WidthRequest="210" />
                             <Label
                                 FontAttributes="Bold"
+                                HorizontalTextAlignment="Center"
                                 LineBreakMode="TailTruncation"
                                 Text="{Binding Title}" />
                         </VerticalStackLayout>

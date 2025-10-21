@@ -408,33 +408,12 @@ public partial class AppShell : Shell
             return;
         }
 
-        SearchSongSB_Clicked(sender, e);
+        PlatUtils.OpenAllSongsWindow(MyViewModel);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
-    private void SearchSongSB_Clicked(object sender, EventArgs e)
-    {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-        var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
-
-        // move and resize to the center of the screen
-
-        var pres = win?.AppWindow.Presenter;
-        //window.SetTitleBar()
-        if (pres is OverlappedPresenter p)
-        {
-            p.IsResizable = true;
-            p.SetBorderAndTitleBar(true, true); // Remove title bar and border
-            p.IsAlwaysOnTop = false;
-        }
-
-
-        Debug.WriteLine(win?.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
-
-    }
+   
     private void ToggleAppFlyoutState_Clicked(object sender, EventArgs e)
     {
         var currentState = this.FlyoutIsPresented;
@@ -663,11 +642,9 @@ public partial class AppShell : Shell
         var val = send.TouchUpCommandParameter as string;
         var field = send.TouchDownCommandParameter as string;
 
-        SearchSongSB_Clicked(sender, e);
+        PlatUtils.OpenAllSongsWindow(MyViewModel);
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
 
-
-        //win.Activate();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)

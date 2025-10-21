@@ -2619,6 +2619,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         CurrentPage curPage = CurrentPage.AllSongs,
         IEnumerable<SongModelView>? songs = null)
     {
+        try { 
+
         if (songToPlay == null)
             return;
 
@@ -2710,6 +2712,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 "Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
             await StartNewPlaybackQueue(sourceList, startIndex, CurrentTqlQuery);
     }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
+    }
     /// <summary>
     /// Plays a song from a specific context, like an album or a user-created playlist. This creates a new, smaller
     /// queue containing only the songs from that specific collection.
@@ -2717,12 +2724,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     private async Task PlayFromSpecificCollectionAsync(SongModelView? songToPlay)
     {
-        if(songToPlay == null)
-            return;
+        try
+        {
 
-        // Example for playing from a specific album's song list.
-        // You would have a similar property for a selected playlist's songs.
-        await PlaySong(songToPlay, CurrentPage.SpecificAlbumPage, _searchResults);
+        
+            if(songToPlay == null)
+                return;
+
+            // Example for playing from a specific album's song list.
+            // You would have a similar property for a selected playlist's songs.
+            await PlaySong(songToPlay, CurrentPage.SpecificAlbumPage, _searchResults);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
     }
 
     /// <summary>
@@ -4194,14 +4210,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         try
         {
             // --- Perform Logic and I/O Operations ---
-            if (songModel.NumberOfTimesFaved <= 0)
-            {
-                // 1. This is an I/O (network) call. Await it directly inside the try block.
-                await lastfmService.LoveTrackAsync(songModel);
-                songModel.NumberOfTimesFaved = 1;
-            }
-            else
-            {
+           songModel.IsFavorite = true;
                 // 2. This is a synchronous DB call. Move it to a background thread.
                 await _baseAppFlow.UpdateDatabaseWithPlayEvent(
                     RealmFactory,
@@ -4210,13 +4219,15 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     CurrentTrackPositionSeconds);
 
                 songModel.NumberOfTimesFaved++;
-            }
-
-            // --- All operations succeeded, now update the state and save ---
-            songModel.IsFavorite = true;
-
+      
             // 3. This is another synchronous DB call. Move it to a background thread.
             await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)));
+            if (songModel.NumberOfTimesFaved <= 0)
+            {
+                // 1. This is an I/O (network) call. Await it directly inside the try block.
+                await lastfmService.LoveTrackAsync(songModel);
+                songModel.NumberOfTimesFaved = 1;
+            }
         }
         catch (Exception ex)
         {

@@ -310,7 +310,6 @@
                                     Padding="5"
                                     BackgroundColor="Transparent"
                                     BorderWidth="0"
-                                    Clicked="QuickFilterBtn_Clicked"
                                     FontSize="16"
                                     HorizontalOptions="Start"
                                     Text="{Binding CurrentPlayingSongView.ArtistName}"
