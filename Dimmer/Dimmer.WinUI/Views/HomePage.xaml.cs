@@ -10,10 +10,6 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Animation;
-
 using Vanara.PInvoke;
 
 using Application = Microsoft.Maui.Controls.Application;
@@ -89,22 +85,7 @@ namespace Dimmer.WinUI.Views;
 
     private void SongCoverImg_Clicked(object sender, EventArgs e)
     {
-        ImageButton view = (ImageButton)sender;
-        _storedSong = view.BindingContext as SongModelView;
-        var pltView = view.Handler?.PlatformView;
-
-        Debug.WriteLine(pltView?.GetType());
-        var nativeFrameWorkElt = view.Handler?.PlatformView as FrameworkElement;
-        //if (nativeFrameWorkElt != null)
-        //{
-        //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", nativeFrameWorkElt);
-
-        //}
-
-        //var supNavTransInfo = new SuppressNavigationTransitionInfo();
-        //Type songDetailType = typeof(SingleSongPage);
-        //var frame = this.GetNativeFrame();
-        //frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
+       
     }
 
 
@@ -123,7 +104,7 @@ namespace Dimmer.WinUI.Views;
         {
             base.OnAppearing();
             MyViewModel.CurrentPageContext = CurrentPage.HomePage;
-            MyViewModel.PlaybackQueueCV = PlaybackQueueCV;
+            
 
             MyViewModel.CurrentMAUIPage = null;
             MyViewModel.CurrentMAUIPage = this;
@@ -134,7 +115,7 @@ namespace Dimmer.WinUI.Views;
 
             await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
-        if (!MyViewModel.ShowWelcomeScreen)
+        if (MyViewModel.ShowWelcomeScreen)
         {
 
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
@@ -147,7 +128,7 @@ namespace Dimmer.WinUI.Views;
             Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
 
             await Task.Delay(4000);
-            MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+            await MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
             _ = MyViewModel.PerformBackgroundInitializationAsync();
         }
     }
@@ -1277,6 +1258,33 @@ await this.FadeIn(500, 1.0);
 #else
     return null;
 #endif
+    }
+
+    private async void PlaySongTapFromRecent_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Border)sender;
+        var song = send.BindingContext as SongModelView;
+        if (MyViewModel.PlaybackQueue.Count < 1)
+        {
+            MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+        }
+        await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.RecentSongs);
+    }
+
+    private async void PlaySongTapFromPBQueue_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Border)sender;
+        var song = send.BindingContext as SongModelView;
+        if (MyViewModel.PlaybackQueue.Count < 1)
+        {
+            MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+        }
+        await MyViewModel.PlaySong(song, CurrentPage.HomePage);
+    }
+
+    private void PlaySongTap_Tapped(object sender, TappedEventArgs e)
+    {
+
     }
 
     /*
