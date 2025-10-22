@@ -1,5 +1,6 @@
 ﻿using LinqKit;
 using CommunityToolkit.Diagnostics;
+using System.Linq;
 namespace Dimmer.Utils;
 
 /// <summary>
@@ -22,25 +23,25 @@ public class ListeningReportGenerator
 
     // Initialize collections to prevent null reference issues
     List<SongModel>  _songsInPeriod = new List<SongModel>();
-    List<DimmerPlayEvent> _scrobblesInPeriod = new List<DimmerPlayEvent>();
+    IEnumerable<DimmerPlayEventView> _scrobblesInPeriod = new List<DimmerPlayEventView>();
     Dictionary<ObjectId, int> _songPlayCounts = new Dictionary<ObjectId, int>();
         bool _isReportGenerated = false;
     List<SongModel> _allSongs { get; }
-    List<DimmerPlayEvent> _allScrobbles { get; }
+    IEnumerable<DimmerPlayEventView> _allScrobbles { get; }
   
     public ListeningReportGenerator(
         List<SongModel> allSongs,
-        List<DimmerPlayEvent> allScrobbles, ILogger logger, IMapper mapper, IRealmFactory realmFactory)
+        IEnumerable<DimmerPlayEventView> allScrobbles, ILogger logger, IMapper mapper, IRealmFactory realmFactory)
     {
         _allSongs = allSongs ?? new List<SongModel>();
-        _allScrobbles = allScrobbles ?? new List<DimmerPlayEvent>();
+        _allScrobbles = allScrobbles ;
         _logger = logger;
         _mapper = mapper;
         this.realmFactory = realmFactory;
 
         // Initialize collections to prevent null reference issues
         _songsInPeriod = new List<SongModel>();
-        _scrobblesInPeriod = new List<DimmerPlayEvent>();
+        _scrobblesInPeriod = new List<DimmerPlayEventView>();
         _songPlayCounts = new Dictionary<ObjectId, int>();
         _isReportGenerated = false;
 
@@ -82,7 +83,7 @@ public class ListeningReportGenerator
                     .Where(IsPlayEvent)
                     .ToList();
 
-                if (_scrobblesInPeriod.Count == 0)
+                if (_scrobblesInPeriod.Any())
                 {
                     _logger.LogInformation("No scrobbles found in the period. Report will be empty.");
                     // We still mark as generated, but collections will be empty.
@@ -129,18 +130,19 @@ public class ListeningReportGenerator
     public DimmerStats? GetTotalScrobbles()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
         var periodDuration = _endDate - _startDate;
         var prevStartDate = _startDate - periodDuration;
         _cachedDayPlayCounts.Clear();
-        foreach (var dayGroup in _scrobblesInPeriod.GroupBy(p => p.EventDate.Date))
+        foreach (var dayGroup in _scrobblesInPeriod.GroupBy(p => p.EventDate.Value.Date))
             _cachedDayPlayCounts[dayGroup.Key] = dayGroup.Count();
         // Calculate previous period scrobbles from the master list
-        var prevPeriodScrobbles = _allScrobbles.Where(IsPlayEvent).Count(p => p.EventDate >= prevStartDate && p.EventDate < _startDate);
+        var prevPeriodScrobbles = _allScrobbles.AsQueryable().Where(p=> IsPlayEvent(p)).Count(p => p.EventDate >= prevStartDate && p.EventDate < _startDate);
+        ;
 
-        double percentageChange = prevPeriodScrobbles > 0 ? ((double)(_scrobblesInPeriod.Count - prevPeriodScrobbles) / prevPeriodScrobbles) * 100 : (_scrobblesInPeriod.Count > 0 ? 100.0 : 0.0);
+        double percentageChange = prevPeriodScrobbles > 0 ? ((double)(_scrobblesInPeriod.Count() - prevPeriodScrobbles) / prevPeriodScrobbles) * 100 : (_scrobblesInPeriod.Count() > 0 ? 100.0 : 0.0);
         var dailyBreakdown = _cachedDayPlayCounts
          .OrderBy(x => x.Key)
          .Select(x => new ChartDataPoint
@@ -153,7 +155,7 @@ public class ListeningReportGenerator
         return new DimmerStats
         {
             StatTitle = "Total Scrobbles",
-            Count = _scrobblesInPeriod.Count,
+            Count = _scrobblesInPeriod.Count(),
             ComparisonValue = Math.Round(percentageChange, 1),
             ComparisonLabel = "% vs. last period",
             PlotData = dailyBreakdown
@@ -169,9 +171,9 @@ public class ListeningReportGenerator
         var songsDict = _songsInPeriod.ToDictionary(s => s.Id);
         return _songPlayCounts
             .OrderByDescending(kvp => kvp.Value)
-            .Take(10)
-            .Select(kvp => songsDict.TryGetValue(kvp.Key, out var song)
-                ? new DimmerStats { Song = song.ToModelView(), Count = kvp.Value }
+            .Take(15)
+            .Select((kvp,index) => songsDict.TryGetValue(kvp.Key, out var song)
+                ? new DimmerStats { Rank=index+1,  Song = song.ToModelView(), Count = kvp.Value }
                 : null)
 
             .Where(s => s != null)
@@ -184,14 +186,16 @@ public class ListeningReportGenerator
         if (_songsInPeriod.Count == 0)
             return null;
 
-        return _songsInPeriod
+        var res = _songsInPeriod
             .Where(s => s.Artist != null)
             .GroupBy(s => s.Artist.Id)
             .Select(g => new { Artist = g.First().Artist, PlayCount = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.PlayCount)
-            .Take(10)
-            .Select(x => new DimmerStats { ArtistName = x.Artist.Name, Count = x.PlayCount, SongArtist = x.Artist.ToModelView(_mapper) })
+            .Take(15)
+            .Select((x, index) => new DimmerStats {ArtistName = x.Artist.Name, Count = x.PlayCount, SongArtist = x.Artist.ToModelView(_mapper)
+            ,Rank=index+1})
             .ToList();
+        return res;
     }
 
     public List<DimmerStats>? GetTopAlbums()
@@ -205,18 +209,18 @@ public class ListeningReportGenerator
             .GroupBy(s => s.Album) // Assuming Album object has equality implemented correctly
             .Select(g => new { Album = g.Key, PlayCount = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.PlayCount)
-            .Take(10)
-            .Select(x => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(_mapper), ArtistName = x.Album.Artist?.Name })
+            .Take(15)
+            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(_mapper), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
             .ToList();
     }
 
     public DimmerStats? GetListeningClock()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
-        var hourlyCounts = _scrobblesInPeriod.GroupBy(p => p.EventDate.Hour).ToDictionary(g => g.Key, g => g.Count());
+        var hourlyCounts = _scrobblesInPeriod.GroupBy(p => p.EventDate.Value.Hour).ToDictionary(g => g.Key, g => g.Count());
         var plotData = Enumerable.Range(0, 24).Select(h =>
         {
             return new ChartDataPoint
@@ -300,10 +304,10 @@ public class ListeningReportGenerator
     public DimmerStats? GetConsistence()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
-        var daysListened = _scrobblesInPeriod.Select(p => p.EventDate.Date).Distinct().Count();
+        var daysListened = _scrobblesInPeriod.Select(p => p.EventDate.Value.Date).Distinct().Count();
         var totalDaysInPeriod = Math.Max(1, (_endDate.Date - _startDate.Date).Days);
         double consistency = (double)daysListened / totalDaysInPeriod * 100;
         return new DimmerStats { StatTitle = "Consistency", Value = Math.Round(consistency, 1) };
@@ -339,7 +343,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetConcentration()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
         var artistPlayCounts = _songsInPeriod
@@ -351,17 +355,17 @@ public class ListeningReportGenerator
             return new DimmerStats { StatTitle = "Concentration", Value = 0 };
 
         double topArtistPlays = artistPlayCounts.Values.Max();
-        double concentration = (topArtistPlays / _scrobblesInPeriod.Count) * 100;
+        double concentration = (topArtistPlays / _scrobblesInPeriod.Count()) * 100;
         return new DimmerStats { StatTitle = "Concentration", Value = Math.Round(concentration, 1) };
     }
 
     public DimmerStats? GetReplayRate()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
-        double replayRate = _scrobblesInPeriod.Count > _songPlayCounts.Count ? (double)(_scrobblesInPeriod.Count - _songPlayCounts.Count) / _scrobblesInPeriod.Count * 100 : 0;
+        double replayRate = _scrobblesInPeriod.Count() > _songPlayCounts.Count ? (double)(_scrobblesInPeriod.Count() - _songPlayCounts.Count) / _scrobblesInPeriod.Count() * 100 : 0;
         return new DimmerStats { StatTitle = "Replay Rate", Value = Math.Round(replayRate, 1) };
     }
 
@@ -370,7 +374,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetTotalListeningTime()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
         var songsDict = _songsInPeriod.ToDictionary(s => s.Id);
@@ -389,22 +393,22 @@ public class ListeningReportGenerator
     public DimmerStats? GetAverageScrobblesDay()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
         var daysInPeriod = Math.Max(1, (_endDate - _startDate).TotalDays);
-        double avgScrobbles = _scrobblesInPeriod.Count / daysInPeriod;
+        double avgScrobbles = _scrobblesInPeriod.Count() / daysInPeriod;
         return new DimmerStats { StatTitle = "Average Scrobbles/Day", Value = Math.Round(avgScrobbles, 1) };
     }
 
     public DimmerStats? GetMostActiveDay()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0)
+        if (_scrobblesInPeriod.Any())
             return null;
 
         var mostActiveDay = _scrobblesInPeriod
-            .GroupBy(p => p.EventDate.Date)
+            .GroupBy(p => p.EventDate.Value.Date)
             .OrderByDescending(g => g.Count())
             .FirstOrDefault();
 
@@ -473,14 +477,14 @@ public class ListeningReportGenerator
             .GroupBy(s => s.Genre.Name)
             .Select(g => new DimmerStats { StatTitle = g.Key, Count = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.Count)
-            .Take(10)
+            .Take(15)
             .ToList();
     }
 
     public DimmerStats? GetAverageSessionLength()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Count == 0) return null;
+        if (_scrobblesInPeriod.Any()) return null;
         var sessions = _scrobblesInPeriod
             .GroupBy(e => e.DatePlayed.Date)
             .Select(g => g.Max(e => e.PositionInSeconds))
@@ -496,7 +500,7 @@ public class ListeningReportGenerator
         .OrderByDescending(x => x.Count)
         .Take(5)
         .ToList();
-    private static bool IsPlayEvent(DimmerPlayEvent e)
+    private static bool IsPlayEvent(DimmerPlayEventView e)
     => e.PlayType == (int)PlayType.Play || e.PlayType == (int)PlayType.Completed;
 
 }

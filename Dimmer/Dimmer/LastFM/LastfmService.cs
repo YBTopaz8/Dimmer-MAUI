@@ -86,14 +86,18 @@ public class LastfmService : ILastfmService
         .Select(evt => evt.EventArgs)
         .Where(_ => ((ILastfmService)this).IsAuthenticated)
         .ObserveOn(RxApp.TaskpoolScheduler)
-        .Subscribe(HandlePlaybackStateChange, ex => _logger.LogError(ex, "Error in Last.fm PlaybackStateChanged subscription."))
+        .Subscribe(async x =>
+        {
+            await HandlePlaybackStateChange(x);
+        }, ex => _logger.LogError(ex, "Error in Last.fm PlaybackStateChanged subscription."))
         .DisposeWith(_disposables);
 
         Observable.FromEventPattern<PlaybackEventArgs>(
                     h => audioService.PlayEnded += h,
                     h => audioService.PlayEnded -= h)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"));
+                .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"))
+                .DisposeWith(_disposables);
 
     }
 
@@ -109,7 +113,7 @@ public class LastfmService : ILastfmService
         _songToScrobble = null;
     }
 
-    private async void HandlePlaybackStateChange(PlaybackEventArgs args)
+    private async Task HandlePlaybackStateChange(PlaybackEventArgs args)
     {
         var currentSong = args.MediaSong;
 
@@ -441,6 +445,56 @@ public class LastfmService : ILastfmService
 
     #region Data Retrieval
 
+    public async Task<string?> GetMaxResArtistImageLink(string artistName)
+    {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
+        try
+        {
+            var temp = await GetArtistInfoAsync(artistName);
+            var ImagePath = temp?.Images.Where(x=>x.Size == "mega").LastOrDefault()?.Url;
+            return ImagePath ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return string.Empty;
+        }
+    }
+
+    public async Task<string?> GetMaxResAlbumImageLink(string albumName,string artistName)
+    {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
+        try
+        {
+            
+            var temp = await GetAlbumInfoAsync(artistName,albumName);
+            var ImagePath = temp?.Images.LastOrDefault()?.Url;
+            return ImagePath ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return string.Empty;
+        }
+    }
+
+    public async Task<string?> GetMaxResTrackImageLink(string artistName, string trackName)
+    {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
+        try
+        {
+            var temp = await GetTrackInfoAsync(artistName, trackName);
+           
+            var ImagePath = temp?.Images.LastOrDefault()?.Url;
+            return ImagePath ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return string.Empty;
+        }
+    }
+
     public async Task<Artist?> GetArtistInfoAsync(string artistName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
@@ -459,7 +513,7 @@ public class LastfmService : ILastfmService
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
-            if (!string.IsNullOrEmpty(albumName) && !string.IsNullOrEmpty(artistName))
+            if (string.IsNullOrEmpty(albumName) && string.IsNullOrEmpty(artistName))
             {
                 return new Album() { IsNull = true };
             }

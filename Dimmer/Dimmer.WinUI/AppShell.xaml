@@ -313,6 +313,8 @@
                                     FontSize="16"
                                     HorizontalOptions="Start"
                                     Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                    TextColor="{AppThemeBinding Light=Black,
+                                                                Dark=White}"
                                     ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}">
 
                                     <Button.GestureRecognizers>
@@ -331,7 +333,6 @@
                                     TouchUpCommandParameter="{Binding CurrentPlayingSongView.AlbumName}">
 
                                     <Label
-                                        Padding="10"
                                         BackgroundColor="Transparent"
                                         FontSize="16"
                                         HorizontalOptions="Start"
@@ -643,7 +644,9 @@
                     FontAttributes="Bold"
                     FontSize="13"
                     HorizontalOptions="Center"
-                    Text="{Binding IsDarkModeOn}">
+                    Text="{Binding IsDarkModeOn}"
+                    TextColor="{AppThemeBinding Light=Black,
+                                                Dark=White}">
                     <Button.Triggers>
                         <DataTrigger
                             Binding="{Binding IsDarkModeOn}"
@@ -668,6 +671,8 @@
                     BorderWidth="0"
                     Clicked="NowPlayingQueueBtnClicked"
                     Text="View Now Playing Queue"
+                    TextColor="{AppThemeBinding Light=Black,
+                                                Dark=White}"
                     ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}">
 
                     <Button.Behaviors>
@@ -686,9 +691,12 @@
                     <Slider
                         Grid.Column="1"
                         Loaded="VolumeSlider_Loaded"
+                        MaximumTrackColor="{AppThemeBinding Dark=White,
+                                                            Light=Black}"
                         Minimum="0"
                         MinimumTrackColor="DarkSlateBlue"
                         ThumbColor="{Binding CurrentPlaySongDominantColor}"
+                        ToolTipProperties.Text="{Binding DeviceVolumeLevel}"
                         Unloaded="VolumeSlider_Unloaded"
                         Value="{Binding DeviceVolumeLevel}" />
 

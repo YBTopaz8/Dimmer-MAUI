@@ -64,5 +64,8 @@ public interface ILastfmService
     Task<ObservableCollection<Artist>?> GetTopCountryArtistAsync(string country);
     Task<ObservableCollection<Artist>?> GetUserLibArtistsAsync(string country);
     void LoadSession();
+    Task<string?> GetMaxResTrackImageLink(string artistName, string trackName);
+    Task<string?> GetMaxResAlbumImageLink(string albumName, string artistName);
+    Task<string?> GetMaxResArtistImageLink(string artistName);
 }
 

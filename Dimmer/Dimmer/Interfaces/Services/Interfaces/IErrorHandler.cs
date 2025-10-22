@@ -33,10 +33,10 @@ public class ErrorHandler : IErrorHandler
             }
             string fileName = $"MAUIILoggercrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nException Type: {ex.GetType()}\nMessage: {ex.Message}\nStackTrace: {ex.StackTrace}\n";
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nException Type: {ex.GetType()}\nMessage: {ex.Message}\nStackTraceLogger: {ex.StackTrace}\n";
             if (ex.InnerException != null)
             {
-                logContent += $"Inner Exception:\nMessage: {ex.InnerException.Message}\nStackTrace: {ex.InnerException.StackTrace}\n";
+                logContent += $"Inner Exception:\nMessage: {ex.InnerException.Message}\nStackTraceLogger: {ex.InnerException.StackTrace}\n";
             }
             logContent += "\n";
 

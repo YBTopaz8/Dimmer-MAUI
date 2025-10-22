@@ -88,6 +88,7 @@ public bool IsSummary { get; set; }      // For WaterfallSeries' SummaryBindingP
     public double SizeDouble { get; internal set; }
     public string? StatTitle2 { get; internal set; }
     public List<DimmerStats>? ChildStats { get; internal set; }
+    public int Rank { get; internal set; }
 }
 public class ChartDataPoint
 {

@@ -10,10 +10,12 @@ using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
+using Dimmer.UIUtils;
 using Dimmer.Utils;
 
 using DynamicData;
 using DynamicData.Binding;
+
 
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -23,7 +25,6 @@ using Parse.LiveQuery;
 
 using ReactiveUI;
 
-using static Google.Cloud.AIPlatform.V1.Artifact.Types;
 
 using EventHandler = System.EventHandler;
 
@@ -1623,6 +1624,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial bool IsLoadingSongs { get; set; }
 
     [ObservableProperty]
+    public partial bool IsLoadingDashoard { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLoadingArtistDashoard { get; set; }
+
+    [ObservableProperty]
     public partial int SettingsPageIndex { get; set; } = 0;
 
     [ObservableProperty]
@@ -1716,17 +1723,24 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private async Task UpdateSongSpecificUi(SongModelView? song)
     {
-        if(song is null)
+        try
         {
-            CurrentTrackDurationSeconds = 1;
-            return;
+            if (song is null)
+            {
+                CurrentTrackDurationSeconds = 1;
+                return;
+            }
+
+            AppTitle = $"{song.Title} - {song.OtherArtistsName} | {song.AlbumName} ({song.ReleaseYear}) | {CurrentAppVersion}";
+            CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
+
+
+            await LoadAndCacheCoverArtAsync(song);
         }
-
-        AppTitle = $"{song.Title} - {song.OtherArtistsName} | {song.AlbumName} ({song.ReleaseYear}) | {CurrentAppVersion}";
-        CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
-
-
-        await LoadAndCacheCoverArtAsync(song);
+        catch (Exception ex )
+        {
+            _logger.LogError(ex, ex.Message);
+        }
     }
 
     
@@ -2251,11 +2265,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _playbackQueueSource.Add(songView);
         }
 
-        if (lastTenEvents.Any())
-        {
-            var song = lastTenEvents.First().SongsLinkingToThisEvent.First().ToModelView();
-            _stateService.SetCurrentSong(song);
-        }
         await LoadDashboardAsync();
     }
 
@@ -2263,6 +2272,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [RelayCommand]
     public async Task LoadDashboardAsync()
     {
+
+        IsLoadingDashoard = true;
         var endDate = DateTimeOffset.UtcNow.Date.AddDays(1);
         var startDate = endDate.AddDays(-7);
 
@@ -2270,16 +2281,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
         var scrobblesInPeriod = realm.All<DimmerPlayEvent>()
-            .AsEnumerable()
-            .Select(p => new DimmerPlayEvent
-            {
-                Id = p.Id,
-                EventDate = p.EventDate,
-                PlayType = p.PlayType,
-                SongId = p.SongId,
-                DeviceName = p.DeviceName,
-                PositionInSeconds = p.PositionInSeconds,
-            })
+            
             .ToList();
         var allSongs = realm.All<SongModel>()
             
@@ -2305,8 +2307,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 
 
             }).ToList();
-     
-        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper, RealmFactory);
+        var allDimmsForSong = _mapper.Map<IEnumerable<DimmerPlayEventView>>(scrobblesInPeriod ?? new List<DimmerPlayEvent>());
+        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger, _mapper, RealmFactory);
         if (!await _reportGenerator.GenerateReportAsync(startDate, endDate))
             return;
 
@@ -2319,15 +2321,27 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         TopPlayTime = $"{_reportGenerator.GetTotalListeningTime()?.Value:F1}h";
 
         // --- Collections ---
-        RecentSongs = new ObservableCollection<SongModelView>(
-            _reportGenerator.GetTopTracks()?.Select(s => s.Song!) ?? []);
+        TopTrackDashBoard = _reportGenerator.GetTopTracks()?.ToObservableCollection();
 
-        TopArtistsDash = new ObservableCollection<ArtistModelView>(
-            _reportGenerator.GetTopArtists()?.Select(a => a.SongArtist!) ?? []);
+        IsLoadingArtistDashoard = true;
+        var tArtist = _reportGenerator.GetTopArtists()?.ToObservableCollection();
+        if (tArtist is not null)
+        {
+            foreach (var art in tArtist)
+            {
+                if (string.IsNullOrEmpty(art.Name) || art.SongArtist is null) continue;
+                art.SongArtist.ImagePath ??= await lastfmService.GetMaxResArtistImageLink(art.Name);
+            }
+            TopArtistsDash = tArtist;
+        }
+        IsLoadingArtistDashoard = false;
+        //TopAlbumsDash = new ObservableCollection<AlbumModelView>(
+        //    _reportGenerator.GetTopAlbums()?.Select(a => a.SongAlbum!) ?? []);
 
-        TopAlbumsDash = new ObservableCollection<AlbumModelView>(
-            _reportGenerator.GetTopAlbums()?.Select(a => a.SongAlbum!) ?? []);
+        IsLoadingDashoard = false;
     }
+
+    
 
     [ObservableProperty] public partial int TotalSongs { get; set; }
     [ObservableProperty] public partial string DashPeriod { get; set; }
@@ -2337,9 +2351,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty] public partial string TopGenre {get;set;} = string.Empty;
     [ObservableProperty] public partial string TopPlayTime { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial ObservableCollection<SongModelView> RecentSongs { get; set; } = new();
-    [ObservableProperty] public partial ObservableCollection<ArtistModelView> TopArtistsDash { get; set; } = new();
-    [ObservableProperty] public partial ObservableCollection<AlbumModelView> TopAlbumsDash { get; set; } = new();
+    [ObservableProperty] public partial ObservableCollection<DimmerStats?>? TopTrackDashBoard { get; set; } = new();
+    [ObservableProperty] public partial ObservableCollection<DimmerStats?>? TopArtistsDash { get; set; } = new();
+    [ObservableProperty] public partial ObservableCollection<DimmerStats?>? TopAlbumsDash { get; set; } = new();
 
     #endregion
 
@@ -2643,9 +2657,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (CurrentPagePlayingSong == Utilities.Enums.CurrentPage.AllSongs)
         {
             var songSource = (songs ?? _searchResults).ToList();
-            startIndex = songSource.IndexOf(songToPlay);
+            startIndex = songSource.FindIndex(s => s.Id == songToPlay.Id);
 
-            if (startIndex == -1)
+                if (startIndex == -1)
             {
                 _logger.LogWarning("Song '{Title}' not in current source. Playing it alone.", songToPlay.Title);
                 sourceList.Add(songToPlay);
@@ -2709,7 +2723,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         Debug.WriteLine(
-                "Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
+                "Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex); 
+            if (startIndex == -1)
+            {
+                _logger.LogWarning("Song not found in current source. Playing standalone.");
+                await PlayInternalAsync(songToPlay);
+                return; // prevent invalid queue creation
+            }
+
             await StartNewPlaybackQueue(sourceList, startIndex, CurrentTqlQuery);
     }
         catch (Exception ex)
@@ -2741,33 +2762,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-    /// <summary>
-    /// Jumps to a song that is already in the Now Playing queue. This does NOT create a new queue; it just changes the
-    /// current track index.
-    /// </summary>
-    [RelayCommand]
-    private async Task JumpToSongInQueueAsync(SongModelView? songToPlay)
-    {
-        if(songToPlay == null)
-            return;
-
-        int index = PlaybackQueue.IndexOf(songToPlay);
-        if(index != -1)
-        {
-            await PlaySongAtIndexAsync(index);
-        } else
-        {
-            // Fallback: If for some reason the song isn't in the queue,
-            // add it next and play it.
-            _logger.LogWarning(
-                "Song '{Title}' was not found in the current queue. Adding it to play next.",
-                songToPlay.Title);
-            // You would need an "Add Next" method here.
-            // For now, let's just play it as a single-song queue.
-            await PlaySong(songToPlay, CurrentPage.NowPlayingPage, new List<SongModelView> { songToPlay });
-        }
-    }
-
+   
     private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
     {
         List<SongModelView> initialSongList = songs.ToList();
@@ -2844,15 +2839,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         // If playback fails (e.g., file deleted), automatically skip to the next track.
         if(!await PlayInternalAsync(songToPlay))
         {
-            var result = await Shell.Current
-                .DisplayActionSheet(
-                    "Failed to play the selected song. What would you like to do?",
-                    "Cancel",
-                    null,
-                    "Remove from Queue",
-                    "Skip to Next");
+            var result = await UiDialogs.SafeDisplayActionSheetAsync(
+                        "Failed to play the selected song. What would you like to do?",
+                        "Cancel",
+                        null,
+                        "Remove from Queue",
+                        "Skip to Next");
 
-            if(result == "Remove from Queue")
+            if (result == "Remove from Queue")
             {
                 await RemoveFromQueue(songToPlay);
             } else if(result == "Skip to Next")
@@ -2893,6 +2887,33 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         return nextIndex;
+    }
+    /// <summary>
+    /// Jumps to a song that is already in the Now Playing queue. This does NOT create a new queue; it just changes the
+    /// current track index.
+    /// </summary>
+    [RelayCommand]
+    private async Task JumpToSongInQueueAsync(SongModelView? songToPlay)
+    {
+        if (songToPlay == null)
+            return;
+
+        int index = PlaybackQueue.IndexOf(songToPlay);
+        if (index != -1)
+        {
+            await PlaySongAtIndexAsync(index);
+        }
+        else
+        {
+            // Fallback: If for some reason the song isn't in the queue,
+            // add it next and play it.
+            _logger.LogWarning(
+                "Song '{Title}' was not found in the current queue. Adding it to play next.",
+                songToPlay.Title);
+            // You would need an "Add Next" method here.
+            // For now, let's just play it as a single-song queue.
+            await PlaySong(songToPlay, CurrentPage.NowPlayingPage, new List<SongModelView> { songToPlay });
+        }
     }
 
     [RelayCommand]
@@ -3925,13 +3946,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
-        var scrobblesInPeriod = realm.All<DimmerPlayEvent>()
-            //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
-            //            (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed))
-            //.OrderBy(p => p.EventDate) // Important for sequential analysis
+        var allDimmerEvents = realm.All<DimmerPlayEvent>()
             .ToList();
+        var dimmerEventViewEnum = _mapper.Map<IEnumerable< DimmerPlayEventView>>(allDimmerEvents);
         var allSongs = realm.All<SongModel>().ToList();
-        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper, RealmFactory);
+        _reportGenerator = new ListeningReportGenerator(allSongs, dimmerEventViewEnum, _logger, _mapper, RealmFactory);
         await GenerateWeeklyReportAsync();
     }
 
@@ -3939,18 +3958,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public async Task LoadStatsForSpecificSong(SongModelView? song)
     {
         song ??= SelectedSong;
+        if (song is null) return;
         var endDate = DateTimeOffset.Now;
         var startDate = endDate.AddDays(-7);
 
         realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
-        var scrobblesInPeriod = realm.Find<SongModel>(song.Id).PlayHistory
+        var scrobblesInPeriod = realm.Find<SongModel>(song.Id)?.PlayHistory
             //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
             //            (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed))
             //.OrderBy(p => p.EventDate) // Important for sequential analysis
             .ToList();
         var allSongs = realm.All<SongModel>().ToList();
-        _reportGenerator = new ListeningReportGenerator(allSongs, scrobblesInPeriod, _logger, _mapper, RealmFactory);
+        var allDimmsForSong = _mapper.Map<IEnumerable< DimmerPlayEventView>>(scrobblesInPeriod ?? new List<DimmerPlayEvent>());
+        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger, _mapper, RealmFactory);
         await GenerateWeeklyReportAsync();
     }
 
@@ -6250,8 +6271,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial bool IsDarkModeOn { get; set; } 
-
-    public ObservableCollection<SavedQuery> QuickQueries { get; } = new();
 
     public ObservableCollection<string> QueryChips { get; } = new();
 

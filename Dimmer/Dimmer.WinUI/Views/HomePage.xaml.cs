@@ -232,7 +232,23 @@ namespace Dimmer.WinUI.Views;
     */
     private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     {
-        var send = (Microsoft.Maui.Controls.View)sender;
+        var send = (View)sender;
+
+        var uiElt = sender as Microsoft.UI.Xaml.UIElement;
+        var properties = e.PlatformArgs?.PointerRoutedEventArgs.GetCurrentPoint(uiElt).Properties;
+        if (properties is null) return;
+        var isRightBtnClicked = properties.IsXButton1Pressed;
+
+        if (isRightBtnClicked) return;
+            
+        //if (properties.IsXButton1Pressed)
+        //{
+        //    this.FlyoutIsPresented = !this.FlyoutIsPresented;
+        //}
+        //else if (properties.IsXButton2Pressed)
+        //{
+
+        //}
         var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
         if (gest is null)
         {
@@ -1221,7 +1237,7 @@ await this.FadeIn(500, 1.0);
         {
             MyViewModel.SearchSongSB_TextChanged(">>addnext!");
         }
-        await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.RecentSongs);
+        await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s=> s is not null ).Select(x =>x!.Song));
     }
 
     private async void PlaySongTapFromPBQueue_Tapped(object sender, TappedEventArgs e)

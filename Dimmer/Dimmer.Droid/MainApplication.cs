@@ -1,7 +1,11 @@
+using System.Reactive;
+
 using Android.App;
 using Android.Runtime;
 
 using AndroidX.DrawerLayout.Widget;
+
+using ReactiveUI;
 
 using Debug = System.Diagnostics.Debug;
 
@@ -28,6 +32,13 @@ public class MainApplication : MauiApplication
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += OnAndroidUnhandledExceptionRaiser;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+        RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+        {
+            Debug.WriteLine($"REACTIVEUI DEFAULT EXCEPTION HANDLER (Android): {ex}");
+            var errorHandler = IPlatformApplication.Current!.Services.GetService<IErrorHandler>();
+            errorHandler?.HandleError(ex);
+        });
     }
 
     private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

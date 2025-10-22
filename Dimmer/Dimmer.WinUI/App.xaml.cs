@@ -290,7 +290,7 @@ public partial class App : MauiWinUIApplication
             string fileName = $"WinUIcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
 
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTraceWinUI: {ex.StackTrace}\n\n";
 
             // Retry mechanism for file writing.
             bool success = false;

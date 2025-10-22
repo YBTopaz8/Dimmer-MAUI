@@ -1,41 +1,39 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="Dimmer.WinUI.Views.WinUIPages.AllSongsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views.WinUIPages"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    
+    xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
-xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
-xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
-xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
-xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
-xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"
-xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
-xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
-x:Name="myPage"
-    
-    Title="All Songs"
+    xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:local="using:Dimmer.WinUI.Views.WinUIPages"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:queryBuilder="queries"
-    xmlns:dgView="using:WinUI.TableView">
-    
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+    x:Name="myPage"
+    Title="All Songs"
+    mc:Ignorable="d">
+
 
     <Window.SystemBackdrop>
         <DesktopAcrylicBackdrop />
 
 
     </Window.SystemBackdrop>
-  
-    
-        <Frame x:Name="ContentFrame" />
+
+
+    <Frame x:Name="ContentFrame" />
 </Window>

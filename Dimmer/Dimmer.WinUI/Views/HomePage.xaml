@@ -379,240 +379,250 @@
 
     </ContentPage.Resources>
 
-    <Grid
-        Margin="10"
-        RowDefinitions="auto,380,auto,180,auto,*"
-        RowSpacing="10">
+    <syncf:SfShimmer
+        BackgroundColor="Transparent"
+        IsActive="{Binding IsLoadingDashoard}"
+        IsEnabled="True"
+        IsVisible="True">
+        <Grid
+            Margin="10"
+            RowDefinitions="auto,380,auto,180,auto,*"
+            RowSpacing="10">
+
+
+            <VerticalStackLayout Grid.Row="0" Spacing="10">
 
 
 
-        <VerticalStackLayout Grid.Row="0" Spacing="10">
+                <!--  Listening Overview  -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
 
 
+                    <VerticalStackLayout>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="25"
+                            HorizontalOptions="Center"
+                            Text="Total Dimms" />
+                        <Label
+                            FontSize="20"
+                            HorizontalOptions="Center"
+                            Text="{Binding TotalDimms}" />
+                    </VerticalStackLayout>
 
-            <!--  Listening Overview  -->
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                    <VerticalStackLayout>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="25"
+                            HorizontalOptions="Center"
+                            Text="Top Artist" />
+                        <Label
+                            FontSize="20"
+                            HorizontalOptions="Center"
+                            Text="{Binding TopArtist}" />
+                    </VerticalStackLayout>
 
-
-                <VerticalStackLayout>
-                    <Label
-                        FontAttributes="Bold"
-                        FontSize="25"
-                        HorizontalOptions="Center"
-                        Text="Total Dimms" />
-                    <Label
-                        FontSize="20"
-                        HorizontalOptions="Center"
-                        Text="{Binding TotalDimms}" />
-                </VerticalStackLayout>
-
-                <VerticalStackLayout>
-                    <Label
-                        FontAttributes="Bold"
-                        FontSize="25"
-                        HorizontalOptions="Center"
-                        Text="Top Artist" />
-                    <Label
-                        FontSize="20"
-                        HorizontalOptions="Center"
-                        Text="{Binding TopArtist}" />
-                </VerticalStackLayout>
-
-                <VerticalStackLayout>
-                    <Label
-                        FontAttributes="Bold"
-                        FontSize="25"
-                        HorizontalOptions="Center"
-                        Text="Top Album" />
-                    <Label
-                        FontSize="20"
-                        HorizontalOptions="Center"
-                        LineBreakMode="TailTruncation"
-                        Text="{Binding TopAlbum}"
-                        ToolTipProperties.Text="{Binding TopAlbum}"
-                        WidthRequest="200" />
-                </VerticalStackLayout>
+                    <VerticalStackLayout>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="25"
+                            HorizontalOptions="Center"
+                            Text="Top Album" />
+                        <Label
+                            FontSize="20"
+                            HorizontalOptions="Center"
+                            LineBreakMode="TailTruncation"
+                            Text="{Binding TopAlbum}"
+                            ToolTipProperties.Text="{Binding TopAlbum}"
+                            WidthRequest="200" />
+                    </VerticalStackLayout>
 
 
-                <VerticalStackLayout>
-                    <Label
-                        FontAttributes="Bold"
-                        FontSize="25"
-                        HorizontalOptions="Center"
-                        Text="Play Time (hrs)" />
-                    <Label
-                        FontSize="20"
-                        HorizontalOptions="Center"
-                        Text="{Binding TopPlayTime}" />
-                </VerticalStackLayout>
-            </HorizontalStackLayout>
+                    <VerticalStackLayout>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="25"
+                            HorizontalOptions="Center"
+                            Text="Play Time (hrs)" />
+                        <Label
+                            FontSize="20"
+                            HorizontalOptions="Center"
+                            Text="{Binding TopPlayTime}" />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
 
-            <!--  Recently Played  -->
-            <Label
-                FontAttributes="Bold"
-                FontSize="18"
-                Text="Now Playing Queue" />
+                <!--  Recently Played  -->
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="18"
+                    Text="Now Playing Queue" />
 
-        </VerticalStackLayout>
-        <CollectionView Grid.Row="1" ItemsSource="{Binding PlaybackQueue}">
+            </VerticalStackLayout>
+            <CollectionView Grid.Row="1" ItemsSource="{Binding PlaybackQueue}">
 
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout
-                    HorizontalItemSpacing="5"
-                    Orientation="Horizontal"
-                    SnapPointsType="MandatorySingle"
-                    Span="2"
-                    VerticalItemSpacing="5" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongModelView">
-                    <Border
-                        Padding="5"
-                        StrokeShape="RoundRectangle 10"
-                        WidthRequest="160">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer
-                                x:Name="PlaySongTap"
-                                CommandParameter="{Binding .}"
-                                NumberOfTapsRequired="2"
-                                Tapped="PlaySongTapFromPBQueue_Tapped" />
-                        </Border.GestureRecognizers>
-                        <Border.Triggers>
-                            <DataTrigger
-                                Binding="{Binding IsCurrentPlayingHighlight}"
-                                TargetType="Border"
-                                Value="True">
-                                <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
-                                <Setter Property="StrokeThickness" Value="5" />
-
-                            </DataTrigger>
-                            <DataTrigger
-                                Binding="{Binding IsCurrentPlayingHighlight}"
-                                TargetType="Border"
-                                Value="False">
-                                <Setter Property="Stroke" Value="Transparent" />
-                                <Setter Property="StrokeThickness" Value="0" />
-
-                            </DataTrigger>
-                        </Border.Triggers>
-                        <VerticalStackLayout>
-                            <Image
-                                Aspect="AspectFill"
-                                HeightRequest="120"
-                                Source="{Binding CoverImagePath}" />
-                            <Label
-                                FontAttributes="Bold"
-                                LineBreakMode="TailTruncation"
-                                Text="{Binding Title}" />
-                            <Label
-                                FontSize="12"
-                                LineBreakMode="TailTruncation"
-                                MaxLines="3"
-                                Opacity="0.7"
-                                Text="{Binding ArtistName}" />
-                        </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-
-        <!--  Top Artists  -->
-        <Label
-            Grid.Row="2"
-            FontAttributes="Bold"
-            FontSize="18"
-            Text="Top Artists" />
-
-        <CollectionView
-            Grid.Row="3"
-            HeightRequest="160"
-            ItemsSource="{Binding TopArtistsDash}">
-
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout
-                    ItemSpacing="5"
-                    Orientation="Horizontal"
-                    SnapPointsType="MandatorySingle" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:ArtistModelView">
-                    <Border Padding="5" WidthRequest="120">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout
+                        HorizontalItemSpacing="5"
+                        Orientation="Horizontal"
+                        SnapPointsType="MandatorySingle"
+                        Span="2"
+                        VerticalItemSpacing="5" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongModelView">
+                        <Border
+                            Padding="5"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="160">
                             <Border.GestureRecognizers>
-                                <PointerGestureRecognizer
-        PointerPressedCommandParameter="{Binding OtherArtistsName}"
-        PointerReleased="QuickFilterGest_PointerReleased"
-        PointerReleasedCommandParameter="artist" />
+                                <TapGestureRecognizer
+                                    x:Name="PlaySongTap"
+                                    CommandParameter="{Binding .}"
+                                    NumberOfTapsRequired="2"
+                                    Tapped="PlaySongTapFromPBQueue_Tapped" />
                             </Border.GestureRecognizers>
+                            <Border.Triggers>
+                                <DataTrigger
+                                    Binding="{Binding IsCurrentPlayingHighlight}"
+                                    TargetType="Border"
+                                    Value="True">
+                                    <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
+                                    <Setter Property="StrokeThickness" Value="5" />
 
-                        <VerticalStackLayout>
-                            <Image
-                                Aspect="AspectFill"
-                                HeightRequest="100"
-                                Source="{Binding ImagePath, Converter={converters:EmptyArtistToImageConverter}}"
-                                WidthRequest="100" />
-                            <Label
-                                FontAttributes="Bold"
-                                LineBreakMode="TailTruncation"
-                                Text="{Binding Name}" />
-                        </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                                </DataTrigger>
+                                <DataTrigger
+                                    Binding="{Binding IsCurrentPlayingHighlight}"
+                                    TargetType="Border"
+                                    Value="False">
+                                    <Setter Property="Stroke" Value="Transparent" />
+                                    <Setter Property="StrokeThickness" Value="0" />
 
-        <!--  Top Artists  -->
-        <Grid Grid.Row="4" ColumnDefinitions="*,auto">
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <VerticalStackLayout>
+                                <Image
+                                    Aspect="AspectFill"
+                                    HeightRequest="120"
+                                    Source="{Binding CoverImagePath}" />
+                                <Label
+                                    FontAttributes="Bold"
+                                    LineBreakMode="TailTruncation"
+                                    Text="{Binding Title}" />
+                                <Label
+                                    FontSize="12"
+                                    LineBreakMode="TailTruncation"
+                                    MaxLines="3"
+                                    Opacity="0.7"
+                                    Text="{Binding ArtistName}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!--  Top Artists  -->
             <Label
-                Grid.Column="0"
+                Grid.Row="2"
                 FontAttributes="Bold"
                 FontSize="18"
-                Text="Recent Songs" />
+                Text="Top Artists" />
 
-            <syncf:SfChip
-                Grid.Column="1"
-                ImageSize="50"
-                ImageSource="arrowcircleright.png"
-                ShowIcon="True"
-                StrokeThickness="0"
-                WidthRequest="67" />
+            <Grid Grid.Row="3">
+
+                <CollectionView HeightRequest="160" ItemsSource="{Binding TopArtistsDash}">
+
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout
+                            ItemSpacing="5"
+                            Orientation="Horizontal"
+                            SnapPointsType="MandatorySingle" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:DimmerStats">
+                            <Border Padding="5" WidthRequest="120">
+                                <Border.GestureRecognizers>
+                                    <PointerGestureRecognizer
+                                        PointerPressedCommandParameter="{Binding Name}"
+                                        PointerReleased="QuickFilterGest_PointerReleased"
+                                        PointerReleasedCommandParameter="artist" />
+                                </Border.GestureRecognizers>
+
+                                <VerticalStackLayout>
+
+                                    <Image
+                                        Aspect="AspectFill"
+                                        HeightRequest="100"
+                                        Source="{Binding SongArtist.ImagePath, Converter={converters:EmptyArtistToImageConverter}}"
+                                        WidthRequest="100" />
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="{Binding Rank}" />
+                                        <Label
+                                            FontAttributes="Bold"
+                                            HorizontalTextAlignment="Center"
+                                            LineBreakMode="TailTruncation"
+                                            Text="{Binding Name}" />
+
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+            <!--  Top Artists  -->
+            <Grid Grid.Row="4" ColumnDefinitions="*,auto">
+                <Label
+                    Grid.Column="0"
+                    FontAttributes="Bold"
+                    FontSize="18"
+                    Text="Recent Songs" />
+
+                <syncf:SfChip
+                    Grid.Column="1"
+                    ImageSize="50"
+                    ImageSource="arrowcircleright.png"
+                    ShowIcon="True"
+                    StrokeThickness="0"
+                    WidthRequest="67" />
+            </Grid>
+
+
+            <CollectionView Grid.Row="5" ItemsSource="{Binding TopTrackDashBoard}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="5" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DimmerStats">
+                        <Border Padding="5">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    x:Name="PlaySongTap"
+                                    CommandParameter="{Binding .}"
+                                    NumberOfTapsRequired="2"
+                                    Tapped="PlaySongTapFromRecent_Tapped" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout>
+                                <Image
+                                    Aspect="AspectFill"
+                                    HeightRequest="210"
+                                    Source="{Binding Song.CoverImagePath}"
+                                    WidthRequest="210" />
+                                <Label
+                                    FontAttributes="Bold"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation"
+                                    Text="{Binding Song.Title}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+
         </Grid>
 
-
-        <CollectionView Grid.Row="5" ItemsSource="{Binding RecentSongs}">
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="5" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongModelView">
-                    <Border Padding="5">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer
-                                x:Name="PlaySongTap"
-                                CommandParameter="{Binding .}"
-                                NumberOfTapsRequired="2"
-                                Tapped="PlaySongTapFromRecent_Tapped" />
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout>
-                            <Image
-                                Aspect="AspectFill"
-                                HeightRequest="210"
-                                Source="{Binding CoverImagePath}"
-                                WidthRequest="210" />
-                            <Label
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="Center"
-                                LineBreakMode="TailTruncation"
-                                Text="{Binding Title}" />
-                        </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-
-
-
-    </Grid>
-
+    </syncf:SfShimmer>
 
 
     <!--<Grid BackgroundColor="{AppThemeBinding Light=#999999}" RowDefinitions="auto,*">

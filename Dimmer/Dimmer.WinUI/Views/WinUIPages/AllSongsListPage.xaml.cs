@@ -80,7 +80,7 @@ public sealed partial class AllSongsListPage : Page
     {
 
     }
-
+    
     private async void TableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
 
