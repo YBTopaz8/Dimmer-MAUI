@@ -4,6 +4,7 @@ using System.Drawing.Imaging;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
+using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
@@ -318,13 +319,18 @@ public static class PlatUtils
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
-
+        
         // move and resize to the center of the screen
 
         var pres = win?.AppWindow.Presenter;
+        
         //window.SetTitleBar()
         if (pres is OverlappedPresenter p)
         {
+            //p.PreferredMaximumHeight = 1200;
+            //p.PreferredMaximumWidth = 720;
+            //p.PreferredMinimumWidth = 600;
+            //p.PreferredMinimumHeight = 800;
             p.IsResizable = true;
             p.SetBorderAndTitleBar(true, true); // Remove title bar and border
             p.IsAlwaysOnTop = false;

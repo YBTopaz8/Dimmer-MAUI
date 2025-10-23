@@ -83,7 +83,7 @@ public class ListeningReportGenerator
                     .Where(IsPlayEvent)
                     .ToList();
 
-                if (_scrobblesInPeriod.Any())
+                if (!_scrobblesInPeriod.Any())
                 {
                     _logger.LogInformation("No scrobbles found in the period. Report will be empty.");
                     // We still mark as generated, but collections will be empty.
@@ -130,7 +130,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetTotalScrobbles()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var periodDuration = _endDate - _startDate;
@@ -217,7 +217,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetListeningClock()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var hourlyCounts = _scrobblesInPeriod.GroupBy(p => p.EventDate.Value.Hour).ToDictionary(g => g.Key, g => g.Count());
@@ -304,7 +304,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetConsistence()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var daysListened = _scrobblesInPeriod.Select(p => p.EventDate.Value.Date).Distinct().Count();
@@ -343,7 +343,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetConcentration()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var artistPlayCounts = _songsInPeriod
@@ -362,7 +362,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetReplayRate()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         double replayRate = _scrobblesInPeriod.Count() > _songPlayCounts.Count ? (double)(_scrobblesInPeriod.Count() - _songPlayCounts.Count) / _scrobblesInPeriod.Count() * 100 : 0;
@@ -374,7 +374,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetTotalListeningTime()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var songsDict = _songsInPeriod.ToDictionary(s => s.Id);
@@ -393,7 +393,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetAverageScrobblesDay()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var daysInPeriod = Math.Max(1, (_endDate - _startDate).TotalDays);
@@ -404,7 +404,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetMostActiveDay()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any())
+        if (!_scrobblesInPeriod.Any())
             return null;
 
         var mostActiveDay = _scrobblesInPeriod
@@ -484,7 +484,7 @@ public class ListeningReportGenerator
     public DimmerStats? GetAverageSessionLength()
     {
         CheckIfGenerated();
-        if (_scrobblesInPeriod.Any()) return null;
+        if (!_scrobblesInPeriod.Any()) return null;
         var sessions = _scrobblesInPeriod
             .GroupBy(e => e.DatePlayed.Date)
             .Select(g => g.Max(e => e.PositionInSeconds))

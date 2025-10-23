@@ -237,7 +237,7 @@ namespace Dimmer.WinUI.Views;
         var uiElt = sender as Microsoft.UI.Xaml.UIElement;
         var properties = e.PlatformArgs?.PointerRoutedEventArgs.GetCurrentPoint(uiElt).Properties;
         if (properties is null) return;
-        var isRightBtnClicked = properties.IsXButton1Pressed;
+        var isRightBtnClicked = properties.IsRightButtonPressed;
 
         if (isRightBtnClicked) return;
             

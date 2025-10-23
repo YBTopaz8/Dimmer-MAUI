@@ -305,26 +305,39 @@
 
                                 </HorizontalStackLayout>
 
-                                <Button
-                                    x:Name="QuickFilterBtn"
-                                    Padding="5"
-                                    BackgroundColor="Transparent"
-                                    BorderWidth="0"
-                                    FontSize="16"
-                                    HorizontalOptions="Start"
-                                    Text="{Binding CurrentPlayingSongView.ArtistName}"
-                                    TextColor="{AppThemeBinding Light=Black,
-                                                                Dark=White}"
-                                    ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}">
+                                <Grid ColumnDefinitions="*,60">
+                                    <Button
+                                        x:Name="QuickFilterBtn"
+                                        Grid.Column="0"
+                                        Padding="5"
+                                        BackgroundColor="Transparent"
+                                        BorderWidth="0"
+                                        FontSize="16"
+                                        HorizontalOptions="Start"
+                                        Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                        TextColor="{AppThemeBinding Light=Black,
+                                                                    Dark=White}"
+                                        ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}">
 
-                                    <Button.GestureRecognizers>
-                                        <PointerGestureRecognizer
-                                            PointerPressedCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
-                                            PointerReleased="QuickFilterGest_PointerReleased"
-                                            PointerReleasedCommandParameter="artist" />
-                                    </Button.GestureRecognizers>
-                                </Button>
+                                        <Button.GestureRecognizers>
+                                            <PointerGestureRecognizer
+                                                PointerPressedCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
+                                                PointerReleased="QuickFilterGest_PointerReleased"
+                                                PointerReleasedCommandParameter="artist" />
+                                        </Button.GestureRecognizers>
+                                    </Button>
 
+                                    <syncf:SfChip
+                                        x:Name="ViewLyricsChip"
+                                        Grid.Column="1"
+                                        Clicked="ViewLyricsChip_Clicked"
+                                        CornerRadius="20"
+                                        ImageSize="45"
+                                        ImageSource="lyrics.png"
+                                        IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                                        ShowIcon="True"
+                                        StrokeThickness="0" />
+                                </Grid>
                                 <syncf:SfEffectsView
                                     Margin="2,0"
                                     BackgroundColor="Transparent"
@@ -601,8 +614,30 @@
 
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
-                <syncf:SfTabItem x:Name="PlayBackQueueView">
-                    <Grid RowDefinitions="auto,*" />
+                <syncf:SfTabItem x:Name="LyricsView">
+                    <Grid RowDefinitions="auto,*">
+                        <Grid Grid.Row="0">
+                            <Label Text="Lyrics" />
+                        </Grid>
+
+                        <CollectionView
+                            x:Name="AllLyricsColView"
+                            Grid.Row="1"
+                            ItemsSource="{Binding AllLines}"
+                            SelectedItem="{Binding CurrentLine}"
+                            SelectionChanged="AllLyricsColView_SelectionChanged"
+                            SelectionMode="Single">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                    <Label
+                                        FontSize="{Binding NowPlayingLyricsFontSize}"
+                                        HorizontalTextAlignment="Center"
+                                        Text="{Binding Text}"
+                                        TextColor="{Binding HighlightColor}" />
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
                 </syncf:SfTabItem>
             </syncf:SfTabView>
 

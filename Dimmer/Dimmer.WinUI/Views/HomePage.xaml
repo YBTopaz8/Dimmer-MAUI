@@ -386,7 +386,7 @@
         IsVisible="True">
         <Grid
             Margin="10"
-            RowDefinitions="auto,380,auto,180,auto,*"
+            RowDefinitions="auto,380,auto,220,auto,*"
             RowSpacing="10">
 
 
@@ -529,7 +529,7 @@
 
             <Grid Grid.Row="3">
 
-                <CollectionView HeightRequest="160" ItemsSource="{Binding TopArtistsDash}">
+                <CollectionView ItemsSource="{Binding TopArtistsDash}">
 
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout
@@ -539,7 +539,7 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:DimmerStats">
-                            <Border Padding="5" WidthRequest="120">
+                            <Border Padding="5" >
                                 <Border.GestureRecognizers>
                                     <PointerGestureRecognizer
                                         PointerPressedCommandParameter="{Binding Name}"
@@ -551,16 +551,16 @@
 
                                     <Image
                                         Aspect="AspectFill"
-                                        HeightRequest="100"
+                                        HeightRequest="180"
                                         Source="{Binding SongArtist.ImagePath, Converter={converters:EmptyArtistToImageConverter}}"
-                                        WidthRequest="100" />
-                                    <HorizontalStackLayout Spacing="5">
+                                        WidthRequest="180" />
+                                    <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
                                         <Label Text="{Binding Rank}" />
                                         <Label
                                             FontAttributes="Bold"
                                             HorizontalTextAlignment="Center"
                                             LineBreakMode="TailTruncation"
-                                            Text="{Binding Name}" />
+                                            Text="{Binding SongArtist.Name}" />
 
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>

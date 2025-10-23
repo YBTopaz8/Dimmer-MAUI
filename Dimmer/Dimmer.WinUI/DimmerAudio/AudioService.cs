@@ -345,6 +345,10 @@ success = true;
                 Debug.WriteLine($"[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {songModel.Title}. {ex.Message}");
 
             }
+            catch(Exception ee)
+            {
+                Debug.WriteLine(ee.Message);
+            }
             finally
             {
 

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.DimmerSearch;
@@ -433,28 +435,24 @@ public partial class AppShell : Shell
 
     private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-        var current = e.CurrentSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
 
-        var past = e.PreviousSelection as Dimmer.Data.ModelView.LyricPhraseModelView;
+        Debug.WriteLine(e.CurrentSelection.GetType());
 
-        if (past is not null)
-        {
-
-            past.NowPlayingLyricsFontSize = 25;
-
-
-        }
-
+        var currentList = e.CurrentSelection as IReadOnlyList<object>;
+        var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
         if (current != null)
         {
-
-
-            current.NowPlayingLyricsFontSize = 30;
-
+            var pastList = e.PreviousSelection as IReadOnlyList<object>;
+            if (pastList.Count > 0 && pastList?[0] is Dimmer.Data.ModelView.LyricPhraseModelView past)
+            {
+                past?.NowPlayingLyricsFontSize = 25;
+                past?.HighlightColor = Microsoft.Maui.Graphics.Colors.White;
+            }
+                current?.NowPlayingLyricsFontSize = 30;
+            current?.HighlightColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+            AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
+            
         }
-
-        //AllLyricsColView.ScrollTo(item: current, ScrollToPosition.Start, animate: true);
-
     }
 
 
@@ -810,6 +808,11 @@ public partial class AppShell : Shell
     }
 
     private void ViewNowPlayingQueue_Clicked(object sender, EventArgs e)
+    {
+        ShellTabView.SelectedIndex = 2;
+    }
+
+    private void ViewLyricsChip_Clicked(object sender, EventArgs e)
     {
         ShellTabView.SelectedIndex = 2;
     }

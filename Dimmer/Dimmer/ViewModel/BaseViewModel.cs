@@ -876,7 +876,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     }
                     CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
 
-                    IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
+                    IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
+                    
                 }
                 else
                 {
@@ -2329,8 +2330,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             foreach (var art in tArtist)
             {
-                if (string.IsNullOrEmpty(art.Name) || art.SongArtist is null) continue;
-                art.SongArtist.ImagePath ??= await lastfmService.GetMaxResArtistImageLink(art.Name);
+                if (art.SongArtist is null) continue;
+                art.SongArtist.ImagePath ??= await lastfmService.GetMaxResArtistImageLink(art.SongArtist.Name);
             }
             TopArtistsDash = tArtist;
         }
@@ -3431,7 +3432,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(lines =>
                 {
+                if (lines.Count > 0 || string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
+                    {
+                        CurrentPlayingSongView.HasSyncedLyrics = true;
                     AllLines = lines.ToObservableCollection();
+                    }
                    
                 }));
 
