@@ -152,7 +152,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
 
     public T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM, Func<T>? windowFactory = null) where T : Window
     {
-      
+        if (callerVM == null) return null;
 
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {

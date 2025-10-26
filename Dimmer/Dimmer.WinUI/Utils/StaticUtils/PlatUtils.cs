@@ -9,6 +9,9 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
+using Windows.Graphics;
+using Windows.Graphics.Display;
+
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using ImageSource = Microsoft.Maui.Controls.ImageSource;
@@ -101,19 +104,6 @@ public static class PlatUtils
         }
     }
 
-    public static void OpenAlbumWindow(SongModelView song)
-    {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
-        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
-
-        AlbumWindow newWindow = new AlbumWindow(MyVM, mapper);
-
-        Application.Current!.OpenWindow(newWindow);
-
-        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
-
-    }
-
 
 
 
@@ -149,6 +139,66 @@ public static class PlatUtils
             Debug.WriteLine($"{ex.Message}");
         }
     }
+
+    public static void OpenAndSetWindowToEdgePosition( Window concernedWindow, RectInt32 positionToSet)
+    {
+        var nativeWindow = GetNativeWindow(concernedWindow);
+        if (nativeWindow is null) return;
+        nativeWindow.AppWindow.IsShownInSwitchers = false;
+        var sysBackDrop = new MicaBackdrop();
+        nativeWindow.SystemBackdrop = sysBackDrop;
+        var pres = nativeWindow.AppWindow.Presenter;
+        //window.SetTitleBar()
+        var p = pres as OverlappedPresenter;
+        if (p != null)
+        {
+            p.SetBorderAndTitleBar(false, false);
+            p.IsResizable = false;
+            p.IsAlwaysOnTop = true;
+            
+        }
+
+        
+        nativeWindow.Activate();
+        nativeWindow.AppWindow.MoveAndResize(positionToSet);
+
+        nativeWindow.AppWindow.MoveInZOrderAtTop();
+
+    }
+
+    public static void MoveAndResizeWindow(this Window concernedWindow, RectInt32 positionToSet)
+    {
+        var nativeWindow = GetNativeWindow(concernedWindow);
+
+        //var disInfo= DisplayInformation.GetForCurrentView();
+
+        var width = DisplayArea.Primary.WorkArea.Width;
+        var height = DisplayArea.Primary.WorkArea.Height;
+
+        //var width = DisplayArea.Primary.WorkArea.Width;
+        //var height = DisplayArea.Primary.WorkArea.Height;
+        //var x = DisplayArea.Primary.WorkArea.X;
+        //var y = DisplayArea.Primary.WorkArea.Y;
+        //AppWindow.MoveAndResize(new Windows.Graphics.RectInt32
+        //{
+        //    Height = height,
+        //    Width = 340,
+        //    X = x,
+        //    Y = y
+        //});
+
+        // move to left x - (width - 400)
+        // move to right x + (width - 400)
+
+        //move to top y - (height - 400)
+        //move to top y + (height - 400)
+
+        nativeWindow.AppWindow.MoveAndResize(positionToSet);
+
+        nativeWindow.AppWindow.MoveInZOrderAtTop();
+    }
+
+
     public static bool DeleteSongFile(SongModelView song)
     {
         try
@@ -217,30 +267,34 @@ public static class PlatUtils
         return DimmerHandle;
     }
 
-    public static async Task EnsureWindowReadyAsync()
+    public static async Task EnsureWindowReadyAsync(Window? MauiWindow = null)
     {
-        // Wait until the MAUI window is created and its handler exists
-        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
+        if (MauiWindow == null)
+        {       // Ensure there’s at least one window created by MAUI
+            MauiWindow = Application.Current?.Windows.FirstOrDefault();
+        }
         int attempts = 0;
-        while ((mauiWindow?.Handler == null) && attempts++ < 20)
+        while ((MauiWindow?.Handler == null) && attempts++ < 20)
         {
             await Task.Delay(100);
-            mauiWindow = Application.Current?.Windows.FirstOrDefault();
+            MauiWindow = Application.Current?.Windows.FirstOrDefault();
         }
 
-        if (mauiWindow?.Handler == null)
+        if (MauiWindow?.Handler == null)
             throw new InvalidOperationException("Window handler was not ready after waiting.");
     }
-    public static Microsoft.UI.Xaml.Window GetNativeWindow()
+    public static Microsoft.UI.Xaml.Window GetNativeWindow(Window? MauiWindow = null)
     {
-        // Ensure there’s at least one window created by MAUI
-        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
-        if (mauiWindow == null)
+        if (MauiWindow == null)
+        {       // Ensure there’s at least one window created by MAUI
+             MauiWindow = Application.Current?.Windows.FirstOrDefault();
+        }
+        if (MauiWindow == null)
             throw new InvalidOperationException("No MAUI window available yet.");
 
        
 
-        var nativeWindow = mauiWindow.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+        var nativeWindow = MauiWindow.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
         if (nativeWindow == null)
             throw new InvalidOperationException("Unable to retrieve native window.");
 
@@ -318,10 +372,10 @@ public static class PlatUtils
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
+        AllSongsWindow? win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
         
         // move and resize to the center of the screen
-
+        
         var pres = win?.AppWindow.Presenter;
         
         //window.SetTitleBar()
@@ -334,6 +388,7 @@ public static class PlatUtils
             p.IsResizable = true;
             p.SetBorderAndTitleBar(true, true); // Remove title bar and border
             p.IsAlwaysOnTop = false;
+            
         }
 
     }

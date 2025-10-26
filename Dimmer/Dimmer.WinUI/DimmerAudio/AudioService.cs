@@ -703,8 +703,7 @@ success = true;
         _playEnded?.Invoke(this, eventArgs);
 
     }
-
-    private void MediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
+        private void MediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
     {
         Debug.WriteLine($"[AudioService] MediaFailed: Error={args.Error}, Code={args.ExtendedErrorCode}, Msg={args.ErrorMessage}");
         OnErrorOccurred($"Playback failed: {args.ErrorMessage}", args.ExtendedErrorCode, args.Error);
@@ -937,8 +936,13 @@ success = true;
     {
 
         Debug.WriteLine($"[AudioService ERROR] {message} | Exception: {exception?.Message} | PlayerError: {playerError}");
-
-        var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  DimmerPlaybackState.Error };
+        
+        DimmerPlaybackState dimmerPBError =DimmerPlaybackState.Error;
+        if(playerError is not null)
+        {
+            dimmerPBError = playerError.Value == MediaPlayerError.SourceNotSupported ? DimmerPlaybackState.ErrorAudioSourceNotSupported : DimmerPlaybackState.Error;
+        }
+        var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType= dimmerPBError };
         ErrorOccurred?.Invoke(this, args);
     }
 
