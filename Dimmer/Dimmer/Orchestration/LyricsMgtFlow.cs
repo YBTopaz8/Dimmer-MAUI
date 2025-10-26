@@ -101,6 +101,7 @@ public class LyricsMgtFlow : IDisposable
             var lyricsInfo = new LyricsInfo();
             lyricsInfo.Parse(lrcContent);
 
+            
             if (lyricsInfo.SynchronizedLyrics.Count == 0)
             {
                 ClearLyrics();

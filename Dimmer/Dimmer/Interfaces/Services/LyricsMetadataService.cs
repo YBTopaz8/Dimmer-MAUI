@@ -389,10 +389,52 @@ IRepository<SongModel> songRepository, // Inject the repository
 
     #region Saving Lyrics Locally (File Metadata & Realm DB)
 
+
+    public bool SaveLyricsToSongFile(SongModelView song, string? plainLyrics, string? syncedLyrics)
+    {
+        //Step 1: Save to the audio file's metadata using ATL.
+        try
+        {
+            var track = new Track(song.FilePath);
+            track.Lyrics.Clear(); // Remove any existing lyrics to prevent duplicates
+            var newLyricsInfo = new LyricsInfo
+            {
+                UnsynchronizedLyrics = plainLyrics ?? string.Empty
+            };
+
+
+            if (!string.IsNullOrWhiteSpace(syncedLyrics))
+            {
+                newLyricsInfo.Parse(syncedLyrics);
+            }
+
+            track.Lyrics.Add(newLyricsInfo);
+
+            if (!track.Save())
+            {
+                _logger.LogError("ATL failed to save lyrics metadata to file: {FilePath}", song.FilePath);
+                return false; // Failed to write to file, abort.
+            }
+            else
+            {
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception while saving lyrics metadata to file: {FilePath}", song.FilePath);
+            return false;
+        }
+
+    }
+
+
     /// <summary>
     /// Saves lyrics to both the audio file's metadata and the local Realm database.
     /// </summary>
     /// <returns>True if both operations succeed.</returns>
+    /// 
+
     public async Task<bool> SaveLyricsForSongAsync(ObjectId SongID, string? plainLyrics, string? syncedLyrics,bool isInstrument=false)
     {
         var song = _songRepository.GetById(SongID);
@@ -403,32 +445,7 @@ IRepository<SongModel> songRepository, // Inject the repository
         {
             UnsynchronizedLyrics = plainLyrics ?? string.Empty
         };
-        // Step 1: Save to the audio file's metadata using ATL.
-        //try
-        //{
-        //    var track = new Track(song.FilePath);
-        //    track.Lyrics.Clear(); // Remove any existing lyrics to prevent duplicates
-
-
-        //    if (!string.IsNullOrWhiteSpace(syncedLyrics))
-        //    {
-        //        newLyricsInfo.Parse(syncedLyrics);
-        //    }
-
-        //    track.Lyrics.Add(newLyricsInfo);
-
-        //    if (!track.Save())
-        //    {
-        //        _logger.LogError("ATL failed to save lyrics metadata to file: {FilePath}", song.FilePath);
-        //        return false; // Failed to write to file, abort.
-        //    }
-        //}
-        //catch (Exception ex)
-        //{
-        //    _logger.LogError(ex, "Exception while saving lyrics metadata to file: {FilePath}", song.FilePath);
-        //    return false;
-        //}
-
+       
         // Step 2: Save to the Realm database using the repository.
         try
         {

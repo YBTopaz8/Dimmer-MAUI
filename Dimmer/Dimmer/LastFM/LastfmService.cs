@@ -500,10 +500,11 @@ public class LastfmService : ILastfmService
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         { 
-            return await _client.Artist.GetInfoAsync(artistName); 
+            return await _client.Artist.GetInfoAsync(artistName);
         }
-        catch 
-        { 
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
             return new Artist(); 
         }
     }
@@ -519,8 +520,9 @@ public class LastfmService : ILastfmService
             }
             return await _client.Album.GetInfoAsync(artistName, albumName); 
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new Album() { IsNull = true };
         }
     }
@@ -533,9 +535,10 @@ public class LastfmService : ILastfmService
             var res = await _client.Geo.GetTopTracksAsync(country);
             return res.ToObservableCollection();
         }
-        catch 
+        catch (Exception ex)
         {
-            
+            _logger.LogError(ex.Message, ex);
+
             return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
@@ -548,8 +551,9 @@ public class LastfmService : ILastfmService
             var res = await _client.Geo.GetTopArtistsAsync(country);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new ObservableCollection<Artist>();
         }
     }
@@ -562,8 +566,9 @@ public class LastfmService : ILastfmService
             var res = await _client.Library.GetArtistsAsync(_username, 250);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new ObservableCollection<Artist>();
         }
     }
@@ -576,8 +581,9 @@ public class LastfmService : ILastfmService
 
             return await _client.Track.GetInfoAsync(trackName, artistName);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new Track() { IsNull = true }; 
         }
     }
@@ -591,8 +597,9 @@ public class LastfmService : ILastfmService
           
             return await _client.Track.GetCorrectionAsync(trackName, artistName); 
         }
-        catch
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new Track() { IsNull = true };
         }
     }
@@ -606,8 +613,9 @@ public class LastfmService : ILastfmService
             var res= await _client.Track.GetSimilarAsync(trackName, artistName,40,true);
             return res.ToObservableCollection();
         }
-        catch 
-        { 
+        catch  (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex); 
             return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
@@ -621,8 +629,9 @@ public class LastfmService : ILastfmService
             var res= await _client.Track.GetTagsAsync(_username, trackName, artistName); 
             return res.ToObservableCollection(); 
         }
-        catch 
-        { 
+        catch  (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex); 
             return Enumerable.Empty<Tag>().ToObservableCollection();
         }
     }
@@ -636,8 +645,9 @@ public class LastfmService : ILastfmService
             var res = await _client.User.GetLovedTracksAsync(_username);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return Enumerable.Empty<Track>().ToObservableCollection();
         }
     }
@@ -651,8 +661,9 @@ public class LastfmService : ILastfmService
             var res= await _client.User.GetWeeklyAlbumChartAsync(_username);
             return res.ToObservableCollection();
         }
-        catch
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return Enumerable.Empty<Album>().ToObservableCollection();
         }
     }
@@ -666,8 +677,9 @@ public class LastfmService : ILastfmService
             var res  = await _client.User.GetWeeklyChartListAsync(_username);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new ObservableCollection<ChartTimeSpan>();
         }
     }
@@ -681,8 +693,9 @@ public class LastfmService : ILastfmService
             var res = await _client.User.GetTopAlbumsAsync(_username);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new ObservableCollection<Album>();
         }
     }
@@ -696,8 +709,9 @@ public class LastfmService : ILastfmService
             var res= await _client.User.GetTopTracksAsync(_username);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             
             return Enumerable.Empty<Track>().ToObservableCollection();
         }
@@ -712,8 +726,9 @@ public class LastfmService : ILastfmService
             var res = await _client.User.GetWeeklyTrackChartAsync(_username);
             return res.ToObservableCollection();
         }
-        catch 
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
 
             return Enumerable.Empty<Track>().ToObservableCollection();
         }
@@ -729,8 +744,9 @@ public class LastfmService : ILastfmService
             var pagedResponse = await _client.Chart.GetTopArtistsAsync(1, limit);
             return pagedResponse.Items.ToObservableCollection();
         }
-        catch
+        catch  (Exception ex)
         {
+            _logger.LogError(ex.Message, ex);
             return new ObservableCollection<Artist>();
         }
     }

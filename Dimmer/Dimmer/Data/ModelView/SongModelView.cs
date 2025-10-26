@@ -75,11 +75,7 @@ public partial class SongModelView : ObservableObject
     public partial bool HasSyncedLyrics { get; internal set; }
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
-    partial void OnSyncLyricsChanged(string value)
-    {
-        HasSyncedLyrics = !string.IsNullOrEmpty(value);
-
-    }
+  
 
     [ObservableProperty]
     public partial bool IsInstrumental { get; set; }
