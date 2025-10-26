@@ -5,6 +5,8 @@ public class PlaybackEventArgs : EventArgs
     public bool IsPlaying { get; set; }
     public DimmerPlaybackState EventType { get; set; }
     public bool IsUseMyPlaylist { get; set; } = true;
+    public bool IsError { get; set; }
+    
     public PlaybackEventArgs(SongModelView? song)
     {
         if (song is null) return;

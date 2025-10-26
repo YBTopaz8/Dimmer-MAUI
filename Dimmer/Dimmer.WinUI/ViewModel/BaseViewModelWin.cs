@@ -1,5 +1,9 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
 
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+
 using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.WinUI;
 
@@ -11,6 +15,7 @@ using Dimmer.Interfaces.Services.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
+using Dimmer.Orchestration;
 using Dimmer.Resources.Localization;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
@@ -18,10 +23,7 @@ using Dimmer.WinUI.Views.WinUIPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
-
+using Windows.Graphics;
 using Windows.Storage.Pickers;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
@@ -144,7 +146,7 @@ public partial class BaseViewModelWin : BaseViewModel
 
             var er = new ActiveFilterViewModel(tqlField, displayText, tqlClause, RemoveFilterCommand) as IQueryComponentViewModel;
 
-            UIQueryComponents.Add(er);
+            UIQueryComponents?.Add(er);
         }
     }
 
@@ -404,6 +406,43 @@ public partial class BaseViewModelWin : BaseViewModel
 
     }
 
+    public void OpenLyricsPopUpWindow(int Position) // 0 - Topleft, 1 - TopRight, 2 - BottomLeft, 3 - BottomRight
+    {
+
+        if (!CurrentPlayingSongView.HasSyncedLyrics) return;
+
+        
+        var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
+        if (syncLyricsWindow is null) return;
+        var newPosition = new RectInt32();
+        newPosition.Width = 400;
+        newPosition.Height= 400;
+        switch (Position)
+        {
+            case 0:
+                newPosition.X = 0;
+                newPosition.Y = 0;
+
+                break;
+            case 1:
+                newPosition.X = 0;
+                newPosition.Y = 1;
+                break;
+            case 2:
+                newPosition.X = 1;
+                newPosition.Y = 1;
+                break;
+            case 3:
+                newPosition.X = 1;
+                newPosition.Y = 0;
+                break;
+            default:
+                break;
+        }
+        //Application.Current?.OpenWindow(syncLyricsWindow);
+        PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
+        
+    }
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
     {
         await base.AppSetupPageNextBtnClick(isLastTab);

@@ -38,5 +38,6 @@ public enum DimmerPlaybackState
     ChatLeftChannel,
     Buffering,
     Error,
+    ErrorAudioSourceNotSupported,
     Favorited,
 }

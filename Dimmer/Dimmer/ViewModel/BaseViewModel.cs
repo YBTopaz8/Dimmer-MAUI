@@ -72,7 +72,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _coverArtService = coverArtService ?? throw new ArgumentNullException(nameof(coverArtService));
         this.albumRepo = albumModel;
         this.genreRepo = genreModel;
-        _lyricsMgtFlow = lyricsMgtFlow;
+        LyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
         UserLocal = new UserModelView();
@@ -1023,7 +1023,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private IFolderMonitorService folderMonitorService;
     private IRepository<GenreModel> genreRepo;
     private IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
-    public LyricsMgtFlow _lyricsMgtFlow;
+    public LyricsMgtFlow LyricsMgtFlow;
     private MusicRelationshipService musicRelationshipService;
     private MusicArtistryService musicArtistryService;
     private MusicStatsService musicStatsService;
@@ -1201,7 +1201,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public ReadOnlyObservableCollection<SongModelView> PlaybackQueue => _playbackQueue;
 
     [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModelView> AllLines { get; set; }
+    public partial ObservableCollection<LyricPhraseModelView>? AllLines { get; set; }
 
     [ObservableProperty]
     public partial LyricPhraseModelView? PreviousLine { get; set; }
@@ -3422,26 +3422,46 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void SubscribeToLyricsFlow()
     {
         _subsMgr.Add(
-            _lyricsMgtFlow.CurrentLyric.ObserveOn(RxApp.MainThreadScheduler)
+            LyricsMgtFlow.CurrentLyric.ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(line =>
             {
                 CurrentLine = line;
             }));
         _subsMgr.Add(
-            _lyricsMgtFlow.AllSyncLyrics
+            LyricsMgtFlow.AllSyncLyrics
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(lines =>
                 {
-                if (lines.Count > 0 || string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
+                    AllLines?.Clear();
+
+                    if (lines.Count > 0 || string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
                     {
                         CurrentPlayingSongView.HasSyncedLyrics = true;
-                    AllLines = lines.ToObservableCollection();
+                        AllLines = lines.ToObservableCollection();
+
+                        if(string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
+                        {
+                            
+                        }
                     }
-                   
+                    else
+                    {
+                        AllLines = new ObservableCollection<LyricPhraseModelView>();
+                        LyricPhraseModelView defaultLyricForNoneInSong = new()
+                        {
+                            Text = "No Lyric Found For this song",
+                            TimestampStart = 0,
+                            TimeStampMs = 0,
+                            IsLyricSynced = false
+                        };
+                        AllLines.Add(defaultLyricForNoneInSong);
+                       
+                    }
+
                 }));
 
         _subsMgr.Add(
-            _lyricsMgtFlow.PreviousLyric
+            LyricsMgtFlow.PreviousLyric
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(
                     line =>
@@ -3455,7 +3475,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     }));
 
         _subsMgr.Add(
-            _lyricsMgtFlow.NextLyric
+            LyricsMgtFlow.NextLyric
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(
                     line =>
@@ -3479,7 +3499,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     async x => await HandlePlaybackStateChange(x),
                     ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
 
-
+        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+            h => _audioService.ErrorOccurred += h,
+            h => _audioService.ErrorOccurred -= h)
+                .Select(evt => evt.EventArgs)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(async x => await OnPlayBackErrorOccured(x),
+            ex => _logger.LogError(ex, "Error in Subscribing to OnErrorOccured")));
         _subsMgr.Add(
             Observable.FromEventPattern<PlaybackEventArgs>(
                 h => _audioService.IsPlayingChanged += h,
@@ -3543,6 +3569,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
 
+    private async Task OnPlayBackErrorOccured(PlaybackEventArgs x)
+    {
+        _logger.LogError(message: x.EventType.ToString());
+        await UiDialogs.SafeDisplayActionSheetAsync(x.EventType.ToString(), "OK");
+    }
 
     private void LatestDeviceLog(AppLogModel model)
     {
@@ -4977,7 +5008,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         try
         {
-            _lyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
+            LyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
 
 
             var lyricsInfo = new LyricsInfo();
@@ -5028,7 +5059,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         SelectedSong.HasLyrics = false;
 
 
-        _lyricsMgtFlow.LoadLyrics(string.Empty);
+        LyricsMgtFlow.LoadLyrics(string.Empty);
     }
 
     [RelayCommand]
