@@ -136,7 +136,11 @@ public class AudioFileProcessor : IAudioFileProcessor
             Conductor = track.Conductor ?? string.Empty,
             Language = track.Language ?? string.Empty,
             PopularityScore = track.Popularity ?? 0, // Map ATL's Popularity to Rating
-
+            TrackTotal=track.TrackTotal,
+            SampleRate = track.SampleRate,
+            Encoder = track.Encoder,
+            BitDepth = track.BitDepth,
+            NbOfChannels = track.ChannelsArrangement.NbChannels,
             IsNew = true,
             DateCreated = DateTimeOffset.UtcNow,
             LastDateUpdated = DateTimeOffset.UtcNow

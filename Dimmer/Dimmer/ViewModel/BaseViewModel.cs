@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -3428,37 +3429,41 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 CurrentLine = line;
             }));
         _subsMgr.Add(
-            LyricsMgtFlow.AllSyncLyrics
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(lines =>
-                {
-                    AllLines?.Clear();
+      LyricsMgtFlow.AllSyncLyrics
+          .ObserveOn(RxApp.MainThreadScheduler)
+          .Subscribe(lines =>
+          {
+              AllLines?.Clear();
 
-                    if (lines.Count > 0 || string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
+              if (lines == null || lines.Count == 0)
+              {
+                  AllLines = new ObservableCollection<LyricPhraseModelView>
+                  {
+                    new()
                     {
-                        CurrentPlayingSongView.HasSyncedLyrics = true;
-                        AllLines = lines.ToObservableCollection();
-
-                        if(string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
-                        {
-                            
-                        }
+                        Text = "No lyric found for this song",
+                        TimestampStart = 0,
+                        TimeStampMs = 0,
+                        IsLyricSynced = false
                     }
-                    else
-                    {
-                        AllLines = new ObservableCollection<LyricPhraseModelView>();
-                        LyricPhraseModelView defaultLyricForNoneInSong = new()
-                        {
-                            Text = "No Lyric Found For this song",
-                            TimestampStart = 0,
-                            TimeStampMs = 0,
-                            IsLyricSynced = false
-                        };
-                        AllLines.Add(defaultLyricForNoneInSong);
-                       
-                    }
+                  };
+                  CurrentPlayingSongView.HasSyncedLyrics = false;
+                  return;
+              }
 
-                }));
+              AllLines = lines.ToObservableCollection();
+              CurrentPlayingSongView.HasSyncedLyrics = true;
+          },
+          ex =>
+          {
+              _logger.LogError(ex, "Error while observing AllSyncLyrics.");
+              AllLines = new ObservableCollection<LyricPhraseModelView>
+              {
+                new() { Text = "Error loading lyrics", IsLyricSynced = false }
+              };
+              CurrentPlayingSongView.HasSyncedLyrics = false;
+          }));
+
 
         _subsMgr.Add(
             LyricsMgtFlow.PreviousLyric

@@ -177,12 +177,27 @@ public class LyricsMgtFlow : IDisposable
         else
         {
 
-            //get lyrics from online source
             ClearLyrics();
             var res = await GetLyricsContentAsync(song);
-            if (!string.IsNullOrWhiteSpace(res))
+            if (res is not null)
             {
-                LoadLyrics(res);
+                var sLyrics = res.First().SyncedLyrics;
+                if (!string.IsNullOrEmpty(sLyrics))
+                {
+                    LoadLyrics(sLyrics);
+                }
+                await BgQueue.Instance.EnqueueAsync(async () =>
+                {
+                    try
+                    {
+                         _lyricsMetadataService.SaveLyricsToSongFile(song, res.First().PlainLyrics, res.First().SyncedLyrics);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Failed to save lyrics for {song?.Title}");
+                    }
+                });
+
             }
         }
     }
@@ -193,29 +208,36 @@ public class LyricsMgtFlow : IDisposable
         _currentLyricSubject.OnNext(null);
         _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
     }
-    private async Task<string?> GetLyricsContentAsync(SongModelView song)
+    private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsContentAsync(SongModelView song)
     {
         CancellationTokenSource cts= new();
         var instru = song.IsInstrumental && song.SyncLyrics.Length<1;
         if (instru)
         {
-            return string.Empty;
+            return null;
         }
         // Follows the hierarchy: DB -> Local Files -> Online
         if (!string.IsNullOrEmpty(song.SyncLyrics))
         {
             _logger.LogTrace("LYRICS FINDER :::::: Using lyrics from database for {SongTitle}", song.Title);
-            return song.SyncLyrics;
+            LrcLibLyrics lyricsProps = new LrcLibLyrics()
+            {
+                AlbumName = song.AlbumName,
+                ArtistName = song.OtherArtistsName,
+                Duration = song.DurationInSeconds,
+                TrackName = song.Title,
+                SyncedLyrics = song.SyncLyrics,
+                Instrumental = song.IsInstrumental,
+                PlainLyrics = song.UnSyncLyrics
+            };
+            List<LrcLibLyrics> list = new List<LrcLibLyrics>();
+            list.Add(lyricsProps);
+            return list;
         }
 
-        var localLyrics = await _lyricsMetadataService.GetLocalLyricsAsync(song);
-        if (!string.IsNullOrEmpty(localLyrics))
-        {
-            return localLyrics;
-        }
-
+      
         _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
-        var onlineResults = await _lyricsMetadataService.GetAllSyncLyricsOnlineAsync(song, cts.Token);
+        IEnumerable<LrcLibLyrics>? onlineResults = await _lyricsMetadataService.GetAllLyricsPropsOnlineAsync(song, cts.Token);
         var onlineLyrics = onlineResults?.FirstOrDefault();
         
         if (onlineLyrics != null)
@@ -225,14 +247,14 @@ public class LyricsMgtFlow : IDisposable
           
             // Optionally, save to DB or local storage here.
             await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id,onlineLyrics.PlainLyrics,onlineLyrics.SyncedLyrics,true);
-            return onlineLyrics.SyncedLyrics;
+            return onlineResults;
 
         }
         else
         {
             _logger.LogTrace("LYRICS FINDER :::::: No online lyrics found for {SongTitle}.", song.Title);
         }
-        return onlineResults?.FirstOrDefault()?.SyncedLyrics;
+        return onlineResults;
     }
 
     private void UpdateLyricsForPosition(TimeSpan position)

@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\Parse-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{BC63A063-98DB-4E36-2BFC-ADF891F208E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinUI.TableView", "..\..\WinUI.TableView\src\WinUI.TableView.csproj", "{5DD63CF4-3153-9175-CF90-42A07FB5C216}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DD63CF4-3153-9175-CF90-42A07FB5C216}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DD63CF4-3153-9175-CF90-42A07FB5C216}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DD63CF4-3153-9175-CF90-42A07FB5C216}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DD63CF4-3153-9175-CF90-42A07FB5C216}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using ReactiveUI;
 
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 
 using Track = Hqub.Lastfm.Entities.Track;
 namespace Dimmer.LastFM;

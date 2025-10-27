@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿
+namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
@@ -307,6 +308,16 @@ public partial class SongModelView : ObservableObject
     public partial int EddingtonNumber { get;  set; }
     [ObservableProperty]
     public partial double EngagementScore { get;  set; }
+    [ObservableProperty]
+    public partial int? TrackTotal { get; internal set; }
+    [ObservableProperty]
+    public partial double SampleRate { get; internal set; }
+    [ObservableProperty]
+    public partial string Encoder { get; internal set; }
+    [ObservableProperty]
+    public partial int BitDepth { get; internal set; }
+    [ObservableProperty]
+    public partial int NbOfChannels { get; internal set; }
 }
 
 public partial class UserNoteModelView : ObservableObject
