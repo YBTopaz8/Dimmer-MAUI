@@ -115,8 +115,12 @@ public partial class App : Application
             string fileName = $"MAUIcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
 
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTraceMAUI: {ex.StackTrace}\n\n";
-
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n" +
+                $"Msg: {ex.Message}\nStackTraceMAUI: {ex.StackTrace}\n\n";
+            if (ex.Message == "Unable to find the specified file.")
+            {
+                
+            }
             // Retry mechanism for file writing.
             bool success = false;
             int retries = 3;

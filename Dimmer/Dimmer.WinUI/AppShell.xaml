@@ -191,6 +191,13 @@
                                                 </DataTrigger>
 
                                                 <DataTrigger
+                                                    Binding="{Binding IsPlaying}"
+                                                    TargetType="VerticalStackLayout"
+                                                    Value="false">
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+
+                                                <DataTrigger
                                                     Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
                                                     TargetType="VerticalStackLayout"
                                                     Value="false">
@@ -615,9 +622,17 @@
                     </syncf:SfTabItem.Content>
                 </syncf:SfTabItem>
                 <syncf:SfTabItem x:Name="LyricsView">
-                    <Grid RowDefinitions="auto,*">
-                        <Grid Grid.Row="0">
-                            <Label Text="Lyrics" />
+                    <Grid Margin="5" RowDefinitions="auto,*">
+                        <Grid Grid.Row="0" ColumnDefinitions="*,55">
+                            <syncf:SfChip
+                                x:Name="OpenLyricsViewOnly"
+                                Grid.Column="1"
+                                Clicked="OpenLyricsViewOnly_Clicked"
+                                HorizontalOptions="End"
+                                ImageSize="40"
+                                ImageSource="maximize.png"
+                                StrokeThickness="0"
+                                ToolTipProperties.Text="Open Lyrics Window only" />
                         </Grid>
 
                         <CollectionView
@@ -658,7 +673,13 @@
                 Grid.Row="0"
                 Margin="5"
                 Spacing="5">
-                <HorizontalStackLayout HorizontalOptions="Center">
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15">
+
+                    <ImageButton
+                        x:Name="MainPBView"
+                        Clicked="MainPBView_Clicked"
+                        Source="playcircle.png"
+                        ToolTipProperties.Text="Main PlayBack Tab" />
 
                     <ImageButton
                         x:Name="ViewDeviceAudio"

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="Dimmer.WinUI.Views.CustomViews.SyncLyricsPopUpView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:behv="clr-namespace:CommunityToolkit.WinUI.Behaviors;assembly=CommunityToolkit.WinUI.Behaviors"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    x:Name="SyncLyricsPopUpWindow"
+    Title="SyncLyricsPopUpView"
+    x:DataType="vm:BaseViewModelWin"
+    Activated="SyncLyricsPopUpWindow_Activated"
+    Deactivated="SyncLyricsPopUpWindow_Deactivated">
+
+    <ContentPage x:Name="myPage">
+        <ContentPage.Resources>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+            <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+            <converters:VolumeConverter x:Key="VolConverter" />
+
+        </ContentPage.Resources>
+
+        <Grid RowDefinitions="auto,*,30">
+            <Image
+                Grid.RowSpan="3"
+                Opacity="0.08"
+                Source="{Binding CurrentCoverImagePath}" />
+            <Grid Grid.Row="0" ColumnDefinitions="auto,*,55">
+                <Grid Grid.Column="0" Margin="5">
+                    <VerticalStackLayout>
+                        <syncf:SfChip
+                            x:Name="ShowHidePositioner"
+                            Clicked="ShowHidePositioner_Clicked"
+                            HeightRequest="40"
+                            HorizontalOptions="Start"
+                            ImageSource="display.png"
+                            WidthRequest="40" />
+                        <VerticalStackLayout
+                            x:Name="PositionPicker"
+                            Margin="5"
+                            IsVisible="False"
+                            Spacing="5">
+
+                            <HorizontalStackLayout Spacing="5">
+                                <syncf:SfChip
+                                    x:Name="SetWindowPosition"
+                                    Clicked="SetWindowPosition_Clicked"
+                                    CommandParameter="0"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    Text="TL"
+                                    WidthRequest="50" />
+                                <syncf:SfChip
+                                    Clicked="SetWindowPosition_Clicked"
+                                    CommandParameter="1"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    Text="TR"
+                                    WidthRequest="50" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="5">
+                                <syncf:SfChip
+                                    Clicked="SetWindowPosition_Clicked"
+                                    CommandParameter="3"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    Text="BL"
+                                    WidthRequest="50" />
+                                <syncf:SfChip
+                                    Clicked="SetWindowPosition_Clicked"
+                                    CommandParameter="2"
+                                    HeightRequest="50"
+                                    ShowIcon="False"
+                                    Text="BR"
+                                    WidthRequest="50" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                    <Label
+                        FontSize="19"
+                        HorizontalTextAlignment="Center"
+                        Text="{Binding CurrentPlayingSongView.Title}" />
+                    <Label
+                        FontAttributes="Italic"
+                        FontSize="10"
+                        HorizontalTextAlignment="Center"
+                        Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
+
+                </VerticalStackLayout>
+                <syncf:SfChip
+                    x:Name="OpenLyricsViewOnly"
+                    Grid.Column="2"
+                    Clicked="OpenLyricsViewOnly_Clicked"
+                    HorizontalOptions="End"
+                    ImageSize="40"
+                    ImageSource="minimizesquare3.png"
+                    StrokeThickness="0"
+                    ToolTipProperties.Text="Open Lyrics Window only"
+                    VerticalOptions="Start" />
+            </Grid>
+
+
+            <CollectionView
+                x:Name="AllLyricsColView"
+                Grid.Row="1"
+                ItemsSource="{Binding AllLines}"
+                SelectedItem="{Binding CurrentLine}"
+                SelectionChanged="AllLyricsColView_SelectionChanged"
+                SelectionMode="Single"
+                VerticalScrollBarVisibility="Never">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LyricPhraseModelView">
+                        <Grid>
+                            <Border
+                                BackgroundColor="{AppThemeBinding Dark=#1e1e1e}"
+                                IsVisible="{Binding IsHighlighted}"
+                                Opacity="0.7"
+                                Stroke="DarkSlateBlue" />
+
+                            <Label
+                                FontSize="{Binding NowPlayingLyricsFontSize}"
+                                HorizontalTextAlignment="Center"
+                                Text="{Binding Text}"
+                                TextColor="{Binding HighlightColor}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <VerticalStackLayout
+                x:Name="BtmVSL"
+                Grid.Row="2"
+                Margin="5,0"
+                IsVisible="False"
+                VerticalOptions="End">
+                <!--<syncf:SfLinearProgressBar
+                    Grid.Column="1"
+                    AnimationEasing="BounceOut"
+                    IndeterminateAnimationEasing="BounceOut"
+                    Maximum="100"
+                    Minimum="0"
+                    Progress="{Binding CurrentTrackPositionPercentage}"
+                    VerticalOptions="End" />-->
+            </VerticalStackLayout>
+        </Grid>
+    </ContentPage>
+</Window>

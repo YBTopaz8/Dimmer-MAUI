@@ -161,6 +161,9 @@
     <MauiXaml Update="Views\CustomViewsParts\QuickPanelBtmSheet.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\SelectArtistOrAlbumContextMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\CustomViewsParts\TopBeforeColView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

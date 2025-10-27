@@ -77,6 +77,8 @@
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <None Remove="Views\ArtistWindow.xaml" />
     <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <None Remove="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml" />
+    <None Remove="Views\CustomViews\SyncLyricsPopUpView.xaml" />
     <None Remove="Views\DimmerLiveUI\ChatView.xaml" />
     <None Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
     <None Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
@@ -112,6 +114,8 @@
     <Page Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <Page Remove="Views\ArtistWindow.xaml" />
     <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
+    <Page Remove="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml" />
+    <Page Remove="Views\CustomViews\SyncLyricsPopUpView.xaml" />
     <Page Remove="Views\DimmerLiveUI\ChatView.xaml" />
     <Page Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
     <Page Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
@@ -226,6 +230,12 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Include="Views\CustomViews\SyncLyricsPopUpView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Include="Views\DimmerLiveUI\ChatView.xaml">

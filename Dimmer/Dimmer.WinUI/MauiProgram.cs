@@ -1,17 +1,8 @@
 ﻿
 
 
-using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Behaviors;
 
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
-using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views.AlbumsPage;
-using Dimmer.WinUI.Views.DimmerLiveUI;
-using Dimmer.WinUI.Views.PlaylistPages;
-using Dimmer.WinUI.Views.TQLCentric;
-using Dimmer.WinUI.Views.WinUIPages;
+using Windows.Graphics;
 
 using Colors = Microsoft.Maui.Graphics.Colors;
 
@@ -170,7 +161,7 @@ public static class MauiProgram
                         PlatUtils.DimmerHandle = nativeWindowHandle;
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
-
+                        
                         winuiAppWindow.Changed += (s, e) =>
                         {
                             if (e.DidVisibilityChange)
@@ -229,6 +220,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<TqlTutorialPage>();
         builder.Services.AddSingleton<SingleAlbumPage>();
         builder.Services.AddSingleton<WelcomePage>();
+
+        builder.Services.AddSingleton<SyncLyricsPopUpView>();
         return builder.Build();
     }
 

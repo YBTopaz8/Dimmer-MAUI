@@ -51,9 +51,10 @@ namespace Dimmer.WinUI.Views;
             InitializeComponent();
             BindingContext = vm;
             MyViewModel = vm;
+        this.windowMgrService = windowMgrService;
 
 
-           
+
         // --- Keep these lines. They correctly wire up the UI. ---
 
         //MyViewModel.TranslatedSearch= TranslatedSearch;
@@ -90,7 +91,7 @@ namespace Dimmer.WinUI.Views;
 
 
     private SongModelView? _storedSong;
-
+    private readonly IWinUIWindowMgrService windowMgrService;
 
     protected override void OnDisappearing()
     {
@@ -1232,12 +1233,20 @@ await this.FadeIn(500, 1.0);
     private async void PlaySongTapFromRecent_Tapped(object sender, TappedEventArgs e)
     {
         var send = (Border)sender;
-        var song = send.BindingContext as SongModelView;
-        if (MyViewModel.PlaybackQueue.Count < 1)
+        if (send is null) return;
+        var stat = send.BindingContext as DimmerStats;
+        if (stat != null)
         {
-            MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+            var song = stat.Song;
+            if (song != null)
+            {
+                if (MyViewModel.PlaybackQueue.Count < 1)
+                {
+                    MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+                }
+                await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s => s is not null).Select(x => x!.Song));
+            }
         }
-        await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s=> s is not null ).Select(x =>x!.Song));
     }
 
     private async void PlaySongTapFromPBQueue_Tapped(object sender, TappedEventArgs e)

@@ -62,3 +62,16 @@ global using Dimmer.DimmerLive.Interfaces;
 
 global using CommunityToolkit.Mvvm.Input;
 global using Dimmer.Interfaces.Services;
+
+global using CommunityToolkit.Maui;
+global using CommunityToolkit.Maui.Behaviors;
+
+global using Dimmer.Interfaces.Services.Interfaces;
+global using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
+global using Dimmer.WinUI.Utils.WinMgt;
+global using Dimmer.WinUI.Views.AlbumsPage;
+global using Dimmer.WinUI.Views.CustomViews;
+global using Dimmer.WinUI.Views.DimmerLiveUI;
+global using Dimmer.WinUI.Views.PlaylistPages;
+global using Dimmer.WinUI.Views.TQLCentric;
+global using Dimmer.WinUI.Views.WinUIPages;

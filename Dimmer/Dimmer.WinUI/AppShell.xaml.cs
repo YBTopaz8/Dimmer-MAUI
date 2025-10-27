@@ -209,8 +209,6 @@ public partial class AppShell : Shell
     {
 
     }
-    private CancellationTokenSource _lyricsCts;
-    private bool _isLyricsProcessing = false;
 
 
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
@@ -814,7 +812,22 @@ public partial class AppShell : Shell
 
     private void ViewLyricsChip_Clicked(object sender, EventArgs e)
     {
+
+        MyViewModel.OpenLyricsPopUpWindow(1);
+        return;
         ShellTabView.SelectedIndex = 2;
+    }
+
+    private void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
+    {
+        
+        MyViewModel.OpenLyricsPopUpWindow(1);
+        
+    }
+
+    private void MainPBView_Clicked(object sender, EventArgs e)
+    {
+        this.ShellTabView.SelectedIndex = 0;
     }
 
     // Section for Songs With UserNotes.
