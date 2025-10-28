@@ -56,6 +56,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ArtistsPage>();
         builder.Services.AddSingleton<AnimationSettingsPage>();
         builder.Services.AddSingleton<AnimationSettingsViewModel>();
+        builder.Services.AddSingleton<MoreBtmSheet>();
 
 
 

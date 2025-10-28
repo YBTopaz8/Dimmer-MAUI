@@ -8,6 +8,7 @@ namespace Dimmer.Views;
 public partial class HomePage : ContentPage
 {
 
+    MoreBtmSheet moreBtmSheet { get; set; }
     public BaseViewModelAnd MyViewModel { get; internal set; }
     public HomePage(BaseViewModelAnd vm)
     {
@@ -19,7 +20,10 @@ public partial class HomePage : ContentPage
         //NavChips.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings"};
         //NavChipss.ItemsSource = new List<string> { "Home", "Artists", "Albums", "Genres", "Settings" };
         this.HideSoftInputOnTapped=true;
+        moreBtmSheet = new();
+        moreBtmSheet.BindingContext = MyViewModel;
 
+        //this.RootLayout.Children.Add(moreBtmSheet);
     }
 
     protected override void OnAppearing()
@@ -619,7 +623,7 @@ public partial class HomePage : ContentPage
         var send = (View)sender;
         var song = send.BindingContext as SongModelView;
         MyViewModel.SelectedSong = song;
-        MoreBtmSheet.State = BottomSheetState.HalfExpanded;
+        moreBtmSheet.State = BottomSheetState.HalfExpanded;
        
     }
 
@@ -1295,7 +1299,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void OnLabelClicked(object sender, EventArgs e)
+    private void OnLabelClicked(object sender, EventArgs e)
     {
        
     }
@@ -1308,20 +1312,6 @@ public partial class HomePage : ContentPage
     private void NavigateToSelectedSongPageContextMenuAsync(object sender, HandledEventArgs e)
     {
 
-    }
-
-    private async void OnAddQuickNoteClicked(object sender, HandledEventArgs e)
-    {
-        var send = (Chip)sender;
-        var song = send.TapCommandParameter as SongModelView;
-        if (song is null)
-        {
-            return;
-        }
-        // Prompt the user for a note
-
-
-        await MyViewModel.SaveUserNoteToSong(song);
     }
 
     private async void QuickSearchArtist_Clicked(object sender, HandledEventArgs e)
@@ -1339,7 +1329,7 @@ public partial class HomePage : ContentPage
             .ToArray();                                             // Convert to a List
         if (namesList is not null && namesList.Length == 1)
         {
-            SearchSongSB_Clicked(sender, e);
+            
             MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
 
             return;
@@ -1351,7 +1341,7 @@ public partial class HomePage : ContentPage
             return;
         }
 
-        SearchSongSB_Clicked(sender, e);
+        
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
 
         return;
@@ -1399,7 +1389,7 @@ public partial class HomePage : ContentPage
 
     private void QuickSearchAlbum_Clicked(object sender, HandledEventArgs e)
     {
-        SearchSongSB_Clicked(sender, e);
+        
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
 
     }

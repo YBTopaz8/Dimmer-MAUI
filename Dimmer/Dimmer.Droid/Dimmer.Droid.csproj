@@ -159,6 +159,9 @@
     <MauiXaml Update="Views\CustomViewsParts\MainViewExpander.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\CustomViewsParts\MoreBtmSheet.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\CustomViewsParts\MoreModal.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
