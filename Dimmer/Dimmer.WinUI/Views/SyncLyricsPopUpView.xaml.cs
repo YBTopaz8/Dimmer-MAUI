@@ -9,7 +9,7 @@ namespace Dimmer.WinUI.Views.CustomViews;
 
 public partial class SyncLyricsPopUpView : Window
 {
-	public SyncLyricsPopUpView(BaseViewModelWin baseViewModel)
+	public SyncLyricsPopUpView(BaseViewModel baseViewModel)
 	{
 		InitializeComponent();
         MyViewModel = baseViewModel;
@@ -18,7 +18,7 @@ public partial class SyncLyricsPopUpView : Window
         
     }
 
-    public BaseViewModelWin MyViewModel { get; }
+    public BaseViewModel MyViewModel { get; }
 
     private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {

@@ -9,11 +9,14 @@ global using CommunityToolkit.Maui.Storage;
 global using Dimmer.Data;
 global using Microsoft.Extensions.Logging;
 global using Syncfusion.Maui.Toolkit.Hosting;
-
+global using Syncfusion.Maui.Toolkit.Chips;
 global using Parse;
 global using System.Globalization;
+global using Dimmer.Utilities.CustomAnimations;
 
 global using ATL;
+
+global using Syncfusion.Maui.Toolkit.Charts;
 
 global using CommunityToolkit.Maui.Alerts;
 global using CommunityToolkit.Mvvm.Input;

@@ -13,10 +13,9 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
     <!-- We do not want XAML files to be processed as .NET MAUI XAML, but rather WinUI XAML. -->
-    <EnableDefaultMauiItems>false</EnableDefaultMauiItems>
+    <EnableDefaultMauiItems>true</EnableDefaultMauiItems>
     <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
    
     <PublishAot>false</PublishAot>
@@ -38,9 +37,10 @@
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
   </PropertyGroup>
+ 
   <ItemGroup>
+    <Compile Remove="AppShell.xaml.cs" />
     <Compile Remove="Utils\StaticUtils\TaskBarSection\TaskbarThumbnailManager.cs" />
-    <Compile Remove="Views\SettingWindow.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-16.png" />
@@ -64,79 +64,16 @@
     <Content Remove="Assets\dimmerIcon.targetsize-32.png" />
     <Content Remove="Assets\dimmerIcon.targetsize-48.png" />
   </ItemGroup>
-
-
-
   <ItemGroup>
-    <None Remove="AppShell.xaml" />
-    <None Remove="DimmerWin.xaml" />
-    <None Remove="DimmerWindow.xaml" />
-    <None Remove="Views\AlbumsPage\AllAlbumsPage.xaml" />
-    <None Remove="Views\AlbumsPage\SingleAlbumPage.xaml" />
-    <None Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
-    <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
-    <None Remove="Views\ArtistWindow.xaml" />
-    <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
-    <None Remove="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml" />
-    <None Remove="Views\CustomViews\SyncLyricsPopUpView.xaml" />
-    <None Remove="Views\DimmerLiveUI\ChatView.xaml" />
-    <None Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
-    <None Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
-    <None Remove="Views\DimmerLiveUI\SocialView.xaml" />
-    <None Remove="Views\DimmerSongWindow.xaml" />
-    <None Remove="Views\DuplicatesMgtWindow.xaml" />
-    <None Remove="Views\ExperimentsPage.xaml" />
-    <None Remove="Views\HomePage.xaml" />
-    <None Remove="Views\OnlinePageManagement.xaml" />
-    <None Remove="Views\PlaylistPages\AllPlaylists.xaml" />
-    <None Remove="Views\PlaylistWindow.xaml" />
-    <None Remove="Views\SettingsCenter\LibSanityPage.xaml" />
-    <None Remove="Views\SettingsCenter\SettingsPage.xaml" />
-    <None Remove="Views\SettingsCenter\SettingWin.xaml" />
-    <None Remove="Views\SingleSongPages\SingleSongPage.xaml" />
-    <None Remove="Views\SongNotifierWindow.xaml" />
-    <None Remove="Views\StatisticsPage.xaml" />
-    <None Remove="Views\TQLCentric\TqlTutorialPage.xaml" />
-    <None Remove="Views\WelcomePage.xaml" />
-    <None Remove="Views\WinUIPages\AllSongsListPage.xaml" />
-    <None Remove="Views\WinUIPages\AllSongsWindow.xaml" />
-    <None Remove="Views\WinUIPages\SongDetailPage.xaml" />
+    <MauiXaml Remove="AppShell.xaml" />
+    <MauiXaml Remove="DimmerWin.xaml" />
   </ItemGroup>
-
   <ItemGroup>
     <Page Remove="AppShell.xaml" />
-    <Page Remove="DimmerWin.xaml" />
-    <Page Remove="DimmerWindow.xaml" />
-    <Page Remove="Views\AlbumsPage\AllAlbumsPage.xaml" />
-    <Page Remove="Views\AlbumsPage\SingleAlbumPage.xaml" />
-    <Page Remove="Views\AlbumWindow.xaml" />
-    <Page Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
-    <Page Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
-    <Page Remove="Views\ArtistWindow.xaml" />
-    <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
-    <Page Remove="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml" />
-    <Page Remove="Views\CustomViews\SyncLyricsPopUpView.xaml" />
-    <Page Remove="Views\DimmerLiveUI\ChatView.xaml" />
-    <Page Remove="Views\DimmerLiveUI\DimmerLivePage.xaml" />
-    <Page Remove="Views\DimmerLiveUI\SessionTransferView.xaml" />
-    <Page Remove="Views\DimmerLiveUI\SocialView.xaml" />
-    <Page Remove="Views\DimmerSongWindow.xaml" />
-    <Page Remove="Views\DuplicatesMgtWindow.xaml" />
-    <Page Remove="Views\ExperimentsPage.xaml" />
-    <Page Remove="Views\HomePage.xaml" />
-    <Page Remove="Views\OnlinePageManagement.xaml" />
-    <Page Remove="Views\PlaylistPages\AllPlaylists.xaml" />
-    <Page Remove="Views\PlaylistWindow.xaml" />
-    <Page Remove="Views\SettingsCenter\LibSanityPage.xaml" />
-    <Page Remove="Views\SettingsCenter\SettingsPage.xaml" />
-    <Page Remove="Views\SettingsCenter\SettingWin.xaml" />
-    <Page Remove="Views\SettingWindow.xaml" />
-    <Page Remove="Views\SingleSongPages\SingleSongPage.xaml" />
-    <Page Remove="Views\SongNotifierWindow.xaml" />
-    <Page Remove="Views\StatisticsPage.xaml" />
-    <Page Remove="Views\TQLCentric\TqlTutorialPage.xaml" />
-    <Page Remove="Views\WelcomePage.xaml" />
+    <Page Remove="Views\SyncLyricsPopUpView.xaml" />
   </ItemGroup>
+
+
 
   <ItemGroup>
     <Content Include="dimmicoo.ico" />
@@ -162,6 +99,7 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="ReactiveUI.WinUI" Version="22.2.1" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+    <PackageReference Include="Uno.WinUI" Version="6.3.62" />
     <PackageReference Include="Vanara.Core" Version="4.2.1" />
     <PackageReference Include="Vanara.PInvoke.ComCtl32" Version="4.2.1" />
     <PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.2.1" />
@@ -181,7 +119,9 @@
 
 
   </ItemGroup>
-
+	<PropertyGroup>
+		<EnableDefaultItems>true</EnableDefaultItems>
+	</PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\WinUI.TableView\src\WinUI.TableView.csproj" />
     <ProjectReference Include="..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
@@ -209,101 +149,12 @@
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <ProjectCapability Include="Msix" />
   </ItemGroup>
-  <ItemGroup>
-    <MauiXaml Include="AppShell.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="DimmerWin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\AlbumsPage\AllAlbumsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\AlbumsPage\SingleAlbumPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\AlbumWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\ArtistsSpace\MAUI\ArtistsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\CustomViews\SyncLyricsPopUpView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\DimmerLiveUI\ChatView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\DimmerLiveUI\DimmerLivePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\DimmerLiveUI\SessionTransferView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\DimmerLiveUI\SocialView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\DimmerSongWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\DuplicatesMgtWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\ExperimentsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\HomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-  </ItemGroup>
+  
   <ItemGroup>
     <Folder Include="Database\" />
     <Folder Include="Utils\StaticUtils\TaskBarSection\" />
   </ItemGroup>
-  <ItemGroup>
-    <MauiXaml Include="Views\OnlinePageManagement.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\PlaylistPages\AllPlaylists.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\PlaylistWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SettingsCenter\LibSanityPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SettingsCenter\SettingsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SettingsCenter\SettingWin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SingleSongPages\SingleSongPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\SongNotifierWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\StatisticsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\TQLCentric\TqlTutorialPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Include="Views\WelcomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-  </ItemGroup>
+  
   <ItemGroup>
     <None Include="..\..\..\..\..\..\Pictures\hellllpppp\dimmerback\Resources\Images\musical_notes.png">
       <Pack>True</Pack>
@@ -323,22 +174,38 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\WinUIPages\AllSongsListPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\WinUIPages\SongDetailPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\WinUIPages\AllSongsWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <PropertyGroup Label="Globals">
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041'">
+		<None Remove="..\packages\microsoft.maui.controls.core\9.0.120\lib\net9.0-windows10.0.19041\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+		<None Remove="..\packages\microsoft.maui.core\9.0.120\lib\net9.0-windows10.0.19041\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+		<None Remove="..\packages\microsoft.maui.controls.compatibility\9.0.120\lib\net9.0-windows10.0.19041\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+
+		<None Remove="..\packages\microsoft.maui.controls.core\9.0.120\lib\net9.0-windows10.0.19041\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win-x86\native\WebView2Loader.dll" />
+		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win-x64\native\WebView2Loader.dll" />
+		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win-arm64\native\WebView2Loader.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Update="DimmerWin.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	  <MauiXaml Update="Views\SyncLyricsPopUpView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Views\SyncLyricsPopUpView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </None>
+	</ItemGroup>
+
+
+
+
+
+	<PropertyGroup Label="Globals">
     <WebView2UseWinRT>False</WebView2UseWinRT>
     <WebView2LoaderPreference>Dynamic</WebView2LoaderPreference>
     <Description>A Cross Platform Music Player App</Description>

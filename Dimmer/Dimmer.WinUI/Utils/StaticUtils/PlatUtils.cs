@@ -259,11 +259,8 @@ public static class PlatUtils
     {
         var window = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
 
-        // Get the underlying native window (WinUI).
-        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window??throw new InvalidOperationException("Unable to retrieve the native window.");
-
-
-        DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
+       
+        DimmerHandle = WindowNative.GetWindowHandle(window);
         return DimmerHandle;
     }
 

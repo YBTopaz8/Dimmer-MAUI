@@ -138,6 +138,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
 
 
+    //public DimmerWin MainMAUIWindow { get; internal set; }
     public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
 
     Timer? _bootTimer;
@@ -7126,6 +7127,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     
+
+    public virtual void OnCloseAllWindows()
+    {
+
+    }
 }
 
 

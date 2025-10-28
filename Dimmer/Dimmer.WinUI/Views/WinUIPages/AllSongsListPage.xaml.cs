@@ -1032,7 +1032,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        MyViewModel.SearchSongSB_TextChanged(SearchTetxBox.Text);
+        MyViewModel.SearchSongSB_TextChanged(SearchTextBox.Text);
     }
 
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)

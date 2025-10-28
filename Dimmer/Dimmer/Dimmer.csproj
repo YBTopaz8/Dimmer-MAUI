@@ -59,10 +59,15 @@
     <Compile Remove="DimmerSearch\TQLActions\SemanticParser.cs" />
     <Compile Remove="DimmerSearch\TQL\AstEvaluator.cs" />
     <Compile Remove="Utilities\TypeConverters\PercentageInverterConverter1.cs" />
+    <Compile Remove="Views\DimmerWin.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <MauiImage Remove="Resources\Images\atom2.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiXaml Remove="Views\DimmerWin.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -155,6 +160,7 @@
     <Folder Include="Resources\AppIcon\NewFolder\" />
     <Folder Include="Utilities\UIHelpers\" />
     <Folder Include="Utils\SmartPlaylist\" />
+    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,7 +22,6 @@ global using Dimmer.Orchestration;
 global using Dimmer.Utilities.Enums;
 global using System.Threading.Tasks;
 
-global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 global using Syncfusion.Maui.Toolkit.Chips;
 global using Syncfusion.Maui.Toolkit.EffectsView;
@@ -30,7 +29,6 @@ global using Syncfusion.Maui.Toolkit.EffectsView;
 global using Dimmer.WinUI.Utils.StaticUtils;
 global using Microsoft.UI.Xaml.Input;
 global using System.ComponentModel;
-global using Dimmer.WinUI.Views.SingleSongPages;
 
 global using Dimmer.Data.ModelView;
 #nullable enable // Enable nullable reference types for better compile-time safety
@@ -53,7 +51,6 @@ global using Windows.Storage.Streams;
 global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 global using Dimmer.Utilities;
 global using Dimmer.WinUI.Utils.Helpers;
-global using Dimmer.WinUI.Views.SettingsCenter;
 
 global using System.Drawing;
 global using System.Reflection;
@@ -69,9 +66,5 @@ global using CommunityToolkit.Maui.Behaviors;
 global using Dimmer.Interfaces.Services.Interfaces;
 global using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 global using Dimmer.WinUI.Utils.WinMgt;
-global using Dimmer.WinUI.Views.AlbumsPage;
 global using Dimmer.WinUI.Views.CustomViews;
-global using Dimmer.WinUI.Views.DimmerLiveUI;
-global using Dimmer.WinUI.Views.PlaylistPages;
-global using Dimmer.WinUI.Views.TQLCentric;
 global using Dimmer.WinUI.Views.WinUIPages;

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window x:Name="myPage"
+        x:Class="Dimmer.WinUI.DimmerWin"
+        xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+        xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+        xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+        xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+        xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+        xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+        x:DataType="vm:BaseViewModel"
+        >
+
+    <Window.TitleBar>
+        <TitleBar x:Name="DimmerTitleBar"
+                  Title="{Binding AppTitle}"
+                  BackgroundColor="Transparent"
+                  >
+
+            <TitleBar.Resources>
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+                <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+                <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+                <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+                <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+                <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+                <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+                <converters:VolumeConverter x:Key="VolConverter" />
+
+            </TitleBar.Resources>
+            <TitleBar.TrailingContent>
+                <HorizontalStackLayout BackgroundColor="Transparent">
+                    <ImageButton x:Name="DimmerChat"
+                                 Clicked="DimmerChat_Clicked"
+                                 IsVisible="False"
+                                 Source="chatdimmer.png"
+                                 />
+
+                    <ImageButton x:Name="ShareSong"
+                                 Clicked="ShareBtn_Clicked"
+                                 IsVisible="False"
+                                 Source="sharefd.png"
+                                 >
+                        <ImageButton.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                        </ImageButton.Behaviors>
+                    </ImageButton>
+
+                    <ImageButton x:Name="SocialBtn"
+                                 Clicked="SocialBtn_Clicked"
+                                 IsEnabled="False"
+                                 Source="usersgrouprounded.png"
+                                 />
+                    <ImageButton x:Name="SwitchTheme"
+                                 Clicked="SwitchTheme_Clicked"
+                                 Source="{AppThemeBinding Light=darkmoon.png,
+                                                          Dark=lightmodde.png}"
+                                 >
+                        <ImageButton.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                            <toolkit:TouchBehavior InteractionStatusChanged="TouchBehavior_InteractionStatusChanged" />
+                        </ImageButton.Behaviors>
+                    </ImageButton>
+
+
+                    <!--<ImageButton Clicked="Minimize_Clicked" Source="threesquares.png" />-->
+                    <ImageButton x:Name="SettingsBtn"
+                                 Clicked="SettingsBtnn_Clicked"
+                                 Source="searchalta.png"
+                                 >
+                        <ImageButton.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                            <toolkit:TouchBehavior InteractionStatusChanged="TouchBehavior_InteractionStatusChanged" />
+                        </ImageButton.Behaviors>
+                    </ImageButton>
+
+                    <ImageButton x:Name="StickTopImgBtn"
+                                 BackgroundColor="Black"
+                                 Clicked="StickTopImgBtn_Clicked"
+                                 HeightRequest="30"
+                                 IsVisible="False"
+                                 Source="pushpined.png"
+                                 WidthRequest="30"
+                                 />
+                    <ImageButton x:Name="UnStickTopImgBtn"
+                                 Clicked="UnStickTopImgBtn_Clicked"
+                                 HeightRequest="30"
+                                 IsVisible="False"
+                                 Source="pin.png"
+                                 WidthRequest="30"
+                                 />
+
+
+                    <!--  IsVisible="{Binding IsStickToTop, Converter={StaticResource BoolToInverse}}"  -->
+                </HorizontalStackLayout>
+            </TitleBar.TrailingContent>
+        </TitleBar>
+
+    </Window.TitleBar>
+
+</Window>

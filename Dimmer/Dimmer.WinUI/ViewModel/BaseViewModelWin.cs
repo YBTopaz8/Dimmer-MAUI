@@ -75,7 +75,23 @@ public partial class BaseViewModelWin : BaseViewModel
 
 
     }
+    public override void OnCloseAllWindows()
+    {
+        base.OnCloseAllWindows();
+        CloseAllWindows();
+    }
+    public void CloseAllWindows()
+    {
+        if (Application.Current!.Windows.Count < 2)
+        {
+            return;
+        }
 
+        winUIWindowMgrService.CloseAllWindows();
+        windowManager.CloseAllWindows();
+
+
+    }
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
@@ -332,7 +348,7 @@ public partial class BaseViewModelWin : BaseViewModel
             await Shell.Current.DisplayAlert("Issue!", "No Song Selected To View", "Ok");
             return;
         }
-        await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
+        //await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
         
     }
 
@@ -359,7 +375,6 @@ public partial class BaseViewModelWin : BaseViewModel
 
     [ObservableProperty]
     public partial TableView? MyTableVIew { get; set; }
-    public DimmerWin MainMAUIWindow { get; internal set; }
 
     // --- The partial OnChanged methods that are our triggers ---
 
@@ -397,12 +412,12 @@ public partial class BaseViewModelWin : BaseViewModel
     
     internal void ActivateMainWindow()
     {
-        var dimWindow = windowManager.GetWindow<DimmerWin>();
+        //var dimWindow = windowManager.GetWindow<DimmerWin>();
         
-        if (dimWindow is not null)
-        {
-            windowManager.ActivateWindow(dimWindow);
-        }
+        //if (dimWindow is not null)
+        //{
+        //    windowManager.ActivateWindow(dimWindow);
+        //}
 
     }
 

@@ -304,7 +304,7 @@
                                         BorderWidth="0"
                                         Clicked="NavigateToSelectedSongPageContextMenuAsync"
                                         Opacity="0.6"
-                                        Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}"
+                                        Text="{Binding CurrentPlayingSongView.PlayCompletedCount}"
                                         TextColor="{AppThemeBinding Light=Black,
                                                                     Dark=White}"
                                         ToolTipProperties.Text="Number of Dims (Click)"

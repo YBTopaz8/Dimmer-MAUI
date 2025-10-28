@@ -4,12 +4,9 @@ using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.DimmerSearch;
 using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views.AlbumsPage;
-using Dimmer.WinUI.Views.DimmerLiveUI;
-using Dimmer.WinUI.Views.PlaylistPages;
-using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
+using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.UI.Xaml.Media.Animation;
 
 using Vanara.PInvoke;
@@ -24,25 +21,23 @@ public partial class AppShell : Shell
         InitializeComponent();
         MyViewModel = baseViewModel;
 
-        Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
-        Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
-        Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
-        Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
-        Routing.RegisterRoute(nameof(DimmerLivePage), typeof(DimmerLivePage));
-        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
-        Routing.RegisterRoute(nameof(LibSanityPage), typeof(LibSanityPage));
-        Routing.RegisterRoute(nameof(ExperimentsPage), typeof(ExperimentsPage));
-        Routing.RegisterRoute(nameof(SocialView), typeof(SocialView));
-        Routing.RegisterRoute(nameof(AllArtistsPage), typeof(AllArtistsPage));
-        Routing.RegisterRoute(nameof(AllPlaylists), typeof(AllPlaylists));
+        //Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
+        //Routing.RegisterRoute(nameof(SingleSongPage), typeof(SingleSongPage));
+        //Routing.RegisterRoute(nameof(OnlinePageManagement), typeof(OnlinePageManagement));
+        //Routing.RegisterRoute(nameof(ArtistsPage), typeof(ArtistsPage));
+        ////Routing.RegisterRoute(nameof(DimmerLivePage), typeof(DimmerLivePage));
+        //Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
+        //Routing.RegisterRoute(nameof(LibSanityPage), typeof(LibSanityPage));
+        ////Routing.RegisterRoute(nameof(SocialView), typeof(SocialView));
+        //Routing.RegisterRoute(nameof(AllArtistsPage), typeof(AllArtistsPage));
 
-        Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
-        Routing.RegisterRoute(nameof(TqlTutorialPage), typeof(TqlTutorialPage));
-        Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
-        Routing.RegisterRoute(nameof(SingleAlbumPage), typeof(SingleAlbumPage));
-        Routing.RegisterRoute(nameof(WelcomePage), typeof(WelcomePage));
+        ////Routing.RegisterRoute(nameof(ChatView), typeof(ChatView));
+        //Routing.RegisterRoute(nameof(TqlTutorialPage), typeof(TqlTutorialPage));
+        ////Routing.RegisterRoute(nameof(SessionTransferView), typeof(SessionTransferView));
+        //Routing.RegisterRoute(nameof(SingleAlbumPage), typeof(SingleAlbumPage));
+        //Routing.RegisterRoute(nameof(WelcomePage), typeof(WelcomePage));
 
-        Routing.RegisterRoute(nameof(DuplicatesMgtWindow), typeof(DuplicatesMgtWindow));
+        //Routing.RegisterRoute(nameof(DuplicatesMgtWindow), typeof(DuplicatesMgtWindow));
     }
 
 
@@ -145,20 +140,7 @@ public partial class AppShell : Shell
 
     }
 
-    private async void OpenDimmerLiveSettingsChip_Clicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(DimmerLivePage));
-    }
-
-    private void SettingsChip_Clicked(object sender, EventArgs e)
-    {
-
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IMauiWindowManagerService>()!;
-
-        winMgr.GetOrCreateUniqueWindow(() => new SettingWin(MyViewModel));
-        //await Shell.Current.GoToAsync(nameof(SettingsPage));
-    }
-
+  
     private async void NavTab_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
         if (e.NewIndex == 1)
@@ -213,13 +195,7 @@ public partial class AppShell : Shell
 
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
-        if(Shell.Current.CurrentPage.GetType() == typeof(SettingsPage))
-        {
-            return;
-        }
-        this.IsBusy = true;
-        await Shell.Current.GoToAsync(nameof(SettingsPage));
-        this.IsBusy = false;
+    
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
@@ -262,7 +238,8 @@ public partial class AppShell : Shell
 
     private async void FindDupes_Clicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(LibSanityPage), true);
+#if WINDOWS
+#endif
     }
 
     private void SfChip_Clicked(object sender, EventArgs e)
@@ -671,7 +648,7 @@ public partial class AppShell : Shell
         try
         {
 
-            await GoToAsync(nameof(AllPlaylists));
+            //await GoToAsync(nameof(AllPlaylists));
         }
         catch (Exception ex)
         {

@@ -114,27 +114,11 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddSingleton<BaseViewModelWin>();
-        builder.Services.AddTransient<AlbumWindow>();
-        builder.Services.AddTransient<SettingsPage>();
-        builder.Services.AddTransient<AllArtistsPage>();
-        builder.Services.AddTransient<SingleAlbumPage>();
-        builder.Services.AddTransient<AllAlbumsPage>();
-        builder.Services.AddSingleton<ArtistsPage>();
-        builder.Services.AddTransient<OnlinePageManagement>();
         builder.Services.AddSingleton<IMauiWindowManagerService, WindowManagerService>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
 
-        builder.Services.AddSingleton<DimmerWin>();
+        //builder.Services.AddSingleton<DimmerWin>();
 
-        builder.Services.AddSingleton<LibSanityPage>();
-        builder.Services.AddSingleton<HomePage>();
-
-        builder.Services.AddSingleton<SingleSongPage>();
-        builder.Services.AddSingleton<DimmerLivePage>();
-        builder.Services.AddSingleton<ExperimentsPage>();
-        builder.Services.AddSingleton<SessionTransferVMWin>();
-
-        builder.Services.AddSingleton<DuplicatesMgtWindow>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
@@ -209,17 +193,10 @@ public static class MauiProgram
 
 
         //IMapper? mapperWin = AutoMapperConfWinUI.ConfigureAutoMapper();
-        builder.Services.AddSingleton<ChatView>();
-        builder.Services.AddSingleton<SessionTransferView>();
-        builder.Services.AddSingleton<SocialView>();
         builder.Services.AddSingleton<SocialViewModelWin>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<SongDetailPage>();
-        builder.Services.AddSingleton<AllPlaylists>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
-        builder.Services.AddSingleton<TqlTutorialPage>();
-        builder.Services.AddSingleton<SingleAlbumPage>();
-        builder.Services.AddSingleton<WelcomePage>();
 
         builder.Services.AddSingleton<SyncLyricsPopUpView>();
         return builder.Build();

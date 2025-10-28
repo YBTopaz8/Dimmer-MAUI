@@ -108,7 +108,7 @@
 
 
                 <TextBox
-                    x:Name="SearchTetxBox"
+                    x:Name="SearchTextBox"
                     Width="550"
                     AccessKey="F"
                     AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
