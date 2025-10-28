@@ -88,4 +88,19 @@ public partial class MoreBtmSheet : BottomSheet
     {
 
     }
+
+    private void CancelSearchAndClose_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ClearAll_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ApplyTQLAndClose_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
 }

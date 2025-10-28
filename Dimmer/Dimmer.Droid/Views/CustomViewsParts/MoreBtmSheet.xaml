@@ -20,89 +20,178 @@
     HalfExpandedRatio="0.6"
     StateChanged="MoreBtmSheet_StateChanged">
     <dx:BottomSheet.Content>
-        <dx:DXStackLayout Margin="20" ItemSpacing="5">
-            <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
-                <dx:DXImage HeightRequest="120" Source="{Binding SelectedSong.CoverImagePath}" />
-                <dx:DXStackLayout ItemSpacing="5">
-                    <Label
-                        FontSize="23"
-                        HorizontalTextAlignment="Justify"
-                        Text="{Binding SelectedSong.Title}"
-                        ToolTipProperties.Text="Song Title" />
+        <dx:TabView x:Name="BtmSheetTabView">
+            <dx:TabViewItem>
+
+                <dx:DXStackLayout Margin="20" ItemSpacing="5">
+                    <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
+                        <dx:DXImage HeightRequest="120" Source="{Binding SelectedSong.CoverImagePath}" />
+                        <dx:DXStackLayout ItemSpacing="5">
+                            <Label
+                                FontSize="23"
+                                HorizontalTextAlignment="Justify"
+                                Text="{Binding SelectedSong.Title}"
+                                ToolTipProperties.Text="Song Title" />
+                            <dx:Chip
+                                FontSize="16"
+                                Text="{Binding SelectedSong.ArtistName}"
+                                ToolTipProperties.Text="Artist Name" />
+                            <dx:Chip
+                                FontSize="17"
+                                Text="{Binding SelectedSong.AlbumName}"
+                                ToolTipProperties.Text="Album Name" />
+                        </dx:DXStackLayout>
+                    </dx:DXStackLayout>
+
+
                     <dx:Chip
-                        FontSize="16"
-                        Text="{Binding SelectedSong.ArtistName}"
-                        ToolTipProperties.Text="Artist Name" />
+                        x:Name="AddQuickNote"
+                        Icon="chatdots.png"
+                        Tap="OnAddQuickNoteClicked"
+                        TapCommandParameter="Black">
+                        <dx:Chip.Text>
+                            <MultiBinding StringFormat="{}Add Quick Note To: {0}">
+                                <Binding Path="SelectedSong.Title" />
+                            </MultiBinding>
+                        </dx:Chip.Text>
+
+                    </dx:Chip>
+
+
                     <dx:Chip
-                        FontSize="17"
-                        Text="{Binding SelectedSong.AlbumName}"
-                        ToolTipProperties.Text="Album Name" />
+                        x:Name="ViewArtistMFI"
+                        Icon="artist.png"
+                        Tap="QuickSearchArtist_Clicked"
+                        TapCommandParameter="{Binding SelectedSong}"
+                        Text="{Binding SelectedSong.OtherArtistsName, StringFormat='Quick View Artist : {0}'}" />
+                    <dx:Chip
+                        x:Name="ViewAlbumMFI"
+                        Icon="albummm.png"
+                        Tap="QuickSearchAlbum_Clicked"
+                        TapCommandParameter="{Binding SelectedSong}"
+                        Text="{Binding SelectedSong.AlbumName, StringFormat='Quick View Album : {0}'}" />
+                    <dx:Chip
+                        x:Name="ViewGenreMFI"
+                        Icon="albumm.png"
+                        Tap="ViewGenreMFI_Clicked"
+                        TapCommandParameter="{Binding .}"
+                        Text="{Binding SelectedSong.GenreName, StringFormat='Quick View Genre : {0}'}" />
+
+
+
+                    <dx:Chip
+                        Tap="OnLabelClicked"
+                        TapCommandParameter="OpenFileExp"
+                        Text="Open File in Explorer" />
+                    <dx:Chip
+                        Tap="OnLabelClicked"
+                        TapCommand="{Binding OpenFileInFolderCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+                        TapCommandParameter="{Binding .}"
+                        Text="Open File in Folder" />
+                    <dx:Chip
+                        HeightRequest="50"
+                        Icon="deletesonginterfacesymbol.png"
+                        Tap="OnLabelClicked"
+                        TapCommandParameter="DeleteSys"
+                        Text="Delete from system" />
+                    <dx:Chip
+                        x:Name="SyncShare"
+                        Icon="roundtransferhorizontal.png"
+                        IsVisible="Hidden"
+                        Tap="SyncShare_Tap"
+                        TapCommandParameter="SyncShare"
+                        Text="Sync" />
+                    <dx:Chip
+                        Icon="shared.png"
+                        Tap="NavigateToSelectedSongPageContextMenuAsync"
+                        TapCommand="{Binding ShareSongDetailsAsTextCommand}"
+                        Text="Share Song" />
                 </dx:DXStackLayout>
-            </dx:DXStackLayout>
+            </dx:TabViewItem>
+
+            <dx:TabViewItem>
+                <dx:DXScrollView>
+                    <dx:DXStackLayout Padding="12">
+                        <dx:DXBorder>
+                            <dx:DXStackLayout Orientation="Vertical">
+
+                                <Label Text="Refine Search" />
+                                <Label Text="TQL Preview" />
+                                <Label x:Name="TQLPreview" />
+
+                            </dx:DXStackLayout>
+                        </dx:DXBorder>
+                        <Label Text="Current Filters:" />
+                        <dx:InputChipGroup
+                            x:Name="CurrentFiltersChipGroup"
+                            x:FieldModifier="Public"
+                            DisplayMember="Text" />
+
+                        <Label Text="Artists" />
+
+                        <dx:DXExpander>
+                            <dx:DXStackLayout Orientation="Horizontal">
+
+                                <dx:AutoCompleteEdit x:Name="ListOfArtistsNamesFilter" />
+                                <dx:Chip x:Name="AddArtistToSearch" Text="Add" />
+                            </dx:DXStackLayout>
+                        </dx:DXExpander>
+
+                        <dx:DXCollectionView x:Name="CollectionOfArtistsAndFeats">
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Grid ColumnDefinitions="*,auto,auto,auto">
+                                        <Label Grid.Column="0" Text="{Binding .}" />
+                                        <Label Grid.Column="1" Text="Add" />
+                                        <Label Grid.Column="2" Text="Remove" />
+                                    </Grid>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                        </dx:DXCollectionView>
+
+                        <Label Text="Albums" />
+                        <dx:DXExpander>
+                            <dx:DXStackLayout Orientation="Horizontal">
+                                <dx:AutoCompleteEdit x:Name="ListOfAlbumNamesFilter" />
+                                <dx:Chip x:Name="AddAlbumToSearch" Text="Add" />
+                            </dx:DXStackLayout>
+                        </dx:DXExpander>
+
+                        <dx:DXCollectionView x:Name="CollectionOfAlbums">
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Grid ColumnDefinitions="*,auto,auto,auto">
+                                        <Label Grid.Column="0" Text="{Binding .}" />
+                                        <Label Grid.Column="1" Text="Add" />
+                                        <Label Grid.Column="2" Text="Remove" />
+                                    </Grid>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                        </dx:DXCollectionView>
+
+                        <dx:DXStackLayout Orientation="Horizontal">
+                            <dx:Chip
+                                x:Name="CancelSearchAndClose"
+                                Tap="CancelSearchAndClose_Tap"
+                                Text="Cancel" />
+                            <dx:Chip
+                                x:Name="ClearAll"
+                                Tap="ClearAll_Tap"
+                                Text="Clear" />
+                            <dx:Chip
+                                x:Name="ApplyTQLAndClose"
+                                Tap="ApplyTQLAndClose_Tap"
+                                Text="Apply" />
+                        </dx:DXStackLayout>
+
+                    </dx:DXStackLayout>
 
 
-            <dx:Chip
-                x:Name="AddQuickNote"
-                Icon="chatdots.png"
-                Tap="OnAddQuickNoteClicked"
-                TapCommandParameter="Black">
-                <dx:Chip.Text>
-                    <MultiBinding StringFormat="{}Add Quick Note To: {0}">
-                        <Binding Path="SelectedSong.Title" />
-                    </MultiBinding>
-                </dx:Chip.Text>
-
-            </dx:Chip>
+                </dx:DXScrollView>
 
 
-            <dx:Chip
-                x:Name="ViewArtistMFI"
-                Icon="artist.png"
-                Tap="QuickSearchArtist_Clicked"
-                TapCommandParameter="{Binding SelectedSong}"
-                Text="{Binding SelectedSong.OtherArtistsName, StringFormat='Quick View Artist : {0}'}" />
-            <dx:Chip
-                x:Name="ViewAlbumMFI"
-                Icon="albummm.png"
-                Tap="QuickSearchAlbum_Clicked"
-                TapCommandParameter="{Binding SelectedSong}"
-                Text="{Binding SelectedSong.AlbumName, StringFormat='Quick View Album : {0}'}" />
-            <dx:Chip
-                x:Name="ViewGenreMFI"
-                Icon="albumm.png"
-                Tap="ViewGenreMFI_Clicked"
-                TapCommandParameter="{Binding .}"
-                Text="{Binding SelectedSong.GenreName, StringFormat='Quick View Genre : {0}'}" />
+            </dx:TabViewItem>
+        </dx:TabView>
 
-
-
-            <dx:Chip
-                Tap="OnLabelClicked"
-                TapCommandParameter="OpenFileExp"
-                Text="Open File in Explorer" />
-            <dx:Chip
-                Tap="OnLabelClicked"
-                TapCommand="{Binding OpenFileInFolderCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
-                TapCommandParameter="{Binding .}"
-                Text="Open File in Folder" />
-            <dx:Chip
-                HeightRequest="50"
-                Icon="deletesonginterfacesymbol.png"
-                Tap="OnLabelClicked"
-                TapCommandParameter="DeleteSys"
-                Text="Delete from system" />
-            <dx:Chip
-                x:Name="SyncShare"
-                Icon="roundtransferhorizontal.png"
-                IsVisible="Hidden"
-                Tap="SyncShare_Tap"
-                TapCommandParameter="SyncShare"
-                Text="Sync" />
-            <dx:Chip
-                Icon="shared.png"
-                Tap="NavigateToSelectedSongPageContextMenuAsync"
-                TapCommand="{Binding ShareSongDetailsAsTextCommand}"
-                Text="Share Song" />
-        </dx:DXStackLayout>
     </dx:BottomSheet.Content>
 </dx:BottomSheet>

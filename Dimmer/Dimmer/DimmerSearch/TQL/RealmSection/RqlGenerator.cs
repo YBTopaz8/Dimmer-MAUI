@@ -1,8 +1,27 @@
 ﻿namespace Dimmer.DimmerSearch.TQL.RealmSection;
+
+public record RealmQueryPlan(
+    string RqlFilter,
+    Func<SongModelView, bool> InMemoryPredicate,
+    IReadOnlyList<SortDescription> SortDescriptions,
+    LimiterClause? Limiter,
+    IQueryNode? CommandNode,
+    ShuffleNode? Shuffle,
+    string? ErrorMessage = null,
+    string? ErrorSuggestion = null
+);
+
+
+
+public record SavedQuery(string Name, string Tql);
+
+
 /// <summary>
 /// A stateless utility to translate a TQL Abstract Syntax Tree (AST) into a Realm Query Language (RQL) string.
 /// This class is the core of the database-first query model and replaces the AstEvaluator.
 /// </summary>
+/// 
+
 public static class RqlGenerator
 {
     private const string MatchAllPredicate = "TRUEPREDICATE";

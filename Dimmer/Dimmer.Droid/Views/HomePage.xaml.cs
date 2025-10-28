@@ -1,5 +1,9 @@
 
 
+using Android.Views.InputMethods;
+
+using CommunityToolkit.Maui.Core.Platform;
+
 using View = Microsoft.Maui.Controls.View;
 
 
@@ -788,7 +792,7 @@ public partial class HomePage : ContentPage
     }
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
-
+        if (MyViewModel.SongsColView is null) return;
         if (MyViewModel.CurrentPlayingSongView.Title is not null)
         {
 
@@ -1393,6 +1397,19 @@ public partial class HomePage : ContentPage
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
 
     }
+
+    private void FocusSearch_Tap(object sender, HandledEventArgs e)
+    {
+
+        SearchBy.Focus();
+
+        if (!InputHelper.IsKeyboardVisibleOnAndroid())
+        {
+            InputHelper.ShowKeyboardOnAndroid(SearchBy);
+        }
+        
+    }
+
 }
 
 

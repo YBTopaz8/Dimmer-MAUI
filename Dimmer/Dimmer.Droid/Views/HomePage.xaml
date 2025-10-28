@@ -93,7 +93,7 @@
                                         Padding="10,0"
                                         BackgroundColor="Transparent"
                                         FontAttributes="Bold"
-                                        FontSize="16"
+                                        FontSize="17"
                                         HorizontalOptions="Start"
                                         LineBreakMode="TailTruncation"
                                         Opacity="0.8"
@@ -116,7 +116,7 @@
                                         Padding="10,0"
                                         BackgroundColor="Transparent"
                                         BorderThickness="0"
-                                        FontSize="12"
+                                        FontSize="14"
                                         HorizontalOptions="Start"
                                         LongPress="ArtistsChip_LongPress"
                                         LongPressCommandParameter="{Binding ArtistName}"
@@ -132,7 +132,7 @@
                                         BackgroundColor="Transparent"
                                         BorderThickness="0"
                                         FontAttributes="Italic"
-                                        FontSize="10"
+                                        FontSize="12"
                                         HorizontalOptions="Start"
                                         LongPress="AlbumFilter_LongPress"
                                         LongPressCommandParameter="{Binding AlbumName}"
@@ -393,6 +393,19 @@
                                         Spacing="10"
                                         VerticalOptions="End"
                                         ZIndex="1">
+
+                                        <dx:Chip
+                                            x:Name="FocusSearch"
+                                            BackgroundColor="DarkSlateBlue"
+                                            BorderThickness="0"
+                                            Icon="searchalta.png"
+                                            IconColor="White"
+                                            IconSize="35,35"
+                                            IsIconVisible="True"
+                                            LongPressCommand="{Binding SongsColView.Commands.ShowFilteringUIForm}"
+                                            Tap="FocusSearch_Tap"
+                                            WidthRequest="43" />
+
                                         <dx:Chip
                                             x:Name="Settings"
                                             BackgroundColor="DarkSlateBlue"
@@ -883,16 +896,34 @@
                     </Grid>
 
 
-
+                    <!--  Expander will show/hide depending on tab  -->
                     <dx:DXExpander
                         x:Name="BtmBarExp"
                         Grid.Row="2"
                         BackgroundColor="Transparent"
                         IsExpanded="{Binding NowPlayingUI, Converter={converters:BoolToInverseConverter}}"
                         VerticalOptions="End">
+                        <dx:DXBorder.Triggers>
+
+                            <DataTrigger
+                                Binding="{Binding CurrentPlayingSongView.TitleDurationKey, Converter={converters:IsNullTrueOrFalseConverter}}"
+                                TargetType="dx:DXBorder"
+                                Value="True">
+                                <Setter Property="IsVisible" Value="false" />
+
+                            </DataTrigger>
+                            <DataTrigger
+                                Binding="{Binding CurrentPlayingSongView.TitleDurationKey, Converter={converters:IsNullTrueOrFalseConverter}}"
+                                TargetType="dx:DXBorder"
+                                Value="False">
+                                <Setter Property="IsVisible" Value="true" />
+
+                            </DataTrigger>
+                        </dx:DXBorder.Triggers>
 
                         <dx:DXBorder
                             x:Name="BtmBarr"
+                            Grid.Row="2"
                             Loaded="BtmBarr_Loaded"
                             Unloaded="BtmBarr_Unloaded">
 
@@ -969,6 +1000,7 @@
                                                 DoubleTap="DurationAndSearchChip_LongPress"
                                                 LongPress="DurationAndSearchChip_LongPress"
                                                 Tap="DurationAndSearchChip_LongPress">
+
                                                 <dx:Chip.ContentTemplate>
                                                     <DataTemplate>
                                                         <VerticalStackLayout>
@@ -984,6 +1016,20 @@
                                                                         Value="True">
                                                                         <Setter Property="FontAttributes" Value="Bold" />
                                                                         <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                                                    </DataTrigger>
+                                                                    <DataTrigger
+                                                                        Binding="{Binding CurrentPlayingSongView.TitleDurationKey, Converter={converters:IsNullTrueOrFalseConverter}}"
+                                                                        TargetType="Label"
+                                                                        Value="True">
+                                                                        <Setter Property="IsVisible" Value="false" />
+
+                                                                    </DataTrigger>
+                                                                    <DataTrigger
+                                                                        Binding="{Binding CurrentPlayingSongView.TitleDurationKey, Converter={converters:IsNullTrueOrFalseConverter}}"
+                                                                        TargetType="Label"
+                                                                        Value="False">
+                                                                        <Setter Property="IsVisible" Value="true" />
+
                                                                     </DataTrigger>
                                                                     <DataTrigger
                                                                         Binding="{Binding IsPlaying}"
