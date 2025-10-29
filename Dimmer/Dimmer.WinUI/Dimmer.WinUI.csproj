@@ -7,15 +7,15 @@
     <RootNamespace>Dimmer.WinUI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
-	  <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+	  <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
 
-	  <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+	  <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
-	  <UseMaui>false</UseMaui>
+	  <UseMaui>true</UseMaui>
     <!-- We do not want XAML files to be processed as .NET MAUI XAML, but rather WinUI XAML. -->
     <EnableDefaultMauiItems>true</EnableDefaultMauiItems>
     <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -28,13 +28,13 @@
   </PropertyGroup>
 
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win-arm64' AND '$(SelfContained)'=='true'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-arm64' AND '$(SelfContained)'=='true'">
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>link</TrimMode>
 
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win-x64' AND '$(SelfContained)'=='false'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-x64' AND '$(SelfContained)'=='false'">
     <PublishAot>false</PublishAot>
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
@@ -43,6 +43,11 @@
   <ItemGroup>
     <Compile Remove="AppShell.xaml.cs" />
     <Compile Remove="Utils\StaticUtils\TaskBarSection\TaskbarThumbnailManager.cs" />
+    <Compile Remove="Views\SyncLyricsPopUpView.xaml.cs" />
+    <Compile Remove="Views\TestPage.xaml.cs" />
+    <Compile Remove="Views\WinUIPages\AllSongsListPage.xaml.cs" />
+    <Compile Remove="Views\WinUIPages\AllSongsWindow.xaml.cs" />
+    <Compile Remove="Views\WinUIPages\SongDetailPage.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="Assets\dimmerIcon.altform-lightunplated_targetsize-16.png" />
@@ -69,10 +74,19 @@
   <ItemGroup>
     <MauiXaml Remove="AppShell.xaml" />
     <MauiXaml Remove="DimmerWin.xaml" />
+    <MauiXaml Remove="Views\SyncLyricsPopUpView.xaml" />
+    <MauiXaml Remove="Views\TestPage.xaml" />
+    <MauiXaml Remove="Views\WinUIPages\AllSongsListPage.xaml" />
+    <MauiXaml Remove="Views\WinUIPages\AllSongsWindow.xaml" />
+    <MauiXaml Remove="Views\WinUIPages\SongDetailPage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Page Remove="AppShell.xaml" />
     <Page Remove="Views\SyncLyricsPopUpView.xaml" />
+    <Page Remove="Views\TestPage.xaml" />
+    <Page Remove="Views\WinUIPages\AllSongsListPage.xaml" />
+    <Page Remove="Views\WinUIPages\AllSongsWindow.xaml" />
+    <Page Remove="Views\WinUIPages\SongDetailPage.xaml" />
   </ItemGroup>
 
 
@@ -155,6 +169,8 @@
   <ItemGroup>
     <Folder Include="Database\" />
     <Folder Include="Utils\StaticUtils\TaskBarSection\" />
+    <Folder Include="Views\" />
+    <Folder Include="Views\WinUIPages\" />
   </ItemGroup>
   
   <ItemGroup>
@@ -183,18 +199,15 @@
 		<None Remove="..\packages\microsoft.maui.controls.compatibility\9.0.120\lib\net9.0-windows10.0.19041\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
 
 		<None Remove="..\packages\microsoft.maui.controls.core\9.0.120\lib\net9.0-windows10.0.19041\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
-		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win-x86\native\WebView2Loader.dll" />
-		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win-x64\native\WebView2Loader.dll" />
-		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win-arm64\native\WebView2Loader.dll" />
+		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win10-x86\native\WebView2Loader.dll" />
+		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win10-x64\native\WebView2Loader.dll" />
+		<None Remove="..\packages\syncfusion.maui.toolkit\1.0.7\lib\net9.0-windows10.0.19041.0\Syncfusion.Maui.Toolkit\runtimes\win10-arm64\native\WebView2Loader.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Page Update="DimmerWin.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
-	  <MauiXaml Update="Views\SyncLyricsPopUpView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>

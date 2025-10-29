@@ -18,7 +18,7 @@ using Dimmer.LastFM;
 using Dimmer.Orchestration;
 using Dimmer.Resources.Localization;
 using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views.WinUIPages;
+//using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
@@ -96,8 +96,8 @@ public partial class BaseViewModelWin : BaseViewModel
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
-        win?.Close();
+        //var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        //win?.Close();
         //// wait 4s and reopen it
         //await Task.Delay(4000);
 
@@ -427,35 +427,35 @@ public partial class BaseViewModelWin : BaseViewModel
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
 
         
-        var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
-        if (syncLyricsWindow is null) return;
-        var newPosition = new RectInt32();
-        newPosition.Width = 400;
-        newPosition.Height= 400;
-        switch (Position)
-        {
-            case 0:
-                newPosition.X = 0;
-                newPosition.Y = 0;
+        //var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
+        //if (syncLyricsWindow is null) return;
+        //var newPosition = new RectInt32();
+        //newPosition.Width = 400;
+        //newPosition.Height= 400;
+        //switch (Position)
+        //{
+        //    case 0:
+        //        newPosition.X = 0;
+        //        newPosition.Y = 0;
 
-                break;
-            case 1:
-                newPosition.X = 0;
-                newPosition.Y = 1;
-                break;
-            case 2:
-                newPosition.X = 1;
-                newPosition.Y = 1;
-                break;
-            case 3:
-                newPosition.X = 1;
-                newPosition.Y = 0;
-                break;
-            default:
-                break;
-        }
-        //Application.Current?.OpenWindow(syncLyricsWindow);
-        PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
+        //        break;
+        //    case 1:
+        //        newPosition.X = 0;
+        //        newPosition.Y = 1;
+        //        break;
+        //    case 2:
+        //        newPosition.X = 1;
+        //        newPosition.Y = 1;
+        //        break;
+        //    case 3:
+        //        newPosition.X = 1;
+        //        newPosition.Y = 0;
+        //        break;
+        //    default:
+        //        break;
+        //}
+        ////Application.Current?.OpenWindow(syncLyricsWindow);
+        //PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
         
     }
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
@@ -532,10 +532,10 @@ public partial class BaseViewModelWin : BaseViewModel
     [RelayCommand]
     private void OpenAllSongsPageWinUI()
     {
-        var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
-        if (win is null) return;
-        Debug.WriteLine(win.Visible);
-        Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
+        //var win = winUIWindowMgrService.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        //if (win is null) return;
+        //Debug.WriteLine(win.Visible);
+        //Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
     [RelayCommand]
     private void FilterBySelection()

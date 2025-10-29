@@ -29,6 +29,7 @@ public partial class App : MauiWinUIApplication
     /// </summary>
     public App()
     {
+        this.InitializeComponent();
         Debug.WriteLine("Dimmer WinUI :D");
 
         var mainInstance = AppInstance.FindOrRegisterForKey("MainDimmer");
@@ -51,7 +52,7 @@ public partial class App : MauiWinUIApplication
         }
 
 
-        this.InitializeComponent();
+        //this.InitializeComponent();
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
 
 

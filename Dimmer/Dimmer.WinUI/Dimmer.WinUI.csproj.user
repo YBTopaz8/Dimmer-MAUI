@@ -17,14 +17,5 @@
     <MauiXaml Update="App.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <Page Update="Views\WinUIPages\AllSongsListPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinUIPages\SongDetailPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinUIPages\AllSongsWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 </Project>

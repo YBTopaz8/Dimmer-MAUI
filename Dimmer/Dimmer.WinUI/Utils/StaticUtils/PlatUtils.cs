@@ -2,7 +2,7 @@
 using System.Drawing.Imaging;
 
 using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views.WinUIPages;
+//using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml.Media;
@@ -347,18 +347,18 @@ public static class PlatUtils
         public async static Task LaunchNotificationWindowAndFadeItAwayAfterSixSeconds(BaseViewModelWin vm)
         {
 
-            SongNotifierWindow newNotif = new SongNotifierWindow(vm);
+            //SongNotifierWindow newNotif = new SongNotifierWindow(vm);
 
-            newNotif.Height = 300;
-            newNotif.Width = AppUtils.UserScreenWidth;
+            //newNotif.Height = 300;
+            //newNotif.Width = AppUtils.UserScreenWidth;
 
-            Application.Current?.OpenWindow(newNotif);
-
-
-            await Task.Delay(6000);
+            //Application.Current?.OpenWindow(newNotif);
 
 
-            Application.Current?.CloseWindow(newNotif);
+            //await Task.Delay(6000);
+
+
+            //Application.Current?.CloseWindow(newNotif);
 
 
         }
@@ -369,24 +369,24 @@ public static class PlatUtils
     {
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        AllSongsWindow? win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
+        //AllSongsWindow? win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
         
-        // move and resize to the center of the screen
+        //// move and resize to the center of the screen
         
-        var pres = win?.AppWindow.Presenter;
+        //var pres = win?.AppWindow.Presenter;
         
-        //window.SetTitleBar()
-        if (pres is OverlappedPresenter p)
-        {
-            //p.PreferredMaximumHeight = 1200;
-            //p.PreferredMaximumWidth = 720;
-            //p.PreferredMinimumWidth = 600;
-            //p.PreferredMinimumHeight = 800;
-            p.IsResizable = true;
-            p.SetBorderAndTitleBar(true, true); // Remove title bar and border
-            p.IsAlwaysOnTop = false;
+        ////window.SetTitleBar()
+        //if (pres is OverlappedPresenter p)
+        //{
+        //    //p.PreferredMaximumHeight = 1200;
+        //    //p.PreferredMaximumWidth = 720;
+        //    //p.PreferredMinimumWidth = 600;
+        //    //p.PreferredMinimumHeight = 800;
+        //    p.IsResizable = true;
+        //    p.SetBorderAndTitleBar(true, true); // Remove title bar and border
+        //    p.IsAlwaysOnTop = false;
             
-        }
+        //}
 
     }
 

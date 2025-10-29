@@ -28,14 +28,23 @@ public static class Lexer
 {
     private static readonly Dictionary<string, TokenType> _keywords = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "and", TokenType.And }, { "or", TokenType.Or }, { "not", TokenType.Not },
-        { "include", TokenType.Include }, { "add", TokenType.Add }, { "plus", TokenType.Add },
-        { "exclude", TokenType.Exclude }, { "remove", TokenType.Exclude }, { "minus", TokenType.Exclude },
-        { "asc", TokenType.Asc }, { "desc", TokenType.Desc },
-        { "random", TokenType.Random }, { "shuffle", TokenType.Shuffle },
-        { "first", TokenType.First }, { "last", TokenType.Last },
+        { "and", TokenType.And }, 
+        { "or", TokenType.Or }, 
+        { "not", TokenType.Not },
+        { "include", TokenType.Include }, 
+        { "add", TokenType.Add }, 
+        { "plus", TokenType.Add },
+        { "exclude", TokenType.Exclude }, 
+        { "remove", TokenType.Exclude }, 
+        { "minus", TokenType.Exclude },
+        { "asc", TokenType.Asc }, 
+        { "desc", TokenType.Desc },
+        { "random", TokenType.Random }, 
+        { "shuffle", TokenType.Shuffle },
+        { "first", TokenType.First }, 
+        { "last", TokenType.Last },
         { "chance", TokenType.Identifier },
-        { "chancef", TokenType.Identifier }
+        //{ "chancef", TokenType.Identifier }
     };
 
     public static List<Token> Tokenize(string text)
