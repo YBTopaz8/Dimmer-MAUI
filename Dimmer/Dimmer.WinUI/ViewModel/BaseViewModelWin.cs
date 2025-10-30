@@ -17,6 +17,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Orchestration;
 using Dimmer.Resources.Localization;
+using Dimmer.WinUI.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
@@ -32,7 +33,7 @@ using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.ViewModel;
 
-public partial class BaseViewModelWin : BaseViewModel
+public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
 {
 
@@ -66,7 +67,7 @@ public partial class BaseViewModelWin : BaseViewModel
             RebuildAndExecuteQuery();
         };
         windowManager = mauiWindowManagerService;
-        AddNextEvent += BaseViewModelWin_AddNextEvent;
+        //AddNextEvent += BaseViewModelWin_AddNextEvent;
         //MainWindowActivated
     }
 
@@ -80,10 +81,10 @@ public partial class BaseViewModelWin : BaseViewModel
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+        //var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
-        win?.Close();
+        //var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        //win?.Close();
         //// wait 4s and reopen it
         //await Task.Delay(4000);
 
@@ -708,5 +709,74 @@ public partial class BaseViewModelWin : BaseViewModel
     public void ShowControlPanel()
     {
         DimmerMultiWindowCoordinator.ShowControlPanel();
+    }
+
+    public void QuickViewArtist(string artistName)
+    {
+        Debug.WriteLine($"Quick view for artist: {artistName}");
+        // TODO: open artist popup or small window
+    }
+
+    public void PlaySongsByArtistInCurrentAlbum(string artistName)
+    {
+        Debug.WriteLine($"Play songs by {artistName} in current album.");
+        // TODO: filter and start playback from current album list
+    }
+
+    public void PlayAllSongsByArtist(string artistName)
+    {
+        Debug.WriteLine($"Play all songs by {artistName}.");
+        // TODO: query Realm for all songs where Artist == artistName
+    }
+
+    public void QueueAllSongsByArtist(string artistName)
+    {
+        Debug.WriteLine($"Queue all songs by {artistName}.");
+        // TODO: add matching songs to NowPlayingQueue
+    }
+
+    public void NavigateToArtistPage(string artistName)
+    {
+        Debug.WriteLine($"Navigating to artist page: {artistName}");
+        // TODO: open a WinUI page or a MAUI subview with artist info
+    }
+
+    public bool IsArtistFavorite(string artistName)
+    {
+        Debug.WriteLine($"Checking favorite status for {artistName}");
+        // TODO: query Realm for favorite
+        return false;
+    }
+
+    public void ToggleFavoriteArtist(string artistName, bool isFavorite)
+    {
+        Debug.WriteLine($"Set favorite={isFavorite} for {artistName}");
+        // TODO: update Realm favorites collection
+    }
+
+    public int GetArtistPlayCount(string artistName)
+    {
+        Debug.WriteLine($"Fetching play count for {artistName}");
+        // TODO: return number of times artist's songs have been played
+        return 0;
+    }
+
+    public bool IsArtistFollowed(string artistName)
+    {
+        Debug.WriteLine($"Checking if {artistName} is followed");
+        // TODO: check Realm or local list
+        return false;
+    }
+
+    [RelayCommand]
+    private void NowPlayingQueueBtnClicked()
+    {
+        SearchSongSB_TextChanged(CurrentPlaybackQuery);
+
+        var allSongsWin = winUIWindowMgrService.GetOrCreateUniqueWindow(this, () => new AllSongsWindow(this));
+        if (allSongsWin is null) return;
+
+        DimmerMultiWindowCoordinator.SnapAllToHome();
+
     }
 }

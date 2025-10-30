@@ -24,6 +24,17 @@ public class DimmerMultiWindowCoordinator
 
         foreach (var win in _mgr.GetOpenNativeWindows())
             TrackWindow(win);
+        _mgr.WindowActivated += (_, e) =>
+        {
+            var win = e.Window; // this will be the Window that just got focus/opened
+            if (win != null && !_windows.Any(x => x.Window == win))
+                TrackWindow(win);
+        };
+        _mgr.WindowSizeChanged += (_, e) =>
+        {
+            if (_homeWindow != null)
+                WindowDockManager.SnapHomeWindow(_homeWindow, _mgr.GetOpenNativeWindows());
+        };
 
         _mgr.WindowClosed += (_, w) => UntrackWindow(w);
     }
@@ -34,13 +45,15 @@ public class DimmerMultiWindowCoordinator
         Debug.WriteLine($"[Coordinator] Home window set: {home.Title}");
     }
 
-    private void TrackWindow(Window win)
+    public void TrackWindow(Window win)
     {
         if (_windows.Any(x => x.Window == win)) return;
 
         var entry = new WindowEntry(win);
         _windows.Add(entry);
+
         var appWin = PlatUtils.GetAppWindow(win);
+
         appWin.Changed += (sender, args) =>
         {
             if (_homeWindow == null || win == _homeWindow) return; // prevent feedback loop

@@ -595,7 +595,6 @@
                                         Grid.Column="0"
                                         Padding="5"
                                         BackgroundColor="Transparent"
-                                        Clicked="QuickFilterBtn_Clicked"
                                         CommandParameter="artist"
                                         FontSize="16"
                                         HorizontalOptions="Start"

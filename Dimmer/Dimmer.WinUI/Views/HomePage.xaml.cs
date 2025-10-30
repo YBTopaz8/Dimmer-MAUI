@@ -8,6 +8,7 @@ using CommunityToolkit.WinUI;
 
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
+using Dimmer.WinUI.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
@@ -15,7 +16,12 @@ using Dimmer.WinUI.Views.WinUIPages;
 using Microsoft.Maui.Converters;
 using Microsoft.Maui.Platform;
 using Microsoft.UI.Composition;
-using Microsoft.UI.Xaml;
+using MenuFlyout= Microsoft.UI.Xaml.Controls.MenuFlyout;
+using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
+using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
+using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
+using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
+using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 
@@ -37,6 +43,9 @@ using SortOrder = Dimmer.Utilities.SortOrder;
 using View = Microsoft.Maui.Controls.View;
 using Window = Microsoft.UI.Xaml.Window;
 using WinUIControls = Microsoft.UI.Xaml.Controls;
+using System.Windows;
+using System.Windows.Forms;
+using Button = Microsoft.Maui.Controls.Button;
 
 namespace Dimmer.WinUI.Views;
 
@@ -639,7 +648,6 @@ namespace Dimmer.WinUI.Views;
     private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
 
-        Debug.WriteLine(e.CurrentSelection.GetType());
 
         var currentList = e.CurrentSelection as IReadOnlyList<object>;
         var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
@@ -982,23 +990,8 @@ namespace Dimmer.WinUI.Views;
 
     }
 
-    private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
-    {
-        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
-
-
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
-
-        var coordinator = IPlatformApplication.Current!.Services.GetService<DimmerMultiWindowCoordinator>()!;
-        
-
-        var allSongsWin = winMgr.GetOrCreateUniqueWindow(MyViewModel, () => new AllSongsWindow(MyViewModel));
-        if (allSongsWin is null) return;
-
-        MyViewModel.DimmerMultiWindowCoordinator.SnapAllToHome();
-
-        return;
-    }
+    private void NowPlayingQueueBtnClicked(object sender, EventArgs e) =>MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+  
 
     private void ViewNowPlayingQueue_Clicked(object sender, EventArgs e)
     {
@@ -1123,128 +1116,204 @@ namespace Dimmer.WinUI.Views;
 
     private void WinUIArtistChip_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        var nativeElement = (UIElement)sender;
+        var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
         var properties = e.GetCurrentPoint(nativeElement).Properties;
+      
+
+        var point = e.GetCurrentPoint(nativeElement);
 
         if (properties.IsLeftButtonPressed) //also properties.IsXButton2Pressed for mouse 5
         {
+            // --- Source data & guards ---
+            var song = MyViewModel?.CurrentPlayingSongView;
+            var otherArtistsRaw = song?.OtherArtistsName ?? string.Empty;
 
-            char[] dividers = new char[] { ',', ';', ':', '|' };
-
-            var namesList = MyViewModel.CurrentPlayingSongView.OtherArtistsName
-                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-                .Select(name => name.Trim())                           // Trim whitespace from each name
-                .Where(x=> !string.IsNullOrEmpty(x))
+            // Parse artists by multiple dividers
+            var dividers = new[] { ',', ';', ':', '|' };
+            var namesList = otherArtistsRaw
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
-            // create a WINUI flyoutmenu here, since winui3 allows for dynamic ones to be done, this way we can show as many or as little artists in a array dividers
-            // each artist has 2 submenus : play, pause
+            if (namesList.Length == 0)
+            {
+                // Fallback: allow acting on primary artist if you have it
+                if (!string.IsNullOrWhiteSpace(song?.ArtistName))
+                    namesList = new[] { song.ArtistName!.Trim() };
+                else
+                    return; // nothing to show
+            }
 
-            var menuFlyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
+            // Build flyout
+            var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
 
+            // ===== Top info block (non-interactive) =====
+            var title = song?.Title ?? "(Unknown song)";
+            var album = song?.AlbumName ?? "(Unknown album)";
+            var artistLine = namesList.Length == 1 ? namesList[0] : $"{namesList.Length} artists";
+
+            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
+            {
+                Text = $"♪  {title}",
+                IsEnabled = false
+            });
+            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
+            {
+                Text = $"💿  {album}",
+                IsEnabled = false
+            });
+            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
+            {
+                Text = $"👤  {artistLine}",
+                IsEnabled = false
+            });
+
+            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator());
+
+            // ===== Build per-artist submenus =====
             foreach (var artistName in namesList)
             {
-                var artistSubMenu = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = $"Artist : {artistName }"};
+                var artistRoot = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = $"Artist: {artistName}" };
 
+                // Quick View (internal)
                 var quickView = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Quick View" };
-                quickView.Click += (s, args) =>
-                {
-                    
-                    // Add your play logic here for the selected artist
-                };
+                quickView.Click += (_, __) => TryVM(a => a.QuickViewArtist(artistName));
 
+                // View By...
                 var viewBy = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "View By..." };
-                //viewBy.Click += (s, args) =>
-                //{
-                //    // Add your play logic here for the selected artist
-                //};
+                var viewAlbums = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Albums" };
+                viewAlbums.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(artistName));
+                var viewGenres = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Genres" };
+                viewGenres.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(artistName)); // customize
 
-                
-                
-                var playSongs = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Play Songs" };
+                viewBy.Items.Add(viewAlbums);
+                viewBy.Items.Add(viewGenres);
 
-                var playSongsInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play Songs In This Album" };
-                var playAllSongs = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play All Songs" };
-                playSongsInAlbum.Click += (s, args) =>
+                // Play Songs...
+                var play = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Play / Queue" };
+
+                var playInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play Songs In This Album" };
+                playInAlbum.Click += (_, __) => TryVM(a => a.PlaySongsByArtistInCurrentAlbum(artistName));
+
+                var playAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play All by Artist" };
+                playAll.Click += (_, __) => TryVM(a => a.PlayAllSongsByArtist(artistName));
+
+                var queueAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Queue All by Artist" };
+                queueAll.Click += (_, __) => TryVM(a => a.QueueAllSongsByArtist(artistName));
+
+                play.Items.Add(playInAlbum);
+                play.Items.Add(playAll);
+                play.Items.Add(queueAll);
+
+                // Stats (non-interactive)
+                var stats = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Stats" };
+                var playCount = SafeVM(a => a.GetArtistPlayCount(artistName), 0);
+                var isFollowed = SafeVM(a => a.IsArtistFollowed(artistName), false);
+
+                stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
+                stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
+
+                // Favorite toggle (if supported)
+                var favSupported = HasVM(out IArtistActions? actions);
+                bool isFav = favSupported && actions!.IsArtistFavorite(artistName);
+                var favToggle = new ToggleMenuFlyoutItem { Text = "Favorite", IsChecked = isFav };
+                favToggle.Click += (_, __) =>
                 {
-                    // Add your pause logic here for the selected artist
+                    if (HasVM(out var a))
+                        a!.ToggleFavoriteArtist(artistName, favToggle.IsChecked);
                 };
 
-                playAllSongs.Click += (s, args) =>
+                // Find On...
+                var findOn = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Find On..." };
+                findOn.Items.Add(MakeExternalLink("Spotify", $"https://open.spotify.com/search/{Uri.EscapeDataString(artistName)}"));
+                findOn.Items.Add(MakeExternalLink("YouTube Music", $"https://music.youtube.com/search?q={Uri.EscapeDataString(artistName)}"));
+                findOn.Items.Add(MakeExternalLink("Bandcamp", $"https://bandcamp.com/search?q={Uri.EscapeDataString(artistName)}&item_type=b"));
+                findOn.Items.Add(MakeExternalLink("SoundCloud", $"https://soundcloud.com/search?q={Uri.EscapeDataString(artistName)}"));
+                findOn.Items.Add(MakeExternalLink("MusicBrainz", $"https://musicbrainz.org/search?query={Uri.EscapeDataString(artistName)}&type=artist&advanced=0"));
+                findOn.Items.Add(MakeExternalLink("Discogs", $"https://www.discogs.com/search/?q={Uri.EscapeDataString(artistName)}&type=artist"));
+
+                // Utilities
+                var utils = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Utilities" };
+                var copyName = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Copy Artist Name" };
+                copyName.Click += (_, __) =>
                 {
-                    // Add your pause logic here for the selected artist
-                };
-                
-                var findOn = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Find On ..." };
-
-                var bandcamp = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Bandcamp" };
-                var SoundCloud = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play All Songs" };
-
-                var YouTubeMusic = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "YouTube Music " };
-                var Spotify = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Spotify" };
-
-                var MusicBrainz = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "MusicBrainz" };
-                var Discogs = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Discogs" };
-               
-
-                bandcamp.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
-                };
-                SoundCloud.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
+                    var dp = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                    dp.SetText(artistName);
+                    Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
+                    
                 };
 
-                YouTubeMusic.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
-                };
-                Spotify.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
-                };
+                utils.Items.Add(copyName);
 
-                MusicBrainz.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
-                };
-                Discogs.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
-                };
+                // Assemble artist root
+                artistRoot.Items.Add(quickView);
+                artistRoot.Items.Add(viewBy);
+                artistRoot.Items.Add(play);
+                artistRoot.Items.Add(stats);
+                artistRoot.Items.Add(favToggle);
+                artistRoot.Items.Add(findOn);
+                artistRoot.Items.Add(utils);
 
-                playAllSongs.Click += (s, args) =>
-                {
-                    // Add your pause logic here for the selected artist
-                };
-                findOn.Items.Add(bandcamp);
-                findOn.Items.Add(SoundCloud);
-                findOn.Items.Add(Spotify);
-                findOn.Items.Add(MusicBrainz);
-                findOn.Items.Add(Discogs);
-
-                artistSubMenu.Items.Add(quickView);
-                artistSubMenu.Items.Add(playSongs);
-
-                playSongs.Items.Add(playSongsInAlbum);
-                playSongs.Items.Add(playAllSongs);
-
-
-                menuFlyout.Items.Add(artistSubMenu);
-                menuFlyout.Items.Add(quickView);
-                //menuFlyout.Items.Add(viewBy.);
-                menuFlyout.Items.Add(findOn);
+                flyout.Items.Add(artistRoot);
             }
 
-            if (menuFlyout.Items.Count > 0)
+            var openArtistPage = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
             {
-                menuFlyout.ShowAt(nativeElement, e.GetCurrentPoint(nativeElement).Position);
-                
+                Text = "Open Artist Page…"
+            };
+            openArtistPage.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(namesList[0]));
+            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator());
+            flyout.Items.Add(openArtistPage);
+
+            // Show at pointer
+            try
+            {
+                // Overload requires FrameworkElement + Point
+                flyout.ShowAt(nativeElement, point.Position);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
+                // fallback: anchor without position
+                //flyout.ShowAt(nativeElement);
             }
 
-            return;
+            // --- local helpers ---
 
+            bool HasVM(out IArtistActions? a)
+            {
+                a = MyViewModel as IArtistActions;
+                return a != null;
+            }
+
+            void TryVM(Action<IArtistActions> action)
+            {
+                if (MyViewModel is IArtistActions a) action(a);
+                else Debug.WriteLine("IArtistActions not implemented on MyViewModel. No-op.");
+            }
+
+            T SafeVM<T>(Func<IArtistActions, T> getter, T fallback)
+            {
+                try
+                {
+                    if (MyViewModel is IArtistActions a) return getter(a);
+                    return fallback;
+                }
+                catch { return fallback; }
+            }
+
+            static Microsoft.UI.Xaml.Controls.MenuFlyoutItem MakeExternalLink(string label, string url)
+            {
+                var item = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = label };
+                item.Click += async (_, __) =>
+                {
+                    try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
+                    catch (Exception ex) { Debug.WriteLine($"Open link failed: {ex.Message}"); }
+                };
+                return item;
+            }
 
         }
     }

@@ -24,8 +24,8 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     /// <summary>
     /// Fired when any tracked window is activated (brought to the foreground).
     /// </summary>
-    public event EventHandler<WindowActivatedEventArgs>? WindowActivated;
 
+    public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowActivated;
     /// <summary>
     /// Fired when any tracked window's size is changed.
     /// </summary>
@@ -37,7 +37,9 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         _mauiServiceProvider = mauiServiceProvider;
     }
 
-   
+
+
+
 
     /// <summary>
     /// Creates and activates a new native WinUI window of a specific type.
@@ -234,12 +236,26 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
 
     public void TrackWindow(Window window)
     {
-        if (!_openWindows.Contains(window))
-        {
+        if (_openWindows.Contains(window))
+            return;
+        
             _openWindows.Add(window);
-            window.Closed += OnWindowClosed;
-            ; // Subscribe to Closed event
-        }
+
+        // hook activation
+        window.Activated += (s, e) =>
+        {
+            WindowActivated?.Invoke(this, new WindowActivatedWithSourceEventArgs(window, e.WindowActivationState));
+        };
+
+        // hook size changed
+        window.SizeChanged += (s, e) =>
+        {
+            WindowSizeChanged?.Invoke(this, e);
+        };
+
+        window.Closed += OnWindowClosed;
+             // Subscribe to Closed event
+        
     }
     private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
     {
