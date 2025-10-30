@@ -449,7 +449,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         try
         {
-            await ValidateLibraryAsync();
+            //await ValidateLibraryAsync();
             _logger.LogInformation("Starting background initialization tasks...");
 
             // Task 1: Check for App Updates (Network I/O)
@@ -510,9 +510,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             //// Task 3: Recalculate All Statistics (Heavy DB work)
-            //_logger.LogInformation("Starting background statistics recalculation...");
-            //var redoStats = new StatsRecalculator(backgroundRealm, _logger);
-            //await redoStats.RecalculateAllStatistics();
+            _logger.LogInformation("Starting background statistics recalculation...");
+            var redoStats = new StatsRecalculator(backgroundRealm, _logger);
+            await redoStats.RecalculateAllStatistics();
             //_logger.LogInformation("Finished recalculating statistics.");
 
 
