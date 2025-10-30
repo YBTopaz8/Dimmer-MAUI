@@ -43,7 +43,7 @@ public partial class BaseViewModelWin : BaseViewModel
     private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
     private readonly LoginViewModel loginViewModel;
-    private readonly IFolderPicker _folderPicker;
+    private readonly IFolderPicker _folderPicker; public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
     public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService, LoginViewModel _loginViewModel,
         IWinUIWindowMgrService winUIWindowMgrService,
         IMauiWindowManagerService mauiWindowManagerService,
@@ -53,12 +53,14 @@ public partial class BaseViewModelWin : BaseViewModel
          ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,
          IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo,
          IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel,
-         IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+         IDialogueService dialogueService, ILogger<BaseViewModel> logger, DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
     {
 
         this.winUIWindowMgrService = winUIWindowMgrService;
         this.loginViewModel = _loginViewModel;
         this._folderPicker = _folderPicker;
+        DimmerMultiWindowCoordinator = dimmerMultiWindowCoordinator;
+        DimmerMultiWindowCoordinator.BaseVM = this;
         UIQueryComponents.CollectionChanged += (s, e) =>
         {
             RebuildAndExecuteQuery();
@@ -683,5 +685,28 @@ public partial class BaseViewModelWin : BaseViewModel
         {
             await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
         }
+    }
+    [ObservableProperty]
+    public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
+    [RelayCommand]
+    public void RefreshWindows()
+    {
+        AllWindows.Clear();
+        foreach (var win in DimmerMultiWindowCoordinator.Windows)
+        {
+            AllWindows.Add(win);
+        }
+    }
+
+    [RelayCommand]
+    public void SaveAllWindows()
+    {
+        DimmerMultiWindowCoordinator.SaveAll();
+    }
+
+    [RelayCommand]
+    public void ShowControlPanel()
+    {
+        DimmerMultiWindowCoordinator.ShowControlPanel();
     }
 }

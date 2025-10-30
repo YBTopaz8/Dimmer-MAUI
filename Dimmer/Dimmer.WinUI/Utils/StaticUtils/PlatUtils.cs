@@ -5,6 +5,7 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.Maui.Platform;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
@@ -283,6 +284,15 @@ public static class PlatUtils
         if (MauiWindow?.Handler == null)
             throw new InvalidOperationException("Window handler was not ready after waiting.");
     }
+
+    public static Compositor GetCompositor(Window? MauiWindow = null)
+    {
+        var nativeWindow = GetNativeWindow(MauiWindow);
+       
+        return nativeWindow.Compositor;
+    }
+
+    public static Compositor MainWindowCompositor => GetCompositor();
     public static Microsoft.UI.Xaml.Window GetNativeWindow(Window? MauiWindow = null)
     {
         if (MauiWindow == null)
@@ -316,7 +326,23 @@ public static class PlatUtils
         }
         return null;
     }
+    public static nint GetHWIdnInt(Microsoft.UI.Xaml.Window win)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        return hwnd;
+    }
+    public static string  GetHWId(Microsoft.UI.Xaml.Window win)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        return hwnd.ToInt64().ToString();
+    }
 
+    public static AppWindow GetAppWindow(Microsoft.UI.Xaml.Window win)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        var id = Win32Interop.GetWindowIdFromWindow(hwnd);
+        return AppWindow.GetFromWindowId(id);
+    }
     public static IntPtr GetAnyWindowHandle(Window window)
     {
 

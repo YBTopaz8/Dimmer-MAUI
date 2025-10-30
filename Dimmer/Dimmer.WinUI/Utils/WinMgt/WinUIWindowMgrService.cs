@@ -179,8 +179,8 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
             // Bring the original caller back to the front
             try
             {
-                Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
-                callerVM.ActivateMainWindow();
+                //Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
+                //callerVM.ActivateMainWindow();
             }
             catch (Exception ex)
             {
@@ -259,7 +259,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     public void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);
-        window.Closed += OnWindowClosed;
+        window.Closed -= OnWindowClosed;
 
         // Also remove from unique tracking if it was there
         var uniqueTypedKey = _trackedUniqueTypedWindows.FirstOrDefault(kvp => kvp.Value == window).Key;
@@ -275,7 +275,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     {
         if (sender is Window closedWindow)
         {
-
+            WindowDockManager.SaveWindowPosition(closedWindow); // Save position on close
             var customArgs = new WindowClosingEventArgs(closedWindow);
             WindowClosing?.Invoke(this, customArgs); // Notify any subscribers
             UntrackWindow(closedWindow);
