@@ -1,11 +1,13 @@
-﻿using Window = Microsoft.UI.Xaml.Window;
+﻿using Microsoft.UI.Xaml;
+
+using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public interface IWinUIWindowMgrService
 {
-    event EventHandler<WinUIWindowMgrService.WindowClosingEventArgs>? WindowClosing;
-    event EventHandler<Microsoft.UI.Xaml.WindowActivatedEventArgs>? WindowActivated;
+    event EventHandler<WinUIWindowMgrService.WindowClosingEventArgs>? WindowClosing; public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowActivated;
+
     event EventHandler<Window>? WindowClosed;
     event EventHandler<Microsoft.UI.Xaml.WindowSizeChangedEventArgs>? WindowSizeChanged;
 
@@ -22,4 +24,17 @@ public interface IWinUIWindowMgrService
     T? GetWindow<T>() where T : Window;
     void TrackWindow(Window window);
     void UntrackWindow(Window window);
+
+}
+
+public class WindowActivatedWithSourceEventArgs  : EventArgs
+{
+    public Window Window { get; }
+    public WindowActivationState ActivationState { get; }
+
+    public WindowActivatedWithSourceEventArgs(Window window, WindowActivationState state)
+    {
+        Window = window;
+        ActivationState = state;
+    }
 }

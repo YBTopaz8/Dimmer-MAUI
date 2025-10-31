@@ -30,8 +30,8 @@ public sealed partial class AllSongsWindow : Window
             {
                 return;
             }
+             PlatUtils.MoveAndResizeCenter(this, new Windows.Graphics.SizeInt32( 1600, 1080));
 
-            
             MyViewModel.CurrentWinUIPage = this;
             var removeCOmmandFromLastSaved = MyViewModel.CurrentTqlQuery;
             removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:\d+!", "", RegexOptions.IgnoreCase);

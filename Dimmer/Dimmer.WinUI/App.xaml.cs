@@ -133,11 +133,19 @@ public partial class App : MauiWinUIApplication
     private readonly Debouncer _fileProcessingDebouncer = new(delayMilliseconds: 300);
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        base.OnLaunched(args);
+        try
+        {
 
-        var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-        HandleActivation(activatedArgs);
-        
+            base.OnLaunched(args);
+
+            var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+            HandleActivation(activatedArgs);
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     

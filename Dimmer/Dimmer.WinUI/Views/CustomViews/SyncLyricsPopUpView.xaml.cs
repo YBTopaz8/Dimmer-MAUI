@@ -15,9 +15,9 @@ public partial class SyncLyricsPopUpView : Window
         MyViewModel = baseViewModel;
         BindingContext = baseViewModel;
         
-        
     }
 
+    DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
     public BaseViewModelWin MyViewModel { get; }
 
     private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
@@ -51,7 +51,7 @@ public partial class SyncLyricsPopUpView : Window
 
     private async void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
     {
-        await this.myPage.FadeOut();
+        await this.myPage.FadeOut(null);
         Application.Current?.CloseWindow(this);
 
         MyViewModel.ActivateMainWindow();

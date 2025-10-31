@@ -145,6 +145,7 @@ public static class MauiProgram
             {
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
+                    
                  
                     var winMgr = IPlatformApplication.Current.Services.GetService<IWinUIWindowMgrService>();
                     winMgr?.CloseAllWindows();
@@ -220,6 +221,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<TqlTutorialPage>();
         builder.Services.AddSingleton<SingleAlbumPage>();
         builder.Services.AddSingleton<WelcomePage>();
+        builder.Services.AddSingleton<DimmerMultiWindowCoordinator>();
+        builder.Services.AddSingleton<ControlPanelWindow>();
 
         builder.Services.AddSingleton<SyncLyricsPopUpView>();
         return builder.Build();

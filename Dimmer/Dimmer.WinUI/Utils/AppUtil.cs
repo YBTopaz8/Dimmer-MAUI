@@ -20,15 +20,15 @@ public class AppUtil : IAppUtil
     {
         this.dimmerWin ??=BaseViewModelWin.MainMAUIWindow;
         dimmerWin ??= new DimmerWin(BaseViewModelWin, this);
+        
 
         if (dimmerWin == null)
         {
             throw new Exception("DimmerWin is null");
         }
-        dimmerWin.MinimumHeight = 750;
-        dimmerWin.MinimumWidth = 900;
-        dimmerWin.Height = 950;
-        dimmerWin.Width = 1100;
+        dimmerWin.MinimumWidth = 450;
+        dimmerWin.MaximumWidth = 500;
+        dimmerWin.Width = 450;
 
 
 
