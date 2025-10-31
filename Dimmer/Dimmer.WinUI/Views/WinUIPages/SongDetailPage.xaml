@@ -36,11 +36,7 @@
                 <!--  The elements involved in the animation  -->
                 <Grid HorizontalAlignment="Center">
                     <!--  The Image that will be the target of the connected animation  -->
-                    <Image
-                        x:Name="detailedImage"
-                        Width="300"
-                        Height="300"
-                        Source="{x:Bind DetailedSong.CoverImagePath}" />
+                    <Image x:Name="detailedImage" Source="{x:Bind DetailedSong.CoverImagePath}" />
                 </Grid>
 
                 <!--  This panel's animation will be coordinated with the main one  -->

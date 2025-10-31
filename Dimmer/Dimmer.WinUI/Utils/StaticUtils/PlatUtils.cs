@@ -167,6 +167,36 @@ public static class PlatUtils
 
     }
 
+    public static void ResizeWindow(this Window concernedWindow, SizeInt32 sizeToSet)
+    {
+        var nativeWindow = GetNativeWindow(concernedWindow);
+        var currentPos = nativeWindow.AppWindow.Position;
+        var newRect = new RectInt32
+        {
+            X = currentPos.X,
+            Y = currentPos.Y,
+            Width = sizeToSet.Width,
+            Height = sizeToSet.Height
+        };
+        nativeWindow.AppWindow.Resize(sizeToSet);
+        nativeWindow.AppWindow.MoveInZOrderAtTop();
+    }
+
+    public static void MoveAndResizeCenter(Microsoft.UI.Xaml.Window nativeWindow, SizeInt32 sizeToSet)
+    {
+        
+        var width = DisplayArea.Primary.WorkArea.Width;
+        var height = DisplayArea.Primary.WorkArea.Height;
+        var newRect = new RectInt32
+        {
+            Height = sizeToSet.Height,
+            Width = sizeToSet.Width,
+            X = (width - sizeToSet.Width) / 2,
+            Y = (height - sizeToSet.Height) / 2
+        };
+        nativeWindow.AppWindow.MoveAndResize(newRect);
+        nativeWindow.AppWindow.MoveInZOrderAtTop();
+    }
     public static void MoveAndResizeWindow(this Window concernedWindow, RectInt32 positionToSet)
     {
         var nativeWindow = GetNativeWindow(concernedWindow);

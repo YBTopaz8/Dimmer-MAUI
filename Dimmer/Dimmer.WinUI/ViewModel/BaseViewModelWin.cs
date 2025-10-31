@@ -771,8 +771,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [RelayCommand]
     private void NowPlayingQueueBtnClicked()
     {
-        SearchSongSB_TextChanged(CurrentPlaybackQuery);
-
         var allSongsWin = winUIWindowMgrService.GetOrCreateUniqueWindow(this, () => new AllSongsWindow(this));
         if (allSongsWin is null) return;
 

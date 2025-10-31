@@ -531,6 +531,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (string.IsNullOrEmpty(searchText))
         {
+
+            
+
             // load the album songs of currentplaying songs
             var albumName = CurrentPlayingSongView.AlbumName;
             if (string.IsNullOrEmpty(CurrentPlayingSongView.TitleDurationKey)) return;
@@ -556,8 +559,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             CurrentTqlQuery = processedNewText;
         }
 
-
+        
         _searchQuerySubject.OnNext(searchText);
+    }
+
+    partial void OnCurrentTqlQueryChanged(string oldValue, string newValue)
+    {
+            CurrentPlaybackQuery = newValue;
+     
     }
 
     public BehaviorSubject<string> _searchQuerySubject;
@@ -966,10 +975,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlaybackQuery = existingPlaylist.QueryText;
 
-        if(_playbackQueue.Any())
-        {
-            await PlaySongAtIndexAsync(0);
-        }
+        
     }
 
     [RelayCommand]

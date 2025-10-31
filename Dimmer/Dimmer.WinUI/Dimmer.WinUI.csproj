@@ -25,9 +25,18 @@
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
+	
+	<PropertyGroup>
+		<PackageCertificateThumbprint>D92D5DC3E2E0804C224A94DFAA82EB2127D799CC</PackageCertificateThumbprint>
+		<DisableTelemetry>true</DisableTelemetry>
+		<EnableDefaultTelemetry>false</EnableDefaultTelemetry>
+		<EnablePriGen>false</EnablePriGen>
+		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+	</PropertyGroup>
 
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-arm64' AND '$(SelfContained)'=='true'">
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-arm64' AND '$(SelfContained)'=='true'">
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>link</TrimMode>
@@ -177,10 +186,12 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
 
 
+    <PackageReference Include="WinUI.TableView" Version="1.3.3" />
+
+
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\YB.WinUI.TableView\src\WinUI.TableView.csproj" />
     <ProjectReference Include="..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
 
     <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
@@ -346,12 +357,18 @@
     <Description>A Cross Platform Music Player App</Description>
     <PackageProjectUrl>https://github.com/YBTopaz8/Dimmer-MAUI</PackageProjectUrl>
     <RepositoryUrl>https://github.com/YBTopaz8/Dimmer-MAUI</RepositoryUrl>
-    <PackageCertificateThumbprint>7CB3027CCE9BE36718A3A7562CB3174364579CA8</PackageCertificateThumbprint>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Title>Dimmer</Title>
     <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <GenerateTestArtifacts>True</GenerateTestArtifacts>
+    <AppxBundle>Never</AppxBundle>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <!--<PackageIcon>atom.svg</PackageIcon>
     <ApplicationIcon>atom.svg</ApplicationIcon>-->
   </PropertyGroup>
