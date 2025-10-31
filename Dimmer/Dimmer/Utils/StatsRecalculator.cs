@@ -26,7 +26,7 @@ public class StatsRecalculator
                 {
                     // 1. Core Play Counts and Rates
                     // Use the enum values directly for clarity
-                    song.PlayCount = song.PlayHistory.Count();
+                    song.PlayCount = song.PlayHistory.Count;
                     song.PlayCompletedCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
                     song.SkipCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Skipped);
                     song.PauseCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Pause);

@@ -449,7 +449,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         try
         {
-            await ValidateLibraryAsync();
+            //await ValidateLibraryAsync();
             _logger.LogInformation("Starting background initialization tasks...");
 
             // Task 1: Check for App Updates (Network I/O)
@@ -510,9 +510,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             //// Task 3: Recalculate All Statistics (Heavy DB work)
-            //_logger.LogInformation("Starting background statistics recalculation...");
-            //var redoStats = new StatsRecalculator(backgroundRealm, _logger);
-            //await redoStats.RecalculateAllStatistics();
+            _logger.LogInformation("Starting background statistics recalculation...");
+            var redoStats = new StatsRecalculator(backgroundRealm, _logger);
+            await redoStats.RecalculateAllStatistics();
             //_logger.LogInformation("Finished recalculating statistics.");
 
 
@@ -531,6 +531,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (string.IsNullOrEmpty(searchText))
         {
+
+            
+
             // load the album songs of currentplaying songs
             var albumName = CurrentPlayingSongView.AlbumName;
             if (string.IsNullOrEmpty(CurrentPlayingSongView.TitleDurationKey)) return;
@@ -556,8 +559,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             CurrentTqlQuery = processedNewText;
         }
 
-
+        
         _searchQuerySubject.OnNext(searchText);
+    }
+
+    partial void OnCurrentTqlQueryChanged(string oldValue, string newValue)
+    {
+            CurrentPlaybackQuery = newValue;
+     
     }
 
     public BehaviorSubject<string> _searchQuerySubject;
@@ -966,10 +975,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         CurrentPlaybackQuery = existingPlaylist.QueryText;
 
-        if(_playbackQueue.Any())
-        {
-            await PlaySongAtIndexAsync(0);
-        }
+        
     }
 
     [RelayCommand]
