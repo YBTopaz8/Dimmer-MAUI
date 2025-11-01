@@ -1260,7 +1260,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
+    partial void OnIsPlayingChanged(bool oldValue, bool newValue)
+    {
+        IsDimmerPlaying();
+    }
+    public virtual void IsDimmerPlaying()
+    {
 
+    }
     [ObservableProperty]
     public partial bool IsShuffleActive { get; set; }
 
@@ -2485,7 +2492,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [RelayCommand]
-    public async Task RemoveFromQueue(SongModelView song)
+    public void RemoveFromQueue(SongModelView song)
     {
         if(song == null || !_playbackQueueSource.Items.Contains(song))
             return;
@@ -2510,7 +2517,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             } else
             {
                 _playbackQueueIndex = -1;
-               await UpdateSongSpecificUi(null);
             }
         }
         //RemoveFromQueueEvent?.Invoke(this, EventArgs.Empty);
@@ -2856,7 +2862,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             if (result == "Remove from Queue")
             {
-                await RemoveFromQueue(songToPlay);
+                RemoveFromQueue(songToPlay);
             } else if(result == "Skip to Next")
             {
                 await NextTrackAsync();
@@ -4238,6 +4244,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 realm.Add(appModel, true);
             });
     }
+
 
 
     public void RateSong(int newRating)
@@ -5691,7 +5698,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    private enum FileOperation
+    public enum FileOperation
     {
         Copy,
         Move,
@@ -5701,7 +5708,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// <summary>
     /// Private helper to handle the logic for copying, moving, or deleting song files and updating the database.
     /// </summary>
-    private async Task PerformFileOperationAsync(
+    public async Task PerformFileOperationAsync(
         IEnumerable<SongModelView> songs,
         string destinationPath,
         FileOperation operation)
@@ -6996,39 +7003,48 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public async Task ShareSongDetailsAsText(object songs)
+    public virtual async Task ShareSongDetailsAsText(object songs)
     {
-        Debug.WriteLine(songs.GetType());
-        SongModelView? song = songs as SongModelView;
-        if(song is null)
+        try
         {
-            song = SelectedSong;
+            
+
+            Debug.WriteLine(songs.GetType());
+            SongModelView? song = songs as SongModelView;
+            if(song is null)
+            {
+                song = SelectedSong;
+            }
+            if(song is null && CurrentPlayingSongView is not null)
+            {
+                song = CurrentPlayingSongView;
+            }
+            if(song is null)
+                return;
+
+            string? WelDoneMessage = AppUtils.GetWellFormattedSharingTextHavingSongStats(song);
+            await  Clipboard.Default.SetTextAsync(WelDoneMessage);
+            
+            //await Share.Default.RequestAsync(new ShareTextRequest
+            //{
+            //    Title = $"Share {song.Title} by {song.ArtistName}",
+            //    Text = WelDoneMessage,
+
+            //});
+
+            await Share.Default
+                .RequestAsync(
+                    new ShareFileRequest
+                    {
+                        Title = WelDoneMessage,
+                        File = new ShareFile(song.CoverImagePath),
+                    });
+            
         }
-        if(song is null && CurrentPlayingSongView is not null)
+        catch (Exception ex)
         {
-            song = CurrentPlayingSongView;
+            Debug.WriteLine(ex.Message);
         }
-        if(song is null)
-            return;
-
-        string? WelDoneMessage = AppUtils.GetWellFormattedSharingTextHavingSongStats(song);
-        string details = $"Title: {song.Title}\nArtist: {song.ArtistName}\nAlbum: {song.AlbumName}\nDuration: {TimeSpan.FromSeconds(song.DurationInSeconds):mm\\:ss}\nPath: {song.FilePath}";
-        await  Clipboard.Default.SetTextAsync(details);
-        //await Share.Default.RequestAsync(new ShareTextRequest
-        //{
-        //    Title = $"Share {song.Title} by {song.ArtistName}",
-        //    Text = WelDoneMessage,
-
-        //});
-
-        await Share.Default
-            .RequestAsync(
-                new ShareFileRequest
-                {
-                    Title = $"Share {song.Title} by {song.ArtistName}",
-                    File = new ShareFile(song.CoverImagePath),
-                });
-
         // if multiple
         // Files = new List<ShareFile> { new ShareFile(file1), new ShareFile(file2) }
     }
