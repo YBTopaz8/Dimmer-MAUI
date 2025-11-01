@@ -418,17 +418,12 @@
                                     StrokeThickness="3">
                                     <Border.Triggers>
 
-
-
                                         <DataTrigger
                                             Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                             TargetType="Border"
                                             Value="true">
                                             <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
                                         </DataTrigger>
-
-
-
                                     </Border.Triggers>
                                     <Grid>
                                         <ImageButton

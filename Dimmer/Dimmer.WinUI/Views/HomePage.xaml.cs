@@ -8,7 +8,6 @@ using CommunityToolkit.WinUI;
 
 using Dimmer.DimmerLive;
 using Dimmer.DimmerSearch;
-using Dimmer.WinUI.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
@@ -125,7 +124,6 @@ namespace Dimmer.WinUI.Views;
         else
         {
 
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
 
             await Task.Delay(4000);
             await MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
@@ -134,70 +132,6 @@ namespace Dimmer.WinUI.Views;
 
 
     }
-    //private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
-    //{
-    //    var send = (View)sender;
-
-    //    var uiElt = sender as Microsoft.UI.Xaml.UIElement;
-    //    var properties = e.PlatformArgs?.PointerRoutedEventArgs.GetCurrentPoint(uiElt).Properties;
-    //    if (properties is null) return;
-    //    var isRightBtnClicked = properties.IsRightButtonPressed;
-
-    //    if (isRightBtnClicked) return;
-
-    //    //if (properties.IsXButton1Pressed)
-    //    //{
-    //    //    Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
-    //    //}
-    //    //else if (properties.IsXButton2Pressed)
-    //    //{
-
-    //    //}
-    //    var gest = send.GestureRecognizers[0] as PointerGestureRecognizer;
-    //    if (gest is null)
-    //    {
-    //        return;
-    //    }
-    //    var field = gest.PointerReleasedCommandParameter as string;
-    //    var val = gest.PointerPressedCommandParameter as string;
-    //    if (field is "artist" && !string.IsNullOrEmpty(val))
-    //    {
-    //        char[] dividers = new char[] { ',', ';', ':', '|', '-' };
-
-    //        var namesList = val
-    //            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-    //            .Select(name => name.Trim())                           // Trim whitespace from each name
-    //            .ToArray();                                             // Convert to a List
-    //        string? selectedArtist= null;
-    //        if (namesList.Length > 1)
-    //        {
-    //            selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
-
-    //            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
-    //            {
-    //                return;
-    //            }
-    //        }
-    //        else
-    //        {
-    //            selectedArtist = namesList[0];
-    //        }
-
-    //        PlatUtils.OpenAllSongsWindow(MyViewModel);
-    //        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
-
-    //        return;
-
-    //    }
-
-    //    PlatUtils.OpenAllSongsWindow(MyViewModel);
-    //    MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
-
-
-    //    //_windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
-
-    //}
-
 
     private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {

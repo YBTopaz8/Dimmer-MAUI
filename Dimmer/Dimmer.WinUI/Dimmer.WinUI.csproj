@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>Dimmer.WinUI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -23,9 +23,13 @@
     <PublishTrimmed>false</PublishTrimmed>
     <TrimMode>None</TrimMode>
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    
   </PropertyGroup>
-	
+	<PropertyGroup>
+		<WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+		<WindowsPackageType>None</WindowsPackageType>
+		<SelfContained>false</SelfContained>
+	</PropertyGroup>
 	<PropertyGroup>
 		<PackageCertificateThumbprint>D92D5DC3E2E0804C224A94DFAA82EB2127D799CC</PackageCertificateThumbprint>
 		<DisableTelemetry>true</DisableTelemetry>
@@ -34,6 +38,13 @@
 		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
 	</PropertyGroup>
 
+<Target Name="SkipMissingHybridWebViewAssets" BeforeTargets="CopyFilesToOutputDirectory">
+  <ItemGroup>
+    <None Remove="$(NuGetPackageRoot)microsoft.maui.core\9.0.120\lib\net9.0-windows10.0.*\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+    <None Remove="$(NuGetPackageRoot)microsoft.maui.controls.core\9.0.120\lib\net9.0-windows10.0.*\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+    <None Remove="$(NuGetPackageRoot)microsoft.maui.controls.compatibility\9.0.120\lib\net9.0-windows10.0.*\Microsoft.Maui\Handlers\HybridWebView\HybridWebView.js" />
+  </ItemGroup>
+</Target>
 
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'=='win10-arm64' AND '$(SelfContained)'=='true'">
@@ -193,7 +204,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\WinUI.TableView\src\WinUI.TableView.csproj" />
     <ProjectReference Include="..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
 
     <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
@@ -277,6 +287,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Database\" />
+    <Folder Include="Interfaces\" />
     <Folder Include="Utils\StaticUtils\TaskBarSection\" />
   </ItemGroup>
   <ItemGroup>
