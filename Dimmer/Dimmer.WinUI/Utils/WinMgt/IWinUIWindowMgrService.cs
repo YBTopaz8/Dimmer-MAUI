@@ -1,11 +1,13 @@
-﻿using Window = Microsoft.UI.Xaml.Window;
+﻿using Microsoft.UI.Xaml;
+
+using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public interface IWinUIWindowMgrService
 {
-    event EventHandler<WinUIWindowMgrService.WindowClosingEventArgs>? WindowClosing;
-    event EventHandler<Microsoft.UI.Xaml.WindowActivatedEventArgs>? WindowActivated;
+    event EventHandler<WinUIWindowMgrService.WindowClosingEventArgs>? WindowClosing; public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowActivated;
+
     event EventHandler<Window>? WindowClosed;
     event EventHandler<Microsoft.UI.Xaml.WindowSizeChangedEventArgs>? WindowSizeChanged;
 
@@ -18,8 +20,21 @@ public interface IWinUIWindowMgrService
     T? CreateWindow<T>(object? parameter) where T : Window;
     IReadOnlyList<Window> GetOpenNativeWindows();
     Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null);
-    T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM=null, Func<T>? windowFactory = null) where T : Window;
+    T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM = null, Func<T>? windowFactory = null) where T : Window;
     T? GetWindow<T>() where T : Window;
     void TrackWindow(Window window);
     void UntrackWindow(Window window);
+
+}
+
+public class WindowActivatedWithSourceEventArgs : EventArgs
+{
+    public Window Window { get; }
+    public WindowActivationState ActivationState { get; }
+
+    public WindowActivatedWithSourceEventArgs(Window window, WindowActivationState state)
+    {
+        Window = window;
+        ActivationState = state;
+    }
 }

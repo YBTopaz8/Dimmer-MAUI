@@ -32,7 +32,7 @@ using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.ViewModel;
 
-public partial class BaseViewModelWin : BaseViewModel
+public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
 {
 
@@ -43,7 +43,7 @@ public partial class BaseViewModelWin : BaseViewModel
     private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
     private readonly LoginViewModel loginViewModel;
-    private readonly IFolderPicker _folderPicker;
+    private readonly IFolderPicker _folderPicker; public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
     public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService, LoginViewModel _loginViewModel,
         IWinUIWindowMgrService winUIWindowMgrService,
         IMauiWindowManagerService mauiWindowManagerService,
@@ -53,18 +53,20 @@ public partial class BaseViewModelWin : BaseViewModel
          ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,
          IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo,
          IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel,
-         IDialogueService dialogueService, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
+         IDialogueService dialogueService, ILogger<BaseViewModel> logger, DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
     {
 
         this.winUIWindowMgrService = winUIWindowMgrService;
         this.loginViewModel = _loginViewModel;
         this._folderPicker = _folderPicker;
+        DimmerMultiWindowCoordinator = dimmerMultiWindowCoordinator;
+        DimmerMultiWindowCoordinator.BaseVM = this;
         UIQueryComponents.CollectionChanged += (s, e) =>
         {
             RebuildAndExecuteQuery();
         };
         windowManager = mauiWindowManagerService;
-        AddNextEvent += BaseViewModelWin_AddNextEvent;
+        //AddNextEvent += BaseViewModelWin_AddNextEvent;
         //MainWindowActivated
     }
 
@@ -78,10 +80,10 @@ public partial class BaseViewModelWin : BaseViewModel
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
+        //var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
-        var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
-        win?.Close();
+        //var win = winMgr.GetOrCreateUniqueWindow(this, windowFactory: () => new AllSongsWindow(this));
+        //win?.Close();
         //// wait 4s and reopen it
         //await Task.Delay(4000);
 
@@ -333,7 +335,7 @@ public partial class BaseViewModelWin : BaseViewModel
             return;
         }
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
-        
+
     }
 
     public async Task InitializeParseUser()
@@ -394,11 +396,11 @@ public partial class BaseViewModelWin : BaseViewModel
     }
 
 
-    
+
     internal void ActivateMainWindow()
     {
         var dimWindow = windowManager.GetWindow<DimmerWin>();
-        
+
         if (dimWindow is not null)
         {
             windowManager.ActivateWindow(dimWindow);
@@ -411,12 +413,12 @@ public partial class BaseViewModelWin : BaseViewModel
 
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
 
-        
+
         var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
         if (syncLyricsWindow is null) return;
         var newPosition = new RectInt32();
         newPosition.Width = 400;
-        newPosition.Height= 400;
+        newPosition.Height = 400;
         switch (Position)
         {
             case 0:
@@ -441,7 +443,7 @@ public partial class BaseViewModelWin : BaseViewModel
         }
         //Application.Current?.OpenWindow(syncLyricsWindow);
         PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
-        
+
     }
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
     {
@@ -451,7 +453,6 @@ public partial class BaseViewModelWin : BaseViewModel
         {
             ShowWelcomeScreen = false;
             await Shell.Current.GoToAsync("..");
-            _ = Task.Run(EnsureAllCoverArtCachedForSongsAsync);
             return;
         }
     }
@@ -512,7 +513,7 @@ public partial class BaseViewModelWin : BaseViewModel
     {
         await base.OnPlaybackStarted(args);
         if (args.MediaSong is null) return;
-       // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
+        // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
     }
     [RelayCommand]
     private void OpenAllSongsPageWinUI()
@@ -683,5 +684,95 @@ public partial class BaseViewModelWin : BaseViewModel
         {
             await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
         }
+    }
+    [ObservableProperty]
+    public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
+    [RelayCommand]
+    public void RefreshWindows()
+    {
+        AllWindows.Clear();
+        foreach (var win in DimmerMultiWindowCoordinator.Windows)
+        {
+            AllWindows.Add(win);
+        }
+    }
+
+    [RelayCommand]
+    public void SaveAllWindows()
+    {
+        DimmerMultiWindowCoordinator.SaveAll();
+    }
+
+    [RelayCommand]
+    public void ShowControlPanel()
+    {
+        DimmerMultiWindowCoordinator.ShowControlPanel();
+    }
+
+    public void QuickViewArtist(string artistName)
+    {
+        Debug.WriteLine($"Quick view for artist: {artistName}");
+        // TODO: open artist popup or small window
+    }
+
+    public void PlaySongsByArtistInCurrentAlbum(string artistName)
+    {
+        Debug.WriteLine($"Play songs by {artistName} in current album.");
+        // TODO: filter and start playback from current album list
+    }
+
+    public void PlayAllSongsByArtist(string artistName)
+    {
+        Debug.WriteLine($"Play all songs by {artistName}.");
+        // TODO: query Realm for all songs where Artist == artistName
+    }
+
+    public void QueueAllSongsByArtist(string artistName)
+    {
+        Debug.WriteLine($"Queue all songs by {artistName}.");
+        // TODO: add matching songs to NowPlayingQueue
+    }
+
+    public void NavigateToArtistPage(string artistName)
+    {
+        Debug.WriteLine($"Navigating to artist page: {artistName}");
+        // TODO: open a WinUI page or a MAUI subview with artist info
+    }
+
+    public bool IsArtistFavorite(string artistName)
+    {
+        Debug.WriteLine($"Checking favorite status for {artistName}");
+        // TODO: query Realm for favorite
+        return false;
+    }
+
+    public void ToggleFavoriteArtist(string artistName, bool isFavorite)
+    {
+        Debug.WriteLine($"Set favorite={isFavorite} for {artistName}");
+        // TODO: update Realm favorites collection
+    }
+
+    public int GetArtistPlayCount(string artistName)
+    {
+        Debug.WriteLine($"Fetching play count for {artistName}");
+        // TODO: return number of times artist's songs have been played
+        return 0;
+    }
+
+    public bool IsArtistFollowed(string artistName)
+    {
+        Debug.WriteLine($"Checking if {artistName} is followed");
+        // TODO: check Realm or local list
+        return false;
+    }
+
+    [RelayCommand]
+    private void NowPlayingQueueBtnClicked()
+    {
+        var allSongsWin = winUIWindowMgrService.GetOrCreateUniqueWindow(this, () => new AllSongsWindow(this));
+        if (allSongsWin is null) return;
+
+        DimmerMultiWindowCoordinator.SnapAllToHome();
+
     }
 }

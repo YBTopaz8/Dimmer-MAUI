@@ -45,7 +45,7 @@ public static class MauiProgram
                          method: (handler, view) =>
                          {
                              return;
-                                 
+
                              // The 'view' is the cross-platform Button control.
                              if (view is Button button)
                              {
@@ -61,7 +61,7 @@ public static class MauiProgram
                                  {
                                      // Set the initial/unhovered color. Let's use the button's TextColor for flexibility.
                                      TintColor = Colors.DarkSlateBlue
-                                     
+
                                  };
 
 
@@ -69,7 +69,7 @@ public static class MauiProgram
                                  {
                                      HoveredAnimationDuration = 350,
                                      HoveredAnimationEasing = Easing.Linear,
-                                     HoveredOpacity=0.8,
+                                     HoveredOpacity = 0.8,
                                      PressedAnimationDuration = 300,
                                      // Add any other customizations here
 
@@ -81,11 +81,11 @@ public static class MauiProgram
                                      switch (e.State)
                                      {
                                          case CommunityToolkit.Maui.Core.HoverState.Hovered:
-                                             var bev =button.Behaviors.FirstOrDefault(x=>x.GetType()== typeof(IconTintColorBehavior));
-                                                if (bev is null) return;
-                                                var iconTintBehavior = (CommunityToolkit.Maui.Behaviors.IconTintColorBehavior)bev;
+                                             var bev = button.Behaviors.FirstOrDefault(x => x.GetType() == typeof(IconTintColorBehavior));
+                                             if (bev is null) return;
+                                             var iconTintBehavior = (CommunityToolkit.Maui.Behaviors.IconTintColorBehavior)bev;
                                              // The 'sender' of this event is the TouchBehavior itself.
-                                             iconTintBehavior.TintColor= Colors.DarkSlateBlue;
+                                             iconTintBehavior.TintColor = Colors.DarkSlateBlue;
 
                                              button.BorderWidth = 1;
                                              button.BorderColor = Colors.DarkSlateBlue;
@@ -109,7 +109,7 @@ public static class MauiProgram
                          });
 
 
-                 });
+            });
 
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
@@ -145,7 +145,8 @@ public static class MauiProgram
             {
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
-                 
+
+
                     var winMgr = IPlatformApplication.Current.Services.GetService<IWinUIWindowMgrService>();
                     winMgr?.CloseAllWindows();
 
@@ -161,18 +162,18 @@ public static class MauiProgram
                         PlatUtils.DimmerHandle = nativeWindowHandle;
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
-                        
+
                         winuiAppWindow.Changed += (s, e) =>
                         {
                             if (e.DidVisibilityChange)
                             {
-                                PlatUtils.IsAppInForeground =s.IsVisible;
+                                PlatUtils.IsAppInForeground = s.IsVisible;
                             }
 
                         };
 
                         PlatUtils.AppWinPresenter = winuiAppWindow.Presenter;
-                        PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
+                        PlatUtils.OverLappedPres = winuiAppWindow.Presenter as OverlappedPresenter;
 
 
                     }
@@ -197,14 +198,14 @@ public static class MauiProgram
                     }
                 });
 
-                
+
             });
 
-           
+
         });
 
 
-        builder.Services.AddSingleton<IAnimationService,WindowsAnimationService>();
+        builder.Services.AddSingleton<IAnimationService, WindowsAnimationService>();
 
 
 
@@ -220,6 +221,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<TqlTutorialPage>();
         builder.Services.AddSingleton<SingleAlbumPage>();
         builder.Services.AddSingleton<WelcomePage>();
+        builder.Services.AddSingleton<DimmerMultiWindowCoordinator>();
+        builder.Services.AddSingleton<ControlPanelWindow>();
 
         builder.Services.AddSingleton<SyncLyricsPopUpView>();
         return builder.Build();

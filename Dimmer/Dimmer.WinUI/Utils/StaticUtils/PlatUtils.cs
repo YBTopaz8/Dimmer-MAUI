@@ -5,6 +5,7 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.Maui.Platform;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
@@ -140,7 +141,7 @@ public static class PlatUtils
         }
     }
 
-    public static void OpenAndSetWindowToEdgePosition( Window concernedWindow, RectInt32 positionToSet)
+    public static void OpenAndSetWindowToEdgePosition(Window concernedWindow, RectInt32 positionToSet)
     {
         var nativeWindow = GetNativeWindow(concernedWindow);
         if (nativeWindow is null) return;
@@ -155,10 +156,10 @@ public static class PlatUtils
             p.SetBorderAndTitleBar(false, false);
             p.IsResizable = false;
             p.IsAlwaysOnTop = true;
-            
+
         }
 
-        
+
         nativeWindow.Activate();
         nativeWindow.AppWindow.MoveAndResize(positionToSet);
 
@@ -166,6 +167,36 @@ public static class PlatUtils
 
     }
 
+    public static void ResizeWindow(this Window concernedWindow, SizeInt32 sizeToSet)
+    {
+        var nativeWindow = GetNativeWindow(concernedWindow);
+        var currentPos = nativeWindow.AppWindow.Position;
+        var newRect = new RectInt32
+        {
+            X = currentPos.X,
+            Y = currentPos.Y,
+            Width = sizeToSet.Width,
+            Height = sizeToSet.Height
+        };
+        nativeWindow.AppWindow.Resize(sizeToSet);
+        nativeWindow.AppWindow.MoveInZOrderAtTop();
+    }
+
+    public static void MoveAndResizeCenter(Microsoft.UI.Xaml.Window nativeWindow, SizeInt32 sizeToSet)
+    {
+
+        var width = DisplayArea.Primary.WorkArea.Width;
+        var height = DisplayArea.Primary.WorkArea.Height;
+        var newRect = new RectInt32
+        {
+            Height = sizeToSet.Height,
+            Width = sizeToSet.Width,
+            X = (width - sizeToSet.Width) / 2,
+            Y = (height - sizeToSet.Height) / 2
+        };
+        nativeWindow.AppWindow.MoveAndResize(newRect);
+        nativeWindow.AppWindow.MoveInZOrderAtTop();
+    }
     public static void MoveAndResizeWindow(this Window concernedWindow, RectInt32 positionToSet)
     {
         var nativeWindow = GetNativeWindow(concernedWindow);
@@ -260,7 +291,7 @@ public static class PlatUtils
         var window = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
 
         // Get the underlying native window (WinUI).
-        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window??throw new InvalidOperationException("Unable to retrieve the native window.");
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window ?? throw new InvalidOperationException("Unable to retrieve the native window.");
 
 
         DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
@@ -283,16 +314,25 @@ public static class PlatUtils
         if (MauiWindow?.Handler == null)
             throw new InvalidOperationException("Window handler was not ready after waiting.");
     }
+
+    public static Compositor GetCompositor(Window? MauiWindow = null)
+    {
+        var nativeWindow = GetNativeWindow(MauiWindow);
+
+        return nativeWindow.Compositor;
+    }
+
+    public static Compositor MainWindowCompositor => GetCompositor();
     public static Microsoft.UI.Xaml.Window GetNativeWindow(Window? MauiWindow = null)
     {
         if (MauiWindow == null)
         {       // Ensure there’s at least one window created by MAUI
-             MauiWindow = Application.Current?.Windows.FirstOrDefault();
+            MauiWindow = Application.Current?.Windows.FirstOrDefault();
         }
         if (MauiWindow == null)
             throw new InvalidOperationException("No MAUI window available yet.");
 
-       
+
 
         var nativeWindow = MauiWindow.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
         if (nativeWindow == null)
@@ -300,7 +340,7 @@ public static class PlatUtils
 
         return nativeWindow;
     }
- 
+
     public static Microsoft.UI.Xaml.Controls.Frame? GetNativeFrame(this IElement element)
     {
         if (element.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement fe)
@@ -316,14 +356,30 @@ public static class PlatUtils
         }
         return null;
     }
+    public static nint GetHWIdnInt(Microsoft.UI.Xaml.Window win)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        return hwnd;
+    }
+    public static string GetHWId(Microsoft.UI.Xaml.Window win)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        return hwnd.ToInt64().ToString();
+    }
 
+    public static AppWindow GetAppWindow(Microsoft.UI.Xaml.Window win)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        var id = Win32Interop.GetWindowIdFromWindow(hwnd);
+        return AppWindow.GetFromWindowId(id);
+    }
     public static IntPtr GetAnyWindowHandle(Window window)
     {
 
         if (window == null)
             throw new ArgumentNullException(nameof(window));
         // Get the underlying native window (WinUI).
-        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window??throw new InvalidOperationException("Unable to retrieve the native window.");
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window ?? throw new InvalidOperationException("Unable to retrieve the native window.");
 
         var intPtrHandle = WindowNative.GetWindowHandle(nativeWindow);
 
@@ -373,11 +429,11 @@ public static class PlatUtils
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         AllSongsWindow? win = winMgr.GetOrCreateUniqueWindow(vm, windowFactory: () => new AllSongsWindow(vm));
-        
+
         // move and resize to the center of the screen
-        
+
         var pres = win?.AppWindow.Presenter;
-        
+
         //window.SetTitleBar()
         if (pres is OverlappedPresenter p)
         {
@@ -388,7 +444,7 @@ public static class PlatUtils
             p.IsResizable = true;
             p.SetBorderAndTitleBar(true, true); // Remove title bar and border
             p.IsAlwaysOnTop = false;
-            
+
         }
 
     }
@@ -404,18 +460,19 @@ public static class PlatUtils
                 .SetAppLogoOverride(new Uri(albumArtPath), AppNotificationImageCrop.Circle, songTitle)
                 .AddText("Now Playing...", new AppNotificationTextProperties().SetMaxLines(2))
                 .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(2))
-                
+
                 .AddText(artistName, new AppNotificationTextProperties().SetMaxLines(2));
-                
+
             //.AddButton(new AppNotificationButton("View Song Details").AddArgument("action", "play"))
             //.AddButton(new AppNotificationButton("Queue").AddArgument("action", "queue")
 
 
             await AppNotificationManager.Default.RemoveAllAsync();
             var notif = notificationBuilder.BuildNotification();
-            
+
             AppNotificationManager.Default.Show(notif);
-        } catch(Exception ex)
+        }
+        catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
         }
@@ -437,7 +494,7 @@ public static class PlatUtils
         {
             var flyoutMenu = FlyoutBase.GetAttachedFlyout(platformView);
             if (flyoutMenu is null) return;
-            
+
             // The native way to show a context flyout on WinUI
             FlyoutBase.ShowAttachedFlyout(platformView);
         }

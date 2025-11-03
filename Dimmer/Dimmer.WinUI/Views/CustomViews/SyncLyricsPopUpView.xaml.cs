@@ -141,21 +141,21 @@ public partial class SyncLyricsPopUpView : Window
         try
         {
 
-            //if (PositionPicker.IsVisible)
-            //{
-            //    await Task.WhenAll(PositionPicker.AnimateHeight(0, 300, Easing.BounceOut),
-            //    BtmVSL.AnimateHeight(0, 300, Easing.BounceOut));
-                
-            //    PositionPicker.IsVisible = false;
-            //    BtmVSL.IsVisible = false;
-            //}
-            //else
-            //{
-            //    PositionPicker.IsVisible = true;
-            //    BtmVSL.IsVisible = true;
-            //    await Task.WhenAll(PositionPicker.AnimateHeight(105, 350, Easing.SpringOut), BtmVSL.AnimateHeight(30, 350, Easing.SpringOut));
-               
-            //}
+            if (PositionPicker.IsVisible)
+            {
+                await Task.WhenAll(PositionPicker.AnimateHeight(0, 300, Easing.BounceOut),
+                BtmVSL.AnimateHeight(0, 300, Easing.BounceOut));
+
+                PositionPicker.IsVisible = false;
+                BtmVSL.IsVisible = false;
+            }
+            else
+            {
+                PositionPicker.IsVisible = true;
+                BtmVSL.IsVisible = true;
+                await Task.WhenAll(PositionPicker.AnimateHeight(105, 350, Easing.SpringOut), BtmVSL.AnimateHeight(30, 350, Easing.SpringOut));
+
+            }
         }
         catch (Exception ex)
         {

@@ -4,7 +4,7 @@ using Page = Microsoft.UI.Xaml.Controls.Page;
 using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
-public partial class WinUIWindowMgrService :IWinUIWindowMgrService
+public partial class WinUIWindowMgrService : IWinUIWindowMgrService
 {
     private readonly IServiceProvider _mauiServiceProvider; // To potentially resolve MAUI services if needed
     private readonly List<Window> _openWindows = new(); // Simple tracking
@@ -24,8 +24,8 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     /// <summary>
     /// Fired when any tracked window is activated (brought to the foreground).
     /// </summary>
-    public event EventHandler<WindowActivatedEventArgs>? WindowActivated;
 
+    public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowActivated;
     /// <summary>
     /// Fired when any tracked window's size is changed.
     /// </summary>
@@ -37,7 +37,9 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         _mauiServiceProvider = mauiServiceProvider;
     }
 
-   
+
+
+
 
     /// <summary>
     /// Creates and activates a new native WinUI window of a specific type.
@@ -179,8 +181,8 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
             // Bring the original caller back to the front
             try
             {
-                Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
-                callerVM.ActivateMainWindow();
+                //Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
+                //callerVM.ActivateMainWindow();
             }
             catch (Exception ex)
             {
@@ -234,17 +236,31 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
 
     public void TrackWindow(Window window)
     {
-        if (!_openWindows.Contains(window))
+        if (_openWindows.Contains(window))
+            return;
+
+        _openWindows.Add(window);
+
+        // hook activation
+        window.Activated += (s, e) =>
         {
-            _openWindows.Add(window);
-            window.Closed += OnWindowClosed;
-            ; // Subscribe to Closed event
-        }
+            WindowActivated?.Invoke(this, new WindowActivatedWithSourceEventArgs(window, e.WindowActivationState));
+        };
+
+        // hook size changed
+        window.SizeChanged += (s, e) =>
+        {
+            WindowSizeChanged?.Invoke(this, e);
+        };
+
+        window.Closed += OnWindowClosed;
+        // Subscribe to Closed event
+
     }
     private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
     {
         var ss = sender.Id.Value;
-        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);  
+        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);
         var isEqual = e == (nint)ss;
         // Find the XAML Window corresponding to this AppWindow
         var xamlWindow = _openWindows.FirstOrDefault(w => isEqual);
@@ -259,7 +275,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     public void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);
-        window.Closed += OnWindowClosed;
+        window.Closed -= OnWindowClosed;
 
         // Also remove from unique tracking if it was there
         var uniqueTypedKey = _trackedUniqueTypedWindows.FirstOrDefault(kvp => kvp.Value == window).Key;
@@ -275,7 +291,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     {
         if (sender is Window closedWindow)
         {
-
+            WindowDockManager.SaveWindowPosition(closedWindow); // Save position on close
             var customArgs = new WindowClosingEventArgs(closedWindow);
             WindowClosing?.Invoke(this, customArgs); // Notify any subscribers
             UntrackWindow(closedWindow);
@@ -319,7 +335,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         return _openWindows.OfType<T>().FirstOrDefault(w => IsWindowOpen(w));
     }
 
-   
+
 
     public IReadOnlyList<Window> GetOpenNativeWindows()
     {
@@ -332,7 +348,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
 
         foreach (var window in _openWindows)
         {
-            CloseWindow(window);    
+            CloseWindow(window);
 
         }
     }
@@ -368,7 +384,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         {
             // The native WinUI Window object itself is the one to activate
             window.Activate();
-            
+
             Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
 
             // For a more forceful bring to front:
