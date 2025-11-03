@@ -56,12 +56,13 @@ public partial class AlbumModelView : ObservableObject
     public partial double ParetoPercentage { get; set; }
     [ObservableProperty]
     public partial double TotalSkipCount { get; set; }
+    public int TotalPlayDurationSeconds { get; set; }
 
 }
 public class AlbumGroupViewModel : ObservableObject
 {
-    public string AlbumName { get; set; }
-    public string AlbumCoverSource { get; set; } // Path or URL to the cover
+    public string? AlbumName { get; set; }
+    public string? AlbumCoverSource { get; set; } // Path or URL to the cover
     public int Year { get; set; }
-    public ObservableCollection<SongModelView> SongsInAlbum { get; set; }
+    public ObservableCollection<SongModelView>? SongsInAlbum { get; set; }
 }

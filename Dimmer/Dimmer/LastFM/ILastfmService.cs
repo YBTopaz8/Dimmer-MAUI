@@ -16,7 +16,7 @@ public interface ILastfmService
 
 
     // --- Data Retrieval ---
-    Task<Track?> GetTrackInfoAsync(string artistName, string trackName);
+    Task<Track> GetTrackInfoAsync(string artistName, string trackName);
     Task<Album?> GetAlbumInfoAsync(string artistName, string albumName);
     Task<Artist?> GetArtistInfoAsync(string artistName);
     Task<ObservableCollection<Artist>?> GetTopArtistsChartAsync(int limit = 20);

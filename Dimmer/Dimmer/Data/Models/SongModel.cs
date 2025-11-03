@@ -19,6 +19,8 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 
     public int? ReleaseYear { get; set; }
     public int NumberOfTimesFaved { get; set; }
+    public int ManualFavoriteCount { get; set; }
+
     public int? TrackNumber { get; set; }
     public string FileFormat { get; set; } = string.Empty;
     public string Lyricist { get; set; } = string.Empty;
@@ -216,7 +218,12 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public int LastPlayEventType { get;  set; }
     public int PlayStreakDays { get;  set; }
     public int EddingtonNumber { get;  set; }
-    public double EngagementScore { get;  set; }
+    public double EngagementScore { get; set; }
+    public int TotalPlayDurationSeconds { get;  set; }
+    public int RepeatCount { get;  set; }
+    public int PreviousCount { get;  set; }
+    public int RestartCount { get;  set; }
+    public DateTimeOffset DiscoveryDate { get;  set; }
 }
 public partial class SyncLyrics : EmbeddedObject
 {
