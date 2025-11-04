@@ -17,6 +17,7 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:DataType="vm:BaseViewModelWin"
+
     FlyoutBackgroundColor="Transparent"
     Shell.FlyoutBehavior="Disabled">
     <Shell.Triggers>
@@ -26,8 +27,7 @@
             Value="True">
             <Setter Property="FlyoutBehavior" Value="Disabled" />
 
-        </DataTrigger>
-    </Shell.Triggers>
+
 
     <Shell.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />

@@ -3,6 +3,10 @@
   <PropertyGroup>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
     <AppIconSource>C:\Users\MCS\Music\dimm\Dimmer\Dimmer\Dimmer\Resources\Images\appicon.png</AppIconSource>
+    <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
+    <AppxShowAllApps>False</AppxShowAllApps>
+    <AppxBuildConfigurationSelection>x64</AppxBuildConfigurationSelection>
+    <PackageOptionalProjectsInIdeBuilds>False</PackageOptionalProjectsInIdeBuilds>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
@@ -21,6 +25,7 @@
       <SubType>Designer</SubType>
     </None>
     <Page Update="Views\CustomViews\HoverCardControl.xaml">
+
       <SubType>Designer</SubType>
     </Page>
     <MauiXaml Update="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml">

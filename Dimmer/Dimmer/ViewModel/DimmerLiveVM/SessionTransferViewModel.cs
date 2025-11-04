@@ -1,11 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces.Implementations;
-using Dimmer.DimmerSearch.Interfaces;
-
-using DynamicData;
-
-using ReactiveUI;
-
-using System.Reactive.Disposables;
+﻿
 
 namespace Dimmer.ViewModel;
 public partial class SessionTransferViewModel : ObservableObject, IDisposable

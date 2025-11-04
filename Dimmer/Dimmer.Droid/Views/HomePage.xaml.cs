@@ -1,4 +1,16 @@
+﻿
 
+using System.Threading;
+using System.Threading.Tasks;
+
+using AndroidX.Media3.Common;
+
+using Humanizer;
+
+using Java.Lang.Ref;
+
+using static Android.Hardware.Camera;
+using static AndroidX.Media3.ExoPlayer.Upstream.Experimental.SlidingWeightedAverageBandwidthStatistic;
 
 using View = Microsoft.Maui.Controls.View;
 
@@ -22,31 +34,25 @@ public partial class HomePage : ContentPage
 
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        MyViewModel.MyHomePage = this;
-        //MyViewModel.MyHomePage.pla
+        try
+        {
 
-        MainViewTabView.SelectedItemIndex = 0;
-        //MyViewModel.FiniInit();
+            base.OnAppearing();
+            MyViewModel.MyHomePage = this;
+            //MyViewModel.MyHomePage.pla
 
-        ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
-        //AndMorphingButton.MorphingButton morph = new AndMorphingButton.MorphingButton(Platform.AppContext);
-        //morph.SetText("TestYB", TextView.BufferType.Normal);
-        //morph.Click += (s, e) =>
-        //{
-        //    Debug.WriteLine("Button Clicked");
-        //    //morph.SetText("Clicked", TextView.BufferType.Normal);
-        //    //morph.SetBackgroundColor(Android.Graphics.Color.Red);
-        //    //morph.SetTextColor(Android.Graphics.Color.White);
-        //};
-
-        //var ss = morph.ToView();
-        //ss.HeightRequest = 180;
-        //ss.BackgroundColor = Colors.Red;
-
-        //MyBtmBar.BtmBarStackLayout.Children.Add(ss);
+            MainViewTabView.SelectedItemIndex = 0;
+            
+            await Task.Delay(4000);
+            await MyViewModel.LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+            _ = MyViewModel.PerformBackgroundInitializationAsync();
+        }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
 
     }
 
@@ -491,8 +497,7 @@ public partial class HomePage : ContentPage
         var sel = send.SelectedItem;
 
         var ind = send.FindItemHandle(sel);
-        
-        send.ScrollTo(ind, DXScrollToPosition.Start);
+        send.ScrollTo(ind, DXScrollToPosition.End);
 
         //int itemHandle = AllLyricsColView.FindItemHandle(MyViewModel.cur);
         //bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
@@ -1270,8 +1275,9 @@ public partial class HomePage : ContentPage
 
     private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
     {
+        var send = (DXButton)sender;
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", send.CommandParameter as string));
 
-      
     }
 
     private void SearchSongSB_Clicked(object sender, EventArgs e)
@@ -1292,10 +1298,13 @@ public partial class HomePage : ContentPage
 
     private void ViewGenreMFI_Clicked(object sender, EventArgs e)
     {
+        var send = (DXButton)sender;
 
+        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("genre", send.CommandParameter as string));
+        MoreBtmSheet.Close();
     }
 
-    private async void OnLabelClicked(object sender, EventArgs e)
+    private void OnLabelClicked(object sender, EventArgs e)
     {
        
     }
@@ -1322,39 +1331,6 @@ public partial class HomePage : ContentPage
 
 
         await MyViewModel.SaveUserNoteToSong(song);
-    }
-
-    private async void QuickSearchArtist_Clicked(object sender, HandledEventArgs e)
-    {
-
-        var send = (Chip)sender;
-        var song = send.BindingContext as SongModelView;
-        if (song is null) return;
-        var val = song.OtherArtistsName;
-        char[] dividers = [',', ';', ':', '|', '-'];
-
-        var namesList = val
-            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-            .Select(name => name.Trim())                           // Trim whitespace from each name
-            .ToArray();                                             // Convert to a List
-        if (namesList is not null && namesList.Length == 1)
-        {
-            SearchSongSB_Clicked(sender, e);
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
-
-            return;
-        }
-        var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
-
-        if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
-        {
-            return;
-        }
-
-        SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
-
-        return;
     }
 
     private void SyncShare_Tap(object sender, HandledEventArgs e)
@@ -1403,411 +1379,200 @@ public partial class HomePage : ContentPage
         MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
 
     }
-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
-{
-    //MyViewModel.ToggleRepeatModeCommand.Execute(true);
-}
-
-private void CurrQueueColView_Tap(object sender, CollectionViewGestureEventArgs e)
-{
-    MyViewModel.CurrentQueue = 1;
-    //if (MyViewModel.IsOnSearchMode)
-    //{
-    //    MyViewModel.CurrentQueue = 1;
-    //    List<SongModelView?> filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
-    //             .Select(i => SongsColView.GetItemHandleByVisibleIndex(i))
-    //             .Where(handle => handle != -1)
-    //             .Select(handle => SongsColView.GetItem(handle) as SongModelView)
-    //             .Where(item => item != null)
-    //             .ToList()!;
-
-    //}
-    //MyViewModel.PlaySong(e.Item as SongModelView);
-    // use your NEW playlist queue logic to pass this value btw, no need to fetch this sublist, as it's done.
-    //you can even dump to the audio player queue and play from there.
-    //and let the app just listen to the queue changes and update the UI accordingly.
-}
-
-
-private void SaveCapturedLyrics_Clicked(object sender, EventArgs e)
-{
-    //MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
-}
-
-private void StartSyncing_Clicked(object sender, EventArgs e)
-{
-    //await PlainLyricSection.DimmOut();
-    //PlainLyricSection.IsEnabled = false;
-    ////MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
-    //IsSyncing = true;
-
-    //await SyncLyrView.DimmIn();
-    //SyncLyrView.IsVisible=true;
-}
-
-bool IsSyncing = false;
-private void CancelAction_Clicked(object sender, EventArgs e)
-{
-    //await PlainLyricSection.DimmIn();
-    //PlainLyricSection.IsEnabled = true;
-
-    ////MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
-    //IsSyncing = false;
-
-    //await SyncLyrView.DimmOut();
-    //SyncLyrView.IsVisible=false;
-}
-private void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
-{
-
-    //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
-
-    //await MyViewModel.FetchLyrics(true);
-
-}
-private void ViewLyricsBtn_Clicked(object sender, EventArgs e)
-{
-    return;
-    //LyricsEditor.Text = string.Empty;
-    Button send = (Button)sender;
-    string title = send.Text;
-    //Content thisContent = (Content)send.BindingContext;
-    if (title == "Synced Lyrics")
+    private  void QuickSearchArtist_Clicked(object sender, DXTapEventArgs e)
     {
-        //await MyViewModel.SaveLyricToFile(thisContent!, false);
+        
     }
-    else
-    if (title == "Plain Lyrics")
+
+    private async void OnAddQuickNoteClicked(object sender, EventArgs e)
     {
-        //LyricsEditor.Text = thisContent!.PlainLyrics;
-        PasteLyricsFromClipBoardBtn_Clicked(send, e);
+        var send = (Button)sender;
+        var song = send.CommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        // Prompt the user for a note
+
+
+        await MyViewModel.SaveUserNoteToSong(song);
     }
-}
-private void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
-{
-    //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
-    //if (Clipboard.Default.HasText)
-    //{
-    //    LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
-    //}
-
-
-}
-
-private void ContextIcon_Tap(object sender, HandledEventArgs e)
-{
-    //MyViewModel.LoadArtistSongs();
-    //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-    //ContextBtmSheet.HalfExpandedRatio = 0.8;
-
-}
-private void SearchOnline_Clicked(object sender, EventArgs e)
-{
-    ImageButton send = (ImageButton)sender;
-    //MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
-
-}
-Border LyrBorder { get; set; }
-
-
-private void Stamp_Clicked(object sender, EventArgs e)
-{
-    ImageButton send = (ImageButton)sender;
-    //MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
-
-}
-
-private void DeleteLine_Clicked(object sender, EventArgs e)
-{
-    ImageButton send = (ImageButton)sender;
-
-    //MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
-
-}
-
-private void Chip_Tap(object sender, HandledEventArgs e)
-{
-    Chip send = (Chip)sender;
-    string? param = send.TapCommandParameter.ToString();
-    //MyViewModel.ToggleRepeatModeCommand.Execute(true);
-    //switch (param)
-    //{
-    //    case "repeat":
-
-
-    //        break;
-    //    case "shuffle":
-    //        MyViewModel.CurrentQueue = 1;
-    //        break;
-    //    case "Lyrics":
-    //        MyViewModel.CurrentQueue = 2;
-    //        break;
-    //    default:
-    //        break;
-    //}
-
-}
-
-private void SingleSongBtn_Clicked(object sender, EventArgs e)
-{
-    MyViewModel.CurrentQueue = 1;
-    View s = (View)sender;
-    SongModelView? song = s.BindingContext as SongModelView;
-    //MyViewModel.CurrentPage = PageEnum.AllAlbumsPage;
-    //MyViewModel.PlaySong(song);
-
-}
-private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-{
-    //MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedArtistOnArtistPage);
-}
-private void DXCollectionView_Tap(object sender, CollectionViewGestureEventArgs e)
-{
-    View send = (View)sender;
-
-    AlbumModelView? curSel = send.BindingContext as AlbumModelView;
-    //MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.Id);
-}
-
-private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
-{
-    //MyViewModel.ToggleShuffleState();
-}
-
-
-private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
-{
-    //if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
-    //{
-    //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
-    //}
-    //else
-    //{
-    //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
-    //}
-
-}
-
-//private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
-//{
-//    UserNoteModelView note = new()
-//    {
-//        UserMessageText=NoteText.Text,
-
-//    };
-//   await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
-//}
-
-
-
-//private void ChipGroup_ChipTap(object sender, ChipEventArgs e)
-//{
-//    switch (e.Chip.Text)
-//    {
-//        case "Home":
-//            HomeTabView.SelectedItemIndex=1;
-//            break;
-//        case "Settings":
-//            HomeTabView.SelectedItemIndex=2;
-//            break;
-
-//        default:
-//            break;
-//    }
-//}
-
-//private void BtmSheetHeader_Clicked(object sender, EventArgs e)
-//{
-
-//}
-
-//private async void NowPlayingBtmSheet_StateChanged(object sender, Syncfusion.Maui.Toolkit.BottomSheet.StateChangedEventArgs e)
-//{
-//    Debug.WriteLine(e.NewState);
-//    Debug.WriteLine(e.OldState);
-//    if (e.NewState == Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Collapsed)
-//    {
-//        await BtmBar.AnimateSlideUp(450);
-//        NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
-//        NowPlayingBtmSheet.IsVisible=false;
-
-//    }
-
-//}
-
-//private async void CloseNowPlayingBtmSheet_Clicked(object sender, EventArgs e)
-//{
-//    await BtmBar.AnimateSlideUp(450);
-//    NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
-
-//}
-
-//private void BtmBar_Loaded(object sender, EventArgs e)
-//{
-//    Debug.WriteLine(BtmBar.Height);
-//    Debug.WriteLine(BtmBar.HeightRequest);
-//}
-
-//private void SlideView_CurrentItemChanged(object sender, ValueChangedEventArgs<object> e)
-//{
-
-//}
-
-//private void HomeTabView_Loaded(object sender, EventArgs e)
-//{
-//    Debug.WriteLine(HomeTabView.GetType());
-//}
-
-private void ChoiceChipGroup_Loaded(object sender, EventArgs e)
-{
-    var send = (ChipGroup)sender;
-    var src = send.ItemsSource;
-    if (src is not null)
+    private void SyncShare_Tap(object sender, EventArgs e)
     {
-        Debug.WriteLine(send.ItemsSource.GetType());
+        
     }
-    Debug.WriteLine(sender.GetType());
+
+    private async void QuickSearchArtist_Clicked(object sender, EventArgs e)
+    {
+
+        try
+        {
+
+            var send = (Chip)sender;
+            var song = send.BindingContext as SongModelView;
+            if (song is null) return;
+            var val = song.OtherArtistsName;
+            char[] dividers = [',', ';', ':', '|', '-'];
+
+            var namesList = val
+                .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
+                .Select(name => name.Trim())                           // Trim whitespace from each name
+                .ToArray();                                             // Convert to a List
+            if (namesList is not null && namesList.Length == 1)
+            {
+                SearchSongSB_Clicked(sender, e);
+                MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
+
+                return;
+            }
+            var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
+
+            if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
+            {
+                return;
+            }
+
+            SearchSongSB_Clicked(sender, e);
+            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+
+            return;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+    }
+
+    private async void DeleteSysClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            DXButton send = (DXButton)sender;
+            var song = send.CommandParameter as SongModelView;
+            if(song is not null)
+                await MyViewModel.DeleteFileFromSystem(song);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private void Slider_DragCompleted(object sender, EventArgs e)
+    {
+
+    }
+
+    private void TitleChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ArtistNameChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ArtistNameChip_Loaded(object sender, EventArgs e)
+    {
+        var chipp = (Chip)sender;   
+        var nativeView = chipp.Handler?.PlatformView as Android.Views.View;
+        if (nativeView is null)
+        {
+            return;
+        }
+
+        nativeView.Click += ShowArtistPopup_Click;
+    }
+
+    private void ShowArtistPopup_Click(object? sender, EventArgs e)
+    {
+    }
+
+
+    private void ShowArtistPopup(Android.Views.View anchor)
+    {
+        var song = MyViewModel?.CurrentPlayingSongView;
+        var otherArtistsRaw = song?.OtherArtistsName ?? string.Empty;
+
+        var dividers = new[] { ',', ';', ':', '|' };
+        var namesList = otherArtistsRaw
+            .Split(dividers, StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (namesList.Length == 0)
+            namesList = new[] { song?.ArtistName ?? "Unknown" };
+
+        var popup = new PopupMenu(Platform.CurrentActivity, anchor);
+        if (popup is null) return;
+        popup.Menu.Clear();
+
+        // Top info
+        popup.Menu.Add($"♪ {song?.Title ?? "(Unknown song)"}").SetEnabled(false);
+        popup.Menu.Add($"💿 {song?.AlbumName ?? "(Unknown album)"}").SetEnabled(false);
+        popup.Menu.Add($"👤 {string.Join(", ", namesList)}").SetEnabled(false);
+        popup.Menu.AddSubMenu("──────────────");
+
+        // For each artist
+        foreach (var artist in namesList)
+        {
+            var artistMenu = popup.Menu.AddSubMenu($"Artist: {artist}");
+            if (artistMenu is null) return;
+            artistMenu.Add("Quick View").SetOnMenuItemClickListener(new SimpleListener(() => TryVM(a => a.QuickViewArtist(artist))));
+
+            var viewBy = artistMenu.AddSubMenu("View By…");
+            viewBy.Add("Albums").SetOnMenuItemClickListener(new SimpleListener(() => TryVM(a => a.NavigateToArtistPage(artist))));
+            viewBy.Add("Genres").SetOnMenuItemClickListener(new SimpleListener(() => TryVM(a => a.NavigateToArtistPage(artist))));
+
+            var play = artistMenu.AddSubMenu("Play / Queue");
+            play.Add("Play Songs In This Album").SetOnMenuItemClickListener(new SimpleListener(() => TryVM(a => a.PlaySongsByArtistInCurrentAlbum(artist))));
+            play.Add("Play All by Artist").SetOnMenuItemClickListener(new SimpleListener(() => TryVM(a => a.PlayAllSongsByArtist(artist))));
+            play.Add("Queue All by Artist").SetOnMenuItemClickListener(new SimpleListener(() => TryVM(a => a.QueueAllSongsByArtist(artist))));
+
+            var findOn = artistMenu.AddSubMenu("Find On…");
+            AddExternal(findOn, "Spotify", $"https://open.spotify.com/search/{Uri.EscapeDataString(artist)}");
+            AddExternal(findOn, "YouTube Music", $"https://music.youtube.com/search?q={Uri.EscapeDataString(artist)}");
+            AddExternal(findOn, "Bandcamp", $"https://bandcamp.com/search?q={Uri.EscapeDataString(artist)}&item_type=b");
+
+            artistMenu.Add("Copy Artist Name").SetOnMenuItemClickListener(new SimpleListener(() =>
+            {
+                var clipboard = Android.Content.ClipboardManager.FromContext(Platform.CurrentActivity);
+                var clip = Android.Content.ClipData.NewPlainText("artist", artist);
+                clipboard.Text = clip.Description.Label;
+            }));
+        }
+    }
+    static void AddExternal(ISubMenu sub, string label, string url)
+    {
+        sub.Add(label).SetOnMenuItemClickListener(new SimpleListener(async () =>
+        {
+            try
+            {
+                var intent = new Android.Content.Intent(Android.Content.Intent.ActionView, Android.Net.Uri.Parse(url));
+                Platform.CurrentActivity.StartActivity(intent);
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Launch failed: {ex.Message}"); }
+        }));
+    }
+    private void ArtistNameChip_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    class SimpleListener : Java.Lang.Object, IMenuItemOnMenuItemClickListener
+    {
+        private readonly Action _action;
+        public SimpleListener(Action action) => _action = action;
+        public bool OnMenuItemClick(IMenuItem item) { _action(); return true; }
+    }
+
+    private void TryVM(Action<IArtistActions> a)
+    {
+        if (MyViewModel is IArtistActions vm) a(vm);
+    }
 }
-
-private void ChoiceChipGroup_SelectionChanged(object sender, EventArgs e)
-{
-
-}
-
-private void NavChips_ChipClicked(object sender, EventArgs e)
-{
-
-}
-
-private async void ChangeFolder_Clicked(object sender, EventArgs e)
-{
-
-
-    var selectedFolder = (string)((ImageButton)sender).CommandParameter;
-    await MyViewModel.SelectSongFromFolderAndroid(selectedFolder);
-}
-
-
-private void DeleteBtn_Clicked(object sender, EventArgs e)
-{
-    var send = (ImageButton)sender;
-    var param = send.CommandParameter.ToString();
-    MyViewModel.DeleteFolderPath(param);
-}
-private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
-{
-    await MyViewModel.SelectSongFromFolderAndroid();
-}
-
-private void FirstTimeTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
-{
-
-}
-
-
-
-private void ShowBtmSheet_Clicked(object sender, EventArgs e)
-{
-}
-
-private void SettingsNavChips_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
-{
-
-}
-
-private void SettingsNavChips_ChipClicked(object sender, EventArgs e)
-{
-
-}
-
-private void SearchBy_Focused(object sender, FocusEventArgs e)
-{
-    //SearchBy.HorizontalOptions
-}
-
-private void SearchBy_Unfocused(object sender, FocusEventArgs e)
-{
-
-}
-
-private void SongsColView_PullToRefresh(object sender, EventArgs e)
-{
-    //var mapper = IPlatformApplication.Current.Services.GetService<IMapper>();
-    //SongsColView.ItemsSource = mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
-}
-}
-
-*/

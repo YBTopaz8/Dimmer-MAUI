@@ -211,7 +211,7 @@ public partial class SingleSongPage : ContentPage
     private async void SongViewPointer_PointerExited(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.FadeOut(300, 0.7);
+        await send.FadeOut(null,300, 0.7);
     }
 
     private async void SongViewPointer_PointerEntered(object sender, PointerEventArgs e)
@@ -227,7 +227,7 @@ public partial class SingleSongPage : ContentPage
             return;
         }
         MyViewModel.SelectedSong = songBindingContext;
-        await send.FadeIn(300, 1);
+        await send.FadeIn(null,300, 1);
     }
 
     private async void ViewSongMFI_Clicked(object sender, EventArgs e)
@@ -238,7 +238,7 @@ public partial class SingleSongPage : ContentPage
         {
             return;
         }
-        await this.FadeOut(200, 0.7);
+        await this.FadeOut(null,200, 0.7);
         MyViewModel.SelectedSong = song;
 
 
@@ -246,7 +246,7 @@ public partial class SingleSongPage : ContentPage
 
         await MyViewModel.LoadSelectedSongLastFMData();
 
-        await this.FadeIn(450, 1);
+        await this.FadeIn(null,450, 1);
 
     }
     private async void OnAddQuickNoteClicked(object sender, EventArgs e)
@@ -286,7 +286,7 @@ public partial class SingleSongPage : ContentPage
         var send = (View)sender;
         var contxt = send.BindingContext as SongModelView;
 
-        await this.FadeOut(200, 0.7);
+        await this.FadeOut(null,200, 0.7);
         if (!SongTabView.IsVisible)
         {
             await Task.WhenAll(SongTabView.DimmInCompletelyAndShow(), ArtistAlbumView.DimmOutCompletelyAndHide());
@@ -294,7 +294,7 @@ public partial class SingleSongPage : ContentPage
             await MyViewModel.LoadSelectedSongLastFMData();
             return;
         }
-        await this.FadeIn(350, 1);
+        await this.FadeIn(null,350, 1);
 
     }
  
@@ -307,12 +307,12 @@ public partial class SingleSongPage : ContentPage
 
     private async void TopExpanderView_Expanded(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
-        await RestOfLeftUI.FadeOut(300, 0.4);
+        await RestOfLeftUI.FadeOut(null,300, 0.4);
     }
 
     private async void TopExpanderView_Collapsed(object sender, Syncfusion.Maui.Toolkit.Expander.ExpandedAndCollapsedEventArgs e)
     {
-        await RestOfLeftUI.FadeIn(300, 1);
+        await RestOfLeftUI.FadeIn(null,300, 1);
     }
 
     private void SearchSongOnline_Clicked(object sender, EventArgs e)

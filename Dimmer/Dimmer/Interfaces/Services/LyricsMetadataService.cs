@@ -1,14 +1,18 @@
 ﻿namespace Dimmer.Interfaces.Services;
 
-using ATL;
-
-using Microsoft.Extensions.Logging;
-
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Web; // Needed for HttpUtility
+
+using ATL;
+
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+
+using Hqub.Lastfm.Entities;
+
+using Microsoft.Extensions.Logging;
 
 
 #region API Data Transfer Objects (DTOs)
@@ -152,8 +156,49 @@ IRepository<SongModel> songRepository, // Inject the repository
         _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
         var searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
         var resultsWithSynced = searchResults.Where(r => !string.IsNullOrEmpty(r.SyncedLyrics));
-        // Return the first result from the search, if any
-        return resultsWithSynced.ToList();
+        if (resultsWithSynced.Any())
+        {
+
+            // Return the first result from the search, if any
+            return resultsWithSynced.ToList();
+        }
+        else
+        {
+            return null;
+        }
+    }
+    /// <summary>
+    /// Fetches allsongs lyrics props for a song using a tiered online strategy.
+    /// First, it tries a highly specific match, then falls back to a broader search.
+    /// </summary>
+    public async Task<IEnumerable<LrcLibLyrics>?> GetAllLyricsPropsOnlineAsync(SongModelView song, CancellationToken token)
+    {
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
+        // First, attempt the most efficient API call: /api/get
+        var preciseMatch = await GetLyricsBySignatureAsync(song.Title, song.ArtistName, song.AlbumName, (int)song.DurationInSeconds, token);
+        if (preciseMatch != null)
+        {
+            _logger.LogInformation("Found precise lyrics match for '{Track}' using /api/get.", song.Title);
+            List<LrcLibLyrics>? lrcs = [preciseMatch];
+            if (lrcs is not null && !string.IsNullOrEmpty(lrcs.First().SyncedLyrics))
+            {
+                return lrcs;
+            }
+        }
+
+        // If no precise match, fall back to the broader /api/search
+        _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
+        IEnumerable<LrcLibLyrics>? searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
+        if (searchResults is not null)
+        {
+            var resultsWithSynced = searchResults;
+            // Return the first result from the search, if any
+            return resultsWithSynced;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -178,9 +223,13 @@ IRepository<SongModel> songRepository, // Inject the repository
         // If no precise match, fall back to the broader /api/search
         _logger.LogInformation("No precise match found. Falling back to /api/search for '{Track}'.", song.Title);
         var searchResults = await SearchLyricsAsync(song.Title, song.ArtistName, song.AlbumName, token);
+        if(searchResults is null)
+        {
+            return null;
+        }
         var resultsWithSynced = searchResults.Where(r => !string.IsNullOrEmpty(r.PlainLyrics));
         // Return the first result from the search, if any
-        return resultsWithSynced.ToList();
+        return (List<LrcLibLyrics>?)resultsWithSynced;
     }
 
     /// <summary>
@@ -395,7 +444,7 @@ IRepository<SongModel> songRepository, // Inject the repository
         //Step 1: Save to the audio file's metadata using ATL.
         try
         {
-            var track = new Track(song.FilePath);
+            var track = new ATL.Track(song.FilePath);
             track.Lyrics.Clear(); // Remove any existing lyrics to prevent duplicates
             var newLyricsInfo = new LyricsInfo
             {
@@ -502,6 +551,18 @@ IRepository<SongModel> songRepository, // Inject the repository
             return null;
         }
 
+        LrcLibLyrics lyricsProps = new LrcLibLyrics()
+        {
+            AlbumName = songInDb.AlbumName,
+            ArtistName = songInDb.OtherArtistsName,
+            Duration = songInDb.DurationInSeconds,
+            TrackName = songInDb.Title,
+            SyncedLyrics = songInDb.SyncLyrics,
+            Instrumental = songInDb.IsInstrumental is not null && (bool)songInDb.IsInstrumental,
+            PlainLyrics = songInDb.UnSyncLyrics
+        };
+        List<LrcLibLyrics> list = new List<LrcLibLyrics>();
+        list.Add(lyricsProps);
         string? lyrics = songInDb.SyncLyrics;
         if (lyrics is not null)
         {
@@ -510,12 +571,10 @@ IRepository<SongModel> songRepository, // Inject the repository
 
 
         // Priority 1: Embedded Lyrics
-        string? embeddedLyrics = GetEmbeddedLyrics(song.FilePath);
-        if (!string.IsNullOrEmpty(embeddedLyrics))
-        {
-            _logger.LogInformation("Found embedded lyrics for {SongTitle}", song.Title);
-            return embeddedLyrics;
-        }
+        var embeddedLyrics = GetEmbeddedLyrics(song.FilePath);
+        if(embeddedLyrics is not null )
+            return embeddedLyrics.First().SyncedLyrics;
+        
 
         // Priority 2: External .lrc file
         string? lrcFileLyrics = await GetExternalLrcFileAsync(song.FilePath);
@@ -527,31 +586,55 @@ IRepository<SongModel> songRepository, // Inject the repository
 
         return null;
     }
-    private string? GetEmbeddedLyrics(string songPath)
+    private IEnumerable<LrcLibLyrics>? GetEmbeddedLyrics(string songPath)
     {
         try
         {
-            var tagFile = new Track(songPath);
-            // ATL is smart. If lyrics exist, it will populate them.
-            // We just need to check if the text is there.
-            if (tagFile.Lyrics is not null && tagFile.Lyrics.Count>0)
-            {
-                if (tagFile.Lyrics[0].SynchronizedLyrics.Count>0)
-                {
-                    return tagFile.Lyrics[0].SynchronizedLyrics.ToString();
-                }
+            var track = new ATL.Track(songPath);
 
-            }
-            if (tagFile.Lyrics != null && tagFile.Lyrics.Count > 0 && !string.IsNullOrWhiteSpace(tagFile.Lyrics[0].UnsynchronizedLyrics))
+            // From tags
+            string tagTitle = track.Title;
+            string tagArtist = track.Artist;
+            string tagAlbumArtist = track.AlbumArtist;
+
+            // From filename
+            var (parsedArtist, parsedTitle) = FilenameParser.Parse(track.Path);
+
+            // --- Step 2: Merge and Sanitize Title ---
+            // Prefer tag title, but fall back to parsed filename title.
+            string rawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : parsedTitle ?? Path.GetFileNameWithoutExtension(track.Path);
+            var (finalTitle, versionInfo) = TaggingUtils.ParseTrackTitle(rawTitle);
+
+            if (string.IsNullOrWhiteSpace(finalTitle))
             {
-                return tagFile.Lyrics[0].UnsynchronizedLyrics;
+                finalTitle = "Unknown Title"; // Final fallback
             }
+
+            // --- Step 3: Merge and Extract Artists ---
+            // Prefer tag artists, but fall back to parsed filename artist.
+            string? primaryArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : parsedArtist;
+            string albumArtist = tagAlbumArtist; // No filename equivalent for this
+
+            List<string> artistNames = TaggingUtils.ExtractArtists(primaryArtist, albumArtist);
+            LrcLibLyrics lyricsProps = new LrcLibLyrics()
+            {
+                AlbumName = track.Album,
+                ArtistName = track.AlbumArtist,
+                Duration = track.Duration,
+                TrackName = track.Title,
+                SyncedLyrics = track.Lyrics[0].SynchronizedLyrics.Select(p=>p.Text).ToString(),
+                PlainLyrics = track.Lyrics[0].UnsynchronizedLyrics,
+            };
+            List<LrcLibLyrics> listWith = new List<LrcLibLyrics>();
+            listWith.Add(lyricsProps);
+
+            return listWith;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reading embedded tags from {SongPath}", songPath);
+            return null;
         }
-        return null;
     }
 
     private async Task<string?> GetExternalLrcFileAsync(string songPath)

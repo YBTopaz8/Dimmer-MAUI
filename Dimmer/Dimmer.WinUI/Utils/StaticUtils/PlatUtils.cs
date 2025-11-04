@@ -362,6 +362,7 @@ public static class PlatUtils
         return hwnd;
     }
     public static string GetHWId(Microsoft.UI.Xaml.Window win)
+
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
         return hwnd.ToInt64().ToString();

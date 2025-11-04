@@ -46,6 +46,9 @@ using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 using View = Microsoft.Maui.Controls.View;
 using Window = Microsoft.UI.Xaml.Window;
 using WinUIControls = Microsoft.UI.Xaml.Controls;
+using System.Windows;
+using System.Windows.Forms;
+using Button = Microsoft.Maui.Controls.Button;
 
 namespace Dimmer.WinUI.Views;
 
@@ -179,7 +182,6 @@ public partial class HomePage : ContentPage
     //    //_windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
     //}
-
 
     private async void PlaySongGestRec_Tapped(object sender, TappedEventArgs e)
     {
@@ -648,6 +650,8 @@ public partial class HomePage : ContentPage
         }
     }
 
+        }
+    }
 
     private void Slider_Loaded(object sender, EventArgs e)
     {
@@ -719,11 +723,16 @@ public partial class HomePage : ContentPage
 
     private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
     {
-
+#if WINDOWS
+        var send = (SfEffectsView)sender;
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler!.PlatformView!;
+        mainLayout.PointerWheelChanged += MainLayout_PointerWheelChanged;
+#endif
     }
 
     private void Button_Clicked(object sender, EventArgs e)
     {
+        var pointerPoint = e.GetCurrentPoint(null);
 
     }
 
@@ -738,6 +747,23 @@ public partial class HomePage : ContentPage
         MyViewModel.SetPreferredAudioDevice(dev);
     }
 
+        if (mouseWheelDelta != 0)
+        {
+            if (mouseWheelDelta > 0)
+            {
+                if (MyViewModel.DeviceVolumeLevel >= 1)
+                {
+                    return;
+                }
+                MyViewModel.IncreaseVolumeLevel();
+                // Handle scroll up
+            }
+            else
+            {
+                if (MyViewModel.DeviceVolumeLevel <= 0)
+                {
+                    return;
+                }
 
 
     private void ViewDeviceAudio_Clicked(object sender, EventArgs e)
@@ -894,6 +920,20 @@ public partial class HomePage : ContentPage
     private void ScrollVPointer_PointerExited(object sender, PointerEventArgs e)
     {
 
+        View send = (View)sender;
+        var touchBehavior = new TouchBehavior
+        {
+            HoveredAnimationDuration = 250,
+            HoveredAnimationEasing = Easing.CubicOut,
+            HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+
+            PressedScale = 0.7, // Adjusted for a smoother feel
+            PressedAnimationDuration = 300,
+            // Add any other customizations here
+        };
+
+
+        send.Behaviors.Add(touchBehavior);
     }
 
     private void ViewNPQ_TouchUp(object sender, EventArgs e)
@@ -1044,6 +1084,8 @@ public partial class HomePage : ContentPage
     }
 
 
+    private void AddFavoriteRatingToSong_Loaded(object sender, EventArgs e)
+    {
 
     private void CreateOrUpdateSpringAnimation(float finalValue)
     {
@@ -1334,6 +1376,8 @@ public partial class HomePage : ContentPage
                 AnimateHover(native, false);
             };
 
+                stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
+                stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
 
         }
     }

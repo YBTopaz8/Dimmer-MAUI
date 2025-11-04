@@ -725,13 +725,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewSong_Click(object sender, RoutedEventArgs e)
     {
-        Debug.WriteLine(MySongsTableView.ItemsSource?.GetType());
+        
     }
 
     private async void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         Debug.WriteLine(e.Pointer.PointerId);
-        Debug.WriteLine(e.OriginalSource.GetType());
         Microsoft.UI.Input.PointerPointProperties? pointerProps = e.GetCurrentPoint(null).Properties;
 
         if (pointerProps == null)

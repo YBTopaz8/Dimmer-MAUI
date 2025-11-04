@@ -51,3 +51,12 @@ global using System.Text;
 global using System.Text.Json;
 
 global using Dimmer.DimmerLive.Models;
+global using Dimmer.DimmerLive.Interfaces.Implementations;
+global using Dimmer.DimmerSearch.Interfaces;
+
+global using DynamicData;
+
+global using ReactiveUI;
+
+global using System.Reactive.Disposables;
+global using System.Reactive.Disposables.Fluent;

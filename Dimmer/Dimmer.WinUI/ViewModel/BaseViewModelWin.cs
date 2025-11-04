@@ -17,6 +17,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Orchestration;
 using Dimmer.Resources.Localization;
+using Dimmer.WinUI.Interfaces;
 using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.WinUIPages;
 
