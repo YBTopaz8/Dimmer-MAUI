@@ -4,7 +4,7 @@ using Page = Microsoft.UI.Xaml.Controls.Page;
 using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
-public partial class WinUIWindowMgrService :IWinUIWindowMgrService
+public partial class WinUIWindowMgrService : IWinUIWindowMgrService
 {
     private readonly IServiceProvider _mauiServiceProvider; // To potentially resolve MAUI services if needed
     private readonly List<Window> _openWindows = new(); // Simple tracking
@@ -238,8 +238,8 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
     {
         if (_openWindows.Contains(window))
             return;
-        
-            _openWindows.Add(window);
+
+        _openWindows.Add(window);
 
         // hook activation
         window.Activated += (s, e) =>
@@ -254,13 +254,13 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         };
 
         window.Closed += OnWindowClosed;
-             // Subscribe to Closed event
-        
+        // Subscribe to Closed event
+
     }
     private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
     {
         var ss = sender.Id.Value;
-        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);  
+        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);
         var isEqual = e == (nint)ss;
         // Find the XAML Window corresponding to this AppWindow
         var xamlWindow = _openWindows.FirstOrDefault(w => isEqual);
@@ -335,7 +335,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         return _openWindows.OfType<T>().FirstOrDefault(w => IsWindowOpen(w));
     }
 
-   
+
 
     public IReadOnlyList<Window> GetOpenNativeWindows()
     {
@@ -348,7 +348,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
 
         foreach (var window in _openWindows)
         {
-            CloseWindow(window);    
+            CloseWindow(window);
 
         }
     }
@@ -384,7 +384,7 @@ public partial class WinUIWindowMgrService :IWinUIWindowMgrService
         {
             // The native WinUI Window object itself is the one to activate
             window.Activate();
-            
+
             Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
 
             // For a more forceful bring to front:

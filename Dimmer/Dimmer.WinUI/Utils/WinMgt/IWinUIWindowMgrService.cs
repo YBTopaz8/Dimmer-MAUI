@@ -20,14 +20,15 @@ public interface IWinUIWindowMgrService
     T? CreateWindow<T>(object? parameter) where T : Window;
     IReadOnlyList<Window> GetOpenNativeWindows();
     Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null);
-    T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM=null, Func<T>? windowFactory = null) where T : Window;
+    T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM = null, Func<T>? windowFactory = null) where T : Window;
     T? GetWindow<T>() where T : Window;
     void TrackWindow(Window window);
     void UntrackWindow(Window window);
 
 }
 
-public class WindowActivatedWithSourceEventArgs  : EventArgs
+public class WindowActivatedWithSourceEventArgs : EventArgs
+
 {
     public Window Window { get; }
     public WindowActivationState ActivationState { get; }

@@ -347,14 +347,14 @@
 
                                         <dx:DXButton.Triggers>
                                             <DataTrigger
-                                                Binding="{Binding IsPlaying}"
+                                                Binding="{Binding IsDimmerPlaying}"
                                                 TargetType="dx:DXButton"
                                                 Value="true">
                                                 <Setter Property="Icon" Value="pause.png" />
                                             </DataTrigger>
 
                                             <DataTrigger
-                                                Binding="{Binding IsPlaying}"
+                                                Binding="{Binding IsDimmerPlaying}"
                                                 TargetType="dx:DXButton"
                                                 Value="false">
                                                 <Setter Property="Icon" Value="play.png" />
@@ -435,7 +435,7 @@
                                                                     Dark=white}">
                                         <Label.Triggers>
                                             <DataTrigger
-                                                Binding="{Binding IsPlaying}"
+                                                Binding="{Binding IsDimmerPlaying}"
                                                 TargetType="Label"
                                                 Value="True">
                                                 <Setter Property="TextColor" Value="DarkSlateBlue" />

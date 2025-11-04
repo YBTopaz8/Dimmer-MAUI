@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Window x:Name="myPage"
-        x:Class="Dimmer.WinUI.Views.AlbumWindow" xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-        xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews" xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-        xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel" x:DataType="vm:BaseViewModelWin"
-        >
+<Window
+    x:Class="Dimmer.WinUI.Views.AlbumWindow"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    x:Name="myPage"
+    x:DataType="vm:BaseViewModelWin">
     <Window.Page>
         <ContentPage>
 

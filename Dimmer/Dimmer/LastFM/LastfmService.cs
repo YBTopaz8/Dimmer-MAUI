@@ -574,7 +574,7 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<Track?> GetTrackInfoAsync(string artistName, string trackName)
+    public async Task<Track> GetTrackInfoAsync(string artistName, string trackName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try

@@ -1,6 +1,6 @@
 ﻿
 namespace Dimmer.DimmerSearch;
-public static class StaticMethods
+public static class TQlStaticMethods
 {
    
 

@@ -17,11 +17,30 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:DataType="vm:BaseViewModelWin"
-    Shell.FlyoutBehavior="Flyout"
-    Shell.FlyoutWidth="0"
-    Shell.PresentationMode="ModalAnimated">
+
+    FlyoutBackgroundColor="Transparent"
+    Shell.FlyoutBehavior="Disabled">
+    <Shell.Triggers>
+        <DataTrigger
+            Binding="{Binding IsLibraryEmpty}"
+            TargetType="Shell"
+            Value="True">
+            <Setter Property="FlyoutBehavior" Value="Disabled" />
 
 
+
+    <Shell.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
+        <converters:BoolToInverseConverter x:Key="BoolToInverse" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+        <converters:VolumeConverter x:Key="VolConverter" />
+        <ResourceDictionary />
+    </Shell.Resources>
     <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate views:HomePage}"

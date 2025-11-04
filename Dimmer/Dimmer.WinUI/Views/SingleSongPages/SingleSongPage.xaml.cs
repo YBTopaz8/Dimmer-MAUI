@@ -174,7 +174,7 @@ public partial class SingleSongPage : ContentPage
             return;
         }
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
 
         if (!ArtistAlbumView.IsVisible)
@@ -351,7 +351,7 @@ public partial class SingleSongPage : ContentPage
         var artistName = send.Text;
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.PresetQueries.ByArtist(artistName));
 
 
 
@@ -392,7 +392,7 @@ public partial class SingleSongPage : ContentPage
 
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(artistName) + " " + StaticMethods.PresetQueries.SortByTitleAsc());
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.PresetQueries.ByAlbum(artistName) + " " + TQlStaticMethods.PresetQueries.SortByTitleAsc());
 
 
 

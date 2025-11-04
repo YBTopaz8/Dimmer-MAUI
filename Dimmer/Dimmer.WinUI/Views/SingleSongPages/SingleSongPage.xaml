@@ -19,7 +19,7 @@
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:Name="myPage"
     x:DataType="vm:BaseViewModelWin"
-    Shell.FlyoutBehavior="Locked"
+    Shell.FlyoutBehavior="Disabled"
     Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
@@ -257,14 +257,14 @@
                                                     Light=Black}">
                         <Button.Triggers>
                             <DataTrigger
-                                Binding="{Binding IsPlaying}"
+                                Binding="{Binding IsDimmerPlaying}"
                                 TargetType="Button"
                                 Value="true">
                                 <Setter Property="ImageSource" Value="pause.png" />
                             </DataTrigger>
 
                             <DataTrigger
-                                Binding="{Binding IsPlaying}"
+                                Binding="{Binding IsDimmerPlaying}"
                                 TargetType="Button"
                                 Value="false">
                                 <Setter Property="ImageSource" Value="play.png" />
@@ -505,14 +505,14 @@
                                         StyleClass="MediaBtnChip">
                                         <syncf:SfChip.Triggers>
                                             <DataTrigger
-                                                Binding="{Binding IsPlaying}"
+                                                Binding="{Binding IsDimmerPlaying}"
                                                 TargetType="syncf:SfChip"
                                                 Value="true">
                                                 <Setter Property="ImageSource" Value="pause.png" />
                                             </DataTrigger>
 
                                             <DataTrigger
-                                                Binding="{Binding IsPlaying}"
+                                                Binding="{Binding IsDimmerPlaying}"
                                                 TargetType="syncf:SfChip"
                                                 Value="false">
                                                 <Setter Property="ImageSource" Value="play.png" />

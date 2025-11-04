@@ -20,9 +20,7 @@ public interface IDimmerAudioService
 
     double Volume { get; set; }
     SongModelView? CurrentTrackMetadata { get; }
-
-
-
+    IEnumerable<AudioOutputDevice> PlaybackDevices { get; }
 
     event EventHandler<PlaybackEventArgs> IsPlayingChanged;
 
@@ -73,4 +71,9 @@ public interface IDimmerAudioService
     /// <param name="metadata">The metadata of the track to load.</param>
     /// <returns>Task indicating completion.</returns>
     Task InitializeAsync(SongModelView songModel, double pos);
+    Task SetDefaultAsync(AudioOutputDevice device);
+    Task MuteDevice(bool mute);
+    void WatchVolume();
+    Task SetVolume(double volume);
+    double GetCurrentVolume();
 }

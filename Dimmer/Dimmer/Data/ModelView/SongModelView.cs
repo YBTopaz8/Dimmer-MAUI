@@ -13,7 +13,15 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int NumberOfTimesFaved { get; set; }
 
-    
+    [ObservableProperty]
+    public partial int ManualFavoriteCount { get; set; }
+
+
+    public int TotalPlayDurationSeconds { get; set; }
+    public int RepeatCount { get; set; }
+    public int PreviousCount { get; set; }
+    public int RestartCount { get; set; }
+    public DateTimeOffset DiscoveryDate { get; set; }
 
     public void SetTitleAndDuration(string title, double duration)
     {

@@ -40,76 +40,8 @@ public static class MauiProgram
                 //});
 
 
-                Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
-                         key: "AddGlobalTouchBehavior",
-                         method: (handler, view) =>
-                         {
-                             return;
-                                 
-                             // The 'view' is the cross-platform Button control.
-                             if (view is Button button)
-                             {
 
-                                 // --- PREVENT DUPLICATES ---
-                                 // This is an important check to ensure we don't add the behavior
-                                 // multiple times if the handler's logic re-runs for the same control.
-                                 if (button.Behaviors.OfType<TouchBehavior>().Any() || button.Behaviors.OfType<IconTintColorBehavior>().Any())
-                                 {
-                                     return;
-                                 }
-                                 var iconTintBehavior = new CommunityToolkit.Maui.Behaviors.IconTintColorBehavior
-                                 {
-                                     // Set the initial/unhovered color. Let's use the button's TextColor for flexibility.
-                                     TintColor = Colors.DarkSlateBlue
-                                     
-                                 };
-
-
-                                 var touchBehavior = new TouchBehavior
-                                 {
-                                     HoveredAnimationDuration = 350,
-                                     HoveredAnimationEasing = Easing.Linear,
-                                     HoveredOpacity=0.8,
-                                     PressedAnimationDuration = 300,
-                                     // Add any other customizations here
-
-                                 };
-
-                                 touchBehavior.HoverStateChanged += (sender, e) =>
-                                 {
-                                     // Here we define the desired visual state changes.
-                                     switch (e.State)
-                                     {
-                                         case CommunityToolkit.Maui.Core.HoverState.Hovered:
-                                             var bev =button.Behaviors.FirstOrDefault(x=>x.GetType()== typeof(IconTintColorBehavior));
-                                                if (bev is null) return;
-                                                var iconTintBehavior = (CommunityToolkit.Maui.Behaviors.IconTintColorBehavior)bev;
-                                             // The 'sender' of this event is the TouchBehavior itself.
-                                             iconTintBehavior.TintColor= Colors.DarkSlateBlue;
-
-                                             button.BorderWidth = 1;
-                                             button.BorderColor = Colors.DarkSlateBlue;
-                                             break;
-
-                                         case CommunityToolkit.Maui.Core.HoverState.Default:
-                                         default:
-
-
-
-
-                                             // e.g., button.BackgroundColor = Colors.DarkSlateBlue;
-                                             break;
-                                     }
-                                 };
-
-
-                                 button.Behaviors.Add(touchBehavior);
-                                 button.Behaviors.Add(iconTintBehavior);
-                             }
-                         });
-
-
-                 });
+            });
 
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
@@ -145,8 +77,7 @@ public static class MauiProgram
             {
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
-                    
-                 
+
                     var winMgr = IPlatformApplication.Current.Services.GetService<IWinUIWindowMgrService>();
                     winMgr?.CloseAllWindows();
 
@@ -162,18 +93,18 @@ public static class MauiProgram
                         PlatUtils.DimmerHandle = nativeWindowHandle;
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
-                        
+
                         winuiAppWindow.Changed += (s, e) =>
                         {
                             if (e.DidVisibilityChange)
                             {
-                                PlatUtils.IsAppInForeground =s.IsVisible;
+                                PlatUtils.IsAppInForeground = s.IsVisible;
                             }
 
                         };
 
                         PlatUtils.AppWinPresenter = winuiAppWindow.Presenter;
-                        PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
+                        PlatUtils.OverLappedPres = winuiAppWindow.Presenter as OverlappedPresenter;
 
 
                     }
@@ -198,14 +129,14 @@ public static class MauiProgram
                     }
                 });
 
-                
+
             });
 
-           
+
         });
 
 
-        builder.Services.AddSingleton<IAnimationService,WindowsAnimationService>();
+        builder.Services.AddSingleton<IAnimationService, WindowsAnimationService>();
 
 
 

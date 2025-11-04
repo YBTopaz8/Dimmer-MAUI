@@ -19,6 +19,8 @@ namespace Dimmer.WinUI;
 
 public partial class AppShell : Shell
 {
+    public BaseViewModelWin MyViewModel { get; }
+
     public AppShell(BaseViewModelWin baseViewModel)
     {
         InitializeComponent();
@@ -67,69 +69,6 @@ public partial class AppShell : Shell
     {
         base.OnNavigatingFrom(args);
     }
-
-    //protected override void OnNavigated(ShellNavigatedEventArgs args)
-    //{
-
-
-
-    //    // Get the animation service via the DI container
-    //    var animationService = this.Handler?.MauiContext?.Services.GetService<IAnimationService>();
-    //    if (animationService == null)
-    //    {
-    //        base.OnNavigated(args);
-    //        return;
-    //    }
-
-    //    // Determine the target page type
-    //    var targetPage = args.Current.Location.OriginalString;
-    //    var targetPageType = Routing.GetRoute(args.Current);
-
-    //    if (targetPageType == null)
-    //    {
-    //        base.OnNavigate(args);
-    //        return;
-    //    }
-
-    //    // Load the animation profile for this specific page type
-    //    var animationProfile = AnimationManager.GetPageAnimations(targetPageType, animationService);
-
-    //    // Get the correct NavigationTransitionInfo object
-    //    NavigationTransitionInfo transitionInfo;
-    //    if (args.IsPopping)
-    //    {
-    //        transitionInfo = animationProfile.PopExit.TransitionInfo;
-    //    }
-    //    else
-    //    {
-    //        transitionInfo = animationProfile.PushEnter.TransitionInfo;
-    //    }
-
-    //    // If it's a special HomePage navigation, override with those settings
-    //    if (targetPageType == typeof(HomePage)) // Assuming HomePage is the name of your page
-    //    {
-    //        transitionInfo = args.IsPopping
-    //            ? animationService.GetHomePagePopExitAnimation().TransitionInfo
-    //            : animationService.GetHomePagePushEnterAnimation().TransitionInfo;
-    //    }
-
-    //    // Finally, call the base navigation method, but provide our custom transition info!
-    //    base.OnNavigate(args, transitionInfo);
-    //}
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        this.BindingContext = MyViewModel;
-
-        MyViewModel.InitializeAllVMCoreComponentsAsync();
-
-    }
-
-    public BaseViewModelWin MyViewModel { get; internal set; }
- 
-    // Section for Songs With UserNotes.
 
 
 }

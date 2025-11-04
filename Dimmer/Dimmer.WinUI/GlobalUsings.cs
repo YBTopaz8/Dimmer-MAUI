@@ -26,7 +26,7 @@ global using Dimmer.WinUI.Views.ArtistsSpace.MAUI;
 
 global using Syncfusion.Maui.Toolkit.Chips;
 global using Syncfusion.Maui.Toolkit.EffectsView;
-
+global using IValueConverter = Microsoft.UI.Xaml.Data.IValueConverter;
 global using Dimmer.WinUI.Utils.StaticUtils;
 global using Microsoft.UI.Xaml.Input;
 global using System.ComponentModel;

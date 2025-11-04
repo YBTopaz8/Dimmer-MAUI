@@ -336,7 +336,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             return;
         }
         await Shell.Current.GoToAsync(nameof(SingleSongPage), true);
-        
+
     }
 
     public async Task InitializeParseUser()
@@ -397,11 +397,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
 
-    
+
     internal void ActivateMainWindow()
     {
         var dimWindow = windowManager.GetWindow<DimmerWin>();
-        
+
         if (dimWindow is not null)
         {
             windowManager.ActivateWindow(dimWindow);
@@ -414,12 +414,12 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
 
-        
+
         var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
         if (syncLyricsWindow is null) return;
         var newPosition = new RectInt32();
         newPosition.Width = 400;
-        newPosition.Height= 400;
+        newPosition.Height = 400;
         switch (Position)
         {
             case 0:
@@ -444,7 +444,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
         //Application.Current?.OpenWindow(syncLyricsWindow);
         PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
-        
+
     }
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
     {
@@ -454,7 +454,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         {
             ShowWelcomeScreen = false;
             await Shell.Current.GoToAsync("..");
-            _ = Task.Run(EnsureAllCoverArtCachedForSongsAsync);
             return;
         }
     }
@@ -515,7 +514,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         await base.OnPlaybackStarted(args);
         if (args.MediaSong is null) return;
-       // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
+        // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
     }
     [RelayCommand]
     private void OpenAllSongsPageWinUI()
