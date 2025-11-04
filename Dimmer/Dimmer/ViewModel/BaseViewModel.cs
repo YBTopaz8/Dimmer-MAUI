@@ -998,7 +998,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public RuleBasedPlaybackManager PlaybackManager { get; }
 
     #region private fields
-    SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
+    public SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;

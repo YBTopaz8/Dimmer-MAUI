@@ -6,6 +6,8 @@ using Android.Util;
 using Android.Window;
 
 using AndroidX.Lifecycle;
+
+using Dimmer.Views.NativeViews;
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
@@ -46,6 +48,7 @@ public class MainActivity : MauiAppCompatActivity
 
 
     }
+    public static int MyStaticID { get; private set; }
 
     public MainActivity()
     {
@@ -101,77 +104,98 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
 
-
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
+        try
         {
-            Window?.RequestFeature(WindowFeatures.ContentTransitions); // Crucial for enabling transitions
 
-            // Define Enter Transition (how this activity appears when started)
-            Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
-            if (enterTransition != null)
+
+
+            //if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
+            //{
+            //    Window?.RequestFeature(WindowFeatures.ContentTransitions); // Crucial for enabling transitions
+
+            //    // Define Enter Transition (how this activity appears when started)
+            //    Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
+            //    if (enterTransition != null)
+            //    {
+            //        Window?.EnterTransition = enterTransition;
+            //    }
+
+            //    // Define Exit Transition (how this activity disappears when finishing)
+            //    Transition? exitTransition = CreateTransition(PublicStats.ExitTransition);
+            //    if (exitTransition != null)
+            //    {
+            //        Window?.ExitTransition = exitTransition;
+            //    }
+
+            //    // Define Reenter Transition (how this activity appears when returning from a subsequent activity)
+            //    Transition? reenterTransition = CreateTransition(PublicStats.ReenterTransition);
+            //    if (reenterTransition != null)
+            //    {
+            //        Window?.ReenterTransition = reenterTransition;
+            //    }
+
+            //    // Define Return Transition (how this activity disappears when it's the one returning to a previous activity)
+            //    // This is often the reverse of the Enter transition of the activity it's returning to.
+            //    Transition? returnTransition = CreateTransition(PublicStats.ReturnTransition);
+            //    if (returnTransition != null)
+            //    {
+            //        Window?.ReturnTransition = returnTransition;
+            //    }
+
+            //    // Optional: Allow overlap for smoother transitions between activities
+            //    Window?.AllowEnterTransitionOverlap = true;
+            //    Window?.AllowReturnTransitionOverlap = true;
+
+            //}
+
+            base.OnCreate(savedInstanceState);
+
+          
+            ProcessIntent(Intent);
+
+            SetupBackNavigation();
+
+            // 2. Create the service connection and give it the proxy instance.
+            _serviceConnection = new MediaPlayerServiceConnection();
+
+
+            // 1) StartAsync the foreground service
+            _serviceIntent = new Intent(this, typeof(ExoPlayerService));
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             {
-                Window?.EnterTransition = enterTransition;
-            }
 
-            // Define Exit Transition (how this activity disappears when finishing)
-            Transition? exitTransition = CreateTransition(PublicStats.ExitTransition);
-            if (exitTransition != null)
-            {
-                Window?.ExitTransition = exitTransition;
-            }
+                this.StartForegroundService(_serviceIntent);
 
-            // Define Reenter Transition (how this activity appears when returning from a subsequent activity)
-            Transition? reenterTransition = CreateTransition(PublicStats.ReenterTransition);
-            if (reenterTransition != null)
-            {
-                Window?.ReenterTransition = reenterTransition;
             }
+            else
+                StartService(_serviceIntent);
+            //_serviceConnection = new MediaPlayerServiceConnection(audioSvc);
+            BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
 
-            // Define Return Transition (how this activity disappears when it's the one returning to a previous activity)
-            // This is often the reverse of the Enter transition of the activity it's returning to.
-            Transition? returnTransition = CreateTransition(PublicStats.ReturnTransition);
-            if (returnTransition != null)
-            {
-                Window?.ReturnTransition = returnTransition;
-            }
+            SetStatusBarColor();
+            //FirstTimeBubbleSetup(Platform.AppContext);
 
-            // Optional: Allow overlap for smoother transitions between activities
-            Window?.AllowEnterTransitionOverlap = true;
-            Window?.AllowReturnTransitionOverlap = true;
+
+            // Skip directly into your native activity
+            var intent = new Intent(this, typeof(TransitionActivity));
+            StartActivity(intent);
+
+            // Optional: close MainActivity so back button won't return to it
+            Finish();
+            return;
+
+
 
         }
-
-
-
-        base.OnCreate(savedInstanceState);
-        ProcessIntent(Intent);
-
-        SetupBackNavigation();
-
-        // 2. Create the service connection and give it the proxy instance.
-        _serviceConnection = new MediaPlayerServiceConnection();
-
-
-        // 1) StartAsync the foreground service
-        _serviceIntent = new Intent(this, typeof(ExoPlayerService));
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        catch (Java.Lang.IllegalArgumentException ex)
         {
-            
-            this.StartForegroundService(_serviceIntent);
-
+            Console.WriteLine(ex.Message);
         }
-        else
-            StartService(_serviceIntent);
-        //_serviceConnection = new MediaPlayerServiceConnection(audioSvc);
-        BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
-
-        SetStatusBarColor();
-        //FirstTimeBubbleSetup(Platform.AppContext);
-        return;
-
-
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
-
     private void SetStatusBarColor()
     {
         if (Window == null)
@@ -433,7 +457,6 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnUserLeaveHint();
     
-        TryEnterPipMode();
     }
 
     private void TryEnterPipMode()

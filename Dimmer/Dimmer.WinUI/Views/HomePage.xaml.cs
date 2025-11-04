@@ -78,7 +78,6 @@ public partial class HomePage : ContentPage
     
     private async Task InitializeAsync()
     {
-        MyViewModel.DumpCommand.Execute(null);
         try
         {
             MyViewModel.CurrentPageContext = CurrentPage.HomePage;
@@ -99,7 +98,6 @@ public partial class HomePage : ContentPage
         {
             await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
-        MyViewModel.DumpCommand.Execute(null);
     }
     private async void ConsolidateDuplicates_Clicked(object sender, EventArgs e)
     {

@@ -1,7 +1,7 @@
 
 
 using View = Microsoft.Maui.Controls.View;
-
+using Button = Microsoft.Maui.Controls.Button;
 
 namespace Dimmer.Views;
 
@@ -31,22 +31,7 @@ public partial class HomePage : ContentPage
         MainViewTabView.SelectedItemIndex = 0;
         //MyViewModel.FiniInit();
 
-        ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
-        //AndMorphingButton.MorphingButton morph = new AndMorphingButton.MorphingButton(Platform.AppContext);
-        //morph.SetText("TestYB", TextView.BufferType.Normal);
-        //morph.Click += (s, e) =>
-        //{
-        //    Debug.WriteLine("Button Clicked");
-        //    //morph.SetText("Clicked", TextView.BufferType.Normal);
-        //    //morph.SetBackgroundColor(Android.Graphics.Color.Red);
-        //    //morph.SetTextColor(Android.Graphics.Color.White);
-        //};
-
-        //var ss = morph.ToView();
-        //ss.HeightRequest = 180;
-        //ss.BackgroundColor = Colors.Red;
-
-        //MyBtmBar.BtmBarStackLayout.Children.Add(ss);
+        
 
     }
 
@@ -678,7 +663,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrWhiteSpace(val))
             return; // No album to show
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("album", val));
     }
 
 
@@ -716,7 +701,7 @@ public partial class HomePage : ContentPage
         }
 
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
     }
 
@@ -817,7 +802,7 @@ public partial class HomePage : ContentPage
         {
             return;
         }
-        var ss = StaticMethods.SetQuotedSearch("artist", res);
+        var ss = TQlStaticMethods.SetQuotedSearch("artist", res);
 
         SearchBy.Text =ss;
     }
@@ -826,7 +811,7 @@ public partial class HomePage : ContentPage
     {
         var send = (Chip)sender;
         SearchBy.Text=
-        StaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
+        TQlStaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
     }
 
     // The "Years" methods remain unchanged.
@@ -835,7 +820,7 @@ public partial class HomePage : ContentPage
 
         var send = (Chip)sender;
         SearchBy.Text=
-        StaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
+        TQlStaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
     }
 
     private void SearchBy_TextChanged(object sender, EventArgs e)
@@ -1255,7 +1240,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrWhiteSpace(val))
             return; // No album to show
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("album", val));
     }
 
     private void MainViewTabView_Loaded(object sender, EventArgs e)
@@ -1340,7 +1325,7 @@ public partial class HomePage : ContentPage
         if (namesList is not null && namesList.Length == 1)
         {
             SearchSongSB_Clicked(sender, e);
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
+            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", namesList[0]));
 
             return;
         }
@@ -1352,7 +1337,7 @@ public partial class HomePage : ContentPage
         }
 
         SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
         return;
     }
@@ -1400,7 +1385,7 @@ public partial class HomePage : ContentPage
     private void QuickSearchAlbum_Clicked(object sender, HandledEventArgs e)
     {
         SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
 
     }
 }

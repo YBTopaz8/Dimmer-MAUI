@@ -1,6 +1,8 @@
 ﻿
 //using System.Reactive.Linq;
 
+using AndroidX.Fragment.App;
+
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
@@ -12,6 +14,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.StatsUtils;
+using Dimmer.Views.NativeViews;
 
 using Microsoft.Extensions.Logging;
 
@@ -763,6 +766,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public partial ObservableCollection<SongModelView> MultiSelectSongs { get; set; } = new();
     [ObservableProperty]
     public partial HomePage? MyHomePage { get; internal set; }
+    public Fragment CurentFragment { get; internal set; }
+
     partial void OnMyHomePageChanged(HomePage? oldValue, HomePage? newValue)
     {
         if (newValue is not null)

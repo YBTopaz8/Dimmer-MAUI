@@ -66,7 +66,6 @@ global using Syncfusion.Maui.Toolkit.EffectsView;
 
 global using System.ComponentModel;
 
-global using Button = Microsoft.Maui.Controls.Button;
 global using Platform = Microsoft.Maui.ApplicationModel.Platform;
 
 namespace Dimmer;

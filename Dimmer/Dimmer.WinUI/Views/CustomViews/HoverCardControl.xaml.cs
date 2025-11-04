@@ -52,7 +52,7 @@ public sealed partial class HoverCardControl : UserControl
     {
         _hoverTimer?.Cancel();
         _hoverTimer = null;
-        DispatcherQueue.TryEnqueue(() => AnimateCollapse());
+        DispatcherQueue.TryEnqueue(AnimateCollapse);
         Debug.WriteLine("Hover exited!");
     }
     private async void AnimateExpand()

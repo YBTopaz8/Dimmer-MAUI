@@ -127,7 +127,7 @@ public partial class TopBeforeColView : DXExpander
         {
             return;
         }
-        var ss = StaticMethods.SetQuotedSearch("artist", res);
+        var ss = TQlStaticMethods.SetQuotedSearch("artist", res);
 
         SearchBy.Text =ss;
     }
@@ -136,7 +136,7 @@ public partial class TopBeforeColView : DXExpander
     {
         var send = (Chip)sender;
         SearchBy.Text=
-        StaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
+        TQlStaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
     }
 
     // The "Years" methods remain unchanged.
@@ -145,7 +145,7 @@ public partial class TopBeforeColView : DXExpander
 
         var send = (Chip)sender;
         SearchBy.Text=
-        StaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
+        TQlStaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
     }
 
     private void SearchBy_TextChanged(object sender, EventArgs e)

@@ -16,11 +16,11 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<!-- Replace 'yourdomain.com' with your actual, verified domain -->
-				<data android:scheme="https" android:host="yourdomain.com" />
+				<data android:scheme="https" android:host="com.yvanbrunel.dimmer.com" />
 				<!-- Optional: android:pathPrefix="/invite" if your links always start with /invite -->
-				<!-- <data android:scheme="https"
-                          android:host="yourdomain.com"
-                          android:pathPrefix="/invite" /> -->
+				 <data android:scheme="https"
+                          android:host="com.yvanbrunel.dimmer.com"
+                          android:pathPrefix="/share" /> 
 			</intent-filter>
 		</activity>
 		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" android:allowEmbedded="true" android:resizeableActivity="true" android:documentLaunchMode="always" android:exported="false" android:taskAffinity="" android:launchMode="singleInstance" android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />

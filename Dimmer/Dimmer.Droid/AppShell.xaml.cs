@@ -90,7 +90,7 @@ public partial class AppShell : Shell
 
     private void NavBtnClicked_Clicked(object sender, EventArgs e)
     {
-        var send = (Button)sender;
+        var send = (Microsoft.Maui.Controls.Button)sender;
         var param = send.CommandParameter.ToString();
         switch (param)
         {
@@ -234,14 +234,14 @@ public partial class AppShell : Shell
             {
                 return;
             }
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
 
 
             return;
         }
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
     }
 
     private bool _isThrottling = false;

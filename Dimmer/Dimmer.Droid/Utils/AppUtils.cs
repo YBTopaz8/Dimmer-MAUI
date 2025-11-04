@@ -18,7 +18,16 @@ public class AppUtil : IAppUtil
 
     public Window LoadWindow()
     {
-        Window window = new Window();
+        Window window = new Window()
+        {
+            Page = new ContentPage
+            {
+                BackgroundColor = Colors.Transparent,
+                // Or some placeholder; it’ll never show
+                Content = new Label { Text = "", IsVisible = false }
+            }
+        };
+        return window;
         window.Page = GetShell();
         return window;
     }
