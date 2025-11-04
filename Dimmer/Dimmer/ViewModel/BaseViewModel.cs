@@ -148,7 +148,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void InitializeAllVMCoreComponentsAsync()
     {
         if (IsInitialized) return;
-        // i need a time to see how long this takes
 
         var startTime = DateTime.Now;
 
@@ -202,9 +201,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                                 // Handle removal
                                 break;
 
-
                             case ListChangeReason.Refresh:
                                 break;
+
                             case
                             ListChangeReason.Moved:
                                 break;
@@ -442,18 +441,18 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private async Task HeavierBackGroundLoadings(List<string>? folders)
     {
         try
-        {
+        {            
+            // 1. Set up watchers immediately (this is now fast)
+            await _folderMgtService.StartWatchingConfiguredFoldersAsync();
+
+            // 2. Perform the slow initial scan in the background
+
+            if (folders is not null && folders.Count != 0)
+            {
+                _ = await libService.ScanLibrary(folders);
+            }
             
-                    // 1. Set up watchers immediately (this is now fast)
-                    await _folderMgtService.StartWatchingConfiguredFoldersAsync();
-
-                    // 2. Perform the slow initial scan in the background
-
-                    if (folders is not null && folders.Count != 0)
-                    {
-                        _ = await libService.ScanLibrary(folders);
-                    }
-         await PerformBackgroundInitializationAsync();
+            await PerformBackgroundInitializationAsync();
         }
         catch (Exception ex )
         {
@@ -491,17 +490,16 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             var backgroundRealm = RealmFactory.GetRealmInstance();
             var tempListOfSongs = _mapper.Map<IEnumerable<SongModelView>>(backgroundRealm.All<SongModel>());
             await EnsureCoverArtCachedForSongsAsync(tempListOfSongs);
-            var redoStats = new StatsRecalculator(backgroundRealm, _logger);
+            var redoStats = new StatsRecalculator(RealmFactory, _logger);
             redoStats.RecalculateAllStatistics();
+            
+
             // Task 2: Update SearchableText for all songs (Heavy CPU/DB work)
-            _logger.LogInformation("Starting background calculation of SearchableText...");
+            
+            
          
             _logger.LogInformation("Finished calculating SearchableText.");
 
-
-            //// Task 3: Recalculate All Statistics (Heavy DB work)
-            _logger.LogInformation("Starting background statistics recalculation...");
-           
           
             lastfmService.Start();
 
@@ -648,7 +646,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     var albumToView = distinctAlbums[vaa.AlbumIndex];
                     Debug.WriteLine($"Action: View album '{albumToView}'.");
                     // Now, set the search query to show only this album
-                    _searchQuerySubject.OnNext(StaticMethods.PresetQueries.ByAlbum(albumToView));
+                    _searchQuerySubject.OnNext(TQlStaticMethods.PresetQueries.ByAlbum(albumToView));
                 }
                 break;
 
@@ -1003,6 +1001,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
+    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
 
     private readonly CommandEvaluator commandEvaluator = new();
@@ -1039,7 +1038,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     #endregion
-    public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
 
     /// <summary>
@@ -3557,15 +3555,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 {
                     AllLines?.Clear();
 
-                    if (lines.Count > 0 || string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
+                    if (lines.Count > 0 || !string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
                     {
                         CurrentPlayingSongView.HasSyncedLyrics = true;
                         AllLines = lines.ToObservableCollection();
 
-                        if (string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
-                        {
-
-                        }
                     }
                     else
                     {
@@ -3901,7 +3895,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void ViewAlbumDetails(AlbumModelView albumView)
     {
         SelectedAlbum = albumView;
-        SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", albumView.Name));
+        SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("album", albumView.Name));
     }
 
     [ObservableProperty]

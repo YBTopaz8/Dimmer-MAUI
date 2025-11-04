@@ -16,8 +16,7 @@
     x:DataType="vm:BaseViewModelAnd"
     CornerRadius="20"
     Loaded="BtmBarr_Loaded"
-    Unloaded="BtmBarr_Unloaded"
-    >
+    Unloaded="BtmBarr_Unloaded">
 
 
     <dx:DXBorder.Resources>
@@ -36,10 +35,17 @@
         <PanGestureRecognizer x:Name="PanGesture" PanUpdated="PanGesture_PanUpdated" />
     </dx:DXBorder.GestureRecognizers>
     <dx:DXBorder.Content>
-        <StackLayout x:FieldModifier="Public" x:Name="BtmBarStackLayout" Padding="0,0" BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#242629}">
-            <syncf:SfLinearProgressBar 
-    Progress="{Binding CurrentTrackPositionPercentage}" TrackFill="Transparent" BackgroundColor="Transparent"
-                ProgressFill="DarkSlateBlue"/>
+        <StackLayout
+            x:Name="BtmBarStackLayout"
+            Padding="0,0"
+            x:FieldModifier="Public"
+            BackgroundColor="{AppThemeBinding Light=#F5F5F5,
+                                              Dark=#242629}">
+            <syncf:SfLinearProgressBar
+                BackgroundColor="Transparent"
+                Progress="{Binding CurrentTrackPositionPercentage}"
+                ProgressFill="DarkSlateBlue"
+                TrackFill="Transparent" />
             <Grid
                 Padding="0,0"
                 BackgroundColor="Transparent"
@@ -68,16 +74,18 @@
                             FontAttributes="Italic"
                             FontSize="14"
                             LineBreakMode="WordWrap"
-                            TextColor="{AppThemeBinding Light=Black, Dark= White}"
-                            Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                            Text="{Binding CurrentPlayingSongView.ArtistName}"
+                            TextColor="{AppThemeBinding Light=Black,
+                                                        Dark=White}" />
                     </StackLayout>
 
                     <dx:Chip
                         x:Name="DurationAndSearchChip"
                         Grid.Column="1"
-                        BorderThickness="0" DoubleTap="DurationAndSearchChip_LongPress"
-                        Tap="DurationAndSearchChip_LongPress"
-                        LongPress="DurationAndSearchChip_LongPress">
+                        BorderThickness="0"
+                        DoubleTap="DurationAndSearchChip_LongPress"
+                        LongPress="DurationAndSearchChip_LongPress"
+                        Tap="DurationAndSearchChip_LongPress">
                         <dx:Chip.ContentTemplate>
                             <DataTemplate>
                                 <VerticalStackLayout>

@@ -26,7 +26,7 @@ public class AppUtil : IAppUtil
             throw new Exception("DimmerWin is null");
         }
         dimmerWin.MinimumWidth = 450;
-        dimmerWin.MaximumWidth = 500;
+        dimmerWin.MaximumWidth = 450;
         dimmerWin.Width = 450;
 
 
@@ -36,5 +36,13 @@ public class AppUtil : IAppUtil
     }
     public DimmerWin? dimmerWin { get; set; }
     public BaseViewModelWin BaseViewModelWin { get; }
+
+    public enum SongTransitionAnimation
+    {
+        Fade,
+        Slide,
+        Scale,
+        Spring
+    }
 }
 

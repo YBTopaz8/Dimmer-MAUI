@@ -64,38 +64,7 @@
                     Clicked="MoreIcon_Clicked"
                     HeightRequest="65"
                     Source="more1.png"
-                    WidthRequest="65">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem
-                                Command="{Binding OpenSongInOnlineSearchCommand}"
-                                CommandParameter="lastFM"
-                                IconImageSource="lastfm.png"
-                                Text="View on Last FM" />
-                            <MenuFlyoutItem
-                                Command="{Binding OpenSongInOnlineSearchCommand}"
-                                CommandParameter="google"
-                                IconImageSource="google.png"
-                                Text="View on Google" />
-                            <MenuFlyoutItem
-                                Command="{Binding OpenSongInOnlineSearchCommand}"
-                                CommandParameter="youtube"
-                                IconImageSource="youtube.png"
-                                Text="View on YouTube" />
-                            <MenuFlyoutItem
-                                Command="{Binding OpenSongInOnlineSearchCommand}"
-                                CommandParameter="spotify"
-                                IconImageSource="spotify.png"
-                                Text="View on Spotify" />
-                            <MenuFlyoutItem
-                                Command="{Binding OpenSongInOnlineSearchCommand}"
-                                CommandParameter="deezer"
-                                IconImageSource="deezer.png"
-                                Text="View on Deezer" />
-
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                </ImageButton>
+                    WidthRequest="65" />
 
                 <syncf:SfChip
                     x:Name="ShowPlaylistHistory"
@@ -129,7 +98,7 @@
                             Grid.Row="0"
                             Margin="0,0"
                             HeightRequest="360"
-                            StrokeShape="RoundRectangle 15"
+                            StrokeShape="RoundRectangle 25"
                             StrokeThickness="3"
                             WidthRequest="470">
                             <Border.Triggers>
@@ -146,16 +115,16 @@
 
 
                             </Border.Triggers>
-                            <Grid>
+                            <Grid HorizontalOptions="Start">
                                 <ImageButton
                                     x:Name="NowPlayingSong"
                                     Aspect="AspectFill"
                                     Clicked="NowPlayingSong_Clicked"
-                                    HeightRequest="360"
+                                    HeightRequest="340"
                                     Opacity="0.3"
                                     Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
                                     ToolTipProperties.Text="Click to view song details"
-                                    WidthRequest="470">
+                                    WidthRequest="427">
 
                                     <ImageButton.Triggers>
                                         <DataTrigger
@@ -306,6 +275,7 @@
                                     BackgroundColor="{Binding CurrentPlaySongDominantColor}"
                                     BorderWidth="0"
                                     Clicked="NavigateToSelectedSongPageContextMenuAsync"
+                                    Loaded="ButtonLoaded"
                                     Opacity="0.6"
                                     Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}"
                                     TextColor="{AppThemeBinding Light=Black,
@@ -324,7 +294,7 @@
                                     BorderWidth="0"
                                     FontSize="16"
                                     HorizontalOptions="Start"
-                                    Loaded="ArtistButtonLoaded"
+                                    Loaded="ButtonLoaded"
                                     Text="{Binding CurrentPlayingSongView.ArtistName}"
                                     TextColor="{AppThemeBinding Light=Black,
                                                                 Dark=White}"
@@ -362,11 +332,9 @@
                                 x:Name="MediaBtns"
                                 Grid.Row="0"
                                 Margin="0"
-                                HeightRequest="50"
                                 HorizontalOptions="Center"
                                 Spacing="10"
                                 VerticalOptions="Center">
-
                                 <HorizontalStackLayout.Resources>
                                     <Style TargetType="Button">
                                         <Setter Property="HeightRequest" Value="50" />
@@ -374,75 +342,81 @@
                                     </Style>
                                 </HorizontalStackLayout.Resources>
 
+                                <Border Margin="4" Loaded="ButtonBorder_Loaded">
+                                    <Button
+                                        Background="Transparent"
+                                        BorderWidth="0"
+                                        Command="{Binding ToggleShuffleCommand}"
+                                        ImageSource="shuffle.png"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
+                                        Loaded="ButtonLoaded"
+                                        ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
+                                        WidthRequest="60">
+                                        <Button.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
+                                        </Button.Behaviors>
+                                        <Button.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding IsShuffleActive}"
+                                                TargetType="Button"
+                                                Value="True">
+                                                <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                <Button
-                                    Background="Transparent"
-                                    BorderWidth="0"
-                                    Command="{Binding ToggleShuffleCommand}"
-                                    ImageSource="shuffle.png"
-                                    IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                    StyleClass="MediaBtnChip"
-                                    ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
-                                    WidthRequest="60">
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
-                                    <Button.Triggers>
-                                        <DataTrigger
-                                            Binding="{Binding IsShuffleActive}"
-                                            TargetType="Button"
-                                            Value="True">
-                                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
-                                            <Setter Property="BorderWidth" Value="2" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
 
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                    </Button>
+                                </Border>
+                                <Border Margin="4" Loaded="ButtonBorder_Loaded">
+                                    <Button
+                                        x:Name="SkipPrev"
+                                        windows:VisualElement.AccessKey="B"
+                                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                                        Background="Transparent"
+                                        BorderWidth="0"
+                                        Command="{Binding PreviousTrackCommand}"
+                                        ImageSource="skipprevious.png"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
+                                        Loaded="ButtonLoaded">
+                                        <Button.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
+                                        </Button.Behaviors>
+                                    </Button>
 
+                                </Border>
 
-                                <Button
-                                    x:Name="SkipPrev"
-                                    windows:VisualElement.AccessKey="B"
-                                    windows:VisualElement.AccessKeyPlacement="Bottom"
-                                    Background="Transparent"
-                                    BorderWidth="0"
-                                    Command="{Binding PreviousTrackCommand}"
-                                    ImageSource="skipprevious.png"
-                                    IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                    StyleClass="MediaBtnChip">
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
-                                </Button>
-                                <Button
-                                    x:Name="PlayPauseBtn"
-                                    windows:VisualElement.AccessKey="P"
-                                    windows:VisualElement.AccessKeyPlacement="Bottom"
-                                    Background="Transparent"
-                                    BorderWidth="0"
-                                    Command="{Binding PlayPauseToggleCommand}"
-                                    ImageSource="play.png"
-                                    StyleClass="MediaBtnChip">
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                <Border Margin="4" Loaded="ButtonBorder_Loaded">
+                                    <Button
+                                        x:Name="PlayPauseBtn"
+                                        windows:VisualElement.AccessKey="P"
+                                        windows:VisualElement.AccessKeyPlacement="Bottom"
+                                        Background="Transparent"
+                                        BorderWidth="0"
+                                        Command="{Binding PlayPauseToggleCommand}"
+                                        ImageSource="play.png"
+                                        Loaded="ButtonLoaded">
+                                        <Button.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
+                                        </Button.Behaviors>
 
-                                    <Button.Triggers>
-                                        <DataTrigger
-                                            Binding="{Binding IsDimmerPlaying}"
-                                            TargetType="Button"
-                                            Value="true">
-                                            <Setter Property="ImageSource" Value="pause.png" />
-                                        </DataTrigger>
+                                        <Button.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding IsDimmerPlaying}"
+                                                TargetType="Button"
+                                                Value="true">
+                                                <Setter Property="ImageSource" Value="pause.png" />
+                                            </DataTrigger>
 
-                                        <DataTrigger
-                                            Binding="{Binding IsDimmerPlaying}"
-                                            TargetType="Button"
-                                            Value="false">
-                                            <Setter Property="ImageSource" Value="play.png" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                            <DataTrigger
+                                                Binding="{Binding IsDimmerPlaying}"
+                                                TargetType="Button"
+                                                Value="false">
+                                                <Setter Property="ImageSource" Value="play.png" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                </Border>
                                 <Button
                                     x:Name="SkipNext"
                                     windows:VisualElement.AccessKey="N"
@@ -452,59 +426,60 @@
                                     Command="{Binding NextTrackCommand}"
                                     ImageSource="skipnext.png"
                                     IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                    StyleClass="MediaBtnChip">
+                                    Loaded="ButtonLoaded">
                                     <Button.Behaviors>
                                         <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                                     </Button.Behaviors>
                                 </Button>
 
+                                <Border Margin="4" Loaded="ButtonBorder_Loaded">
+                                    <Button
+                                        Background="Transparent"
+                                        Command="{Binding ToggleRepeatModeCommand}"
+                                        ImageSource="repeat.png"
+                                        Loaded="ButtonLoaded"
+                                        ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
+                                        <Button.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
+                                        </Button.Behaviors>
+                                        <Button.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding CurrentRepeatMode}"
+                                                TargetType="Button"
+                                                Value="0">
+                                                <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                                <Setter Property="BorderWidth" Value="1" />
 
-                                <Button
-                                    Background="Transparent"
-                                    Command="{Binding ToggleRepeatModeCommand}"
-                                    ImageSource="repeat.png"
-                                    StyleClass="MediaBtnChip"
-                                    ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}"
-                                    WidthRequest="60">
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
-                                    <Button.Triggers>
-                                        <DataTrigger
-                                            Binding="{Binding CurrentRepeatMode}"
-                                            TargetType="Button"
-                                            Value="0">
-                                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
-                                            <Setter Property="BorderWidth" Value="1" />
 
+                                            </DataTrigger>
+                                            <DataTrigger
+                                                Binding="{Binding CurrentRepeatMode}"
+                                                TargetType="Button"
+                                                Value="1">
+                                                <Setter Property="BorderColor" Value="LightBlue" />
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
-                                        <DataTrigger
-                                            Binding="{Binding CurrentRepeatMode}"
-                                            TargetType="Button"
-                                            Value="1">
-                                            <Setter Property="BorderColor" Value="LightBlue" />
-                                            <Setter Property="BorderWidth" Value="2" />
+                                            </DataTrigger>
+                                            <DataTrigger
+                                                Binding="{Binding CurrentRepeatMode}"
+                                                TargetType="Button"
+                                                Value="2">
+                                                <Setter Property="BorderColor" Value="Orange" />
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
-                                        <DataTrigger
-                                            Binding="{Binding CurrentRepeatMode}"
-                                            TargetType="Button"
-                                            Value="2">
-                                            <Setter Property="BorderColor" Value="Orange" />
-                                            <Setter Property="BorderWidth" Value="2" />
+                                            </DataTrigger>
+                                            <DataTrigger
+                                                Binding="{Binding CurrentRepeatMode}"
+                                                TargetType="Button"
+                                                Value="3">
+                                                <Setter Property="BorderColor" Value="Red" />
+                                                <Setter Property="BorderWidth" Value="2" />
 
-                                        </DataTrigger>
-                                        <DataTrigger
-                                            Binding="{Binding CurrentRepeatMode}"
-                                            TargetType="Button"
-                                            Value="3">
-                                            <Setter Property="BorderColor" Value="Red" />
-                                            <Setter Property="BorderWidth" Value="2" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
 
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                    </Button>
+                                </Border>
                             </HorizontalStackLayout>
                             <Slider
                                 x:Name="TrackProgressSlider"
@@ -732,7 +707,7 @@
                 <Grid
                     Grid.Row="2"
                     Padding="10"
-                    ColumnDefinitions="auto,*"
+                    ColumnDefinitions="auto,*,auto"
                     ColumnSpacing="10">
 
                     <Label Text="Volume" />
@@ -751,6 +726,7 @@
                         ToolTipProperties.Text="{Binding DeviceVolumeLevel}"
                         Unloaded="VolumeSlider_Unloaded"
                         Value="{Binding DeviceVolumeLevel}" />
+
 
                 </Grid>
             </VerticalStackLayout>

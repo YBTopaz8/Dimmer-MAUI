@@ -1,12 +1,18 @@
-﻿namespace Dimmer.Utils;
+﻿using Hqub.Lastfm.Entities;
+
+using Realms;
+
+namespace Dimmer.Utils;
 public class StatsRecalculator
 {
-    private readonly Realm _realm;
+    IRealmFactory realmFactory;
+    [ThreadStatic] private static Realm? _realm;
+
     private readonly ILogger _logger;
 
-    public StatsRecalculator(Realm realm, ILogger logger)
+    public StatsRecalculator(IRealmFactory _realmFactory, ILogger logger)
     {
-        _realm = realm;
+        realmFactory=_realmFactory;
         _logger = logger;
     }
 
@@ -14,26 +20,23 @@ public class StatsRecalculator
     {
         var sw = Stopwatch.StartNew();
         _logger.LogInformation($"{DateTime.Now} Starting recalculation of all statistics...");
-
-        var allSongsCached = _realm.All<SongModel>().ToList();
+        _realm ??= realmFactory.GetRealmInstance();
+        var allSongs = _realm.All<SongModel>().ToList();
         var allAlbums = _realm.All<AlbumModel>().ToList();
         var allArtists = _realm.All<ArtistModel>().ToList();
 
-        foreach (var chunk in allSongsCached.Chunk(500))
+        //------------------------------------------
+        // PHASE 1 — SONG-LEVEL STATISTICS
+        //------------------------------------------
+        foreach (var chunk in allSongs.Chunk(500))
         {
-
-        
             _realm.Write(() =>
             {
-                // --- Phase 1: Update Song-level Statistics ---
                 foreach (var song in chunk)
                 {
-                    // Ensure a song always has a PlayHistory object initialized if needed,
-                    // or handle nulls defensively. Here, we assume PlayHistory can be null/empty.
                     if (song.PlayHistory?.Any() == true)
                     {
-                        // 1. Core Play Counts and Rates
-                        // Use the enum values directly for clarity
+                        // --- Core Play Counts ---
                         song.PlayCount = song.PlayHistory.Count;
                         song.PlayCompletedCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
                         song.SkipCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Skipped);
@@ -44,67 +47,50 @@ public class StatsRecalculator
                         song.PreviousCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Previous);
                         song.RestartCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Restarted);
 
+                        // --- Rates ---
+                        song.ListenThroughRate = song.PlayCount > 0 ? (double)song.PlayCompletedCount / song.PlayCount : 0;
+                        song.SkipRate = song.PlayCount > 0 ? (double)song.SkipCount / song.PlayCount : 0;
 
-                        if (song.PlayCount > 0)
-                        {
-                            song.ListenThroughRate = (double)song.PlayCompletedCount / song.PlayCount;
-                            song.SkipRate = (double)song.SkipCount / song.PlayCount;
-                        }
-                        else
-                        {
-                            song.ListenThroughRate = 0;
-                            song.SkipRate = 0;
-                        }
+                        // --- Temporal Data ---
+                        var ordered = song.PlayHistory.OrderBy(p => p.EventDate);
+                        song.FirstPlayed = ordered.FirstOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
+                        song.LastPlayed = ordered.LastOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
+                        song.DiscoveryDate = song.FirstPlayed;
+                        song.LastPlayEventType = ordered.LastOrDefault()?.PlayType ?? -1;
 
-                        // --- First and Last Played Dates (any interaction) ---
-                        var allPlaysOrdered = song.PlayHistory.OrderBy(p => p.EventDate);
-                        song.FirstPlayed = allPlaysOrdered.FirstOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
-                        song.LastPlayed = allPlaysOrdered.LastOrDefault()?.EventDate ?? DateTimeOffset.MinValue;
-                        song.DiscoveryDate = song.FirstPlayed; // Alias for clarity
+                        // --- Eddington & Streaks ---
+                        song.EddingtonNumber = CalculateEddingtonNumber(song.PlayHistory
+                            .Select(p => p.PlayType == (int)PlayType.Completed ? 1 : 0)
+                            .ToList());
 
-                        // Last event type
-                        song.LastPlayEventType = allPlaysOrdered.LastOrDefault()?.PlayType ?? -1;
+                        var uniqueDays = song.PlayHistory
+                            .Select(p => p.EventDate.Date)
+                            .Distinct()
+                            .OrderBy(d => d)
+                            .ToList();
 
-                  
+                        song.PlayStreakDays = CalculateMaxStreak(uniqueDays);
 
-                        // --- Eddington Number for Song ---
-                        song.EddingtonNumber = CalculateEddingtonNumber(song.PlayHistory.Select(p => p.PlayType == (int)PlayType.Completed ? 1 : 0).ToList());
-
-                        // --- Play Streak (Simplified: Days with at least one play) ---
-                        var uniquePlayDays = song.PlayHistory
-                                                .Select(p => p.EventDate.Date)
-                                                .Distinct()
-                                                .OrderBy(d => d)
-                                                .ToList();
-                        song.PlayStreakDays = CalculateMaxStreak(uniquePlayDays);
-
-                        // --- Engagement Score (More sophisticated than simple PopularityScore) ---
-                        // This is a customizable formula. Adjust weights as desired.
+                        // --- Engagement Score ---
                         double engagementScore = 0;
-                        engagementScore += song.PlayCompletedCount * 3.0; // Strong bonus for completing
-                        engagementScore -= song.SkipCount * 1.5;         // Penalty for skipping
-                        //engagementScore += song.RepeatCount * 2.0;       // Bonus for repeating
-                        engagementScore += song.ListenThroughRate * 10.0; // Strong bonus for high listen-through rate
-                        engagementScore += (song.TotalPlayDurationSeconds / 60.0) * 0.1; // Small bonus for total minutes listened
-                        if (song.IsFavorite)
-                        {
-                            engagementScore += 20; // Bonus for explicit favorite
-                        }
-                        // Add a recency bias: more recent plays matter more
+                        engagementScore += song.PlayCompletedCount * 3.0;
+                        engagementScore -= song.SkipCount * 1.5;
+                        engagementScore += song.ListenThroughRate * 10.0;
+                        engagementScore += (song.TotalPlayDurationSeconds / 60.0) * 0.1;
+                        if (song.IsFavorite) engagementScore += 20;
+
                         if (song.LastPlayed != DateTimeOffset.MinValue)
                         {
-                            var daysSinceLastPlay = (DateTimeOffset.UtcNow - song.LastPlayed).TotalDays;
-                            engagementScore *= Math.Max(0.1, 1.0 - (daysSinceLastPlay / 365.0)); // Decay over a year
+                            var daysSince = (DateTimeOffset.UtcNow - song.LastPlayed).TotalDays;
+                            engagementScore *= Math.Max(0.1, 1.0 - (daysSince / 365.0)); // 1-year decay
                         }
-                        engagementScore = Math.Max(0, engagementScore);
 
-                        int autoFavs = song.PlayCompletedCount / 4;
-                        song.NumberOfTimesFaved = song.ManualFavoriteCount + autoFavs;
-                        song.EngagementScore = engagementScore;
-
+                        song.EngagementScore = Math.Max(0, engagementScore);
+                        song.NumberOfTimesFaved = song.ManualFavoriteCount + (song.PlayCompletedCount / 4);
                     }
-                    else // No play history for the song
+                    else
                     {
+                        // --- No Play History ---
                         song.PlayCount = 0;
                         song.PlayCompletedCount = 0;
                         song.SkipCount = 0;
@@ -121,82 +107,64 @@ public class StatsRecalculator
                         song.NumberOfTimesFaved = song.ManualFavoriteCount;
                     }
 
-                    // Old PopularityScore (can keep or replace with EngagementScore)
-                    // If keeping, consider using the more refined counts
+                    // --- Popularity Score ---
                     song.PopularityScore = (song.PlayCompletedCount * 1.5) - (song.SkipCount * 0.5) + song.PlayCount;
-                    if (song.IsFavorite)
-                    {
-                        song.PopularityScore += 50; // Big bonus for being a favorite
-                    }
+                    if (song.IsFavorite) song.PopularityScore += 50;
 
-
+                    // --- Has Synced Lyrics ---
                     song.HasSyncedLyrics = !string.IsNullOrEmpty(song.SyncLyrics);
 
+                    // --- Aggregated Notes ---
+                    song.UserNoteAggregatedText = song.UserNotes?.Any() == true
+                        ? string.Join(" ", song.UserNotes.Select(n => n.UserMessageText))
+                        : null;
 
-                    // 2. Update Aggregated Notes
-                    song.UserNoteAggregatedText = song.UserNotes?.Any() == true 
-                    ? string.Join(" ", song.UserNotes.Select(n => n.UserMessageText))
-                    : null;
-
-
-                    // 3. Update the main SearchableText field
-                    // Only update if it's null or empty, or if you want to force an update every time.
-                    // For performance, updating only if changed is better. For robustness, always update.
-                    // If (!string.IsNullOrEmpty(song.SearchableText)) continue; // Remove this if you want to always update
+                    // --- Searchable Text ---
                     var sb = new StringBuilder();
-                    sb.Append(song.Title ?? "").Append(' ');
-                    sb.Append(song.OtherArtistsName ?? "").Append(' ');
-                    sb.Append(song.AlbumName ?? "").Append(' ');
-                    sb.Append(song.GenreName ?? "").Append(' ');
-                    sb.Append(song.SyncLyrics ?? "").Append(' ');
-                    sb.Append(song.UnSyncLyrics ?? "").Append(' ');
-                    sb.Append(song.Composer ?? "").Append(' ');
-                    sb.Append(song.UserNoteAggregatedText ?? ""); // Include the notes in the "any" search
-
+                    sb.Append(song.Title ?? "").Append(' ')
+                      .Append(song.OtherArtistsName ?? "").Append(' ')
+                      .Append(song.AlbumName ?? "").Append(' ')
+                      .Append(song.GenreName ?? "").Append(' ')
+                      .Append(song.SyncLyrics ?? "").Append(' ')
+                      .Append(song.UnSyncLyrics ?? "").Append(' ')
+                      .Append(song.Composer ?? "").Append(' ')
+                      .Append(song.UserNoteAggregatedText ?? "");
                     song.SearchableText = sb.ToString().ToLowerInvariant();
                 }
+            });
 
-                // --- Phase 2: Update Album-level Statistics ---
+
+            //------------------------------------------
+            // PHASE 2 — ALBUM-LEVEL STATISTICS
+            //------------------------------------------
+            _realm.Write(() =>
+            {
                 foreach (var album in allAlbums)
                 {
-                    var songsInAlbum = album.SongsInAlbum; // Assuming this is a backlink/linkingobjects field
-
+                    var songsInAlbum = album.SongsInAlbum;
                     if (songsInAlbum?.Any() == true)
                     {
                         int songCount = songsInAlbum.Count();
+                        int playedCount = songsInAlbum.Filter("PlayCompletedCount > 0").Count();
+                        album.CompletionPercentage = (double)playedCount / songCount;
 
-                        // Aggregate from songsint songCount = songsInAlbum.Count(); // .Count() is supported and fast
-                        if (songCount > 0)
+                        double totalCompleted = 0, totalListenRate = 0;
+                        foreach (var s in songsInAlbum)
                         {
-                            int playedSongsCount = songsInAlbum.Filter("PlayCompletedCount > 0").Count();
-                            album.CompletionPercentage = (double)playedSongsCount / songCount;
-
-                            // Manual, memory-efficient aggregation
-                            double totalCompletedPlays = 0;
-                            double totalListenThroughRate = 0;
-                            foreach (var song in songsInAlbum) // This iterates efficiently
-                            {
-                                totalCompletedPlays += song.PlayCompletedCount;
-                                totalListenThroughRate += song.ListenThroughRate;
-                            }
-
-                            album.TotalCompletedPlays = (int)totalCompletedPlays; 
-                        
-                            album.AverageSongListenThroughRate = songCount > 0 ? totalListenThroughRate / songCount : 0;
+                            totalCompleted += s.PlayCompletedCount;
+                            totalListenRate += s.ListenThroughRate;
                         }
-                        album.TotalSkipCount = songsInAlbum.Sum(s => s.SkipCount);  //TODO; REDO IN REALM
 
-                        // Discovery Date (earliest first play of any song in the album)
-                        album.DiscoveryDate = songsInAlbum.Min(s => s.FirstPlayed);
+                        album.TotalCompletedPlays = (int)totalCompleted;
+                        album.AverageSongListenThroughRate = songCount > 0 ? totalListenRate / songCount : 0;
+                        album.TotalSkipCount = songsInAlbum.ToArray().Sum(s => s.SkipCount);
+                        album.DiscoveryDate = songsInAlbum.ToArray().Min(s => s.FirstPlayed);
 
-                        // Eddington Number for Album (based on completed plays of its songs)
                         album.EddingtonNumber = CalculateEddingtonNumber(songsInAlbum.ToList().Select(s => s.PlayCompletedCount).ToList());
 
-                        // Pareto Principle for Album
-                        CalculatePareto(songsInAlbum.ToList().Select(s => s.PlayCompletedCount).ToList(), out int paretoCount, out double paretoPlaysPercentage);
+                        CalculatePareto(songsInAlbum.ToList().Select(s => s.PlayCompletedCount).ToList(), out int paretoCount, out double paretoPct);
                         album.ParetoTopSongsCount = paretoCount;
-                        album.ParetoPercentage = paretoPlaysPercentage; // Percentage of total plays accounted for by top X songs
-
+                        album.ParetoPercentage = paretoPct;
                     }
                     else
                     {
@@ -211,50 +179,37 @@ public class StatsRecalculator
                         album.ParetoPercentage = 0;
                     }
                 }
+            });
 
-                // --- Phase 3: Update Artist-level Statistics ---
+            //------------------------------------------
+            // PHASE 3 — ARTIST-LEVEL STATISTICS
+            //------------------------------------------
+            _realm.Write(() =>
+            {
                 foreach (var artist in allArtists)
                 {
-                    var songsByArtist = artist.Songs; // Assuming this is a backlink/linkingobjects field
-
-                    if (songsByArtist?.Any() == true)
+                    var songs = artist.Songs;
+                    if (songs?.Any() == true)
                     {
-                        int songCount = songsByArtist.Count();
-                        if (songCount > 0)
+                        int songCount = songs.Count();
+                        int playedCount = songs.Filter("PlayCompletedCount > 0").Count();
+                        artist.CompletionPercentage = (double)playedCount / songCount;
+
+                        double totalCompleted = 0, totalListenRate = 0;
+                        foreach (var s in songs)
                         {
-                            int playedSongsCount = songsByArtist.Filter("PlayCompletedCount > 0").Count();
-                            artist.CompletionPercentage = (double)playedSongsCount / songCount;
-
-                            // Manual, memory-efficient aggregation
-                            double totalCompletedPlays = 0;
-                            double totalListenThroughRate = 0;
-                            foreach (var song in songsByArtist) // This iterates efficiently
-                            {
-                                totalCompletedPlays += song.PlayCompletedCount;
-                                totalListenThroughRate += song.ListenThroughRate;
-                            }
-
-                            artist.TotalCompletedPlays = (int)totalCompletedPlays;
-                            artist.AverageSongListenThroughRate = totalListenThroughRate / songCount;
+                            totalCompleted += s.PlayCompletedCount;
+                            totalListenRate += s.ListenThroughRate;
                         }
-                        //artist.TotalSkipCount = songsByArtist.Sum(s => s.SkipCount);
 
-                        // Discovery Date
-                        //artist.DiscoveryDate = songsByArtist.Min(s => s.FirstPlayed);
-
-                        // Eddington Number for Artist
-                        artist.EddingtonNumber = CalculateEddingtonNumber(songsByArtist.ToList().Select(s => s.PlayCompletedCount).ToList());
-
-                        // Pareto Principle for Artist
-                        ////CalculatePareto(songsByArtist.Select(s => s.PlayCompletedCount).ToList(), out int paretoCount, out double paretoPlaysPercentage);
-                        //artist.ParetoTopSongsCount = paretoCount;
-                        //artist.ParetoPercentage = paretoPlaysPercentage;
+                        artist.TotalCompletedPlays = (int)totalCompleted;
+                        artist.AverageSongListenThroughRate = totalListenRate / songCount;
+                        artist.EddingtonNumber = CalculateEddingtonNumber(songs.ToList().Select(s => s.PlayCompletedCount).ToList());
                     }
                     else
                     {
                         artist.CompletionPercentage = 0;
                         artist.TotalCompletedPlays = 0;
-                        //artist.TotalPlayDurationSeconds = 0;
                         artist.AverageSongListenThroughRate = 0;
                         artist.TotalSkipCount = 0;
                         artist.DiscoveryDate = DateTimeOffset.MinValue;
@@ -263,59 +218,57 @@ public class StatsRecalculator
                         artist.ParetoPercentage = 0;
                     }
                 }
+            });
 
-         
-                // --- Phase 5: Global and Category-Specific Ranking ---
-                // Global Song Rank (Using EngagementScore for a more meaningful rank)
+            //------------------------------------------
+            // PHASE 4 — GLOBAL RANKINGS
+            //------------------------------------------
+            _realm.Write(() =>
+            {
+                // --- Global Song Ranking ---
                 int rank = 1;
-                var sortedSongs = allSongsCached.OrderByDescending(s => s.EngagementScore > 0 ? s.EngagementScore : s.PopularityScore); // Fallback to PopularityScore
-                foreach (var song in sortedSongs)
-                {
+                foreach (var song in allSongs.OrderByDescending(s => s.EngagementScore > 0 ? s.EngagementScore : s.PopularityScore))
                     song.GlobalRank = rank++;
-                }
 
-                // Album Ranks & In-Album Song Ranks
+                // --- Album Ranks + Per-Song Album Rank ---
                 rank = 1;
-                var sortedAlbums = allAlbums.OrderByDescending(a => a.TotalCompletedPlays);
-                foreach (var album in sortedAlbums)
+                foreach (var album in allAlbums.OrderByDescending(a => a.TotalCompletedPlays))
                 {
                     album.OverallRank = rank++;
-                    int albumSongRank = 1;
-                    var sortedSongsInAlbum = album.SongsInAlbum?.OrderByDescending(s => s.EngagementScore); // Rank within album by engagement
-                    if (sortedSongsInAlbum != null)
+                    int innerRank = 1;
+
+                    var songsInAlbum = album.SongsInAlbum?
+                        .OrderByDescending(s => s.EngagementScore)
+                        .ToList();
+
+                    if (songsInAlbum != null)
                     {
-                        foreach (var song in sortedSongsInAlbum)
-                        {
-                            song.RankInAlbum = albumSongRank++;
-                        }
+                        foreach (var s in songsInAlbum)
+                            s.RankInAlbum = innerRank++;
                     }
                 }
 
-                // Artist Ranks & In-Artist Song Ranks
+                // --- Artist Ranks + Per-Song Artist Rank ---
                 rank = 1;
-                var sortedArtists = allArtists.OrderByDescending(a => a.TotalCompletedPlays);
-                foreach (var artist in sortedArtists)
+                foreach (var artist in allArtists.OrderByDescending(a => a.TotalCompletedPlays))
                 {
                     artist.OverallRank = rank++;
-                    int artistSongRank = 1;
-                    var sortedSongsByArtist = artist.Songs?.OrderByDescending(s => s.EngagementScore); // Rank within artist by engagement
-                    if (sortedSongsByArtist != null)
+                    int innerRank = 1;
+
+                    var songsByArtist = artist.Songs?
+                        .OrderByDescending(s => s.EngagementScore)
+                        .ToList();
+
+                    if (songsByArtist != null)
                     {
-                        foreach (var song in sortedSongsByArtist)
-                        {
-                            song.RankInArtist = artistSongRank++;
-                        }
+                        foreach (var s in songsByArtist)
+                            s.RankInArtist = innerRank++;
                     }
                 }
 
-           
             });
         }
-
-        sw.Stop();
-        _logger.LogInformation("Finished recalculating all statistics.");
     }
-
 
     /// <summary>
     /// Calculates the Eddington Number for a list of play counts.

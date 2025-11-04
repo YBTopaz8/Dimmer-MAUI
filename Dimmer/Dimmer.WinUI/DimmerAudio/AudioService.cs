@@ -4,6 +4,9 @@ using Dimmer.Interfaces.Services.Interfaces;
 
 using NAudio.CoreAudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
+using AudioSwitcher.AudioApi;
+using DeviceType = AudioSwitcher.AudioApi.DeviceType;
+using System.Threading.Tasks;
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -29,12 +32,24 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
     private bool _isDisposed;
     private string? _currentAudioDeviceId;
-    private readonly CoreAudioController _audioController;
+    private readonly CoreAudioController _controller;
+    private readonly object _sync = new();
+    public IEnumerable<AudioOutputDevice>? PlaybackDevices
+    { get; set; }
+
+    public CoreAudioDevice? DefaultPlaybackDevice
+    {
+        get
+        {
+            return _controller.GetDefaultDevice(AudioSwitcher.AudioApi.DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
+        }
+    }
 
     public AudioService()
     {
-        _audioController = new CoreAudioController();
-
+        _controller = new CoreAudioController();
+        AudioSwitcher.AudioApi.CoreAudio.CoreAudioDevice defaultPlaybackDevice = _controller.DefaultPlaybackDevice;
+        //defaultPlaybackDevice.StateChanged += DefaultPlaybackDevice_StateChanged;
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread()
             ?? throw new InvalidOperationException("AudioService must be initialized on a thread with a DispatcherQueue (typically the UI thread).");
 
@@ -42,13 +57,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             AudioCategory = MediaPlayerAudioCategory.Media,
             CommandManager = { IsEnabled = true },
-            
+
 
         };
 
 
         SubscribeToPlayerEvents();
-
+        SubscribeToSystemEvents();
 
         MediaDevice.DefaultAudioRenderDeviceChanged += MediaDevice_DefaultAudioRenderDeviceChanged;
 
@@ -56,8 +71,93 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _volume = _mediaPlayer.Volume;
         _isMuted = _mediaPlayer.IsMuted;
         UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
+
+        _ = Task.Run(async () => await GetSetUpOutPutDevices());
     }
 
+    private async Task GetSetUpOutPutDevices()
+    {
+        var outputDevices = new List<AudioOutputDevice>();
+        try
+        {
+
+            string selector = MediaDevice.GetAudioRenderSelector();
+            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(selector);
+
+            foreach (var device in devices)
+            {
+                outputDevices.Add(new AudioOutputDevice { Id = device.Id, Name = device.Name });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AudioService] Error getting audio output devices: {ex}");
+            OnErrorOccurred("Failed to enumerate audio output devices.", ex);
+        }
+        PlaybackDevices = outputDevices;
+    }
+
+    private void SubscribeToSystemEvents()
+    {
+        _controller.AudioDeviceChanged.Subscribe(e =>
+        {
+            switch (e)
+            {
+
+                case DefaultDeviceChangedArgs def: 
+                    Debug.WriteLine($"Default changed: {def.Device.Name}"); 
+                    break;
+                case DeviceAddedArgs add: 
+                    Debug.WriteLine($"Device added: {add.Device.Name}"); 
+                    break;
+                case DeviceRemovedArgs rem: 
+                    Debug.WriteLine($"Device removed: {rem.Device.Name}"); 
+                    break;
+                case DeviceChangedArgs chg: 
+                    Debug.WriteLine($"Device property changed: {chg.Device.Name}"); 
+                    break;
+            }
+        });
+        
+    }
+    public double GetCurrentVolume()
+    {
+        return _controller.DefaultPlaybackDevice.Volume;
+    }
+
+    public async Task SetVolume(double volume)
+    {
+        var dev = _controller.DefaultPlaybackDevice;
+        if (dev != null)
+            await dev.SetVolumeAsync(volume);
+    }
+
+    public async Task SetDefaultAsync(AudioOutputDevice device)
+    {
+    
+        CoreAudioDevice newDev = _controller.GetDevice(Guid.Parse(device.Id!)) as CoreAudioDevice;
+        if (device == null) return;
+        await newDev.SetAsDefaultAsync();
+    }
+    public void WatchVolume()
+    {
+        var dev = _controller.GetDefaultDevice(DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
+        dev.VolumeChanged.Subscribe(x =>
+        {
+            Debug.WriteLine($"Volume: {x.Volume}");
+        });
+        dev.MuteChanged.Subscribe(x =>
+        {
+            Debug.WriteLine($"Muted: {x.IsMuted}");
+        });
+    }
+  
+    public async Task MuteDevice(bool mute)
+    {
+        var dev = _controller.DefaultPlaybackDevice;
+        if (dev != null)
+           await dev.SetMuteAsync(mute);
+    }
     private void SubscribeToPlayerEvents()
     {
         _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
@@ -794,6 +894,7 @@ success = true;
     public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
     {
         ThrowIfDisposed();
+      
         var outputDevices = new List<AudioOutputDevice>();
         try
         {
@@ -1013,6 +1114,7 @@ success = true;
         _mediaPlayer?.Pause();
         _mediaPlayer?.Source = null;
 
+        _controller?.Dispose();
 
         UnsubscribeFromPlayerEvents();
 
@@ -1095,8 +1197,8 @@ success = true;
             {
                 // The library works with its own device objects. Get it by its ID.
                 // The ID from NAudio is compatible.
-                var deviceToSet = _audioController.GetDevice(new Guid(dev.Id));
-
+                var deviceToSet = _controller.GetDevice(new Guid(dev.Id));
+                
                 if (deviceToSet == null)
                 {
                     Debug.WriteLine($"Device with ID {dev.Id} not found by AudioSwitcher.");
@@ -1131,7 +1233,7 @@ success = true;
     {
         // Get all active playback devices from the controller.
         //var devices = _audioController.GetPla ybackDevices(AudioSwitcher.AudioApi.DeviceState.Active);
-        IEnumerable<CoreAudioDevice>? devices = _audioController.GetPlaybackDevices(AudioSwitcher.AudioApi.DeviceState.Active)
+        IEnumerable<CoreAudioDevice>? devices = _controller.GetPlaybackDevices(AudioSwitcher.AudioApi.DeviceState.Active)
             . Where(x=>x.DeviceType == AudioSwitcher.AudioApi.DeviceType.Playback);
 
         // Map them to your own simple model.

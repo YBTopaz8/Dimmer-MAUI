@@ -76,6 +76,7 @@
     <None Remove="Views\ArtistsSpace\MAUI\AllArtistsPage.xaml" />
     <None Remove="Views\ArtistsSpace\MAUI\ArtistsPage.xaml" />
     <None Remove="Views\ArtistWindow.xaml" />
+    <None Remove="Views\CustomViews\HoverCardControl.xaml" />
     <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
     <None Remove="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml" />
     <None Remove="Views\CustomViews\SyncLyricsPopUpView.xaml" />
@@ -320,6 +321,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\CustomViews\HoverCardControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\WinUIPages\AllSongsListPage.xaml">

@@ -51,10 +51,10 @@ public sealed partial class AllSongsWindow : Window
             //{
             //    ScrollToSong(MyViewModel.CurrentPlayingSongView);
             //}
-            ContentFrame.Navigate(typeof(AllSongsListPage), MyViewModel);
 
         };
 
+        ContentFrame.Navigate(typeof(AllSongsListPage), MyViewModel);
 
         this.Closed +=AllSongsWindow_Closed;
 

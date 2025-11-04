@@ -1,20 +1,26 @@
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
+using Dimmer.Data;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.TQL;
 
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Navigation;
 
 using Windows.UI.Text;
 
 using WinUI.TableView;
 
-using static Dimmer.DimmerSearch.StaticMethods;
+using static Dimmer.DimmerSearch.TQlStaticMethods;
+using static Dimmer.WinUI.Utils.AppUtil;
 
 using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using Colors = Microsoft.UI.Colors;
@@ -42,7 +48,10 @@ public sealed partial class AllSongsListPage : Page
 
         this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
 
+        _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
+        // TODO: load from user settings or defaults
+        _userPrefAnim = SongTransitionAnimation.Spring;
     }
     BaseViewModelWin MyViewModel { get; set; }
 
@@ -908,6 +917,8 @@ public sealed partial class AllSongsListPage : Page
     }
 
 
+    private readonly Compositor _compositor;
+    private readonly SongTransitionAnimation _userPrefAnim;
     private SongModelView? _storedSong;
 
     private void MyPageGrid_Loaded(object sender, RoutedEventArgs e)
@@ -978,21 +989,75 @@ public sealed partial class AllSongsListPage : Page
 
         // Find the specific UI element (the Image) that was clicked on
         var row = MySongsTableView.ContainerFromItem(selectedSong) as FrameworkElement;
-        if (row != null)
+        var image = FindVisualChild<Image>(row, "coverArtImage");
+        if (image == null) return;
+
+        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
+        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
+            
+    
+        // Small visual feedback before navigation
+        var visual = ElementCompositionPreview.GetElementVisual(image);
+        switch (_userPrefAnim)
         {
-            var image = FindVisualChild<Image>(row, "coverArtImage");
-            if (image != null)
-            {
-                // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
-                ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
-            }
+            case SongTransitionAnimation.Fade:
+                var fade = _compositor.CreateScalarKeyFrameAnimation();
+                fade.InsertKeyFrame(0f, 1f);
+                fade.InsertKeyFrame(1f, 0f);
+                fade.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Opacity", fade);
+                break;
+
+            case SongTransitionAnimation.Scale:
+                var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
+                visual.CenterPoint = new Vector3(
+                    (float)(image.ActualWidth / 2),
+                    (float)(image.ActualHeight / 2),
+                    0);
+                scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
+                scaleAnim.InsertKeyFrame(1f, new Vector3(1.15f));
+                scaleAnim.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Scale", scaleAnim);
+                break;
+
+            case SongTransitionAnimation.Slide:
+                var offsetAnim = _compositor.CreateVector3KeyFrameAnimation();
+                offsetAnim.InsertKeyFrame(0f, Vector3.Zero);
+                offsetAnim.InsertKeyFrame(1f, new Vector3(30f, 0f, 0f));
+                offsetAnim.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Offset", offsetAnim);
+                break;
+
+            case SongTransitionAnimation.Spring:
+            default:
+                var spring = _compositor.CreateSpringVector3Animation();
+                spring.DampingRatio = 0.7f;
+                spring.Period = TimeSpan.FromMilliseconds(200);
+                spring.FinalValue = new Vector3(0, -25, 0);
+                visual.StartAnimation("Offset", spring);
+                break;
         }
+
 
         // Navigate to the detail page, passing the selected song object.
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
         Type songDetailType = typeof(SongDetailPage);
-        Frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = _storedSong!,
+            ViewModel = MyViewModel
+        };
+
+        FrameNavigationOptions navigationOptions= new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+        
+        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+        //Frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
     }
 
     private void MyPageGrid_Unloaded(object sender, RoutedEventArgs e)

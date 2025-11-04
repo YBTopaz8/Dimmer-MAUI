@@ -1,6 +1,8 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using System.Diagnostics;
 using System.Numerics;
+using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Media.Animation;
 
 using CommunityToolkit.Maui.Extensions;
@@ -12,15 +14,12 @@ using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.TQLCentric;
 using Dimmer.WinUI.Views.WinUIPages;
 
+using DynamicData;
+
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Converters;
 using Microsoft.Maui.Platform;
 using Microsoft.UI.Composition;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
-using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
-using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
-using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
-using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 
@@ -29,22 +28,24 @@ using Vanara.PInvoke;
 using static Vanara.PInvoke.AdvApi32;
 
 using Application = Microsoft.Maui.Controls.Application;
+using Button = Microsoft.Maui.Controls.Button;
 using Colors = Microsoft.Maui.Graphics.Colors;
-
-
 //using Microsoft.UI.Xaml.Controls;
 using DataTemplate = Microsoft.Maui.Controls.DataTemplate;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
 using DragStartingEventArgs = Microsoft.Maui.Controls.DragStartingEventArgs;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using Label = Microsoft.Maui.Controls.Label;
+using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
+using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
+using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
+using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
+using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
 using SortOrder = Dimmer.Utilities.SortOrder;
+using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 using View = Microsoft.Maui.Controls.View;
 using Window = Microsoft.UI.Xaml.Window;
 using WinUIControls = Microsoft.UI.Xaml.Controls;
-using System.Windows;
-using System.Windows.Forms;
-using Button = Microsoft.Maui.Controls.Button;
 
 namespace Dimmer.WinUI.Views;
 
@@ -52,7 +53,7 @@ public partial class HomePage : ContentPage
 {
 
     public BaseViewModelWin MyViewModel { get; internal set; }
-
+    private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
     public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService)
     {
         InitializeComponent();
@@ -71,7 +72,8 @@ public partial class HomePage : ContentPage
     protected  override void OnAppearing()
     {
             base.OnAppearing();
-            _= InitializeAsync();
+        
+            _ = InitializeAsync();
     }
     
     private async Task InitializeAsync()
@@ -501,7 +503,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", res));
 
             return;
         }
@@ -521,7 +523,7 @@ public partial class HomePage : ContentPage
         {
             val = MyViewModel.CurrentPlayingSongView.DurationInSeconds.ToString();
         }
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
         var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
@@ -595,7 +597,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", res));
 
             winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
@@ -603,7 +605,7 @@ public partial class HomePage : ContentPage
         }
 
         PlatUtils.OpenAllSongsWindow(MyViewModel);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
 
     }
 
@@ -784,7 +786,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", res));
             var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
             var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
@@ -835,7 +837,7 @@ public partial class HomePage : ContentPage
         var field = send.TouchDownCommandParameter as string;
 
         PlatUtils.OpenAllSongsWindow(MyViewModel);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
 
     }
 
@@ -997,7 +999,6 @@ public partial class HomePage : ContentPage
     {
         ShellTabView.SelectedIndex = 0;
     }
-    Compositor _compositor = PlatUtils.MainWindowCompositor;
     SpringVector3NaturalMotionAnimation _springAnimation;
 
     private void ButtonViewLoaded(object sender, EventArgs e)
@@ -1079,20 +1080,13 @@ public partial class HomePage : ContentPage
         var send = (SfChip)sender;
         var artistName = send.CommandParameter as string;
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", artistName));
+        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", artistName));
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
-    private void ArtistButtonLoaded(object sender, EventArgs e)
-    {
-        Button send = (Button)sender;
-        var winUIArtistChip = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
-
-        winUIArtistChip?.PointerPressed += WinUIArtistChip_PointerPressed;
-
-    }
+  
 
     private void WinUIArtistChip_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -1102,7 +1096,7 @@ public partial class HomePage : ContentPage
 
         var point = e.GetCurrentPoint(nativeElement);
 
-        if (properties.IsLeftButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        if (properties.IsRightButtonPressed) //also properties.IsXButton2Pressed for mouse 5
         {
             // --- Source data & guards ---
             var song = MyViewModel?.CurrentPlayingSongView;
@@ -1314,6 +1308,132 @@ public partial class HomePage : ContentPage
         {
             _initialized = true;
             MyViewModel.InitializeAllVMCoreComponentsAsync();
+          
+        }
+    }
+
+    private void ButtonLoaded(object sender, EventArgs e)
+    {
+        Button send = (Button)sender;
+        var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+
+        if (native is not null)
+        {
+            native.PointerPressed += WinUIArtistChip_PointerPressed;
+
+            ElementCompositionPreview.SetIsTranslationEnabled(native, true);
+
+            native.PointerEntered += (s, _) =>
+            {
+                AnimateHover(native, true);
+
+
+            };
+            native.PointerExited += (s, _) =>
+            {
+                AnimateHover(native, false);
+            };
+
+
+        }
+    }
+
+    private void AnimateHover(Microsoft.UI.Xaml.UIElement element, bool isHover)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+
+        // scale up / down
+        var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
+        scaleAnim.Duration = TimeSpan.FromMilliseconds(250);
+        scaleAnim.InsertKeyFrame(1f, isHover
+            ? new System.Numerics.Vector3(1.2f)
+            : new System.Numerics.Vector3(1f));
+
+        // keep scale centered
+        visual.CenterPoint = new System.Numerics.Vector3(
+            (float)element.RenderSize.Width / 2,
+            (float)element.RenderSize.Height / 2,
+            0);
+
+        visual.StartAnimation(nameof(visual.Scale), scaleAnim);
+
+        // OPTIONAL: subtle fade instead of full vanish
+        var opacityAnim = _compositor.CreateScalarKeyFrameAnimation();
+        opacityAnim.Duration = TimeSpan.FromMilliseconds(250);
+        opacityAnim.InsertKeyFrame(1f, isHover ? 1f : 0.85f);   // not 0
+        visual.StartAnimation(nameof(visual.Opacity), opacityAnim);
+
+        // --- BORDER COLOR ANIMATION (real composition brush) ---
+       
+    }
+    private async void AnimateBorderColor(Border border, bool isHover)
+    {
+        if (border.Stroke is not SolidColorBrush solid)
+            return;
+
+        var start = solid.Color;
+        var end = isHover ? Colors.DarkSlateBlue : Colors.Transparent;
+        const int steps = 20;
+        const int durationMs = 200;
+
+        for (int i = 1; i <= steps; i++)
+        {
+            float t = i / (float)steps;
+
+            var color = new Microsoft.Maui.Graphics.Color(
+                start.Red + (end.Red - start.Red) * t,
+                start.Green + (end.Green - start.Green) * t,
+                start.Blue + (end.Blue - start.Blue) * t,
+                start.Alpha + (end.Alpha - start.Alpha) * t);
+
+            solid.Color = color;
+            await Task.Delay(durationMs / steps);
+        }
+    }
+
+    private void SetupChainedAnimations(Microsoft.UI.Xaml.UIElement[] buttons)
+    {
+        for (int i = 1; i < buttons.Length; i++)
+        {
+            var anim = _compositor.CreateExpressionAnimation(
+                "(above.Scale.Y - 1) * 40 + above.Translation.Y + (40 * index)");
+            anim.SetExpressionReferenceParameter("above",
+                ElementCompositionPreview.GetElementVisual(buttons[i - 1]));
+            anim.SetScalarParameter("index", i);
+            ElementCompositionPreview.GetElementVisual(buttons[i])
+                .StartAnimation("Translation.Y", anim);
+        }
+    }
+    private readonly List<Microsoft.UI.Xaml.UIElement> _borders = [];
+    private void EnableTranslation(Microsoft.UI.Xaml.UIElement element)
+    {
+        ElementCompositionPreview.SetIsTranslationEnabled(element, true);
+    }
+
+    private void ButtonBorder_Loaded(object sender, EventArgs e)
+    {
+        Border send = (Border)sender;
+        var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+
+        if (native is not null)
+        {
+
+            ElementCompositionPreview.SetIsTranslationEnabled(native, true);
+
+            native.PointerEntered += (s, _) =>
+            {
+                AnimateHover(native, true);
+
+
+                //AnimateBorderColor(send, true);
+            };
+            native.PointerExited += (s, _) =>
+            {
+                AnimateHover(native, false);
+                //AnimateBorderColor(send, false);
+            };
+
+
         }
     }
 }

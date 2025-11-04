@@ -25,7 +25,9 @@ public interface IRealmObjectWithObjectId
 /// <typeparam name="T">The type of RealmObject, which must implement IRealmObjectWithObjectId.</typeparam>
 public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, IRealmObjectWithObjectId, new()
 {
-    private readonly IRealmFactory _factory = factory;
+    [ThreadStatic] private static Realm? _realm;
+    public Realm GetRealm() => _realm ??= factory.GetRealmInstance();
+
 
     #region Private Core Logic
 
@@ -34,10 +36,10 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     private void ExecuteWrite(Action<Realm> action)
     {
-        using var realm = _factory.GetRealmInstance();
+        GetRealm();
         try
         {
-            realm.Write(() => action(realm));
+            _realm.Write(() => action(_realm));
         }
         catch (RealmException ex)
         {
@@ -53,10 +55,11 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     private TResult ExecuteRead<TResult>(Func<Realm, TResult> function)
     {
-        using var realm = _factory.GetRealmInstance();
+
+        GetRealm();
         try
         {
-            return function(realm);
+            return function(_realm);
         }
         catch (RealmException ex)
         {
@@ -67,10 +70,11 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
     private async Task<TResult> ExecuteReadAsync<TResult>(Func<Realm, Task<TResult>> function)
     {
-        using var realm = _factory.GetRealmInstance();
+        
+        GetRealm();
         try
         {
-            return await function(realm);
+            return await function(_realm);
         }
         catch (RealmException ex)
         {
@@ -328,8 +332,8 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     public IObservable<IChangeSet<T>> Connect()
     {
         // The repository now manages the Realm instance and provides the stream
-        var realm = _factory.GetRealmInstance();
-        return realm.All<T>().AsObservableChangeSet();
+        
+        return _realm.All<T>().AsObservableChangeSet();
     }
 
     /// <summary>
@@ -443,10 +447,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         }
 
         // Realm's WriteAsync handles its own background thread and transaction.
-        using var realm = _factory.GetRealmInstance();
-        var frozenEntity = await realm.WriteAsync(()=>
+        var frozenEntity = await _realm.WriteAsync(()=>
         {
-            var managedEntity = realm.Add(entity);
+            var managedEntity = _realm.Add(entity);
             // We must freeze the object inside the transaction to return it.
             return managedEntity.Freeze();
         });
@@ -465,10 +468,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
             return await CreateAsync(entity);
         }
 
-        using var realm = _factory.GetRealmInstance();
-        var frozenEntity = await realm.WriteAsync(()=>
+        var frozenEntity = await _realm.WriteAsync(()=>
         {
-            var managedEntity = realm.Add(entity, update: true);
+            var managedEntity = _realm.Add(entity, update: true);
             return managedEntity.Freeze();
         });
         Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Upserted entity with Id: {entity.Id}");
@@ -481,11 +483,10 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// <returns>A Task with a boolean result: true if updated, false if not found.</returns>
     public async Task<bool> UpdateAsync(ObjectId id, Action<T> updateAction)
     {
-        using var realm = _factory.GetRealmInstance();
         bool success = false;
-        await realm.WriteAsync(()=>
+        await _realm.WriteAsync(()=>
         {
-            var liveEntity = realm.Find<T>(id);
+            var liveEntity = _realm.Find<T>(id);
             if (liveEntity != null)
             {
                 updateAction(liveEntity);
@@ -501,13 +502,12 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     public async Task DeleteAsync(ObjectId id)
     {
-        using var realm = _factory.GetRealmInstance();
-        await realm.WriteAsync(()=>
+        await _realm.WriteAsync(()=>
         {
-            var liveEntity = realm.Find<T>(id);
+            var liveEntity = _realm.Find<T>(id);
             if (liveEntity != null)
             {
-                realm.Remove(liveEntity);
+                _realm.Remove(liveEntity);
                 Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Deleted entity with Id: {id}");
             }
         });
@@ -557,17 +557,15 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
             return;
         }
 
-        var realm = _factory.GetRealmInstance();
-
-        await realm.WriteAsync(() =>
+        await _realm.WriteAsync(() =>
         {
             foreach (var id in missingIds)
             {
-                var objectToDelete = realm.Find<T>(id);
+                var objectToDelete = _realm.Find<T>(id);
                 if (objectToDelete != null)
                 {
 
-                    realm.Remove(objectToDelete);
+                    _realm.Remove(objectToDelete);
                 }
             }
         });

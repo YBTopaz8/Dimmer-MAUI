@@ -20,6 +20,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\CustomViews\HoverCardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <MauiXaml Update="Views\CustomViews\SelectArtistOrAlbumContextMenu.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
