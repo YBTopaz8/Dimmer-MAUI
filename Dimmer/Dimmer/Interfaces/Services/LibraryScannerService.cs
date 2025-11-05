@@ -177,7 +177,19 @@ public class LibraryScannerService : ILibraryScannerService
                         foreach (var artistView in newArtists)
                             realmb.Add(_mapper.Map<ArtistModel>(artistView));
                         foreach (var albumView in newAlbums)
-                            realmb.Add(_mapper.Map<AlbumModel>(albumView));
+                        {
+                            var album = _mapper.Map<AlbumModel>(albumView);
+
+                            // Link album to its artist(s)
+                            foreach (var artView in albumView.Artists)
+                            {
+                                var managedArtist = realmb.Find<ArtistModel>(artView.Id);
+                                if (managedArtist != null)
+                                    album.Artists.Add(managedArtist);
+                            }
+
+                            realmb.Add(album, update: true);
+                        }
                         foreach (var genreView in newGenres)
                             realmb.Add(_mapper.Map<GenreModel>(genreView));
 

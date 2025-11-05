@@ -154,7 +154,7 @@ public class StatsRecalculator
                             totalCompleted += s.PlayCompletedCount;
                             totalListenRate += s.ListenThroughRate;
                         }
-
+                        
                         album.TotalCompletedPlays = (int)totalCompleted;
                         album.AverageSongListenThroughRate = songCount > 0 ? totalListenRate / songCount : 0;
                         album.TotalSkipCount = songsInAlbum.ToArray().Sum(s => s.SkipCount);
@@ -201,7 +201,9 @@ public class StatsRecalculator
                             totalCompleted += s.PlayCompletedCount;
                             totalListenRate += s.ListenThroughRate;
                         }
-
+                        artist.TotalSongsByArtist = songCount;
+                        var artAlbCount = RealmQueryHelper.AlbumsByArtist(_realm, artist.Id).Count();
+                        artist.TotalAlbumsByArtist = artAlbCount;
                         artist.TotalCompletedPlays = (int)totalCompleted;
                         artist.AverageSongListenThroughRate = totalListenRate / songCount;
                         artist.EddingtonNumber = CalculateEddingtonNumber(songs.ToList().Select(s => s.PlayCompletedCount).ToList());

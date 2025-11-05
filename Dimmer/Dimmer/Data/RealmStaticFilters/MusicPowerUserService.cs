@@ -4,9 +4,8 @@ public class MusicPowerUserService
 {
     private Realm _realm;
 
-    public MusicPowerUserService(IRealmFactory factory)
+    public MusicPowerUserService()
     {
-        _realm = factory.GetRealmInstance();
     }
     // Re-using the Stat records for consistency
     public record SongStat(SongModel Song, int PlayCount);

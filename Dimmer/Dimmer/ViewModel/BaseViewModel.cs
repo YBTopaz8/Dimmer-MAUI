@@ -18,6 +18,7 @@ using DynamicData.Binding;
 
 
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 using Parse.LiveQuery;
 //using MoreLinq;
@@ -97,7 +98,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         RealmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
 
 
-        this.musicRelationshipService = new(RealmFactory);
+        this.musicRelationshipService = new MusicRelationshipService(RealmFactory);
         this.musicArtistryService = new(RealmFactory);
 
         this.musicStatsService = new(RealmFactory);
@@ -415,7 +416,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         MyDeviceId = LoadOrGenerateDeviceId();
 
-
+        
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
@@ -430,6 +431,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             $"{DateTime.Now}: Finished InitializeAllVMCoreComponentsAsync in {duration.TotalSeconds} seconds.");
         _ = Task.Run(async () =>
         {
+            await OnAppOpening();
             await HeavierBackGroundLoadings(folders);
         });
 
@@ -517,11 +519,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public void SearchSongSB_TextChanged(string? searchText)
+    public void SearchSongForSearchResultHolder(string? searchText)
     {
         if (string.IsNullOrEmpty(searchText))
         {
-
+            if (_playbackQueue.Count != 0)
+            {
+                searchResultsHolder.Edit(
+                    updater =>
+                    {
+                        updater.Clear();
+                        updater.AddRange(_playbackQueue);
+                    });
+                return;
+            }
+            
 
 
             // load the album songs of currentplaying songs
@@ -701,26 +713,28 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private async Task<List<SongModelView>> GetOrderedSongsFromIdsAsync(IEnumerable<ObjectId> songIdsToFetch)
     {
-        var idList = songIdsToFetch.ToList();
-        if (idList.Count == 0)
-        {
+        var ids = songIdsToFetch.ToList();
+        if (ids.Count == 0)
             return new List<SongModelView>();
-        }
 
-        // 1. Perform ONE efficient query to get all songs from the database.
-        var songsFromDb = await songRepo.QueryAsync(s => idList.Contains(s.Id));
+        // Build RQL query manually: "Id == $0 OR Id == $1 OR ..."
+        string rql = string.Join(" OR ", ids.Select((_, i) => $"Id == ${i}"));
 
-        // 2. A database "WHERE IN" query does not guarantee order. We must re-order the results
-        //    to match the original playlist order. A dictionary lookup is the fastest way.
+        // Convert ObjectIds to QueryArguments
+        QueryArgument[] args = ids.Cast<QueryArgument>().ToArray();
+        // Perform RQL query
+        var songsFromDb = await songRepo.QueryWithRQLAsync(rql, args);
+
+        // Maintain order according to ids
         var songMap = songsFromDb.ToDictionary(s => s.Id);
-
-        var orderedSongs = idList
+        var orderedSongs = ids
             .Select(id => songMap.TryGetValue(id, out var song) ? song : null)
-            .Where(song => song != null)
+            .Where(s => s != null)
             .ToList();
 
         return _mapper.Map<List<SongModelView>>(orderedSongs);
     }
+
 
     #region appc cylce  
     public void OnAppClosing()
@@ -773,20 +787,21 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-    public void OnAppOpening()
+    public async Task OnAppOpening()
     {
         try
         {
             var realm = RealmFactory.GetRealmInstance();
             // Use FirstOrDefault() to be safer and slightly more efficient than .ToList()
-            var appModel = realm.All<AppStateModel>().ToList().FirstOrDefault();
+            var appModel = realm.All<AppStateModel>().FirstOrDefault();
 
             // get last dimmerevent
 
-
+            await LoadLastPlaybackSession();
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefault();
             if (appModel != null && appModel.Id != ObjectId.Empty)
             {
+                
                 if (appModel.LastKnownPlaybackQuery is not null)
                 {
                     var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
@@ -827,7 +842,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     if (songModel != null)
                     {
                         // Step 2: If found, map the database model to a view model for the UI.
-                        CurrentPlayingSongView = _mapper.Map<SongModelView>(songModel);
+                        CurrentPlayingSongView = songModel.ToModelView();
                     }
                     else
                     {
@@ -854,12 +869,12 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     Application.Current?.UserAppTheme = AppTheme.Light;
                 }
 
-
+                var songsLinked = _mapper.Map<List<SongModelView>>(lastAppEvent.SongsLinkingToThisEvent);
                 _playbackQueueSource.Edit(
                     updater =>
                     {
                         updater.Clear();
-                        updater.Add(CurrentPlayingSongView);
+                        updater.Add(songsLinked);
                     });
             }
             else
@@ -880,11 +895,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                     IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
 
                 }
-                else
-                {
-
-
-                }
+                
             }
         }
 
@@ -1176,14 +1187,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     //private BehaviorSubject<LimiterClause?> _limiterClause;
 
     [RelayCommand]
-    public void SmolHold() { SearchSongSB_TextChanged("Len:<=2:00"); }
+    public void SmolHold() { SearchSongForSearchResultHolder("Len:<=2:00"); }
 
     [RelayCommand]
-    public void Randomize() { SearchSongSB_TextChanged("random"); }
+    public void Randomize() { SearchSongForSearchResultHolder("random"); }
 
     private int _playbackQueueIndex = -1;
     [RelayCommand]
-    public void BigHold() { SearchSongSB_TextChanged("Len:<=3:00"); }
+    public void BigHold() { SearchSongForSearchResultHolder("Len:<=3:00"); }
 
     [RelayCommand]
     public void ResetSearch()
@@ -1447,10 +1458,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                                     freshSongDb.Title);
 
 
-                                bool albumHasArtist = freshSongDb.Album.ArtistIds.Any(a => a.Id == artistModel.Id);
+                                bool albumHasArtist = freshSongDb.Album.Artists.Any(a => a.Id == artistModel.Id);
                                 if (!albumHasArtist)
                                 {
-                                    freshSongDb.Album.ArtistIds.Add(artistModel);
+                                    freshSongDb.Album.Artists.Add(artistModel);
                                     _logger.LogInformation(
                                         "Linked artist '{ArtistName}' to album '{AlbumTitle}'.",
                                         artistName,
@@ -1518,7 +1529,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// <param name="songToUpdate">The Song View Model from the UI.</param>
     /// <param name="newArtistName">The desired name of the new artist.</param>
 
-    public void UpdateSong(SongModelView song) { _baseAppFlow.UpsertSong(song.ToModel(_mapper)); }
 
     public async Task UpdateSongArtist(SongModelView songToUpdate, string newArtistName)
     {
@@ -2303,7 +2313,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         {
             _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
             _stateService.SetCurrentLogMsg(new AppLogModel() { Log = $"Adding {newSongs.Count} new songs to the UI.", });
-            SearchSongSB_TextChanged("desc added");
+            SearchSongForSearchResultHolder("desc added");
             _ = EnsureCoverArtCachedForSongsAsync(newSongs);
 
             //var _lyricsCts = new CancellationTokenSource();
@@ -3895,7 +3905,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void ViewAlbumDetails(AlbumModelView albumView)
     {
         SelectedAlbum = albumView;
-        SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("album", albumView.Name));
+        SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", albumView.Name));
     }
 
     [ObservableProperty]
@@ -4058,7 +4068,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         AllAlbumsInDb = new ObservableCollection<AlbumModelView>();
         foreach (var alb in allAlbs)
         {
-            AllAlbumsInDb.Add(alb.ToModelView(_mapper));
+            AllAlbumsInDb.Add(alb.ToModelView());
         }
         _logger.LogInformation("Loaded {AlbumCount} albums from the database.", AllAlbumsInDb.Count);
     }
@@ -7151,13 +7161,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     [RelayCommand]
-    public async Task ShareSongDetailsAsText(object songs)
+    public async Task ShareSongDetailsAsText(SongModelView song)
     {
-        Debug.WriteLine(songs.GetType());
-        SongModelView? song = songs as SongModelView;
         if (song is null)
         {
-            song = SelectedSong;
+            song = SelectedSong!;
         }
         if (song is null && CurrentPlayingSongView is not null)
         {
@@ -7167,8 +7175,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
 
         string? WelDoneMessage = AppUtils.GetWellFormattedSharingTextHavingSongStats(song);
-        string details = $"Title: {song.Title}\nArtist: {song.ArtistName}\nAlbum: {song.AlbumName}\nDuration: {TimeSpan.FromSeconds(song.DurationInSeconds):mm\\:ss}\nPath: {song.FilePath}";
-        await Clipboard.Default.SetTextAsync(details);
+        
+        await Clipboard.Default.SetTextAsync(WelDoneMessage);
         //await Share.Default.RequestAsync(new ShareTextRequest
         //{
         //    Title = $"Share {song.Title} by {song.ArtistName}",

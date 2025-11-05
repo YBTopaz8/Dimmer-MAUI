@@ -248,7 +248,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
     {
  var send = (TextEdit)sender;
 
-        MyViewModel.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongForSearchResultHolder(send.Text);
     }
 
     private void AutoCompleteEdit_TextChanged(object sender, DevExpress.Maui.Editors.AutoCompleteEditTextChangedEventArgs e)
@@ -261,7 +261,7 @@ public partial class QuickPanelBtmSheet : BottomSheet
         send.ItemsSource = suggestions;
     
 
-        MyViewModel.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongForSearchResultHolder(send.Text);
     }
     
 

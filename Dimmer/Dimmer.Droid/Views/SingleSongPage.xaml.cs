@@ -166,7 +166,7 @@ public partial class SingleSongPage : ContentPage
             return;
         }
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
 
         if (!ArtistAlbumView.IsVisible)
@@ -357,7 +357,7 @@ public partial class SingleSongPage : ContentPage
 
         await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByAlbum(artistName)+ " " +StaticMethods.PresetQueries.SortByTitleAsc());
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(artistName)+ " " +TQlStaticMethods.PresetQueries.SortByTitleAsc());
 
 
 
@@ -585,7 +585,7 @@ public partial class SingleSongPage : ContentPage
             var artistName = send.Text;
             await Task.WhenAll(ArtistAlbumView.DimmInCompletelyAndShow(), SongTabView.DimmOutCompletelyAndHide());
 
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.PresetQueries.ByArtist(artistName));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistName));
 
             if (MyViewModel.SearchResults.Contains(songToRestore))
             {

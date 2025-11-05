@@ -234,14 +234,14 @@ public partial class AppShell : Shell
             {
                 return;
             }
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
 
 
             return;
         }
 
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(field, val));
     }
 
     private bool _isThrottling = false;

@@ -17,7 +17,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     [Backlink(nameof(SongModel.ArtistToSong))]
     public IQueryable<SongModel> Songs { get; }
 
-    [Backlink(nameof(AlbumModel.ArtistIds))]
+    [Backlink(nameof(AlbumModel.Artists))]
     public IQueryable<AlbumModel> Albums { get; }
 
 
@@ -36,6 +36,9 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     /// </summary>
     [Indexed]
     public int TotalCompletedPlays { get; set; }
+    
+    public int TotalSongsByArtist { get; set; }
+    public int TotalAlbumsByArtist { get; set; }
 
     /// <summary>
     /// The average ListenThroughRate of all songs by this artist. Indicates artist consistency.

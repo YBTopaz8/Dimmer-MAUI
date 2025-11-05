@@ -10,6 +10,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// <summary>
     /// A flag to determine if the playlist is dynamic (query-based) or a manual collection of songs.
     /// </summary>
+    [Indexed]
     public bool IsSmartPlaylist { get; set; }
     /// <summary>
     /// A running history of every time this playlist was initiated for playback.

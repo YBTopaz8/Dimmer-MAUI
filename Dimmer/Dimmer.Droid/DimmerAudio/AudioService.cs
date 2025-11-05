@@ -37,6 +37,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
+    public IEnumerable<AudioOutputDevice> PlaybackDevices { get; }
+
     #endregion
 
     #region IDimmerAudioService Implementation (Events)
@@ -225,5 +227,33 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         DisconnectEvents();
         _binder = null;
         await Task.CompletedTask;
+    }
+
+    public Task SetDefaultAsync(AudioOutputDevice device)
+    {
+        Service.SetPreferredDevice(device);
+        return Task.CompletedTask;
+    }
+
+    public Task MuteDevice(bool mute)
+    {
+        Player.DeviceMuted = mute;
+        return Task.CompletedTask;
+    }
+
+    public void WatchVolume()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SetVolume(double volume)
+    {
+        Volume = volume;
+        return Task.CompletedTask;
+    }
+
+    public double GetCurrentVolume()
+    {
+        return Player.Volume;
     }
 }

@@ -63,5 +63,9 @@ public partial class ArtistModelView : ObservableObject
     public partial double ParetoTopSongsCount { get; set; }
     [ObservableProperty]
     public partial double ParetoPercentage { get; set; }
+    [ObservableProperty]
+    public partial int TotalSongsByArtist { get; set; }
+    [ObservableProperty]
+    public partial int TotalAlbumsByArtist { get; set; }
 
 }

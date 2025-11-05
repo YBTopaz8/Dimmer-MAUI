@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿
+namespace Dimmer.Data.ModelView;
 public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
@@ -21,8 +22,7 @@ public partial class AlbumModelView : ObservableObject
     public partial string? ImagePath { get; set; } = "musicalbum.png";
     [ObservableProperty] public partial byte[]? ImageBytes { get; set; }
 
-    [Backlink(nameof(SongModel.Album))]
-    public IQueryable<SongModel> Songs { get; } = null!;
+  
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }
     public string? DeviceFormFactor { get; set; }
@@ -57,7 +57,8 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty]
     public partial double TotalSkipCount { get; set; }
     public int TotalPlayDurationSeconds { get; set; }
-
+    public List<ArtistModel>? Artists { get;  set; }
+    public ObservableCollection<SongModelView>? SongsInAlbum { get; set; }
 }
 public class AlbumGroupViewModel : ObservableObject
 {

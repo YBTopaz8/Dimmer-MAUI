@@ -31,22 +31,25 @@ public static class ModelToViewExtensions
         return mapper.Map<ArtistModelView>(model);
     }
 
-    public static ArtistModel? ToModel(this ArtistModelView? model, IMapper mapper)
+    public static ArtistModel? ToModel(this ArtistModelView? model)
     {
+        IMapper mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
         if (model == null || mapper == null)
             return null;
         return mapper.Map<ArtistModel>(model);
     }
 
-    public static AlbumModelView? ToModelView(this AlbumModel? model, IMapper mapper)
+    public static AlbumModelView? ToModelView(this AlbumModel? model)
     {
+        IMapper mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
         if (model == null || mapper == null)
             return null;
         return mapper.Map<AlbumModelView>(model);
     }
 
-    public static AlbumModel? ToModel(this AlbumModelView? model, IMapper mapper)
+    public static AlbumModel? ToModel(this AlbumModelView? model)
     {
+        IMapper mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
         if (model == null || mapper == null)
             return null;
         return mapper.Map<AlbumModel>(model);

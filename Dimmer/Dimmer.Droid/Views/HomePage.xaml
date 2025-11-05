@@ -28,9 +28,10 @@
 
             <DataTemplate x:Key="OGView" x:DataType="models:SongModelView">
 
-                <dx:DXStackLayout>
+                <dx:DXStackLayout x:Name="ParentSL">
 
                     <Grid
+                        x:Name="ParentGrid"
                         BackgroundColor="Transparent"
                         ColumnDefinitions="60,*,auto"
                         ColumnSpacing="1"
@@ -87,7 +88,7 @@
                             PressedTextColor="White"
                             VerticalOptions="Center">
                             <dx:DXButton.Content>
-                                <dx:DXStackLayout>
+                                <dx:DXStackLayout x:Name="ParentDSL">
                                     <Label
                                         x:Name="SongTitleChip"
                                         Padding="10,0"
@@ -111,15 +112,18 @@
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
+
+
                                     <dx:Chip
                                         x:Name="ArtistsChip"
                                         Padding="10,0"
                                         BackgroundColor="Transparent"
                                         BorderThickness="0"
+                                        DoubleTapCommandParameter="{Binding .}"
                                         FontSize="12"
                                         HorizontalOptions="Start"
                                         LongPress="ArtistsChip_LongPress"
-                                        LongPressCommandParameter="{Binding ArtistName}"
+                                        LongPressCommandParameter="{Binding OtherArtistsName}"
                                         Opacity="0.6"
                                         Text="{Binding ArtistName}"
                                         TextColor="{AppThemeBinding Dark=White,
@@ -167,6 +171,90 @@
                             Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"
                             TextColor="{AppThemeBinding Dark=White,
                                                         Light=black}" />
+
+
+
+                        <dx:DXPopup
+                            x:Name="ArtistsContextMenu"
+                            x:FieldModifier="Public"
+                            AllowScrim="True"
+                            AllowShadow="True"
+                            Opened="ArtistsContextMenu_Opened"
+                            Placement="Right"
+                            PlacementTarget="{x:Reference ViewSongOnly}"
+                            ScrimColor="DarkSlateBlue"
+                            ShadowColor="DarkSlateBlue"
+                            ShadowRadius="10">
+                            <dx:DXPopup.Content>
+
+
+                                <dx:DXStackLayout
+                                    Padding="10"
+                                    HeightRequest="200"
+                                    ItemSpacing="5"
+                                    MaximumHeightRequest="450"
+                                    Orientation="Vertical"
+                                    VerticalOptions="Start">
+                                    <Label
+                                        HorizontalTextAlignment="Center"
+                                        Text="Songs by :"
+                                        TextColor="{AppThemeBinding Light=DimGray,
+                                                                    Dark=White}" />
+
+                                    <BoxView HeightRequest="2" Color="DarkGray" />
+                                    <dx:DXCollectionView
+                                        x:Name="ArtistNamesColView"
+                                        x:FieldModifier="Public"
+                                        ItemSpacing="10"
+                                        Loaded="ArtistNamesColView_Loaded">
+                                        <dx:DXCollectionView.ItemTemplate>
+
+                                            <DataTemplate x:DataType="models:ArtistModelView">
+                                                <Grid ColumnDefinitions="*,60" RowDefinitions="*,auto">
+                                                    <dx:Chip
+                                                        x:Name="ArtistChipName"
+                                                        Grid.Row="0"
+                                                        Grid.Column="0"
+                                                        Padding="10"
+                                                        CornerRadius="20"
+                                                        FontAutoScalingEnabled="True"
+                                                        HorizontalOptions="Center"
+                                                        PressedBackgroundColor="DarkSlateBlue"
+                                                        PressedTextColor="White"
+                                                        Tap="ArtistChipName_Tap"
+                                                        Text="{Binding Name}"
+                                                        TextColor="{AppThemeBinding Light=Black,
+                                                                                    Dark=White}" />
+
+                                                    <dx:Chip
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        Icon="roundaltarrowdown.png"
+                                                        IsIconVisible="True"
+                                                        TapCommand="{Binding Commands.ToggleExpandState,Source={x:Reference QuickArtistSongs}}"
+                                                        Text="{Binding TotalAlbumsByArtist}" />
+
+                                                    <dx:DXExpander
+                                                        x:Name="QuickArtistSongsView"
+                                                        Grid.Row="1"
+                                                        HorizontalExpandMode="FromEndToStart"
+                                                        HorizontalOptions="End"
+                                                        IsExpanded="False">
+                                                        <dx:DXExpander.Content>
+                                                            <Label Text="{Binding TotalAlbumsByArtist}" />
+
+                                                        </dx:DXExpander.Content>
+                                                    </dx:DXExpander>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </dx:DXCollectionView.ItemTemplate>
+
+                                    </dx:DXCollectionView>
+                                </dx:DXStackLayout>
+
+                            </dx:DXPopup.Content>
+
+                        </dx:DXPopup>
                     </Grid>
 
 
@@ -244,6 +332,7 @@
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter" />
             <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
             <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
+
             <converters:VolumeConverter x:Key="VolConverter" />
 
         </ResourceDictionary>
@@ -591,14 +680,14 @@
                                                         Text="{Binding CurrentPlayingSongView.Title}">
                                                         <dx:Chip.Triggers>
                                                             <DataTrigger
-                                                                Binding="{Binding IsPlaying}"
+                                                                Binding="{Binding IsDimmerPlaying}"
                                                                 TargetType="dx:Chip"
                                                                 Value="True">
                                                                 <Setter Property="TextColor" Value="DarkSlateBlue" />
                                                                 <Setter Property="BorderThickness" Value="1" />
                                                             </DataTrigger>
                                                             <DataTrigger
-                                                                Binding="{Binding IsPlaying}"
+                                                                Binding="{Binding IsDimmerPlaying}"
                                                                 TargetType="dx:Chip"
                                                                 Value="False">
                                                                 <Setter Property="TextColor" Value="Grey" />
@@ -614,13 +703,13 @@
                                                         Text="{Binding CurrentPlayingSongView.ArtistName}">
                                                         <dx:Chip.Triggers>
                                                             <DataTrigger
-                                                                Binding="{Binding IsPlaying}"
+                                                                Binding="{Binding IsDimmerPlaying}"
                                                                 TargetType="dx:Chip"
                                                                 Value="True">
                                                                 <Setter Property="BorderThickness" Value="1" />
                                                             </DataTrigger>
                                                             <DataTrigger
-                                                                Binding="{Binding IsPlaying}"
+                                                                Binding="{Binding IsDimmerPlaying}"
                                                                 TargetType="dx:Chip"
                                                                 Value="False">
                                                                 <Setter Property="BorderThickness" Value="0" />
@@ -635,13 +724,13 @@
                                                                                     Dark=White}">
                                                         <dx:Chip.Triggers>
                                                             <DataTrigger
-                                                                Binding="{Binding IsPlaying}"
+                                                                Binding="{Binding IsDimmerPlaying}"
                                                                 TargetType="dx:Chip"
                                                                 Value="True">
                                                                 <Setter Property="BorderThickness" Value="1" />
                                                             </DataTrigger>
                                                             <DataTrigger
-                                                                Binding="{Binding IsPlaying}"
+                                                                Binding="{Binding IsDimmerPlaying}"
                                                                 TargetType="dx:Chip"
                                                                 Value="False">
                                                                 <Setter Property="BorderThickness" Value="0" />
@@ -822,13 +911,13 @@
                                                             <dx:DXButton.Triggers>
 
                                                                 <DataTrigger
-                                                                    Binding="{Binding IsPlaying}"
+                                                                    Binding="{Binding IsDimmerPlaying}"
                                                                     TargetType="dx:DXButton"
                                                                     Value="True">
                                                                     <Setter Property="Icon" Value="pause.png" />
                                                                 </DataTrigger>
                                                                 <DataTrigger
-                                                                    Binding="{Binding IsPlaying}"
+                                                                    Binding="{Binding IsDimmerPlaying}"
                                                                     TargetType="dx:DXButton"
                                                                     Value="False">
                                                                     <Setter Property="Icon" Value="play.png" />
@@ -979,14 +1068,14 @@
                                                                 VerticalOptions="Center">
                                                                 <Label.Triggers>
                                                                     <DataTrigger
-                                                                        Binding="{Binding IsPlaying}"
+                                                                        Binding="{Binding IsDimmerPlaying}"
                                                                         TargetType="Label"
                                                                         Value="True">
                                                                         <Setter Property="FontAttributes" Value="Bold" />
                                                                         <Setter Property="TextColor" Value="DarkSlateBlue" />
                                                                     </DataTrigger>
                                                                     <DataTrigger
-                                                                        Binding="{Binding IsPlaying}"
+                                                                        Binding="{Binding IsDimmerPlaying}"
                                                                         TargetType="Label"
                                                                         Value="False">
                                                                         <Setter Property="FontAttributes" Value="None" />
@@ -1028,16 +1117,18 @@
                         <dx:DXImage HeightRequest="120" Source="{Binding SelectedSong.CoverImagePath}" />
                         <dx:DXStackLayout ItemSpacing="5">
                             <Label
-                                FontSize="23"
+                                FontSize="33"
                                 HorizontalTextAlignment="Justify"
                                 Text="{Binding SelectedSong.Title}"
                                 ToolTipProperties.Text="Song Title" />
-                            <dx:Chip
+                            <Label
                                 FontSize="16"
+                                HorizontalOptions="Start"
                                 Text="{Binding SelectedSong.ArtistName}"
                                 ToolTipProperties.Text="Artist Name" />
-                            <dx:Chip
+                            <Label
                                 FontSize="17"
+                                LineBreakMode="WordWrap"
                                 Text="{Binding SelectedSong.AlbumName}"
                                 ToolTipProperties.Text="Album Name" />
                         </dx:DXStackLayout>
@@ -1062,38 +1153,40 @@
                         x:Name="ViewArtistMFI"
                         Icon="artist.png"
                         Tap="QuickSearchArtist_Clicked"
-                        TapCommandParameter="{Binding SelectedSong}"
-                        Text="{Binding SelectedSong.OtherArtistsName, StringFormat='Quick View Artist : {0}'}" />
+                        TapCommandParameter="{Binding SelectedSong.OtherArtistsName}"
+                        Text="{Binding SelectedSong.OtherArtistsName, StringFormat='{0}'}" />
                     <dx:Chip
                         x:Name="ViewAlbumMFI"
-                        Icon="albummm.png"
+                        Icon="musicalbum.png"
+                        IconSize="30,40"
+                        IsIconVisible="True"
                         Tap="QuickSearchAlbum_Clicked"
-                        TapCommandParameter="{Binding SelectedSong}"
-                        Text="{Binding SelectedSong.AlbumName, StringFormat='Quick View Album : {0}'}" />
+                        TapCommandParameter="{Binding SelectedSong.AlbumName}"
+                        Text="{Binding SelectedSong.AlbumName, StringFormat='{0}'}" />
                     <dx:Chip
                         x:Name="ViewGenreMFI"
-                        Icon="albumm.png"
+                        Icon="album.png"
+                        IconSize="30,40"
+                        IsIconVisible="True"
                         Tap="ViewGenreMFI_Clicked"
-                        TapCommandParameter="{Binding .}"
-                        Text="{Binding SelectedSong.GenreName, StringFormat='Quick View Genre : {0}'}" />
+                        TapCommandParameter="{Binding SelectedSong.GenreName}"
+                        Text="{Binding SelectedSong.GenreName, StringFormat='{0}'}" />
 
 
-
-                    <dx:Chip
-                        Tap="OnLabelClicked"
-                        TapCommandParameter="OpenFileExp"
-                        Text="Open File in Explorer" />
-                    <dx:Chip
-                        Tap="OnLabelClicked"
-                        TapCommand="{Binding OpenFileInFolderCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
-                        TapCommandParameter="{Binding .}"
-                        Text="Open File in Folder" />
                     <dx:Chip
                         HeightRequest="50"
                         Icon="deletesonginterfacesymbol.png"
                         Tap="OnLabelClicked"
                         TapCommandParameter="DeleteSys"
                         Text="Delete from system" />
+
+                    <dx:Chip
+                        HeightRequest="50"
+                        Icon="viewpage.png"
+                        IsVisible="False"
+                        Tap="OnLabelClicked"
+                        TapCommandParameter="OpenFileExp"
+                        Text="Open file from explorer" />
                     <dx:Chip
                         x:Name="SyncShare"
                         Icon="roundtransferhorizontal.png"
@@ -1109,6 +1202,7 @@
                 </dx:DXStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>
+
     </Grid>
 
     <!--</dx:DXScrollView>-->

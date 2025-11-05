@@ -137,7 +137,7 @@ public class MusicDataService
             {
                 albumToAssign = new AlbumModel { Name = newAlbumName, Artist = albumArtist };
                 // Also link the artist to the album
-                albumToAssign.ArtistIds.Add(albumArtist);
+                albumToAssign.Artists.Add(albumArtist);
                 realm.Add(albumToAssign);
             }
 
@@ -406,9 +406,9 @@ public class MusicDataService
                         var album = transactionRealm.All<AlbumModel>().FirstOrDefault(a => a.Name == songView.AlbumName && a.Artist == albumArtist)
                                    ?? transactionRealm.Add(new AlbumModel { Name = songView.AlbumName, Artist = albumArtist });
 
-                        if (!album.ArtistIds.Contains(albumArtist))
+                        if (!album.Artists.Contains(albumArtist))
                         {
-                            album.ArtistIds.Add(albumArtist);
+                            album.Artists.Add(albumArtist);
                         }
 
                         songInDb.Album = album;

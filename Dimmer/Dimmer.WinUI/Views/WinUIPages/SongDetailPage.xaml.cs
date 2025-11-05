@@ -198,8 +198,8 @@ public sealed partial class SongDetailPage : Page
             else return;
 
             // Perform your search actions
-            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
-            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.PresetQueries.ByAlbum(song.AlbumName));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(song.AlbumName));
         }catch (Exception ex)
         {
            Debug.WriteLine($"Error in ToggleViewArtist_Clicked: {ex.Message}");
@@ -212,7 +212,7 @@ public sealed partial class SongDetailPage : Page
         var send = (Button)sender;
         var song = (SongModelView)send.BindingContext;
         
-        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.PresetQueries.ByAlbum(song.AlbumName));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(song.AlbumName));
     }
 
     private async void PlaySongGestRec_Tapped(object sender, RoutedEventArgs e)

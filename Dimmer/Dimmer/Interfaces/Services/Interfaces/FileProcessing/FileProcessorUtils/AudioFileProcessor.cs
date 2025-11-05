@@ -83,11 +83,6 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         List<string> artistNames = TaggingUtils.ExtractArtists(primaryArtist, albumArtist);
 
-        // --- Step 4: Check for Duplicates (using your logic) ---
-        // It's better to perform this check in the service layer after processing,
-        // but if you must do it here:
-        // var existingSong = _metadataService.FindSongByTitleAndDuration(finalTitle, track.Duration);
-        // if (existingSong != null) { ... return existing song ... }
 
         // --- Step 5: Create and Populate Rich SongModelView ---
         string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
@@ -97,6 +92,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
         var album = _metadataService.GetOrCreateAlbum(track, albumName, primaryArtistName); // Pass artist for context
 
+        
         // Genre Processing
         string genreName = string.IsNullOrWhiteSpace(track.Genre) ? "Unknown Genre" : track.Genre.Trim();
         var genre = _metadataService.GetOrCreateGenre(track, genreName);
@@ -161,15 +157,13 @@ public class AudioFileProcessor : IAudioFileProcessor
             song.UnSyncLyrics = lyricsInfo.UnsynchronizedLyrics;
             song.EmbeddedSync = new(lyricsInfo.SynchronizedLyrics.Select(p => new LyricPhraseModelView(p)));
         }
-
-        // TODO: Cover Art Processing
-        // var pictureInfo = track.EmbeddedPictures.FirstOrDefault();
-        // if (pictureInfo != null)
-        // {
-        //     song.CoverArtHash = _coverArtService.SaveCoverArt(pictureInfo.PictureData, album.Id);
-        //     song.CoverImageBytes = pictureInfo.PictureData; // Or however you handle it
-        // }
-
+        
+        foreach (var artView in song.ArtistToSong)
+        {
+            if (!album.Artists.Any(a => a.Id == artView.Id))
+                album.Artists.Add(artView.ToModel());
+        }
+        
         result.ProcessedSong = song;
         // The service layer should be responsible for calling AddSong
         // _metadataService.AddSong(song); 
@@ -177,7 +171,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         return result;
     }
 
-    internal void Cleanup()
+    public void Cleanup()
     {
         _metadataService.ClearAll();
         

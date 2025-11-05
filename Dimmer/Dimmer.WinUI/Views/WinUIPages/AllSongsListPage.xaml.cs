@@ -193,7 +193,7 @@ public sealed partial class AllSongsListPage : Page
         // This is the text changed event handler for the search box.
         // You can access the text like this:
         var text = send.Text;
-        MyViewModel.SearchSongSB_TextChanged(text);
+        MyViewModel.SearchSongForSearchResultHolder(text);
     }
 
 
@@ -602,15 +602,15 @@ public sealed partial class AllSongsListPage : Page
                         {
                             case "Album":
                                 tqlQuery = PresetQueries.ByAlbum(currentCellValue);
-                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                MyViewModel.SearchSongForSearchResultHolder(tqlQuery);
                                 break;
                             case "Artist":
                                 tqlQuery = PresetQueries.ByArtist(currentCellValue);
-                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                MyViewModel.SearchSongForSearchResultHolder(tqlQuery);
                                 break;
                             case "Genre":
                                 tqlQuery = PresetQueries.ByGenre(currentCellValue);
-                                MyViewModel.SearchSongSB_TextChanged(tqlQuery);
+                                MyViewModel.SearchSongForSearchResultHolder(tqlQuery);
                                 break;
                             default:
                                 break;
@@ -690,14 +690,14 @@ public sealed partial class AllSongsListPage : Page
         if (xterPressed == '\r' || xterPressed == '\n')
         {
 
-            MyViewModel.SearchSongSB_TextChanged(text);
+            MyViewModel.SearchSongForSearchResultHolder(text);
             // Handle Enter key press
             Debug.WriteLine("Enter key pressed.");
             return;
             // You can trigger your search or any other action here
 
         }
-        MyViewModel.SearchSongSB_TextChanged(text);
+        MyViewModel.SearchSongForSearchResultHolder(text);
     }
 
     private void SearchAutoSuggestBox_CopyingToClipboard(TextBox sender, TextControlCopyingToClipboardEventArgs args)
@@ -1097,7 +1097,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        MyViewModel.SearchSongSB_TextChanged(SearchTetxBox.Text);
+        MyViewModel.SearchSongForSearchResultHolder(SearchTetxBox.Text);
     }
 
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)

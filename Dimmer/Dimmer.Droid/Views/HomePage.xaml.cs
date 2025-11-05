@@ -1,5 +1,13 @@
 
 
+using System.Threading.Tasks;
+
+using Dimmer.Utils.Extensions;
+
+using Microsoft.Maui.Layouts;
+
+using Realms;
+
 using View = Microsoft.Maui.Controls.View;
 
 
@@ -29,28 +37,35 @@ public partial class HomePage : ContentPage
         //MyViewModel.MyHomePage.pla
 
         MainViewTabView.SelectedItemIndex = 0;
-        //MyViewModel.FiniInit();
 
-        ////var baseVm = IPlatformApplication.Current.Services.GetService<BaseViewModel>();
-        //AndMorphingButton.MorphingButton morph = new AndMorphingButton.MorphingButton(Platform.AppContext);
-        //morph.SetText("TestYB", TextView.BufferType.Normal);
-        //morph.Click += (s, e) =>
-        //{
-        //    Debug.WriteLine("Button Clicked");
-        //    //morph.SetText("Clicked", TextView.BufferType.Normal);
-        //    //morph.SetBackgroundColor(Android.Graphics.Color.Red);
-        //    //morph.SetTextColor(Android.Graphics.Color.White);
-        //};
 
-        //var ss = morph.ToView();
-        //ss.HeightRequest = 180;
-        //ss.BackgroundColor = Colors.Red;
-
-        //MyBtmBar.BtmBarStackLayout.Children.Add(ss);
+        _ = InitializeAsync();
 
     }
 
+    private async Task InitializeAsync()
+    {
+        MyViewModel.DumpCommand.Execute(null);
+        try
+        {
+            MyViewModel.CurrentPageContext = CurrentPage.HomePage;
+            MyViewModel.CurrentMAUIPage = this;
 
+            if (MyViewModel.ShowWelcomeScreen)
+            {
+                //await Shell.Current.GoToAsync(nameof(WelcomePage), true);
+                return;
+            }
+
+            await Task.Delay(4000);
+
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
+        MyViewModel.DumpCommand.Execute(null);
+    }
     private void ClosePopup(object sender, EventArgs e)
     {
 
@@ -470,7 +485,7 @@ public partial class HomePage : ContentPage
         var txt = send.LongPressCommandParameter as string;
         txt = $"album:{txt}";
 
-        MyViewModel.SearchSongSB_TextChanged(txt);
+        MyViewModel.SearchSongForSearchResultHolder(txt);
     }
 
     private void NowPlayingBtmSheet_Loaded(object sender, EventArgs e)
@@ -661,7 +676,7 @@ public partial class HomePage : ContentPage
 
     private void ViewNPQ_Tap(object sender, HandledEventArgs e)
     {
-        MyViewModel.SearchSongSB_TextChanged(MyViewModel.CurrentPlaybackQuery);
+        MyViewModel.SearchSongForSearchResultHolder(MyViewModel.CurrentPlaybackQuery);
         return;
 
     }
@@ -678,7 +693,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrWhiteSpace(val))
             return; // No album to show
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", val));
     }
 
 
@@ -716,7 +731,7 @@ public partial class HomePage : ContentPage
         }
 
         await Shell.Current.GoToAsync(nameof(ArtistsPage), true);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
     }
 
@@ -801,32 +816,77 @@ public partial class HomePage : ContentPage
     private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        string inputString = send.LongPressCommandParameter as string;
+        var songModel = send.DoubleTapCommandParameter as SongModelView;
+        if (songModel != null) {
+            if (send.Parent.Parent.Parent.GetChildrenInTree(true).First(x => x.GetType() == typeof(DXPopup)) is not DXPopup popUpChild) return;
 
-        char[] dividers = new char[] { ',', ';', ':', '|', '-', '/' };
-
-        var namesList = inputString
-            .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
-            .Select(name => name.Trim())                           // Trim whitespace from each name
-            .ToArray();                                             // Convert to a List
+            if (send.Parent.Parent.Parent.GetChildrenInTree(true).First(x => x.GetType() == typeof(SfEffectsView)) is not SfEffectsView imgEffView) return;
 
 
-        var res = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", string.Empty, namesList);
+            var realm = MyViewModel.RealmFactory.GetRealmInstance();
+            
+            var artistsLinkedToSong = RealmQueryHelper.ArtistsLinkedToSong(realm, songModel.Id).ToList();
 
-        if (string.IsNullOrEmpty(res))
-        {
-            return;
+            var artistsList = MyViewModel._mapper.Map<List<ArtistModelView>>(artistsLinkedToSong);
+
+            var artColView = popUpChild.GetChildrenInTree(true).First(x => x.GetType() == typeof(DXCollectionView)) as DXCollectionView;
+            artColView?.ItemsSource = null;
+            artColView?.ItemsSource = artistsList;
+            await Task.Delay(50);
+
+
+
+
+            await popUpChild.ShowAsync(imgEffView);
+            //popUpChild.ComputeDesiredSize
         }
-        var ss = StaticMethods.SetQuotedSearch("artist", res);
-
-        SearchBy.Text =ss;
     }
+    private async Task ShowSmartPopup(View anchor, DXPopup popup)
+    {
+        if (popup?.Content == null)
+            return;
+
+        // Measure popup height dynamically
+        var measured = popup.Content.Measure(double.PositiveInfinity, double.PositiveInfinity);
+        var popupHeight = measured.Height;
+        popup.HeightRequest = popupHeight;
+
+        popup.WidthRequest = measured.Width > 0 ? measured.Width : 300;
+
+        // Get window reference
+        var window = Application.Current?.MainPage?.Window;
+        if (window == null) return;
+
+        // Get absolute position of the anchor in window coordinates
+        var anchVisElt = anchor as VisualElement;
+
+        var anchorBounds = ViewExts.GetAbsoluteBounds(anchor,window);
+        
+        double screenHeight = window.Height;
+        double screenWidth = window.Width;
+
+        // Center horizontally below the anchor
+        double popupX = anchorBounds.X + (anchorBounds.Width / 2) - (popup.WidthRequest / 2);
+
+        // Check if popup fits below the anchor
+        bool fitsBelow = anchorBounds.Bottom + popup.HeightRequest <= screenHeight;
+        double popupY = fitsBelow
+            ? anchorBounds.Bottom          // show below
+            : anchorBounds.Top - popup.HeightRequest; // show above
+
+        // Clamp horizontally to screen edges
+        popupX = Math.Max(0, Math.Min(popupX, screenWidth - popup.WidthRequest));
+        popupY = Math.Max(0, Math.Min(popupY, screenHeight - popup.HeightRequest));
+        
+        await popup.ShowAtAsync(popupX, popupY, 0, anchor);
+    }
+
 
     private void AlbumFilter_LongPress(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
         SearchBy.Text=
-        StaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
+        TQlStaticMethods.SetQuotedSearch("album", send.LongPressCommandParameter as string);
     }
 
     // The "Years" methods remain unchanged.
@@ -835,7 +895,7 @@ public partial class HomePage : ContentPage
 
         var send = (Chip)sender;
         SearchBy.Text=
-        StaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
+        TQlStaticMethods.SetQuotedSearch("year", send.LongPressCommandParameter as string);
     }
 
     private void SearchBy_TextChanged(object sender, EventArgs e)
@@ -846,7 +906,7 @@ public partial class HomePage : ContentPage
         }
         var send = (TextEdit)sender;
 
-        MyViewModel.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongForSearchResultHolder(send.Text);
     }
 
     private void Settings_Tap(object sender, HandledEventArgs e)
@@ -1137,7 +1197,7 @@ public partial class HomePage : ContentPage
     {
         var send = (TextEdit)sender;
 
-        MyViewModel.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongForSearchResultHolder(send.Text);
     }
 
     private void AutoCompleteEdit_TextChanged(object sender, DevExpress.Maui.Editors.AutoCompleteEditTextChangedEventArgs e)
@@ -1150,7 +1210,7 @@ public partial class HomePage : ContentPage
         send.ItemsSource = suggestions;
 
 
-        MyViewModel.SearchSongSB_TextChanged(send.Text);
+        MyViewModel.SearchSongForSearchResultHolder(send.Text);
     }
 
 
@@ -1255,7 +1315,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrWhiteSpace(val))
             return; // No album to show
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("album", val));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", val));
     }
 
     private void MainViewTabView_Loaded(object sender, EventArgs e)
@@ -1268,11 +1328,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void QuickSearchAlbum_Clicked(object sender, EventArgs e)
-    {
-
-      
-    }
 
     private void SearchSongSB_Clicked(object sender, EventArgs e)
     {
@@ -1290,24 +1345,27 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void ViewGenreMFI_Clicked(object sender, EventArgs e)
-    {
 
-    }
-
-    private async void OnLabelClicked(object sender, EventArgs e)
-    {
-       
-    }
 
     private void BtmBarTap_Tapped(object sender, TappedEventArgs e)
     {
         MainViewTabView.SelectedItemIndex = 1;
     }
 
-    private void NavigateToSelectedSongPageContextMenuAsync(object sender, HandledEventArgs e)
+    private async void NavigateToSelectedSongPageContextMenuAsync(object sender, HandledEventArgs e)
     {
+        try
+        {
 
+            var send = (Chip)sender;
+            var song = send.TapCommandParameter as SongModelView;
+            if (song is null) return;
+            await MyViewModel.ShareSongDetailsAsText(song);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private async void OnAddQuickNoteClicked(object sender, HandledEventArgs e)
@@ -1337,13 +1395,15 @@ public partial class HomePage : ContentPage
             .Split(dividers, StringSplitOptions.RemoveEmptyEntries) // Split by dividers and remove empty results
             .Select(name => name.Trim())                           // Trim whitespace from each name
             .ToArray();                                             // Convert to a List
-        if (namesList is not null && namesList.Length == 1)
+
+        if (namesList is null) return;
+        if ( namesList.Length == 1)
         {
-            SearchSongSB_Clicked(sender, e);
-            MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", namesList[0]));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", namesList[0]));
 
             return;
         }
+
         var selectedArtist = await Shell.Current.DisplayActionSheet("Select Artist", "Cancel", null, namesList);
 
         if (string.IsNullOrEmpty(selectedArtist) || selectedArtist == "Cancel")
@@ -1351,8 +1411,7 @@ public partial class HomePage : ContentPage
             return;
         }
 
-        SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
         return;
     }
@@ -1365,26 +1424,22 @@ public partial class HomePage : ContentPage
     private async void OnLabelClicked(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
-        var song = send.TapCommandParameter as SongModelView;
-
+       
         var param = send.TapCommandParameter as string;
 
-        if (song is null && param is not null)
-        {
-            return;
-        }
+       
 
         switch (param)
         {
             case "DeleteSys":
 
-                var listOfSongsToDelete = new List<SongModelView> { song };
+                var listOfSongsToDelete = new List<SongModelView> { MyViewModel.SelectedSong! };
 
                 await MyViewModel.DeleteSongs(listOfSongsToDelete);
                 break;
             case "OpenFileExp":
 
-                await MyViewModel.OpenFileInOtherApp(song);
+                await MyViewModel.OpenFileInOtherApp(MyViewModel.SelectedSong);
                 break;
 
             default:
@@ -1394,14 +1449,62 @@ public partial class HomePage : ContentPage
 
     private void ViewGenreMFI_Clicked(object sender, HandledEventArgs e)
     {
+        var s = (Chip)sender;
+        var param = s.TapCommandParameter as string;
+        if(!string.IsNullOrEmpty(param))
+        {
+ 
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByGenre(param));
 
+        }
     }
 
     private void QuickSearchAlbum_Clicked(object sender, HandledEventArgs e)
     {
-        SearchSongSB_Clicked(sender, e);
-        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", ((Button)sender).CommandParameter.ToString()));
+        var s = (Chip)sender;
+        var param = s.TapCommandParameter as string;
+        if (!string.IsNullOrEmpty(param))
+        {
 
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(param));    
+
+        }
+    }
+
+    private void ArtistsContextMenu_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistsContextMenu_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    DXCollectionView? ArtistNamesColView { get; set; }
+    DXPopup? ArtistNamesPopUpView { get; set; }
+    private void ArtistNamesColView_Loaded(object sender, EventArgs e)
+    {
+        DXCollectionView send = (DXCollectionView)sender;
+
+        ArtistNamesColView = send;
+    }
+
+    private void ArtistsContextMenu_Opened(object sender, EventArgs e)
+    {
+        ArtistNamesPopUpView = (DXPopup)sender;
+        
+    }
+
+    private void ArtistChipName_Tap(object sender, HandledEventArgs e)
+    {
+        var s = (Chip)sender;
+        var param = s.Text as string;
+        if (!string.IsNullOrEmpty(param))
+        {
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(param));
+            ArtistNamesPopUpView?.Close();
+        }
     }
 }
 

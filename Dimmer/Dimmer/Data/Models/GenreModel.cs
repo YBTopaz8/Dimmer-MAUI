@@ -32,7 +32,8 @@ public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
     /// <summary>
     /// A score representing user affinity for this genre, based on total plays and average LTR.
     /// </summary>
-    
+
+ 
     public double AffinityScore { get; set; }
 
     /// <summary>

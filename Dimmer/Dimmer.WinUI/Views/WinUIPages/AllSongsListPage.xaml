@@ -117,7 +117,7 @@
                 Orientation="Horizontal"
                 Spacing="10">
                 <Button
-                    Command="{x:Bind MyViewModel.SearchSongSB_TextChangedCommand}"
+                    Command="{x:Bind MyViewModel.SearchSongForSearchResultHolderCommand}"
                     CommandParameter="{x:Bind MyViewModel.CurrentTqlQuery}"
                     Content="Run" />
                 <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />

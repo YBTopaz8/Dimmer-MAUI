@@ -181,7 +181,6 @@ public class MainActivity : MauiAppCompatActivity
         Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
 #elif DEBUG
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
         Window.SetUiOptions(UiOptions.SplitActionBarWhenNarrow); // Split action bar for narrow screens
         //Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
         // Tells the Window to draw under the status bar

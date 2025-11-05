@@ -210,7 +210,7 @@ public class ListeningReportGenerator
             .Select(g => new { Album = g.Key, PlayCount = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.PlayCount)
             .Take(15)
-            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(_mapper), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
+            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
             .ToList();
     }
 

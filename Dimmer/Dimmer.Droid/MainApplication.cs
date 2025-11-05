@@ -77,25 +77,34 @@ public class MainApplication : MauiApplication
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
-        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
-                                 $"Exception Type: {e.Exception.GetType()}\n" +
-                                 $"ChatMessage: {e.Exception.Message}\n" +
-                                 $"Source: {e.Exception.Source}\n" +
-                                 $"Stack Trace: {e.Exception.StackTrace}\n";
 
-        if (e.Exception.InnerException != null)
+        try
         {
-            errorDetails += "***** Inner Exception *****\n" +
-                            $"ChatMessage: {e.Exception.InnerException.Message}\n" +
-                            $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
+
+       
+            string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+                                     $"Exception Type: {e.Exception.GetType()}\n" +
+                                     $"ChatMessage: {e.Exception.Message}\n" +
+                                     $"Source: {e.Exception.Source}\n" +
+                                     $"Stack Trace: {e.Exception.StackTrace}\n";
+
+            if (e.Exception.InnerException != null)
+            {
+                errorDetails += "***** Inner Exception *****\n" +
+                                $"ChatMessage: {e.Exception.InnerException.Message}\n" +
+                                $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
+            }
+
+            // Print to Debug Console
+            Debug.WriteLine(errorDetails);
+
+            // Log to file
+            LogException(e.Exception);
         }
-
-        // Print to Debug Console
-        Debug.WriteLine(errorDetails);
-
-        // Log to file
-        LogException(e.Exception);
-
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
     private static readonly object _logLock = new();
 

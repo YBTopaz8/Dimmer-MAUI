@@ -166,14 +166,14 @@ public partial class HomePage : ContentPage
     //        }
 
     //        PlatUtils.OpenAllSongsWindow(MyViewModel);
-    //        MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch("artist", selectedArtist));
+    //        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
 
     //        return;
 
     //    }
 
     //    PlatUtils.OpenAllSongsWindow(MyViewModel);
-    //    MyViewModel.SearchSongSB_TextChanged(StaticMethods.SetQuotedSearch(field, val));
+    //    MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
 
 
     //    //_windowMgrService.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
@@ -187,7 +187,7 @@ public partial class HomePage : ContentPage
         var song = send.BindingContext as SongModelView;
         if (MyViewModel.PlaybackQueue.Count < 1)
         {
-            MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+            MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
         }
         await MyViewModel.PlaySong(song, CurrentPage.HomePage);
         //ScrollToSong_Clicked(sender, e);
@@ -284,7 +284,7 @@ public partial class HomePage : ContentPage
             {
                 if (MyViewModel.PlaybackQueue.Count < 1)
                 {
-                    MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+                    MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
                 }
                 await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s => s is not null).Select(x => x!.Song));
             }
@@ -297,7 +297,7 @@ public partial class HomePage : ContentPage
         var song = send.BindingContext as SongModelView;
         if (MyViewModel.PlaybackQueue.Count < 1)
         {
-            MyViewModel.SearchSongSB_TextChanged(">>addnext!");
+            MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
         }
         await MyViewModel.PlaySong(song, CurrentPage.HomePage);
     }
@@ -503,7 +503,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", res));
 
             return;
         }
@@ -523,7 +523,7 @@ public partial class HomePage : ContentPage
         {
             val = MyViewModel.CurrentPlayingSongView.DurationInSeconds.ToString();
         }
-        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(field, val));
         var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
     }
 
@@ -597,7 +597,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", res));
 
             winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
 
@@ -605,7 +605,7 @@ public partial class HomePage : ContentPage
         }
 
         PlatUtils.OpenAllSongsWindow(MyViewModel);
-        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(field, val));
 
     }
 
@@ -786,7 +786,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", res));
             var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
             var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));
@@ -837,7 +837,7 @@ public partial class HomePage : ContentPage
         var field = send.TouchDownCommandParameter as string;
 
         PlatUtils.OpenAllSongsWindow(MyViewModel);
-        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(field, val));
 
     }
 
@@ -1080,7 +1080,7 @@ public partial class HomePage : ContentPage
         var send = (SfChip)sender;
         var artistName = send.CommandParameter as string;
 
-        MyViewModel.SearchSongSB_TextChanged(TQlStaticMethods.SetQuotedSearch("artist", artistName));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", artistName));
         var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>()!;
 
         var win = winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new AllSongsWindow(MyViewModel));

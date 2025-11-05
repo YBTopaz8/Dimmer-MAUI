@@ -57,7 +57,8 @@ public class MusicArtistryService
         _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
 
         // 1. Find the most played album
-        var topAlbum = _realm.All<DimmerPlayEvent>().ToList()
+        var topAlbum = _realm.All<DimmerPlayEvent>()
+            .Filter("SongsLinkingToThisEvent.@count > 0").ToList()
             .Where(p => p.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
             .GroupBy(p => p.SongsLinkingToThisEvent.First().Album)
             .OrderByDescending(g => g.Count())
@@ -136,6 +137,7 @@ public class MusicArtistryService
     public List<ArtistModel> GetMusicalTrinity()
     {
         _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var superGenres = new Dictionary<string, HashSet<string>>
         {

@@ -335,14 +335,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
-            var itemHandle = SongsColView.FindItemHandle(value);
-
-            MainThread.BeginInvokeOnMainThread(() =>
+            if (SongsColView is not null)
             {
+                var itemHandle = SongsColView.FindItemHandle(value);
 
-                PlaybackQueueColView?.ScrollTo(itemHandle, DXScrollToPosition.MakeVisible);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
 
-            });
+                    PlaybackQueueColView?.ScrollTo(itemHandle, DXScrollToPosition.MakeVisible);
+
+                });
+            }
         }
     }
 
@@ -491,7 +494,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             {
                 // Creates a search for songs of the same genre and similar BPM.
                 string similarQuery = $"genre:\"{song.GenreName}\" and bpm:{song.BPM - 10}-{song.BPM + 10}";
-                SearchSongSB_TextChangedCommand.Execute(similarQuery);
+                SearchSongForSearchResultHolderCommand.Execute(similarQuery);
             })
         };
     }
@@ -655,7 +658,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             {
                 // Another "power method" call!
                 string blendQuery = $"artist:\"{draggedSongs.First().ArtistName}\" or artist:\"{targetSong.ArtistName}\" shuffle";
-                SearchSongSB_TextChangedCommand.Execute(blendQuery);
+                SearchSongForSearchResultHolderCommand.Execute(blendQuery);
             }
         }
         // SCENARIO 2: Group into Album
