@@ -15,10 +15,7 @@
     x:DataType="vm:BaseViewModelWin">
 
     <Window.TitleBar>
-        <TitleBar
-            x:Name="DimmerTitleBar"
-            Title="{Binding AppTitle}"
-            BackgroundColor="Transparent">
+        <TitleBar x:Name="DimmerTitleBar" BackgroundColor="Transparent">
 
             <TitleBar.Resources>
                 <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />

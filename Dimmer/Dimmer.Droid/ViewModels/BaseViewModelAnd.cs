@@ -77,7 +77,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 break;
             case 1:
                 
-
+                
                 IsNowPlayingQueue =false;
 
                 IsNowAllSongsQueue=false;
@@ -90,10 +90,24 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 break;
         }
     }
+
+    
     [ObservableProperty]
     public partial bool IsNowPlayingQueue { get; set; }
     [ObservableProperty]
     public partial bool IsNowAllSongsQueue { get; set; } = true;
+
+
+  
+
+    public override void IsDimmerPlaying()
+    {
+        base.IsDimmerPlaying();
+        if (IsPlaying)
+        {
+            IsNowAllSongsQueue = true;
+        }
+    }
     partial void OnNowPlayingQueueItemSpanChanged(int oldValue, int newValue)
     {
         // Handle any additional logic when NowPlayingQueueItemSpan changes, if needed.
@@ -111,7 +125,23 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
+    
 
+    [RelayCommand]
+    public static async Task OpenFileInFolder(string filePath)
+    {
+        Uri uriF = new Uri(filePath);
+        if( await Launcher.Default.CanOpenAsync(uriF))
+        {
+
+           await Launcher.Default.OpenAsync(new OpenFileRequest()
+            {
+                File = new ReadOnlyFile(filePath),
+                Title = "Open with",
+
+            });
+        }
+    }
 
 
     [ObservableProperty] public partial Page CurrentUserPage { get; set; }
@@ -870,6 +900,35 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         //throw new NotImplementedException();
     }
 
+    [RelayCommand]
+    public async Task DeleteFileFromSystem(SongModelView song)
+    {
+        bool confirm = await Shell.Current.DisplayAlert("Confirm Delete", $"Are you sure you want to delete '{song.Title}' from your device? This action cannot be undone.", "Delete", "Cancel");
+        if (confirm)
+        {
+            try
+            {
+                if(File.Exists(song.FilePath))
+                {
+                    RemoveFromQueue(song);
+                    var songsToDelete = new List<SongModelView> { song };
+                    await PerformFileOperationAsync(songsToDelete, string.Empty, FileOperation.Delete);
+                    // Then, remove from the database.
+                    await songRepository.DeleteAsync(song.Id);
+                    // Optionally, you might want to refresh your UI or notify other components here.
+
+                }
+
+                await Shell.Current.DisplayAlert("Deleted", $"'{song.Title}' has been deleted from your device.", "OK");
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Error", $"Failed to delete '{song.Title}': {ex.Message}", "OK");
+            }
+        }
+    }
+
+    [RelayCommand]
 
     public async Task ShareSongViewClipboard(SongModelView song)
     {

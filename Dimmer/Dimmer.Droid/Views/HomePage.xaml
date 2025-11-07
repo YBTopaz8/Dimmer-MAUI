@@ -597,14 +597,23 @@
                                     Margin="5"
                                     IsVisible="True"
                                     RowDefinitions="*,auto,auto">
-                                    <dx:DXStackLayout Grid.Row="0">
-                                        <Grid>
-                                            <Grid.GestureRecognizers>
-                                                <PinchGestureRecognizer x:Name="PingGest" PinchUpdated="PingGest_PinchUpdated" />
-                                            </Grid.GestureRecognizers>
-                                            <dx:DXBorder CornerRadius="20" StyleClass="Elevation2">
+                                    <Grid Grid.Row="0">
+
+                                        <dx:DXBorder CornerRadius="15" StyleClass="Elevation2">
+                                            <dx:DXBorder.Triggers>
+
+                                                <DataTrigger
+                                                    Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                                                    TargetType="dx:DXBorder"
+                                                    Value="true">
+                                                    <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                                </DataTrigger>
+                                            </dx:DXBorder.Triggers>
+                                            <Grid>
+
                                                 <dx:DXImage
                                                     Grid.Row="0"
+                                                    Aspect="AspectFit"
                                                     IsVisible="True"
                                                     Source="{Binding CurrentCoverImagePath}">
                                                     <dx:DXImage.Triggers>
@@ -612,7 +621,7 @@
                                                             Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
                                                             TargetType="dx:DXImage"
                                                             Value="True">
-                                                            <Setter Property="Opacity" Value="0.8" />
+                                                            <Setter Property="Opacity" Value="0.9" />
                                                         </DataTrigger>
                                                         <DataTrigger
                                                             Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
@@ -622,89 +631,143 @@
                                                         </DataTrigger>
                                                     </dx:DXImage.Triggers>
                                                 </dx:DXImage>
+                                                <VerticalStackLayout
+                                                    x:Name="LyricsSection"
+                                                    HorizontalOptions="Center"
+                                                    IsVisible="True"
+                                                    VerticalOptions="Center">
+                                                    <VerticalStackLayout.Triggers>
 
-                                            </dx:DXBorder>
+                                                        <DataTrigger
+                                                            Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                                                            TargetType="VerticalStackLayout"
+                                                            Value="true">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                        </DataTrigger>
 
-                                            <dx:DXCollectionView
-                                                x:Name="AllLyricsColView"
-                                                Margin="10"
-                                                HeightRequest="150"
-                                                HorizontalOptions="Center"
-                                                IsScrollBarVisible="False"
-                                                ItemsSource="{Binding AllLines}"
-                                                SelectedItem="{Binding CurrentLine}"
-                                                SelectionChanged="DXCollectionView_SelectionChanged"
-                                                SelectionMode="Single"
-                                                VerticalOptions="Center"
-                                                ZIndex="1">
-                                                <dx:DXCollectionView.SelectedItemTemplate>
-                                                    <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                                        <dx:DXBorder
-                                                            Margin="5"
-                                                            Padding="10"
-                                                            BackgroundColor="DarkSlateBlue"
-                                                            CornerRadius="10"
-                                                            HorizontalOptions="Center">
-                                                            <Label
-                                                                FontAttributes="Bold"
-                                                                HorizontalTextAlignment="Center"
-                                                                Text="{Binding Text}"
-                                                                TextColor="{AppThemeBinding Dark=White,
-                                                                                            Light=White}" />
+                                                        <DataTrigger
+                                                            Binding="{Binding IsPlaying}"
+                                                            TargetType="VerticalStackLayout"
+                                                            Value="false">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
 
-                                                        </dx:DXBorder>
-                                                    </DataTemplate>
-                                                </dx:DXCollectionView.SelectedItemTemplate>
-                                                <dx:DXCollectionView.ItemTemplate>
-                                                    <DataTemplate x:DataType="models:LyricPhraseModelView">
-                                                        <Border>
-                                                            <Label
-                                                                FontSize="13"
-                                                                HorizontalTextAlignment="Center"
-                                                                Text="{Binding Text}"
-                                                                TextColor="Black" />
+                                                        <DataTrigger
+                                                            Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
+                                                            TargetType="VerticalStackLayout"
+                                                            Value="false">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
+                                                    </VerticalStackLayout.Triggers>
 
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </dx:DXCollectionView.ItemTemplate>
-                                            </dx:DXCollectionView>
-                                            <dx:DXBorder
-                                                BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                                                CornerRadius="0,0,10,15"
-                                                Opacity="0.8"
-                                                VerticalOptions="End">
+                                                    <Label
+                                                        FontSize="15"
+                                                        HorizontalTextAlignment="Center"
+                                                        Opacity="0.7"
+                                                        Text="{Binding PreviousLine.Text}" />
+                                                    <Grid HorizontalOptions="Center">
+                                                        <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
+                                                        <Label
+                                                            Margin="10"
+                                                            FontAttributes="Bold"
+                                                            FontSize="36"
+                                                            HorizontalTextAlignment="Center"
+                                                            Opacity="1"
+                                                            Text="{Binding CurrentLine.Text}"
+                                                            TextColor="DarkSlateBlue">
+                                                            <Label.Triggers />
+                                                        </Label>
+                                                    </Grid>
+                                                    <Label
+                                                        FontSize="17"
+                                                        HorizontalTextAlignment="Center"
+                                                        Opacity="0.7"
+                                                        Text="{Binding NextLine.Text}" />
+                                                </VerticalStackLayout>
 
-                                                <Grid BackgroundColor="DarkSlateBlue" ColumnDefinitions="*,*">
-                                                    <dx:DXStackLayout Grid.Column="0" HorizontalOptions="Start">
-                                                        <dx:Chip
-                                                            BackgroundColor="Transparent"
-                                                            BorderColor="Transparent"
-                                                            BorderThickness="0.1"
-                                                            FontSize="14"
-                                                            Tap="ArtistChip_Tap"
-                                                            TapCommandParameter="{Binding CurrentPlayingSongView}"
-                                                            Text="{Binding CurrentPlayingSongView.ReleaseYear}"
-                                                            TextColor="{AppThemeBinding Light=White,
-                                                                                        Dark=white}" />
-                                                    </dx:DXStackLayout>
-                                                    <dx:DXStackLayout Grid.Column="1" HorizontalOptions="End">
-                                                        <dx:Chip
-                                                            BackgroundColor="Transparent"
-                                                            BorderColor="Transparent"
-                                                            BorderThickness="0.1"
-                                                            FontSize="14"
-                                                            Tap="ArtistChip_Tap"
-                                                            TapCommandParameter="{Binding CurrentPlayingSongView}"
-                                                            Text="{Binding CurrentPlayingSongView.GenreName}"
-                                                            TextColor="{AppThemeBinding Light=white,
-                                                                                        Dark=white}" />
-                                                    </dx:DXStackLayout>
-                                                </Grid>
+                                            </Grid>
+                                        </dx:DXBorder>
 
-                                            </dx:DXBorder>
-                                        </Grid>
+                                        <!--<dx:DXCollectionView
+                                            x:Name="AllLyricsColView"
+                                            Margin="10"
+                                            HeightRequest="150"
+                                            HorizontalOptions="Center"
+                                            IsScrollBarVisible="False"
+                                            IsVisible="{Binding IsPlaying}"
+                                            ItemsSource="{Binding AllLines}"
+                                            SelectedItem="{Binding CurrentLine}"
+                                            SelectionChanged="DXCollectionView_SelectionChanged"
+                                            SelectionMode="Single"
+                                            VerticalOptions="Center"
+                                            ZIndex="1">
+                                            <dx:DXCollectionView.SelectedItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                                    <dx:DXBorder
+                                                        Margin="5"
+                                                        Padding="10"
+                                                        BackgroundColor="DarkSlateBlue"
+                                                        CornerRadius="10"
+                                                        HorizontalOptions="Center">
+                                                        <Label
+                                                            FontAttributes="Bold"
+                                                            HorizontalTextAlignment="Center"
+                                                            Text="{Binding Text}"
+                                                            TextColor="{AppThemeBinding Dark=White,
+                                                                                        Light=White}" />
 
-                                    </dx:DXStackLayout>
+                                                    </dx:DXBorder>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.SelectedItemTemplate>
+                                            <dx:DXCollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                                    <Border>
+                                                        <Label
+                                                            FontSize="13"
+                                                            HorizontalTextAlignment="Center"
+                                                            Text="{Binding Text}"
+                                                            TextColor="Black" />
+
+                                                    </Border>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.ItemTemplate>
+                                        </dx:DXCollectionView>-->
+                                        <dx:DXBorder
+                                            BackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                                            CornerRadius="0,0,10,15"
+                                            Opacity="0.8"
+                                            VerticalOptions="End">
+
+                                            <Grid BackgroundColor="DarkSlateBlue" ColumnDefinitions="*,*">
+                                                <dx:DXStackLayout Grid.Column="0" HorizontalOptions="Start">
+                                                    <dx:Chip
+                                                        BackgroundColor="Transparent"
+                                                        BorderColor="Transparent"
+                                                        BorderThickness="0.1"
+                                                        FontSize="14"
+                                                        Tap="ArtistChip_Tap"
+                                                        TapCommandParameter="{Binding CurrentPlayingSongView}"
+                                                        Text="{Binding CurrentPlayingSongView.ReleaseYear}"
+                                                        TextColor="{AppThemeBinding Light=White,
+                                                                                    Dark=white}" />
+                                                </dx:DXStackLayout>
+                                                <dx:DXStackLayout Grid.Column="1" HorizontalOptions="End">
+                                                    <dx:Chip
+                                                        BackgroundColor="Transparent"
+                                                        BorderColor="Transparent"
+                                                        BorderThickness="0.1"
+                                                        FontSize="14"
+                                                        Tap="ArtistChip_Tap"
+                                                        TapCommandParameter="{Binding CurrentPlayingSongView}"
+                                                        Text="{Binding CurrentPlayingSongView.GenreName}"
+                                                        TextColor="{AppThemeBinding Light=white,
+                                                                                    Dark=white}" />
+                                                </dx:DXStackLayout>
+                                            </Grid>
+
+                                        </dx:DXBorder>
+                                    </Grid>
+
                                     <dx:DXExpander
                                         x:Name="MediaControlView"
                                         Grid.Row="1"
@@ -728,9 +791,11 @@
                                                     </dx:DXStackLayout.Resources>
 
                                                     <dx:Chip
+                                                        x:Name="TitleChip"
                                                         FontAttributes="Bold"
                                                         FontSize="22"
                                                         HorizontalOptions="Start"
+                                                        Tap="TitleChip_Tap"
                                                         Text="{Binding CurrentPlayingSongView.Title}">
                                                         <dx:Chip.Triggers>
                                                             <DataTrigger
@@ -751,9 +816,13 @@
                                                     </dx:Chip>
 
                                                     <dx:Chip
+                                                        x:Name="ArtistNameChip"
                                                         BackgroundColor="Transparent"
                                                         FontAttributes="Bold"
                                                         FontSize="16"
+                                                        Loaded="ArtistNameChip_Loaded"
+                                                        Unloaded="ArtistNameChip_Unloaded"
+                                                        TapCommandParameter="{Binding CurrentPlayingSongView.OtherArtistsName}"
                                                         Text="{Binding CurrentPlayingSongView.ArtistName}">
                                                         <dx:Chip.Triggers>
                                                             <DataTrigger
@@ -1165,11 +1234,39 @@
             x:Name="MoreBtmSheet"
             HalfExpandedRatio="0.6"
             StateChanged="MoreBtmSheet_StateChanged">
+            <dx:BottomSheet.Resources>
+                <ResourceDictionary>
+
+                    <Style TargetType="BoxView">
+
+                        <Setter Property="Margin" Value="5,0" />
+                        <Setter Property="HeightRequest" Value="0.5" />
+                        <Setter Property="Color" Value="DarkSlateBlue" />
+
+                    </Style>
+                    <Style TargetType="dx:DXButton">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="BackgroundColor" Value="Transparent" />
+                        <Setter Property="Padding" Value="5" />
+                        <Setter Property="TextColor" Value="{AppThemeBinding Light=black, Dark=White}" />
+                        <Setter Property="HorizontalContentAlignment" Value="Start" />
+                        <Setter Property="ShowIcon" Value="True" />
+                        <Setter Property="IconColor" Value="DarkSlateBlue" />
+                        <Setter Property="PressedIconColor" Value="White" />
+                        <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue" />
+                        <Setter Property="IconHeight" Value="25" />
+                        <Setter Property="IconWidth" Value="25" />
+                    </Style>
+                </ResourceDictionary>
+            </dx:BottomSheet.Resources>
             <dx:BottomSheet.Content>
-                <dx:DXStackLayout Margin="20" ItemSpacing="5">
-                    <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
-                        <dx:DXImage HeightRequest="120" Source="{Binding SelectedSong.CoverImagePath}" />
-                        <dx:DXStackLayout ItemSpacing="5">
+                <dx:DXStackLayout Margin="5" ItemSpacing="2">
+                    <Grid ColumnDefinitions="120,*" ColumnSpacing="10">
+                        <dx:DXImage
+                            Grid.Column="0"
+                            Margin="10,0,0,0"
+                            Source="{Binding SelectedSong.CoverImagePath}" />
+                        <dx:DXStackLayout Grid.Column="1" ItemSpacing="5">
                             <Label
                                 FontSize="33"
                                 HorizontalTextAlignment="Justify"
@@ -1186,24 +1283,27 @@
                                 Text="{Binding SelectedSong.AlbumName}"
                                 ToolTipProperties.Text="Album Name" />
                         </dx:DXStackLayout>
-                    </dx:DXStackLayout>
+                    </Grid>
 
 
-                    <dx:Chip
+                    <dx:DXButton
                         x:Name="AddQuickNote"
-                        Icon="chatdots.png"
-                        Tap="OnAddQuickNoteClicked"
-                        TapCommandParameter="Black">
-                        <dx:Chip.Text>
+                        Clicked="OnAddQuickNoteClicked"
+                        CommandParameter="{Binding SelectedSong}"
+                        Icon="chatdots.png">
+                        <dx:DXButton.Content>
                             <MultiBinding StringFormat="{}Add Quick Note To: {0}">
                                 <Binding Path="SelectedSong.Title" />
                             </MultiBinding>
-                        </dx:Chip.Text>
+                        </dx:DXButton.Content>
 
-                    </dx:Chip>
+                    </dx:DXButton>
+                    <BoxView
+                        Margin="10,0"
+                        HeightRequest="0.5"
+                        Color="DarkSlateBlue" />
 
-
-                    <dx:Chip
+                    <dx:DXButton
                         x:Name="ViewArtistMFI"
                         Icon="artist.png"
                         Tap="QuickSearchArtist_Clicked"
@@ -1226,6 +1326,10 @@
                         TapCommandParameter="{Binding SelectedSong.GenreName}"
                         Text="{Binding SelectedSong.GenreName, StringFormat='{0}'}" />
 
+                    <BoxView
+                        Margin="10,0"
+                        HeightRequest="0.5"
+                        Color="DarkSlateBlue" />
 
                     <dx:Chip
                         HeightRequest="50"
@@ -1243,16 +1347,12 @@
                         Text="Open file from explorer" />
                     <dx:Chip
                         x:Name="SyncShare"
+                        Clicked="SyncShare_Tap"
+                        CommandParameter="SyncShare"
+                        Content="Sync"
                         Icon="roundtransferhorizontal.png"
-                        IsVisible="Hidden"
-                        Tap="SyncShare_Tap"
-                        TapCommandParameter="SyncShare"
-                        Text="Sync" />
-                    <dx:Chip
-                        Icon="shared.png"
-                        Tap="NavigateToSelectedSongPageContextMenuAsync"
-                        TapCommand="{Binding ShareSongDetailsAsTextCommand}"
-                        Text="Share Song" />
+                        IsVisible="Hidden" />
+
                 </dx:DXStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>

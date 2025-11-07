@@ -325,15 +325,25 @@ public static class CustomAnimsExtensions
         await element.ScaleTo(1, duration / 2, Easing.CubicIn);
     }
 
-    public static async Task FadeIn(this VisualElement element, uint duration = 250, double startOpacity = 0)
+    public static async Task FadeIn(this VisualElement element, Easing? easing , uint duration = 250, double startOpacity = 0 )
     {
+        element.IsVisible = true;
+        if (easing is null)
+        {
+            easing = Easing.Linear;
+        }
         element.Opacity = startOpacity;
-        await element.FadeTo(1, duration, Easing.Linear);
+        await element.FadeTo(1, duration, easing);
     }
 
-    public static async Task FadeOut(this VisualElement element, uint duration = 200, double endOpacity = 0)
+    public static async Task FadeOut(this VisualElement element, Easing? easing, uint duration = 200, double endOpacity = 0)
     {
-        await element.FadeTo(endOpacity, duration, Easing.Linear);
+        if (easing is null)
+        {
+            easing = Easing.Linear;
+        }
+        await element.FadeTo(endOpacity, duration, easing); 
+        element.IsVisible = false;
     }
     public static async Task SlideInFromRight(this VisualElement element, uint duration = 300)
     {
@@ -342,7 +352,7 @@ public static class CustomAnimsExtensions
         element.IsVisible = true;
 
         await Task.WhenAll(
-            element.FadeIn(duration),
+            element.FadeIn(null,duration),
             element.TranslateTo(0, 0, duration, Easing.CubicOut)
         );
     }
@@ -350,7 +360,7 @@ public static class CustomAnimsExtensions
     public static async Task SlideOutToRight(this VisualElement element, uint duration = 250)
     {
         await Task.WhenAll(
-            element.FadeOut(duration),
+            element.FadeOut(null,duration),
             element.TranslateTo(Shell.Current.Width, 0, duration, Easing.CubicIn)
         );
         element.IsVisible = false;
@@ -362,7 +372,7 @@ public static class CustomAnimsExtensions
         element.TranslationX = -Shell.Current.Width;
         element.IsVisible = true;
         await Task.WhenAll(
-            element.FadeIn(duration),
+            element.FadeIn(null, duration),
             element.TranslateTo(0, 0, duration, Easing.CubicOut)
         );
     }
@@ -370,7 +380,7 @@ public static class CustomAnimsExtensions
     public static async Task SlideOutToLeft(this VisualElement element, uint duration = 250)
     {
         await Task.WhenAll(
-            element.FadeOut(duration),
+            element.FadeOut(null,duration),
             element.TranslateTo(-Shell.Current.Width, 0, duration, Easing.CubicIn)
         );
         element.IsVisible = false;
@@ -382,7 +392,7 @@ public static class CustomAnimsExtensions
         element.TranslationY = AppUtils.UserScreenHeight;
         element.IsVisible = true;
         await Task.WhenAll(
-            element.FadeIn(duration),
+            element.FadeIn(null,duration),
             element.TranslateTo(0, 0, duration, Easing.CubicOut)
         );
     }
@@ -446,7 +456,7 @@ public static class CustomAnimsExtensions
         element.IsVisible = true;
         await Task.WhenAll(
             element.ScaleTo(1, duration, Easing.SpringOut),
-            element.FadeIn(duration - 100)
+            element.FadeIn(null,duration - 100)
         );
     }
 
@@ -456,7 +466,7 @@ public static class CustomAnimsExtensions
 
         await element.ScaleTo(1.2, duration / 4, Easing.CubicOut); //quick scale up
         await element.ScaleTo(0, duration * 3 / 4, Easing.SpringOut); //scale down to 0
-        await element.FadeOut(duration * 3 / 4);
+        await element.FadeOut(null,duration * 3 / 4);
         element.IsVisible = false;
     }
 
@@ -562,7 +572,7 @@ public static class CustomAnimsExtensions
         {
             child.Opacity = 0;
             child.IsVisible = true;
-            await child.FadeIn(duration);
+            await child.FadeIn(null,duration);
             await Task.Delay(delay);
         }
     }
@@ -588,7 +598,7 @@ public static class CustomAnimsExtensions
 
             await Task.WhenAll(
                 child.TranslateTo(0, 0, duration, Easing.CubicOut),
-                child.FadeIn(duration - 100)
+                child.FadeIn(null,duration - 100)
             );
 
             await Task.Delay(delay);
@@ -615,7 +625,7 @@ public static class CustomAnimsExtensions
 
 
         content.IsVisible = true; //make visble first
-        await content.FadeIn(200);
+        await content.FadeIn(null, 200);
     }
     //XAML example
 
@@ -633,7 +643,7 @@ public static class CustomAnimsExtensions
     public static async Task ShrinkAndHide(this VisualElement container, VisualElement content, double targetWidth, double targetHeight, uint duration = 300)
     {
 
-        await content.FadeOut(150);
+        await content.FadeOut(null,150);
         content.IsVisible = false;
         double initialWidth = container.Width;
         double initialHeight = container.Height;
@@ -671,7 +681,7 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             notificationLabel.TranslateTo(0, 0, duration, Easing.CubicOut),
-            notificationLabel.FadeIn(duration - 100)
+            notificationLabel.FadeIn(null,duration - 100)
         );
 
 
@@ -680,7 +690,7 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             notificationLabel.TranslateTo(0, -notificationLabel.Height, duration, Easing.CubicIn),
-            notificationLabel.FadeOut(duration - 100)
+            notificationLabel.FadeOut(null,duration - 100)
         );
     }
     //XAML
@@ -719,9 +729,9 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             currentImage.TranslateTo(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
-            currentImage.FadeOut(duration),
+            currentImage.FadeOut(null,duration),
             nextImage.TranslateTo(0, 0, duration, Easing.CubicInOut),
-            nextImage.FadeIn(duration)
+            nextImage.FadeIn(null,duration)
         );
         currentImage.IsVisible = false; //hide the prev image at last.
 
@@ -748,13 +758,13 @@ public static class CustomAnimsExtensions
         {
             errorLabel.Text = errorMessage;
             await Task.WhenAll(
-                errorLabel.FadeIn(),
+                errorLabel.FadeIn(null),
                 entry.Shake()
             );
         }
         else
         {
-            await errorLabel.FadeOut();
+            await errorLabel.FadeOut(null);
         }
     }
     //XAML
@@ -778,9 +788,9 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             currentContent.TranslateTo(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
-            currentContent.FadeOut(duration),
+            currentContent.FadeOut(null,duration),
             nextContent.TranslateTo(0, 0, duration, Easing.CubicInOut),
-            nextContent.FadeIn(duration)
+            nextContent.FadeIn(null,duration)
         );
 
         currentContent.IsVisible = false;
@@ -950,9 +960,9 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             view1.TranslateTo(endX1, 0, duration, Easing.CubicInOut),
-            view1.FadeOut(duration),
+            view1.FadeOut(null,duration),
             view2.TranslateTo(endX2, 0, duration, Easing.CubicInOut),
-            view2.FadeIn(duration)
+            view2.FadeIn(null,duration)
         );
         view1.IsVisible = false;
     }
@@ -989,7 +999,7 @@ public static class CustomAnimsExtensions
         await Task.WhenAll(
             background.ScaleTo(0.8, duration, Easing.CubicInOut),
             foreground.ScaleTo(1, duration, Easing.CubicOut),
-            foreground.FadeIn(duration)
+            foreground.FadeIn(null,duration)
         );
     }
 
@@ -1032,7 +1042,7 @@ public static class CustomAnimsExtensions
 
             await Task.WhenAll(
                 view1.TranslateTo(-Shell.Current.Window.Width / 2, 0, duration, Easing.CubicInOut),
-                view2.FadeIn(duration)
+                view2.FadeIn(null,duration)
             );
         }
         else
@@ -1040,7 +1050,7 @@ public static class CustomAnimsExtensions
 
             await Task.WhenAll(
                 view1.TranslateTo(0, 0, duration, Easing.CubicInOut),
-                view2.FadeOut(duration)
+                view2.FadeOut(null,duration)
             );
         }
     }
@@ -1075,9 +1085,9 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             currentPage.RotateYTo(90, duration, Easing.CubicInOut),
-            currentPage.FadeOut(duration),
+            currentPage.FadeOut(null,duration),
             nextPage.RotateYTo(0, duration, Easing.CubicInOut),
-            nextPage.FadeIn(duration)
+            nextPage.FadeIn(null,duration)
 
         );
 
@@ -1157,7 +1167,7 @@ public static class CustomAnimsExtensions
             await Task.WhenAll(
                child.TranslateTo(translateX, translateY, duration, Easing.CubicOut),
                child.RotateTo(rotation, duration, Easing.CubicOut),
-               child.FadeOut(duration)
+               child.FadeOut(null,duration)
            );
             child.IsVisible = false;
         }
@@ -1388,7 +1398,7 @@ public static class CustomAnimsExtensions
         await Task.WhenAll(
             element.RotateTo(0, duration, Easing.CubicOut),
             element.ScaleTo(1, duration, Easing.CubicOut),
-            element.FadeIn(duration)
+            element.FadeIn(null,duration)
         );
     }
 
@@ -1399,7 +1409,7 @@ public static class CustomAnimsExtensions
         await Task.WhenAll(
           element.RotateTo(360 * rotations, duration, Easing.CubicIn),
           element.ScaleTo(0, duration, Easing.CubicIn),
-          element.FadeOut(duration)
+          element.FadeOut(null,duration)
         );
         element.IsVisible = false;
     }
@@ -1459,7 +1469,7 @@ public static class CustomAnimsExtensions
         element.Opacity = 0;
         element.IsVisible = true;
         await Task.Delay((int)delay);
-        await element.FadeIn(duration);
+        await element.FadeIn(null,duration);
     }
 
 

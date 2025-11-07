@@ -78,7 +78,6 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
 
-
                     var winMgr = IPlatformApplication.Current.Services.GetService<IWinUIWindowMgrService>();
                     winMgr?.CloseAllWindows();
 

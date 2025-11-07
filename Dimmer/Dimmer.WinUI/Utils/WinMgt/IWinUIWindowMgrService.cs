@@ -28,6 +28,7 @@ public interface IWinUIWindowMgrService
 }
 
 public class WindowActivatedWithSourceEventArgs : EventArgs
+
 {
     public Window Window { get; }
     public WindowActivationState ActivationState { get; }

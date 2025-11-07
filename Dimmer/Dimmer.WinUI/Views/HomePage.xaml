@@ -45,7 +45,28 @@
             <Style TargetType="syncf:SfChip">
                 <Setter Property="HeightRequest" Value="60" />
                 <Setter Property="TextColor" Value="{AppThemeBinding Dark=#999999, Light=Black}" />
+                <Style.Triggers>
+                    <DataTrigger
+                        Binding="{Binding IsPlaying}"
+                        TargetType="syncf:SfChip"
+                        Value="True">
+                        <Setter Property="StrokeThickness" Value="1" />
+                        <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
+
+                    </DataTrigger>
+                    <DataTrigger
+                        Binding="{Binding IsPlaying}"
+                        TargetType="syncf:SfChip"
+                        Value="False">
+                        <Setter Property="StrokeThickness" Value="0" />
+                        <Setter Property="Stroke" Value="Transparent" />
+
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
+
+
+
         </ResourceDictionary>
 
 

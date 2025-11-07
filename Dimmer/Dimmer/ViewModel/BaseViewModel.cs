@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -546,7 +547,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             CurrentTqlQuery = processedNewText;
         }
 
-
+        
         _searchQuerySubject.OnNext(searchText);
     }
 
@@ -1261,6 +1262,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     [ObservableProperty]
     public partial bool IsDimmerPlaying { get; set; }
 
+    }
     [ObservableProperty]
     public partial bool IsShuffleActive { get; set; }
 
@@ -2617,7 +2619,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
     [RelayCommand]
-    public async Task RemoveFromQueue(SongModelView song)
+    public void RemoveFromQueue(SongModelView song)
     {
         if (song == null || !_playbackQueueSource.Items.Contains(song))
             return;
@@ -3623,8 +3625,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                         
 
                     }
+                  };
+                  CurrentPlayingSongView.HasSyncedLyrics = false;
+                  return;
+              }
 
                 });
+
 
         _subsMgr.Add(
             LyricsMgtFlow.PreviousLyric
@@ -4422,6 +4429,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 realm.Add(appModel, true);
             });
     }
+
 
 
     public void RateSong(int newRating)
@@ -5903,7 +5911,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
 
-    private enum FileOperation
+    public enum FileOperation
     {
         Copy,
         Move,
@@ -5913,7 +5921,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// <summary>
     /// Private helper to handle the logic for copying, moving, or deleting song files and updating the database.
     /// </summary>
-    private async Task PerformFileOperationAsync(
+    public async Task PerformFileOperationAsync(
         IEnumerable<SongModelView> songs,
         string destinationPath,
         FileOperation operation)
@@ -7257,16 +7265,29 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         //    Title = $"Share {song.Title} by {song.ArtistName}",
         //    Text = WelDoneMessage,
 
-        //});
+            string? WelDoneMessage = AppUtils.GetWellFormattedSharingTextHavingSongStats(song);
+            await  Clipboard.Default.SetTextAsync(WelDoneMessage);
+            
+            //await Share.Default.RequestAsync(new ShareTextRequest
+            //{
+            //    Title = $"Share {song.Title} by {song.ArtistName}",
+            //    Text = WelDoneMessage,
 
-        await Share.Default
-            .RequestAsync(
-                new ShareFileRequest
-                {
-                    Title = $"Share {song.Title} by {song.ArtistName}",
-                    File = new ShareFile(song.CoverImagePath),
-                });
+            //});
 
+            await Share.Default
+                .RequestAsync(
+                    new ShareFileRequest
+                    {
+                        Title = WelDoneMessage,
+                        File = new ShareFile(song.CoverImagePath),
+                    });
+            
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
         // if multiple
         // Files = new List<ShareFile> { new ShareFile(file1), new ShareFile(file2) }
     }

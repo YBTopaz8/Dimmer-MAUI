@@ -642,3 +642,7 @@ public static class TimeUtils
 
 }
 
+public static class BgQueue
+{
+    public static readonly BackgroundTaskQueue Instance = new();
+}

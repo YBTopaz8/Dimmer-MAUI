@@ -432,7 +432,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnUserLeaveHint();
     
-        TryEnterPipMode();
+        //TryEnterPipMode();
     }
 
     private void TryEnterPipMode()

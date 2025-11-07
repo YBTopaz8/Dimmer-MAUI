@@ -20,6 +20,7 @@ public class AppUtil : IAppUtil
     {
         this.dimmerWin ??=BaseViewModelWin.MainMAUIWindow;
         dimmerWin ??= new DimmerWin(BaseViewModelWin, this);
+        
 
         if (dimmerWin == null)
         {
@@ -28,6 +29,7 @@ public class AppUtil : IAppUtil
         dimmerWin.MinimumWidth = 450;
         dimmerWin.MaximumWidth = 450;
         dimmerWin.Width = 450;
+
 
 
 

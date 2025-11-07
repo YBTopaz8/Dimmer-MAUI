@@ -156,8 +156,6 @@ public partial class DimmerWin : Window
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
 
-        this.Height=1024;
-        this.Width=1600;
     }
     protected override void OnStopped()
     {

@@ -5,6 +5,7 @@ using ReactiveUI;
 
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 
 namespace Dimmer.ViewModel.DimmerLiveVM;
 public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposable
