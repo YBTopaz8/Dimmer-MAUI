@@ -6,6 +6,9 @@ using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
 
 using Dimmer.Data;
+using Dimmer.Data.Models;
+using Dimmer.DimmerSearch;
+using Dimmer.Utils;
 
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
@@ -25,7 +28,10 @@ using WinUI.TableView;
 
 using static Dimmer.WinUI.Utils.AppUtil;
 
+using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
+using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using Page = Microsoft.UI.Xaml.Controls.Page;
+using Thickness = Microsoft.UI.Xaml.Thickness;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -79,7 +85,7 @@ public sealed partial class ArtistPage : Page
     private TableViewCellSlot _lastActiveCellSlot;
 
     public SongModelView? DetailedSong { get; set; }
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
@@ -93,7 +99,7 @@ public sealed partial class ArtistPage : Page
         Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
         Visual? visual2 = ElementCompositionPreview.GetElementVisual(DestinationElement);
         ApplyEntranceEffect(visual);
-        ApplyEntranceEffect(visual2, SongTransitionAnimation.Fade);
+        ApplyEntranceEffect(visual2);
 
 
         var animation = ConnectedAnimationService.GetForCurrentView()
@@ -109,6 +115,16 @@ public sealed partial class ArtistPage : Page
             animation?.TryStart(DestinationElement, new List<UIElement>() { CoordinatedPanel});
         };
 
+        try
+        {
+
+            await MyViewModel.LoadFullArtistDetails(MyViewModel.SelectedArtist);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+            
     }
 
     private void ApplyEntranceEffect(Visual visual, SongTransitionAnimation defAnim= SongTransitionAnimation.Spring)
@@ -202,6 +218,51 @@ public sealed partial class ArtistPage : Page
 
     private void IsArtFavorite_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
+
+    }
+
+    private void CheckBox_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void AllAlbumsBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        DropDownButton send = (DropDownButton)sender;
+
+        var realm = MyViewModel.RealmFactory.GetRealmInstance();
+
+        var AlbumsByArtist = realm.Find<ArtistModel>(MyViewModel.SelectedArtist.Id).Albums;
+
+        
+        var dropDownFlyout = new MenuFlyout();
+        foreach (var singleAlbum in AlbumsByArtist)
+        {
+            if (singleAlbum is null) return;
+            var isArtistAlbum = singleAlbum.Artists[0].Id == MyViewModel.SelectedArtist.Id;
+
+
+            MenuFlyoutItem albumMenFlyout = new MenuFlyoutItem()
+            {
+
+
+                BorderThickness = isArtistAlbum ? new Thickness(1) : new Thickness(0)
+            };
+
+            albumMenFlyout.Text = singleAlbum.Name;
+
+            albumMenFlyout.Click += (s, ev) =>
+            {
+                MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(singleAlbum.Name));
+            };
+            dropDownFlyout.Items.Add(albumMenFlyout);
+        }
+        send.Flyout = dropDownFlyout;
+    }
+
+    private void DestinationElement_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
 
     }
 }

@@ -9,6 +9,7 @@ using CommunityToolkit.WinUI;
 
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView.DimmerSearch;
+using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces;
@@ -774,5 +775,31 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         DimmerMultiWindowCoordinator.SnapAllToHome();
 
+    }
+
+    public async Task LoadFullArtistDetails(ArtistModelView artist)
+    {
+
+        var tempVar = await lastfmService.GetArtistInfoAsync(artist.Name);
+
+        if (tempVar is not null)
+        {
+            artist.Bio = tempVar.Biography.Content;
+
+            var similar = tempVar.Similar.Select(x => x.Name);
+            //tempVar.Url;
+            // find matches for any time in search results
+
+            artist.ListOfSimilarArtists = similar.ToObservableCollection();
+        }
+        artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
+        artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));
+
+        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artist.Name));
+        
+        MainThread.BeginInvokeOnMainThread(()=>
+        {
+            SelectedArtist = artist;
+        });
     }
 }

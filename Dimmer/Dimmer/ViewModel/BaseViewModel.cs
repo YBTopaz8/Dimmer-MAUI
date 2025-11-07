@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -491,8 +492,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             //}
 
             var backgroundRealm = RealmFactory.GetRealmInstance();
-            var tempListOfSongs = _mapper.Map<IEnumerable<SongModelView>>(backgroundRealm.All<SongModel>());
-            await EnsureCoverArtCachedForSongsAsync(tempListOfSongs);
+            await EnsureAllCoverArtCachedForSongsAsync();
+            //var tempListOfSongs = _mapper.Map<IEnumerable<SongModelView>>(backgroundRealm.All<SongModel>());
+            //await EnsureCoverArtCachedForSongsAsync(tempListOfSongs);
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
             redoStats.RecalculateAllStatistics();
             
@@ -524,39 +526,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (string.IsNullOrEmpty(searchText))
         {
-            if (_playbackQueue.Count != 0)
-            {
-                searchResultsHolder.Edit(
-                    updater =>
-                    {
-                        updater.Clear();
-                        updater.AddRange(_playbackQueue);
-                    });
-                return;
-            }
-            
-
-
-            // load the album songs of currentplaying songs
-            var albumName = CurrentPlayingSongView.AlbumName;
-            if (string.IsNullOrEmpty(CurrentPlayingSongView.TitleDurationKey)) return;
-            if (!string.IsNullOrEmpty(albumName))
-            {
-                searchText = $"album:\"{albumName}\"";
-            }
+            CurrentTqlQuery = string.Empty;
+            searchText = TQlStaticMethods.PresetQueries.DescAdded();
         }
         if (string.IsNullOrEmpty(searchText))
             return;
-        string currentText = CurrentTqlQuery;
 
         string processedNewText = NaturalLanguageProcessor.Process(searchText);
 
 
         if ((searchText.StartsWith("and ", StringComparison.OrdinalIgnoreCase) ||
                 searchText.StartsWith("with ", StringComparison.OrdinalIgnoreCase)) &&
-            !string.IsNullOrWhiteSpace(currentText))
+            !string.IsNullOrWhiteSpace(searchText))
         {
-            CurrentTqlQuery = $"{currentText} {processedNewText}";
+            CurrentTqlQuery = $"{searchText} {processedNewText}";
         }
         else
         {
@@ -1777,6 +1760,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             _logger.LogError(ex, ex.Message);
         }
     }
+
+    private static readonly HttpClient httpClient = new();
+
     /// <summary>
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
@@ -1804,29 +1790,17 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         PictureInfo? embeddedPicture = null;
         try
         {
-            if (!File.Exists(song.FilePath))
-            {
-                return;
-            }
-            var track = new ATL.Track(song.FilePath);
+            if (!File.Exists(song.FilePath)) return;
+
             embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
-            if (embeddedPicture is null)
+            if (embeddedPicture != null)
             {
-                // treat as "no art"
+                finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.Id, song.FilePath, embeddedPicture);
             }
-            else
-            {
-
-                finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.Id,
-                    song.FilePath, embeddedPicture);
-                // good art; use embeddedPicture.PictureData
-            }
-
-
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to read audio file with ATL: {FilePath}", song.FilePath);
+            _logger.LogError(ex, "Failed reading embedded art: {FilePath}", song.FilePath);
             return;
         }
 
@@ -1849,9 +1823,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                     try
                     {
-                        var tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"{Guid.NewGuid()}.png");
-
-                        using var httpClient = new HttpClient();
+                        
                         var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
                         embeddedPicture = PictureInfo.fromBinaryData(imageBytes);
                         _logger.LogTrace(
@@ -1888,9 +1860,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
             if (song.CoverImagePath != finalImagePath)
-            {
-                song.CoverImagePath = finalImagePath;
-                
+            {                
+                song.CoverImagePath = finalImagePath;                
             }
         }
         catch (Exception ex)
@@ -1998,30 +1969,67 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
+        ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
+        {
+            var (current, total, song) = p;
+
+            _stateService.SetCurrentLogMsg(new AppLogModel()
+            {
+                ViewSongModel = song,
+                Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+            });
+        });
         _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count());
 
-
-        await Parallel.ForEachAsync(
-            songsToProcess,
-            async (song, cancellationToken) =>
+        using var semaphore = new SemaphoreSlim(8);
+        int processed = 0;
+        int total = songsToProcess.Count();
+        var tasks = songsToProcess.Select(async song =>
+        {
+            await semaphore.WaitAsync();
+            try
             {
                 if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
                 {
                     await LoadAndCacheCoverArtAsync(song);
+                    int current = Interlocked.Increment(ref processed);
+                    ((IProgress<(int, int, SongModelView)>)ProgressCoverArtLoad)
+                        .Report((current, total, song));
                 }
-            });
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
 
         _logger.LogInformation("Finished pre-caching cover art process.");
     }
 
+    [ObservableProperty]
+    public partial Progress<(int current, int total, SongModelView song)>? ProgressCoverArtLoad { get; set; }
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
+        ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
+        {
+            var (current, total, song) = p;
+
+            _stateService.SetCurrentLogMsg(new AppLogModel()
+            {
+                ViewSongModel = song,
+                Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+            });
+        });
         realm = RealmFactory.GetRealmInstance();
         var allSongsFromDb = realm.All<SongModel>();
         var songsToProcess = _mapper.Map<List<SongModelView>>(allSongsFromDb);
 
         using var semaphore = new SemaphoreSlim(8); // Limit to 8 concurrent operations
+        int processed = 0;
+        int total = songsToProcess.Count();
 
         var tasks = songsToProcess.Select(
             async song =>
@@ -2037,7 +2045,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                             Log = $"Now on song {song.Title} by {song.ArtistName}"
                         });
                         await LoadAndCacheCoverArtAsync(song);
-
+                        int current = Interlocked.Increment(ref processed);
+                        ((IProgress<(int, int, SongModelView)>)ProgressCoverArtLoad)
+                            .Report((current, total, song));
                     }
                 }
                 finally
@@ -3738,9 +3748,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private void LatestDeviceLog(AppLogModel model)
     {
-        LatestAppLog = model;
-        LatestScanningLog = model.Log;
-        _logger.LogInformation("Device Log: {Log}", model.Log);
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            LatestAppLog = model;
+            LatestScanningLog = model.Log;
+            _logger.LogInformation("Device Log: {Log}", model.Log);
+
+        });
     }
 
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
@@ -3790,20 +3805,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        artist.ImagePath = await lastfmService.GetMaxResArtistImageLink(artist.Name);
-        artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
-        artist.TotalAlbumsByArtist = SearchResults.Count(x=>x.Album.Artists.Any(a=>a.Name == artist.Name));
-        var tempVar= await lastfmService.GetArtistInfoAsync(artist.Name);
-        if (tempVar is not null)
-        {
-            artist.Bio = tempVar.Biography.Content;
-
-            var similar = tempVar.Similar.Select(x => x.Name);
-            //tempVar.Url;
-            // find matches for any time in search results
-
-            artist.ListOfSimilarArtists = similar.ToObservableCollection();
-        }
         SelectedArtist = artist;
         //artist.ListOfSimilarArtists = SearchResults
         //    .SelectMany(s => s.ArtistToSong)

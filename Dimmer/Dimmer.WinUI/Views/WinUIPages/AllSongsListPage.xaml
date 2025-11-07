@@ -213,58 +213,6 @@
             Style="{StaticResource AcrylicDataGridStyle}"
             Tapped="MySongsTableView_Tapped">
 
-            <dgView:TableView.ContextFlyout>
-                <MenuFlyout>
-
-
-                    <MenuFlyoutItem
-                        x:Name="OpenFileExplorer"
-                        Click="OpenFileExplorer_Click"
-                        CommandParameter="{x:Bind}"
-                        Text="View in Explorer">
-                        <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xE7B3;" />
-                        </MenuFlyoutItem.Icon>
-                    </MenuFlyoutItem>
-                    <MenuFlyoutSeparator />
-
-                    <MenuFlyoutItem
-                        x:Name="AddToNext"
-                        Click="AddToNext_Click"
-                        Text="Add to Next of Queue">
-                        <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xe893;" />
-
-                        </MenuFlyoutItem.Icon>
-                    </MenuFlyoutItem>
-                    <MenuFlyoutSeparator />
-
-                    <MenuFlyoutItem
-                        x:Name="AddToEnd"
-                        Click="AddToEnd_Click"
-                        Text="Add to End of Queue">
-
-                        <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xe81b;" />
-
-                        </MenuFlyoutItem.Icon>
-                    </MenuFlyoutItem>
-                    <MenuFlyoutSeparator />
-
-
-
-
-
-                    <MenuFlyoutItem Text="Option with an Icon">
-                        <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xE71E;" />
-
-                        </MenuFlyoutItem.Icon>
-
-                    </MenuFlyoutItem>
-                </MenuFlyout>
-
-            </dgView:TableView.ContextFlyout>
             <dgView:TableView.Columns>
 
                 <!--  Column for the Cover Art  -->

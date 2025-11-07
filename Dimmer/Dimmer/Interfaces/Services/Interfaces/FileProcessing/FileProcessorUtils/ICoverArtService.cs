@@ -23,14 +23,21 @@ public class CoverArtService : ICoverArtService
     private readonly IRealmFactory _realmFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<CoverArtService> _logger;
-    public CoverArtService(IHttpClientFactory httpClientFactory, IRealmFactory realmFactory, ILogger<CoverArtService> logger)
+    private readonly SubscriptionManager _subsManager;
+    IDimmerAudioService audioService;
+    private List<ObjectId> cachedSongsToUpdate;
+    public CoverArtService(IHttpClientFactory httpClientFactory,
+        SubscriptionManager subsManager, IRealmFactory realmFactory, ILogger<CoverArtService> logger, IDimmerAudioService audService)
     {
         _httpClientFactory = httpClientFactory;
         _realmFactory = realmFactory;
         _logger = logger;
+        audioService = audService;
 
+        _subsManager = subsManager;
 
         _config = new ProcessingConfig();
+
     }
     public CoverArtService(ProcessingConfig config)
     {
@@ -113,11 +120,11 @@ public class CoverArtService : ICoverArtService
             return null;
 
         // 1. Check if an image already exists for this file name
-        string? existingPath = GetExistingCoverImageAsync(audioFilePath);
-        if (existingPath != null)
-        {
-            return existingPath;
-        }
+        //string? existingPath = GetExistingCoverImageAsync(audioFilePath);
+        //if (existingPath != null)
+        //{
+        //    return existingPath;
+        //}
 
         // 2. If no existing image and no embedded data, nothing to save
         if (embeddedPictureInfo?.PictureData == null || embeddedPictureInfo.PictureData.Length == 0)
@@ -206,6 +213,7 @@ public class CoverArtService : ICoverArtService
                     if (songInDb != null)
                     {
                         // IMPORTANT: Add a CoverArtHash property to your SongModel
+                        songInDb.CoverImagePath = coverArtSource;
                         songInDb.CoverArtHash = coverArtHash;
                         songInDb.LastDateUpdated = DateTimeOffset.UtcNow;
                     }

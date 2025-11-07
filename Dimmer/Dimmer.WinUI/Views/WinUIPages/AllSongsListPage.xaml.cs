@@ -1198,6 +1198,7 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
     private SongModelView? _storedSong;
 
 
+    string CurrentPageTQL = string.Empty;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -1221,9 +1222,20 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
-       
+
+        if(CurrentPageTQL != MyViewModel.CurrentTqlQuery)
+        {
+            MyViewModel.SearchSongForSearchResultHolder(CurrentPageTQL);
+        }
     }
 
+    protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+
+
+        CurrentPageTQL = MyViewModel.CurrentTqlQuery;
+    }
 
 
 
@@ -1421,14 +1433,16 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
         var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
         var properties = e.GetCurrentPoint(nativeElement).Properties;
 
+            
 
         var point = e.GetCurrentPoint(nativeElement);
         MyViewModel.SelectedSong = ((Grid)sender).DataContext as SongModelView;
         _storedSong = ((Grid)sender).DataContext as SongModelView;
+            
 
-        // Navigate to the detail page, passing the selected song object.
-        // Suppress the default page transition to let ours take over.
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+            // Navigate to the detail page, passing the selected song object.
+            // Suppress the default page transition to let ours take over.
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
         Type pageType = typeof(ArtistPage);
         var navParams = new SongDetailNavArgs
         {
@@ -1461,6 +1475,7 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
         foreach (var artistName in namesOfartists)
         {
             var root = new MenuFlyoutItem { Text = artistName };
+
             root.Click += async (obj, routedEv) =>
             {
 
@@ -1468,6 +1483,14 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
 
                 ArtistModelView selectedArtist = _storedSong.ArtistToSong.First(x => x.Name == songContext);
 
+
+                var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
+                var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
+                if (propertiesMenuFlyout.IsRightButtonPressed)
+                {
+                    MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist.Name))
+                    ;
+                }
                 await MyViewModel.SetSelectedArtist(selectedArtist);
                 
 
@@ -1503,7 +1526,13 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
                 await MyViewModel.SetSelectedArtist(_storedSong.ArtistToSong.FirstOrDefault());
 
 
-                FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+                    if (properties.IsRightButtonPressed)
+                    {
+                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(_storedSong.ArtistToSong.First()!.Name!));
+                        
+                    }
+
+                    FrameNavigationOptions navigationOptions = new FrameNavigationOptions
                 {
                     TransitionInfoOverride = supNavTransInfo,
                     IsNavigationStackEnabled = true
