@@ -17,20 +17,31 @@ public static class RealmQueryHelper
     public static IQueryable<SongModel> SongsPlayedBefore(Realm realm, DateTimeOffset date) =>
         realm.All<SongModel>().Where(s => s.LastPlayed < date);
     // All songs by an artist (RQL-safe)
-    public static IQueryable<SongModel> SongsByArtist(Realm realm, ObjectId artistId) =>
-        realm.All<SongModel>().Where(s => s.Artist.Id == artistId);
+    public static IQueryable<SongModel> SongsByArtist(Realm realm, ObjectId artistId)
+    {
+        var artist = realm.Find<ArtistModel>(artistId);
+        return artist?.Songs ?? Enumerable.Empty<SongModel>().AsQueryable();
+    }
+
 
     // Songs in a specific album
-    public static IQueryable<SongModel> SongsInAlbum(Realm realm, ObjectId albumId) =>
-        realm.All<SongModel>().Where(s => s.Album.Id == albumId);
-    public static IQueryable<SongModel> SongsInPlaylist(Realm realm, ObjectId playlistId) =>
-        realm.All<SongModel>().Filter("ANY PlaylistsHavingSong.Id == $0", playlistId);
+    public static IQueryable<SongModel> SongsInAlbum(Realm realm, ObjectId albumId)
+    {
+        var album = realm.Find<AlbumModel>(albumId);
+        return album?.SongsInAlbum ?? Enumerable.Empty<SongModel>().AsQueryable();
+    }
+    public static IQueryable<SongModel> SongsInPlaylist(Realm realm, ObjectId playlistId)
+    {
+        return realm.All<SongModel>().Filter("ANY PlaylistsHavingSong.Id == $0", playlistId);
+    }
 
 
     // Songs of a given genre
-    public static IQueryable<SongModel> SongsByGenre(Realm realm, ObjectId genreId) =>
-        realm.All<SongModel>().Where(s => s.Genre.Id == genreId);
-
+    public static IQueryable<SongModel> SongsByGenre(Realm realm, ObjectId genreId)
+    {
+        var genre = realm.Find<GenreModel>(genreId);
+        return genre?.Songs ?? Enumerable.Empty<SongModel>().AsQueryable();
+    }
     // Songs rated higher than a value
     public static IQueryable<SongModel> SongsWithRatingAbove(Realm realm, int rating) =>
         realm.All<SongModel>().Where(s => s.Rating > rating);
@@ -84,13 +95,14 @@ public static class RealmQueryHelper
     public static IQueryable<ArtistModel> ArtistsWithEddingtonAbove(Realm realm, double value) =>
         realm.All<ArtistModel>().Where(a => a.EddingtonNumber > value);
 
-    // Artists linked to a specific song (works via Filter + backlink)
-    public static IQueryable<ArtistModel> ArtistsLinkedToSong(Realm realm, ObjectId songId) =>
-        realm.All<ArtistModel>().Filter("ANY Songs.Id == $0", songId);
-
+    
     // Artists linked to a specific album (via each song’s artist link)
-    public static IQueryable<ArtistModel> ArtistsLinkedToAlbum(Realm realm, ObjectId albumId) =>
-        realm.All<ArtistModel>().Filter("ANY Songs.Album.Id == $0", albumId);
+    public static IQueryable<ArtistModel> ArtistsLinkedToAlbum(Realm realm, ObjectId albumId)
+    {
+        var album = realm.Find<AlbumModel>(albumId);
+        return album?.Artists.AsQueryable();
+    }
+
 
     // Artists with no songs
     public static IQueryable<ArtistModel> ArtistsWithoutSongs(Realm realm) =>
@@ -107,8 +119,12 @@ public static class RealmQueryHelper
     // --- ALBUMS -----------------------------------------------------------
 
     // Albums by a given artist
-    public static IQueryable<AlbumModel> AlbumsByArtist(Realm realm, ObjectId artistId) =>
-        realm.All<AlbumModel>().Filter("ANY ArtistIds.Id == $0", artistId);
+    public static IQueryable<AlbumModel> AlbumsByArtist(Realm realm, ObjectId artistId)
+    {
+        var artist = realm.Find<ArtistModel>(artistId);
+        return artist?.Albums ?? Enumerable.Empty<AlbumModel>().AsQueryable();
+    }
+
 
     // Albums missing artwork
     public static IQueryable<AlbumModel> AlbumsWithoutCover(Realm realm) =>
@@ -118,12 +134,18 @@ public static class RealmQueryHelper
     public static IQueryable<AlbumModel> AlbumsByYear(Realm realm, int year) =>
         realm.All<AlbumModel>().Where(a => a.ReleaseYear == year);
 
-    public static IQueryable<AlbumModel> AlbumsOfGenre(Realm realm, ObjectId genreId) =>
-    realm.All<AlbumModel>().Filter("ANY SongsInAlbum.Genre.Id == $0", genreId);
-
-    public static IQueryable<ArtistModel> ArtistsOfGenre(Realm realm, ObjectId genreId) =>
-        realm.All<ArtistModel>().Filter("ANY Songs.Genre.Id == $0", genreId);
-
+    public static IQueryable<AlbumModel> AlbumsOfGenre(Realm realm, ObjectId genreId)
+    {
+        var genre = realm.Find<GenreModel>(genreId);
+        return genre?.Songs.Select(s => s.Album).Where(a => a != null).Distinct().AsQueryable()
+               ?? Enumerable.Empty<AlbumModel>().AsQueryable();
+    }
+    public static IQueryable<ArtistModel> ArtistsOfGenre(Realm realm, ObjectId genreId)
+    {
+        var genre = realm.Find<GenreModel>(genreId);
+        return genre?.Songs.SelectMany(s => s.ArtistToSong).Distinct().AsQueryable()
+               ?? Enumerable.Empty<ArtistModel>().AsQueryable();
+    }
 
     // --- GENRES -----------------------------------------------------------
 
@@ -154,13 +176,11 @@ public static class RealmQueryHelper
     // Songs that share the same artist as a given song
     public static IQueryable<SongModel> SongsBySameArtist(Realm realm, ObjectId songId)
     {
+        var song = realm.Find<SongModel>(songId);
+        if (song == null) return Enumerable.Empty<SongModel>().AsQueryable();
 
-        
-        var artistIds = realm.All<SongModel>()
-                             .Filter("Id == $0", songId)
-                             .Select(s => (QueryArgument)s.Artist.Id)
-                             .ToArray();
-        return realm.All<SongModel>().Filter("Artist.Id IN $0)", artistIds);
+        var artistSongs = song.ArtistToSong.SelectMany(a => a.Songs);
+        return artistSongs.Where(s => s.Id != songId).Distinct().AsQueryable();
     }
 
     // Songs by artists in a specific album (Album → Songs → Artists → Songs)
@@ -168,6 +188,7 @@ public static class RealmQueryHelper
     {
         var artistIds = realm.All<ArtistModel>()
                              .Filter("ANY Songs.Album.Id == $0", albumId)
+                             .ToList()
                              .Select(a => (QueryArgument)a.Id)
                              .ToArray();
 

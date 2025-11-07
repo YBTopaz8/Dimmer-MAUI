@@ -16,6 +16,7 @@ using Dimmer.Utils;
 using DynamicData;
 using DynamicData.Binding;
 
+using Hqub.Lastfm.Entities;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Maui.Controls.PlatformConfiguration;
@@ -710,22 +711,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
     }
 
-
     private async Task<List<SongModelView>> GetOrderedSongsFromIdsAsync(IEnumerable<ObjectId> songIdsToFetch)
     {
-        var ids = songIdsToFetch.ToList();
+        var ids = songIdsToFetch?.ToList() ?? new List<ObjectId>();
         if (ids.Count == 0)
             return new List<SongModelView>();
 
-        // Build RQL query manually: "Id == $0 OR Id == $1 OR ..."
-        string rql = string.Join(" OR ", ids.Select((_, i) => $"Id == ${i}"));
+        
+        string rql = "Id IN {" + string.Join(", ", ids.Select((_, i) => $"${i}")) + "}";
 
-        // Convert ObjectIds to QueryArguments
-        QueryArgument[] args = ids.Cast<QueryArgument>().ToArray();
-        // Perform RQL query
+        
+        QueryArgument[] args = ids.Select(id => (QueryArgument)id).ToArray();
+
+        
         var songsFromDb = await songRepo.QueryWithRQLAsync(rql, args);
 
-        // Maintain order according to ids
+        
         var songMap = songsFromDb.ToDictionary(s => s.Id);
         var orderedSongs = ids
             .Select(id => songMap.TryGetValue(id, out var song) ? song : null)
@@ -734,6 +735,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         return _mapper.Map<List<SongModelView>>(orderedSongs);
     }
+
+
+
+
 
 
     #region appc cylce  
@@ -797,7 +802,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
             // get last dimmerevent
 
-            await LoadLastPlaybackSession();
+            //await LoadLastPlaybackSession();
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefault();
             if (appModel != null && appModel.Id != ObjectId.Empty)
             {
@@ -953,6 +958,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private async Task ShowNotification(string v) { await Shell.Current.DisplayAlert("Notification", v, "OK"); }
     #endregion
+
+
 
     [RelayCommand]
     private async Task LoadLastPlaybackSession()
@@ -1324,7 +1331,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         if (newValue is not null)
         {
-            Track track = new(newValue.FilePath);
+            ATL.Track track = new(newValue.FilePath);
 
             var imgg = track.EmbeddedPictures?.FirstOrDefault()?.PictureData;
             if (imgg is null)
@@ -1504,6 +1511,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
+
 
     async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
@@ -1758,11 +1766,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 return;
             }
 
-            AppTitle = $"{song.Title} - {song.OtherArtistsName} | {song.AlbumName} ({song.ReleaseYear}) | {CurrentAppVersion}";
+            AppTitle = $"{CurrentAppVersion} - {CurrentAppStage}";
             CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
 
-
             await LoadAndCacheCoverArtAsync(song);
+
         }
         catch (Exception ex)
         {
@@ -1775,7 +1783,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     /// </summary>
     public async Task LoadAndCacheCoverArtAsync(SongModelView song)
     {
-        if (song.CoverImagePath == "musicnote.png")
+        
+        if (song.CoverImagePath == "musicnotess.png")
         {
             song.CoverImagePath = string.Empty;
         }
@@ -1791,6 +1800,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         }
 
 
+        string? finalImagePath = null;
         PictureInfo? embeddedPicture = null;
         try
         {
@@ -1798,7 +1808,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             {
                 return;
             }
-            var track = new Track(song.FilePath);
+            var track = new ATL.Track(song.FilePath);
             embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
             if (embeddedPicture is null)
             {
@@ -1806,6 +1816,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             }
             else
             {
+
+                finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.Id,
+                    song.FilePath, embeddedPicture);
                 // good art; use embeddedPicture.PictureData
             }
 
@@ -1817,7 +1830,6 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             return;
         }
 
-        string? finalImagePath=null;
         if (embeddedPicture is null && Connectivity.NetworkAccess == NetworkAccess.Internet)
         {
 
@@ -1864,13 +1876,13 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         if (finalImagePath == null)
         {
             _logger.LogTrace("No cover art found or could be saved for {FilePath}", song.FilePath);
-            return;
+            finalImagePath = "musicnotess.png";
         }
 
 
         try
         {
-            CurrentCoverImagePath = finalImagePath;
+            
 
             _logger.LogTrace("Loaded cover art from new/cached path: {ImagePath}", finalImagePath);
 
@@ -3556,20 +3568,35 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             LyricsMgtFlow.CurrentLyric.ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(line =>
             {
+                CurrentPlayingSongView.HasSyncedLyrics = line is not null;
                 CurrentLine = line;
             }));
         _subsMgr.Add(
-            LyricsMgtFlow.AllSyncLyrics
+
+            LyricsMgtFlow.IsLoadingLyrics
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(isLoading =>
+                {
+                    IsLoadingLyrics = isLoading;
+                }));
+        _subsMgr.Add(
+            LyricsMgtFlow.IsSearchingLyrics
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(isSearching =>
+            {
+                IsSearchingLyrics = isSearching;
+            }));
+        LyricsMgtFlow.AllSyncLyrics
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(lines =>
                 {
                     AllLines?.Clear();
 
-                    if (lines.Count > 0 || !string.IsNullOrEmpty(CurrentPlayingSongView.SyncLyrics))
+                    if (lines.Count >= 1)
                     {
-                        CurrentPlayingSongView.HasSyncedLyrics = true;
+                        
                         AllLines = lines.ToObservableCollection();
-
+                        return;
                     }
                     else
                     {
@@ -3582,10 +3609,11 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                             IsLyricSynced = false
                         };
                         AllLines.Add(defaultLyricForNoneInSong);
+                        
 
                     }
 
-                }));
+                });
 
         _subsMgr.Add(
             LyricsMgtFlow.PreviousLyric
@@ -3755,6 +3783,35 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public void DecreaseVolumeLevel() { SetVolumeLevel(DeviceVolumeLevel - 0.05); }
 
 
+    public async Task SetSelectedArtist(ArtistModelView? artist)
+    {
+        if(artist is null)
+        {
+            return;
+        }
+
+        artist.ImagePath = await lastfmService.GetMaxResArtistImageLink(artist.Name);
+        artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
+        artist.TotalAlbumsByArtist = SearchResults.Count(x=>x.Album.Artists.Any(a=>a.Name == artist.Name));
+        var tempVar= await lastfmService.GetArtistInfoAsync(artist.Name);
+        if (tempVar is not null)
+        {
+            artist.Bio = tempVar.Biography.Content;
+
+            var similar = tempVar.Similar.Select(x => x.Name);
+            //tempVar.Url;
+            // find matches for any time in search results
+
+            artist.ListOfSimilarArtists = similar.ToObservableCollection();
+        }
+        SelectedArtist = artist;
+        //artist.ListOfSimilarArtists = SearchResults
+        //    .SelectMany(s => s.ArtistToSong)
+        //    .Where(a => similar.Contains(a.Name) && a.Name != artist.Name)
+        //    .DistinctBy(a => a.Name)
+        //    .Take(10)
+        //    .ToList();
+    }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
         song ??= CurrentPlayingSongView;
@@ -4388,6 +4445,22 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _stateService.SetCurrentSong(song.ToModelView());
     }
+
+    [RelayCommand]
+    public void ToggleArtistAsFavorite(ArtistModelView artist)
+    {
+        artist.IsFavorite = !artist.IsFavorite;
+        _baseAppFlow.UpsertArtist(artist.ToModel());
+    }
+    
+
+    [RelayCommand]
+    public void ToggleAlbumAsFavorite(AlbumModelView album)
+    {
+        album.IsFavorite = !album.IsFavorite;
+        _baseAppFlow.UpsertAlbum(album.ToModel());
+    }
+
 
     [RelayCommand]
     public async Task AddFavoriteRatingToSong(SongModelView songModel)
@@ -7245,7 +7318,10 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     public partial string NextBtnText { get; set; } = DimmerLanguage.next_btn;
 
     [ObservableProperty]
-    public partial string PreviousBtnText { get; set; }
+    public partial bool IsLoadingLyrics { get; set; }
+    [ObservableProperty]
+    public partial bool IsSearchingLyrics { get; set; }
+
 
     [RelayCommand]
     public void AppSetupPagePreviousBtnClick()

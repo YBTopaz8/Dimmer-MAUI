@@ -56,7 +56,8 @@
         <VerticalStackLayout
             Grid.Row="0"
             Margin="10,5"
-            BackgroundColor="Transparent">
+            BackgroundColor="Transparent"
+            Spacing="10">
             <HorizontalStackLayout HorizontalOptions="End" IsVisible="True">
                 <ImageButton
                     x:Name="MoreIcon"
@@ -66,12 +67,18 @@
                     Source="more1.png"
                     WidthRequest="65" />
 
-                <syncf:SfChip
+                <Button
                     x:Name="ShowPlaylistHistory"
-                    Clicked="ShowPlaylistHistory_Clicked"
-                    ImageSize="50"
-                    ImageSource="playlista.png"
-                    WidthRequest="60" />
+                    BackgroundColor="Transparent"
+                    BorderWidth="1"
+                    Clicked="SettingsNavChips_ChipClicked"
+                    ImageSource="settings.png"
+                    WidthRequest="60">
+
+                    <Button.Behaviors>
+                        <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                    </Button.Behaviors>
+                </Button>
 
             </HorizontalStackLayout>
             <Label
@@ -179,11 +186,10 @@
                                             FontAttributes="Bold"
                                             FontSize="36"
                                             HorizontalTextAlignment="Center"
+                                            IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                             Opacity="1"
                                             Text="{Binding CurrentLine.Text}"
-                                            TextColor="DarkSlateBlue">
-                                            <Label.Triggers />
-                                        </Label>
+                                            TextColor="DarkSlateBlue" />
                                     </Grid>
                                     <Label
                                         FontSize="17"

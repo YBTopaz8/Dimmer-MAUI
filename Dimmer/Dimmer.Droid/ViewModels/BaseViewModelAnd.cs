@@ -12,10 +12,12 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.StatsUtils;
+using RegexOption = System.Text.RegularExpressions.RegexOptions;
 
 using Microsoft.Extensions.Logging;
 
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -766,6 +768,61 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public partial ObservableCollection<SongModelView> MultiSelectSongs { get; set; } = new();
     [ObservableProperty]
     public partial HomePage? MyHomePage { get; internal set; }
+    [ObservableProperty]
+    public partial DXPopup? ArtistContextMenu { get;  set; }
+    [ObservableProperty]
+    public partial DXPopup? AlbumContextMenu { get;  set; }
+
+    [RelayCommand]
+    public void AddArtistToTQL(string ArtistName)
+    {
+        string tqlClause = $"{CurrentTqlQuery} add artist:\"{ArtistName}\"";
+        AddFilterToSearch(tqlClause);
+    }
+    [RelayCommand]
+    public void RemoveArtistFromTQL(string artistName)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || string.IsNullOrWhiteSpace(artistName))
+            return;
+
+        string query = CurrentTqlQuery;
+
+        // Escape artist name safely
+        string escapedArtist = Regex.Escape(artistName);
+
+        // 1️⃣ Remove the last occurrence of artist:"X" (deepest/rightmost)
+        // Use regex with rightmost match
+        string pattern = $@"(?i)(.*)(artist:\s*{escapedArtist})(.*)";
+        if (Regex.IsMatch(query, pattern))
+        {
+            // Keep everything except the matched artist term
+            query = Regex.Replace(query, $@"(?i)(\s*[\(\)]*\s*)(artist:\s*{escapedArtist})", "", RegexOptions.RightToLeft, new TimeSpan(1));
+        }
+
+        // 2️⃣ Clean up logical operators left hanging (and/or)
+        query = Regex.Replace(query, @"\s*(and|or)\s*(and|or)\s*", " ", RegexOptions.IgnoreCase);
+        query = Regex.Replace(query, @"(^\s*(and|or)\s*)|(\s*(and|or)\s*$)", "", RegexOptions.IgnoreCase);
+
+        // 3️⃣ Clean up empty parentheses and extra spaces
+        query = Regex.Replace(query, @"\(\s*\)", "");
+        query = Regex.Replace(query, @"\s{2,}", " ").Trim();
+
+        // 4️⃣ Fix cases like 'include ()' or leftover operators before closing parenthesis
+        query = Regex.Replace(query, @"include\s*\(\s*\)", "", RegexOptions.IgnoreCase);
+        query = Regex.Replace(query, @"\(\s*(and|or)\s*\)", "", RegexOptions.IgnoreCase);
+
+        // 5️⃣ Assign and search
+        CurrentTqlQuery = query.Trim();
+        SearchSongForSearchResultHolder(query);
+    }
+
+    [RelayCommand]
+    public void AddAlbumToTQL(string AlbumName)
+    {
+        string tqlClause = $"{CurrentTqlQuery} add album:\"{AlbumName}\"";
+        AddFilterToSearch(tqlClause);
+    }
+
     partial void OnMyHomePageChanged(HomePage? oldValue, HomePage? newValue)
     {
         if (newValue is not null)

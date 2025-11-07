@@ -202,7 +202,7 @@ public class StatsRecalculator
                             totalListenRate += s.ListenThroughRate;
                         }
                         artist.TotalSongsByArtist = songCount;
-                        var artAlbCount = RealmQueryHelper.AlbumsByArtist(_realm, artist.Id).Count();
+                        var artAlbCount = artist.Albums.Count();
                         artist.TotalAlbumsByArtist = artAlbCount;
                         artist.TotalCompletedPlays = (int)totalCompleted;
                         artist.AverageSongListenThroughRate = totalListenRate / songCount;

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 
+using DynamicData;
+
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
@@ -52,8 +54,27 @@ public class AudioFileProcessor : IAudioFileProcessor
             result.Errors.Add("File is invalid, non-existent, or has an unsupported extension.");
             return result;
         }
-
-        var track = new Track(filePath);
+        Track track;
+        try
+        {
+            track = new Track(filePath);
+        }
+        catch (FormatException ex)
+        {
+            Debug.WriteLine($"ATL FormatException on '{filePath}': {ex.Message}");
+            // Recover by retrying without parsing lyrics
+            track = new Track(filePath)
+            {
+                Lyrics = new List<LyricsInfo>() // empty fallback
+            };
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"CRITICAL failure loading '{filePath}': {ex.Message}");
+            var errorResult = new FileProcessingResult(filePath);
+            errorResult.Errors.Add($"Failed to load metadata: {ex.Message}");
+            return errorResult;
+        }
 
         // --- Step 1: Intelligent Metadata Aggregation ---
         // We gather info from both tags and the filename, then merge them.
@@ -160,8 +181,16 @@ public class AudioFileProcessor : IAudioFileProcessor
         
         foreach (var artView in song.ArtistToSong)
         {
-            if (!album.Artists.Any(a => a.Id == artView.Id))
-                album.Artists.Add(artView.ToModel());
+            if(album.Artists is null)
+            {
+                album.Artists = new();
+                album.Artists.Add(artView);
+            }
+            else
+            {
+                if (!album.Artists.Any(a => a.Id == artView.Id))
+                    album.Artists.Add(artView);
+            }
         }
         
         result.ProcessedSong = song;

@@ -122,9 +122,9 @@
                                         DoubleTapCommandParameter="{Binding .}"
                                         FontSize="12"
                                         HorizontalOptions="Start"
-                                        LongPress="ArtistsChip_LongPress"
                                         LongPressCommandParameter="{Binding OtherArtistsName}"
                                         Opacity="0.6"
+                                        Tap="ArtistsChip_Tap"
                                         Text="{Binding ArtistName}"
                                         TextColor="{AppThemeBinding Dark=White,
                                                                     Light=black}"
@@ -151,6 +151,10 @@
 
                             </dx:DXButton.Content>
                         </dx:DXButton>
+
+
+
+
 
 
                         <dx:Chip
@@ -190,7 +194,6 @@
 
                                 <dx:DXStackLayout
                                     Padding="10"
-                                    HeightRequest="200"
                                     ItemSpacing="5"
                                     MaximumHeightRequest="450"
                                     Orientation="Vertical"
@@ -205,12 +208,16 @@
                                     <dx:DXCollectionView
                                         x:Name="ArtistNamesColView"
                                         x:FieldModifier="Public"
+                                        HeightRequest="250"
                                         ItemSpacing="10"
                                         Loaded="ArtistNamesColView_Loaded">
                                         <dx:DXCollectionView.ItemTemplate>
 
                                             <DataTemplate x:DataType="models:ArtistModelView">
-                                                <Grid ColumnDefinitions="*,60" RowDefinitions="*,auto">
+                                                <Grid
+                                                    BackgroundColor="Transparent"
+                                                    ColumnDefinitions="*,auto"
+                                                    RowDefinitions="auto,*">
                                                     <dx:Chip
                                                         x:Name="ArtistChipName"
                                                         Grid.Row="0"
@@ -226,30 +233,75 @@
                                                         TextColor="{AppThemeBinding Light=Black,
                                                                                     Dark=White}" />
 
-                                                    <dx:Chip
-                                                        Grid.Row="0"
-                                                        Grid.Column="1"
-                                                        Icon="roundaltarrowdown.png"
-                                                        IsIconVisible="True"
-                                                        TapCommand="{Binding Commands.ToggleExpandState,Source={x:Reference QuickArtistSongs}}"
-                                                        Text="{Binding TotalAlbumsByArtist}" />
 
                                                     <dx:DXExpander
-                                                        x:Name="QuickArtistSongsView"
-                                                        Grid.Row="1"
-                                                        HorizontalExpandMode="FromEndToStart"
-                                                        HorizontalOptions="End"
-                                                        IsExpanded="False">
+                                                        x:Name="DimmerIconChip"
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        IsExpanded="True">
                                                         <dx:DXExpander.Content>
-                                                            <Label Text="{Binding TotalAlbumsByArtist}" />
-
+                                                            <dx:DXImage
+                                                                HeightRequest="35"
+                                                                Source="searchalta.png"
+                                                                WidthRequest="35" />
                                                         </dx:DXExpander.Content>
                                                     </dx:DXExpander>
+
+                                                    <dx:DXExpander x:Name="DimmerIconChipTwo" IsExpanded="False">
+                                                        <dx:DXExpander.Content>
+                                                            <dx:DXStackLayout Orientation="Horizontal">
+                                                                <dx:Chip
+                                                                    Grid.Row="0"
+                                                                    Grid.Column="1"
+                                                                    HeightRequest="35"
+                                                                    Tap="AddArtistToTQL_Tap"
+                                                                    TapCommandParameter="{Binding .}"
+                                                                    Text="+"
+                                                                    ToolTipProperties.Text="{Binding Name, StringFormat='Add songs by {0}'}"
+                                                                    WidthRequest="35" />
+                                                                <dx:Chip
+                                                                    HeightRequest="35"
+                                                                    Text="="
+                                                                    ToolTipProperties.Text="Show Only Songs"
+                                                                    WidthRequest="35" />
+                                                            </dx:DXStackLayout>
+                                                        </dx:DXExpander.Content>
+                                                    </dx:DXExpander>
+
+
+
+
                                                 </Grid>
                                             </DataTemplate>
                                         </dx:DXCollectionView.ItemTemplate>
 
                                     </dx:DXCollectionView>
+
+
+                                    <dx:DXStackLayout
+                                        BackgroundColor="Transparent"
+                                        HorizontalOptions="End"
+                                        ItemSpacing="10"
+                                        Orientation="Horizontal">
+                                        <dx:Chip
+                                            BorderColor="Transparent"
+                                            FontAttributes="Italic"
+                                            FontSize="12"
+                                            HorizontalOptions="End"
+                                            Text="Random Search"
+                                            x:Name="RandomSearch"
+                                            Tap="RandomSearch_Tap"
+                                            TextColor="DarkOliveGreen" />
+                                        <dx:Chip
+                                            BorderColor="DarkRed"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Tap="ClearSearch_Tap"
+                                            x:Name="ClearSearch"
+                                            HorizontalOptions="End"
+                                            Text="Clear Search"
+                                            TextColor="DarkRed" />
+                                    </dx:DXStackLayout>
                                 </dx:DXStackLayout>
 
                             </dx:DXPopup.Content>
@@ -419,11 +471,13 @@
                                     CornerRadius="20"
                                     Focused="SearchBy_Focused"
                                     FocusedBorderColor="DarkSlateBlue"
+                                    Loaded="SearchBy_Loaded"
                                     PlaceholderColor="DarkSlateBlue"
                                     PlaceholderText="Search..."
                                     StartIcon="searchd.png"
                                     StartIconColor="DarkSlateBlue"
-                                    TextChanged="SearchBy_TextChanged" />
+                                    TextChanged="SearchBy_TextChanged"
+                                    Unloaded="SearchBy_Unloaded" />
                                 <dx:DXStackLayout
                                     x:Name="OpenedKeyboardToolbar"
                                     BackgroundColor="Transparent"

@@ -1,6 +1,9 @@
 
 
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using Android.Text;
 
 using Dimmer.Utils.Extensions;
 
@@ -752,9 +755,6 @@ public partial class HomePage : ContentPage
 
         var realm = MyViewModel.RealmFactory.GetRealmInstance();
 
-        _liveArtists = new ObservableCollection<string>(realm.All<ArtistModel>().AsEnumerable().Select(x => x.Name));
-        _liveAlbums = new ObservableCollection<string>(realm.All<AlbumModel>().AsEnumerable().Select(x => x.Name));
-        _liveGenres = new ObservableCollection<string>(realm.All<GenreModel>().AsEnumerable().Select(x => x.Name));
         //MyViewModel
 
     }
@@ -813,7 +813,7 @@ public partial class HomePage : ContentPage
 
         }
     }
-    private async void ArtistsChip_LongPress(object sender, HandledEventArgs e)
+    private async void ArtistsChip_Tap(object sender, HandledEventArgs e)
     {
         var send = (Chip)sender;
         var songModel = send.DoubleTapCommandParameter as SongModelView;
@@ -824,11 +824,13 @@ public partial class HomePage : ContentPage
 
 
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
+            var song = realm.Find<SongModel>(songModel.Id);
+
+            if (song == null) return;
+            var artistsLinkedToSong = song.ArtistToSong.ToList();
             
-            var artistsLinkedToSong = RealmQueryHelper.ArtistsLinkedToSong(realm, songModel.Id).ToList();
-
             var artistsList = MyViewModel._mapper.Map<List<ArtistModelView>>(artistsLinkedToSong);
-
+            
             var artColView = popUpChild.GetChildrenInTree(true).First(x => x.GetType() == typeof(DXCollectionView)) as DXCollectionView;
             artColView?.ItemsSource = null;
             artColView?.ItemsSource = artistsList;
@@ -905,8 +907,15 @@ public partial class HomePage : ContentPage
             MainViewTabView.SelectedItemIndex=0;
         }
         var send = (TextEdit)sender;
+        EditText? nativeView = send.GetPlatformView() as EditText;
+        if (nativeView != null)
+        {
+            MyViewModel.SearchSongForSearchResultHolder(send.Text);
 
-        MyViewModel.SearchSongForSearchResultHolder(send.Text);
+            //check if it's native textfield so we can leverage full native power for selections/editing
+        }
+
+
     }
 
     private void Settings_Tap(object sender, HandledEventArgs e)
@@ -1473,12 +1482,15 @@ public partial class HomePage : ContentPage
 
     private void ArtistsContextMenu_Loaded(object sender, EventArgs e)
     {
+        var send = (DXPopup)sender;
 
+        MyViewModel.ArtistContextMenu = send;
     }
 
     private void ArtistsContextMenu_Unloaded(object sender, EventArgs e)
     {
 
+        MyViewModel.ArtistContextMenu = null;
     }
 
     DXCollectionView? ArtistNamesColView { get; set; }
@@ -1505,6 +1517,95 @@ public partial class HomePage : ContentPage
             MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(param));
             ArtistNamesPopUpView?.Close();
         }
+    }
+
+    private void ArtistsContextMenu_Loaded_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void Chip_Tap_1(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void AddArtistToTQL_Tap(object sender, HandledEventArgs e)
+    {
+        var s = (Chip)sender;
+        var param = s.TapCommandParameter as ArtistModelView;
+
+        if (param is not null)
+        {
+            MyViewModel.AddArtistToTQLCommand.Execute(param.Name);
+        }
+
+    }
+
+    private EditText? _nativeSearchBox;
+    private void SearchBy_Loaded(object sender, EventArgs e)
+    {
+        if (sender is not TextEdit searchBox)
+            return;
+
+        // Get the native Android EditText
+        _nativeSearchBox = searchBox.GetPlatformView() as EditText;
+        if (_nativeSearchBox == null)
+            return;
+
+        // Avoid double-hooking
+        if (_nativeSearchBox.Tag?.ToString() == "shuffle_hooked")
+            return;
+
+        _nativeSearchBox.AfterTextChanged += NativeSearchBox_AfterTextChanged;
+        _nativeSearchBox.Tag = "shuffle_hooked";
+    }
+
+    private void NativeSearchBox_AfterTextChanged(object? sender, AfterTextChangedEventArgs e)
+    {
+        if (sender is not EditText nativeView)
+            return;
+
+        string text = nativeView.Text ?? "";
+        string[] keywords = { "shuffle", "random" };
+
+        foreach (var kw in keywords)
+        {
+            var match = Regex.Match(text, $@"\b{kw}\b", RegexOptions.IgnoreCase);
+            if (match.Success && match.Index < text.Length - kw.Length)
+            {
+                text = Regex.Replace(text, $@"\b{kw}\b", "", RegexOptions.IgnoreCase).Trim();
+                text = $"{text} {kw}".Trim();
+
+                // Update text and caret without re-triggering chaos
+                nativeView.Text = text;
+                nativeView.SetSelection(text.Length);
+                nativeView.PerformHapticFeedback(Android.Views.FeedbackConstants.TextHandleMove);
+                break;
+            }
+        }
+
+        // Run search logic
+        MyViewModel.SearchSongForSearchResultHolder(text);
+    }
+
+    private void SearchBy_Unloaded(object sender, EventArgs e)
+    {
+        if (_nativeSearchBox != null)
+        {
+            _nativeSearchBox.AfterTextChanged -= NativeSearchBox_AfterTextChanged;
+            _nativeSearchBox.Tag = null;
+            _nativeSearchBox = null;
+        }
+    }
+
+    private void RandomSearch_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.Shuffle());
+    }
+
+    private void ClearSearch_Tap(object sender, HandledEventArgs e)
+    {
+        //MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.SortByTitleAsc)
     }
 }
 

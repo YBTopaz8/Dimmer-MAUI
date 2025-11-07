@@ -21,7 +21,7 @@
     <Grid IsVisible="True" RowDefinitions="auto,*">
         <VerticalStackLayout Grid.Row="0">
             <Label
-                FontSize="35"
+                FontSize="25"
                 HorizontalOptions="Center"
                 Text="{Binding LatestScanningLog}" />
             <ProgressBar

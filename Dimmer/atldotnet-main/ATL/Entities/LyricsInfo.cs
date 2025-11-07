@@ -417,87 +417,72 @@ namespace ATL
         {
             try
             {
-                if (data.Contains("[0") && ParseLRC(data)) return;
-                if ((data.Contains("--> 0") || data.Contains("-->0")) && ParseSRT(data)) return;
+                // Proper LRC detection: any [mm:ss] or [mm:ss.xx] tag
+                if (Regex.IsMatch(data, @"\[\d{1,2}:\d{2}(\.\d{1,2})?\]"))
+                {
+                    if (ParseLRC(data)) return;
+                }
+
+                // Proper SRT detection: any line containing --> between timestamps
+                if (Regex.IsMatch(data, @"\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}"))
+                {
+                    if (ParseSRT(data)) return;
+                }
             }
             catch (Exception e)
             {
                 LogDelegator.GetLogDelegate()(Log.LV_WARNING, e.Message + "\n" + e.StackTrace);
             }
+
             UnsynchronizedLyrics = data;
             Format = LyricsFormat.UNSYNCHRONIZED;
         }
+        private static readonly Regex _timeTagRegex = new(@"^\d{2}:\d{2}(\.\d{1,2})?$");
 
         /// <summary>
         /// Parse the given unsynchronized LRC or LRC A2 string into synchronized lyrics
         /// </summary>
         private bool ParseLRC(string data)
         {
-            List<string> lines = data.Split('\n').Select(l => l.Trim()).ToList();
+            
+            List<string> lines = data.Split('\n')
+                .Select(l => l.Trim('\r', ' ', '\uFEFF')) // remove BOM too
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .ToList();
             bool hasLrcA2 = false;
             foreach (string line in lines)
             {
-                int endIndex = line.IndexOf(']');
-                if (endIndex < 0) continue;
-                if (endIndex == line.Length - 1)
+                // --- Metadata lines ---
+                if (Regex.IsMatch(line, @"^\[(ar|ti|al|by|id|length):", RegexOptions.IgnoreCase))
                 {
-                    // Metadata
-                    int metaIndex = line.IndexOf(':');
-                    if (metaIndex < 0) continue;
-                    string key = line.Substring(1, metaIndex - 1);
-                    string value = line.Substring(metaIndex + 1, endIndex - metaIndex - 1);
-                    Metadata[key.Trim()] = value.Trim();
+                    int colon = line.IndexOf(':');
+                    int end = line.LastIndexOf(']');
+                    if (colon > 0 && end > colon)
+                    {
+                        string key = line.Substring(1, colon - 1).Trim();
+                        string value = line.Substring(colon + 1, end - colon - 1).Trim();
+                        Metadata[key] = value;
+                    }
+                    continue;
                 }
-                else
+
+                // --- Timestamped lines ---
+                MatchCollection matches = Regex.Matches(line, @"\[\d{2}:\d{2}(\.\d{1,2})?\]");
+                if (matches.Count == 0)
+                    continue; // skip invalid lines
+
+                string lyricText = line.Substring(line.LastIndexOf(']') + 1).Trim();
+
+                foreach (Match m in matches)
                 {
-                    // Regular lyrics
-                    string start = line.Substring(1, endIndex - 1);
-                    string lyrics = line.Substring(endIndex + 1).Trim();
-                    LyricsPhrase phrase;
+                    string ts = m.Value.Trim('[', ']');
+                    if (!_timeTagRegex.IsMatch(ts))
+                        continue; // ignore malformed tags
 
-                    // Look for beats (LRC A2)
-                    if (lyrics.Contains('<') && lyrics.Contains('>') && rxLRCA2Beat.Value.Match(lyrics).Success)
-                    {
-                        hasLrcA2 = true;
-                        var beats = new List<LyricsPhrase>();
-                        string[] parts = lyrics.Split('<').Select(s => s.Trim()).ToArray();
-                        foreach (string part in parts)
-                        {
-                            int endIdx = part.IndexOf('>');
-                            if (endIdx < 0) continue;
-                            string beatStart = part.Substring(1, endIdx - 1);
-                            string beatLyrics = part.Substring(endIdx + 1).Trim();
-                            if (0 == beatLyrics.Length)
-                            {
-                                // Timestamp end of last beat
-                                int timestampEnd = Utils.DecodeTimecodeToMs(beatStart);
-                                if (timestampEnd > 0)
-                                {
-                                    // Duplicate with timestamp end
-                                    LyricsPhrase lastBeat = beats[^1];
-                                    lastBeat = new LyricsPhrase(lastBeat.TimestampStart, lastBeat.Text, timestampEnd);
-                                    beats[^1] = lastBeat;
-                                }
-                            }
-                            else
-                            {
-                                var newBeat = new LyricsPhrase(beatStart, beatLyrics);
-                                // Set previous beat's timestamp end
-                                if (beats.Count > 0) beats[^1].TimestampEnd = newBeat.TimestampStart;
-                                beats.Add(newBeat);
-                            }
-                        }
-                        lyrics = string.Join(' ', beats.Select(b => b.Text));
-                        phrase = new LyricsPhrase(start, lyrics, beats: beats);
-                    }
-                    else
-                    {
-                        phrase = new LyricsPhrase(start, lyrics);
-
-                    }
-                    SynchronizedLyrics.Add(phrase);
+                    SynchronizedLyrics.Add(new LyricsPhrase(ts, lyricText));
                 }
             }
+
             Format = hasLrcA2 ? LyricsFormat.LRC_A2 : LyricsFormat.LRC;
             return true;
         }
@@ -507,40 +492,56 @@ namespace ATL
         /// </summary>
         private bool ParseSRT(string data)
         {
-            List<string> lines = data.Split('\n').Select(l => l.Trim()).ToList();
+            var lines = data.Split('\n')
+                            .Select(l => l.Trim('\r', ' '))
+                            .Where(l => !string.IsNullOrWhiteSpace(l))
+                            .ToList();
+
             bool insideLyric = false;
-            string start = "";
-            string end = "";
             bool isFirstLine = false;
-            StringBuilder text = new StringBuilder();
-            foreach (string line in lines)
+            string start = string.Empty;
+            string end = string.Empty;
+            var text = new StringBuilder();
+
+            foreach (var line in lines)
             {
                 if (line.Contains("-->"))
                 {
                     insideLyric = true;
                     isFirstLine = true;
-                    int arrowIdx = line.IndexOf("-->");
-                    start = line.Substring(0, arrowIdx - 1).Trim();
-                    end = line.Substring(arrowIdx + 3).Trim();
-                }
-                else if (0 == line.Length)
-                {
-                    if (text.Length > 0) SynchronizedLyrics.Add(new LyricsPhrase(start, text.ToString(), end));
-                    insideLyric = false;
-                    text.Clear();
+
+                    // Safe split for both spaced and unspaced formats
+                    var parts = line.Split(new[] { "-->" }, StringSplitOptions.None);
+                    if (parts.Length == 2)
+                    {
+                        start = parts[0].Trim();
+                        end = parts[1].Trim();
+                    }
                 }
                 else if (insideLyric)
                 {
-                    if (!isFirstLine) text.Append('\n');
-                    else isFirstLine = false;
-                    text.Append(line);
+                    if (!isFirstLine)
+                        text.AppendLine(line);
+                    else
+                        isFirstLine = false;
+                }
+
+                // End of block
+                if (line == lines.Last() || string.IsNullOrWhiteSpace(line))
+                {
+                    if (insideLyric && text.Length > 0)
+                    {
+                        SynchronizedLyrics.Add(new LyricsPhrase(start, text.ToString().TrimEnd(), end));
+                        text.Clear();
+                        insideLyric = false;
+                    }
                 }
             }
-            // May happen when the stream ends without an empty line
-            if (insideLyric && text.Length > 0) SynchronizedLyrics.Add(new LyricsPhrase(start, text.ToString(), end));
+
             Format = LyricsFormat.SRT;
             return true;
         }
+
 
         /// <summary>
         /// Format synchronized lyrics to a string following Format

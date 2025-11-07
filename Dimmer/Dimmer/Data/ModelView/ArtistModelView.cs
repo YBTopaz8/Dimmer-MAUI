@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿
+namespace Dimmer.Data.ModelView;
 
 public partial class ArtistModelView : ObservableObject
 {
@@ -18,6 +19,8 @@ public partial class ArtistModelView : ObservableObject
     public partial bool IsVisible { get; set; }
     [ObservableProperty]
     public partial bool IsNew { get; set; }
+    [ObservableProperty]
+    public partial bool IsFavorite { get; set; }
 
 
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
@@ -67,5 +70,6 @@ public partial class ArtistModelView : ObservableObject
     public partial int TotalSongsByArtist { get; set; }
     [ObservableProperty]
     public partial int TotalAlbumsByArtist { get; set; }
-
+    [ObservableProperty]
+    public partial ObservableCollection<string> ListOfSimilarArtists { get; internal set; }
 }

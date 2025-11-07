@@ -151,6 +151,7 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     [Indexed]
     public int OverallRank { get; set; }
     public int TotalPlayDurationSeconds { get; set; }
+    public bool IsFavorite { get; set; }
     public DateTimeOffset DiscoveryDate { get;  set; }
 
     public AlbumModel()

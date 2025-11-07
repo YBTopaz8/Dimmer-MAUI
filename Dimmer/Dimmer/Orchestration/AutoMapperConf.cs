@@ -38,6 +38,7 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.IsCurrentPlayingHighlight, opt => opt.Ignore())
                     .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
                     .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap
+                    
                     .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
                     .ForMember(dest => dest.PlayCount, opt => opt.MapFrom(src => src.PlayCount))
                     .ForMember(dest => dest.PlayCompletedCount, opt => opt.MapFrom(src => src.PlayCompletedCount))
@@ -61,6 +62,7 @@ public static class AutoMapperConf
 
             cfg.CreateMap<ArtistModel, ArtistModelView>()
                 .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
+                .ForMember(dest => dest.ListOfSimilarArtists, opt => opt.Ignore())
                 .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore())
                 .ForMember(dest => dest.IsVisible, opt => opt.Ignore());
 

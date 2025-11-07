@@ -6,6 +6,7 @@ using Dimmer.WinUI.Views.WinUIPages;
 
 using Microsoft.Maui.Platform;
 using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
@@ -13,9 +14,11 @@ using Microsoft.Windows.AppNotifications.Builder;
 using Windows.Graphics;
 using Windows.Graphics.Display;
 
+using Application = Microsoft.Maui.Controls.Application;
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using ImageSource = Microsoft.Maui.Controls.ImageSource;
+using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
 public static class PlatUtils
@@ -32,7 +35,7 @@ public static class PlatUtils
     /// <summary>
     /// Captures the given MAUI Window to a PNG-backed ImageSource.
     /// </summary>
-    public static ImageSource CaptureWindow(this Window mauiWindow)
+    public static ImageSource CaptureWindow(this Microsoft.Maui.Controls.Window mauiWindow)
     {
         if (mauiWindow == null)
             throw new ArgumentNullException(nameof(mauiWindow));
@@ -108,7 +111,7 @@ public static class PlatUtils
 
 
 
-    public static void MiniMimizeWindow(Window win)
+    public static void MiniMimizeWindow(Microsoft.Maui.Controls.Window win)
     {
 
         var nativeWindow = win.Handler.PlatformView;
@@ -141,7 +144,7 @@ public static class PlatUtils
         }
     }
 
-    public static void OpenAndSetWindowToEdgePosition(Window concernedWindow, RectInt32 positionToSet)
+    public static void OpenAndSetWindowToEdgePosition(Microsoft.Maui.Controls.Window concernedWindow, RectInt32 positionToSet)
     {
         var nativeWindow = GetNativeWindow(concernedWindow);
         if (nativeWindow is null) return;
@@ -167,19 +170,30 @@ public static class PlatUtils
 
     }
 
-    public static void ResizeWindow(this Window concernedWindow, SizeInt32 sizeToSet)
+    public static void ResizeWindow(this Microsoft.Maui.Controls.Window concernedWindow, SizeInt32 sizeToSet)
     {
         var nativeWindow = GetNativeWindow(concernedWindow);
-        var currentPos = nativeWindow.AppWindow.Position;
         var newRect = new RectInt32
         {
-            X = currentPos.X,
-            Y = currentPos.Y,
+
             Width = sizeToSet.Width,
             Height = sizeToSet.Height
         };
         nativeWindow.AppWindow.Resize(sizeToSet);
         nativeWindow.AppWindow.MoveInZOrderAtTop();
+    }
+
+    public static void ResizeNativeWindow(Microsoft.UI.Xaml.Window concernedWindow, SizeInt32 sizeToSet)
+    {
+        
+        var newRect = new RectInt32
+        {
+
+            Width = sizeToSet.Width,
+            Height = sizeToSet.Height
+        };
+        concernedWindow.AppWindow.Resize(sizeToSet);
+        concernedWindow.AppWindow.MoveInZOrderAtTop();
     }
 
     public static void MoveAndResizeCenter(Microsoft.UI.Xaml.Window nativeWindow, SizeInt32 sizeToSet)
@@ -197,7 +211,7 @@ public static class PlatUtils
         nativeWindow.AppWindow.MoveAndResize(newRect);
         nativeWindow.AppWindow.MoveInZOrderAtTop();
     }
-    public static void MoveAndResizeWindow(this Window concernedWindow, RectInt32 positionToSet)
+    public static void MoveAndResizeWindow(this Microsoft.Maui.Controls.Window concernedWindow, RectInt32 positionToSet)
     {
         var nativeWindow = GetNativeWindow(concernedWindow);
 
@@ -298,7 +312,7 @@ public static class PlatUtils
         return DimmerHandle;
     }
 
-    public static async Task EnsureWindowReadyAsync(Window? MauiWindow = null)
+    public static async Task EnsureWindowReadyAsync(Microsoft.Maui.Controls.Window? MauiWindow = null)
     {
         if (MauiWindow == null)
         {       // Ensure there’s at least one window created by MAUI
@@ -315,7 +329,7 @@ public static class PlatUtils
             throw new InvalidOperationException("Window handler was not ready after waiting.");
     }
 
-    public static Compositor GetCompositor(Window? MauiWindow = null)
+    public static Compositor GetCompositor(Microsoft.Maui.Controls.Window? MauiWindow = null)
     {
         var nativeWindow = GetNativeWindow(MauiWindow);
 
@@ -323,7 +337,7 @@ public static class PlatUtils
     }
 
     public static Compositor MainWindowCompositor => GetCompositor();
-    public static Microsoft.UI.Xaml.Window GetNativeWindow(Window? MauiWindow = null)
+    public static Microsoft.UI.Xaml.Window GetNativeWindow(Microsoft.Maui.Controls.Window? MauiWindow = null)
     {
         if (MauiWindow == null)
         {       // Ensure there’s at least one window created by MAUI
@@ -373,7 +387,7 @@ public static class PlatUtils
         var id = Win32Interop.GetWindowIdFromWindow(hwnd);
         return AppWindow.GetFromWindowId(id);
     }
-    public static IntPtr GetAnyWindowHandle(Window window)
+    public static IntPtr GetAnyWindowHandle(Microsoft.Maui.Controls.Window window)
     {
 
         if (window == null)
@@ -498,5 +512,81 @@ public static class PlatUtils
             // The native way to show a context flyout on WinUI
             FlyoutBase.ShowAttachedFlyout(platformView);
         }
+    }
+
+
+    public static T? FindVisualChild<T>(DependencyObject? parent, string? childName) where T : FrameworkElement
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+
+        int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < childrenCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+
+            // Check if the current child is the target control.
+            if (child is T frameworkElement && frameworkElement.Name == childName)
+            {
+                return frameworkElement;
+            }
+
+            // If not, recursively search in the children of the current child.
+            T? childOfChild = FindVisualChild<T>(child, childName);
+            if (childOfChild != null)
+            {
+                return childOfChild;
+            }
+        }
+        return null;
+    }
+    public static T? FindChildOfType<T>(DependencyObject parent, string name) where T : FrameworkElement
+    {
+        if (parent == null)
+            return null;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+
+            if (child is T fe && fe.Name == name)
+                return fe;
+
+            var result = FindChildOfType<T>(child, name);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+    /// <summary>
+    /// Finds a child control of a specific type within the visual tree of a parent element.
+    /// </summary>
+    /// <typeparam name="T">The type of the child control to find.</typeparam>
+    /// <param name="parent">The parent element to search within.</param>
+    /// <returns>The first child control of the specified type, or null if not found.</returns>
+    public static T? FindChildOfType<T>(DependencyObject parent) where T : DependencyObject
+    {
+        if (parent == null)
+            return null;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+
+            if (child is T typedChild)
+            {
+                return typedChild;
+            }
+
+            var result = FindChildOfType<T>(child);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
     }
 }

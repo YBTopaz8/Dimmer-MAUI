@@ -4,6 +4,8 @@ using Microsoft.UI.Xaml;
 
 using System.Text.RegularExpressions;
 
+using Windows.Graphics;
+
 using Window = Microsoft.UI.Xaml.Window;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -19,7 +21,7 @@ public sealed partial class AllSongsWindow : Window
     {
         InitializeComponent();
 
-
+        
         //MyPageGrid.DataContext=vm;
         MyViewModel= vm;
 
@@ -31,6 +33,9 @@ public sealed partial class AllSongsWindow : Window
                 return;
             }
 
+            
+            SizeInt32 currentWindowSize = new SizeInt32(1600, 1000);
+            PlatUtils.ResizeNativeWindow(this, currentWindowSize);
             
             MyViewModel.CurrentWinUIPage = this;
             var removeCOmmandFromLastSaved = MyViewModel.CurrentTqlQuery;
@@ -61,6 +66,9 @@ public sealed partial class AllSongsWindow : Window
         
     }
 
+    
+
+
     private void AllSongsWindow_Closed(object sender, WindowEventArgs args)
     {
         this.Closed -= AllSongsWindow_Closed;
@@ -72,7 +80,12 @@ public sealed partial class AllSongsWindow : Window
 
     public BaseViewModelWin MyViewModel { get; internal set; }
 
-    
-    
-  
+    private void MyPage_VisibilityChanged(object sender, WindowVisibilityChangedEventArgs args)
+    {
+        var isVisible = args.Visible;
+        if(!isVisible)
+        {
+            this.Close();
+        }
+    }
 }

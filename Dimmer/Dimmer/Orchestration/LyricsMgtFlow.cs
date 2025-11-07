@@ -25,7 +25,11 @@ public class LyricsMgtFlow : IDisposable
     private readonly BehaviorSubject<LyricPhraseModelView?> _previousLyricSubject = new(null);
     private readonly BehaviorSubject<LyricPhraseModelView?> _currentLyricSubject = new(null);
     private readonly BehaviorSubject<LyricPhraseModelView?> _nextLyricSubject = new(null);
+    private readonly BehaviorSubject<bool> isSearchingLyrics = new(false);
+    private readonly BehaviorSubject<bool> isLoadingLyrics = new(false);
 
+    public IObservable<bool> IsSearchingLyrics => isSearchingLyrics.AsObservable();
+    public IObservable<bool> IsLoadingLyrics => isLoadingLyrics.AsObservable();
 
     public IObservable<IReadOnlyList<LyricPhraseModelView>> AllSyncLyrics => _allLyricsSubject.AsObservable();
     public IObservable<LyricPhraseModelView?> PreviousLyric => _previousLyricSubject.AsObservable();
@@ -167,22 +171,28 @@ public class LyricsMgtFlow : IDisposable
             return;
         }
 
+        isLoadingLyrics.OnNext(true);
         // Try to get lyrics from DB first, then local files.
         string? lrcContent = await GetStoredLyricsContentAsync(song);
         if (!string.IsNullOrWhiteSpace(lrcContent))
         {
             // If we found content, parse and load it for synchronization.
             LoadLyrics(lrcContent);
+            isLoadingLyrics.OnNext(false);
         }
         else
         {
 
             //get lyrics from online source
             ClearLyrics();
+            isSearchingLyrics.OnNext(true);
+            isLoadingLyrics.OnNext(false);
             var res = await GetLyricsContentAsync(song);
             if (!string.IsNullOrWhiteSpace(res))
             {
                 LoadLyrics(res);
+                isSearchingLyrics.OnNext(false);
+                isLoadingLyrics.OnNext(false);
             }
         }
     }

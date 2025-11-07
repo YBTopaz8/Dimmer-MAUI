@@ -55,9 +55,10 @@ public sealed partial class SongDetailPage : Page
             MyViewModel = (args.ExtraParam as BaseViewModelWin)!;       // reference, not copy
             DetailedSong = args.Song;
         }
-        
 
-        ApplyEntranceEffect();
+
+        Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
+        ApplyEntranceEffect(visual);
 
         var animation = ConnectedAnimationService.GetForCurrentView()
        .GetAnimation("ForwardConnectedAnimation");
@@ -89,6 +90,9 @@ public sealed partial class SongDetailPage : Page
         // Standard navigation back
         if (Frame.CanGoBack)
         {
+            //var image = detailedImage;
+            //ConnectedAnimationService.GetForCurrentView()
+            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
             Frame.GoBack();
         }
     }
@@ -98,9 +102,8 @@ public sealed partial class SongDetailPage : Page
 
     }
 
-    private void ApplyEntranceEffect()
+    private void ApplyEntranceEffect(Visual visual)
     {
-        var visual = ElementCompositionPreview.GetElementVisual(detailedImage);
 
         switch (_userPrefAnim)
         {
@@ -133,10 +136,10 @@ public sealed partial class SongDetailPage : Page
             case SongTransitionAnimation.Spring:
             default:
                 var spring = _compositor.CreateSpringVector3Animation();
-                spring.FinalValue = Vector3.Zero;
+                spring.FinalValue = new Vector3(0, 0, 0);
                 spring.DampingRatio = 0.5f;
-                spring.Period = TimeSpan.FromMilliseconds(250);
-                visual.Offset = new Vector3(0, 40, 0);
+                spring.Period = TimeSpan.FromMilliseconds(350);
+                visual.Offset = new Vector3(0, 40, 0);//c matching
                 visual.StartAnimation("Offset", spring);
                 break;
         }
@@ -245,6 +248,100 @@ public sealed partial class SongDetailPage : Page
     private void TabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args)
     {
 
+    }
+    private void ApplyColorFade(Page targetPage, Windows.UI.Color color)
+    {
+        var visual = _compositor.CreateSpriteVisual();
+        visual.Size = new Vector2((float)targetPage.ActualWidth, (float)targetPage.ActualHeight);
+        visual.Brush = _compositor.CreateColorBrush(color);
+        visual.Opacity = 0f;
+        ElementCompositionPreview.SetElementChildVisual(targetPage, visual);
+
+        var fade = _compositor.CreateScalarKeyFrameAnimation();
+        fade.InsertKeyFrame(0f, 0f);
+        fade.InsertKeyFrame(0.5f, 1f);
+        fade.InsertKeyFrame(1f, 0f);
+        fade.Duration = TimeSpan.FromMilliseconds(600);
+        visual.StartAnimation("Opacity", fade);
+    }
+
+    private void ApplyParallax(UIElement foreground, UIElement background)
+    {
+        var fgVisual = ElementCompositionPreview.GetElementVisual(foreground);
+        var bgVisual = ElementCompositionPreview.GetElementVisual(background);
+
+        fgVisual.Offset = new Vector3(100, 0, 0);
+        bgVisual.Offset = new Vector3(50, 0, 0);
+
+        var fgAnim = _compositor.CreateVector3KeyFrameAnimation();
+        fgAnim.InsertKeyFrame(1f, Vector3.Zero);
+        fgAnim.Duration = TimeSpan.FromMilliseconds(400);
+
+        var bgAnim = _compositor.CreateVector3KeyFrameAnimation();
+        bgAnim.InsertKeyFrame(1f, Vector3.Zero);
+        bgAnim.Duration = TimeSpan.FromMilliseconds(600);
+
+        fgVisual.StartAnimation("Offset", fgAnim);
+        bgVisual.StartAnimation("Offset", bgAnim);
+    }
+
+
+    private void Button_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        var btn = (UIElement)sender;
+        var visual = ElementCompositionPreview.GetElementVisual(btn);
+        var anim = _compositor.CreateScalarKeyFrameAnimation();
+        anim.InsertKeyFrame(1f, 1.2f);
+        anim.Duration = TimeSpan.FromMilliseconds(150);
+        visual.CenterPoint = new Vector3((float)btn.RenderSize.Width / 2, (float)btn.RenderSize.Height / 2, 0);
+        visual.StartAnimation("Scale.X", anim);
+        visual.StartAnimation("Scale.Y", anim);
+    }
+
+    private void Button_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        var btn = (UIElement)sender;
+        var visual = ElementCompositionPreview.GetElementVisual(btn);
+        var anim = _compositor.CreateScalarKeyFrameAnimation();
+        anim.InsertKeyFrame(1f, 1f);
+        anim.Duration = TimeSpan.FromMilliseconds(150);
+        visual.StartAnimation("Scale.X", anim);
+        visual.StartAnimation("Scale.Y", anim);
+    }
+
+
+
+    //private void ApplyDepthZoomEffect(UIElement element)
+    //{
+    //    var visual = ElementCompositionPreview.GetElementVisual(element);
+
+    //    var blur = _compositor.CreateGaussianBlurEffect();
+    //    var brush = _compositor.CreateEffectFactory(blur).CreateBrush();
+    //    var sprite = _compositor.CreateSpriteVisual();
+    //    sprite.Brush = brush;
+    //    ElementCompositionPreview.SetElementChildVisual(element, sprite);
+
+    //    visual.CenterPoint = new Vector3((float)element.RenderSize.Width / 2, (float)element.RenderSize.Height / 2, 0);
+    //    visual.Scale = new Vector3(0.85f);
+    //    var zoom = _compositor.CreateVector3KeyFrameAnimation();
+    //    zoom.InsertKeyFrame(1f, Vector3.One);
+    //    zoom.Duration = TimeSpan.FromMilliseconds(400);
+    //    visual.StartAnimation("Scale", zoom);
+    //}
+    private void ApplyFlipEffect(UIElement element)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+        visual.RotationAxis = new Vector3(0, 1, 0); // Y-axis flip
+        visual.CenterPoint = new Vector3((float)element.RenderSize.Width / 2, (float)element.RenderSize.Height / 2, 0);
+        visual.RotationAngleInDegrees = -90;
+
+        var flipAnim = _compositor.CreateScalarKeyFrameAnimation();
+        flipAnim.InsertKeyFrame(1f, 0f);
+        flipAnim.Duration = TimeSpan.FromMilliseconds(500);
+        var easing = _compositor.CreateCubicBezierEasingFunction(new Vector2(0.42f, 0f), new Vector2(0.58f, 1f));
+        flipAnim.InsertKeyFrame(1f, 0f, easing);
+
+        visual.StartAnimation(nameof(visual.RotationAngleInDegrees), flipAnim);
     }
 
 }

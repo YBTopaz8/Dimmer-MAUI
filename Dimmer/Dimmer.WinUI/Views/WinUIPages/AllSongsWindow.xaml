@@ -25,6 +25,7 @@
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:Name="myPage"
     Title="All Songs"
+    VisibilityChanged="MyPage_VisibilityChanged"
     mc:Ignorable="d">
 
 

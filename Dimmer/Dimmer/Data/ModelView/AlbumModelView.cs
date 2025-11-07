@@ -56,9 +56,14 @@ public partial class AlbumModelView : ObservableObject
     public partial double ParetoPercentage { get; set; }
     [ObservableProperty]
     public partial double TotalSkipCount { get; set; }
-    public int TotalPlayDurationSeconds { get; set; }
-    public List<ArtistModel>? Artists { get;  set; }
-    public ObservableCollection<SongModelView>? SongsInAlbum { get; set; }
+    [ObservableProperty]
+    public partial int TotalPlayDurationSeconds { get; set; }
+    [ObservableProperty]
+    public partial List<ArtistModelView>? Artists { get;  set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SongsInAlbum { get; set; }
+    [ObservableProperty]
+    public partial bool IsFavorite { get; internal set; }
 }
 public class AlbumGroupViewModel : ObservableObject
 {

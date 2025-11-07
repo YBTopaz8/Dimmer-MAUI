@@ -39,6 +39,8 @@ public static class TQlStaticMethods
         public static string SortByYearDesc() => "desc year";
         public static string SortByRatingDesc() => "desc rating";
         public static string Shuffle() => "shuffle";
+        public static string DescAdded() => "desc added";
+        public static string AscAdded() => "asc added";
 
         // --- Simple Filters ---
         public static string Favorites() => "fav:true";

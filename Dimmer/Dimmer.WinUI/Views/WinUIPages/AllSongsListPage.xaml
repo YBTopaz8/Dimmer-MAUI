@@ -11,6 +11,7 @@
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:local="using:Dimmer.WinUI.Views.WinUIPages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
@@ -22,7 +23,34 @@
     Unloaded="MyPageGrid_Unloaded"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <media:AcrylicBrush
+                        x:Key="CustomAcrylicInAppBrush"
+                        FallbackColor="Green"
+                        TintColor="Black"
+                        TintOpacity="0.8" />
+                    <media:AcrylicBrush
+                        x:Key="CustomAcrylicInAppLuminosity"
+                        FallbackColor="SkyBlue"
+                        TintColor="SkyBlue"
+                        TintOpacity="0.8" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
 
+            <DataTemplate x:Key="ColorTemplate" x:DataType="SolidColorBrush">
+                <StackPanel AutomationProperties.Name="{x:Bind Color}" Orientation="Horizontal">
+                    <Rectangle
+                        Width="20"
+                        Height="20"
+                        Fill="{x:Bind}" />
+                    <TextBlock Margin="4,0,0,0" Text="{x:Bind Color}" />
+                </StackPanel>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Page.Resources>
     <Grid
         Grid.Row="0"
         Margin="10"
@@ -126,7 +154,7 @@
                 <Button Command="{x:Bind MyViewModel.AddToQueueCommand}" Content="Add To End" />
                 <Button Command="{x:Bind MyViewModel.EnsureAllCoverArtCachedForSongsCommand}" Content="Reload Images" />
 
-                <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count}" />
+                <TextBlock VerticalAlignment="Center" Text="{Binding SearchResults.Count}" />
 
 
 
@@ -135,15 +163,7 @@
 
             </StackPanel>
 
-            <!--<StackPanel Orientation="Horizontal"
-                        >
-                <Button Content="Filter by This" Command="{x:Bind MyViewModel.FilterBySelectionCommand}" />
-                <Button Content="And..." Command="{x:Bind MyViewModel.AddFilterFromSelectionCommand}" />
-                <Button Content="Or..." Command="{x:Bind MyViewModel.IncludeSelectionCommand}" />
-                <Button Content="But Not..." Command="{x:Bind MyViewModel.ExcludeSelectionCommand}" />
 
-                <Button Content="Reset Search" Command="{x:Bind MyViewModel.ResetSearchCommand}" />
-            </StackPanel>-->
 
         </StackPanel>
 
@@ -251,21 +271,75 @@
                 <dgView:TableViewTemplateColumn Header="Cover">
                     <dgView:TableViewTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Grid x:Name="CoverImageGrid" PointerReleased="CoverImageGrid_PointerReleased">
+                            <Border
+                                x:Name="CardBorder"
+                                Height="210"
+                                Margin="3,5,3,-20"
+                                AllowFocusOnInteraction="False"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                IsHitTestVisible="True"
+                                Loaded="CardBorder_Loaded"
+                                PointerEntered="CardBorder_PointerEntered"
+                                PointerExited="CardBorder_PointerExited">
+                                <Grid x:Name="CoverImageGrid" PointerReleased="CoverImageGrid_PointerReleased">
 
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                                <!--  You can even overlay a "favorite" icon like in your example  -->
-                                <Image
-                                    x:Name="coverArtImage"
-                                    Width="100"
-                                    Height="100"
-                                    x:FieldModifier="Public"
-                                    CanDrag="True"
-                                    Source="{Binding CoverImagePath}"
-                                    Stretch="UniformToFill" />
+                                    <!--  You can even overlay a "favorite" icon like in your example  -->
+                                    <Image
+                                        x:Name="coverArtImage"
+                                        Grid.Row="0"
+                                        Width="180"
+                                        Height="180"
+                                        x:FieldModifier="Public"
+                                        CanDrag="True"
+                                        Source="{Binding CoverImagePath}"
+                                        Stretch="UniformToFill" />
 
+                                    <StackPanel
+                                        x:Name="ExtraPanel"
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Bottom"
+                                        Loaded="ExtraPanel_Loaded"
+                                        Opacity="0"
+                                        Orientation="Horizontal"
+                                        RenderTransformOrigin="0.5,0.5"
+                                        Spacing="10"
+                                        Visibility="Visible">
+                                        <StackPanel.RenderTransform>
+                                            <TranslateTransform Y="150" />
+                                        </StackPanel.RenderTransform>
+                                        <Button
+                                            x:Name="ViewSongBtn"
+                                            Margin="10,0,0,20"
+                                            HorizontalAlignment="Center"
+                                            Background="DarkSlateBlue"
+                                            Click="ViewSongBtn_Click"
+                                            Content="Download"
+                                            Opacity="0.8"
+                                            PointerEntered="ButtonHover_PointerEntered"
+                                            PointerExited="ButtonHover_PointerExited" />
+                                        <Button
+                                            x:Name="ViewOtherBtn"
+                                            Margin="0,0,10,20"
+                                            HorizontalAlignment="Center"
+                                            Background="DarkSlateBlue"
+                                            Click="ViewOtherBtn_Click"
+                                            Content="Favorite"
+                                            Opacity="0.8"
+                                            PointerEntered="ButtonHover_PointerEntered"
+                                            PointerExited="ButtonHover_PointerExited" />
+                                    </StackPanel>
 
-                            </Grid>
+                                </Grid>
+
+                            </Border>
                         </DataTemplate>
                     </dgView:TableViewTemplateColumn.CellTemplate>
                 </dgView:TableViewTemplateColumn>
@@ -282,11 +356,35 @@
                     Binding="{Binding Title}"
                     Header="Title"
                     IsReadOnly="True" />
-                <dgView:TableViewTextColumn
+                <dgView:TableViewTemplateColumn
                     MaxWidth="200"
-                    Binding="{Binding ArtistName}"
                     Header="Artist"
-                    IsReadOnly="True" />
+                    IsReadOnly="True">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+
+                        <DataTemplate>
+                            <Grid Height="150" PointerPressed="Grid_PointerPressed">
+
+                                <Border
+                                    x:Name="ArtistNameTextOnly"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{Binding}">
+
+                                    <TextBlock
+                                        x:Name="ArtistNameTxt"
+                                        HorizontalAlignment="Center"
+                                        Text="{Binding ArtistName}" />
+                                </Border>
+
+
+                            </Grid>
+                        </DataTemplate>
+
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+
+
+                </dgView:TableViewTemplateColumn>
 
                 <dgView:TableViewTextColumn
                     MaxWidth="180"
@@ -347,6 +445,9 @@
 
             </dgView:TableView.Columns>
         </dgView:TableView>
+
+
+
 
     </Grid>
 </Page>

@@ -20,7 +20,7 @@ public partial class App : Application
         {
             LogException(e.ExceptionObject as Exception ?? new Exception("Unknown unhandled exception"));
 
-            Debugger.Break();
+            //Debugger.Break();
         };
         if (Connectivity.NetworkAccess == NetworkAccess.Internet && ParseSetup.InitializeParseClient())
         {

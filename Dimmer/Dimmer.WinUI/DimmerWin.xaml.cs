@@ -152,7 +152,7 @@ public partial class DimmerWin : Window
         {
             return;
         }
-        MyViewModel.OnAppOpening();
+        
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
 

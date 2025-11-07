@@ -3,6 +3,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 {
 
     public bool IsNew { get; set; }
+    public bool IsFavorite { get; set; }
 
     [PrimaryKey]
     public ObjectId Id { get; set; }

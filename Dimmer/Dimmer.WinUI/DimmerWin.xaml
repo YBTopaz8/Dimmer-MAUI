@@ -54,6 +54,7 @@
                         x:Name="SocialBtn"
                         Clicked="SocialBtn_Clicked"
                         IsEnabled="False"
+                        IsVisible="False"
                         Source="usersgrouprounded.png" />
                     <ImageButton
                         x:Name="SwitchTheme"
