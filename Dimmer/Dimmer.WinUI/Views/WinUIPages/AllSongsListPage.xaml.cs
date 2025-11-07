@@ -1529,7 +1529,7 @@ private void CloseButton_Click(object sender, RoutedEventArgs e)
                     if (properties.IsRightButtonPressed)
                     {
                         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(_storedSong.ArtistToSong.First()!.Name!));
-                        
+                        return;
                     }
 
                     FrameNavigationOptions navigationOptions = new FrameNavigationOptions

@@ -780,6 +780,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public async Task LoadFullArtistDetails(ArtistModelView artist)
     {
 
+        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artist.Name));
         var tempVar = await lastfmService.GetArtistInfoAsync(artist.Name);
 
         if (tempVar is not null)
@@ -795,7 +796,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
         artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));
 
-        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artist.Name));
         
         MainThread.BeginInvokeOnMainThread(()=>
         {

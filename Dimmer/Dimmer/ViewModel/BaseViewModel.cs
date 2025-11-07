@@ -1328,6 +1328,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     private IDialogueService _dialogueService;
     protected ILastfmService lastfmService;
+    public ILastfmService LastFMService => lastfmService;
 
     #region audio device management
     public void LoadAllAudioDevices()

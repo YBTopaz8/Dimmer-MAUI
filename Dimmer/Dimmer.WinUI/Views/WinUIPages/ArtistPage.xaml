@@ -51,14 +51,17 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
                 <TextBlock
                     x:Name="DestinationElement"
+                    Grid.Row="0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
-                    FontSize="55" PointerReleased="DestinationElement_PointerReleased"
+                    FontSize="55"
                     FontWeight="SemiBold"
+                    PointerReleased="DestinationElement_PointerReleased"
                     Text="{Binding SelectedArtist.Name}" />
 
                 <StackPanel
@@ -86,11 +89,35 @@
                             Source="/Dimmer/Resources/Images/heartlock.svg"
                             Visibility="Visible" />
                     </ToggleButton>
-                    <DropDownButton x:Name="AllAlbumsBtn" Content="All Albums" 
-                    Loaded="AllAlbumsBtn_Loaded">
-                    </DropDownButton>
+                    <DropDownButton
+                        x:Name="AllAlbumsBtn"
+                        Content="All Albums"
+                        Loaded="AllAlbumsBtn_Loaded" />
 
 
+                </StackPanel>
+                <StackPanel Grid.Row="2">
+                    <TextBlock Text="Albums" />
+                    <ListView
+                        x:Name="ArtistAlbums"
+                        ItemClick="ArtistAlbums_ItemClick"
+                        SelectionMode="Multiple">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemTemplate>
+
+                            <DataTemplate>
+                                <StackPanel>
+
+                                    <TextBlock Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </StackPanel>
             </Grid>
             <Image
@@ -238,33 +265,6 @@
                 <dgView:TableViewTextColumn
                     Binding="{Binding PlayCompletedCount}"
                     Header="Dims"
-                    IsReadOnly="True" />
-                <dgView:TableViewTemplateColumn Header="Is Fav" IsReadOnly="False">
-                    <dgView:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <CheckBox
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Click="CheckBox_Click"
-                                    ClickMode="Release"
-                                    IsChecked="{Binding IsFavorite}" />
-                            </Grid>
-                        </DataTemplate>
-                    </dgView:TableViewTemplateColumn.CellTemplate>
-                    <!--<dgView:TableViewTemplateColumn.EditingTemplate>
-                            <DataTemplate>
-                                <NumberBox Value="{Binding Quantity, Mode=TwoWay}" />
-                            </DataTemplate>
-                        </dgView:TableViewTemplateColumn.EditingTemplate>-->
-                </dgView:TableViewTemplateColumn>
-                <dgView:TableViewTextColumn
-                    Binding="{Binding SkipCount}"
-                    Header="Skip Count"
-                    IsReadOnly="True" />
-                <dgView:TableViewTextColumn
-                    Binding="{Binding GlobalRank}"
-                    Header="Global Rank"
                     IsReadOnly="True" />
 
             </dgView:TableView.Columns>

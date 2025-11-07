@@ -8,6 +8,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Dimmer.Data;
 using Dimmer.Data.Models;
 using Dimmer.DimmerSearch;
+using Dimmer.Utilities.Extensions;
 using Dimmer.Utils;
 
 using Microsoft.UI.Composition;
@@ -226,7 +227,7 @@ public sealed partial class ArtistPage : Page
 
     }
 
-    private void AllAlbumsBtn_Loaded(object sender, RoutedEventArgs e)
+    private async void AllAlbumsBtn_Loaded(object sender, RoutedEventArgs e)
     {
         DropDownButton send = (DropDownButton)sender;
 
@@ -234,35 +235,20 @@ public sealed partial class ArtistPage : Page
 
         var AlbumsByArtist = realm.Find<ArtistModel>(MyViewModel.SelectedArtist.Id).Albums;
 
-        
-        var dropDownFlyout = new MenuFlyout();
-        foreach (var singleAlbum in AlbumsByArtist)
-        {
-            if (singleAlbum is null) return;
-            var isArtistAlbum = singleAlbum.Artists[0].Id == MyViewModel.SelectedArtist.Id;
-
-
-            MenuFlyoutItem albumMenFlyout = new MenuFlyoutItem()
-            {
-
-
-                BorderThickness = isArtistAlbum ? new Thickness(1) : new Thickness(0)
-            };
-
-            albumMenFlyout.Text = singleAlbum.Name;
-
-            albumMenFlyout.Click += (s, ev) =>
-            {
-                MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(singleAlbum.Name));
-            };
-            dropDownFlyout.Items.Add(albumMenFlyout);
-        }
-        send.Flyout = dropDownFlyout;
+        ObservableCollection<AlbumModelView> albums = new();
+     
+        ArtistAlbums.ItemsSource = MyViewModel._mapper.Map<ObservableCollection<AlbumModelView>>(AlbumsByArtist.ToObservableCollection());
+      
     }
 
     private void DestinationElement_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+
+    }
+
+    private void ArtistAlbums_ItemClick(object sender, ItemClickEventArgs e)
+    {
 
     }
 }
