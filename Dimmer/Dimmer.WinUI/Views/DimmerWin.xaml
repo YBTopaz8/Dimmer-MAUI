@@ -13,11 +13,7 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid>
-        <TextBlock Text="Welcome to Dimmer WinUI!" 
-                   HorizontalAlignment="Center" 
-                   VerticalAlignment="Center" 
-                   FontSize="24"/> 
 
-    </Grid>
+    <Frame x:Name="ContentFrame" />
+
 </Window>

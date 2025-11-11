@@ -8,5 +8,13 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\AllSongsListPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\DimmerWin.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

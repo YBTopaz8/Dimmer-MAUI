@@ -1,5 +1,7 @@
 ﻿using System.Reactive.Disposables;
 
+using Dimmer.Interfaces;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dimmer.Orchestration;

@@ -8,6 +8,7 @@ using System.Web; // Needed for HttpUtility
 
 using ATL;
 
+using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 using Hqub.Lastfm.Entities;

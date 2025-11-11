@@ -4,6 +4,8 @@ using Parse.Infrastructure;
 
 using System.Net;
 
+using NetworkAccess = Microsoft.Maui.Networking.NetworkAccess;
+
 namespace Dimmer.DimmerLive.Orchestration;
 public static class ParseSetup
 {

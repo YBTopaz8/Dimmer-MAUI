@@ -1,7 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 
-using Page = Microsoft.UI.Xaml.Controls.Page;
-using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public partial class WinUIWindowMgrService : IWinUIWindowMgrService

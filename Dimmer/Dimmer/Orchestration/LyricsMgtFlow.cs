@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Dimmer.Interfaces;
 
-using ReactiveUI;
+using Microsoft.Extensions.Logging.Abstractions;
+
 
 
 namespace Dimmer.Orchestration;
@@ -299,7 +300,7 @@ public class LyricsMgtFlow : IDisposable
       AudioEnginePositionObservable
           .Sample(TimeSpan.FromMilliseconds(100)) // We still sample to avoid too many updates.
           .DistinctUntilChanged() // And only take distinct position values.
-          .ObserveOn(RxApp.MainThreadScheduler)
+          .ObserveOn(RxSchedulers.UI)
           .Subscribe(
               positionInSeconds =>
               {

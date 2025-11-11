@@ -1,10 +1,11 @@
-﻿using Hqub.Lastfm;
+﻿using Dimmer.Interfaces;
+
+using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
 using Hqub.Lastfm.Entities;
 
 using Microsoft.Extensions.Options;
 
-using ReactiveUI;
 
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -86,7 +87,7 @@ public class LastfmService : ILastfmService
             h => audioService.PlaybackStateChanged -= h)
         .Select(evt => evt.EventArgs)
         .Where(_ => ((ILastfmService)this).IsAuthenticated)
-        .ObserveOn(RxApp.TaskpoolScheduler)
+        .ObserveOn(RxSchedulers.Background)
         .Subscribe(async x =>
         {
             await HandlePlaybackStateChange(x);
@@ -96,7 +97,7 @@ public class LastfmService : ILastfmService
         Observable.FromEventPattern<PlaybackEventArgs>(
                     h => audioService.PlayEnded += h,
                     h => audioService.PlayEnded -= h)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"))
                 .DisposeWith(_disposables);
 

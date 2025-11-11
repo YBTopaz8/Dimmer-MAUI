@@ -3,7 +3,6 @@ using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using Window = Microsoft.UI.Xaml.Window;
 using CommunityToolkit.Diagnostics;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;

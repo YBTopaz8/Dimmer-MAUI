@@ -29,14 +29,14 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
 
         // Bind the list of other devices to our UI property
         _sessionManager.OtherAvailableDevices
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Bind(out _otherDevices)
             .Subscribe()
             .DisposeWith(_disposables);
 
         // Listen for incoming transfer requests from the service's observable
         _sessionManager.IncomingTransferRequests
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(HandleIncomingTransferRequest)
             .DisposeWith(_disposables);
 

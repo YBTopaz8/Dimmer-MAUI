@@ -56,7 +56,7 @@ public partial class MySearchPage // Or your relevant UI class name
         _masterSongList.Connect()
             .Filter(_filterPredicate) // Filters the list using our dynamic predicate.
             .Sort(_sortComparer)      // Sorts the list using our dynamic comparer.
-            .ObserveOn(RxApp.MainThreadScheduler) // Ensures UI updates are on the main thread.
+            .ObserveOn(RxSchedulers.UI) // Ensures UI updates are on the main thread.
             .Bind(out _searchResults) // Binds the final results to our read-only collection.
             .Subscribe();             // Activates the pipeline.
 

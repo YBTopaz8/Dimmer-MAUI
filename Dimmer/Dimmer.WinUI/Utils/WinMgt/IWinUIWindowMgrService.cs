@@ -2,7 +2,6 @@
 
 using Microsoft.UI.Xaml;
 
-using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.Utils.WinMgt;
 

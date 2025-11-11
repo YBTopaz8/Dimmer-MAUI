@@ -1,4 +1,6 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿using Dimmer.Interfaces;
+
+namespace Dimmer.DimmerSearch.TQL;
 
 public class AutocompleteEngine
 {

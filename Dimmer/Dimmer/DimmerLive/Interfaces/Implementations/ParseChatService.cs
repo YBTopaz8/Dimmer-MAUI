@@ -2,7 +2,6 @@
 
 using Parse.LiveQuery;
 
-using ReactiveUI;
 
 using System.Reactive.Disposables;
 
@@ -68,7 +67,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
 
             _liveQueryClient.OnConnectionStateChanged
-          .ObserveOn(RxApp.MainThreadScheduler) // Best practice: ensure UI updates are on the main thread
+          .ObserveOn(RxSchedulers.UI) // Best practice: ensure UI updates are on the main thread
           .Subscribe(state =>
           {
               Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state}");
@@ -94,7 +93,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
             _liveQueryClient.OnSubscribed
 
-                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ObserveOn(RxSchedulers.Background)
                 .Do(async e =>
                 {
                     await SendTextMessageAsync("Hello 😄" + Username + "!");

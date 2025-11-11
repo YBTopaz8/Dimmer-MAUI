@@ -2,7 +2,10 @@
 //using Dimmer.DimmerLive.Models;
 //using Dimmer.DimmerLive.Orchestration;
 
+using System.Threading.Tasks;
+
 using Dimmer.DimmerLive.Orchestration;
+using Dimmer.Interfaces;
 using Dimmer.Utils;
 
 namespace Dimmer;
@@ -47,8 +50,47 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return AppUtil.LoadWindow();
+        var win = AppUtil.LoadWindow();
+        win.Created += Win_Created;
+        win.Page = new ContentPage();
+        return win;
     }
+
+    private async void Win_Created(object? sender, EventArgs e)
+    {
+
+#if WINDOWS
+ var mauiWin = sender as Microsoft.Maui.Controls.Window;
+                if (mauiWin?.Handler?.PlatformView is Microsoft.UI.Xaml.Window nativeWin)
+                {
+                    IntPtr hwnd = WindowNative.GetWindowHandle(nativeWin);
+                    WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
+                    AppWindow appWindow = AppWindow.GetFromWindowId(id);
+
+                    
+                    var presenter = appWindow.Presenter as OverlappedPresenter;
+                    if (presenter is not null)
+                    {
+                        // Start minimized or hidden
+                        //presenter.Minimize();
+
+                        // OR start invisible
+                         appWindow.Hide();
+                    }
+
+                    // optional: resize before it shows
+                    appWindow.Resize(new SizeInt32(1080, 1200));
+                }
+#endif
+        await Task.Delay(2400);
+        var concernedWindow = sender as Window;
+        if (concernedWindow != null)
+        {
+            Application.Current!.CloseWindow(concernedWindow);
+        }
+    }
+    public IAppUtil AppUtil { get; }
+
 
     private static readonly Lock _logLock = new();
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -91,8 +133,6 @@ public partial class App : Application
     }
 
     private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
-
-    public IAppUtil AppUtil { get; }
 
     public static void LogException(Exception ex)
     {

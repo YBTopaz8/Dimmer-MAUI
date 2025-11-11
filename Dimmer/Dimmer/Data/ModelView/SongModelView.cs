@@ -320,8 +320,6 @@ public partial class SongModelView : ObservableObject
     public partial int? TrackTotal { get; internal set; }
     [ObservableProperty]
     public partial double SampleRate { get; internal set; }
-    [ObservableProperty] 
-    public partial ObservableCollection<SongModelView> SimilarSongs { get;  set; }
     [ObservableProperty]
     public partial string Encoder { get; internal set; }
     [ObservableProperty]

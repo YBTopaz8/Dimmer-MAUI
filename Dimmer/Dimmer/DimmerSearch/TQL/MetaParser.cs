@@ -354,7 +354,7 @@ public static class MetaParser
         return sortDescriptions;
     }
 
-    private static LimiterClause? CreateLimiterClause(IReadOnlyList<Token> allDirectives)
+    public static LimiterClause? CreateLimiterClause(IReadOnlyList<Token> allDirectives)
     {
         for (int i = 0; i < allDirectives.Count; i++)
         {

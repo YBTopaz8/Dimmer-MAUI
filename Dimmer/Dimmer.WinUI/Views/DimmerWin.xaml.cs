@@ -15,7 +15,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-using Window = Microsoft.UI.Xaml.Window;
+
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -32,13 +32,24 @@ namespace Dimmer.WinUI.Views
 
         public DimmerWin()
         {
-            
-        }
+            InitializeComponent();
+            MyViewModel= IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
+            if(MyViewModel is not null)
+                ContentFrame.Navigate(typeof(AllSongsListPage), MyViewModel);
 
+            this.Closed += AllSongsWindow_Closed;
+
+        }
+        public BaseViewModelWin? MyViewModel { get; internal set; }
+        private void AllSongsWindow_Closed(object sender, WindowEventArgs args)
+        {
+            this.Closed -= AllSongsWindow_Closed;
+        }
         public void LoadWindowAndPassVM(BaseViewModelWin baseViewModelWin, AppUtil appUtil)
         {
             this.baseViewModelWin = baseViewModelWin;
             this.appUtil = appUtil;
+            
         }
     }
 }

@@ -17,7 +17,6 @@ using Application = Microsoft.Maui.Controls.Application;
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using ImageSource = Microsoft.Maui.Controls.ImageSource;
-using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
 public static class PlatUtils

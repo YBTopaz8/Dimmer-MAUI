@@ -1,12 +1,11 @@
 ﻿using System.Reactive.Subjects;
 
-using Dimmer.Interfaces.Services.Interfaces;
-
-using NAudio.CoreAudioApi;
+//using NAudio.CoreAudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
 using AudioSwitcher.AudioApi;
 using DeviceType = AudioSwitcher.AudioApi.DeviceType;
 using System.Threading.Tasks;
+using Dimmer.Interfaces;
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -1176,7 +1175,6 @@ success = true;
         }
     }
 
-    readonly MMDeviceEnumerator _enum = new MMDeviceEnumerator();
     private readonly object _lockObject = new object();
 
 

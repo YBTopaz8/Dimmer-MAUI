@@ -1,5 +1,6 @@
 ﻿using Dimmer.DimmerLive.Interfaces.Implementations;
 using Dimmer.DimmerSearch.Interfaces;
+using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 
 using Parse.LiveQuery;
 
-using SkiaSharp.Views.Maui.Controls.Hosting;
 
 using System.Reflection;
 
@@ -21,7 +21,7 @@ public static class MauiProgramExtensions
     {
         builder
             .UseMauiApp<App>()
-            .UseSkiaSharp()
+            //.UseSkiaSharp()
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
@@ -118,11 +118,31 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<ParseLiveQueryClient>();
 
 
+        var assembly = Assembly.GetExecutingAssembly();
+
+        const string resourceName = "Dimmer.appsettings.json";
+
+        var ress = assembly.GetManifestResourceNames();
 
 
+        using var stream = assembly.GetManifestResourceStream(resourceName);
 
+        // This null check will prevent the crash and tell you exactly what's wrong.
+        if (stream == null)
+        {
+            // If you hit this, the resource name is still wrong or the build action is not set.
+            throw new FileNotFoundException(
+                $"Could not find the embedded resource '{resourceName}'. " +
+                "Ensure the 'Build Action' is set to 'Embedded resource' for Dimmer.appsettings.json",
+                resourceName);
+        }
 
-       
+        // This section will now work without crashing.
+        var config = new ConfigurationBuilder()
+                    .AddJsonStream(stream)
+                    .Build();
+
+        builder.Configuration.AddConfiguration(config);
 
         // Register LastfmSettings
         builder.Services.Configure<LastfmSettings>(builder.Configuration.GetSection("Lastfm"));

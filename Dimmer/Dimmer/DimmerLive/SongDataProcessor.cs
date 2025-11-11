@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks.Dataflow;
 
+using Dimmer.Interfaces;
+
 
 namespace Dimmer.DimmerLive;
 

@@ -1,7 +1,5 @@
 ﻿global using System.Reactive.Linq;
 global using System.Diagnostics;
-global using AutoMapper;
-global using CommunityToolkit.Mvvm.ComponentModel;
 global using Dimmer.ViewModel;
 global using Dimmer.Utilities.CustomAnimations;
 global using Dimmer.WinUI.Utils;
@@ -15,8 +13,26 @@ global using Dimmer.WinUI.ViewModel;
 global using Microsoft.Maui.LifecycleEvents;
 global using Microsoft.UI;
 global using WinRT.Interop;
-global using CommunityToolkit.Maui.Core.Extensions;
 
+global using Page = Microsoft.UI.Xaml.Controls.Page;
+global using System.Windows.Media.Imaging;
+
+global using AutoMapper;
+global using CommunityToolkit.Mvvm.ComponentModel;
+global using CommunityToolkit.Maui.Storage;
+global using CommunityToolkit.Mvvm.Input;
+global using Dimmer.Data.Models;
+global using Dimmer.Data.ModelView.DimmerSearch;
+global using Dimmer.DimmerSearch;
+global using Dimmer.DimmerSearch.TQL;
+global using Dimmer.Interfaces;
+global using Dimmer.Interfaces.IDatabase;
+global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+global using Dimmer.LastFM;
+global using Window = Microsoft.UI.Xaml.Window;
+global using Microsoft.UI.Xaml.Controls;
+global using Microsoft.Extensions.Logging;
 global using Dimmer.Orchestration;
 global using Dimmer.Utilities.Enums;
 global using System.Threading.Tasks;
@@ -51,15 +67,17 @@ global using Dimmer.WinUI.Utils.Helpers;
 
 global using System.Drawing;
 global using System.Reflection;
-global using Vanara.PInvoke;
 global using Dimmer.DimmerLive.Interfaces;
 
-global using CommunityToolkit.Mvvm.Input;
 global using Dimmer.Interfaces.Services;
 
-global using CommunityToolkit.Maui;
-global using CommunityToolkit.Maui.Behaviors;
 
 global using Dimmer.Interfaces.Services.Interfaces;
 global using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 global using Dimmer.WinUI.Utils.WinMgt;
+
+namespace Dimmer.WinUI;
+
+internal class GlobalUsings
+{
+}

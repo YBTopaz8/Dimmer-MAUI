@@ -1,17 +1,16 @@
 ﻿using Microsoft.UI.Xaml;
 
 using Application = Microsoft.Maui.Controls.Application;
-using Page = Microsoft.Maui.Controls.Page;
-using Window = Microsoft.Maui.Controls.Window;
-
+using MPage = Microsoft.Maui.Controls.Page;
+using MWindow = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.WinUI.Utils.WinMgt;
 internal class WindowManagerService : IMauiWindowManagerService
 {
     private readonly IServiceProvider _mauiServiceProvider; // To potentially resolve MAUI services if needed
-    private readonly List<Window> _openWindows = new(); // Simple tracking
-    private readonly Dictionary<string, Window> _trackedUniqueContentWindows = new();
-    private readonly Dictionary<Type, Window> _trackedUniqueTypedWindows = new();
+    private readonly List<MWindow> _openWindows = new(); // Simple tracking
+    private readonly Dictionary<string, MWindow> _trackedUniqueContentWindows = new();
+    private readonly Dictionary<Type, MWindow> _trackedUniqueTypedWindows = new();
 
 
     // Constructor might take IServiceProvider if native pages need MAUI services
@@ -23,7 +22,7 @@ internal class WindowManagerService : IMauiWindowManagerService
     /// <summary>
     /// Creates and activates a new native WinUI window of a specific type.
     /// </summary>
-    public T? CreateWindow<T>() where T : Window, new()
+    public T? CreateWindow<T>() where T : MWindow, new()
     {
         try
         {
@@ -43,7 +42,7 @@ internal class WindowManagerService : IMauiWindowManagerService
     /// <summary>
     /// Creates and activates a new native WinUI window of a specific type, passing a parameter to its constructor.
     /// </summary>
-    public T? CreateWindow<T>(object? parameter) where T : Window
+    public T? CreateWindow<T>(object? parameter) where T : MWindow
     {
         try
         {
@@ -72,7 +71,7 @@ internal class WindowManagerService : IMauiWindowManagerService
     /// <summary>
     /// Creates a generic native WinUI Window that hosts a specific native WinUI Page.
     /// </summary>
-    public Window? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null)
+    public MWindow? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null)
     {
         if (!typeof(Page).IsAssignableFrom(pageType))
         {
@@ -82,8 +81,8 @@ internal class WindowManagerService : IMauiWindowManagerService
 
         try
         {
-            var window = new Window(); // Generic host window
-            var grid = new Page(); // Create a Frame to host the Page
+            var window = new MWindow(); // Generic host window
+            var grid = new MPage(); // Create a Frame to host the Page
             window.Page = grid;
 
             Page? pageInstance = null;
@@ -133,7 +132,7 @@ internal class WindowManagerService : IMauiWindowManagerService
         }
     }
 
-    public T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : Window
+    public T? GetOrCreateUniqueWindow<T>(Func<T>? windowFactory = null) where T : MWindow
     {
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
@@ -164,7 +163,7 @@ internal class WindowManagerService : IMauiWindowManagerService
     }
 
 
-    public Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null)
+    public MWindow? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<MWindow>? windowFactory = null)
     {
         if (_trackedUniqueContentWindows.TryGetValue(uniqueId, out var existingWindow))
         {
@@ -181,7 +180,7 @@ internal class WindowManagerService : IMauiWindowManagerService
             }
         }
 
-        Window? newWindow = windowFactory != null ? windowFactory() : CreateContentWindow(pageType, navigationParameter, title);
+        MWindow? newWindow = windowFactory != null ? windowFactory() : CreateContentWindow(pageType, navigationParameter, title);
         if (newWindow != null)
         {
             // TrackWindow was already called by CreateContentWindow
@@ -196,7 +195,7 @@ internal class WindowManagerService : IMauiWindowManagerService
     }
 
 
-    public void TrackWindow(Window window)
+    public void TrackWindow(MWindow window)
     {
         if (!_openWindows.Contains(window))
         {
@@ -208,14 +207,14 @@ internal class WindowManagerService : IMauiWindowManagerService
 
     private void Window_Destroying(object? sender, EventArgs e)
     {
-        if (sender is Window closedWindow)
+        if (sender is MWindow closedWindow)
         {
             UntrackWindow(closedWindow);
             Debug.WriteLine($"Native WinUI window closed and untracked: {closedWindow.Title}");
         }
     }
 
-    public void UntrackWindow(Window window)
+    public void UntrackWindow(MWindow window)
     {
         _openWindows.Remove(window);
         window.Destroying -= Window_Destroying; // Unsubscribe
@@ -235,7 +234,7 @@ internal class WindowManagerService : IMauiWindowManagerService
 
     }
 
-    private bool IsWindowOpen(Window window)
+    private bool IsWindowOpen(MWindow window)
     {
         // A simple check is if it's in our tracked list.
         // For a more robust check, you might need to see if its AppWindow is visible,
@@ -248,7 +247,7 @@ internal class WindowManagerService : IMauiWindowManagerService
         return _openWindows.Contains(window);
     }
 
-    public void ActivateWindow(Window window)
+    public void ActivateWindow(MWindow window)
     {
         if (IsWindowOpen(window))
         {
@@ -256,7 +255,7 @@ internal class WindowManagerService : IMauiWindowManagerService
             Debug.WriteLine($"Native WinUI window activated: {window.Title}");
         }
     }
-    public T? GetWindow<T>() where T : Window
+    public T? GetWindow<T>() where T : MWindow
     {
         // If it was uniquely tracked by type
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var uniqueWindow) && uniqueWindow is T typedUniqueWindow && IsWindowOpen(typedUniqueWindow))
@@ -267,19 +266,19 @@ internal class WindowManagerService : IMauiWindowManagerService
         return _openWindows.OfType<T>().FirstOrDefault(w => IsWindowOpen(w));
     }
 
-    public Window? GetContentWindowByPageType(Type pageType)
+    public MWindow? GetContentWindowByPageType(Type pageType)
     {
-        return _openWindows.FirstOrDefault(w => w.Page is Page frame && frame.GetType() == pageType && IsWindowOpen(w));
+        return _openWindows.FirstOrDefault(w => w.Page is Microsoft.Maui.Controls.Page frame && frame.GetType() == pageType && IsWindowOpen(w));
     }
 
 
-    public IReadOnlyList<Window> GetOpenNativeWindows()
+    public IReadOnlyList<MWindow> GetOpenNativeWindows()
     {
         // Returns a copy of the tracked windows. This list's accuracy depends on the Closed event.
         return _openWindows.ToList().AsReadOnly();
     }
 
-    public void CloseWindow(Window window)
+    public void CloseWindow(MWindow window)
     {
         try
         {
@@ -296,7 +295,7 @@ internal class WindowManagerService : IMauiWindowManagerService
         }
     }
 
-    public void CloseWindow<T>() where T : Window
+    public void CloseWindow<T>() where T : MWindow
     {
         var window = GetWindow<T>();
         if (window != null)
@@ -315,7 +314,7 @@ internal class WindowManagerService : IMauiWindowManagerService
         }
     }
 
-    public void BringToFront(Window window)
+    public void BringToFront(MWindow window)
     {
         if (IsWindowOpen(window))
         {

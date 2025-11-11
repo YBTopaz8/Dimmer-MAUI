@@ -32,7 +32,6 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre))
                     .ForMember(dest => dest.HasLyricsColumnIsFiltered, opt => opt.Ignore())
                     .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
-                    .ForMember(dest => dest.SimilarSongs, opt => opt.MapFrom(src => src.SimilarSongs))
                     .ForMember(dest => dest.UserNoteAggregatedCol, opt => opt.MapFrom(src => src.UserNotes))
                     .ForMember(dest => dest.EmbeddedSync, opt => opt.MapFrom(src => src.EmbeddedSync))
                     .ForMember(dest => dest.SkipCount, opt => opt.Ignore())

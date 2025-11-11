@@ -42,7 +42,6 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 
     public int? TrackTotal { get; set; }
     public double SampleRate { get; set; }
-    public IList<SongModel> SimilarSongs { get; } = null!;
     public string Encoder { get; set; }
     public int BitDepth { get; set; }
     public int NbOfChannels { get; set; }

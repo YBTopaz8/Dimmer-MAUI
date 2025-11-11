@@ -2,7 +2,7 @@
 
 public class WindowInfo
 {
-    public Window WindowInstance { get; }
+    public Microsoft.Maui.Controls.Window WindowInstance { get; }
     public string? Title { get; }
     public string TypeName { get; }
     public ImageSource? Thumbnail { get; }
@@ -11,7 +11,7 @@ public class WindowInfo
     public double X => WindowInstance.X;
     public double Y => WindowInstance.Y;
 
-    public WindowInfo(Window window, ImageSource? thumbnail)
+    public WindowInfo(Microsoft.Maui.Controls.Window window, ImageSource? thumbnail)
     {
         WindowInstance = window ?? throw new ArgumentNullException(nameof(window));
         Thumbnail      = thumbnail;

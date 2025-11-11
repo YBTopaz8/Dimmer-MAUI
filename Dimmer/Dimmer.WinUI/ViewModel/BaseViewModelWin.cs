@@ -1,35 +1,15 @@
 ﻿// --- START OF FILE BaseViewModelWin.cs ---
 
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
-using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.WinUI;
 
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView.DimmerSearch;
-using Dimmer.DimmerSearch;
-using Dimmer.DimmerSearch.TQL;
-using Dimmer.Interfaces.IDatabase;
-using Dimmer.Interfaces.Services.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using Dimmer.LastFM;
-using Dimmer.Orchestration;
-using Dimmer.Resources.Localization;
-using Dimmer.WinUI.Utils.WinMgt;
-using Dimmer.WinUI.Views;
 
-using Microsoft.Extensions.Logging;
-using Microsoft.UI.Xaml.Controls;
+
 
 using Windows.Graphics;
 using Windows.Storage.Pickers;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 //using TableView = WinUI.TableView.TableView;
-using Window = Microsoft.UI.Xaml.Window;
 
 namespace Dimmer.WinUI.ViewModel;
 
@@ -788,8 +768,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             var similar = tempVar.Similar.Select(x => x.Name);
             //tempVar.Url;
             // find matches for any time in search results
-
-            artist.ListOfSimilarArtists = similar.ToObservableCollection();
+            ObservableCollection<string> are = new System.Collections.ObjectModel.ObservableCollection<string>(similar);
+            artist.ListOfSimilarArtists = are;
         }
         artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
         artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));

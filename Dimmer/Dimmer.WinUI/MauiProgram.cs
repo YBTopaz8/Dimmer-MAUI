@@ -1,12 +1,7 @@
-﻿
-
-
-
-using Windows.Graphics;
-
-using Colors = Microsoft.Maui.Graphics.Colors;
+﻿using CommunityToolkit.Maui;
 
 namespace Dimmer.WinUI;
+
 
 public static class MauiProgram
 {
@@ -64,7 +59,7 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
 
-                    var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>();
+                    var winMgr = IPlatformApplication.Current.Services.GetService<IWinUIWindowMgrService>();
                     winMgr?.CloseAllWindows();
 
                     // Handle window closed event

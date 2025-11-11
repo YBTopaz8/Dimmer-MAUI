@@ -1,6 +1,5 @@
 ﻿using DynamicData;
 
-using ReactiveUI;
 
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -36,13 +35,13 @@ public partial class SocialViewModel : ObservableObject, IDisposable
 
         // Bind the service's live data streams to our UI collections
         _friendshipService.Friends
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Bind(out _friends)
             .Subscribe()
             .DisposeWith(_disposables);
 
         _friendshipService.IncomingFriendRequests
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Bind(out _friendRequests)
             .Subscribe()
             .DisposeWith(_disposables);

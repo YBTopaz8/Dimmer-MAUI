@@ -1,5 +1,6 @@
 ﻿using Parse.Infrastructure;
 
+
 using System.Linq.Dynamic.Core.Exceptions;
 
 namespace Dimmer.DimmerLive.ParseStatics;
@@ -102,7 +103,7 @@ public class ParseStatics
                                                     // Show a success alert to the user
             return true;
         }
-        catch (ParseException e)
+        catch (ParseFailureException e)
         {
             Debug.WriteLine($"Error sending message: {e.Message}");
             // Show an error alert to the user

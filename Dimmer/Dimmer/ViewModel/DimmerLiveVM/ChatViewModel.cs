@@ -1,14 +1,13 @@
 ﻿using DynamicData;
 using DynamicData.Binding;
 
-using ReactiveUI;
 
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
 namespace Dimmer.ViewModel.DimmerLiveVM;
-public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposable
+public partial class ChatViewModel : ObservableObject, IDisposable
 {
     public IChatService ChatService => _chatService;
     public IAuthenticationService AuthenticationService => _authService;
@@ -61,12 +60,12 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
         // Bind the service's conversations to our UI collection
         _chatService.Conversations
             .Sort(SortExpressionComparer<ChatConversation>.Descending(c => c.LastMessageTimestamp))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Bind(out _conversations)
             .Subscribe()
             .DisposeWith(_disposables);
         _chatService.Messages.
-            ObserveOn(RxApp.MainThreadScheduler)
+            ObserveOn(RxSchedulers.UI)
             .Bind(out _messages)
             .Subscribe( t =>
             {
@@ -153,7 +152,7 @@ public partial class ChatViewModel : ObservableObject,IReactiveObject, IDisposab
         Observable.Return(value)
             .Throttle(TimeSpan.FromMilliseconds(500))
             .SelectMany(term => _friendshipService.FindUsersAsync(term))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(results =>
             {
                 UserSearchResults = new ObservableCollection<UserModelOnline>(results);

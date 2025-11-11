@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dimmer.Data.Models;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
+using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
 using Dimmer.UIUtils;
@@ -27,7 +28,6 @@ using Parse.LiveQuery;
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
-using ReactiveUI;
 
 
 using EventHandler = System.EventHandler;
@@ -35,7 +35,7 @@ using EventHandler = System.EventHandler;
 
 namespace Dimmer.ViewModel;
 
-public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposable
+public partial class BaseViewModel : ObservableObject,  IDisposable
 {
     private IDuplicateFinderService _duplicateFinderService;
 
@@ -115,7 +115,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory, _mapper);
 
         searchResultsHolder.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler) // Important for UI updates
+            .ObserveOn(RxSchedulers.UI) // Important for UI updates
             .Bind(out _searchResults)
             .Subscribe(x =>
             {
@@ -129,7 +129,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             h => _audioService.SeekCompleted += h,
             h => _audioService.SeekCompleted -= h)
             .Select(evt => evt.EventArgs)
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
             .DisposeWith(_subsManager);
     }
@@ -162,7 +162,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         var realm = RealmFactory.GetRealmInstance();
         var _isLibraryEmpty = new BehaviorSubject<bool>(true);
-        IsLibraryEmpty?.ObserveOn(RxApp.MainThreadScheduler)
+        IsLibraryEmpty?.ObserveOn(RxSchedulers.UI)
                             .Subscribe(
                                 showWelcomeScreen =>
                                 {
@@ -238,7 +238,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         //SubscribeToCommandEvaluatorEvents();
 
         _duplicateSource.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Bind(out _duplicateSets)
             .Subscribe(
                 x =>
@@ -249,7 +249,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         Debug.WriteLine($"{DateTime.Now}: Duplicate sets subscription set up.");
 
         _playbackQueueSource.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Bind(out _playbackQueue)
             .Subscribe(
                 x =>
@@ -263,7 +263,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         _searchQuerySubject
-            .Throttle(TimeSpan.FromMilliseconds(380), RxApp.TaskpoolScheduler)
+            .Throttle(TimeSpan.FromMilliseconds(380), RxSchedulers.Background)
             .Select(
                 query =>
                 {
@@ -279,8 +279,8 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
                     return (Query: tqlQuery, Plan: plan);
                 })
-            .SubscribeOn(RxApp.TaskpoolScheduler)
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .SubscribeOn(RxSchedulers.Background)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(
                 payload =>
                 {
@@ -380,7 +380,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
 
         lastfmService.IsAuthenticatedChanged
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(
                 async isAuthenticated =>
                 {
@@ -561,6 +561,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     }
 
     public BehaviorSubject<string> _searchQuerySubject;
+    private BehaviorSubject<LimiterClause?> _limiterClause;
 
     public event EventHandler? AddNextEvent;
 
@@ -3414,7 +3415,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         IsSleepTimerActive = true;
         _logger.LogInformation("Sleep timer set for {Duration}.", duration);
 
-        _sleepTimerSubscription = Observable.Timer(duration, RxApp.MainThreadScheduler)
+        _sleepTimerSubscription = Observable.Timer(duration, RxSchedulers.UI)
             .Subscribe(
                 _ =>
                 {
@@ -3542,7 +3543,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     {
         _subsMgr.Add(_stateService.CurrentSong
             .DistinctUntilChanged()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(
                     newSong =>
                     {
@@ -3583,7 +3584,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
     private void SubscribeToLyricsFlow()
     {
         _subsMgr.Add(
-            LyricsMgtFlow.CurrentLyric.ObserveOn(RxApp.MainThreadScheduler)
+            LyricsMgtFlow.CurrentLyric.ObserveOn(RxSchedulers.UI)
             .Subscribe(line =>
             {
                 CurrentPlayingSongView.HasSyncedLyrics = line is not null;
@@ -3592,20 +3593,20 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
         _subsMgr.Add(
 
             LyricsMgtFlow.IsLoadingLyrics
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(isLoading =>
                 {
                     IsLoadingLyrics = isLoading;
                 }));
         _subsMgr.Add(
             LyricsMgtFlow.IsSearchingLyrics
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(isSearching =>
             {
                 IsSearchingLyrics = isSearching;
             }));
         LyricsMgtFlow.AllSyncLyrics
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(lines =>
                 {
                     AllLines?.Clear();
@@ -3637,7 +3638,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _subsMgr.Add(
             LyricsMgtFlow.PreviousLyric
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     line =>
                     {
@@ -3651,7 +3652,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
         _subsMgr.Add(
             LyricsMgtFlow.NextLyric
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     line =>
                     {
@@ -3669,7 +3670,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 h => _audioService.PlaybackStateChanged += h,
                 h => _audioService.PlaybackStateChanged -= h)
                 .Select(evt => evt.EventArgs)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     async x => await HandlePlaybackStateChange(x),
                     ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
@@ -3678,7 +3679,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             h => _audioService.ErrorOccurred += h,
             h => _audioService.ErrorOccurred -= h)
                 .Select(evt => evt.EventArgs)
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.UI)
             .Subscribe(async x =>
             {
                 await OnPlayBackErrorOccured(x);
@@ -3692,7 +3693,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 h => _audioService.IsPlayingChanged += h,
                 h => _audioService.IsPlayingChanged -= h)
                 .Select(evt => evt.EventArgs.IsPlaying)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     isPlaying =>
                     {
@@ -3706,14 +3707,14 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
                 h => _audioService.PositionChanged += h,
                 h => _audioService.PositionChanged -= h)
                 .Select(evt => evt.EventArgs)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
 
         //_subsMgr.Add(Observable.FromEventPattern<double>(
         //        h => _audioService.SeekCompleted += h,
         //        h => _audioService.SeekCompleted -= h)
         //    .Select(evt => evt.EventArgs)
-        //    .ObserveOn(RxApp.MainThreadScheduler)
+        //    .ObserveOn(RxSchedulers.UI)
         //    .Subscribe(newPost =>
         //    {
         //        OnSeekCompleted(newPost);
@@ -3724,7 +3725,7 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
             Observable.FromEventPattern<PlaybackEventArgs>(
                 h => _audioService.PlayEnded += h,
                 h => _audioService.PlayEnded -= h)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     async _ =>
                     {
@@ -4678,14 +4679,9 @@ public partial class BaseViewModel : ObservableObject, IReactiveObject, IDisposa
 
     public ReadOnlyObservableCollection<DimmerPlayEventView> PlayEventsByTimeChartData { get; private set; }
 
-    public ReadOnlyObservableCollection<InteractiveChartPoint> PlayEventsByHourChartData { get; private set; }
-
+   
     public ReadOnlyObservableCollection<DimmerPlayEventView> PlaysByDurationChartData { get; private set; }
 
-    private ObservableCollectionExtended<InteractiveChartPoint> _topSkipsList = new();
-    private BehaviorSubject<LimiterClause?> _limiterClause;
-
-    public ReadOnlyObservableCollection<InteractiveChartPoint> TopSkipsChartData { get; }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmerStats>? SongPlayTypeDistribution { get; set; }

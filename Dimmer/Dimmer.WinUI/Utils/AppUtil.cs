@@ -1,5 +1,7 @@
-﻿using Dimmer.Interfaces.Services.Interfaces;
+﻿using Dimmer.Interfaces;
 using Dimmer.WinUI.Views;
+
+using Windows.Graphics;
 
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
@@ -17,9 +19,18 @@ public class AppUtil : IAppUtil
     {
         return new AppShell(BaseViewModelWin);
     }
-    public Window LoadWindow()
+    public Microsoft.Maui.Controls.Window LoadWindow()
     {
-        this.dimmerWin ??=BaseViewModelWin.MainMAUIWindow;
+
+       
+        if (this.dimmerWin is null)
+        {
+            this.dimmerWin = new();
+        }
+        else
+        {
+            dimmerWin = BaseViewModelWin.MainMAUIWindow;
+        }
         dimmerWin.LoadWindowAndPassVM(BaseViewModelWin, this);
         dimmerWin ??= dimmerWin;
         
@@ -33,8 +44,10 @@ public class AppUtil : IAppUtil
         PlatUtils.ResizeNativeWindow(dimmerWin, new Windows.Graphics.SizeInt32() { Height = 1200, Width=1080});
 
 
-        return new Window();
+        return new Microsoft.Maui.Controls.Window();
     }
+
+
     public DimmerWin? dimmerWin { get; set; }
     public BaseViewModelWin BaseViewModelWin { get; }
 
