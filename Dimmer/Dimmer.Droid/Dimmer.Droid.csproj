@@ -1,0 +1,93 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0-android</TargetFramework>
+		<SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<RootNamespace>Dimmer</RootNamespace>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
+		<UseMaui>true</UseMaui>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.10" />
+
+
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.11" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="24.2.11" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="24.2.11" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.11" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="24.2.11" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.11" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.9" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.3" />
+
+
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.9.3" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.9.3" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.9.3" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.9.3" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.MediaRouter" Version="1.8.1.1" />
+
+		<PackageReference Include="Xamarin.AndroidX.Palette" Version="1.0.0.34" />
+
+		<!-- Media3 Dependencies (Consolidated & Updated) -->
+		<PackageReference Include="Xamarin.AndroidX.Media3.Common" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer" Version="1.8.0" />
+		<PackageReference Include="morelinq" Version="4.4.0" />
+		<!-- Use only ONE reference -->
+		<PackageReference Include="Xamarin.AndroidX.Media3.Extractor" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.Session" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.Ui" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Dash" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Hls" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.SmoothStreaming" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Palette.Palette.Ktx" Version="1.0.0.27" />
+		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.3.2" />
+		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.3.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="AppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="CustomShellRenderers\PlayerControl.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="ViewsAndPages\HomePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+</Project>
