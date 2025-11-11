@@ -51,8 +51,12 @@ public partial class App : Application
     protected override Window CreateWindow(IActivationState? activationState)
     {
         var win = AppUtil.LoadWindow();
+
+#if WINDOWS
         win.Created += Win_Created;
+
         win.Page = new ContentPage();
+#endif
         return win;
     }
 
@@ -60,7 +64,7 @@ public partial class App : Application
     {
 
 #if WINDOWS
- var mauiWin = sender as Microsoft.Maui.Controls.Window;
+            var mauiWin = sender as Microsoft.Maui.Controls.Window;
                 if (mauiWin?.Handler?.PlatformView is Microsoft.UI.Xaml.Window nativeWin)
                 {
                     IntPtr hwnd = WindowNative.GetWindowHandle(nativeWin);
@@ -81,13 +85,13 @@ public partial class App : Application
                     // optional: resize before it shows
                     appWindow.Resize(new SizeInt32(1080, 1200));
                 }
-#endif
         await Task.Delay(2400);
         var concernedWindow = sender as Window;
         if (concernedWindow != null)
         {
             Application.Current!.CloseWindow(concernedWindow);
         }
+#endif
     }
     public IAppUtil AppUtil { get; }
 

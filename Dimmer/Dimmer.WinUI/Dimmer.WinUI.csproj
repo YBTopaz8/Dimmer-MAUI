@@ -35,6 +35,7 @@
 		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
 	</ItemGroup>
 
+	
 	<ItemGroup>
 		<!-- Make sure all image assets to be in the root of the package to match the other platforms -->
 		<Content Update="Assets\Images\*" TargetPath="%(Filename)%(Extension)" />
