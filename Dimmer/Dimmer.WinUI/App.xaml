@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<maui:MauiWinUIApplication
+    x:Class="Dimmer.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Dimmer.WinUI"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:maui="using:Microsoft.Maui">
+
+    <maui:MauiWinUIApplication.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+
+                <!--  Other merged dictionaries here  -->
+            </ResourceDictionary.MergedDictionaries>
+
+            <Color x:Key="MyAccentColor">#483D8B</Color>
+            <!--  DarkSlateBlue  -->
+            <Color x:Key="MyAccentColorLight">#6A5ACD</Color>
+            <!--  SlateBlue (for hover/pressed states)  -->
+            <Color x:Key="MyAccentColorDark">#3A316D</Color>
+            <!--  A darker shade for borders  -->
+
+            <SolidColorBrush x:Key="MyAccentBrush" Color="{StaticResource MyAccentColor}" />
+            <SolidColorBrush x:Key="MyAccentBrushLight" Color="{StaticResource MyAccentColorLight}" />
+            <SolidColorBrush x:Key="MyAccentBrushDark" Color="{StaticResource MyAccentColorDark}" />
+
+            <!--  Core Theme Colors  -->
+            <Color x:Key="ThemeBackgroundColor">#1C1C1C</Color>
+            <!--  A very dark gray, not pure black  -->
+            <Color x:Key="ThemeSubtleGrayColor">#2D2D2D</Color>
+            <!--  For subtle backgrounds and borders  -->
+            <Color x:Key="ThemeForegroundColor">#E8E8E8</Color>
+            <!--  Off-white for text  -->
+            <Color x:Key="ThemeForegroundSubtleColor">#A0A0A0</Color>
+            <!--  Gray text for secondary info  -->
+
+
+            <!--  2. DATA GRID ALTERNATING ROW COLORS  -->
+            <!--  These brushes will be used by the TableView/DataGrid Style  -->
+            <SolidColorBrush
+                x:Key="DataGridRowBackgroundBrush"
+                Opacity="0.6"
+                Color="{StaticResource ThemeBackgroundColor}" />
+            <SolidColorBrush
+                x:Key="DataGridRowBackgroundAlternateBrush"
+                Opacity="0.6"
+                Color="{StaticResource ThemeSubtleGrayColor}" />
+            <SolidColorBrush
+                x:Key="DataGridRowHoverBrush"
+                Opacity="0.1"
+                Color="White" />
+            <SolidColorBrush
+                x:Key="DataGridRowSelectedBrush"
+                Opacity="0.4"
+                Color="{StaticResource MyAccentColor}" />
+            <SolidColorBrush
+                x:Key="DataGridRowSelectedHoverBrush"
+                Opacity="0.5"
+                Color="{StaticResource MyAccentColor}" />
+            <SolidColorBrush
+                x:Key="DataGridGridLinesBrush"
+                Opacity="0.1"
+                Color="White" />
+
+            <!--  Style to apply these brushes to the CommunityToolkit DataGrid  -->
+          
+
+
+            <!--  3. PRIMARY, SECONDARY, AND TERTIARY BUTTON STYLES  -->
+
+            <!--  Base style for all buttons to remove default borders and make them consistent  -->
+            <Style x:Key="BaseButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource ThemeForegroundColor}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="12,6" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <!--  Primary Button: Accent color fill  -->
+            <Style
+                x:Key="PrimaryButtonStyle"
+                BasedOn="{StaticResource BaseButtonStyle}"
+                TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource MyAccentBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MyAccentBrushDark}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <!--  Secondary Button: Accent color border  -->
+            <Style
+                x:Key="SecondaryButtonStyle"
+                BasedOn="{StaticResource BaseButtonStyle}"
+                TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{StaticResource MyAccentBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource MyAccentBrushLight}" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <!--  Tertiary Button: Subtle, text-only button  -->
+            <Style
+                x:Key="TertiaryButtonStyle"
+                BasedOn="{StaticResource BaseButtonStyle}"
+                TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource ThemeForegroundSubtleColor}" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+
+            <!--  4. OTHER ACRYLIC THINGS & NICE-TO-HAVES  -->
+
+            <!--  A. Acrylic Pane/Panel Background  -->
+            <!--  Use this for side panels, flyouts, or large background areas.  -->
+            <AcrylicBrush
+                x:Key="CustomAcrylicPaneBackground"
+                FallbackColor="{StaticResource ThemeBackgroundColor}"
+                TintColor="{StaticResource ThemeBackgroundColor}"
+                TintOpacity="0.7" />
+
+            <!--  B. Subtle Acrylic Border for Cards/Items  -->
+            <!--  Use this on things like ListView items or Cards to make them gently pop.  -->
+            <AcrylicBrush
+                x:Key="CustomAcrylicCardStroke"
+                FallbackColor="{StaticResource ThemeSubtleGrayColor}"
+                TintColor="{StaticResource ThemeSubtleGrayColor}"
+                TintOpacity="0.5" />
+
+            <!--  C. In-App Notification / InfoBar Style  -->
+            <!--  InfoBar is perfect for showing temporary messages like "Song added to queue."  -->
+            <Style TargetType="InfoBar">
+                <Setter Property="Background" Value="{StaticResource CustomAcrylicPaneBackground}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MyAccentBrush}" />
+                <Setter Property="BorderThickness" Value="2,0,0,0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Margin" Value="12" />
+            </Style>
+
+            <!--  D. TextBox with Acrylic Border on Focus  -->
+            <!--  A subtle effect to make text input feel more integrated.  -->
+            <Style TargetType="TextBox">
+                <Setter Property="Background" Value="{StaticResource ThemeSubtleGrayColor}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Foreground" Value="{StaticResource ThemeForegroundColor}" />
+                <Setter Property="CornerRadius" Value="4" />
+
+            </Style>
+
+            <!--  E. CommandBar with an Acrylic Background  -->
+            <!--  Great for the top or bottom of your app window.  -->
+            <Style TargetType="CommandBar">
+                <Setter Property="Background" Value="{StaticResource CustomAcrylicPaneBackground}" />
+                <Setter Property="DefaultLabelPosition" Value="Right" />
+            </Style>
+        </ResourceDictionary>
+    </maui:MauiWinUIApplication.Resources>
+</maui:MauiWinUIApplication>

@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+    xmlns:uap18="http://schemas.microsoft.com/appx/manifest/uap/windows10/18"
+    IgnorableNamespaces="uap rescap uap3 mp uap18">
+  
+  <Identity Name="com.yvanbrunel.dimmer" Publisher="CN=YvanBrunel" Version="1.8.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="6A88F2F5-2B0C-4D5C-9BBB-429AB6F82E7A" PhonePublisherId="12345678-1234-1234-1234-1234567890AB"/>
+
+  <Properties>
+    <DisplayName>Dimmer</DisplayName>
+    <PublisherDisplayName>Yvan Brunel</PublisherDisplayName>
+    <Logo>Assets\dimmerIcon.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    
+    <Application Id="App" Executable="$targetnametoken$.exe" 
+                 EntryPoint="$targetentrypoint$" uap18:TrustLevel="mediumIL" 
+                 uap18:RuntimeBehavior="packagedClassicApp">
+      <uap:VisualElements
+        DisplayName="Dimmer"
+        Description="A powerful music player with Advanced Features such as Background playback, Stats, LastFM Scrobbling and more to come"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\dimmerIcon.png"
+        Square44x44Logo="Assets\dimmerIcon.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\dimmerIcon.png"  ShortName="Dimmer">
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:InitialRotationPreference>
+          <uap:Rotation Preference="landscape"/>
+          <uap:Rotation Preference="portrait"/></uap:InitialRotationPreference>
+      </uap:VisualElements>
+      
+      
+      
+      
+      <Extensions>
+
+        <!-- File Type Associations: So users can open audio files (mp3, wav, etc.) with your app -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="dimmeraudiofiles" DesiredView="useHalf">
+            <uap:DisplayName>Dimmer Music File</uap:DisplayName>
+            <!-- Optional: <uap:Logo>Assets\FileTypeLogo.png</uap:Logo> -->
+            <uap:InfoTip>Play with Dimmer</uap:InfoTip>
+            
+            <uap:SupportedFileTypes>
+              <uap:FileType>.mp3</uap:FileType>
+              <uap:FileType>.flac</uap:FileType>
+              <uap:FileType>.m4a</uap:FileType>
+              <uap:FileType>.wav</uap:FileType>
+              <uap:FileType>.ogg</uap:FileType>
+              <uap:FileType>.wma</uap:FileType>
+              <!-- Add all supported types -->
+            </uap:SupportedFileTypes>
+            <uap:Logo>appicon.png</uap:Logo>
+            <uap:EditFlags OpenIsSafe="true"/>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="dimmer">
+            <uap:DisplayName>Dimmer Music Protocol</uap:DisplayName>
+            <uap:Logo>appicon.png</uap:Logo>
+          </uap:Protocol>
+        </uap:Extension>
+
+        
+
+        
+        <uap:Extension Category="windows.mediaPlayback">
+          <uap:MediaPlayback>
+            <uap:Codec Name="mp3"/>
+            <uap:Codec Name="flac"/>
+            <uap:Codec Name="m4a"/>
+            <uap:Codec Name="wav"/>
+          </uap:MediaPlayback>
+        </uap:Extension>
+        
+      </Extensions>
+
+    </Application>
+  </Applications>
+
+  <Capabilities>
+
+    <Capability Name="internetClientServer"/>
+    <Capability Name="internetClient"/>
+    
+    <uap3:Capability Name="backgroundMediaPlayback"/>
+    <uap:Capability Name="removableStorage"/>
+    <uap:Capability Name="musicLibrary"/>
+    <uap:Capability Name="picturesLibrary"/>
+    <uap:Capability Name="userAccountInformation"/>
+
+    <rescap:Capability Name="runFullTrust" />
+    <DeviceCapability Name="bluetooth"/>
+    <DeviceCapability Name="proximity"/>
+    <DeviceCapability Name="location"/>
+    
+  </Capabilities>
+
+</Package>

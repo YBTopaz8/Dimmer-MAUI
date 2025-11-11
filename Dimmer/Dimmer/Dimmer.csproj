@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Dimmer</RootNamespace>
+		<UseMaui>true</UseMaui>
+		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+
+		<PackageReference Include="AutoMapper" Version="14.0.0" />
+
+
+		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+		<PackageReference Include="DynamicData" Version="9.4.1" />
+		<PackageReference Include="Fastenshtein" Version="1.0.11" />
+
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
+		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.9" />
+		<PackageReference Include="System.Reactive" Version="6.1.0" />
+		<PackageReference Include="Realm" Version="20.1.0" />
+		<PackageReference Include="SkiaSharp.Skottie" Version="3.119.1" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
+		<PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.120" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.10" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.10" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
+		<PackageReference Include="ReactiveUI.Maui" Version="22.2.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+	  <ProjectReference Include="..\..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
+	  <ProjectReference Include="..\..\atldotnet-main\ATL\ATL.csproj" />
+	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
+	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="DimmerSearch\TQLActions\" />
+	</ItemGroup>
+
+</Project>
