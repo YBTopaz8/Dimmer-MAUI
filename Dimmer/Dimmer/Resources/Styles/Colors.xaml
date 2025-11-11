@@ -1,23 +1,188 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+    <!--  Note: For Android please see also Platforms\Android\Resources\values\colors.xml  -->
 
-    <Color x:Key="Primary">#512BD4</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
+    <Color x:Key="Primary">#483D8B</Color>
+    <!--  Dark Slate Blue  -->
+    <!--  Deep dark for borders and main pane  -->
+    <Color x:Key="PrimaryText">#FFFFFF</Color>
+    <Color x:Key="PrimaryTextLight">Black</Color>
+
+
+    <!--  White for contrast on dark primary  -->
+
+    <!--  Muted Light Blue  -->
+    <Color x:Key="SecondaryLight">#A2B5E2</Color>
+    <!--  Hover state for secondary  -->
+    <Color x:Key="Secondary">#B197FC</Color>
+    <!--  Dark gray for hover effect  -->
+    <Color x:Key="SecondaryText">#D3D3D3</Color>
+    <!--  Light Gray for secondary text  -->
     <Color x:Key="Tertiary">#2B0B98</Color>
+    <!--  Deep Indigo for tertiary highlights  -->
+    <Color x:Key="TertiaryLight">#3A1AC4</Color>
+    <!--  Hover/Lighten tertiary  -->
 
+    <Color x:Key="Background">#0F1011</Color>
+    <!--  Deep dark background  -->
+
+    <Color x:Key="Surface">#0F1011</Color>
+    <Color x:Key="SurfaceLight">#FFFFFF</Color>
+    <!--  Elevated surface for cards and panels  -->
+    <Color x:Key="SurfaceText">#FFFFFF</Color>
+    <Color x:Key="SurfaceTextLight">#FFFFFF</Color>
+    <!--  Text for surface panels  -->
+    <Color x:Key="Accent">#5A4CA3</Color>
+    <!--  Accent color for hover states  -->
+    <Color x:Key="HoverBackground">#2A2A2A</Color>
+    <Color x:Key="HoverBackgroundLight">#2A2A2A</Color>
+    <!--  Hover effect for nav pane and buttons  -->
+    <Color x:Key="Error">#B00020</Color>
+    <!--  Deep red for error messages  -->
+    <Color x:Key="ErrorText">#FFFFFF</Color>
+    <!--  White for text on error backgrounds  -->
+    <Color x:Key="Divider">#191719</Color>
+    <!--  Divider and border color  -->
+    <Color x:Key="NowPlayingBackground">#1E1B1E</Color>
+    <!--  Now playing section background  -->
+    <Color x:Key="NowPlayingBorder">#191719</Color>
+    <!--  Border for now playing section  -->
+    <Color x:Key="ButtonPrimary">#483D8B</Color>
+    <!--  Primary buttons  -->
+    <Color x:Key="ButtonPrimaryHover">#5A4CA3</Color>
+    <!--  Hover state for primary buttons  -->
+    <Color x:Key="ButtonSecondary">#87A1D1</Color>
+    <!--  Secondary buttons  -->
+    <Color x:Key="ButtonSecondaryHover">#A2B5E2</Color>
+    <!--  Hover state for secondary buttons  -->
+    <Color x:Key="Highlight">#5A4CA3</Color>
+    <!--  Highlight for active elements  -->
+    <Color x:Key="ActiveTab">#483D8B</Color>
+    <!--  Active tab color  -->
+    <Color x:Key="InactiveTab">#87A1D1</Color>
+    <!--  Inactive tab color  -->
+    <Color x:Key="InactiveTabText">#D3D3D3</Color>
+    <!--  Inactive tab text color  -->
+
+    <!--  Light Mode  -->
+    <!--  Dark Slate Blue  -->
+    <!--
+    <Color x:Key="PrimaryLight">#695CB1</Color>
+    -->
+    <!--  Lighter shade for hover  -->
+    <!--
+    <Color x:Key="PrimaryDark">#3B3270</Color>
+    -->
+    <!--  Darker accent for depth  -->
+    <!--
+    <Color x:Key="PrimaryText">#FFFFFF</Color>
+    -->
+    <!--  White text for contrast  -->
+    <!--
+    <Color x:Key="Secondary">#5A9BD5</Color>
+    -->
+    <!--  Soft blue for secondary elements  -->
+    <!--
+    <Color x:Key="SecondaryLight">#77B3E6</Color>
+    -->
+    <!--  Lightened secondary for hover  -->
+    <!--
+    <Color x:Key="SecondaryDark">#4C88C4</Color>
+    -->
+    <!--  Deeper blue for focus states  -->
+    <!--
+    <Color x:Key="SecondaryText">#333333</Color>
+    -->
+    <!--  Dark gray for readability  -->
+    <!--
+    <Color x:Key="Tertiary">#6B3FAE</Color>
+    -->
+    <!--  Warm purple for tertiary highlights  -->
+    <!--
+    <Color x:Key="TertiaryLight">#8A5CCB</Color>
+    -->
+    <!--  Hover state for tertiary  -->
+    <!--
+    <Color x:Key="Background">#A2B2C0</Color>
+
+    -->
+    <!--  Light gray for overall background  -->
+    <!--
+    <Color x:Key="Surface">#FFFFFF</Color>
+    -->
+    <!--  Pure white for cards and surfaces  -->
+    <!--
+    <Color x:Key="SurfaceText">#333333</Color>
+    -->
+    <!--  Dark text for visibility  -->
+    <!--
+    <Color x:Key="Accent">#695CB1</Color>
+    -->
+    <!--  Hover color for accent elements  -->
+    <!--
+    <Color x:Key="HoverBackground">#E0E0E0</Color>
+    -->
+    <!--  Light gray hover for buttons  -->
+    <!--
+    <Color x:Key="Error">#D32F2F</Color>
+    -->
+    <!--  Bright red for errors  -->
+    <!--
+    <Color x:Key="ErrorText">#FFFFFF</Color>
+    -->
+    <!--  White for error text  -->
+    <!--
+    <Color x:Key="Divider">#D3D3D3</Color>
+    -->
+    <!--  Subtle dividers for sections  -->
+    <!--
+    <Color x:Key="NowPlayingBackground">#F0F0F0</Color>
+    -->
+    <!--  Light background for now playing  -->
+    <!--
+    <Color x:Key="NowPlayingBorder">#D3D3D3</Color>
+    -->
+    <!--  Soft border for cards  -->
+    <!--
+    <Color x:Key="ButtonPrimary">#483D8B</Color>
+    -->
+    <!--  Primary button color  -->
+    <!--
+    <Color x:Key="ButtonPrimaryHover">#695CB1</Color>
+    -->
+    <!--  Hover for primary buttons  -->
+    <!--
+    <Color x:Key="ButtonSecondary">#5A9BD5</Color>
+    -->
+    <!--  Secondary button color  -->
+    <!--
+    <Color x:Key="ButtonSecondaryHover">#77B3E6</Color>
+    -->
+    <!--  Hover for secondary buttons  -->
+    <!--
+    <Color x:Key="Highlight">#695CB1</Color>
+    -->
+    <!--  Highlight for active elements  -->
+    <!--
+    <Color x:Key="ActiveTab">#483D8B</Color>
+    -->
+    <!--  Active tab color  -->
+    <!--
+    <Color x:Key="InactiveTab">#BFC3D9</Color>
+    -->
+    <!--  Soft gray for inactive tabs  -->
+    <!--
+    <Color x:Key="InactiveTabText">#333333</Color>
+    -->
+    <!--  Text for inactive tabs  -->
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
     <Color x:Key="Magenta">#D600AA</Color>
     <Color x:Key="MidnightBlue">#190649</Color>
     <Color x:Key="OffBlack">#1f1f1f</Color>
+
 
     <Color x:Key="Gray100">#E1E1E1</Color>
     <Color x:Key="Gray200">#C8C8C8</Color>
@@ -26,20 +191,20 @@
     <Color x:Key="Gray500">#6E6E6E</Color>
     <Color x:Key="Gray600">#404040</Color>
     <Color x:Key="Gray900">#212121</Color>
-    <Color x:Key="Gray950">#141414</Color>
+    <Color x:Key="Gray950">#E1E1E1</Color>
 
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
-    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
-    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
-    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}" />
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}" />
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}" />
 
-    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
-    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
-    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
-    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
-    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
-    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
-    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
-    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}" />
+    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}" />
+    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}" />
+    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}" />
+    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}" />
+    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}" />
+    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}" />
+    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}" />
 </ResourceDictionary>
