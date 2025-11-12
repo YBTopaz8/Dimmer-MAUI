@@ -1,4 +1,6 @@
-﻿namespace Dimmer.WinUI.Utils.Models;
+﻿using ImageSource = Microsoft.Maui.Controls.ImageSource;
+
+namespace Dimmer.WinUI.Utils.Models;
 
 public class WindowInfo
 {

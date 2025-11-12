@@ -1,9 +1,8 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Windowing;
-using Windows.Graphics;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using Windows.Graphics;
 using CommunityToolkit.Diagnostics;
+using Windows.Foundation;
+using AppWindow = Microsoft.UI.Windowing.AppWindow;
+using AppWindowChangedEventArgs = Microsoft.UI.Windowing.AppWindowChangedEventArgs;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
 
@@ -12,9 +11,10 @@ public class DimmerMultiWindowCoordinator
     private readonly IWinUIWindowMgrService _mgr;
     private readonly ObservableCollection<WindowEntry> _windows = new();
     private Microsoft.UI.Xaml.Window? _homeWindow;
+    public bool ReturnToHomeOnClose { get; set; } = true;
 
     public ReadOnlyObservableCollection<WindowEntry> Windows { get; }
-    public BaseViewModelWin BaseVM { get; set; }
+    public BaseViewModelWin? BaseVM { get; set; }
     public DimmerMultiWindowCoordinator(IWinUIWindowMgrService mgr)
     {
         _mgr = mgr;
@@ -29,10 +29,10 @@ public class DimmerMultiWindowCoordinator
             if (win != null && !_windows.Any(x => x.Window == win))
                 TrackWindow(win);
         };
-        _mgr.WindowSizeChanged += (_, e) =>
+        _mgr.WindowSizeChanged += async (_, e) =>
         {
             if (_homeWindow != null)
-                WindowDockManager.SnapHomeWindow(_homeWindow, _mgr.GetOpenNativeWindows());
+              await  WindowDockManager.SnapHomeWindowAsync(_homeWindow, _mgr.GetOpenNativeWindows());
         };
 
         _mgr.WindowClosed += (_, w) => UntrackWindow(w);
@@ -47,13 +47,17 @@ public class DimmerMultiWindowCoordinator
     public void TrackWindow(Window win)
     {
         if (_windows.Any(x => x.Window == win)) return;
+        if (_homeWindow is null) return;
+        _homeWindow.DispatcherQueue.TryEnqueue(() =>
+        {
 
-        var entry = new WindowEntry(win);
-        _windows.Add(entry);
-
+            var entry = new WindowEntry(win);
+            _windows.Add(entry);
+        });
         var appWin = PlatUtils.GetAppWindow(win);
 
-        appWin.Changed += (sender, args) =>
+        TypedEventHandler<AppWindow, AppWindowChangedEventArgs>? handler = null;
+        handler = async (sender, args) =>
         {
             if (_homeWindow == null || win == _homeWindow) return; // prevent feedback loop
 
@@ -61,12 +65,13 @@ public class DimmerMultiWindowCoordinator
             if (args.DidPositionChange || args.DidSizeChange)
             {
                 if (_homeWindow != null)
-                    WindowDockManager.SnapHomeWindow(_homeWindow, _mgr.GetOpenNativeWindows());
+                   await WindowDockManager.SnapHomeWindowAsync(_homeWindow, _mgr.GetOpenNativeWindows());
             }
         };
 
         win.Closed += (_, _) =>
         {
+            appWin.Changed -= handler;
             WindowDockManager.SaveWindowPosition(win);
             UntrackWindow(win);
         };
@@ -76,7 +81,30 @@ public class DimmerMultiWindowCoordinator
     {
         var existing = _windows.FirstOrDefault(x => x.Window == win);
         if (existing != null)
-            _windows.Remove(existing);
+            _homeWindow?.DispatcherQueue.TryEnqueue(() => _windows.Remove(existing));
+
+        // ✅ if a non-home window closed, and toggle enabled, show home
+        if (ReturnToHomeOnClose && _homeWindow != null && win != _homeWindow)
+        {
+            try
+            {
+                _homeWindow.DispatcherQueue.TryEnqueue(() =>
+                {
+                    _mgr.BringToFront(_homeWindow);
+                    PlatUtils.GetAppWindow(_homeWindow).Show(true);
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Coordinator] Auto-return failed: {ex.Message}");
+            }
+        }
+        
+    }
+    public void BringAllToFront()
+    {
+        foreach (var w in _mgr.GetOpenNativeWindows())
+            _mgr.BringToFront(w);
     }
 
     public void RestoreAll() => WindowDockManager.RestoreWindowPositions(_mgr);
@@ -87,15 +115,15 @@ public class DimmerMultiWindowCoordinator
             WindowDockManager.SaveWindowPosition(w);
     }
 
-    public void SnapAllToHome()
+    public async Task SnapAllToHome()
     {
         if (_homeWindow == null) return;
-        WindowDockManager.SnapHomeWindow(_homeWindow, _mgr.GetOpenNativeWindows());
+       await WindowDockManager.SnapHomeWindowAsync(_homeWindow, _mgr.GetOpenNativeWindows());
     }
 
     public void ShowControlPanel()
     {
-        Guard.IsNull(BaseVM, "Base View Model");
+        Guard.IsNotNull(BaseVM, "Base View Model");
         //var panel = new ControlPanelWindow(BaseVM);
         //_mgr.GetOrCreateUniqueWindow(windowFactory:() => panel);
     }

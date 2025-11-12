@@ -1,19 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
 
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Windows.Graphics;
 
 
 
@@ -37,8 +26,6 @@ namespace Dimmer.WinUI.Views
             if(MyViewModel is not null)
                 ContentFrame.Navigate(typeof(AllSongsListPage), MyViewModel);
 
-            this.Closed += AllSongsWindow_Closed;
-
         }
         public BaseViewModelWin? MyViewModel { get; internal set; }
         private void AllSongsWindow_Closed(object sender, WindowEventArgs args)
@@ -50,6 +37,50 @@ namespace Dimmer.WinUI.Views
             this.baseViewModelWin = baseViewModelWin;
             this.appUtil = appUtil;
             
+        }
+
+        private void Window_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            //MyPageGrid.DataContext=vm;
+            
+
+            //when window is activated, focus on the search box and scroll to currently playing song
+            this.Activated += (s, e) =>
+            {
+                if (e.WindowActivationState == WindowActivationState.Deactivated)
+                {
+                    return;
+                }
+
+
+                SizeInt32 currentWindowSize = new SizeInt32(1600, 1000);
+                PlatUtils.ResizeNativeWindow(this, currentWindowSize);
+
+                MyViewModel.CurrentWinUIPage = this;
+                var removeCOmmandFromLastSaved = MyViewModel.CurrentTqlQuery;
+                removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:\d+!", "", RegexOptions.IgnoreCase);
+
+                removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addto:end!", "", RegexOptions.IgnoreCase);
+
+                removeCOmmandFromLastSaved = Regex.Replace(removeCOmmandFromLastSaved, @">>addnext!", "", RegexOptions.IgnoreCase);
+
+
+
+                // Focus the search box
+                //SearchSongSB.Focus(FocusState.Programmatic);
+
+
+                //// Scroll to the currently playing song
+                //if (MyViewModel.CurrentPlayingSongView != null)
+                //{
+                //    ScrollToSong(MyViewModel.CurrentPlayingSongView);
+                //}
+
+            };
+
+            ContentFrame.Navigate(typeof(AllSongsListPage), MyViewModel);
+
+            this.Closed += AllSongsWindow_Closed;
         }
     }
 }

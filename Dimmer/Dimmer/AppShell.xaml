@@ -6,5 +6,5 @@
     xmlns:local="clr-namespace:Dimmer"
     Shell.FlyoutBehavior="Disabled"
     Title="Dimmer">
-
+    
 </Shell>

@@ -1,7 +1,4 @@
-﻿using Dimmer.Interfaces;
-using Dimmer.WinUI.Views;
-
-using Windows.Graphics;
+﻿using Windows.Graphics;
 
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
@@ -11,44 +8,75 @@ public class AppUtil : IAppUtil
     {
 
         BaseViewModelWin=baseViewModelWin;
-        this.dimmerWin ??=baseViewModelWin.MainMAUIWindow;
+        this.dimmerMAUIWin ??=baseViewModelWin.MainMAUIWindow;
 
     }
-
+    Microsoft.Maui.Controls.Window? dimmerMAUIWin;
     public Shell GetShell()
     {
-        return new AppShell(BaseViewModelWin);
+        return new AppShell(BaseViewModelWin)
+        ;
     }
     public Microsoft.Maui.Controls.Window LoadWindow()
     {
 
        
-        if (this.dimmerWin is null)
+        if (this.dimmerWinUI is null)
         {
-            this.dimmerWin = new();
+            this.dimmerWinUI = new();
         }
         else
         {
-            dimmerWin = BaseViewModelWin.MainMAUIWindow;
+            dimmerMAUIWin = BaseViewModelWin.MainMAUIWindow;
         }
-        dimmerWin.LoadWindowAndPassVM(BaseViewModelWin, this);
-        dimmerWin ??= dimmerWin;
+        dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
+        
         
 
-        if (dimmerWin == null)
+        if (dimmerWinUI == null)
         {
             throw new Exception("DimmerWin is null");
         }
 
-        dimmerWin.Activate();
-        PlatUtils.ResizeNativeWindow(dimmerWin, new Windows.Graphics.SizeInt32() { Height = 1200, Width=1080});
-
-
-        return new Microsoft.Maui.Controls.Window();
+        dimmerWinUI.Activate();
+        PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width=1080});
+        
+        dimmerMAUIWin ??=new DimmerMAUIWin(BaseViewModelWin, this);
+        return  dimmerMAUIWin;
     }
 
+    private async void MauiWin_Created(object? sender, EventArgs e)
+    {
+        var mauiWin = sender as Microsoft.Maui.Controls.Window;
+        if (mauiWin?.Handler?.PlatformView is Microsoft.UI.Xaml.Window nativeWin)
+        {
+            IntPtr hwnd = WindowNative.GetWindowHandle(nativeWin);
+            WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(id);
 
-    public DimmerWin? dimmerWin { get; set; }
+
+            var presenter = appWindow.Presenter as OverlappedPresenter;
+            if (presenter is not null)
+            {
+                // Start minimized or hidden
+                //presenter.Minimize();
+
+                // OR start invisible
+                appWindow.Hide();
+            }
+
+            // optional: resize before it shows
+            appWindow.Resize(new SizeInt32(1080, 1200));
+        }
+        await Task.Delay(1400);
+        var concernedWindow = sender as Microsoft.Maui.Controls.Window;
+        if (concernedWindow != null)
+        {
+            Microsoft.Maui.Controls.Application.Current!.CloseWindow(concernedWindow);
+        }
+    }
+
+    public DimmerWin? dimmerWinUI { get; set; }
     public BaseViewModelWin BaseViewModelWin { get; }
 
     public enum SongTransitionAnimation

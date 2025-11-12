@@ -284,9 +284,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Subscribe(
                 payload =>
                 {
-                    NLPQuery = payload.Query;
                     var plan = payload.Plan;
-                    TQLUserSearchErrorMessage = plan.ErrorMessage ?? "";
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+
+                        NLPQuery = payload.Query;
+
+                        TQLUserSearchErrorMessage = plan.ErrorMessage ?? "";
+                    });
 
                     if (plan.ErrorMessage != null)
                     {
@@ -349,11 +354,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                 {
                                     HandleCommandAction(commandAction);
                                 });
-
-                            if (CurrentTqlQuery != NLPQuery)
+                            MainThread.BeginInvokeOnMainThread(() =>
                             {
-                                CurrentTqlQuery = NLPQuery;
-                            }
+
+                                if (CurrentTqlQuery != NLPQuery)
+                                {
+                                    CurrentTqlQuery = NLPQuery;
+                                }
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -1978,14 +1986,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
-        ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            var (current, total, song) = p;
 
-            _stateService.SetCurrentLogMsg(new AppLogModel()
+            ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
             {
-                ViewSongModel = song,
-                Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                var (current, total, song) = p;
+
+                _stateService.SetCurrentLogMsg(new AppLogModel()
+                {
+                    ViewSongModel = song,
+                    Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                });
             });
         });
         _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count());

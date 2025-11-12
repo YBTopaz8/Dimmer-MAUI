@@ -5,10 +5,12 @@
 
 
 
-using Windows.Graphics;
-using Windows.Storage.Pickers;
+using Dimmer.WinUI.Views.MAUIPages;
+
+using WinUI.TableView;
 
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
+using TableView = WinUI.TableView.TableView;
 //using TableView = WinUI.TableView.TableView;
 
 namespace Dimmer.WinUI.ViewModel;
@@ -341,7 +343,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial TableView? MyTableVIew { get; set; }
-    public DimmerWin MainMAUIWindow { get; internal set; }
+    public DimmerWin MainWindow { get; set; }
+    public DimmerMAUIWin MainMAUIWindow { get; set; }
 
     // --- The partial OnChanged methods that are our triggers ---
 
@@ -382,7 +385,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         
         if (MainMAUIWindow is not null)
         {
-            winUIWindowMgrService.ActivateWindow(MainMAUIWindow);
+            winUIWindowMgrService.ActivateWindow(MainWindow);
         }
 
     }
@@ -649,21 +652,21 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         base.Dispose(disposing);
 
     }
-    //[RelayCommand]
-    //private async Task ScrollToCurrentPlayingSong()
-    //{
+    [RelayCommand]
+    private async Task ScrollToCurrentPlayingSong()
+    {
 
-    //    try
-    //    {
-    //        //MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
-    //        await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
-    //             false, true);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
-    //    }
-    //}
+        try
+        {
+            //MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
+            //await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
+            //     false, true);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+        }
+    }
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [RelayCommand]

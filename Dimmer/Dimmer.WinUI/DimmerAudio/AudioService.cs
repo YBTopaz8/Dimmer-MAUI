@@ -4,8 +4,6 @@
 using AudioSwitcher.AudioApi.CoreAudio;
 using AudioSwitcher.AudioApi;
 using DeviceType = AudioSwitcher.AudioApi.DeviceType;
-using System.Threading.Tasks;
-using Dimmer.Interfaces;
 namespace Dimmer.WinUI.DimmerAudio;
 
 

@@ -1,9 +1,6 @@
 ﻿
 using System.Drawing.Imaging;
 
-using Dimmer.WinUI.Utils.WinMgt;
-
-using Microsoft.Maui.Platform;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -11,7 +8,6 @@ using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
 using Windows.Graphics;
-using Windows.Graphics.Display;
 
 using Application = Microsoft.Maui.Controls.Application;
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;

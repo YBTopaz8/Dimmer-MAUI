@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.WinUI.Utils.Converters;
+﻿namespace Dimmer.WinUI.Utils.Converters;
 
 public partial class CollectionSizeToVisibility : IValueConverter
 {

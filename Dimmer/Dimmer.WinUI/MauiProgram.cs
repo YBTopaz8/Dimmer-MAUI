@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Maui;
+﻿
 
 namespace Dimmer.WinUI;
 
@@ -124,6 +124,12 @@ public static class MauiProgram
         //IMapper? mapperWin = AutoMapperConfWinUI.ConfigureAutoMapper();
 
         builder.Services.AddSingleton<SocialViewModelWin>();
+        builder.Services.AddSingleton<HomePage>();
+        builder.Services.AddSingleton<AllSongsListPage>();
+        builder.Services.AddSingleton<ArtistPage>();
+        builder.Services.AddSingleton<DimmerMAUIWin>();
+        builder.Services.AddSingleton<AlbumPage>();
+        builder.Services.AddSingleton<SongDetailPage>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
 

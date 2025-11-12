@@ -1058,7 +1058,7 @@
                                                 LongPress="DurationAndSearchChip_LongPress"
                                                 Tap="DurationAndSearchChip_LongPress">
                                                 <dx:Chip.ContentTemplate>
-                                                    <DataTemplate>
+                                                    <DataTemplate x:DataType="vm:BaseViewModelAnd">
                                                         <VerticalStackLayout>
                                                             <Label
                                                                 FontSize="16"
@@ -1067,7 +1067,7 @@
                                                                 VerticalOptions="Center">
                                                                 <Label.Triggers>
                                                                     <DataTrigger
-                                                                        Binding="{Binding IsDimmerPlaying}"
+                                                                        Binding="{Binding IsDimmerPlaying}" x:DataType="vm:BaseViewModelAnd"
                                                                         TargetType="Label"
                                                                         Value="True">
                                                                         <Setter Property="FontAttributes" Value="Bold" />
@@ -1075,7 +1075,7 @@
                                                                     </DataTrigger>
                                                                     <DataTrigger
                                                                         Binding="{Binding IsDimmerPlaying}"
-                                                                        TargetType="Label"
+                                                                        TargetType="Label" x:DataType="vm:BaseViewModelAnd"
                                                                         Value="False">
                                                                         <Setter Property="FontAttributes" Value="None" />
                                                                         <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />

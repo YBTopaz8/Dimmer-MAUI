@@ -22,12 +22,30 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Views\AllSongsListPage.xaml" />
+	  <None Remove="AppShell.xaml" />
+	  <None Remove="Views\CustomViews\WinuiViews\HoverCardControl.xaml" />
+	  <None Remove="Views\MAUIPages\HomePage.xaml" />
+	  <None Remove="Views\WinuiPages\AlbumPage.xaml" />
+	  <None Remove="Views\WinuiPages\AllSongsListPage.xaml" />
+	  <None Remove="Views\WinuiPages\ArtistPage.xaml" />
+	  <None Remove="Views\WinuiPages\SongDetailPage.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Remove="AppShell.xaml" />
+	  <Page Remove="Views\MAUIPages\HomePage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+
+
+		<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
+		<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
+		<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
+		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+		<PackageReference Include="WinUI.TableView" Version="1.3.3" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
@@ -55,9 +73,38 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Utils\StaticUtils\TaskBarSection\" />
+	  <Folder Include="Views\CustomViews\MauiViews\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Page Update="Views\AllSongsListPage.xaml">
+	  <MauiXaml Include="AppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\AlbumPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\ArtistPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\SongDetailPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\AllSongsListPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\HoverCardControl.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
 	</ItemGroup>
