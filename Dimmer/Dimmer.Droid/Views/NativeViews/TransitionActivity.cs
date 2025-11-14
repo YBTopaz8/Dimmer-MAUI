@@ -54,58 +54,6 @@ public class TransitionActivity : AppCompatActivity
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelAnd>() ?? throw new InvalidOperationException("BaseViewModelAnd not found in DI container");
 
     }
-
-    protected override void OnNewIntent(Intent? intent)
-    {
-        base.OnNewIntent(intent);
-
-        ProcessIntent(Intent);
-    }
-
-    private void SetStatusBarColor()
-    {
-        if (Window == null)
-            return; // Should not happen in OnCreate after base call
-
-#if RELEASE
-        Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
-#elif DEBUG
-        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
-        Window.SetUiOptions(UiOptions.SplitActionBarWhenNarrow); // Split action bar for narrow screens
-        //Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
-        // Tells the Window to draw under the status bar
-
-
-#endif
-    }
-    protected async override void OnResume()
-    {
-        try
-        {
-            base.OnResume();
-            Platform.OnResume(this);
-            if (MyViewModel.IsLastFMNeedsToConfirm)
-            {
-                //bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
-                //if (isLastFMAuthorized)
-                //{
-                //    await MyViewModel.CompleteLastFMLoginCommand.ExecuteAsync(null);
-                //}
-                //else
-                //{
-                //    MyViewModel.IsLastFMNeedsToConfirm = false;
-                //    await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
-
-                //}
-            }
-            // Log that the activity resumed
-            Console.WriteLine("MainActivity: OnResume called.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
@@ -149,7 +97,7 @@ public class TransitionActivity : AppCompatActivity
         base.OnCreate(savedInstanceState);
 
         var container = new FrameLayout(this);
-        
+
         // ensure valid ID (>0x00ffffff range is reserved)
         int validId = View.GenerateViewId();
         if (validId == 0 || validId == 1)
@@ -202,6 +150,58 @@ public class TransitionActivity : AppCompatActivity
         return;
 
 
+    }
+
+    protected override void OnNewIntent(Intent? intent)
+    {
+        base.OnNewIntent(intent);
+
+        ProcessIntent(Intent);
+    }
+
+    private void SetStatusBarColor()
+    {
+        if (Window == null)
+            return; // Should not happen in OnCreate after base call
+
+#if RELEASE
+        Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
+#elif DEBUG
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
+        Window.SetUiOptions(UiOptions.SplitActionBarWhenNarrow); // Split action bar for narrow screens
+        //Window.SetStatusBarColor(Android.Graphics.Color.Transparent); // Make status bar transparent
+        // Tells the Window to draw under the status bar
+
+
+#endif
+    }
+    protected async override void OnResume()
+    {
+        try
+        {
+            base.OnResume();
+            Platform.OnResume(this);
+            if (MyViewModel.IsLastFMNeedsToConfirm)
+            {
+                //bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
+                //if (isLastFMAuthorized)
+                //{
+                //    await MyViewModel.CompleteLastFMLoginCommand.ExecuteAsync(null);
+                //}
+                //else
+                //{
+                //    MyViewModel.IsLastFMNeedsToConfirm = false;
+                //    await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
+
+                //}
+            }
+            // Log that the activity resumed
+            Console.WriteLine("MainActivity: OnResume called.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
 
