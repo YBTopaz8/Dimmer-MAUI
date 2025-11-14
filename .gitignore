@@ -43,3 +43,6 @@
 /Dimmer.Tests/obj
 /atldotnet-main/ATL/bin
 /atldotnet-main/ATL/obj
+/Dimmer/AudioSwitcher-master/AudioSwitcher.AudioApi/obj
+/Dimmer/AudioSwitcher-master/AudioSwitcher.AudioApi.CoreAudio/obj
+/Dimmer/AudioSwitcher-master/AudioSwitcher.AudioApi/obj
