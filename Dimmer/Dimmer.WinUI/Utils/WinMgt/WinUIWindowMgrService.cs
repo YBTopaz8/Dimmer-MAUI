@@ -273,7 +273,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
             {
                 state = WindowActivationState.Deactivated;
             }
-            if (didVisChange)
+            if(didVisChange)
             {
                 switch (state)
                 {
@@ -289,7 +289,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
             }
 
             var didSizeChange = args.DidSizeChange;
-            if (didSizeChange)
+            if(didSizeChange)
             {
                 var newSize = sender.Size;
                 Debug.WriteLine($"AppWindow size changed. New size: {newSize.Width}x{newSize.Height}");
@@ -370,15 +370,16 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     {
         EnsureWindowActive(window);
     }
-    public Window EnsureWindowActive(Window? window)
+    public void EnsureWindowActive(Window? window)
     {
+        if (window == null) return;
         // 1 try to recover a live tracked one first
         if (!_openWindows.Contains(window) || !IsWindowOpen(window))
         {
             
             TrackWindow(window);
             window.Activate();
-            return window;
+            return;
         }
 
         // 2️ check HWND validity
@@ -388,7 +389,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
             window = new DimmerWin();
             TrackWindow(window);
             window.Activate();
-            return window;
+            return;
         }
 
         // 3️ validate AppWindow state
@@ -399,7 +400,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
             window = new DimmerWin();
             TrackWindow(window);
             window.Activate();
-            return window;
+            return;
         }
 
         // 4️ normal restore / bring-front
@@ -408,7 +409,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
 
         appWindow.MoveInZOrderAtTop();
         window.Activate();
-        return window;
+        return;
     }
 
     public void ActivateWindow(Window window)
@@ -469,17 +470,19 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     public void CloseAllWindows()
     {
 
-        foreach (var window in _openWindows)
+        foreach (var window in _openWindows.ToList())
         {
             CloseWindow(window);
 
+            _openWindows.Remove(window);
         }
     }
+
     public void CloseWindow(Window window)
     {
         try
         {
-
+            if (!_openWindows.Contains(window)) return;
             if (IsWindowOpen(window)) // Check if we are tracking it as open
             {
                 window.Close(); // This will trigger the Destroying event which will handle untracking

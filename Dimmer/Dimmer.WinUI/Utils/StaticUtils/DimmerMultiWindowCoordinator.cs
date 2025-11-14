@@ -8,7 +8,7 @@ namespace Dimmer.WinUI.Utils.StaticUtils;
 
 public class DimmerMultiWindowCoordinator
 {
-    private readonly IWinUIWindowMgrService _mgr;
+    private readonly IWinUIWindowMgrService winUIMgrService;
     private readonly ObservableCollection<WindowEntry> _windows = new();
     private Microsoft.UI.Xaml.Window? _homeWindow;
     public bool ReturnToHomeOnClose { get; set; } = true;
@@ -17,32 +17,36 @@ public class DimmerMultiWindowCoordinator
     public BaseViewModelWin? BaseVM { get; set; }
     public DimmerMultiWindowCoordinator(IWinUIWindowMgrService mgr)
     {
-        _mgr = mgr;
+        winUIMgrService = mgr;
         
         Windows = new ReadOnlyObservableCollection<WindowEntry>(_windows);
 
-        foreach (var win in _mgr.GetOpenNativeWindows())
+        foreach (var win in winUIMgrService.GetOpenNativeWindows())
             TrackWindow(win);
-        _mgr.WindowActivated += (_, e) =>
+        winUIMgrService.WindowActivated += (_, e) =>
         {
             var win = e.Window; // this will be the Window that just got focus/opened
             if (win != null && !_windows.Any(x => x.Window == win))
                 TrackWindow(win);
         };
-        _mgr.WindowSizeChanged += async (_, e) =>
+        winUIMgrService.WindowSizeChanged += async (_, e) =>
         {
             if (_homeWindow != null)
-              await  WindowDockManager.SnapHomeWindowAsync(_homeWindow, _mgr.GetOpenNativeWindows());
+              await  WindowDockManager.SnapHomeWindowAsync(_homeWindow, winUIMgrService.GetOpenNativeWindows());
         };
-
-        _mgr.WindowClosed += (_, w) => UntrackWindow(w);
+        
+        winUIMgrService.WindowClosed += (_, w) => UntrackWindow(w);
     }
 
     public void SetHomeWindow(Window home)
     {
         _homeWindow = home;
-        Debug.WriteLine($"[Coordinator] Home window set: {home.Title}");
+        Debug.WriteLine("[Coordinator] Home window set: {home.Title}");
+
+        winUIMgrService.TrackWindow(home);
     }
+
+
 
     public void TrackWindow(Window win)
     {
@@ -55,7 +59,6 @@ public class DimmerMultiWindowCoordinator
             _windows.Add(entry);
         });
         var appWin = PlatUtils.GetAppWindow(win);
-
         TypedEventHandler<AppWindow, AppWindowChangedEventArgs>? handler = null;
         handler = async (sender, args) =>
         {
@@ -65,9 +68,11 @@ public class DimmerMultiWindowCoordinator
             if (args.DidPositionChange || args.DidSizeChange)
             {
                 if (_homeWindow != null)
-                   await WindowDockManager.SnapHomeWindowAsync(_homeWindow, _mgr.GetOpenNativeWindows());
+                   await WindowDockManager.SnapHomeWindowAsync(_homeWindow, winUIMgrService.GetOpenNativeWindows());
             }
         };
+
+        appWin.Changed += handler;
 
         win.Closed += (_, _) =>
         {
@@ -90,7 +95,7 @@ public class DimmerMultiWindowCoordinator
             {
                 _homeWindow.DispatcherQueue.TryEnqueue(() =>
                 {
-                    _mgr.BringToFront(_homeWindow);
+                    winUIMgrService.BringToFront(_homeWindow);
                     PlatUtils.GetAppWindow(_homeWindow).Show(true);
                 });
             }
@@ -103,22 +108,22 @@ public class DimmerMultiWindowCoordinator
     }
     public void BringAllToFront()
     {
-        foreach (var w in _mgr.GetOpenNativeWindows())
-            _mgr.BringToFront(w);
+        foreach (var w in winUIMgrService.GetOpenNativeWindows())
+            winUIMgrService.BringToFront(w);
     }
 
-    public void RestoreAll() => WindowDockManager.RestoreWindowPositions(_mgr);
+    public void RestoreAll() => WindowDockManager.RestoreWindowPositions(winUIMgrService);
 
     public void SaveAll()
     {
-        foreach (var w in _mgr.GetOpenNativeWindows())
+        foreach (var w in winUIMgrService.GetOpenNativeWindows())
             WindowDockManager.SaveWindowPosition(w);
     }
 
     public async Task SnapAllToHome()
     {
         if (_homeWindow == null) return;
-       await WindowDockManager.SnapHomeWindowAsync(_homeWindow, _mgr.GetOpenNativeWindows());
+       await WindowDockManager.SnapHomeWindowAsync(_homeWindow, winUIMgrService.GetOpenNativeWindows());
     }
 
     public void ShowControlPanel()
@@ -131,12 +136,12 @@ public class DimmerMultiWindowCoordinator
     public void CloseAll()
     {
         SaveAll();
-        _mgr.CloseAllWindows();
+        winUIMgrService.CloseAllWindows();
     }
 
     public void BringToFront(Window window)
     {
-        _mgr.BringToFront(window);
+        winUIMgrService.BringToFront(window);
     }
 
     

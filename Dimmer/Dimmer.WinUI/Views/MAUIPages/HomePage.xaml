@@ -45,13 +45,13 @@
 
 
     </ContentPage.Resources>
-    <Grid RowDefinitions="*,*">
+    <Grid RowDefinitions="auto,*">
         <VerticalStackLayout
             Grid.Row="0"
             Margin="10,5"
             BackgroundColor="Transparent"
             Spacing="10">
-            <HorizontalStackLayout HorizontalOptions="End" IsVisible="True">
+            <HorizontalStackLayout  HorizontalOptions="End" IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}">
                 
 
                 <Button
@@ -77,7 +77,7 @@
         
         <Grid IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
             x:Name="TopLeft"
-            
+            Grid.Row="1"
             BackgroundColor="{AppThemeBinding Light=#999999,
                                               Dark=transparent}"
             RowDefinitions="*,*">
@@ -175,6 +175,16 @@
 
         </Grid>
 
+        <VerticalStackLayout
+            Grid.Row="1"
+            Spacing="50" HorizontalOptions="Center"
+VerticalOptions="Start"            Padding="20">
+            <Label Text="No Songs Yet..."
+                   HorizontalOptions="Center"/>
+
+
+            <Button Clicked="SettingsNavChips_ChipClicked" Text="Open Settings" /> 
+        </VerticalStackLayout>
     </Grid>
 
 </ContentPage>

@@ -23,14 +23,10 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel = vm;
         AppUtil = appUtil;
         BindingContext = vm;
-        
+
     }
     public Microsoft.Maui.Controls.Page CurrentPage => this.Page as Microsoft.Maui.Controls.Page ?? throw new InvalidOperationException("Current Page is not a valid Page.");
-    private void AppShell_Loaded(object? sender, EventArgs e)
-    {
-
-    }
-
+    
 
     protected async override void OnDestroying()
     {
@@ -39,7 +35,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
             SubscriptionManager subMgr = IPlatformApplication.Current!.Services.GetService<SubscriptionManager>()!;
-            CloseAllWindows();
+            
             var dimmerAudio = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>();
             if (dimmerAudio is not null)
             {
@@ -61,7 +57,6 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
             return;
         }
 
-        CloseAllWindows();
 
     }
     private void CloseAllWindows()
@@ -155,6 +150,9 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         //DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
 #elif RELEASE
 #endif
+
+        MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow(this));
+        
         if (MyViewModel is null)
         {
             return;

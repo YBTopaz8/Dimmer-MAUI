@@ -63,7 +63,7 @@ public partial class HomePage : ContentPage
         {
             MyViewModel.CurrentPageContext = CurrentPage.HomePage;
             MyViewModel.CurrentMAUIPage = this;
-            MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow());
+            
 
             if (MyViewModel.ShowWelcomeScreen)
             {
@@ -341,10 +341,12 @@ public partial class HomePage : ContentPage
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
 
-        var dimmerWindow = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
+        var dimmerWindow = IPlatformApplication.Current!
+            .Services.GetRequiredService<DimmerWin>()!;
 
       
         dimmerWindow.NavigateToPage(typeof(SettingsPage));
+        
         
     }
 
@@ -1199,5 +1201,10 @@ public partial class HomePage : ContentPage
 
 
         }
+    }
+
+    private void Button_Clicked_1(object sender, EventArgs e)
+    {
+
     }
 }

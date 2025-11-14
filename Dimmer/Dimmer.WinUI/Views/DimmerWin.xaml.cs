@@ -27,7 +27,7 @@ public sealed partial class DimmerWin : Window
         InitializeComponent();
         MyViewModel= IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
         WinUIWindowsMgr= IPlatformApplication.Current?.Services.GetService<IWinUIWindowMgrService>();
-        NavigateToPage(typeof(AllSongsListPage));
+        
 
     }
     public async void NavigateToPage(Type pageType)
@@ -37,7 +37,7 @@ public sealed partial class DimmerWin : Window
 
             await DispatcherQueue.EnqueueAsync(() =>
             {
-                WinUIWindowsMgr.BringToFront(this);
+                WinUIWindowsMgr?.BringToFront(this);
                 ContentFrame.Navigate(pageType, MyViewModel);
 
             });
@@ -46,7 +46,7 @@ public sealed partial class DimmerWin : Window
     public BaseViewModelWin? MyViewModel { get; internal set; }
     private void DimmerWindowClosed(object sender, WindowEventArgs args)
     {
-        WinUIWindowsMgr?.CloseAllWindows();
+        WinUIWindowsMgr?.UntrackWindow(this);
         this.Closed -= DimmerWindowClosed; 
 
     }
@@ -101,7 +101,7 @@ public sealed partial class DimmerWin : Window
 
         MyViewModel.CurrentWinUIPage = this;
         
-        WinUIWindowsMgr?.TrackWindow(this);
+        
         if (MyViewModel.IsLastFMNeedsToConfirm)
         {
             bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");

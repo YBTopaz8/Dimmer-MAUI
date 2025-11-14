@@ -44,7 +44,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IMauiWindowManagerService, WindowManagerService>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
 
-        builder.Services.AddSingleton<DimmerWin>();
+        builder.Services.AddTransient<DimmerWin>();
 
         builder.Services.AddSingleton<SessionTransferVMWin>();
 

@@ -26,7 +26,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
     private readonly LoginViewModel loginViewModel;
-    private readonly IFolderPicker _folderPicker; public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
+    private readonly IFolderPicker _folderPicker; 
+    public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
     public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService, LoginViewModel _loginViewModel,
         IWinUIWindowMgrService winUIWindowMgrService,
         IMauiWindowManagerService mauiWindowManagerService,

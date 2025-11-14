@@ -19,7 +19,7 @@ public interface IWinUIWindowMgrService
     Window? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null);
     T? CreateWindow<T>() where T : Window, new();
     T? CreateWindow<T>(object? parameter) where T : Window;
-    Window EnsureWindowActive(Window? window);
+    void EnsureWindowActive(Window? window);
     IReadOnlyList<Window> GetOpenNativeWindows();
     Window? GetOrCreateUniqueContentWindow(Type pageType, string uniqueId, object? navigationParameter = null, string? title = null, Func<Window>? windowFactory = null);
     T? GetOrCreateUniqueWindow<T>(BaseViewModelWin? callerVM = null, Func<T>? windowFactory = null) where T : Window;

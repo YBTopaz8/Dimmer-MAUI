@@ -3,7 +3,7 @@ namespace Dimmer.WinUI;
 
 public partial class AppShell : Shell
 {
-    public AppShell(BaseViewModel baseVM)
+    public AppShell(BaseViewModelWin baseVM)
     {
         InitializeComponent();
         MyViewModel = baseVM;
@@ -11,7 +11,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
     }
 
-    BaseViewModel MyViewModel { get; }
+    BaseViewModelWin MyViewModel { get; }
 
     protected override void OnAppearing()
     {
@@ -42,5 +42,9 @@ public partial class AppShell : Shell
     {
         base.OnNavigatingFrom(args);
     }
-
+    
+    private void Shell_Loaded(object sender, EventArgs e)
+    {
+        
+    }
 }

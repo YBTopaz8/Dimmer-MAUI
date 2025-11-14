@@ -24,6 +24,7 @@ public class AppUtil : IAppUtil
         if (this.dimmerWinUI is null)
         {
             this.dimmerWinUI = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
+       
         }
         else
         {
@@ -38,12 +39,16 @@ public class AppUtil : IAppUtil
         }
         dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
         if (BaseViewModelWin.FolderPaths.Count > 0)
-        {
-            dimmerWinUI.Activate();
-            
+        {   
+            dimmerWinUI.NavigateToPage(typeof(AllSongsListPage));
             PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1080 });
         }
-        dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
+        else
+        {
+            
+        }
+            dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
+        
         return  dimmerMAUIWin;
     }
 
