@@ -314,7 +314,6 @@ public partial class HomePage : ContentPage
     }
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.AddMusicFolderViaPickerAsync();
     }
 
     private void NavBtnClicked_Clicked(object sender, EventArgs e)

@@ -4,6 +4,8 @@ public class CollectionSizeToVisibility : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+
+        
         int val = (int)value;
         if(val < 1)
         {

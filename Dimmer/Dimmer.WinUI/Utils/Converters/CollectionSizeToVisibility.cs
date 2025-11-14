@@ -7,9 +7,11 @@ public partial class CollectionSizeToVisibility : IValueConverter
         int? val = (int?)value;
         if (val < 1)
         {
-            return false;
+            
+
+            return WinUIVisibility.Collapsed;
         }
-        return true;
+        return WinUIVisibility.Visible;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, string culture)

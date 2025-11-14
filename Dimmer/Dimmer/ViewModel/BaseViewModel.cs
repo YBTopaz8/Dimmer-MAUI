@@ -581,7 +581,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public event EventHandler? MainWindowActivatedEventHandler;
 
     public event Action? MainWindowDeactivated;
-    public void MainWindow_Activated() { MainWindowActivatedEventHandler?.Invoke(this, EventArgs.Empty); }
 
     private void HandleCommandAction(ICommandAction action)
     {

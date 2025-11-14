@@ -23,7 +23,7 @@ public class RealmFactory : IRealmFactory
 #if RELEASE
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
 #elif DEBUG
-        string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
+        string filePath = Path.Combine(dbPath, "DimmerDB.realm");
         //string filePath = Path.Combine(dbPath, "DimmerDbDebug.realm");
 #endif
         if (!File.Exists(filePath))
@@ -33,7 +33,7 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 68,
+            SchemaVersion = 0,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
 

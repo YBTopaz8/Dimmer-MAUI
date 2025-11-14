@@ -53,13 +53,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         //MainWindowActivated
     }
 
-    public void MainMAUIWindow_Activated()
-    {
-        //MainWindowActivated?.Invoke(this, EventArgs.Empty);
-        MainWindow_Activated();
-
-
-    }
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
@@ -253,30 +246,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
 
-    public async Task AddMusicFolderViaPickerAsync()
-    {
-        try
-        {
-
-
-            var res = await _folderPicker.PickAsync(CancellationToken.None);
-
-            if (res is not null && res.Folder is not null)
-            {
-                string? selectedFolderPath = res!.Folder!.Path;
-
-                if (!string.IsNullOrEmpty(selectedFolderPath))
-                {
-                    _ = Task.Run(async () => await AddMusicFolderByPassingToService(selectedFolderPath));
-                }
-
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
 
 
     [ObservableProperty]

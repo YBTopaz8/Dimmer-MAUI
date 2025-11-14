@@ -100,7 +100,6 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 
                 }
             }
-            MyViewModel.MainWindow_Activated();
             var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
             if (nativeElement != null)
             {

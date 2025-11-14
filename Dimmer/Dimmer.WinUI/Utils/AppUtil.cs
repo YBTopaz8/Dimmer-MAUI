@@ -29,7 +29,6 @@ public class AppUtil : IAppUtil
         {
             dimmerMAUIWin = BaseViewModelWin.MainMAUIWindow;
         }
-        dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
         
         
 
@@ -37,10 +36,13 @@ public class AppUtil : IAppUtil
         {
             throw new Exception("DimmerWin is null");
         }
-
-        dimmerWinUI.Activate();
-        PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1080 });
-
+        dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
+        if (BaseViewModelWin.FolderPaths.Count > 0)
+        {
+            dimmerWinUI.Activate();
+            
+            PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1080 });
+        }
         dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
         return  dimmerMAUIWin;
     }

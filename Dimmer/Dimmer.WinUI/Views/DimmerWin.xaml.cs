@@ -57,7 +57,7 @@ public sealed partial class DimmerWin : Window
         
     }
 
-    private void Window_Activated(object sender, WindowActivatedEventArgs args)
+    private async void Window_Activated(object sender, WindowActivatedEventArgs args)
     {
         
             if (args.WindowActivationState == WindowActivationState.Deactivated)
@@ -67,12 +67,54 @@ public sealed partial class DimmerWin : Window
             if (MyViewModel is null)
                 return;
 
-            //SizeInt32 currentWindowSize = new SizeInt32(1600, 1000);
-            //PlatUtils.ResizeNativeWindow(this, currentWindowSize);
+        if (MyViewModel.IsLastFMNeedsToConfirm)
+        {
+            ContentDialog lastFMConfirmDialog = new ContentDialog
+            {
+                Title = "LAST FM Confirm",
+                Content = "Is Authorization done?",
+                PrimaryButtonText = "Yes",
+                CloseButtonText = "No",
+                XamlRoot = this.ContentFrame.XamlRoot
 
-            MyViewModel.CurrentWinUIPage = this;
+            };
+            var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
+            
+            if (isLastFMAuthorized)
+            {
+                await MyViewModel.CompleteLastFMLoginAsync();
+            }
+            else
+            {
+                MyViewModel.IsLastFMNeedsToConfirm = false;
+                ContentDialog cancelledDialog = new ContentDialog
+                {
+                    Title = "Action Cancelled",
+                    Content = "Last FM Authorization Cancelled",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.ContentFrame.XamlRoot
+                };
+                
+
+            }
+        }
+
+        MyViewModel.CurrentWinUIPage = this;
         
         WinUIWindowsMgr?.TrackWindow(this);
-       
+        if (MyViewModel.IsLastFMNeedsToConfirm)
+        {
+            bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
+            if (isLastFMAuthorized)
+            {
+                await MyViewModel.CompleteLastFMLoginAsync();
+            }
+            else
+            {
+                MyViewModel.IsLastFMNeedsToConfirm = false;
+                await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
+
+            }
+        }
     }
 }

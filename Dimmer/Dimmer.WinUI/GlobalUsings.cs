@@ -13,7 +13,7 @@ global using Microsoft.Maui.LifecycleEvents;
 global using Microsoft.UI;
 global using WinRT.Interop;
 global using System.Numerics;
-
+global using WinUIVisibility = Microsoft.UI.Xaml.Visibility;
 global using CommunityToolkit.Maui;
 
 global using Dimmer.WinUI.Views.MAUIPages;
