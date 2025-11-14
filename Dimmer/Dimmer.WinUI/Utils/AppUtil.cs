@@ -20,15 +20,17 @@ public class AppUtil : IAppUtil
     public Microsoft.Maui.Controls.Window LoadWindow()
     {
 
-       
         if (this.dimmerWinUI is null)
         {
+            
             this.dimmerWinUI = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
-       
+            UiThreads.InitializeWinUIDispatcher(dimmerWinUI!.DispatcherQueue);
         }
         else
         {
+            UiThreads.InitializeWinUIDispatcher(dimmerWinUI.DispatcherQueue);
             dimmerMAUIWin = BaseViewModelWin.MainMAUIWindow;
+
         }
         
         

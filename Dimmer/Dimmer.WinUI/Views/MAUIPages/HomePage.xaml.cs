@@ -68,13 +68,8 @@ public partial class HomePage : ContentPage
             if (MyViewModel.ShowWelcomeScreen)
             {
                 Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
-//#if RELEASE
-//                //throw new Exception("Not implemented, go to welcomewindow");
-
                 return;
             }
-
-            await Task.Delay(4000);
 
         }
         catch (Exception ex)
@@ -1072,7 +1067,7 @@ public partial class HomePage : ContentPage
         if (!_initialized)
         {
             _initialized = true;
-            MyViewModel.InitializeAllVMCoreComponentsAsync();
+            MyViewModel.InitializeAllVMCoreComponents();
 
         }
     }

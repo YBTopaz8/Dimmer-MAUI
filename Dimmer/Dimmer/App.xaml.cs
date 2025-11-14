@@ -8,15 +8,17 @@ using Dimmer.DimmerLive.Orchestration;
 using Dimmer.Interfaces;
 using Dimmer.Utils;
 
+using Microsoft.Maui.Controls;
+
 namespace Dimmer;
 
 public partial class App : Application
 {
 
-    public App(IAppUtil appUtil)
+    public App(IAppUtil appUtil, BaseViewModel vm)
     {
         InitializeComponent();
-
+        MyViewModel = vm;
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -50,8 +52,10 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var win = AppUtilImple.LoadWindow();
+        UiThreads.MauiUI = Current!.Dispatcher;
 
+        var win = AppUtilImple.LoadWindow();
+        
         return win;
     }
 
@@ -60,7 +64,7 @@ public partial class App : Application
 
     }
     public IAppUtil AppUtilImple { get; }
-
+    public BaseViewModel MyViewModel { get; }
 
     private static readonly Lock _logLock = new();
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -79,6 +83,10 @@ public partial class App : Application
             // This is ReactiveUI probing for platform-specific assemblies (WPF, Blazor, etc.).
             // It's expected behavior and safe to ignore.
             return;
+        }
+        if (ex is InvalidCastException)
+        {
+            Debugger.Break();
         }
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +

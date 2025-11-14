@@ -152,7 +152,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
-    public void InitializeAllVMCoreComponentsAsync()
+    public void InitializeAllVMCoreComponents()
     {
         if (IsInitialized) return;
 
@@ -162,33 +162,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         ReloadFolderPaths();
         var realm = RealmFactory.GetRealmInstance();
-        var _isLibraryEmpty = new BehaviorSubject<bool>(true);
-        IsLibraryEmpty?.ObserveOn(RxSchedulers.UI)
-                            .Subscribe(
-                                showWelcomeScreen =>
-                                {
-                                    if (showWelcomeScreen)
-                                        ShowWelcomeScreen = true;
-                                    else
-                                        ShowWelcomeScreen = false;
-                                });
-
-        ShowWelcomeScreen = !realm.All<SongModel>().Any();
-        realm.All<SongModel>()
-            .AsObservableChangeSet()
-            .Select(_ => realm.All<SongModel>().Any()) // Check the count after any change
-            .DistinctUntilChanged() // Only notify subscribers if the empty-state actually changes
-            .Subscribe(
-                isEmpty =>
-                {
-                    Debug.WriteLine($"[Library Status]: Is empty = {isEmpty}");
-                    _isLibraryEmpty.OnNext(true);
 
 
-                },
-                ex => _logger.LogError(ex, "Error observing library empty state."))
-            .DisposeWith(CompositeDisposables);
+        IsLibraryEmpty = !realm.All<SongModel>().Any();
+        
+        ShowWelcomeScreen = IsLibraryEmpty;
+        if(!IsLibraryEmpty)
+        {
+            ShowAllSongsWindowActivate();
+        }    
 
+
+    
 
         var realmSub = realm.All<SongModel>()
             .AsObservableChangeSet()
@@ -286,17 +271,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 payload =>
                 {
                     var plan = payload.Plan;
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
+                    
 
                         NLPQuery = payload.Query;
 
                         TQLUserSearchErrorMessage = plan.ErrorMessage ?? "";
-                    });
+                    
 
                     if (plan.ErrorMessage != null)
                     {
-                        searchResultsHolder.Edit(u => u.Clear());
+                        //searchResultsHolder.Edit(u => u.Clear());
+
                         // --- DEBUG STEP 4: Did we stop because of a parse error? ---
                         Debug.WriteLine($"[DEBUG] Halting due to parse error: {plan.ErrorMessage}");
                         return;
@@ -466,7 +451,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (folders is not null && folders.Count != 0)
             {
-                _ = await libScannerService.ScanLibrary(folders);
+                //_ = await libScannerService.ScanLibrary(folders);
             }
             
             await PerformBackgroundInitializationAsync();
@@ -510,7 +495,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
             redoStats.RecalculateAllStatistics();
             
-            await EnsureAllCoverArtCachedForSongsAsync();
+            //await EnsureAllCoverArtCachedForSongsAsync();
 
             // Task 2: Update SearchableText for all songs (Heavy CPU/DB work)
             
@@ -532,6 +517,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // An unhandled exception here would crash your app silently.
             _logger.LogError(ex, "A fatal error occurred during background initialization.");
         }
+    }
+
+    public virtual void ShowAllSongsWindowActivate()
+    {
+
     }
 
     [RelayCommand]
@@ -1973,7 +1963,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         _stateService.SetCurrentLogMsg(new AppLogModel()
                         {
                             ViewSongModel = song,
-                            Log = $"Now on song {song.Title} by {song.ArtistName}"
+                            Log = $"Cover art on song {song.Title} by {song.ArtistName}"
                         });
                         await LoadAndCacheCoverArtAsync(song);
                         int current = Interlocked.Increment(ref processed);
@@ -3498,7 +3488,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 .Where(s => s.Log is not null)
                 .Subscribe(
                     obv =>
-                    {
+                     {
                         LatestDeviceLog(obv);
                     }));
     }
@@ -3515,11 +3505,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _subsMgr.Add(
 
             LyricsMgtFlow.IsLoadingLyrics
-                .ObserveOn(RxSchedulers.UI)
+            .ObserveOn(RxSchedulers.UI)
                 .Subscribe(isLoading =>
                 {
+
                     IsLoadingLyrics = isLoading;
+                    
+
                 }));
+
         _subsMgr.Add(
             LyricsMgtFlow.IsSearchingLyrics
             .ObserveOn(RxSchedulers.UI)
@@ -3527,6 +3521,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 IsSearchingLyrics = isSearching;
             }));
+
+
         LyricsMgtFlow.AllSyncLyrics
                 .ObserveOn(RxSchedulers.UI)
                 .Subscribe(lines =>
@@ -7234,9 +7230,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial int WelcomeTabViewItemsCount { get; set; }
 
 
-    private readonly BehaviorSubject<bool> _isLibraryEmpty;
-
-    public IObservable<bool> IsLibraryEmpty => _isLibraryEmpty;
+    [ObservableProperty]
+    public partial bool IsLibraryEmpty { get; set; }
 
     [ObservableProperty]
     public partial string PickFilesOutputText { get; set; }

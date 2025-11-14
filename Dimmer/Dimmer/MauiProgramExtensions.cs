@@ -90,7 +90,7 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
         builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<SessionTransferViewModel>();
 
 

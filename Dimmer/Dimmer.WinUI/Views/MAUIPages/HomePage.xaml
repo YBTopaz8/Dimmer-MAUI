@@ -51,9 +51,14 @@
             Margin="10,5"
             BackgroundColor="Transparent"
             Spacing="10">
-            <HorizontalStackLayout  HorizontalOptions="End" IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}">
-                
+            <HorizontalStackLayout 
+                Spacing="10"
+                HorizontalOptions="End" IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}">
 
+                <Button ImageSource="playlistminimalistic3.png"
+                    BorderWidth="1"
+                        WidthRequest="60" BackgroundColor="Transparent">
+                </Button>
                 <Button
                     x:Name="ShowPlaylistHistory"
                     BackgroundColor="Transparent"

@@ -28,8 +28,10 @@ public sealed partial class DimmerWin : Window
         MyViewModel= IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
         WinUIWindowsMgr= IPlatformApplication.Current?.Services.GetService<IWinUIWindowMgrService>();
         
-
+        
     }
+
+    
     public async void NavigateToPage(Type pageType)
     {
         if (MyViewModel is not null)
@@ -66,6 +68,7 @@ public sealed partial class DimmerWin : Window
             }
             if (MyViewModel is null)
                 return;
+
 
         if (MyViewModel.IsLastFMNeedsToConfirm)
         {

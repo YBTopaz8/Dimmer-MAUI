@@ -756,4 +756,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             SelectedArtist = artist;
         });
     }
+
+    public override async void ShowAllSongsWindowActivate()
+    {
+        base.ShowAllSongsWindowActivate();
+
+        await NowPlayingQueueBtnClicked();
+    }
 }

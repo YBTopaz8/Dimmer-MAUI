@@ -36,7 +36,9 @@
 	  <Page Remove="AppShell.xaml" />
 	  <Page Remove="Views\MAUIPages\HomePage.xaml" />
 	</ItemGroup>
-
+	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041.0'">
+		<DefineConstants>WINDOWS</DefineConstants>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />

@@ -12,7 +12,7 @@
     x:FieldModifier="Public"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
                                       Dark=#1131314}"
-    Shell.FlyoutBehavior="Flyout"
+    Shell.FlyoutBehavior="Flyout" Loaded="ContentPage_Loaded"
     Shell.NavBarIsVisible="False"
     Shell.TabBarIsVisible="False">
 

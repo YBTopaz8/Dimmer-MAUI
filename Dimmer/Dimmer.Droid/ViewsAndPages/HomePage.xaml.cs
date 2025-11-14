@@ -1,3 +1,5 @@
+using AndroidX.Lifecycle;
+
 namespace Dimmer.ViewsAndPages;
 
 public partial class HomePage : ContentPage
@@ -5,10 +7,10 @@ public partial class HomePage : ContentPage
 	public HomePage(BaseViewModelAnd baseViewModel)
 	{
 		InitializeComponent();
-		vm = baseViewModel;
-		this.BindingContext = vm;
+		MyViewModel = baseViewModel;
+		this.BindingContext = MyViewModel;
     }
-	BaseViewModelAnd vm;
+	BaseViewModelAnd MyViewModel;
 
     private void myPageSKAV_Closed(object sender, EventArgs e)
     {
@@ -199,5 +201,11 @@ public partial class HomePage : ContentPage
     private void ClearSearch_Tap(object sender, HandledEventArgs e)
     {
 
+    }
+
+    private void ContentPage_Loaded(object sender, EventArgs e)
+    {
+
+        MyViewModel.InitializeAllVMCoreComponents();
     }
 }

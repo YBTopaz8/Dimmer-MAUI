@@ -382,14 +382,7 @@
                             </DataTemplate>
                         </dgView:TableViewTemplateColumn.EditingTemplate>-->
                 </dgView:TableViewTemplateColumn>
-                <dgView:TableViewTextColumn
-                    Binding="{Binding SkipCount}"
-                    Header="Skip Count"
-                    IsReadOnly="True" />
-                <dgView:TableViewTextColumn
-                    Binding="{Binding GlobalRank}"
-                    Header="Global Rank"
-                    IsReadOnly="True" />
+           
 
             </dgView:TableView.Columns>
         </dgView:TableView>
