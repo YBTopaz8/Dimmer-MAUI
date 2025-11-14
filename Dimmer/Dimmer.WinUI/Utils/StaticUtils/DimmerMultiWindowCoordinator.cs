@@ -120,7 +120,7 @@ public class DimmerMultiWindowCoordinator
             WindowDockManager.SaveWindowPosition(w);
     }
 
-    public async Task SnapAllToHome()
+    public async Task SnapAllToHomeAsync()
     {
         if (_homeWindow == null) return;
        await WindowDockManager.SnapHomeWindowAsync(_homeWindow, winUIMgrService.GetOpenNativeWindows());

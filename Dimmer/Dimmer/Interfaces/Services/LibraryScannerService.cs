@@ -41,7 +41,6 @@ public class LibraryScannerService : ILibraryScannerService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _config = config ?? new ProcessingConfig();
 
-        _coverArtService = new CoverArtService(_config);
     }
 
     public async Task<LoadSongsResult> ScanLibrary(List<string>? folderPaths)
@@ -120,7 +119,7 @@ public class LibraryScannerService : ILibraryScannerService
             // --- 4. Process ONLY the new files ---
             var audioFileProcessor = new AudioFileProcessor(_coverArtService, currentScanMetadataService, _config);
             int progress = 0;
-            var processedResults = await Task.Run(() => audioFileProcessor.ProcessFiles(newFilesToProcess));
+            var processedResults = await Task.Run(async () => await audioFileProcessor.ProcessFilesAsync(newFilesToProcess));
 
 
             foreach (var result in processedResults)

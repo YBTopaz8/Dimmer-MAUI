@@ -5,6 +5,8 @@
 
 
 
+using System.Threading.Tasks;
+
 using Dimmer.WinUI.Views.MAUIPages;
 
 using WinUI.TableView;
@@ -719,12 +721,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [RelayCommand]
-    private void NowPlayingQueueBtnClicked()
+    private async Task NowPlayingQueueBtnClicked()
     {
-        //var allSongsWin = winUIWindowMgrService.GetOrCreateUniqueWindow(this, () => new AllSongsWindow(this));
-        //if (allSongsWin is null) return;
+        var dimmerWin = winUIWindowMgrService.GetOrCreateUniqueWindow(this, () => new DimmerWin());
+        if (dimmerWin is null) return;
 
-        //DimmerMultiWindowCoordinator.SnapAllToHome();
+        await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
+        dimmerWin.NavigateToPage(typeof(AllSongsListPage));
 
     }
 

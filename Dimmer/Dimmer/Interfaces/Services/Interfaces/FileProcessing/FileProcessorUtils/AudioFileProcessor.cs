@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 using DynamicData;
 
@@ -21,28 +22,25 @@ public class AudioFileProcessor : IAudioFileProcessor
         _metadataService = metadataService;
         _config = config;
     }
-    public List<FileProcessingResult> ProcessFiles(IEnumerable<string> filePaths)
+    public async Task<List<FileProcessingResult>> ProcessFilesAsync(IEnumerable<string> filePaths)
     {
-        // This parallel processing approach can significantly speed up scanning large libraries on multi-core CPUs.
-        var results = new ConcurrentBag<FileProcessingResult>();
-
-        Parallel.ForEach(filePaths, filePath =>
+        var tasks = filePaths.Select(async path =>
         {
             try
             {
-                var singleResult = ProcessFile(filePath);
-                results.Add(singleResult);
+                return ProcessFile(path);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"CRITICAL FAILURE processing file '{filePath}': {ex.Message}. This file will be skipped.");
-                var errorResult = new FileProcessingResult(filePath);
-                errorResult.Errors.Add($"A critical, unhandled exception occurred: {ex.Message}");
-                results.Add(errorResult);
+                Debug.WriteLine($"[Critical] {path}: {ex}");
+                return new FileProcessingResult(path)
+                {
+                    Errors = { $"Unhandled: {ex}" }
+                };
             }
         });
 
-        return [.. results];
+        return [.. (await Task.WhenAll(tasks))];
     }
 
     public FileProcessingResult ProcessFile(string filePath)
@@ -224,4 +222,6 @@ public class AudioFileProcessor : IAudioFileProcessor
         _metadataService.ClearAll();
         
     }
+
+    
 }

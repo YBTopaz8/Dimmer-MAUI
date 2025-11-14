@@ -774,10 +774,10 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void NowPlayingQueueBtnClicked(object sender, EventArgs e) => MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
-
-
-
+    private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
+    {
+        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+    }
 
     private void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
     {
