@@ -52,7 +52,7 @@ public sealed partial class SettingsPage : Page
         MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModel>();
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
-        if (MyViewModel == null)
+        if (MyViewModel != null)
         {
           
             // Now that the ViewModel is set, you can set the DataContext.
@@ -68,12 +68,18 @@ public sealed partial class SettingsPage : Page
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
     {
-
+        if (WizardFlipView.SelectedIndex < WizardFlipView.Items.Count - 1)
+        {
+            WizardFlipView.SelectedIndex += 1;
+        }
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
-
+        if (WizardFlipView.SelectedIndex > 0)
+        {
+            WizardFlipView.SelectedIndex -= 1;
+        }
     }
 
     private void WizardFlipView_SelectionChanged_1(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)

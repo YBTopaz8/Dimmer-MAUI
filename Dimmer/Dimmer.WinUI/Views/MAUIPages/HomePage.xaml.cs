@@ -68,7 +68,9 @@ public partial class HomePage : ContentPage
             if (MyViewModel.ShowWelcomeScreen)
             {
                 Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
-                throw new Exception("Not implemented, go to welcomewindow");
+//#if RELEASE
+//                //throw new Exception("Not implemented, go to welcomewindow");
+
                 return;
             }
 
@@ -79,7 +81,6 @@ public partial class HomePage : ContentPage
         {
             await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
         }
-        MyViewModel.DumpCommand.Execute(null);
     }
     private async void ConsolidateDuplicates_Clicked(object sender, EventArgs e)
     {

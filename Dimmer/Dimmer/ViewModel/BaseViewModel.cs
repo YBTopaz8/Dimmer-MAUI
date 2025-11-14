@@ -86,7 +86,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
 
         _duplicateFinderService = duplicateFinderService;
-        libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
+        libScannerService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
             h => audioServ.PositionChanged += h,
             h => audioServ.PositionChanged -= h)
@@ -160,6 +160,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         // subscribe to realm's directChanges for certain models to keep in sync
 
+        ReloadFolderPaths();
         var realm = RealmFactory.GetRealmInstance();
         var _isLibraryEmpty = new BehaviorSubject<bool>(true);
         IsLibraryEmpty?.ObserveOn(RxSchedulers.UI)
@@ -465,7 +466,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (folders is not null && folders.Count != 0)
             {
-                _ = await libService.ScanLibrary(folders);
+                _ = await libScannerService.ScanLibrary(folders);
             }
             
             await PerformBackgroundInitializationAsync();
@@ -1044,7 +1045,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private MusicStatsService musicStatsService;
     protected ILogger<BaseViewModel> _logger;
     private IDimmerAudioService _audioService;
-    private ILibraryScannerService libService;
+    private ILibraryScannerService libScannerService;
 
 
     private readonly CompositeDisposable _subsManager = new CompositeDisposable();
@@ -1825,8 +1826,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             _logger.LogTrace("No embedded cover art found in audio file: {FilePath}", song.FilePath);
             //Trying lastfm
-            var cleanTitle = CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
-            string cleanArtist = CleanArtist(song.FilePath, song.ArtistName, song.Title);
+            var cleanTitle = StaticUtils.CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
+            string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
             if (lastfmTrack.IsNull)
                 return;
@@ -1885,102 +1886,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogError(ex, "Failed to load or update cover art from final path: {ImagePath}", finalImagePath);
         }
     }
-    public static string CleanTitle(string path, string title, string album = "", string artist = "")
-    {
-        if (string.IsNullOrWhiteSpace(title))
-            return string.Empty;
-
-        string t = title.Trim();
-        string fileName = Path.GetFileNameWithoutExtension(path) ?? string.Empty;
-
-        // 1️⃣ Strip "by ..." uploader metadata entirely
-        t = Regex.Replace(t, @"\s+by\s+[A-Za-z0-9$'_.\- ]+$", "", RegexOptions.IgnoreCase);
-
-        // 2️⃣ Remove artist prefix if given
-        if (!string.IsNullOrWhiteSpace(artist) && !artist.StartsWith("Unknown", StringComparison.OrdinalIgnoreCase))
-        {
-            string escapedArtist = Regex.Escape(artist.Trim());
-            t = Regex.Replace(t, $"^{escapedArtist}\\s*[-–—:]\\s*", "", RegexOptions.IgnoreCase);
-        }
-
-        // 3️⃣ Remove “ft/feat/featuring ...” from title
-        t = Regex.Replace(t, @"\b(ft|feat|featuring)\b.*", "", RegexOptions.IgnoreCase);
-
-        // 4️⃣ Remove video/suffix clutter
-        t = Regex.Replace(t, @"[\(\[\{](official|video|clip|lyrics?|audio|hd|4k|music|remix|officiel|bonus|version|produced\s+by\s+[a-z0-9 ]+)[^\)\]\}]*[\)\]\}]", "", RegexOptions.IgnoreCase);
-        t = Regex.Replace(t, @"[_\- ]*(copy|19\d{2}|20\d{2}|[0-9]+)$", "", RegexOptions.IgnoreCase);
-
-        // 5️⃣ Trim leading/trailing junk
-        t = Regex.Replace(t, @"\s{2,}", " ").Trim();
-        t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", "", RegexOptions.IgnoreCase);
-
-        // 6️⃣ Use only the last meaningful chunk if multiple dashes exist
-        // e.g. "Jiron ft Wizkid - No Fronting" → "No Fronting"
-        if (t.Contains('-'))
-        {
-            var parts = t.Split('-', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(p => p.Trim())
-                         .ToList();
-            if (parts.Count > 1)
-                t = parts.Last();
-        }
-
-        // 7️⃣ Capitalize
-        if (t.Length > 1)
-            t = char.ToUpper(t[0]) + t[1..];
-
-        return t;
-    }
-
-
-    public static string CleanArtist(string filePath, string artistName, string title)
-    {
-        string a = artistName?.Trim() ?? string.Empty;
-        a = a.Replace("�", "").Replace("?", "").Replace("–", "-").Trim();
-
-        // 1️⃣ Split and deduplicate
-        var parts = a.Split(new[] { ',', ';', '/', '&' }, StringSplitOptions.RemoveEmptyEntries)
-                     .Select(x => x.Trim())
-                     .Where(x => !string.IsNullOrWhiteSpace(x))
-                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                     .ToList();
-
-        // 2️⃣ Extract “ft/feat” from title if present
-        var featMatch = Regex.Match(title, @"\b(?:ft|feat|featuring)\s+([A-Za-z0-9$'_.\- ,&]+)", RegexOptions.IgnoreCase);
-        if (featMatch.Success)
-        {
-            var feats = featMatch.Groups[1].Value
-                .Split(new[] { ',', '&', '/', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-
-            foreach (var f in feats)
-                if (!parts.Contains(f, StringComparer.OrdinalIgnoreCase))
-                    parts.Add(f);
-        }
-
-        // 3️⃣ Only consider "by <name>" if it's a soundtrack-type title
-        if (Regex.IsMatch(title, @"(soundtrack|theme|ost|score)", RegexOptions.IgnoreCase))
-        {
-            var matchBy = Regex.Match(title, @"\bby\s+([A-Za-z0-9$'_.\- ]+)$", RegexOptions.IgnoreCase);
-            if (matchBy.Success)
-            {
-                string composer = matchBy.Groups[1].Value.Trim();
-                if (!parts.Contains(composer, StringComparer.OrdinalIgnoreCase))
-                    parts.Add(composer);
-            }
-        }
-
-        // 4️⃣ Final cleanup
-        parts = parts.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        a = parts.Count > 0 ? string.Join(", ", parts) : "Unknown Artist";
-
-        if (a.Length > 1)
-            a = char.ToUpper(a[0]) + a[1..];
-
-        return a;
-    }
-
 
 
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)

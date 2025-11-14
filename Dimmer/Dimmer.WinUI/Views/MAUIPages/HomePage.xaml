@@ -175,10 +175,24 @@
 
         </Grid>
 
-        <VerticalStackLayout
+        <VerticalStackLayout 
             Grid.Row="1"
             Spacing="50" HorizontalOptions="Center"
 VerticalOptions="Start"            Padding="20">
+            <VerticalStackLayout.Triggers>
+
+                <DataTrigger Binding="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
+                             Value="True"
+                             TargetType="VerticalStackLayout">
+                    <Setter Property="IsVisible" Value="False"/>
+                </DataTrigger>
+
+                <DataTrigger Binding="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
+                             Value="False"
+                             TargetType="VerticalStackLayout">
+                    <Setter Property="IsVisible" Value="True"/>
+                </DataTrigger>
+            </VerticalStackLayout.Triggers>
             <Label Text="No Songs Yet..."
                    HorizontalOptions="Center"/>
 
