@@ -60,7 +60,7 @@ public static class MauiProgram
                 {
 
                     var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>();
-                    winMgr?.CloseAllWindows();
+                    winMgr?.CloseAllWindows(window);
 
                     // Handle window closed event
                     // You can perform cleanup or save state here if needed

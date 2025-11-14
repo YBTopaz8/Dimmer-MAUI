@@ -136,7 +136,7 @@ public class DimmerMultiWindowCoordinator
     public void CloseAll()
     {
         SaveAll();
-        winUIMgrService.CloseAllWindows();
+        winUIMgrService.CloseAllWindows(null);
     }
 
     public void BringToFront(Window window)

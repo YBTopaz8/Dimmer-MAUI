@@ -13,7 +13,8 @@ public interface IWinUIWindowMgrService
 
     void ActivateWindow(Window window);
     void BringToFront(Window window);
-    void CloseAllWindows();
+    
+    void CloseAllWindows(Window? callerWindow);
     void CloseWindow(Window window);
     void CloseWindow<T>() where T : Window;
     Window? CreateContentWindow(Type pageType, object? navigationParameter = null, string? title = null);

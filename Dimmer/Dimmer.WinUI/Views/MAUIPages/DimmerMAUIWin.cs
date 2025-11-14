@@ -66,8 +66,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
             return;
         }
 
-        MyViewModel.winUIWindowMgrService.CloseAllWindows();
-        MyViewModel.windowManager.CloseAllWindows();
+        
 
 
     }

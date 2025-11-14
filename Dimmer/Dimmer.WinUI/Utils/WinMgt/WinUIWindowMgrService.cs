@@ -467,9 +467,12 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         return _openWindows.ToList().AsReadOnly();
     }
 
-    public void CloseAllWindows()
+    public void CloseAllWindows(Window? callWindow)
     {
-
+        if (callWindow is not null)
+        {
+            _openWindows.Remove(callWindow);
+        }
         foreach (var window in _openWindows.ToList())
         {
             CloseWindow(window);
