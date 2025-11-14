@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 
 using CommunityToolkit.Maui.Behaviors;
+using CommunityToolkit.WinUI;
+
 
 //using Dimmer.DimmerLive;
 //using Dimmer.DimmerSearch;
@@ -61,7 +63,7 @@ public partial class HomePage : ContentPage
         {
             MyViewModel.CurrentPageContext = CurrentPage.HomePage;
             MyViewModel.CurrentMAUIPage = this;
-            MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindow());
+            MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow());
 
             if (MyViewModel.ShowWelcomeScreen)
             {
@@ -301,13 +303,6 @@ public partial class HomePage : ContentPage
         //await Shell.Current.GoToAsync(nameof(DimmerLivePage));
     }
 
-    private void SettingsChip_Clicked(object sender, EventArgs e)
-    {
-
-        var winMgr = IPlatformApplication.Current!.Services.GetService<IMauiWindowManagerService>()!;
-
-        //await Shell.Current.GoToAsync(nameof(SettingsPage));
-    }
 
 
 
@@ -347,8 +342,11 @@ public partial class HomePage : ContentPage
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
 
-        Shell.Current.IsBusy = true;
-        Shell.Current.IsBusy = false;
+        var dimmerWindow = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
+
+      
+        dimmerWindow.NavigateToPage(typeof(SettingsPage));
+        
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)

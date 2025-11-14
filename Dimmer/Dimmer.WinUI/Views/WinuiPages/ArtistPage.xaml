@@ -20,8 +20,14 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     x:Name="MyArtistPage"
     PointerPressed="MyArtistPage_PointerPressed"
+    xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
-
+    <Page.Resources>
+        
+        
+        
+        
+    </Page.Resources>
     <Grid
         Margin="5"
         DataContext="{x:Bind MyViewModel}"

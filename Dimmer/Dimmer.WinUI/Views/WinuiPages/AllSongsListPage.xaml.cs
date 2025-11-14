@@ -1562,4 +1562,30 @@ public sealed partial class AllSongsListPage : Page
         }
 
     }
+
+    public async void RunBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(ArtistPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = MyViewModel.CurrentPlayingSongView!,
+            ViewModel = MyViewModel
+        };
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+
+        await DispatcherQueue.EnqueueAsync(() =>
+        {
+
+            Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+        });
+    }
 }

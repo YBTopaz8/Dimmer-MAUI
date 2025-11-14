@@ -45,7 +45,7 @@
 
 
     </ContentPage.Resources>
-    <Grid RowDefinitions="auto,*,auto">
+    <Grid RowDefinitions="*,*">
         <VerticalStackLayout
             Grid.Row="0"
             Margin="10,5"
@@ -628,7 +628,7 @@
         </syncf:SfTabView>-->
         <Grid
             x:Name="TopLeft"
-            Grid.Row="2"
+            Grid.Row="0" IsVisible="False"
             BackgroundColor="{AppThemeBinding Light=#999999,
                                               Dark=transparent}"
             RowDefinitions="*,*">

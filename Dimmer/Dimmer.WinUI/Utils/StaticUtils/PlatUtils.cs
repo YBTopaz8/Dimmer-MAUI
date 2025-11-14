@@ -140,7 +140,7 @@ public static class PlatUtils
 
     public static void OpenAndSetWindowToEdgePosition(Microsoft.Maui.Controls.Window concernedWindow, RectInt32 positionToSet)
     {
-        var nativeWindow = GetNativeWindow(concernedWindow);
+        var nativeWindow = GetNativeWindowFromMAUIWindow(concernedWindow);
         if (nativeWindow is null) return;
         nativeWindow.AppWindow.IsShownInSwitchers = false;
         var sysBackDrop = new MicaBackdrop();
@@ -166,7 +166,7 @@ public static class PlatUtils
 
     public static void ResizeWindow(this Microsoft.Maui.Controls.Window concernedWindow, SizeInt32 sizeToSet)
     {
-        var nativeWindow = GetNativeWindow(concernedWindow);
+        var nativeWindow = GetNativeWindowFromMAUIWindow(concernedWindow);
         var newRect = new RectInt32
         {
 
@@ -207,7 +207,7 @@ public static class PlatUtils
     }
     public static void MoveAndResizeWindow(this Microsoft.Maui.Controls.Window concernedWindow, RectInt32 positionToSet)
     {
-        var nativeWindow = GetNativeWindow(concernedWindow);
+        var nativeWindow = GetNativeWindowFromMAUIWindow(concernedWindow);
 
         //var disInfo= DisplayInformation.GetForCurrentView();
 
@@ -322,13 +322,13 @@ public static class PlatUtils
 
     public static Compositor GetCompositor(Microsoft.Maui.Controls.Window? MauiWindow = null)
     {
-        var nativeWindow = GetNativeWindow(MauiWindow);
+        var nativeWindow = GetNativeWindowFromMAUIWindow(MauiWindow);
 
         return nativeWindow.Compositor;
     }
 
     public static Compositor MainWindowCompositor => GetCompositor();
-    public static Microsoft.UI.Xaml.Window GetNativeWindow(Microsoft.Maui.Controls.Window? MauiWindow = null)
+    public static Microsoft.UI.Xaml.Window GetNativeWindowFromMAUIWindow(Microsoft.Maui.Controls.Window? MauiWindow = null)
     {
         if (MauiWindow == null)
         {       // Ensure there’s at least one window created by MAUI

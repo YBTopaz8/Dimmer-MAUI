@@ -504,12 +504,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //}
 
             var backgroundRealm = RealmFactory.GetRealmInstance();
-            await EnsureAllCoverArtCachedForSongsAsync();
             //var tempListOfSongs = _mapper.Map<IEnumerable<SongModelView>>(backgroundRealm.All<SongModel>());
             //await EnsureCoverArtCachedForSongsAsync(tempListOfSongs);
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
             redoStats.RecalculateAllStatistics();
             
+            await EnsureAllCoverArtCachedForSongsAsync();
 
             // Task 2: Update SearchableText for all songs (Heavy CPU/DB work)
             
@@ -2034,15 +2034,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
-        ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
-        {
-            var (current, total, song) = p;
 
-            _stateService.SetCurrentLogMsg(new AppLogModel()
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+
+            ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
             {
-                ViewSongModel = song,
-                Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                var (current, total, song) = p;
+
+                _stateService.SetCurrentLogMsg(new AppLogModel()
+                {
+                    ViewSongModel = song,
+                    Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                });
             });
+
         });
         realm = RealmFactory.GetRealmInstance();
         var allSongsFromDb = realm.All<SongModel>();
@@ -2050,7 +2056,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         using var semaphore = new SemaphoreSlim(8); // Limit to 8 concurrent operations
         int processed = 0;
-        int total = songsToProcess.Count();
+        int total = songsToProcess.Count;
 
         var tasks = songsToProcess.Select(
             async song =>

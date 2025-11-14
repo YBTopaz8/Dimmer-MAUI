@@ -109,8 +109,10 @@ public sealed partial class ArtistPage : Page
 
         try
         {
-
-            await MyViewModel.LoadFullArtistDetails(MyViewModel.SelectedArtist);
+            //if (MyViewModel.SelectedArtist is not null)
+            //{
+            //    await MyViewModel.LoadFullArtistDetails(MyViewModel.SelectedArtist);
+            //}
         }
         catch (Exception ex)
         {
@@ -220,6 +222,7 @@ public sealed partial class ArtistPage : Page
 
     private async void AllAlbumsBtn_Loaded(object sender, RoutedEventArgs e)
     {
+        return;
         DropDownButton send = (DropDownButton)sender;
 
         var realm = MyViewModel.RealmFactory.GetRealmInstance();

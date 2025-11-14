@@ -6,14 +6,15 @@
     xmlns:local="using:Dimmer.WinUI.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Activated="Window_Activated" Closed="AllSongsWindow_Closed"
-    Title="DimmerWin">
+    mc:Ignorable="d" Activated="Window_Activated" Closed="DimmerWindowClosed"
+    Title="DimmerWin"
+    >
 
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
 
-    <Frame x:Name="ContentFrame" />
+    <Frame x:Name="ContentFrame" x:FieldModifier="Public" />
 
 </Window>

@@ -23,7 +23,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel = vm;
         AppUtil = appUtil;
         BindingContext = vm;
-
+        
     }
     public Microsoft.Maui.Controls.Page CurrentPage => this.Page as Microsoft.Maui.Controls.Page ?? throw new InvalidOperationException("Current Page is not a valid Page.");
     private void AppShell_Loaded(object? sender, EventArgs e)
@@ -148,6 +148,10 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
     {
         MyViewModel.windowManager.TrackWindow(this);
         base.OnCreated();
+        var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow(this);
+        PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 800));
+        MaximumHeight = 800;
+        MaximumWidth = 600;
 #if DEBUG
         //DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
 #elif RELEASE

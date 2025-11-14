@@ -129,6 +129,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ArtistPage>();
         builder.Services.AddSingleton<DimmerMAUIWin>();
         builder.Services.AddSingleton<AlbumPage>();
+        builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddSingleton<SongDetailPage>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
@@ -141,7 +142,7 @@ public static class MauiProgram
     {
         // The 'sender' of this event is the TouchBehavior itself.
         // We need to get the Button it is attached to.
-        var touchBehavior = (CommunityToolkit.Maui.Behaviors.TouchBehavior)sender;
+        //var touchBehavior = (CommunityToolkit.Maui.Behaviors.TouchBehavior)sender;
         //var button = (Button)touchBehavior.p; // Get the Button
 
         // Find the IconTintColorBehavior that is already attached to the button.

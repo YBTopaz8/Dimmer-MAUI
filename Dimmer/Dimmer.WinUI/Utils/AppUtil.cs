@@ -23,7 +23,7 @@ public class AppUtil : IAppUtil
        
         if (this.dimmerWinUI is null)
         {
-            this.dimmerWinUI = new();
+            this.dimmerWinUI = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
         }
         else
         {
@@ -39,9 +39,9 @@ public class AppUtil : IAppUtil
         }
 
         dimmerWinUI.Activate();
-        PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width=1080});
-        
-        dimmerMAUIWin ??=new DimmerMAUIWin(BaseViewModelWin, this);
+        PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1080 });
+
+        dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
         return  dimmerMAUIWin;
     }
 
@@ -62,6 +62,7 @@ public class AppUtil : IAppUtil
                 //presenter.Minimize();
 
                 // OR start invisible
+               
                 appWindow.Hide();
             }
 

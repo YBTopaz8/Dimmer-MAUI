@@ -177,7 +177,7 @@ public partial class App : MauiWinUIApplication
     }
     private void ProcessFileBatch()
     {
-        m_window = PlatUtils.GetNativeWindow();
+        m_window = PlatUtils.GetNativeWindowFromMAUIWindow();
         // Drain the queue to get all file paths collected so far
         var pathsToProcess = new List<string>();
         while (_activatedFilePaths.TryDequeue(out var path))
