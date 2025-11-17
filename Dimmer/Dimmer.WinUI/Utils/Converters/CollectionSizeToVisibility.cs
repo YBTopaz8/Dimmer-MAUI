@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.WinUI.Utils.Converters;
+﻿namespace Dimmer.WinUI.Utils.Converters;
 
 public partial class CollectionSizeToVisibility : IValueConverter
 {
@@ -14,9 +7,11 @@ public partial class CollectionSizeToVisibility : IValueConverter
         int? val = (int?)value;
         if (val < 1)
         {
-            return false;
+            
+
+            return WinUIVisibility.Collapsed;
         }
-        return true;
+        return WinUIVisibility.Visible;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, string culture)

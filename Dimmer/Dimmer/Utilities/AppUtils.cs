@@ -141,7 +141,7 @@ public static class ImageResizer
     /// </summary>
     /// <param name="coverfilePath">The full path to the image file.</param>
     /// <returns>A MAUI Color object, or null if a color cannot be determined.</returns>
-    public static async Task<Color?> GetDomminantMauiColorAsync(string coverfilePath, float opacity=0.7f)
+    public static async Task<Color?> GetDominantMauiColorAsync(string coverfilePath, float opacity=0.7f)
     {
         // --- Step 1: Validate the input ---
         if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))

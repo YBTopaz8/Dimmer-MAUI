@@ -86,7 +86,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
 
         _duplicateFinderService = duplicateFinderService;
-        libService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
+        libScannerService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
             h => audioServ.PositionChanged += h,
             h => audioServ.PositionChanged -= h)
@@ -152,7 +152,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
-    public void InitializeAllVMCoreComponentsAsync()
+    public void InitializeAllVMCoreComponents()
     {
         if (IsInitialized) return;
 
@@ -160,34 +160,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         // subscribe to realm's directChanges for certain models to keep in sync
 
+        ReloadFolderPaths();
         var realm = RealmFactory.GetRealmInstance();
-        var _isLibraryEmpty = new BehaviorSubject<bool>(true);
-        IsLibraryEmpty?.ObserveOn(RxSchedulers.UI)
-                            .Subscribe(
-                                showWelcomeScreen =>
-                                {
-                                    if (showWelcomeScreen)
-                                        ShowWelcomeScreen = true;
-                                    else
-                                        ShowWelcomeScreen = false;
-                                });
-
-        ShowWelcomeScreen = !realm.All<SongModel>().Any();
-        realm.All<SongModel>()
-            .AsObservableChangeSet()
-            .Select(_ => realm.All<SongModel>().Any()) // Check the count after any change
-            .DistinctUntilChanged() // Only notify subscribers if the empty-state actually changes
-            .Subscribe(
-                isEmpty =>
-                {
-                    Debug.WriteLine($"[Library Status]: Is empty = {isEmpty}");
-                    _isLibraryEmpty.OnNext(true);
 
 
-                },
-                ex => _logger.LogError(ex, "Error observing library empty state."))
-            .DisposeWith(CompositeDisposables);
+        IsLibraryEmpty = !realm.All<SongModel>().Any();
+        
+        ShowWelcomeScreen = IsLibraryEmpty;
+        if(!IsLibraryEmpty)
+        {
+            ShowAllSongsWindowActivate();
+        }    
 
+
+    
 
         var realmSub = realm.All<SongModel>()
             .AsObservableChangeSet()
@@ -284,13 +270,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Subscribe(
                 payload =>
                 {
-                    NLPQuery = payload.Query;
                     var plan = payload.Plan;
-                    TQLUserSearchErrorMessage = plan.ErrorMessage ?? "";
+                    
+
+                        NLPQuery = payload.Query;
+
+                        TQLUserSearchErrorMessage = plan.ErrorMessage ?? "";
+                    
 
                     if (plan.ErrorMessage != null)
                     {
-                        searchResultsHolder.Edit(u => u.Clear());
+                        //searchResultsHolder.Edit(u => u.Clear());
+
                         // --- DEBUG STEP 4: Did we stop because of a parse error? ---
                         Debug.WriteLine($"[DEBUG] Halting due to parse error: {plan.ErrorMessage}");
                         return;
@@ -349,11 +340,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                 {
                                     HandleCommandAction(commandAction);
                                 });
-
-                            if (CurrentTqlQuery != NLPQuery)
+                            MainThread.BeginInvokeOnMainThread(() =>
                             {
-                                CurrentTqlQuery = NLPQuery;
-                            }
+
+                                if (CurrentTqlQuery != NLPQuery)
+                                {
+                                    CurrentTqlQuery = NLPQuery;
+                                }
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -457,7 +451,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (folders is not null && folders.Count != 0)
             {
-                _ = await libService.ScanLibrary(folders);
+                //_ = await libScannerService.ScanLibrary(folders);
             }
             
             await PerformBackgroundInitializationAsync();
@@ -496,12 +490,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //}
 
             var backgroundRealm = RealmFactory.GetRealmInstance();
-            await EnsureAllCoverArtCachedForSongsAsync();
             //var tempListOfSongs = _mapper.Map<IEnumerable<SongModelView>>(backgroundRealm.All<SongModel>());
             //await EnsureCoverArtCachedForSongsAsync(tempListOfSongs);
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
             redoStats.RecalculateAllStatistics();
             
+            //await EnsureAllCoverArtCachedForSongsAsync();
 
             // Task 2: Update SearchableText for all songs (Heavy CPU/DB work)
             
@@ -523,6 +517,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // An unhandled exception here would crash your app silently.
             _logger.LogError(ex, "A fatal error occurred during background initialization.");
         }
+    }
+
+    public virtual void ShowAllSongsWindowActivate()
+    {
+
     }
 
     [RelayCommand]
@@ -573,7 +572,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public event EventHandler? MainWindowActivatedEventHandler;
 
     public event Action? MainWindowDeactivated;
-    public void MainWindow_Activated() { MainWindowActivatedEventHandler?.Invoke(this, EventArgs.Empty); }
 
     private void HandleCommandAction(ICommandAction action)
     {
@@ -1037,7 +1035,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private MusicStatsService musicStatsService;
     protected ILogger<BaseViewModel> _logger;
     private IDimmerAudioService _audioService;
-    private ILibraryScannerService libService;
+    private ILibraryScannerService libScannerService;
 
 
     private readonly CompositeDisposable _subsManager = new CompositeDisposable();
@@ -1509,7 +1507,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (newValue is not null)
         {
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(newValue.CoverImagePath);
+            SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
         }
 
         //LoadSongLastFMData().ConfigureAwait(false);
@@ -1818,8 +1816,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             _logger.LogTrace("No embedded cover art found in audio file: {FilePath}", song.FilePath);
             //Trying lastfm
-            var cleanTitle = CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
-            string cleanArtist = CleanArtist(song.FilePath, song.ArtistName, song.Title);
+            var cleanTitle = StaticUtils.CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
+            string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
             if (lastfmTrack.IsNull)
                 return;
@@ -1878,114 +1876,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogError(ex, "Failed to load or update cover art from final path: {ImagePath}", finalImagePath);
         }
     }
-    public static string CleanTitle(string path, string title, string album = "", string artist = "")
-    {
-        if (string.IsNullOrWhiteSpace(title))
-            return string.Empty;
-
-        string t = title.Trim();
-        string fileName = Path.GetFileNameWithoutExtension(path) ?? string.Empty;
-
-        // 1️⃣ Strip "by ..." uploader metadata entirely
-        t = Regex.Replace(t, @"\s+by\s+[A-Za-z0-9$'_.\- ]+$", "", RegexOptions.IgnoreCase);
-
-        // 2️⃣ Remove artist prefix if given
-        if (!string.IsNullOrWhiteSpace(artist) && !artist.StartsWith("Unknown", StringComparison.OrdinalIgnoreCase))
-        {
-            string escapedArtist = Regex.Escape(artist.Trim());
-            t = Regex.Replace(t, $"^{escapedArtist}\\s*[-–—:]\\s*", "", RegexOptions.IgnoreCase);
-        }
-
-        // 3️⃣ Remove “ft/feat/featuring ...” from title
-        t = Regex.Replace(t, @"\b(ft|feat|featuring)\b.*", "", RegexOptions.IgnoreCase);
-
-        // 4️⃣ Remove video/suffix clutter
-        t = Regex.Replace(t, @"[\(\[\{](official|video|clip|lyrics?|audio|hd|4k|music|remix|officiel|bonus|version|produced\s+by\s+[a-z0-9 ]+)[^\)\]\}]*[\)\]\}]", "", RegexOptions.IgnoreCase);
-        t = Regex.Replace(t, @"[_\- ]*(copy|19\d{2}|20\d{2}|[0-9]+)$", "", RegexOptions.IgnoreCase);
-
-        // 5️⃣ Trim leading/trailing junk
-        t = Regex.Replace(t, @"\s{2,}", " ").Trim();
-        t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", "", RegexOptions.IgnoreCase);
-
-        // 6️⃣ Use only the last meaningful chunk if multiple dashes exist
-        // e.g. "Jiron ft Wizkid - No Fronting" → "No Fronting"
-        if (t.Contains('-'))
-        {
-            var parts = t.Split('-', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(p => p.Trim())
-                         .ToList();
-            if (parts.Count > 1)
-                t = parts.Last();
-        }
-
-        // 7️⃣ Capitalize
-        if (t.Length > 1)
-            t = char.ToUpper(t[0]) + t[1..];
-
-        return t;
-    }
-
-
-    public static string CleanArtist(string filePath, string artistName, string title)
-    {
-        string a = artistName?.Trim() ?? string.Empty;
-        a = a.Replace("�", "").Replace("?", "").Replace("–", "-").Trim();
-
-        // 1️⃣ Split and deduplicate
-        var parts = a.Split(new[] { ',', ';', '/', '&' }, StringSplitOptions.RemoveEmptyEntries)
-                     .Select(x => x.Trim())
-                     .Where(x => !string.IsNullOrWhiteSpace(x))
-                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                     .ToList();
-
-        // 2️⃣ Extract “ft/feat” from title if present
-        var featMatch = Regex.Match(title, @"\b(?:ft|feat|featuring)\s+([A-Za-z0-9$'_.\- ,&]+)", RegexOptions.IgnoreCase);
-        if (featMatch.Success)
-        {
-            var feats = featMatch.Groups[1].Value
-                .Split(new[] { ',', '&', '/', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-
-            foreach (var f in feats)
-                if (!parts.Contains(f, StringComparer.OrdinalIgnoreCase))
-                    parts.Add(f);
-        }
-
-        // 3️⃣ Only consider "by <name>" if it's a soundtrack-type title
-        if (Regex.IsMatch(title, @"(soundtrack|theme|ost|score)", RegexOptions.IgnoreCase))
-        {
-            var matchBy = Regex.Match(title, @"\bby\s+([A-Za-z0-9$'_.\- ]+)$", RegexOptions.IgnoreCase);
-            if (matchBy.Success)
-            {
-                string composer = matchBy.Groups[1].Value.Trim();
-                if (!parts.Contains(composer, StringComparer.OrdinalIgnoreCase))
-                    parts.Add(composer);
-            }
-        }
-
-        // 4️⃣ Final cleanup
-        parts = parts.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        a = parts.Count > 0 ? string.Join(", ", parts) : "Unknown Artist";
-
-        if (a.Length > 1)
-            a = char.ToUpper(a[0]) + a[1..];
-
-        return a;
-    }
-
 
 
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
-        ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            var (current, total, song) = p;
 
-            _stateService.SetCurrentLogMsg(new AppLogModel()
+            ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
             {
-                ViewSongModel = song,
-                Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                var (current, total, song) = p;
+
+                _stateService.SetCurrentLogMsg(new AppLogModel()
+                {
+                    ViewSongModel = song,
+                    Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                });
             });
         });
         _logger.LogInformation("Starting to pre-cache cover art for {Count} visible songs.", songsToProcess.Count());
@@ -2022,15 +1928,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
-        ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
-        {
-            var (current, total, song) = p;
 
-            _stateService.SetCurrentLogMsg(new AppLogModel()
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+
+            ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
             {
-                ViewSongModel = song,
-                Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                var (current, total, song) = p;
+
+                _stateService.SetCurrentLogMsg(new AppLogModel()
+                {
+                    ViewSongModel = song,
+                    Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                });
             });
+
         });
         realm = RealmFactory.GetRealmInstance();
         var allSongsFromDb = realm.All<SongModel>();
@@ -2038,7 +1950,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         using var semaphore = new SemaphoreSlim(8); // Limit to 8 concurrent operations
         int processed = 0;
-        int total = songsToProcess.Count();
+        int total = songsToProcess.Count;
 
         var tasks = songsToProcess.Select(
             async song =>
@@ -2051,7 +1963,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         _stateService.SetCurrentLogMsg(new AppLogModel()
                         {
                             ViewSongModel = song,
-                            Log = $"Now on song {song.Title} by {song.ArtistName}"
+                            Log = $"Cover art on song {song.Title} by {song.ArtistName}"
                         });
                         await LoadAndCacheCoverArtAsync(song);
                         int current = Interlocked.Increment(ref processed);
@@ -2324,8 +2236,24 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region Current Playing Song and Color Management
     [ObservableProperty]
-    public partial Color? CurrentPlaySongDominantColor { get; set; }
+    public partial Microsoft.Maui.Graphics.Color? CurrentPlaySongDominantColor { get; set; }
 
+    partial void OnCurrentPlaySongDominantColorChanged(Color? oldValue, Color? newValue)
+    {
+        
+    }
+
+    public virtual void ResetCurrentPlaySongDominantColor()
+    {
+        
+    }
+
+    partial void OnCurrentPlayingSongViewChanging(SongModelView oldValue, SongModelView newValue)
+    {
+        if(oldValue is not null)
+            oldValue.IsCurrentPlayingHighlight = false;
+        
+    }
     async partial void OnCurrentPlayingSongViewChanged(SongModelView value)
     {
         if (value.Title is null)
@@ -2377,8 +2305,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         value.IsCurrentPlayingHighlight = true;
 
-        AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
-        await LoadSongDominantColorIfNotYetDoneAsync(value);
+        //await LoadSongDominantColorIfNotYetDoneAsync(value);
     }
 
     #endregion
@@ -3576,7 +3503,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 .Where(s => s.Log is not null)
                 .Subscribe(
                     obv =>
-                    {
+                     {
                         LatestDeviceLog(obv);
                     }));
     }
@@ -3593,11 +3520,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _subsMgr.Add(
 
             LyricsMgtFlow.IsLoadingLyrics
-                .ObserveOn(RxSchedulers.UI)
+            .ObserveOn(RxSchedulers.UI)
                 .Subscribe(isLoading =>
                 {
+
                     IsLoadingLyrics = isLoading;
+                    
+
                 }));
+
         _subsMgr.Add(
             LyricsMgtFlow.IsSearchingLyrics
             .ObserveOn(RxSchedulers.UI)
@@ -3605,6 +3536,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 IsSearchingLyrics = isSearching;
             }));
+
+
         LyricsMgtFlow.AllSyncLyrics
                 .ObserveOn(RxSchedulers.UI)
                 .Subscribe(lines =>
@@ -6906,24 +6839,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task LoadSongDominantColorIfNotYetDoneAsync(SongModelView? song)
     {
+        return;
         if (song is null)
             return;
         if (song.CurrentPlaySongDominantColor != null)
         {
             return;
         }
-        var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
         // i need an inverted BG color that will work well with this dominant color
         if (color is not null)
         {
             var bgColor = color.MultiplyAlpha(0.1f);
 
-            song.CurrentPlaySongDominantColor = color;
-
-            if (CurrentPlayingSongView != null && CurrentPlayingSongView.TitleDurationKey == song.TitleDurationKey)
-            {
-                CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
-            }
+            
         }
     }
 
@@ -6932,7 +6861,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (song is null)
             return;
 
-        var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
         song.CurrentPlaySongDominantColor = color;
         if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
         {
@@ -7116,6 +7045,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
     public async Task LoadSelectedSongLastFMData()
     {
         if (SelectedSong is not null)
@@ -7123,39 +7058,134 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
 
-            //_ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
-
-
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
-            await LoadSongLastFMData();
+            SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(SelectedSong.CoverImagePath);
+            await LoadSongLastFMDataAsync();
         }
     }
-
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
-
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
-
-    public async Task LoadSongLastFMData()
-    {
-        return;
+    public async Task LoadSongLastFMDataAsync()
+    {        
         if (SelectedSong is null || SelectedSong.ArtistName == "Unknown Artist")
         {
             return;
         }
-
-
-        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        if (SelectedSong.ArtistToSong is null) return;
+        var artistName = SelectedSong.ArtistToSong[0]!.Name;
         artistName ??= string.Empty;
+
         SelectedSongLastFMData = await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
         if (SelectedSongLastFMData is null)
         {
             return;
         }
+        await UpdateSongFromLastFMDataAsync();
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
+        
         SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
+
+        await UpdateSongArtistInDbWithLastFMData();
+        await UpdateSongAlbumInDbWithLastFMData();
     }
+
+
+    public async Task UpdateSongFromLastFMDataAsync()
+    {
+        if (SelectedSong is null || SelectedSongLastFMData is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync
+        (() => 
+        {
+            var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+            if (SelectedSongLastFMData.Album is not null && SelectedSongLastFMData.Album.Tracks is not null)
+                    songInDb.TrackNumber = SelectedSongLastFMData.Album.Tracks.IndexOf(SelectedSongLastFMData) + 1;
+            
+            songInDb.Description = SelectedSongLastFMData.Wiki?.Summary ?? string.Empty;
+
+            realm.Add(songInDb, update: true);
+        });
+
+    }
+
+    public async Task UpdateSongArtistInDbWithLastFMData()
+    {
+        if (SelectedSong is null || SelectedSongLastFMData is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+
+        await realm.WriteAsync
+        (() => 
+        {
+                var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+                if (songInDb is null)
+                {
+                    return;
+                }
+                var artist = songInDb.Artist;
+                if (artist is null)
+                {
+                    return;
+                }
+                artist.Url = SelectedSongLastFMData.Artist.Url;
+                artist.Bio = SelectedSongLastFMData.Artist.Biography.Summary;
+                artist.ImagePath = SelectedSongLastFMData.Artist.Images.FirstOrDefault(x=>x.Size == "mega")?.Url;
+                artist.Name = SelectedSongLastFMData.Artist.Name;
+                
+                realm.Add(artist, update: true);
+        });
+
+
+    }
+
+    
+
+    public async Task UpdateSongAlbumInDbWithLastFMData()
+    {
+        if (SelectedSong is null || SelectedSongLastFMData is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+
+        //var listOfSongsInAlbum = SelectedSongLastFMData.Album.Tracks;
+
+
+        //List<SongModelView>? listOfSongsInSearchResultWithMatchAlbName =
+        //    [.. SearchResults.Where(s => s.AlbumName == SelectedSongLastFMData.Album.Name)];
+
+        //List<SongModelView>? listOfSongsInSearchResultWithMatchTitle =
+        //    [.. SearchResults.Where(s => s.Title == SelectedSongLastFMData.Name)];
+
+        await realm.WriteAsync(() => 
+        {
+                var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+                if (songInDb is null)
+                {
+                    return;
+                }
+                var artist = songInDb.Album;
+                if (artist is null)
+                {
+                    return;
+                }
+                artist.Url = SelectedSongLastFMData.Album.Url;
+                artist.ImagePath = SelectedSongLastFMData.Artist.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+            artist.Name = SelectedSongLastFMData.Artist.Name;
+                
+                realm.Add(artist, update: true);
+        });
+    }
+
 
     public void LoadSongLastFMMoreData()
     {
@@ -7312,9 +7342,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial int WelcomeTabViewItemsCount { get; set; }
 
 
-    private readonly BehaviorSubject<bool> _isLibraryEmpty;
-
-    public IObservable<bool> IsLibraryEmpty => _isLibraryEmpty;
+    [ObservableProperty]
+    public partial bool IsLibraryEmpty { get; set; }
 
     [ObservableProperty]
     public partial string PickFilesOutputText { get; set; }

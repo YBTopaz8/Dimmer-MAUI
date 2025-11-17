@@ -93,7 +93,7 @@ public class LyricsMgtFlow : IDisposable
     /// A NEW PUBLIC method that the ViewModel will call when the user
     /// has chosen which lyrics to use from an online search.
     /// </summary>
-    public void LoadLyrics(string lrcContent)
+    public void LoadLyrics(string? lrcContent)
     {
         try
         {
@@ -195,7 +195,7 @@ public class LyricsMgtFlow : IDisposable
             isLoadingLyrics.OnNext(false);
             var res = await GetLyricsContentAsync(song);
 
-            if (res is not null)
+            if (res is not null && res.Any())
             {
                 var lyrics = res.First().SyncedLyrics;
                 LoadLyrics(lyrics);

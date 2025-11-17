@@ -1,4 +1,9 @@
 ﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+
+/// <summary>
+/// DEPRECATED: This class contains redundant logic that is now centralized
+/// in the CoverArtService. This file should be removed in a future refactoring.
+/// </summary>
 public static class FileCoverImageProcessor
 {
     public static string SaveOrGetCoverImageToFilePath(string? fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)

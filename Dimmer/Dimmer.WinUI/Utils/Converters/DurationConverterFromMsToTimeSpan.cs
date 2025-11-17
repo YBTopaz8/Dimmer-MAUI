@@ -1,8 +1,4 @@
-﻿using Microsoft.UI.Xaml.Data;
-
-using System;
-
-namespace Dimmer.WinUI.Utils.Converters
+﻿namespace Dimmer.WinUI.Utils.Converters
 {
     public sealed class DurationConverterFromMsToTimeSpan : IValueConverter
     {

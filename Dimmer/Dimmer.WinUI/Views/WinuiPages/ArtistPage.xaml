@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.ArtistPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:cw="using:Dimmer.WinUI.Views.WinuiPages"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:queryBuilder="queries"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    x:Name="MyArtistPage"
+    PointerPressed="MyArtistPage_PointerPressed"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    mc:Ignorable="d">
+    <Page.Resources>
+        
+        
+        
+        
+    </Page.Resources>
+    <Grid
+        Margin="5"
+        DataContext="{x:Bind MyViewModel}"
+        PointerPressed="MyArtistPage_PointerPressed"
+        RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Button
+            x:Name="CoordinatedPanel2"
+            Grid.Row="0"
+            VerticalAlignment="Top"
+            Click="CoordinatedPanel2_Click"
+            Content="Back" />
+        <Grid Grid.Row="1" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+
+            <Grid Grid.Column="0" Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock
+                    x:Name="DestinationElement"
+                    Grid.Row="0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    FontSize="55"
+                    FontWeight="SemiBold"
+                    PointerReleased="DestinationElement_PointerReleased"
+                    Text="{Binding SelectedArtist.Name}" />
+
+                <StackPanel
+                    Grid.Row="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Background="Transparent"
+                    BorderThickness="1"
+                    Orientation="Horizontal"
+                    Spacing="15">
+
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Text="{Binding SelectedArtist.TotalSongsByArtist}" />
+                        <TextBlock Text="Songs" />
+                    </StackPanel>
+                    <ToggleButton
+                        x:Name="IsArtFavorite"
+                        Width="50"
+                        Height="30"
+                        IsChecked="{Binding SelectedArtist.IsFavorite}"
+                        IsEnabledChanged="IsArtFavorite_IsEnabledChanged">
+                        <Image
+                            Width="25"
+                            Height="25"
+                            Source="/Dimmer/Resources/Images/heartlock.svg"
+                            Visibility="Visible" />
+                    </ToggleButton>
+                    <DropDownButton
+                        x:Name="AllAlbumsBtn"
+                        Content="All Albums"
+                        Loaded="AllAlbumsBtn_Loaded" />
+
+
+                </StackPanel>
+                <StackPanel Grid.Row="2">
+                    <TextBlock Text="Albums" />
+                    <ListView
+                        x:Name="ArtistAlbums"
+                        ItemClick="ArtistAlbums_ItemClick"
+                        SelectionMode="Multiple">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemTemplate>
+
+                            <DataTemplate>
+                                <StackPanel>
+
+                                    <TextBlock Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </Grid>
+            <Image
+                Grid.Column="1"
+                Width="300"
+                Height="300"
+                HorizontalAlignment="Right"
+                Source="{Binding SelectedArtist.ImagePath}" />
+        </Grid>
+
+        <StackPanel Grid.Row="2" PointerPressed="MyArtistPage_PointerPressed">
+            <TextBlock x:Name="CoordinatedPanel" Text="{Binding SelectedArtist.Name}" />
+            <Border HorizontalAlignment="Left">
+
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    FontSize="13"
+                    FontStretch="SemiCondensed"
+                    IsTextSelectionEnabled="True"
+                    MaxLines="5"
+                    Text="{Binding SelectedArtist.Bio}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+
+        <dgView:TableView
+            Grid.Row="3"
+            AutoGenerateColumns="False"
+            BorderBrush="Transparent"
+            BorderThickness="0"
+            ItemsSource="{Binding SearchResults}"
+            RowHeight="100">
+
+            <dgView:TableView.Columns>
+
+                <!--  Column for the Cover Art  -->
+                <dgView:TableViewTemplateColumn Width="100" Header="Cover">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border
+                                x:Name="CardBorder"
+                                Width="95"
+                                Height="95"
+                                Margin="3,5,3,-20"
+                                AllowFocusOnInteraction="False"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                IsHitTestVisible="True">
+                                <Grid x:Name="CoverImageGrid">
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!--  You can even overlay a "favorite" icon like in your example  -->
+                                    <Image
+                                        x:Name="coverArtImage"
+                                        Grid.Row="0"
+                                        Width="90"
+                                        Height="90"
+                                        x:FieldModifier="Public"
+                                        CanDrag="True"
+                                        Source="{Binding CoverImagePath}"
+                                        Stretch="UniformToFill" />
+
+
+
+                                </Grid>
+
+                            </Border>
+                        </DataTemplate>
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
+
+                <!--  Other columns for Title, Artist, etc.  -->
+                <dgView:TableViewCheckBoxColumn
+                    Binding="{Binding HasSyncedLyrics}"
+                    Header="HasLyrics"
+                    IsReadOnly="True" />
+
+
+                <dgView:TableViewTextColumn
+                    MaxWidth="310"
+                    Binding="{Binding Title}"
+                    Header="Title"
+                    IsReadOnly="True" />
+                <dgView:TableViewTemplateColumn
+                    MaxWidth="200"
+                    Header="Artist"
+                    IsReadOnly="True">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+
+                        <DataTemplate>
+                            <Grid Height="150">
+
+                                <Border
+                                    x:Name="ArtistNameTextOnly"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{Binding}">
+
+                                    <TextBlock
+                                        x:Name="ArtistNameTxt"
+                                        HorizontalAlignment="Center"
+                                        Text="{Binding ArtistName}" />
+                                </Border>
+
+
+                            </Grid>
+                        </DataTemplate>
+
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+
+
+                </dgView:TableViewTemplateColumn>
+
+                <dgView:TableViewTextColumn
+                    MaxWidth="180"
+                    Binding="{Binding AlbumName}"
+                    Header="Album"
+                    IsReadOnly="True" />
+
+                <dgView:TableViewTextColumn
+                    Binding="{Binding GenreName}"
+                    Header="Genre"
+                    IsReadOnly="True" />
+                <dgView:TableViewTextColumn
+                    Binding="{Binding FileFormat}"
+                    Header="Format"
+                    IsReadOnly="True" />
+                <dgView:TableViewTextColumn
+                    Binding="{Binding DurationFormatted}"
+                    Header="Duration"
+                    IsReadOnly="True" />
+                <dgView:TableViewTextColumn
+                    Binding="{Binding ReleaseYear}"
+                    CanFilter="False"
+                    CanSort="True"
+                    Header="Year"
+                    IsFiltered="False"
+                    IsReadOnly="True" />
+                <dgView:TableViewTextColumn
+                    Binding="{Binding PlayCompletedCount}"
+                    Header="Dims"
+                    IsReadOnly="True" />
+
+            </dgView:TableView.Columns>
+        </dgView:TableView>
+    </Grid>
+</Page>

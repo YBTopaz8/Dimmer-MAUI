@@ -4,38 +4,37 @@ namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtil
 
 public static class FilenameParser
 {
-    // Regex to capture "Artist - Title" format. It's non-greedy to handle multiple hyphens.
-    // It also handles an optional track number at the beginning.
-    private static readonly Regex ArtistTitleRegex = new(
-    @"^(?<tracknum>\d{1,3}[\s\.-]*)?(?<artist>[^-]+?)\s*-\s*(?<title>.+)$",
-    RegexOptions.Compiled);
-    // RightToLeft helps find the LAST " - " which is often the correct one.
+    // Regex to strip leading track numbers like "01.", "1 - ", "1. ", etc.
+    private static readonly Regex TrackNumberRegex = new(
+        @"^\d{1,3}\s*[\.-]?\s*",
+        RegexOptions.Compiled);
 
     /// <summary>
-    /// Parses a filename to guess the Artist and Title when tags are missing.
+    /// Parses a filename to guess the Artist and Title. More robustly handles multiple hyphens.
     /// </summary>
-    /// <param name="filePath">The full path to the audio file.</param>
-    /// <returns>A tuple containing the guessed artist and title. Both can be null if parsing fails.</returns>
-     public static (string? Artist, string? Title) Parse(string filePath)
-     { 
+    public static (string? Artist, string? Title) Parse(string filePath)
+    {
         if (string.IsNullOrWhiteSpace(filePath))
             return (null, null);
 
         string fileName = Path.GetFileNameWithoutExtension(filePath);
 
-        var match = ArtistTitleRegex.Match(fileName);
-        if (!match.Success)
-        return (null, fileName.Trim());
+        // 1. Strip any leading track number first.
+        string cleanFileName = TrackNumberRegex.Replace(fileName, "");
 
-        var artist = match.Groups["artist"].Value.Trim();
-        var title = match.Groups["title"].Value.Trim();
+        // 2. Split by " - ". This is a very common and reliable pattern.
+        var parts = cleanFileName.Split(" - ", StringSplitOptions.RemoveEmptyEntries);
 
-        // Post-cleaning: split on common multi-artist separators
-        artist = Regex.Replace(artist, @"\s*(feat\.?|ft\.?|vs\.?|&|,|;| x )\s*", " & ", RegexOptions.IgnoreCase);
+        if (parts.Length >= 2)
+        {
+            // Assume the first part is the artist and the rest is the title.
+            // This correctly handles titles like "Song Title - Live at Wembley".
+            var artist = parts[0].Trim();
+            var title = string.Join(" - ", parts.Skip(1)).Trim();
+            return (artist, title);
+        }
 
-        if (string.IsNullOrWhiteSpace(title))
-            return (null, fileName.Trim());
-
-        return (artist, title);
-     }
+        // Fallback: If no " - " separator, we assume the whole filename is the title.
+        return (null, cleanFileName.Trim());
+    }
 }

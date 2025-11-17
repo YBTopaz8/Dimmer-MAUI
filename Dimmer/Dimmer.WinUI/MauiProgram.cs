@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Maui;
+﻿
 
 namespace Dimmer.WinUI;
 
@@ -44,13 +44,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<IMauiWindowManagerService, WindowManagerService>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
 
-        builder.Services.AddSingleton<DimmerWin>();
+        builder.Services.AddTransient<DimmerWin>();
 
         builder.Services.AddSingleton<SessionTransferVMWin>();
 
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
+        builder.Services.AddSingleton<IUiErrorPresenter, WinUiErrorPresenter>();
 
         builder.ConfigureLifecycleEvents(events =>
         {
@@ -59,8 +60,8 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
 
-                    var winMgr = IPlatformApplication.Current.Services.GetService<IWinUIWindowMgrService>();
-                    winMgr?.CloseAllWindows();
+                    //var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>();
+                    //winMgr?.CloseAllWindows(window);
 
                     // Handle window closed event
                     // You can perform cleanup or save state here if needed
@@ -124,6 +125,13 @@ public static class MauiProgram
         //IMapper? mapperWin = AutoMapperConfWinUI.ConfigureAutoMapper();
 
         builder.Services.AddSingleton<SocialViewModelWin>();
+        builder.Services.AddSingleton<HomePage>();
+        builder.Services.AddSingleton<AllSongsListPage>();
+        builder.Services.AddSingleton<ArtistPage>();
+        builder.Services.AddSingleton<DimmerMAUIWin>();
+        builder.Services.AddSingleton<AlbumPage>();
+        builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddSingleton<SongDetailPage>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
 
@@ -135,7 +143,7 @@ public static class MauiProgram
     {
         // The 'sender' of this event is the TouchBehavior itself.
         // We need to get the Button it is attached to.
-        var touchBehavior = (CommunityToolkit.Maui.Behaviors.TouchBehavior)sender;
+        //var touchBehavior = (CommunityToolkit.Maui.Behaviors.TouchBehavior)sender;
         //var button = (Button)touchBehavior.p; // Get the Button
 
         // Find the IconTintColorBehavior that is already attached to the button.

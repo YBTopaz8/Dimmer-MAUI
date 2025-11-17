@@ -1,3 +1,7 @@
+using AndroidX.Lifecycle;
+
+using Dimmer.ViewsAndPages.SingleSongPage;
+
 namespace Dimmer.ViewsAndPages;
 
 public partial class HomePage : ContentPage
@@ -5,10 +9,10 @@ public partial class HomePage : ContentPage
 	public HomePage(BaseViewModelAnd baseViewModel)
 	{
 		InitializeComponent();
-		vm = baseViewModel;
-		this.BindingContext = vm;
+		MyViewModel = baseViewModel;
+		this.BindingContext = MyViewModel;
     }
-	BaseViewModelAnd vm;
+	BaseViewModelAnd MyViewModel;
 
     private void myPageSKAV_Closed(object sender, EventArgs e)
     {
@@ -33,6 +37,18 @@ public partial class HomePage : ContentPage
 
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
+        if (MyViewModel.CurrentPlayingSongView.Title is not null)
+        {
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+            });
+
+
+
+        }
 
     }
 
@@ -128,12 +144,14 @@ public partial class HomePage : ContentPage
 
     private void Settings_Tap(object sender, HandledEventArgs e)
     {
-
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
     }
 
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
 
+        MyViewModel.SongsColViewNPQ ??= SongsColView;
     }
 
     private void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
@@ -193,11 +211,45 @@ public partial class HomePage : ContentPage
 
     private void RandomSearch_Tap(object sender, HandledEventArgs e)
     {
-
+        Chip randomChip= (Chip)sender;
+        var popupParent = randomChip.Parent.Parent.Parent;
+        Debug.WriteLine(popupParent.GetType());
     }
 
     private void ClearSearch_Tap(object sender, HandledEventArgs e)
     {
 
+    }
+
+    private void ContentPage_Loaded(object sender, EventArgs e)
+    {
+
+        MyViewModel.InitializeAllVMCoreComponents();
+    }
+
+    private void IsFavButton_Loaded(object sender, EventArgs e)
+    {
+        var btn = (DXButton)sender;
+        var platBtn = btn.GetPlatformView();
+        Debug.WriteLine(platBtn.GetType());
+    }
+
+    private void MoreChip_Tap(object sender, HandledEventArgs e)
+    {
+        DXPopup morePopup = new DXPopup();
+        
+        // songInfo, removeFromQueue, playAftercurrentsong, edittags, share, deletepermanently (destructive)
+        
+        Chip songInfoChip = new Chip();
+        songInfoChip.Tap += SongInfoChip_Tap;
+
+
+
+    }
+
+    private void SongInfoChip_Tap(object? sender, HandledEventArgs e)
+    {
+
+        Shell.Current.GoToAsync(nameof(SingleSongDetailsPage));
     }
 }

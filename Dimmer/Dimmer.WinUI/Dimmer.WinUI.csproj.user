@@ -5,12 +5,45 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="AppShell.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
-    <Page Update="Views\AllSongsListPage.xaml">
+    <MauiXaml Update="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <Page Update="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Views\CustomViews\WinuiViews\AudioDeviceListTab.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\VolumeTab.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AlbumPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\ArtistPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SongDetailPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AllSongsListPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\HoverCardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <MauiXaml Update="Views\MAUIPages\HomePage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\DimmerWin.xaml">

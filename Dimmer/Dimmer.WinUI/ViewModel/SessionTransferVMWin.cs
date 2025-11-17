@@ -1,7 +1,5 @@
 ﻿using Dimmer.DimmerSearch.Interfaces;
 
-using Microsoft.Extensions.Logging;
-
 namespace Dimmer.WinUI.ViewModel;
 public partial class SessionTransferVMWin : SessionTransferViewModel
 {

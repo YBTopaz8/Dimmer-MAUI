@@ -3,12 +3,32 @@
 
 
 
+using System.Security.Policy;
+using System.Threading.Tasks;
+using System.Windows.Media;
 
+using CommunityToolkit.WinUI;
 
-using Windows.Graphics;
-using Windows.Storage.Pickers;
+using Dimmer.WinUI.Views.CustomViews.MauiViews;
+using Dimmer.WinUI.Views.MAUIPages;
 
+using Hqub.Lastfm.Entities;
+
+using Realms;
+
+using WinUI.TableView;
+
+using Colors = Microsoft.UI.Colors;
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
+using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
+using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
+using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
+using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
+using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
+using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
+using TableView = WinUI.TableView.TableView;
+using Thickness = Microsoft.UI.Xaml.Thickness;
+using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 //using TableView = WinUI.TableView.TableView;
 
 namespace Dimmer.WinUI.ViewModel;
@@ -23,8 +43,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     private readonly IRepository<AlbumModel> albumRepository;
     private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
+
     private readonly LoginViewModel loginViewModel;
-    private readonly IFolderPicker _folderPicker; public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
+    private readonly IFolderPicker _folderPicker; 
+    public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
     public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService, LoginViewModel _loginViewModel,
         IWinUIWindowMgrService winUIWindowMgrService,
         IMauiWindowManagerService mauiWindowManagerService,
@@ -51,13 +73,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         //MainWindowActivated
     }
 
-    public void MainMAUIWindow_Activated()
-    {
-        //MainWindowActivated?.Invoke(this, EventArgs.Empty);
-        MainWindow_Activated();
-
-
-    }
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
@@ -235,7 +250,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial List<string> DraggedAudioFiles { get; set; }
-    public Window CurrentWinUIPage { get; internal set; }
+    public Page CurrentWinUIPage { get; internal set; }
 
     [RelayCommand]
     public void SwapMediaBarPosition()
@@ -251,30 +266,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
 
-    public async Task AddMusicFolderViaPickerAsync()
-    {
-        try
-        {
-
-
-            var res = await _folderPicker.PickAsync(CancellationToken.None);
-
-            if (res is not null && res.Folder is not null)
-            {
-                string? selectedFolderPath = res!.Folder!.Path;
-
-                if (!string.IsNullOrEmpty(selectedFolderPath))
-                {
-                    _ = Task.Run(async () => await AddMusicFolderByPassingToService(selectedFolderPath));
-                }
-
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
 
 
     [ObservableProperty]
@@ -341,7 +332,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial TableView? MyTableVIew { get; set; }
-    public DimmerWin MainMAUIWindow { get; internal set; }
+
+    [ObservableProperty]
+    public partial bool? CanGoBack { get; set; }
+    
+    
+    public DimmerWin MainWindow { get; set; }
+    public DimmerMAUIWin MainMAUIWindow { get; set; }
 
     // --- The partial OnChanged methods that are our triggers ---
 
@@ -382,7 +379,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         
         if (MainMAUIWindow is not null)
         {
-            winUIWindowMgrService.ActivateWindow(MainMAUIWindow);
+            windowManager.ActivateWindow(MainMAUIWindow);
         }
 
     }
@@ -391,37 +388,39 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
+       
+        var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpViewWindow(this));
+        if (syncLyricsWindow is null) return;
+        var newPosition = new Windows.Graphics.RectInt32();
+        newPosition.Width = 400;
+        newPosition.Height = 400;
+        switch (Position)
+        {
+            case 0:
+                newPosition.X = 0;
+                newPosition.Y = 0;
 
-
-        //var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
-        //if (syncLyricsWindow is null) return;
-        //var newPosition = new RectInt32();
-        //newPosition.Width = 400;
-        //newPosition.Height = 400;
-        //switch (Position)
-        //{
-        //    case 0:
-        //        newPosition.X = 0;
-        //        newPosition.Y = 0;
-
-        //        break;
-        //    case 1:
-        //        newPosition.X = 0;
-        //        newPosition.Y = 1;
-        //        break;
-        //    case 2:
-        //        newPosition.X = 1;
-        //        newPosition.Y = 1;
-        //        break;
-        //    case 3:
-        //        newPosition.X = 1;
-        //        newPosition.Y = 0;
-        //        break;
-        //    default:
-        //        break;
-        //}
-        ////Application.Current?.OpenWindow(syncLyricsWindow);
-        //PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
+                break;
+            case 1:
+                newPosition.X = 0;
+                newPosition.Y = 1;
+                break;
+            case 2:
+                newPosition.X = 1;
+                newPosition.Y = 1;
+                break;
+            case 3:
+                newPosition.X = 1;
+                newPosition.Y = 0;
+                break;
+            default:
+                break;
+        }
+        //Application.Current?.OpenWindow(syncLyricsWindow);
+        PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
+        var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow();
+        var press = nativeWindow.AppWindow.Presenter as OverlappedPresenter;
+        press?.Minimize();
 
     }
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
@@ -435,6 +434,20 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             return;
         }
     }
+
+    public override void ResetCurrentPlaySongDominantColor()
+    {
+        if (CurrentPlaySongDominantColor is null)
+            return;
+        var c = CurrentPlaySongDominantColor;
+        DominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
+        (byte)(c.Alpha * 255),
+        (byte)(c.Red * 255),
+        (byte)(c.Green * 255),
+        (byte)(c.Blue * 255)
+    ));
+    }
+
     protected override async Task ProcessSongChangeAsync(SongModelView value)
     {
         // 1. Let the base class do all of its work first.
@@ -502,95 +515,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         //Debug.WriteLine(win.Visible);
         //Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
-    //[RelayCommand]
-    //private void FilterBySelection()
-    //{
-    //    // This command REPLACES the current query with one based on the selected cell.
-    //    // Use case: "I don't care what I was searching for, show me *only* this."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (!string.IsNullOrWhiteSpace(tqlClause))
-    //    {
-    //        CurrentTqlQuery = tqlClause;
-    //        _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //    }
-    //}
+   
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
 
-    //[RelayCommand]
-    //private void AddFilterFromSelection()
-    //{
-    //    // This command APPENDS the new filter to the existing one.
-    //    // Use case: "I'm looking at songs from 2004. Now, narrow it down to *only* this artist."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (string.IsNullOrWhiteSpace(tqlClause))
-    //        return;
-
-    //    // If the current query is empty or just a directive, replace it.
-    //    if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        CurrentTqlQuery = tqlClause;
-    //    }
-    //    else
-    //    {
-    //        CurrentTqlQuery = $"{CurrentTqlQuery} {tqlClause}"; // Implicit AND
-    //    }
-    //    _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //}
-
-    //[RelayCommand]
-    //private void IncludeSelection()
-    //{
-    //    // This command uses the TQL 'add' keyword (OR logic).
-    //    // Use case: "I'm looking at Kanye West. Now, show me Jay-Z *as well*."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (string.IsNullOrWhiteSpace(tqlClause))
-    //        return;
-
-    //    if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        CurrentTqlQuery = tqlClause;
-    //    }
-    //    else
-    //    {
-    //        CurrentTqlQuery = $"{CurrentTqlQuery} add {tqlClause}";
-    //    }
-    //    _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //}
-
-    //[RelayCommand]
-    //private void ExcludeSelection()
-    //{
-    //    // This command uses the TQL 'remove' keyword (AND NOT logic).
-    //    // Use case: "I'm looking at Rock music. Now, *remove* anything that is also Pop."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (string.IsNullOrWhiteSpace(tqlClause))
-    //        return;
-
-    //    if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        // Excluding from "everything" doesn't make sense, so just start a new query
-    //        CurrentTqlQuery = $"NOT ({tqlClause})";
-    //    }
-    //    else
-    //    {
-    //        CurrentTqlQuery = $"{CurrentTqlQuery} remove {tqlClause}";
-    //    }
-    //    _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //}
-
+    
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {
@@ -620,26 +549,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         await Shell.Current.DisplayAlert("Soon...", "Feature Not available Yet...", "OK");
-        //var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-        //FilePicker.Default.PickAsync
-
-        //// Open the picker for the user to pick a file
-        //IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
-        //if (files.Count > 0)
-        //{
-        //    StringBuilder output = new StringBuilder("Picked files:\n");
-        //    foreach (StorageFile file in files)
-        //    {
-        //        output.Append(file.Name + "\n");
-        //    }
-        //    PickFilesOutputText = output.ToString();
-        //}
-        //else
-        //{
-        //    PickFilesOutputText = "Operation cancelled.";
-        //}
-
-        //await LoadPlainLyricsFromFile(PickFilesOutputText);
+     
 
 
     }
@@ -649,23 +559,195 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         base.Dispose(disposing);
 
     }
-    //[RelayCommand]
-    //private async Task ScrollToCurrentPlayingSong()
-    //{
+    [RelayCommand]
+    private async Task ScrollToCurrentPlayingSong()
+    {
 
-    //    try
-    //    {
-    //        //MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
-    //        await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
-    //             false, true);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
-    //    }
-    //}
+        try
+        {
+            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,false, true);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+        }
+    }
+    [RelayCommand]
+    private async Task ScrollToSpecificSong(SongModelView song)
+    {
+
+        try
+        {
+            
+            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(song, ScrollItemPlacement.Center, false, true);
+
+            await Task.Delay(200);
+            var itemIndex= MySongsTableView.Items.IndexOf(song);
+           
+            var contentTableRow = MySongsTableView.ContainerFromIndex(itemIndex) as TableViewRow;
+            var cellPresenter = contentTableRow?.CellPresenter;
+            IList<TableViewCell>? cells = cellPresenter?.Cells;
+            
+            if(cells is null && cells?.Count > 0)
+            {
+                Debug.WriteLine("No cells found");
+                return;
+            }
+
+
+
+            if(contentTableRow is null)
+            {
+                Debug.WriteLine("No content Table Row found");
+                return;
+            }
+
+            if(cellPresenter is null)
+            {
+                Debug.WriteLine("No cell presenter found");
+                return;
+            }
+
+            if(cells is null)
+            {
+                Debug.WriteLine("No cell presenter found");
+                return;
+            }
+
+            //cellPresenter?.BorderBrush = new SolidColorBrush(Colors.Red);
+            //cellPresenter?.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
+
+            //contentTableRow?.BorderBrush = new SolidColorBrush(Colors.Pink);
+            //contentTableRow?.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
+
+            TableViewCell? coverImageCell = cells[0];
+
+            await PulseWithBorderAsync(coverImageCell,pulses:2, duration:500);
+
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+        }
+    }
+
+    public static async Task PulseWithBorderAsync(
+     TableViewCell element,
+     int pulses = 2,
+     double scale = 1.08,
+     int duration = 180)
+    {
+        if (element is null) return;
+
+        
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+        var compositor = visual.Compositor;
+
+        visual.CenterPoint = new Vector3(
+            (float)(element.RenderSize.Width / 2),
+            (float)(element.RenderSize.Height / 2),
+            0f);
+
+        for (int i = 0; i < pulses; i++)
+        {
+            // SCALE UP
+            var up = compositor.CreateVector3KeyFrameAnimation();
+            up.Target = "Scale";
+            up.Duration = TimeSpan.FromMilliseconds(duration);
+            up.InsertKeyFrame(1f, new Vector3((float)scale, (float)scale, 1f));
+
+            visual.StartAnimation("Scale", up);
+
+            if (element != null)
+            {
+                element.BorderThickness = new Thickness(2);
+                element.BorderBrush = new SolidColorBrush(Colors.DarkSlateBlue);
+            }
+
+            await Task.Delay(duration);
+
+            // SCALE DOWN
+            var down = compositor.CreateVector3KeyFrameAnimation();
+            down.Target = "Scale";
+            down.Duration = TimeSpan.FromMilliseconds(duration);
+            down.InsertKeyFrame(1f, new Vector3(1f, 1f, 1f));
+
+            visual.StartAnimation("Scale", down);
+
+            if (element != null)
+            {
+                element.BorderThickness = new Thickness(0);
+                element.BorderBrush = new SolidColorBrush(Colors.Transparent);
+            }
+
+            await Task.Delay(duration);
+        }
+    }
+
+
+
+
+    private async void AnimateScaleControlUp(FrameworkElement btn)
+    {
+        try
+        {
+            if (btn.DataContext is not SongModelView song) return;
+            if (song.CoverImagePath is null)
+                return;
+
+            await btn.DispatcherQueue.EnqueueAsync(() => { });
+            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
+
+            var scale = compositor.CreateVector3KeyFrameAnimation();
+            scale.InsertKeyFrame(1f, new Vector3(1.05f));
+            scale.Duration = TimeSpan.FromMilliseconds(350);
+            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
+            rootVisual.StartAnimation("Scale", scale);
+
+            //var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
+            //FocusedSongImage.Source = img;
+
+            //FocusedSongTextBlockTitle.Content = song.Title;
+            //FocusedSongTextBlockArtistName.Content = song.ArtistName;
+            //FocusedSongTextBlockAlbumName.Content = song.AlbumName;
+            //FocusedSongTextBlockGenre.Content = song.GenreName;
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
+        }
+    }
+
+    private void AnimateCollapseControlDown(FrameworkElement framework)
+    {
+        try
+        {
+
+            // collapse animation (optional)
+            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
+            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
+            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
+            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
+            rootVisual.StartAnimation("Scale", scaleBack);
+
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
+        }
+    }
+
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
+    [ObservableProperty]
+    public partial SolidColorBrush DominantBrush { get; set; }
+
     [RelayCommand]
     public void RefreshWindows()
     {
@@ -746,12 +828,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [RelayCommand]
-    private void NowPlayingQueueBtnClicked()
+    private async Task NowPlayingQueueBtnClicked()
     {
-        //var allSongsWin = winUIWindowMgrService.GetOrCreateUniqueWindow(this, () => new AllSongsWindow(this));
-        //if (allSongsWin is null) return;
+        var dimmerWin = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+        if (dimmerWin is null) return;
 
-        //DimmerMultiWindowCoordinator.SnapAllToHome();
+        await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
+        dimmerWin.NavigateToPage(typeof(AllSongsListPage));
 
     }
 
@@ -780,4 +863,268 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             SelectedArtist = artist;
         });
     }
+
+    public override async void ShowAllSongsWindowActivate()
+    {
+        base.ShowAllSongsWindowActivate();
+
+        await NowPlayingQueueBtnClicked();
+    }
+    /// <summary>
+    /// Populates a MenuFlyout tailored to right-clicking a song title.
+    /// - Implements utilities and external searches.
+    /// - Throws NotImplementedException for app-specific features (navigation, playback, editing).
+    /// </summary>
+    public void PopulateSongTitleContextMenuFlyout(Microsoft.UI.Xaml.Controls.MenuFlyout flyout, SongModelView songmodelView)
+    {
+
+        if (flyout == null) throw new ArgumentNullException(nameof(flyout));
+        if (songmodelView == null) throw new ArgumentNullException(nameof(songmodelView));
+
+        var realm = RealmFactory.GetRealmInstance();
+        var song = realm.Find<SongModel>(songmodelView.Id);
+        if (song is null) return;
+
+        // --- 1) Navigation
+        // Can't implement app navigation because we don't know your navigation service.
+        flyout.Items.Add(MI($"Open song page…", () => throw new NotImplementedException("Navigation to song page: wire this to your navigation service.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 2) Actions
+        // Playback / queue actions require your app playback service -> throw NotImplementedException.
+        flyout.Items.Add(MI("Play Now", () => throw new NotImplementedException("Play Now: wire to your playback service.")));
+        flyout.Items.Add(MI("Play Next", () => throw new NotImplementedException("Play Next: wire to your playback service.")));
+        flyout.Items.Add(MI("Add to End of Queue", () => throw new NotImplementedException("Add to Queue: wire to your playback/queue service.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 3) Edit
+        // Editing song metadata / toggling favorite requires app-specific DB write UI/logic -> throw.
+        flyout.Items.Add(MI("Edit song info…", () => throw new NotImplementedException("Edit song info: open your edit dialog / view model here.")));
+
+        // Favorite toggle: we don't know schema; throw so developer wires proper behaviour.
+        flyout.Items.Add(Toggle("Favorite", false, _ => throw new NotImplementedException("Toggle favorite: implement according to your SongModel fields / services.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 4) Lyrics
+        // View lyrics: best-effort: try to open a search to find lyrics online (fully implemented)
+        flyout.Items.Add(MI("View lyrics (web)", async () => await LaunchUriFromStringAsync(BuildLyricsSearchUrl(song.Title, song.ArtistName))));
+        // Edit lyrics: requires your UI -> throw
+        flyout.Items.Add(MI("Edit lyrics…", () => throw new NotImplementedException("Edit lyrics: open your lyrics editor here.")));
+        // Fetch lyrics (try a quick web search) — implemented as search fallback
+        flyout.Items.Add(MI("Fetch lyrics (web)", async () => await LaunchUriFromStringAsync(BuildLyricsSearchUrl(song.Title, song.ArtistName))));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 5) Utilities (fully implemented where possible)
+        flyout.Items.Add(MI("Copy song title", () => CopyToClipboard(song.Title ?? string.Empty)));
+        flyout.Items.Add(MI("Copy full song info", () => CopyToClipboard($"{song.Title} — {song.ArtistName} ({song.Album})")));
+        flyout.Items.Add(MI("Open file location…", async () =>
+        {
+            await OpenFileInOtherApp(songmodelView);
+        }));
+        flyout.Items.Add(MI("Share story card…", () => throw new NotImplementedException("Share story card: implement share generation & DataTransferManager logic.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 6) Search / External
+        flyout.Items.Add(Sub("Search on...",
+            MakeExternalItem("Google (song)", BuildGoogleSearchUrl($"{song.Title} {song.ArtistName}")),
+            MakeExternalItem("YouTube (song)", BuildYouTubeSearchUrl($"{song.Title} {song.ArtistName}")),
+            MakeExternalItem("Spotify (song)", BuildSpotifySearchUrl($"{song.Title} {song.ArtistName}")),
+            MakeExternalItem("Deezer (song)", BuildDeezerSearchUrl($"{song.Title} {song.ArtistName}"))
+        ));
+    }
+    /// <summary>
+    /// Populates a MenuFlyout when the user right-clicks an artist within a song.
+    /// Implements copy & external links. Other app-specific parts throw NotImplementedException.
+    /// </summary>
+    public void PopulateSongArtistContextMenuFlyout(Microsoft.UI.Xaml.Controls.MenuFlyout flyout, SongModelView songmodelView)
+    {
+        ArgumentNullException.ThrowIfNull(flyout);
+        ArgumentNullException.ThrowIfNull(songmodelView);
+
+        var realm = RealmFactory.GetRealmInstance();
+        var song = realm.Find<SongModel>(songmodelView.Id);
+        if (song is null) return;
+
+        // Determine main and other artists from the relationship
+        var songMainArtist = song.ArtistToSong?.FirstOrDefault();
+        var allArtistRelations = song.ArtistToSong?.ToArray() ?? Array.Empty<ArtistModel>();
+
+        // If we have no artist info, nothing to show
+        if (songMainArtist == null && allArtistRelations.Length == 0) return;
+
+        // Choose display name(s)
+        string primaryName = songMainArtist?.Name ?? allArtistRelations.FirstOrDefault()?.Name ?? "(Unknown artist)";
+
+        // --- 1) Navigation
+        flyout.Items.Add(MI($"Open artist page…", () => throw new NotImplementedException("Navigation to artist page: wire this to your navigation service.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 2) Actions (play/queue/add to playlist) -> require playback/playlist service
+        flyout.Items.Add(MI("Play all by artist", () => throw new NotImplementedException("Play all by artist: wire to your playback service.")));
+        flyout.Items.Add(MI("Queue all by artist", () => throw new NotImplementedException("Queue all by artist: wire to your queue service.")));
+        flyout.Items.Add(MI("Add artist to playlist…", () => throw new NotImplementedException("Add to playlist: open your Add to Playlist dialog.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 3) Edit
+        flyout.Items.Add(MI("Edit artist info…", () => throw new NotImplementedException("Edit artist: open your artist edit dialog.")));
+        flyout.Items.Add(Toggle("Follow artist", false, _ => throw new NotImplementedException("Follow/unfollow artist: implement according to your follow model/service.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- 4) Utilities (copy name + external searches implemented)
+        flyout.Items.Add(MI("Copy artist name", () => CopyToClipboard(primaryName)));
+        flyout.Items.Add(Sub("Find on...",
+            MakeExternalItem("Spotify (artist)", BuildSpotifySearchUrl(primaryName)),
+            MakeExternalItem("YouTube Music (artist)", BuildYouTubeSearchUrl(primaryName)),
+            MakeExternalItem("MusicBrainz (artist)", BuildMusicBrainzArtistSearchUrl(primaryName)),
+            MakeExternalItem("Discogs (artist)", BuildDiscogsArtistSearchUrl(primaryName))
+        ));
+    }
+    /// <summary>
+    /// Populates a MenuFlyout for album context.
+    /// Implements external searches and copy utilities. App-specific actions throw NotImplementedException.
+    /// </summary>
+    public void PopulateSongAlbumContextMenuFlyout(Microsoft.UI.Xaml.Controls.MenuFlyout flyout, SongModelView songmodelView)
+    {
+        if (flyout == null) throw new ArgumentNullException(nameof(flyout));
+        if (songmodelView == null) throw new ArgumentNullException(nameof(songmodelView));
+
+        var realm = RealmFactory.GetRealmInstance();
+        var albumInDb = realm.Find<SongModel>(songmodelView.Id)?.Album;
+        if (albumInDb is null) return;
+
+        var artistsInAlbum = albumInDb.Artists?.ToArray() ?? Array.Empty<ArtistModel>();
+        var songsInAlbum = albumInDb.SongsInAlbum?.ToArray() ?? Array.Empty<SongModel>();
+
+        // --- Navigation
+        flyout.Items.Add(MI($"Open album page…", () => throw new NotImplementedException("Navigation to album page: wire to your navigation service.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- Actions (play / queue / add to playlist) -> app-specific
+        flyout.Items.Add(MI("Play album", () => throw new NotImplementedException("Play album: wire to playback service.")));
+        flyout.Items.Add(MI("Queue album", () => throw new NotImplementedException("Queue album: wire to queue service.")));
+        flyout.Items.Add(MI("Add album to playlist…", () => throw new NotImplementedException("Add album to playlist: open playlist UI.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- Edit
+        flyout.Items.Add(MI("Edit album info…", () => throw new NotImplementedException("Edit album info: open edit dialog.")));
+        flyout.Items.Add(Toggle("Favorite album", false, _ => throw new NotImplementedException("Toggle album favorite: implement per your model/service.")));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- Utilities
+        flyout.Items.Add(MI("Copy album name", () => CopyToClipboard(albumInDb.Name ?? string.Empty)));
+        flyout.Items.Add(Sub("Artists in album",
+            artistsInAlbum.Select(a => MI(a.Name ?? "(unknown)", () => throw new NotImplementedException("Artist click: implement navigation or quick view."))).Cast<MenuFlyoutItemBase>().ToArray()
+        ));
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        // --- External search
+        var albumLabel = $"{albumInDb.Name} {string.Join(" ", artistsInAlbum.Select(a => a.Name))}";
+        flyout.Items.Add(Sub("Search on...",
+            MakeExternalItem("Spotify (album)", BuildSpotifySearchUrl(albumLabel)),
+            MakeExternalItem("YouTube Music (album)", BuildYouTubeSearchUrl(albumLabel)),
+            MakeExternalItem("Google (album)", BuildGoogleSearchUrl(albumLabel))
+        ));
+
+    }
+
+
+    MenuFlyoutItem MI(string text, Action? onClick = null)
+    {
+        var x = new MenuFlyoutItem { Text = text };
+        if (onClick != null) x.Click += (_, __) => onClick();
+        return x;
+    }
+
+    ToggleMenuFlyoutItem Toggle(string text, bool state, Action<bool> change)
+    {
+        var t = new ToggleMenuFlyoutItem { Text = text, IsChecked = state };
+        t.Click += (_, __) => change(t.IsChecked);
+        return t;
+    }
+
+    MenuFlyoutSubItem Sub(string text, params MenuFlyoutItemBase[] items)
+    {
+        var s = new MenuFlyoutSubItem { Text = text };
+        foreach (var i in items) s.Items.Add(i);
+        return s;
+    }
+
+    MenuFlyoutItem MakeExternalItem(string label, string url)
+    {
+        var item = new MenuFlyoutItem { Text = label };
+        item.Click += async (_, __) =>
+        {
+            try
+            {
+                await LaunchUriFromStringAsync(url);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"External launch failed: {ex.Message}");
+            }
+        };
+        return item;
+    }
+
+    // ---------- Utilities ----------
+
+    void CopyToClipboard(string text)
+    {
+        try
+        {
+            var dp = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dp.SetText(text ?? string.Empty);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"CopyToClipboard failed: {ex.Message}");
+        }
+    }
+
+    // Use Launcher to open a URL. Returns a Task so callers can await where appropriate.
+    async Task LaunchUriFromStringAsync(string uriStr)
+    {
+        if (string.IsNullOrWhiteSpace(uriStr)) return;
+        var uri = new Uri(uriStr);
+        await Windows.System.Launcher.LaunchUriAsync(uri);
+        
+    }
+
+    // ---------- URL builders (simple, safe search URLs) ----------
+
+    static string BuildGoogleSearchUrl(string query) =>
+        $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
+
+    static string BuildYouTubeSearchUrl(string query) =>
+        $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(query)}";
+
+    static string BuildSpotifySearchUrl(string query) =>
+        // Spotify web search is robust with query parameter
+        $"https://open.spotify.com/search/{Uri.EscapeDataString(query)}";
+
+    static string BuildDeezerSearchUrl(string query) =>
+        $"https://www.deezer.com/search/{Uri.EscapeDataString(query)}";
+
+    static string BuildLyricsSearchUrl(string title, string artist) =>
+        BuildGoogleSearchUrl($"{title} {artist} lyrics");
+
+    static string BuildMusicBrainzArtistSearchUrl(string artist) =>
+        $"https://musicbrainz.org/search?query={Uri.EscapeDataString(artist)}&type=artist";
+
+    static string BuildDiscogsArtistSearchUrl(string artist) =>
+        $"https://www.discogs.com/search/?q={Uri.EscapeDataString(artist)}&type=artist";
+
 }

@@ -8,7 +8,7 @@ public class FileProcessingResult
     public List<string> Errors { get; } = new List<string>();
     public bool Skipped { get; set; }
     public string SkipReason { get; set; } = string.Empty;
-    public bool Success => ProcessedSong != null && Errors.Count == 0 && !Skipped;
+    public bool Success { get; set; }
     public FileProcessingResult(string filePath)
     {
         FilePath = filePath;

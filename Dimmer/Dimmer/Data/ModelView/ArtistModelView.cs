@@ -6,6 +6,8 @@ public partial class ArtistModelView : ObservableObject
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
     [ObservableProperty]
+    public partial string Url { get; set; }
+    [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]
     public partial string? ImagePath { get; set; }

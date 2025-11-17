@@ -8,15 +8,17 @@ using Dimmer.DimmerLive.Orchestration;
 using Dimmer.Interfaces;
 using Dimmer.Utils;
 
+using Microsoft.Maui.Controls;
+
 namespace Dimmer;
 
 public partial class App : Application
 {
 
-    public App(IAppUtil appUtil)
+    public App(IAppUtil appUtil, BaseViewModel vm)
     {
         InitializeComponent();
-
+        MyViewModel = vm;
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -39,7 +41,7 @@ public partial class App : Application
 
         }
 
-        AppUtil=appUtil;
+        AppUtilImple=appUtil;
     }
     //public partial void AddPlatformResources()
     // {
@@ -50,51 +52,19 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var win = AppUtil.LoadWindow();
+        UiThreads.MauiUI = Current!.Dispatcher;
 
-#if WINDOWS
-        win.Created += Win_Created;
-
-        win.Page = new ContentPage();
-#endif
+        var win = AppUtilImple.LoadWindow();
+        
         return win;
     }
 
     private async void Win_Created(object? sender, EventArgs e)
     {
 
-#if WINDOWS
-            var mauiWin = sender as Microsoft.Maui.Controls.Window;
-                if (mauiWin?.Handler?.PlatformView is Microsoft.UI.Xaml.Window nativeWin)
-                {
-                    IntPtr hwnd = WindowNative.GetWindowHandle(nativeWin);
-                    WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
-                    AppWindow appWindow = AppWindow.GetFromWindowId(id);
-
-                    
-                    var presenter = appWindow.Presenter as OverlappedPresenter;
-                    if (presenter is not null)
-                    {
-                        // Start minimized or hidden
-                        //presenter.Minimize();
-
-                        // OR start invisible
-                         appWindow.Hide();
-                    }
-
-                    // optional: resize before it shows
-                    appWindow.Resize(new SizeInt32(1080, 1200));
-                }
-        await Task.Delay(2400);
-        var concernedWindow = sender as Window;
-        if (concernedWindow != null)
-        {
-            Application.Current!.CloseWindow(concernedWindow);
-        }
-#endif
     }
-    public IAppUtil AppUtil { get; }
-
+    public IAppUtil AppUtilImple { get; }
+    public BaseViewModel MyViewModel { get; }
 
     private static readonly Lock _logLock = new();
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -113,6 +83,10 @@ public partial class App : Application
             // This is ReactiveUI probing for platform-specific assemblies (WPF, Blazor, etc.).
             // It's expected behavior and safe to ignore.
             return;
+        }
+        if (ex is InvalidCastException)
+        {
+            //Debugger.Break();
         }
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +

@@ -9,8 +9,10 @@ public class LoadSongsResult // Define this class (or similar) if needed
     public int FilesProcessed { get; set; }
     public int FilesSkipped { get; set; }
     public int NewSongsAddedCount { get; set; }
-    public List<FileProcessingResult> ProcessingResults { get; internal set; }
-    public List<SongModelView?> NewSongsAdded { get; internal set; }
+    public List<FileProcessingResult>? ProcessingResults { get; internal set; }
+    public List<SongModelView?>? NewSongsAdded { get; internal set; }
+    public string? ErrorMessage { get; internal set; }
+    public bool IsError { get; internal set; }
 }
 
 //public interface ILibraryService

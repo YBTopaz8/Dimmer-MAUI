@@ -117,7 +117,7 @@ public static class RqlGenerator
                 return MatchAllPredicate;
         }
     }
-    private static string FormatValue(object? value, FieldType type = FieldType.Text)
+    public static string FormatValue(object? value, FieldType type = FieldType.Text)
     {
         if (value is null)
             return "null";

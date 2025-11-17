@@ -1,18 +1,32 @@
-﻿using Dimmer.Utils;
+﻿using System.Threading.Tasks;
+
+using Dimmer.Utils;
 
 namespace Dimmer.Interfaces;
 public interface IErrorHandler
 {
     void HandleError(Exception ex);
 }
-
-
-public class ErrorHandler : IErrorHandler
+public interface IUiErrorPresenter
 {
-    private static readonly object _logLock = new();
+    Task ShowNotImplementedAlert(string message);
+}
+
+public class ErrorHandler : IErrorHandler, IUiErrorPresenter
+{
+    private static readonly Lock _logLock = new();
     private const string LogDirectoryName = "DimmerCrashLogs";
     public void HandleError(Exception ex)
     {
+
+        if (ex is NotImplementedException)
+        {
+            _ = Task.Run(async ()=> await ShowNotImplementedAlert(ex.Message));
+
+            return;
+        }
+
+
         LogException(ex);
         
     }
@@ -42,8 +56,7 @@ public class ErrorHandler : IErrorHandler
 
             bool success = false;
             int retries = 3;
-            int delay = 500;
-
+            
             lock (_logLock)
             {
                 while (retries-- > 0 && !success)
@@ -68,5 +81,16 @@ public class ErrorHandler : IErrorHandler
 
             Debug.WriteLine($"Logging failed: {loggingEx}");
         }
+    }
+
+    public async Task ShowNotImplementedAlert(string message)
+    {
+        var page = Application.Current?
+            .Windows[0].Page;
+
+        if (page == null)
+            return;
+
+        await page.DisplayAlert("Not Implemented", message, "OK");
     }
 }

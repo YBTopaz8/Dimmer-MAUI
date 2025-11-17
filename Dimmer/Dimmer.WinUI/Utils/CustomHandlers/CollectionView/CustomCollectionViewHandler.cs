@@ -1,5 +1,4 @@
 ﻿using Microsoft.Maui.Controls.Handlers.Items;
-using Microsoft.UI.Xaml.Controls;
 
 namespace Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 // This handler will be applied to ALL CollectionViews in your app.

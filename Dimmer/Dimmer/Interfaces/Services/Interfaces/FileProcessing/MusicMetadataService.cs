@@ -1,11 +1,12 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+﻿using System.Collections.Concurrent;
+
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
 public class MusicMetadataService : IMusicMetadataService
 {
-    private readonly Dictionary<string, ArtistModelView> _artistsByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, AlbumModelView> _albumsByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, GenreModelView> _genresByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, ArtistModelView> _artistsByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, AlbumModelView> _albumsByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, GenreModelView> _genresByName = new(StringComparer.OrdinalIgnoreCase); private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
 
 
     public List<ArtistModelView> NewArtists { get; } = new();
@@ -65,61 +66,43 @@ public class MusicMetadataService : IMusicMetadataService
     public ArtistModelView GetOrCreateArtist(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
-        if (!_artistsByName.TryGetValue(name, out var artist))
-        {
-            artist = new ArtistModelView { Name = name, Id=ObjectId.GenerateNewId() };
-            _artistsByName[name] = artist;
-            NewArtists.Add(artist);
-        }
 
-
-        return artist;
+        // GetOrAdd is an atomic operation, making this method thread-safe.
+        return _artistsByName.GetOrAdd(name, (key) => {
+            var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() };
+            NewArtists.Add(newArtist); // Note: NewArtists list might still need locking if accessed elsewhere during the scan.
+            return newArtist;
+        });
     }
 
-    public AlbumModelView GetOrCreateAlbum(Track track, string name, string? initialCoverPath = null)
+    public AlbumModelView GetOrCreateAlbum(Track track, string name, string? artistForContext = null)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Album" : name.Trim();
-        if (!_albumsByName.TryGetValue(name, out var album))
-        {
-            album = new AlbumModelView
+
+        // A unique key for an album is often its name + the primary artist's name
+        string albumKey = $"{name}|{artistForContext ?? "Unknown"}";
+
+        return _albumsByName.GetOrAdd(albumKey, (key) => {
+            var newAlbum = new AlbumModelView
             {
                 Name = name,
-                Id=ObjectId.GenerateNewId(),
-                //ImagePath = initialCoverPath,
-
-
+                Id = ObjectId.GenerateNewId(),
             };
-
-            _albumsByName[name] = album;
-            NewAlbums.Add(album);
-        }
-        else if (album.ImagePath == null && initialCoverPath != null)
-        {
-
-            album.ImagePath = initialCoverPath;
-
-        }
-
-        return album;
+            NewAlbums.Add(newAlbum);
+            return newAlbum;
+        });
     }
 
     public GenreModelView GetOrCreateGenre(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Genre" : name.Trim();
-        if (!_genresByName.TryGetValue(name, out var genre))
-        {
-            genre = new GenreModelView
-            {
-                Id=ObjectId.GenerateNewId(),
-                Name = name,
 
-            };
-            _genresByName[name] = genre;
-            NewGenres.Add(genre);
-        }
-        return genre;
+        return _genresByName.GetOrAdd(name, (key) => {
+            var newGenre = new GenreModelView { Name = key, Id = ObjectId.GenerateNewId() };
+            NewGenres.Add(newGenre);
+            return newGenre;
+        });
     }
-
     public void AddSong(SongModelView song)
     {
         _processedSongsInThisScan.Add(song);

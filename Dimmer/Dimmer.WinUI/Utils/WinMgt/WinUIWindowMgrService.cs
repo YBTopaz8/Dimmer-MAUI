@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 
+using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public partial class WinUIWindowMgrService : IWinUIWindowMgrService
@@ -24,10 +25,12 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     /// </summary>
 
     public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowActivated;
+    //public event EventHandler<WindowSizeChangedEventArgs>? WindowSizeChanged;
+
     /// <summary>
     /// Fired when any tracked window's size is changed.
     /// </summary>
-    public event EventHandler<WindowSizeChangedEventArgs>? WindowSizeChanged;
+    public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowSizeChanged;
 
 
     public WinUIWindowMgrService(IServiceProvider mauiServiceProvider)
@@ -228,7 +231,11 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
                 TrackWindow(newWindow);
             }
         }
-        return newWindow;
+        else
+        {
+            return null;
+        }
+            return newWindow;
     }
 
 
@@ -248,13 +255,69 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         // hook size changed
         window.SizeChanged += (s, e) =>
         {
-            WindowSizeChanged?.Invoke(this, e);
+            WindowActivatedWithSourceEventArgs ee = new WindowActivatedWithSourceEventArgs(window, WindowActivationState.CodeActivated);
+            WindowSizeChanged?.Invoke(this, ee);
         };
+
+        IntPtr hwnd = WindowNative.GetWindowHandle(window);
+        WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
+        AppWindow appWindow = AppWindow.GetFromWindowId(id);
+
+
+        var presenter = appWindow.Presenter as OverlappedPresenter;
+        appWindow.Changed += (sender, args) =>
+        {
+            var didVisChange = args.DidVisibilityChange;
+
+            WindowActivationState state;
+            if (sender.IsVisible)
+            {
+                state = WindowActivationState.PointerActivated;
+            }
+            else
+            {
+                state = WindowActivationState.Deactivated;
+            }
+            if(didVisChange)
+            {
+                switch (state)
+                {
+                    case WindowActivationState.CodeActivated:
+
+                        break;
+                    case WindowActivationState.Deactivated:
+
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var didSizeChange = args.DidSizeChange;
+            if(didSizeChange)
+            {
+                var newSize = sender.Size;
+                Debug.WriteLine($"AppWindow size changed. New size: {newSize.Width}x{newSize.Height}");
+                // Raise event for size change
+
+                if (window != null)
+                {
+                    WindowSizeChanged?.Invoke(this, new WindowActivatedWithSourceEventArgs(window, state));
+                }
+            }
+        };
+    
 
         window.Closed += OnWindowClosed;
         // Subscribe to Closed event
 
     }
+
+    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+       
+    }
+
     private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
     {
         var ss = sender.Id.Value;
@@ -308,19 +371,87 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         }
     }
 
-    private bool IsWindowOpen(Window window)
+    public void BringToFront(Window window)
     {
-        // A simple check is if it's in our tracked list.
-        // For a more robust check, you might need to see if its AppWindow is visible,
-        // but that adds complexity with AppWindow.
-        // For now, if it's in _openWindows, we assume it was opened by us and Closed event handles removal.
-        // However, a window could be closed by user an not yet processed by Closed event if called rapidly.
-        // A truly robust check might involve checking window.Content == null or window.Visible (if available directly)
-        // or querying existing AppWindows (more advanced).
-        // For now, rely on our _openWindows list which is maintained by Closed event.
-        return _openWindows.Contains(window);
+        EnsureWindowActive(window);
+    }
+    public void EnsureWindowActive(Window? window)
+    {
+        if (window == null) return;
+        // 1 try to recover a live tracked one first
+        if (!_openWindows.Contains(window) || !IsWindowOpen(window))
+        {
+            
+            TrackWindow(window);
+            window.Activate();
+            return;
+        }
+
+        // 2️ check HWND validity
+        IntPtr hwnd = WindowNative.GetWindowHandle(window);
+        if (hwnd == IntPtr.Zero)
+        {
+            window = new DimmerWin();
+            TrackWindow(window);
+            window.Activate();
+            return;
+        }
+
+        // 3️ validate AppWindow state
+        WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
+        AppWindow appWindow = AppWindow.GetFromWindowId(id);
+        if (appWindow == null)
+        {
+            window = new DimmerWin();
+            TrackWindow(window);
+            window.Activate();
+            return;
+        }
+
+        // 4️ normal restore / bring-front
+        if (appWindow.Presenter is OverlappedPresenter p && p.State == OverlappedPresenterState.Minimized)
+            p.Restore();
+
+        appWindow.MoveInZOrderAtTop();
+        window.Activate();
+        return;
     }
 
+    public void ActivateWindow(Window window)
+    {
+        if (IsWindowOpen(window))
+        {
+            window.Activate();
+            Debug.WriteLine($"Native WinUI window activated: {window.Title}");
+        }
+    }
+    private static bool IsWindowOpen(Window window)
+    {
+
+        IntPtr hwnd = WindowNative.GetWindowHandle(window);
+        WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
+        AppWindow appWindow = AppWindow.GetFromWindowId(id);
+
+        
+        var presenter = appWindow.Presenter as OverlappedPresenter;
+        if (presenter != null)
+        {
+            
+            switch (presenter.State)
+            {
+                case OverlappedPresenterState.Maximized:
+                    return true;
+
+                case OverlappedPresenterState.Minimized:
+                    return false;
+                case OverlappedPresenterState.Restored:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return false;
+    }
 
     public T? GetWindow<T>() where T : Window
     {
@@ -341,20 +472,25 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         return _openWindows.ToList().AsReadOnly();
     }
 
-    public void CloseAllWindows()
+    public void CloseAllWindows(Window? callWindow)
     {
-
-        foreach (var window in _openWindows)
+        if (callWindow is not null)
+        {
+            _openWindows.Remove(callWindow);
+        }
+        foreach (var window in _openWindows.ToList())
         {
             CloseWindow(window);
 
+            _openWindows.Remove(window);
         }
     }
+
     public void CloseWindow(Window window)
     {
         try
         {
-
+            if (!_openWindows.Contains(window)) return;
             if (IsWindowOpen(window)) // Check if we are tracking it as open
             {
                 window.Close(); // This will trigger the Destroying event which will handle untracking
@@ -376,30 +512,6 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         }
     }
 
-    public void BringToFront(Window window)
-    {
-        if (IsWindowOpen(window))
-        {
-            // The native WinUI Window object itself is the one to activate
-            window.Activate();
-
-            Debug.WriteLine($"Attempted to bring native WinUI window to front: {window.Title}");
-
-            // For a more forceful bring to front:
-            // var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            // NativeMethods.SetForegroundWindow(hwnd);
-        }
-
-    }
-
-    public void ActivateWindow(Window window)
-    {
-        if (IsWindowOpen(window))
-        {
-            window.Activate(); 
-            Debug.WriteLine($"Native WinUI window activated: {window.Title}");
-        }
-    }
 }
 
 

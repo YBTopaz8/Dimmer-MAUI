@@ -9,11 +9,8 @@ namespace Dimmer.Utilities.Extensions;
 
 public static class RxSchedulers
 {
-#if WINDOWS
-    public static readonly IScheduler UI = DispatcherScheduler.Current;
-#else
-    public static readonly IScheduler UI = CurrentThreadScheduler.Instance;
-#endif
+
+    public static readonly IScheduler UI = new MauiUiScheduler();
 
     public static readonly IScheduler Background = TaskPoolScheduler.Default;
 }

@@ -29,12 +29,18 @@ public partial class AppStateModelView: ObservableObject
     public IList<string> UserMusicFoldersPreference { get; } = new List<string>();
     public IList<string> LastOpenedWindows { get; } = new List<string>();
 
-    public string LastKnownQuery { get; internal set; }
-    public string LastKnownPlaybackQuery { get; internal set; }
-    public int LastKnownPlaybackQueueIndex { get; internal set; }
-    public List<SongModelView> LastKnownPlaybackQueue { get; internal set; }
-    public bool LastKnownShuffleState { get; internal set; }
-    public int CurrentRepeatMode { get; internal set; }
+    public string LastKnownQuery { get;  set; }
+    public string LastKnownPlaybackQuery { get;  set; }
+    public int LastKnownPlaybackQueueIndex { get;  set; }
+    public List<SongModelView> LastKnownPlaybackQueue { get;  set; }
+    public bool LastKnownShuffleState { get;  set; }
+    public int CurrentRepeatMode { get;  set; }
+    public bool IsMiniLyricsViewEnabled { get; set; }
+    public string PreferredMiniLyricsViewPosition { get; set; }
+    public string PreferredLyricsSource { get; set; }
+    public string AllowLyricsContribution { get; set; }
+    public bool AllowBackNavigationWithMouseFour { get;  set; }
+
     public AppStateModelView()
     {
 

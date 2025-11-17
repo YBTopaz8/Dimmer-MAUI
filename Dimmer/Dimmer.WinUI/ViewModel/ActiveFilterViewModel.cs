@@ -1,7 +1,4 @@
-﻿using Dimmer.Data.ModelView.DimmerSearch;
-using Dimmer.DimmerSearch.TQL;
-
-namespace Dimmer.WinUI.ViewModel;
+﻿namespace Dimmer.WinUI.ViewModel;
 
 
 

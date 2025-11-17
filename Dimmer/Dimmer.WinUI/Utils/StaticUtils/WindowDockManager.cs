@@ -1,10 +1,4 @@
-﻿using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml;
-using Windows.Graphics;
-using Windows.Graphics.Display;
-using Microsoft.Maui.Storage;
-using System.Diagnostics;
-using Dimmer.WinUI.Utils.StaticUtils;
+﻿using Windows.Graphics;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
 
@@ -36,6 +30,13 @@ public static class WindowDockManager
                     continue;
 
                 var appWin = PlatUtils.GetAppWindow(win);
+                var area = DisplayArea.GetFromWindowId(appWin.Id, DisplayAreaFallback.Primary).WorkArea;
+
+                x = Math.Max(area.X, x);
+                y = Math.Max(area.Y, y);
+                w = Math.Min(w, area.Width);
+                h = Math.Min(h, area.Height);
+
                 appWin.MoveAndResize(new RectInt32(x, y, w, h));
             }
             catch (Exception ex)
@@ -62,7 +63,7 @@ public static class WindowDockManager
         }
     }
 
-    public static async void SnapHomeWindow(Microsoft.UI.Xaml.Window home, IEnumerable<Microsoft.UI.Xaml.Window> others)
+    public static async Task SnapHomeWindowAsync(Microsoft.UI.Xaml.Window home, IEnumerable<Microsoft.UI.Xaml.Window> others)
     {
         try
         {
@@ -92,8 +93,9 @@ public static class WindowDockManager
         int tX = target.Position.X, tY = target.Position.Y;
         int tW = target.Size.Width, tH = target.Size.Height;
 
-        if (tX + tW + hW <= work.X + work.Width) return new(tX + tW, tY);     // right
+        // ✅ prefer LEFT first
         if (tX - hW >= work.X) return new(tX - hW, tY);                       // left
+        if (tX + tW + hW <= work.X + work.Width) return new(tX + tW, tY);     // right
         if (tY + tH + hH <= work.Y + work.Height) return new(tX, tY + tH);    // below
         if (tY - hH >= work.Y) return new(tX, tY - hH);                       // above
 
@@ -105,12 +107,11 @@ public static class WindowDockManager
         try
         {
             var start = win.Position;
-            int step = 0;
-            while (step < AnimationSteps)
+            for (int i = 1; i <= AnimationSteps; i++)
             {
-                step++;
-                int x = start.X + (target.X - start.X) * step / AnimationSteps;
-                int y = start.Y + (target.Y - start.Y) * step / AnimationSteps;
+                if (!win.IsVisible) break; // prevent move after close
+                int x = start.X + (target.X - start.X) * i / AnimationSteps;
+                int y = start.Y + (target.Y - start.Y) * i / AnimationSteps;
                 win.Move(new PointInt32(x, y));
                 await Task.Delay(StepDelay);
             }

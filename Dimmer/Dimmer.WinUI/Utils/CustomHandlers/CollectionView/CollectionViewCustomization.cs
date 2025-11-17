@@ -1,9 +1,10 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+﻿using CommunityToolkit.WinUI;
+
+using Microsoft.Maui.Controls.Handlers.Items;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 
-using Microsoft.Maui.Controls.Handlers.Items;
 using Windows.Foundation;
 
 using Border = Microsoft.UI.Xaml.Controls.Border;
@@ -107,8 +108,7 @@ public static class CollectionViewCustomization
         opacityAnimation.InsertKeyFrame(1.0f, isVisible ? 1.0f : 0.0f);
         opacityAnimation.Duration = TimeSpan.FromMilliseconds(250);
         opacityAnimation.Target = "Opacity";
-
-        ElementCompositionPreview.GetElementVisual(highlightBorder).StartAnimation("Opacity", opacityAnimation);
+        highlightBorder.GetVisual().StartAnimation("Opacity", opacityAnimation);
     }
 
     public static T FindVisualChild<T>(DependencyObject obj, string name) where T : DependencyObject

@@ -4,6 +4,8 @@ public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
     public partial string Name { get; set; }
+    [ObservableProperty]
+    public partial string Url { get; set; }
     //[ObservableProperty]
     //public partial ObservableCollection<SongModelView>? Songs{ get; set; }
     [ObservableProperty]

@@ -16,6 +16,10 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// </value>
     public string Name { get; set; }
     /// <summary>
+    /// Gets or sets the Url.
+    /// </summary>
+    public string Url { get; set; }
+    /// <summary>
     /// Gets or sets the release year.
     /// </summary>
     /// <value>

@@ -1,7 +1,6 @@
 ﻿global using System.Reactive.Linq;
 global using System.Diagnostics;
 global using Dimmer.ViewModel;
-global using Dimmer.Utilities.CustomAnimations;
 global using Dimmer.WinUI.Utils;
 global using System.Runtime.InteropServices;
 global using Microsoft.UI.Windowing;
@@ -13,6 +12,25 @@ global using Dimmer.WinUI.ViewModel;
 global using Microsoft.Maui.LifecycleEvents;
 global using Microsoft.UI;
 global using WinRT.Interop;
+global using System.Numerics;
+global using WinUIVisibility = Microsoft.UI.Xaml.Visibility;
+global using CommunityToolkit.Maui;
+
+global using Dimmer.WinUI.Views.MAUIPages;
+global using Dimmer.WinUI.Views.WinuiPages;
+
+global using WinUI.TableView;
+global using Dimmer.WinUI.Animations;
+global using Dimmer.Data;
+global using Dimmer.DimmerSearch;
+global using static Dimmer.WinUI.Utils.AppUtil;
+global using Microsoft.UI.Composition;
+global using Microsoft.UI.Xaml;
+global using Microsoft.UI.Xaml.Controls;
+global using Microsoft.UI.Xaml.Hosting;
+global using Microsoft.UI.Xaml.Media;
+global using Microsoft.UI.Xaml.Media.Animation;
+global using Microsoft.UI.Xaml.Navigation;
 
 global using Page = Microsoft.UI.Xaml.Controls.Page;
 global using System.Windows.Media.Imaging;
@@ -30,8 +48,7 @@ global using Dimmer.Interfaces.IDatabase;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 global using Dimmer.LastFM;
-global using Window = Microsoft.UI.Xaml.Window;
-global using Microsoft.UI.Xaml.Controls;
+global using Dimmer.WinUI.Animations.UiComponentAnims;
 global using Microsoft.Extensions.Logging;
 global using Dimmer.Orchestration;
 global using Dimmer.Utilities.Enums;
@@ -63,16 +80,11 @@ global using Windows.Storage;
 global using Windows.Storage.Streams;
 global using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 global using Dimmer.Utilities;
-global using Dimmer.WinUI.Utils.Helpers;
 
 global using System.Drawing;
-global using System.Reflection;
 global using Dimmer.DimmerLive.Interfaces;
 
 global using Dimmer.Interfaces.Services;
-
-
-global using Dimmer.Interfaces.Services.Interfaces;
 global using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 global using Dimmer.WinUI.Utils.WinMgt;
 

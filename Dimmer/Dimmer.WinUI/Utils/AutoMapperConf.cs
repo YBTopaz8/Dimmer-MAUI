@@ -1,5 +1,4 @@
-﻿using Dimmer.Data.Models;
-using Dimmer.WinUI.Utils.Models;
+﻿using Dimmer.WinUI.Utils.Models;
 
 namespace Dimmer.WinUI.Utils;
 
