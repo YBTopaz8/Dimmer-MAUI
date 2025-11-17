@@ -19,10 +19,12 @@
 		<EnableDefaultMauiItems>false</EnableDefaultMauiItems>
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
+	  <None Remove="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\HoverCardControl.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\VolumeTab.xaml" />
@@ -36,6 +38,7 @@
 
 	<ItemGroup>
 	  <Page Remove="AppShell.xaml" />
+	  <Page Remove="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
 	  <Page Remove="Views\MAUIPages\HomePage.xaml" />
 	</ItemGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041.0'">
@@ -78,10 +81,12 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Utils\StaticUtils\TaskBarSection\" />
-	  <Folder Include="Views\CustomViews\MauiViews\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <MauiXaml Include="AppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Include="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">

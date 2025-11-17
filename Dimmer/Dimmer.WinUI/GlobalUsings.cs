@@ -48,7 +48,6 @@ global using Dimmer.Interfaces.IDatabase;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 global using Dimmer.LastFM;
-global using Window = Microsoft.UI.Xaml.Window;
 global using Dimmer.WinUI.Animations.UiComponentAnims;
 global using Microsoft.Extensions.Logging;
 global using Dimmer.Orchestration;

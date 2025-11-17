@@ -82,10 +82,6 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void WizardFlipView_SelectionChanged_1(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
-
-    }
 
     private void MusicFoldersView_Click(object sender, RoutedEventArgs e)
     {

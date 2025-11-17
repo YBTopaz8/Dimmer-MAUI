@@ -123,7 +123,7 @@ public static class PlatUtils
                 OverLappedPres!.IsAlwaysOnTop = true;
                 OverLappedPres.SetBorderAndTitleBar(false, false);
                 OverLappedPres!.Maximize();
-
+                
             }
             else
             {

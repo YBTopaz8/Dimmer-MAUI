@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 
 using Dimmer.ViewsAndPages;
+using Dimmer.ViewsAndPages.SingleSongPage;
 
 using Microsoft.Maui.LifecycleEvents;
 
@@ -57,36 +58,18 @@ namespace Dimmer.Droid
             builder.Services.AddSingleton<BaseViewModelAnd>();
             builder.Services.AddSingleton<ChatViewModelAnd>();
             builder.Services.AddSingleton<HomePage>();
-            //builder.Services.AddSingleton<ChatView>();
-            //builder.Services.AddSingleton<SearchFilterAndSongsColViewUI>();
+            builder.Services.AddSingleton<SettingsPage>();
+            builder.Services.AddSingleton<SingleSongDetailsPage>();
+
+
             builder.Services.AddSingleton<QuickSettingsTileService>()
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<Shell, MyShellRenderer>();
                 
-
-
-                Microsoft.Maui.Handlers.ButtonHandler.Mapper.AppendToMapping(
-                key: "AddGlobalTouchBehavior",
-                method: (handler, view) =>
-                {
-                    
-                });
-
-                Microsoft.Maui.Handlers.ProgressBarHandler.Mapper.AppendToMapping(
-                    key: "CustomProgressBar",
-                    method: (handler, view) =>
-                    {
-                        if (view is Microsoft.Maui.Controls.ProgressBar customProgressBar)
-                        {
-
-
-                            // Customize the ProgressBar here
-                            // For example, set a custom drawable or color
-                            // handler.PlatformView.ProgressDrawable = ...;
-                        }
-                    });
             });
+
+
             builder.ConfigureLifecycleEvents(events =>
             {
                 events.AddAndroid(android =>
@@ -190,7 +173,6 @@ namespace Dimmer.Droid
 
 
             });
-            builder.Services.AddSingleton<PlayerViewModel>();
 
             builder.Services.AddScoped<IAppUtil, AppUtil>();
             return builder.Build();

@@ -1,8 +1,10 @@
 
 
-using View = Microsoft.Maui.Controls.View;
-using ImageButton = Microsoft.Maui.Controls.ImageButton;
 using Dimmer.ViewsAndPages;
+using Dimmer.ViewsAndPages.SingleSongPage;
+
+using ImageButton = Microsoft.Maui.Controls.ImageButton;
+using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer;
 
@@ -14,6 +16,8 @@ public partial class AppShell : Shell
         InitializeComponent();
 
         Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
+        Routing.RegisterRoute(nameof(SingleSongDetailsPage), typeof(SingleSongDetailsPage));
+        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
 
         MyViewModel =baseViewModel;
     }

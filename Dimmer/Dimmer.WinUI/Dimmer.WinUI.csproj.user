@@ -11,6 +11,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <Page Update="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml">
       <SubType>Designer</SubType>
     </Page>

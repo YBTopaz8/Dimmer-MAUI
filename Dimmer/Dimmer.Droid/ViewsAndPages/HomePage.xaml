@@ -120,6 +120,7 @@
                             BorderColor="DarkSlateBlue"
                             BorderThickness="0.7"
                             CornerRadius="25"
+                            
                             FontSize="15"
                             HorizontalOptions="End"
                             IsIconVisible="False"
@@ -1234,6 +1235,59 @@
                 </dx:DXStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>
-
+        <dx:BottomSheet>
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout>
+                    <dx:DXStackLayout>
+                    
+                    </dx:DXStackLayout>
+                    <dx:DXCollectionView ItemsSource="{Binding PlaybackQueue}">
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SongModelView">
+                                <Grid ColumnDefinitions="60,*,auto,auto">
+                                    
+                                    <dx:DXStackLayout 
+                                        Grid.Column="0">
+                                        <dx:DXImage Source="{Binding CoverImagePath}"   />
+                                    </dx:DXStackLayout>
+                                    
+                                    <dx:DXStackLayout 
+                                        Grid.Column="1">
+                                        <Label Text="{Binding Title}" FontSize="21"/>
+                                        <Label Text="{Binding ArtistName}" FontSize="14"/>
+                                    </dx:DXStackLayout>
+                                    
+                                    <dx:DXStackLayout 
+                                        Grid.Column="2">
+                                        <Label Text="{Binding DurationInSeconds, Converter={converters:DurationConverterFromMsToTimeSpan}}"/>
+                                  
+                                        <dx:DXButton x:Name="IsFavButton"
+                                                     Loaded="IsFavButton_Loaded"
+                                                     >
+                                            <dx:DXButton.Triggers>
+                                                <DataTrigger Binding="{Binding IsFavorite}"
+                                                             Value="True" TargetType="dx:DXButton">
+                                                    
+                                                </DataTrigger>
+                                            </dx:DXButton.Triggers>
+                                        </dx:DXButton>
+                                    </dx:DXStackLayout>
+                                    
+                                    <dx:DXStackLayout 
+                                        Grid.Column="3">
+                                        <dx:Chip x:Name="MoreChip"
+                                                 Icon="more1.png"
+                                                 Tap="MoreChip_Tap"
+                                                 />
+                                    </dx:DXStackLayout>
+                                    
+                                </Grid>
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                    
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 </ContentPage>

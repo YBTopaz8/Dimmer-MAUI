@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Window = Microsoft.UI.Xaml.Window;
+
 namespace Dimmer.WinUI.Utils;
 
 public class WinUiErrorPresenter : IUiErrorPresenter

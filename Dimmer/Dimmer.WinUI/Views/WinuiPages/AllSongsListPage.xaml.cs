@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 using CommunityToolkit.WinUI;
 
@@ -23,6 +24,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 
+using Windows.ApplicationModel.DataTransfer;
 using Windows.System.Threading;
 using Windows.UI.Composition;
 using Windows.UI.Text;
@@ -39,6 +41,7 @@ using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using Colors = Microsoft.UI.Colors;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using DataTemplateSelector = Microsoft.UI.Xaml.Controls.DataTemplateSelector;
+using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
@@ -46,6 +49,7 @@ using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
 using Visibility = Microsoft.UI.Xaml.Visibility;
+using Visual = Microsoft.UI.Composition.Visual;
 using VisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -126,81 +130,7 @@ public sealed partial class AllSongsListPage : Page
     private void CoverImageGrid_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
 
-        var selectedSong = (sender as FrameworkElement)?.DataContext as SongModelView;
-
-        // Store the item for the return trip
-        _storedSong = selectedSong;
-
-        // Find the specific UI element (the Image) that was clicked on
-        var row = MySongsTableView.ContainerFromItem(selectedSong) as FrameworkElement;
-        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-        if (image == null) return;
-
-        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
-        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
-
-
-        // Small visual feedback before navigation
-        var visual = ElementCompositionPreview.GetElementVisual(image);
-        switch (SongTransitionAnimation.Slide)
-        {
-            case SongTransitionAnimation.Fade:
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(0f, 0.3f);
-                fade.InsertKeyFrame(1f, 0f);
-                fade.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Opacity", fade);
-                break;
-
-            case SongTransitionAnimation.Scale:
-                var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-                visual.CenterPoint = new Vector3(
-                    (float)(image.ActualWidth / 2),
-                    (float)(image.ActualHeight / 2),
-                    0);
-                scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
-                scaleAnim.InsertKeyFrame(1f, new Vector3(1.15f));
-                scaleAnim.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Scale", scaleAnim);
-                break;
-
-            case SongTransitionAnimation.Slide:
-                var offsetAnim = _compositor.CreateVector3KeyFrameAnimation();
-                offsetAnim.InsertKeyFrame(0f, Vector3.Zero);
-                offsetAnim.InsertKeyFrame(1f, new Vector3(30f, 0f, 0f));
-                offsetAnim.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Offset", offsetAnim);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.DampingRatio = 0.7f;
-                spring.Period = TimeSpan.FromMilliseconds(200);
-                spring.FinalValue = new Vector3(0, -25, 0);
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
-
-
-        // Navigate to the detail page, passing the selected song object.
-        // Suppress the default page transition to let ours take over.
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-        Type songDetailType = typeof(SongDetailPage);
-        var navParams = new SongDetailNavArgs
-        {
-            Song = _storedSong!,
-            ViewModel = MyViewModel
-        };
-
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
-
-        };
-
-        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+      
         //Frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
     }
 
@@ -234,6 +164,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void CardBorder_PointerExited(object sender, PointerRoutedEventArgs e)
     {
+        if (cardBorder is null) return;
         cardBorder.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(12);
 
         CancelHover();
@@ -310,32 +241,6 @@ public sealed partial class AllSongsListPage : Page
         }
     }
 
-    private void AnimateCollapse()
-    {
-        try
-        {
-
-            // collapse animation (optional)
-            var compositor = ElementCompositionPreview.GetElementVisual(cardBorder).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(cardBorder);
-            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
-            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
-            scaleBack.Duration = TimeSpan.FromMilliseconds(200);
-            rootVisual.StartAnimation("Scale", scaleBack);
-
-            var extraPanel = (StackPanel)cardBorder.FindName("ExtraPanel");
-            var visual = ElementCompositionPreview.GetElementVisual(extraPanel);
-            var fade = compositor.CreateScalarKeyFrameAnimation();
-            fade.InsertKeyFrame(1f, 0f);
-            fade.Duration = TimeSpan.FromMilliseconds(200);
-            visual.StartAnimation("Opacity", fade);
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
-        }
-    }
 
     private void ApplyDepthZoomEffect(UIElement element)
     {
@@ -1056,7 +961,81 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewSong_Click(object sender, RoutedEventArgs e)
     {
+        var selectedSong = (sender as FrameworkElement)?.DataContext as SongModelView;
 
+        // Store the item for the return trip
+        _storedSong = selectedSong;
+
+        // Find the specific UI element (the Image) that was clicked on
+        var row = MySongsTableView.ContainerFromItem(selectedSong) as FrameworkElement;
+        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+        if (image == null) return;
+
+        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
+        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
+
+
+        // Small visual feedback before navigation
+        var visual = ElementCompositionPreview.GetElementVisual(image);
+        switch (SongTransitionAnimation.Slide)
+        {
+            case SongTransitionAnimation.Fade:
+                var fade = _compositor.CreateScalarKeyFrameAnimation();
+                fade.InsertKeyFrame(0f, 0.3f);
+                fade.InsertKeyFrame(1f, 0f);
+                fade.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Opacity", fade);
+                break;
+
+            case SongTransitionAnimation.Scale:
+                var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
+                visual.CenterPoint = new Vector3(
+                    (float)(image.ActualWidth / 2),
+                    (float)(image.ActualHeight / 2),
+                    0);
+                scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
+                scaleAnim.InsertKeyFrame(1f, new Vector3(1.15f));
+                scaleAnim.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Scale", scaleAnim);
+                break;
+
+            case SongTransitionAnimation.Slide:
+                var offsetAnim = _compositor.CreateVector3KeyFrameAnimation();
+                offsetAnim.InsertKeyFrame(0f, Vector3.Zero);
+                offsetAnim.InsertKeyFrame(1f, new Vector3(30f, 0f, 0f));
+                offsetAnim.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Offset", offsetAnim);
+                break;
+
+            case SongTransitionAnimation.Spring:
+            default:
+                var spring = _compositor.CreateSpringVector3Animation();
+                spring.DampingRatio = 0.7f;
+                spring.Period = TimeSpan.FromMilliseconds(200);
+                spring.FinalValue = new Vector3(0, -25, 0);
+                visual.StartAnimation("Offset", spring);
+                break;
+        }
+
+
+        // Navigate to the detail page, passing the selected song object.
+        // Suppress the default page transition to let ours take over.
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(SongDetailPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = _storedSong!,
+            ViewModel = MyViewModel
+        };
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
 
     private async void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
@@ -1387,7 +1366,81 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewSongBtn_Click(object sender, RoutedEventArgs e)
     {
+        var selectedSong = (sender as FrameworkElement)?.DataContext as SongModelView;
 
+        // Store the item for the return trip
+        _storedSong = selectedSong;
+
+        // Find the specific UI element (the Image) that was clicked on
+        var row = MySongsTableView.ContainerFromItem(selectedSong) as FrameworkElement;
+        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+        if (image == null) return;
+
+        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
+        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
+
+
+        // Small visual feedback before navigation
+        var visual = ElementCompositionPreview.GetElementVisual(image);
+        switch (SongTransitionAnimation.Slide)
+        {
+            case SongTransitionAnimation.Fade:
+                var fade = _compositor.CreateScalarKeyFrameAnimation();
+                fade.InsertKeyFrame(0f, 0.3f);
+                fade.InsertKeyFrame(1f, 0f);
+                fade.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Opacity", fade);
+                break;
+
+            case SongTransitionAnimation.Scale:
+                var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
+                visual.CenterPoint = new Vector3(
+                    (float)(image.ActualWidth / 2),
+                    (float)(image.ActualHeight / 2),
+                    0);
+                scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
+                scaleAnim.InsertKeyFrame(1f, new Vector3(1.15f));
+                scaleAnim.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Scale", scaleAnim);
+                break;
+
+            case SongTransitionAnimation.Slide:
+                var offsetAnim = _compositor.CreateVector3KeyFrameAnimation();
+                offsetAnim.InsertKeyFrame(0f, Vector3.Zero);
+                offsetAnim.InsertKeyFrame(1f, new Vector3(30f, 0f, 0f));
+                offsetAnim.Duration = TimeSpan.FromMilliseconds(150);
+                visual.StartAnimation("Offset", offsetAnim);
+                break;
+
+            case SongTransitionAnimation.Spring:
+            default:
+                var spring = _compositor.CreateSpringVector3Animation();
+                spring.DampingRatio = 0.7f;
+                spring.Period = TimeSpan.FromMilliseconds(200);
+                spring.FinalValue = new Vector3(0, -25, 0);
+                visual.StartAnimation("Offset", spring);
+                break;
+        }
+
+
+        // Navigate to the detail page, passing the selected song object.
+        // Suppress the default page transition to let ours take over.
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(SongDetailPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = _storedSong!,
+            ViewModel = MyViewModel
+        };
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -1517,7 +1570,7 @@ public sealed partial class AllSongsListPage : Page
                     var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
                     if (propertiesMenuFlyout.IsRightButtonPressed)
                     {
-                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist.Name))
+                        MyViewModel.SearchSongForSearchResultHolder(PresetQueries.ByArtist(selectedArtist.Name))
                         ;
                     }
                     await MyViewModel.SetSelectedArtist(selectedArtist);
@@ -1642,7 +1695,7 @@ public sealed partial class AllSongsListPage : Page
 
     private async void PlaySongBtn_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        var send = (Microsoft.UI.Xaml.Controls.Border)sender;
+        var send = (Microsoft.UI.Xaml.Controls.Button)sender;
         var song = send.DataContext as SongModelView;
         if (MyViewModel.PlaybackQueue.Count < 1)
         {
@@ -1653,7 +1706,12 @@ public sealed partial class AllSongsListPage : Page
 
     private void NowPlayingQueueExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
     {
-        
+        SidePanelForSelectedSong.Visibility= Visibility.Visible;
+        SidePanelForSelectedSong.Width = 600;
+
+
+        //PlayPauseImg.Source = new SvgImageSource(new Uri(uri));
+
     }
 
     private void AnimatedScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
@@ -1664,38 +1722,286 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
+    private void PlaySongBtn_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        Button playSongBtn = (sender as Button)!;
+        if (playSongBtn != null)
+        {
+            if (_isHovered || _isAnimating) return;
+            _isHovered = true;
+            AnimateScaleControlUp(playSongBtn);
+        }
+    }
+    private async void AnimateScaleControlUp(FrameworkElement btn)
+    {
+        try
+        {
+            var song= btn.DataContext as SongModelView;
+            if(song is null) return;
+            if (song.CoverImagePath is null)
+                return;
 
-    //private Button? GetSelectedItemFromViewport()
-    //{
-    //    if (ItemsHost == null || ItemsHost.Children.Count == 0)
-    //        return null;
+            await btn.DispatcherQueue.EnqueueAsync(() => { });
+            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
 
-    //    double viewportTop = MyScroller.VerticalOffset;
-    //    double viewportCenter = viewportTop + MyScroller.ViewportHeight / 2;
+            var scale = compositor.CreateVector3KeyFrameAnimation();
+            scale.InsertKeyFrame(1f, new Vector3(1.05f));
+            scale.Duration = TimeSpan.FromMilliseconds(350);
+            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
+            rootVisual.StartAnimation("Scale", scale);
 
-    //    Button? best = null;
-    //    double bestDistance = double.MaxValue;
+            var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
+            FocusedSongImage.Source = img;
 
-    //    foreach (var child in ItemsHost.Children)
-    //    {
-    //        if (child is not Button btn)
-    //            continue;
+            FocusedSongTextBlockTitle.Content = song.Title;
+            FocusedSongTextBlockArtistName.Content = song.ArtistName;
+            FocusedSongTextBlockAlbumName.Content = song.AlbumName;
+            FocusedSongTextBlockGenre.Content = song.GenreName;
 
-    //        // child's vertical position relative to ScrollViewer content
-    //        var transform = btn.TransformToVisual(ItemsHost);
-    //        var pos = transform.TransformPoint(new Point(0, 0)).Y;
 
-    //        double childCenter = pos + btn.ActualHeight / 2;
-    //        double distance = Math.Abs(childCenter - viewportCenter);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
+        }
+    }
 
-    //        if (distance < bestDistance)
-    //        {
-    //            bestDistance = distance;
-    //            best = btn;
-    //        }
-    //    }
+    private void AnimateCollapseControlDown(FrameworkElement framework)
+    {
+        try
+        {
 
-    //    return best;
-    //}
+            // collapse animation (optional)
+            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
+            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
+            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
+            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
+            rootVisual.StartAnimation("Scale", scaleBack);
 
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
+        }
+    }
+    private void ApplyEntranceEffect(FrameworkElement frameElt, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
+    {
+        
+        var visual = ElementCompositionPreview.GetElementVisual(frameElt);
+
+        
+        switch (defAnim)
+        {
+            case SongTransitionAnimation.Fade:
+                visual.Opacity = 0f;
+                var fade = _compositor.CreateScalarKeyFrameAnimation();
+                fade.InsertKeyFrame(1f, 1f);
+                fade.Duration = TimeSpan.FromMilliseconds(350);
+                visual.StartAnimation("Opacity", fade);
+                break;
+
+            case SongTransitionAnimation.Scale:
+                visual.CenterPoint = new Vector3((float)frameElt.ActualWidth / 2,
+                                                 (float)frameElt.ActualHeight / 2, 0);
+                visual.Scale = new Vector3(0.8f);
+                var scale = _compositor.CreateVector3KeyFrameAnimation();
+                scale.InsertKeyFrame(1f, Vector3.One);
+                scale.Duration = TimeSpan.FromMilliseconds(350);
+                visual.StartAnimation("Scale", scale);
+                break;
+
+            case SongTransitionAnimation.Slide:
+                visual.Offset = new Vector3(80f, 0, 0);
+                var slide = _compositor.CreateVector3KeyFrameAnimation();
+                slide.InsertKeyFrame(1f, Vector3.Zero);
+                slide.Duration = TimeSpan.FromMilliseconds(350);
+                visual.StartAnimation("Offset", slide);
+                break;
+
+            case SongTransitionAnimation.Spring:
+            default:
+                var spring = _compositor.CreateSpringVector3Animation();
+                spring.FinalValue = new Vector3(0, 0, 0);
+                spring.DampingRatio = 0.5f;
+                spring.Period = TimeSpan.FromMilliseconds(350);
+                visual.Offset = new Vector3(0, 40, 0);//c matching
+                visual.StartAnimation("Offset", spring);
+                break;
+        }
+    }
+
+    private void AnimateCollapse()
+    {
+        try
+        {
+
+            // collapse animation (optional)
+            var compositor = ElementCompositionPreview.GetElementVisual(cardBorder).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(cardBorder);
+            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
+            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
+            scaleBack.Duration = TimeSpan.FromMilliseconds(200);
+            rootVisual.StartAnimation("Scale", scaleBack);
+
+            var extraPanel = (StackPanel)cardBorder.FindName("ExtraPanel");
+            var visual = ElementCompositionPreview.GetElementVisual(extraPanel);
+            var fade = compositor.CreateScalarKeyFrameAnimation();
+            fade.InsertKeyFrame(1f, 0f);
+            fade.Duration = TimeSpan.FromMilliseconds(200);
+            visual.StartAnimation("Opacity", fade);
+
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
+        }
+    }
+
+    private void PlaySongBtn_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        Button send = (Button)sender;
+        if (!_isHovered) return;
+        _isHovered = false;
+        AnimateCollapseControlDown(send);
+    }
+
+    private async void ViewQueue_Click(object sender, RoutedEventArgs e)
+    {
+        
+        if (ViewQueueStackPanel.Visibility == Visibility.Visible)
+        {
+            NowPlayingQueueExpander.IsExpanded = false;
+            ViewQueueStackPanel.Visibility = Visibility.Collapsed;
+            ViewQueue.Content = "View Queue";
+        }
+        else
+        {   
+            ViewQueueStackPanel.Visibility = Visibility.Visible;
+            NowPlayingQueueExpander.IsExpanded = true;
+            await Task.Delay(100);
+            NowPlayingQueueExpander.UpdateLayout();
+            ViewQueue.Content = "Close View Queue";
+        }
+    }
+
+    private void NowPlayingQueueExpander_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        Debug.WriteLine(e.GetType());
+        Debug.WriteLine(e.OldValue);
+        Debug.WriteLine(e.OldValue.GetType());
+        Debug.WriteLine(e.NewValue);
+        Debug.WriteLine(e.NewValue.GetType());
+    }
+
+    private async void coverArtImage_DragStarting(UIElement sender, DragStartingEventArgs e)
+    {
+        var img = (Image)sender;
+        var song = img.DataContext as SongModelView;
+        if (song == null || string.IsNullOrWhiteSpace(song.CoverImagePath))
+            return;
+
+        e.Data.Properties["drag-origin"] = "dimmer-app";
+        e.Data.Properties["drag-type"] = "song-item"; // identify item
+
+
+        e.Data.Properties["drag-origin"] = "dimmer-app";
+        e.Data.Properties["drag-type"] = "cover-image";
+        e.Data.Properties["cover-path"] = ((SongModelView)((FrameworkElement)sender).DataContext).Id;
+
+    }
+
+    private void coverArtImage_DropCompleted(UIElement sender, Microsoft.UI.Xaml.DropCompletedEventArgs e)
+    {
+        //var data = e.DropResult;
+        
+        //Debug.WriteLine(data.GetType());
+        //Debug.WriteLine(e.OriginalSource.GetType());
+        //Debug.WriteLine(e.OriginalSource);
+        //Debug.WriteLine(e.GetType());
+        //// 1. Check if internal drag
+        //if (data.Properties.TryGetValue("drag-origin", out var originObj) &&
+        //    originObj is string origin &&
+        //    origin == "dimmer-app")
+        //{
+        //    // INTERNAL drag
+        //    data.Properties.TryGetValue("drag-type", out var dragTypeObj);
+        //    var dragType = dragTypeObj as string;
+
+        //    switch (dragType)
+        //    {
+        //        case "song-item":
+        //            // REORDER QUEUE
+        //            data.Properties.TryGetValue("item-id", out var idObj);
+        //            var songId = (int)idObj;
+        //            QueueService.Reorder(songId, e.GetPosition((UIElement)sender));
+        //            return;
+
+        //        case "cover-image":
+        //            // ASSIGN COVER (internal)
+        //            data.Properties.TryGetValue("cover-path", out var pathObj);
+        //            AssignCoverToHoveredSong(pathObj as string);
+        //            return;
+        //    }
+
+        //    return;
+        //}
+
+        //// 2. If external → check if files
+        //if (data.Contains(StandardDataFormats.StorageItems))
+        //{
+        //    var items = await data.GetStorageItemsAsync();
+        //    var file = items.FirstOrDefault() as StorageFile;
+        //    if (file != null)
+        //    {
+        //        if (IsImageFile(file))
+        //        {
+        //            // EXTERNAL image → assign cover
+        //            var newCoverPath = await SaveExternalCover(file);
+        //            AssignCoverToHoveredSong(newCoverPath);
+        //            return;
+        //        }
+        //    }
+        //}
+
+        //// 3. External stuff you don’t want → OS drop
+        //OSHandleExternalDrop(e);
+    }
+
+    private void StackPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        var prop = e.GetCurrentPoint((UIElement)sender).Properties;
+        if(prop != null)
+        {
+            if(prop.IsMiddleButtonPressed)
+            {
+                MyViewModel.ScrollToCurrentPlayingSongCommand.Execute(null);
+                
+            }
+        }
+    }
+
+    private void CardBorder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void ViewSongBtn_Click_1(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ViewQueueStackPanel_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props= e.GetCurrentPoint((UIElement)sender).Properties;
+        if(props.IsRightButtonPressed)
+        {
+            NowPlayingQueueExpander.IsExpanded = false;
+            ViewQueueStackPanel.Visibility = Visibility.Collapsed;
+            ViewQueue.Content = "View Queue";
+        }
+    }
 }

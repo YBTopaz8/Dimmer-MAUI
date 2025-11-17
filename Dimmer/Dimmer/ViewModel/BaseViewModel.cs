@@ -1507,7 +1507,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (newValue is not null)
         {
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(newValue.CoverImagePath);
+            SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
         }
 
         //LoadSongLastFMData().ConfigureAwait(false);
@@ -2305,7 +2305,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         value.IsCurrentPlayingHighlight = true;
 
-        AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
         //await LoadSongDominantColorIfNotYetDoneAsync(value);
     }
 
@@ -6847,7 +6846,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
         // i need an inverted BG color that will work well with this dominant color
         if (color is not null)
         {
@@ -6862,7 +6861,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (song is null)
             return;
 
-        var color = await ImageResizer.GetDomminantMauiColorAsync(song.CoverImagePath, 1f);
+        var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
         song.CurrentPlaySongDominantColor = color;
         if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
         {
@@ -7046,6 +7045,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
     public async Task LoadSelectedSongLastFMData()
     {
         if (SelectedSong is not null)
@@ -7053,39 +7058,134 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
 
-            //_ = Task.Run(() => LoadStatsForSelectedSong(SelectedSong));
-
-
-            SelectedSecondDomColor = await ImageResizer.GetDomminantMauiColorAsync(SelectedSong.CoverImagePath);
-            await LoadSongLastFMData();
+            SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(SelectedSong.CoverImagePath);
+            await LoadSongLastFMDataAsync();
         }
     }
-
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? SelectedSongLastFMData { get; set; }
-
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track? CorrectedSelectedSongLastFMData { get; set; }
-
-    public async Task LoadSongLastFMData()
-    {
-        return;
+    public async Task LoadSongLastFMDataAsync()
+    {        
         if (SelectedSong is null || SelectedSong.ArtistName == "Unknown Artist")
         {
             return;
         }
-
-
-        var artistName = SelectedSong.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        if (SelectedSong.ArtistToSong is null) return;
+        var artistName = SelectedSong.ArtistToSong[0]!.Name;
         artistName ??= string.Empty;
+
         SelectedSongLastFMData = await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
         if (SelectedSongLastFMData is null)
         {
             return;
         }
+        await UpdateSongFromLastFMDataAsync();
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
+        
         SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
+
+        await UpdateSongArtistInDbWithLastFMData();
+        await UpdateSongAlbumInDbWithLastFMData();
     }
+
+
+    public async Task UpdateSongFromLastFMDataAsync()
+    {
+        if (SelectedSong is null || SelectedSongLastFMData is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync
+        (() => 
+        {
+            var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+            if (songInDb is null)
+            {
+                return;
+            }
+            if (SelectedSongLastFMData.Album is not null && SelectedSongLastFMData.Album.Tracks is not null)
+                    songInDb.TrackNumber = SelectedSongLastFMData.Album.Tracks.IndexOf(SelectedSongLastFMData) + 1;
+            
+            songInDb.Description = SelectedSongLastFMData.Wiki?.Summary ?? string.Empty;
+
+            realm.Add(songInDb, update: true);
+        });
+
+    }
+
+    public async Task UpdateSongArtistInDbWithLastFMData()
+    {
+        if (SelectedSong is null || SelectedSongLastFMData is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+
+        await realm.WriteAsync
+        (() => 
+        {
+                var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+                if (songInDb is null)
+                {
+                    return;
+                }
+                var artist = songInDb.Artist;
+                if (artist is null)
+                {
+                    return;
+                }
+                artist.Url = SelectedSongLastFMData.Artist.Url;
+                artist.Bio = SelectedSongLastFMData.Artist.Biography.Summary;
+                artist.ImagePath = SelectedSongLastFMData.Artist.Images.FirstOrDefault(x=>x.Size == "mega")?.Url;
+                artist.Name = SelectedSongLastFMData.Artist.Name;
+                
+                realm.Add(artist, update: true);
+        });
+
+
+    }
+
+    
+
+    public async Task UpdateSongAlbumInDbWithLastFMData()
+    {
+        if (SelectedSong is null || SelectedSongLastFMData is null)
+        {
+            return;
+        }
+
+        var realm = RealmFactory.GetRealmInstance();
+
+        //var listOfSongsInAlbum = SelectedSongLastFMData.Album.Tracks;
+
+
+        //List<SongModelView>? listOfSongsInSearchResultWithMatchAlbName =
+        //    [.. SearchResults.Where(s => s.AlbumName == SelectedSongLastFMData.Album.Name)];
+
+        //List<SongModelView>? listOfSongsInSearchResultWithMatchTitle =
+        //    [.. SearchResults.Where(s => s.Title == SelectedSongLastFMData.Name)];
+
+        await realm.WriteAsync(() => 
+        {
+                var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+                if (songInDb is null)
+                {
+                    return;
+                }
+                var artist = songInDb.Album;
+                if (artist is null)
+                {
+                    return;
+                }
+                artist.Url = SelectedSongLastFMData.Album.Url;
+                artist.ImagePath = SelectedSongLastFMData.Artist.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+            artist.Name = SelectedSongLastFMData.Artist.Name;
+                
+                realm.Add(artist, update: true);
+        });
+    }
+
 
     public void LoadSongLastFMMoreData()
     {

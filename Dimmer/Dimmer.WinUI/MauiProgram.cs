@@ -60,8 +60,8 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnClosed((window, args) =>
                 {
 
-                    var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>();
-                    winMgr?.CloseAllWindows(window);
+                    //var winMgr = IPlatformApplication.Current!.Services.GetService<IWinUIWindowMgrService>();
+                    //winMgr?.CloseAllWindows(window);
 
                     // Handle window closed event
                     // You can perform cleanup or save state here if needed

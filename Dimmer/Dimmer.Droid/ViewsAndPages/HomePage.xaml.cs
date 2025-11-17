@@ -1,5 +1,7 @@
 using AndroidX.Lifecycle;
 
+using Dimmer.ViewsAndPages.SingleSongPage;
+
 namespace Dimmer.ViewsAndPages;
 
 public partial class HomePage : ContentPage
@@ -209,7 +211,9 @@ public partial class HomePage : ContentPage
 
     private void RandomSearch_Tap(object sender, HandledEventArgs e)
     {
-
+        Chip randomChip= (Chip)sender;
+        var popupParent = randomChip.Parent.Parent.Parent;
+        Debug.WriteLine(popupParent.GetType());
     }
 
     private void ClearSearch_Tap(object sender, HandledEventArgs e)
@@ -221,5 +225,31 @@ public partial class HomePage : ContentPage
     {
 
         MyViewModel.InitializeAllVMCoreComponents();
+    }
+
+    private void IsFavButton_Loaded(object sender, EventArgs e)
+    {
+        var btn = (DXButton)sender;
+        var platBtn = btn.GetPlatformView();
+        Debug.WriteLine(platBtn.GetType());
+    }
+
+    private void MoreChip_Tap(object sender, HandledEventArgs e)
+    {
+        DXPopup morePopup = new DXPopup();
+        
+        // songInfo, removeFromQueue, playAftercurrentsong, edittags, share, deletepermanently (destructive)
+        
+        Chip songInfoChip = new Chip();
+        songInfoChip.Tap += SongInfoChip_Tap;
+
+
+
+    }
+
+    private void SongInfoChip_Tap(object? sender, HandledEventArgs e)
+    {
+
+        Shell.Current.GoToAsync(nameof(SingleSongDetailsPage));
     }
 }

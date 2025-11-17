@@ -20,6 +20,7 @@ using static Dimmer.WinUI.Utils.AppUtil;
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
+using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 
 
@@ -46,7 +47,7 @@ public sealed partial class SongDetailPage : Page
         //MyViewModel = viewModelWin;
     }
     BaseViewModelWin MyViewModel { get; set; }
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
@@ -67,10 +68,12 @@ public sealed partial class SongDetailPage : Page
                 var animation = ConnectedAnimationService.GetForCurrentView()
                .GetAnimation("ForwardConnectedAnimation");
 
-                detailedImage.Loaded += (_, __) =>
+                detailedImage.Loaded += (_, _) =>
                 {
-                    animation?.TryStart(detailedImage, new UIElement[] { coordinatedPanel });
+                    animation?.TryStart(detailedImage, new [] { coordinatedPanel });
                 };
+                MyViewModel.SelectedSong = DetailedSong;
+                await MyViewModel.LoadSelectedSongLastFMData();
             }
         }
     }
@@ -95,9 +98,7 @@ public sealed partial class SongDetailPage : Page
         // Standard navigation back
         if (Frame.CanGoBack)
         {
-            //var image = detailedImage;
-            //ConnectedAnimationService.GetForCurrentView()
-            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+           
             Frame.GoBack();
         }
     }
@@ -350,4 +351,66 @@ public sealed partial class SongDetailPage : Page
         visual.StartAnimation(nameof(visual.RotationAngleInDegrees), flipAnim);
     }
 
+    private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void FavoriteButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private async void ArtistBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        try
+        {
+
+
+
+            // Navigate to the detail page, passing the selected song object.
+            // Suppress the default page transition to let ours take over.
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+            Type pageType = typeof(ArtistPage);
+            var navParams = new SongDetailNavArgs
+            {
+                Song = DetailedSong!,
+                ExtraParam = MyViewModel,
+                ViewModel = MyViewModel
+            };
+            
+
+            var selectedArtist = DetailedSong.ArtistToSong.FirstOrDefault(x=>x.Name== DetailedSong.ArtistName);
+
+                  
+                await MyViewModel.SetSelectedArtist(selectedArtist);
+
+
+                FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+                {
+                    TransitionInfoOverride = supNavTransInfo,
+                    IsNavigationStackEnabled = true
+
+                };
+                // prepare the animation BEFORE navigation
+                var ArtistNameTxt = PlatUtils.FindVisualChild<TextBlock>((UIElement)sender, "ArtistNameTxt");
+                if (ArtistNameTxt != null)
+                {
+                    ConnectedAnimationService.GetForCurrentView()
+                        .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
+                }
+
+                Frame?.NavigateToType(pageType, navParams, navigationOptions);
+               
+             
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
+                // fallback: anchor without position
+                //flyout.ShowAt(nativeElement);
+            }
+
+    }
 }

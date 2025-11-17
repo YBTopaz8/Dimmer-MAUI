@@ -9,6 +9,7 @@ using CommunityToolkit.WinUI;
 using Dimmer.WinUI.Views.WinuiPages;
 
 using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 
 
@@ -18,10 +19,12 @@ using Button = Microsoft.Maui.Controls.Button;
 using Colors = Microsoft.Maui.Graphics.Colors;
 //using Microsoft.UI.Xaml.Controls;
 using Label = Microsoft.Maui.Controls.Label;
+using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using Slider = Microsoft.Maui.Controls.Slider;
 
 //using SortOrder = Dimmer.Utilities.SortOrder;
 using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
+using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using View = Microsoft.Maui.Controls.View;
 
 
@@ -572,14 +575,6 @@ public partial class HomePage : ContentPage
 #endif
 
 
-
-
-    private void Button_Clicked(object sender, EventArgs e)
-    {
-
-
-    }
-
     private void SetPrefdevice_Clicked(object sender, EventArgs e)
     {
         var send = (View)sender;
@@ -1086,12 +1081,15 @@ public partial class HomePage : ContentPage
             native.PointerEntered += (s, _) =>
             {
                 AnimateHover(native, true);
-
+                send.BorderWidth= 2;
+                send.BorderColor = Colors.DarkSlateBlue;
 
             };
             native.PointerExited += (s, _) =>
             {
-                AnimateHover(native, false);
+                AnimateHover(native, false); 
+                send.BorderWidth = 0;
+                send.BorderColor = Colors.Transparent;
             };
 
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
@@ -1124,8 +1122,7 @@ public partial class HomePage : ContentPage
         opacityAnim.Duration = TimeSpan.FromMilliseconds(250);
         opacityAnim.InsertKeyFrame(1f, isHover ? 1f : 0.85f);   // not 0
         visual.StartAnimation(nameof(visual.Opacity), opacityAnim);
-
-        // --- BORDER COLOR ANIMATION (real composition brush) ---
+        
 
     }
     private async void AnimateBorderColor(Border border, bool isHover)
@@ -1199,8 +1196,114 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void Button_Clicked_1(object sender, EventArgs e)
+
+    private void Quickalbumsearch_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var val = send.CommandParameter as string;
+
+        PlatUtils.OpenAllSongsWindow(MyViewModel);
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(val, MyViewModel.CurrentPlayingSongView.AlbumName));
+
+    }
+
+    private async void AddFavoriteRatingToSong_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+    }
+
+
+    private void ViewLyricsChip_Clicked(object sender, EventArgs e)
     {
 
+        MyViewModel.OpenLyricsPopUpWindow(1);
+        return;
+    }
+
+    private void TooltipHSL_Loaded(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+        if (native is null) return;
+        native.PointerEntered += (s, e) =>
+        {
+            var CurrentVolumeAndCurrentDeviceSelected=
+            $"Volume: {MyViewModel.DeviceVolumeLevel * 100:0}%\n" +
+            $"Device: {MyViewModel.SelectedAudioDevice?.Name?? "Default"}";
+            ToolTip volumeToolTip = new()
+            {
+                Content = CurrentVolumeAndCurrentDeviceSelected,
+                Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Top,
+
+            };
+            ToolTipService.SetToolTip(native, volumeToolTip);
+            volumeToolTip.IsOpen = true;
+
+        };
+        native.PointerExited += (s, e2) =>
+        {
+            var tt = ToolTipService.GetToolTip(native) as ToolTip;
+            if (tt != null)
+                tt.IsOpen = false;
+        };
+    }
+
+    private void AudioDevicesButton_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+
+        if (platView is null) return;
+        MyViewModel.LoadAllAudioDevices();
+        if (MyViewModel.AudioDevices is null) return;
+        
+            var audioDevicesList = MyViewModel.AudioDevices.Select(x =>
+            {
+                //IconElement icon = default;
+                //if (x.IconString is not null)
+                //{
+                //    var iconElt = new BitmapIcon
+                //    {
+                //        UriSource = new Uri(x.IconString),
+                //        ShowAsMonochrome = false
+                //    };
+                //    icon = iconElt;
+                //}
+
+
+
+                var menFlyOut = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
+                {
+                    Text = x.Name,
+                    Command = MyViewModel.SetPreferredAudioDeviceCommand,
+                    CommandParameter = x
+                };
+                menFlyOut.MaxHeight = 150;
+                //if (icon is not null)
+                //{
+
+                //    menFlyOut.Icon = icon;
+                //}
+                return menFlyOut;
+            }).ToList();
+
+            MenuFlyout menu = new MenuFlyout();
+            menu.Items.Clear();
+            foreach (var item in audioDevicesList)
+            {
+                menu.Items.Add(item);
+            }
+            FlyoutShowOptions flyoutPlace = new FlyoutShowOptions
+            {
+                Placement = (FlyoutPlacementMode)PlacementMode.Bottom
+            };
+            
+                menu.ShowAt(platView, flyoutPlace);
+        
     }
 }

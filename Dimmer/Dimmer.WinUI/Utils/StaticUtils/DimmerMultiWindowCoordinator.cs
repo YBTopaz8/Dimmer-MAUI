@@ -1,6 +1,7 @@
 ﻿using Windows.Graphics;
 using CommunityToolkit.Diagnostics;
 using Windows.Foundation;
+using Window = Microsoft.UI.Xaml.Window;
 using AppWindow = Microsoft.UI.Windowing.AppWindow;
 using AppWindowChangedEventArgs = Microsoft.UI.Windowing.AppWindowChangedEventArgs;
 
@@ -87,7 +88,7 @@ public class DimmerMultiWindowCoordinator
         var existing = _windows.FirstOrDefault(x => x.Window == win);
         if (existing != null)
             _homeWindow?.DispatcherQueue.TryEnqueue(() => _windows.Remove(existing));
-
+        
         // ✅ if a non-home window closed, and toggle enabled, show home
         if (ReturnToHomeOnClose && _homeWindow != null && win != _homeWindow)
         {

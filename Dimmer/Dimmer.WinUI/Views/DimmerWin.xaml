@@ -10,6 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" Activated="Window_Activated" Closed="DimmerWindowClosed"
     Title="DimmerWin" 
+    SizeChanged="Window_SizeChanged"
     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     >
 

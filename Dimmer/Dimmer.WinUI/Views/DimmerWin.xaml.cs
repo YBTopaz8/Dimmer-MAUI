@@ -19,6 +19,7 @@ using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
 using Slider = Microsoft.UI.Xaml.Controls.Slider;
 using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 
+using Window = Microsoft.UI.Xaml.Window;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -38,12 +39,18 @@ public sealed partial class DimmerWin : Window
         InitializeComponent();
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
         WinUIWindowsMgr = IPlatformApplication.Current?.Services.GetService<IWinUIWindowMgrService>();
-
+        MyViewModel?.MainWindow = this;
         MainGrid.DataContext = MyViewModel;
         TopMediaControlSection.DataContext = MyViewModel;
 
-
+        var appWin = PlatUtils.GetAppWindow(this);
+        
+        
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
+
+        
+        //New window size: 1621 x 749
+        appWin.Resize(new SizeInt32(1600, 750));
     }
 
 
@@ -339,5 +346,11 @@ public sealed partial class DimmerWin : Window
         
     
 
+    }
+
+    private void Window_SizeChanged(object sender, WindowSizeChangedEventArgs args)
+    {
+        
+        Debug.WriteLine($"New window size: {args.Size.Width} x {args.Size.Height}");
     }
 }

@@ -2,6 +2,10 @@
 public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 {
 
+    /// <summary>
+    /// Gets or sets the Url.
+    /// </summary>
+    public string Url { get; set; }
     public bool IsNew { get; set; }
     public bool IsFavorite { get; set; }
 
@@ -56,6 +60,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     /// </summary>
     [Indexed]
     public int OverallRank { get; set; }
+
     public ArtistModel()
     {
 

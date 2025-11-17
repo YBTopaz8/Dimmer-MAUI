@@ -143,8 +143,9 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         base.OnCreated();
         var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow(this);
         PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 800));
+        MinimumHeight = 750;
         MaximumHeight = 800;
-        MaximumWidth = 600;
+        MaximumWidth = 500;
 #if DEBUG
         //DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
 #elif RELEASE

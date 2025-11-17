@@ -5,9 +5,11 @@
 
 using System.Security.Policy;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 using CommunityToolkit.WinUI;
 
+using Dimmer.WinUI.Views.CustomViews.MauiViews;
 using Dimmer.WinUI.Views.MAUIPages;
 
 using Hqub.Lastfm.Entities;
@@ -16,6 +18,7 @@ using Realms;
 
 using WinUI.TableView;
 
+using Colors = Microsoft.UI.Colors;
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
@@ -24,6 +27,7 @@ using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
 using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
 using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using TableView = WinUI.TableView.TableView;
+using Thickness = Microsoft.UI.Xaml.Thickness;
 using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 //using TableView = WinUI.TableView.TableView;
 
@@ -39,6 +43,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     private readonly IRepository<AlbumModel> albumRepository;
     private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
+
     private readonly LoginViewModel loginViewModel;
     private readonly IFolderPicker _folderPicker; 
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
@@ -327,6 +332,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial TableView? MyTableVIew { get; set; }
+
+    [ObservableProperty]
+    public partial bool? CanGoBack { get; set; }
+    
+    
     public DimmerWin MainWindow { get; set; }
     public DimmerMAUIWin MainMAUIWindow { get; set; }
 
@@ -369,7 +379,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         
         if (MainMAUIWindow is not null)
         {
-            winUIWindowMgrService.ActivateWindow(MainWindow);
+            windowManager.ActivateWindow(MainMAUIWindow);
         }
 
     }
@@ -378,37 +388,39 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
+       
+        var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpViewWindow(this));
+        if (syncLyricsWindow is null) return;
+        var newPosition = new Windows.Graphics.RectInt32();
+        newPosition.Width = 400;
+        newPosition.Height = 400;
+        switch (Position)
+        {
+            case 0:
+                newPosition.X = 0;
+                newPosition.Y = 0;
 
-
-        //var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpView(this));
-        //if (syncLyricsWindow is null) return;
-        //var newPosition = new RectInt32();
-        //newPosition.Width = 400;
-        //newPosition.Height = 400;
-        //switch (Position)
-        //{
-        //    case 0:
-        //        newPosition.X = 0;
-        //        newPosition.Y = 0;
-
-        //        break;
-        //    case 1:
-        //        newPosition.X = 0;
-        //        newPosition.Y = 1;
-        //        break;
-        //    case 2:
-        //        newPosition.X = 1;
-        //        newPosition.Y = 1;
-        //        break;
-        //    case 3:
-        //        newPosition.X = 1;
-        //        newPosition.Y = 0;
-        //        break;
-        //    default:
-        //        break;
-        //}
-        ////Application.Current?.OpenWindow(syncLyricsWindow);
-        //PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
+                break;
+            case 1:
+                newPosition.X = 0;
+                newPosition.Y = 1;
+                break;
+            case 2:
+                newPosition.X = 1;
+                newPosition.Y = 1;
+                break;
+            case 3:
+                newPosition.X = 1;
+                newPosition.Y = 0;
+                break;
+            default:
+                break;
+        }
+        //Application.Current?.OpenWindow(syncLyricsWindow);
+        PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
+        var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow();
+        var press = nativeWindow.AppWindow.Presenter as OverlappedPresenter;
+        press?.Minimize();
 
     }
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
@@ -503,95 +515,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         //Debug.WriteLine(win.Visible);
         //Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
-    //[RelayCommand]
-    //private void FilterBySelection()
-    //{
-    //    // This command REPLACES the current query with one based on the selected cell.
-    //    // Use case: "I don't care what I was searching for, show me *only* this."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (!string.IsNullOrWhiteSpace(tqlClause))
-    //    {
-    //        CurrentTqlQuery = tqlClause;
-    //        _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //    }
-    //}
+   
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
 
-    //[RelayCommand]
-    //private void AddFilterFromSelection()
-    //{
-    //    // This command APPENDS the new filter to the existing one.
-    //    // Use case: "I'm looking at songs from 2004. Now, narrow it down to *only* this artist."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (string.IsNullOrWhiteSpace(tqlClause))
-    //        return;
-
-    //    // If the current query is empty or just a directive, replace it.
-    //    if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        CurrentTqlQuery = tqlClause;
-    //    }
-    //    else
-    //    {
-    //        CurrentTqlQuery = $"{CurrentTqlQuery} {tqlClause}"; // Implicit AND
-    //    }
-    //    _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //}
-
-    //[RelayCommand]
-    //private void IncludeSelection()
-    //{
-    //    // This command uses the TQL 'add' keyword (OR logic).
-    //    // Use case: "I'm looking at Kanye West. Now, show me Jay-Z *as well*."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (string.IsNullOrWhiteSpace(tqlClause))
-    //        return;
-
-    //    if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        CurrentTqlQuery = tqlClause;
-    //    }
-    //    else
-    //    {
-    //        CurrentTqlQuery = $"{CurrentTqlQuery} add {tqlClause}";
-    //    }
-    //    _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //}
-
-    //[RelayCommand]
-    //private void ExcludeSelection()
-    //{
-    //    // This command uses the TQL 'remove' keyword (AND NOT logic).
-    //    // Use case: "I'm looking at Rock music. Now, *remove* anything that is also Pop."
-
-    //    var selectedContent = MySongsTableView.GetSelectedContent(true);
-    //    var tqlClause = TqlConverter.ConvertTableViewContentToTql(selectedContent);
-
-    //    if (string.IsNullOrWhiteSpace(tqlClause))
-    //        return;
-
-    //    if (string.IsNullOrWhiteSpace(CurrentTqlQuery) || CurrentTqlQuery.Trim().Equals("random", StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        // Excluding from "everything" doesn't make sense, so just start a new query
-    //        CurrentTqlQuery = $"NOT ({tqlClause})";
-    //    }
-    //    else
-    //    {
-    //        CurrentTqlQuery = $"{CurrentTqlQuery} remove {tqlClause}";
-    //    }
-    //    _searchQuerySubject.OnNext(CurrentTqlQuery);
-    //}
-
+    
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {
@@ -621,26 +549,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         await Shell.Current.DisplayAlert("Soon...", "Feature Not available Yet...", "OK");
-        //var openPicker = new Windows.Storage.Pickers.FileOpenPicker();
-        //FilePicker.Default.PickAsync
-
-        //// Open the picker for the user to pick a file
-        //IReadOnlyList<StorageFile> files = await openPicker.PickMultipleFilesAsync();
-        //if (files.Count > 0)
-        //{
-        //    StringBuilder output = new StringBuilder("Picked files:\n");
-        //    foreach (StorageFile file in files)
-        //    {
-        //        output.Append(file.Name + "\n");
-        //    }
-        //    PickFilesOutputText = output.ToString();
-        //}
-        //else
-        //{
-        //    PickFilesOutputText = "Operation cancelled.";
-        //}
-
-        //await LoadPlainLyricsFromFile(PickFilesOutputText);
+     
 
 
     }
@@ -656,15 +565,184 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         try
         {
-            MySongsTableView.ScrollIntoView(CurrentPlayingSongView, ScrollIntoViewAlignment.Leading);
-            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,
-                 false, true);
+            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,false, true);
         }
         catch (Exception ex)
         {
             await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
         }
     }
+    [RelayCommand]
+    private async Task ScrollToSpecificSong(SongModelView song)
+    {
+
+        try
+        {
+            
+            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(song, ScrollItemPlacement.Center, false, true);
+
+            await Task.Delay(200);
+            var itemIndex= MySongsTableView.Items.IndexOf(song);
+           
+            var contentTableRow = MySongsTableView.ContainerFromIndex(itemIndex) as TableViewRow;
+            var cellPresenter = contentTableRow?.CellPresenter;
+            IList<TableViewCell>? cells = cellPresenter?.Cells;
+            
+            if(cells is null && cells?.Count > 0)
+            {
+                Debug.WriteLine("No cells found");
+                return;
+            }
+
+
+
+            if(contentTableRow is null)
+            {
+                Debug.WriteLine("No content Table Row found");
+                return;
+            }
+
+            if(cellPresenter is null)
+            {
+                Debug.WriteLine("No cell presenter found");
+                return;
+            }
+
+            if(cells is null)
+            {
+                Debug.WriteLine("No cell presenter found");
+                return;
+            }
+
+            //cellPresenter?.BorderBrush = new SolidColorBrush(Colors.Red);
+            //cellPresenter?.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
+
+            //contentTableRow?.BorderBrush = new SolidColorBrush(Colors.Pink);
+            //contentTableRow?.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
+
+            TableViewCell? coverImageCell = cells[0];
+
+            await PulseWithBorderAsync(coverImageCell,pulses:2, duration:500);
+
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+        }
+    }
+
+    public static async Task PulseWithBorderAsync(
+     TableViewCell element,
+     int pulses = 2,
+     double scale = 1.08,
+     int duration = 180)
+    {
+        if (element is null) return;
+
+        
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+        var compositor = visual.Compositor;
+
+        visual.CenterPoint = new Vector3(
+            (float)(element.RenderSize.Width / 2),
+            (float)(element.RenderSize.Height / 2),
+            0f);
+
+        for (int i = 0; i < pulses; i++)
+        {
+            // SCALE UP
+            var up = compositor.CreateVector3KeyFrameAnimation();
+            up.Target = "Scale";
+            up.Duration = TimeSpan.FromMilliseconds(duration);
+            up.InsertKeyFrame(1f, new Vector3((float)scale, (float)scale, 1f));
+
+            visual.StartAnimation("Scale", up);
+
+            if (element != null)
+            {
+                element.BorderThickness = new Thickness(2);
+                element.BorderBrush = new SolidColorBrush(Colors.DarkSlateBlue);
+            }
+
+            await Task.Delay(duration);
+
+            // SCALE DOWN
+            var down = compositor.CreateVector3KeyFrameAnimation();
+            down.Target = "Scale";
+            down.Duration = TimeSpan.FromMilliseconds(duration);
+            down.InsertKeyFrame(1f, new Vector3(1f, 1f, 1f));
+
+            visual.StartAnimation("Scale", down);
+
+            if (element != null)
+            {
+                element.BorderThickness = new Thickness(0);
+                element.BorderBrush = new SolidColorBrush(Colors.Transparent);
+            }
+
+            await Task.Delay(duration);
+        }
+    }
+
+
+
+
+    private async void AnimateScaleControlUp(FrameworkElement btn)
+    {
+        try
+        {
+            if (btn.DataContext is not SongModelView song) return;
+            if (song.CoverImagePath is null)
+                return;
+
+            await btn.DispatcherQueue.EnqueueAsync(() => { });
+            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
+
+            var scale = compositor.CreateVector3KeyFrameAnimation();
+            scale.InsertKeyFrame(1f, new Vector3(1.05f));
+            scale.Duration = TimeSpan.FromMilliseconds(350);
+            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
+            rootVisual.StartAnimation("Scale", scale);
+
+            //var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
+            //FocusedSongImage.Source = img;
+
+            //FocusedSongTextBlockTitle.Content = song.Title;
+            //FocusedSongTextBlockArtistName.Content = song.ArtistName;
+            //FocusedSongTextBlockAlbumName.Content = song.AlbumName;
+            //FocusedSongTextBlockGenre.Content = song.GenreName;
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
+        }
+    }
+
+    private void AnimateCollapseControlDown(FrameworkElement framework)
+    {
+        try
+        {
+
+            // collapse animation (optional)
+            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
+            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
+            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
+            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
+            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
+            rootVisual.StartAnimation("Scale", scaleBack);
+
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
+        }
+    }
+
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [ObservableProperty]

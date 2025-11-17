@@ -46,6 +46,47 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     private void TopPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        MyViewModel.ScrollToCurrentPlayingSongCommand.Execute(null);
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props is null) return;
+        if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
+        {
+            MyViewModel?.ScrollToSpecificSongCommand.Execute(MyViewModel.CurrentPlayingSongView);
+        }
+    }
+
+    private void PrevBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void PlayBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel == null) return;
+        
+    }
+
+    private void PlayBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void NextBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void NextBtn_AccessKeyDisplayRequested(UIElement sender, AccessKeyDisplayRequestedEventArgs args)
+    {
+        
+    }
+
+    private void NextBtn_AccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
+    {
+
+    }
+
+    private void BackButton_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel?.MainWindow.ContentFrame.GoBack();
     }
 }
