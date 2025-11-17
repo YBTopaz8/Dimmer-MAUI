@@ -2236,8 +2236,24 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region Current Playing Song and Color Management
     [ObservableProperty]
-    public partial Color? CurrentPlaySongDominantColor { get; set; }
+    public partial Microsoft.Maui.Graphics.Color? CurrentPlaySongDominantColor { get; set; }
 
+    partial void OnCurrentPlaySongDominantColorChanged(Color? oldValue, Color? newValue)
+    {
+        
+    }
+
+    public virtual void ResetCurrentPlaySongDominantColor()
+    {
+        
+    }
+
+    partial void OnCurrentPlayingSongViewChanging(SongModelView oldValue, SongModelView newValue)
+    {
+        if(oldValue is not null)
+            oldValue.IsCurrentPlayingHighlight = false;
+        
+    }
     async partial void OnCurrentPlayingSongViewChanged(SongModelView value)
     {
         if (value.Title is null)
@@ -2290,7 +2306,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         value.IsCurrentPlayingHighlight = true;
 
         AppTitle = $"{CurrentAppVersion} | {value.Title} - {value.ArtistName}";
-        await LoadSongDominantColorIfNotYetDoneAsync(value);
+        //await LoadSongDominantColorIfNotYetDoneAsync(value);
     }
 
     #endregion
@@ -6824,6 +6840,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task LoadSongDominantColorIfNotYetDoneAsync(SongModelView? song)
     {
+        return;
         if (song is null)
             return;
         if (song.CurrentPlaySongDominantColor != null)
@@ -6836,12 +6853,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             var bgColor = color.MultiplyAlpha(0.1f);
 
-            song.CurrentPlaySongDominantColor = color;
-
-            if (CurrentPlayingSongView != null && CurrentPlayingSongView.TitleDurationKey == song.TitleDurationKey)
-            {
-                CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
-            }
+            
         }
     }
 

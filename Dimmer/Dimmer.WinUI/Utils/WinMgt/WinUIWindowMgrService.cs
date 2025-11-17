@@ -230,7 +230,11 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
                 TrackWindow(newWindow);
             }
         }
-        return newWindow;
+        else
+        {
+            return null;
+        }
+            return newWindow;
     }
 
 

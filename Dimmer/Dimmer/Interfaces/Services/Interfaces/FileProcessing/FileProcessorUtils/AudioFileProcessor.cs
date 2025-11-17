@@ -46,14 +46,14 @@ public class AudioFileProcessor : IAudioFileProcessor
     public FileProcessingResult ProcessFile(string filePath)
     {
 
-            try
-            {
+        try
+        {
 
             var result = new FileProcessingResult(filePath);
 
             if (!TaggingUtils.IsValidFile(filePath, _config.SupportedAudioExtensions))
             {
-                result.Errors.Add("File is invalid, non-existent, or has an unsupported extension.");
+                result.Errors.Add("File is invalid or has an unsupported extension.");
                 return result;
             }
             Track track;
@@ -72,10 +72,8 @@ public class AudioFileProcessor : IAudioFileProcessor
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"CRITICAL failure loading '{filePath}': {ex.Message}");
-                var errorResult = new FileProcessingResult(filePath);
-                errorResult.Errors.Add($"Failed to load metadata: {ex.Message}");
-                return errorResult;
+                result.Errors.Add($"Failed to load metadata from file: {ex.Message}");
+                return result; // Critical failure, cannot proceed.
             }
 
             // --- Step 1: Intelligent Metadata Aggregation ---
@@ -85,49 +83,36 @@ public class AudioFileProcessor : IAudioFileProcessor
             string tagTitle = track.Title;
             string tagArtist = track.Artist;
             string tagAlbumArtist = track.AlbumArtist;
+            string tagAlbum = track.Album;
+            string tagGenre = track.Genre;
+            var (filenameArtist, filenameTitle) = FilenameParser.Parse(filePath);
 
-            // From filename
-            var (parsedArtist, parsedTitle) = FilenameParser.Parse(filePath);
+            // --- Step 2: Intelligently coalesce to find the best source of truth ---
+            // The rule: Tag is king. If tag is missing, fall back to filename.
+            string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(filePath);
+            string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
+            string bestAlbumArtist = tagAlbumArtist; // No filename equivalent for this.
+            string bestAlbum = !string.IsNullOrWhiteSpace(tagAlbum) ? tagAlbum : "Unknown Album";
+            string bestGenre = !string.IsNullOrWhiteSpace(tagGenre) ? tagGenre : "Unknown Genre";
 
-            // --- Clean & normalize ---
-            string cleanedTitle = StaticUtils.CleanTitle(filePath, tagTitle ?? parsedTitle ?? "", track.Album ?? "", tagArtist ?? parsedArtist ?? "");
-            string cleanedArtist = StaticUtils.CleanArtist(filePath, tagArtist ?? parsedArtist ?? "", cleanedTitle);
+            // --- Step 3: Clean and Parse the high-quality raw data ---
+            var (mainTitle, versionInfo) = TaggingUtils.ParseTrackTitle(bestRawTitle);
+            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist);
 
-            // Final fallback
-            if (string.IsNullOrWhiteSpace(cleanedTitle))
-                cleanedTitle = Path.GetFileNameWithoutExtension(filePath);
-            if (string.IsNullOrWhiteSpace(cleanedArtist))
-                cleanedArtist = "Unknown Artist";
-            string finalTitle = cleanedTitle;
-            string primaryArtistName = cleanedArtist;
-
-
-            // --- Step 3: Merge and Extract Artists ---
-            // Prefer tag artists, but fall back to parsed filename artist.
-            string? primaryArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : parsedArtist;
-            string albumArtist = tagAlbumArtist; // No filename equivalent for this
-
-            List<string> artistNames = TaggingUtils.ExtractArtists(primaryArtist, albumArtist);
-
-
-            // --- Step 5: Create and Populate Rich SongModelView ---
+            // --- Step 4: Final validation and fallbacks ---
+            string finalTitle = string.IsNullOrWhiteSpace(mainTitle) ? Path.GetFileNameWithoutExtension(filePath) : mainTitle;
+            string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
             string allArtistsString = string.Join(", ", artistNames);
 
-            // Album Processing
-            string albumName = string.IsNullOrWhiteSpace(track.Album) ? "Unknown Album" : track.Album.Trim();
-            var album = _metadataService.GetOrCreateAlbum(track, albumName, primaryArtistName); // Pass artist for context
-
-        
-            // Genre Processing
-            string genreName = string.IsNullOrWhiteSpace(track.Genre) ? "Unknown Genre" : track.Genre.Trim();
-            var genre = _metadataService.GetOrCreateGenre(track, genreName);
-
+            // --- Step 5: Create and Populate the Rich Data Model ---
+            var album = _metadataService.GetOrCreateAlbum(track, bestAlbum.Trim(), primaryArtistName);
+            var genre = _metadataService.GetOrCreateGenre(track, bestGenre.Trim());
             var song = new SongModelView
             {
                 Id = ObjectId.GenerateNewId(), // Assuming you use MongoDB ObjectId
                 FilePath = filePath,
                 Title = finalTitle,
-                Description = track.Description ?? string.Empty, // Store version info in Description!
+                Description = versionInfo ?? track.Description ?? string.Empty, // Store version info in Description!
 
                 // Artist Info
                 ArtistName = primaryArtistName,

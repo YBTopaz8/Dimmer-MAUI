@@ -12,8 +12,8 @@ public static class TaggingUtils
     // to avoid splitting words like "feat." inside an artist's name (e.g., "The Feat. Masters").
     // It's case-insensitive.
     private static readonly Regex ArtistSeparatorRegex = new(
-        @"\s*(\b(feat|ft|featuring|vs|versus|with)\b\.?)|\s*(&|,|;| x )\s*",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+       @"\s*(?:\b(?:feat|ft|featuring|vs|versus|with)\b\.?|&|,|;| x)\s*",
+    RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     // Regex to find "version" information in a track title, like (Remix), [Live], - Radio Edit, etc.
     private static readonly Regex TitleVersionRegex = new(
@@ -28,38 +28,49 @@ public static class TaggingUtils
 
 
     /// <summary>
-    /// Intelligently extracts a list of unique artist names from primary and album artist tag fields.
-    /// Gives precedence to the AlbumArtist field if available, as it's often more canonical.
-    /// Handles a wide variety of separators (feat, ft, vs, &, ,, ;).
+    /// Intelligently extracts a list of unique, clean artist names from multiple tag fields.
+    /// It correctly handles a wide variety of separators.
     /// </summary>
-    /// <param name="primaryArtistField">The track's primary artist tag (e.g., "Artist A feat. Artist B").</param>
-    /// <param name="albumArtistField">The track's album artist tag (e.g., "Artist A").</param>
-    /// <returns>A list of cleaned artist names.</returns>
-    public static List<string> ExtractArtists(string? primaryArtistField, string? albumArtistField)
+    public static List<string> ExtractArtists(params string?[] artistFields)
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var uniqueCleanNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Prioritize AlbumArtist if it exists, as it's often the "cleaner" primary artist list.
-        string mainStringToParse = !string.IsNullOrWhiteSpace(albumArtistField)
-            ? albumArtistField
-            : primaryArtistField ?? string.Empty;
+        // Combine all provided fields into a single string to parse.
+        // We use a semicolon as a universal separator for our own parsing.
+        string combinedArtists = string.Join(";", artistFields.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        // Also parse the primary artist field if it's different, to catch featured artists.
-        string secondaryStringToParse = (!string.IsNullOrWhiteSpace(primaryArtistField) &&
-                                         primaryArtistField != albumArtistField)
-            ? primaryArtistField
-            : string.Empty;
-
-        ParseAndAddArtists(mainStringToParse, names);
-        ParseAndAddArtists(secondaryStringToParse, names);
-
-        if (names.Count == 0)
+        if (string.IsNullOrWhiteSpace(combinedArtists))
         {
-            names.Add("Unknown Artist");
+            return ["Unknown Artist"];
         }
 
-        return names.ToList();
+        // Split the combined string by our robust regex.
+        var potentialArtists = ArtistSeparatorRegex.Split(combinedArtists)
+            .Select(name => name.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name));
+
+        foreach (var artist in potentialArtists)
+        {
+            // Sometimes splitting by a character like ';' leaves remnants.
+            // We re-split by our manual separator to be safe.
+            foreach (var subArtist in artist.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var cleanName = subArtist.Trim('"', '\'').Trim();
+                if (!string.IsNullOrWhiteSpace(cleanName))
+                {
+                    uniqueCleanNames.Add(cleanName);
+                }
+            }
+        }
+
+        if (uniqueCleanNames.Count == 0)
+        {
+            return ["Unknown Artist"];
+        }
+
+        return uniqueCleanNames.ToList();
     }
+
 
     private static void ParseAndAddArtists(string? input, HashSet<string> names)
     {

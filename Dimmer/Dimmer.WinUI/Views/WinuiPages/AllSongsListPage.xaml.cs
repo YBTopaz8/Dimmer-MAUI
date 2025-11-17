@@ -1,5 +1,4 @@
-using Visibility = Microsoft.UI.Xaml.Visibility;
-using System.ComponentModel;
+ï»¿using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -11,8 +10,11 @@ using CommunityToolkit.WinUI;
 using Dimmer.Data;
 using Dimmer.DimmerSearch;
 using Dimmer.DimmerSearch.TQL;
+using Dimmer.Utils;
+using Dimmer.WinUI.Utils.CustomHandlers;
 
 using Microsoft.Graphics.Canvas.Effects;
+using Microsoft.Maui.Controls;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -20,7 +22,6 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
-
 
 using Windows.System.Threading;
 using Windows.UI.Composition;
@@ -42,11 +43,10 @@ using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-
-using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
-using VisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
-using Dimmer.Utils;
 using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
+using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
+using Visibility = Microsoft.UI.Xaml.Visibility;
+using VisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -67,7 +67,6 @@ public sealed partial class AllSongsListPage : Page
 
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
-        _rootVisual = ElementCompositionPreview.GetElementVisual(this);
         // TODO: load from user settings or defaults
         _userPrefAnim = SongTransitionAnimation.Spring;
     }
@@ -110,7 +109,9 @@ public sealed partial class AllSongsListPage : Page
                     return;
 
                 var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
+                
                 animConf.IsShadowEnabled = true;
+                
                 animation.Configuration = animConf;
 
                 animation.TryStart(image);
@@ -215,30 +216,14 @@ public sealed partial class AllSongsListPage : Page
 
     private void ButtonHover_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        var btnn = (Button)sender;
-
-        var btn = (UIElement)sender;
-
-        var visual = ElementCompositionPreview.GetElementVisual(btn);
-
-
-        var anim = _compositor.CreateScalarKeyFrameAnimation();
-        anim.InsertKeyFrame(1f, 1.2f);
-        anim.Duration = TimeSpan.FromMilliseconds(150);
-        visual.CenterPoint = new Vector3((float)btn.RenderSize.Width / 2, (float)btn.RenderSize.Height / 2, 0);
-        visual.StartAnimation("Scale.X", anim);
-        visual.StartAnimation("Scale.Y", anim);
+        
+     ButtonAnims.AnimateBtnPointerEntered((Button)sender, _compositor);
     }
 
     private void ButtonHover_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        var btn = (UIElement)sender;
-        var visual = ElementCompositionPreview.GetElementVisual(btn);
-        var anim = _compositor.CreateScalarKeyFrameAnimation();
-        anim.InsertKeyFrame(1f, 1f);
-        anim.Duration = TimeSpan.FromMilliseconds(150);
-        visual.StartAnimation("Scale.X", anim);
-        visual.StartAnimation("Scale.Y", anim);
+     ButtonAnims.AnimateBtnPointerExited((Button)sender, _compositor);
+     
     }
     private void CardBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
@@ -292,7 +277,7 @@ public sealed partial class AllSongsListPage : Page
 
             if (extraPanel == null)
             {
-                Debug.WriteLine("ExtraPanel not found yet – skipping animation");
+                Debug.WriteLine("ExtraPanel not found yet â€“ skipping animation");
                 return;
             }
 
@@ -467,14 +452,16 @@ public sealed partial class AllSongsListPage : Page
     {
         if (songToFind == null)
             return;
+        var isSongInList = MySongsTableView.CollectionView;
 
-        // The magic happens here. ScrollIntoView tells the list to find
-        // the UI container for this data item and bring it into the viewport.
-        //MySongsTableView.ScrollIntoView(songToFind);
-
-        // For more control, you can specify the alignment.
-        // This will try to position the item at the top of the list.
+       
         MySongsTableView.ScrollIntoView(songToFind, ScrollIntoViewAlignment.Leading);
+    }
+
+    public Microsoft.UI.Xaml.Data.ICollectionView? GetCurrentVisibleItems()
+    {
+        Microsoft.UI.Xaml.Data.ICollectionView? visibleItems = MySongsTableView.CollectionView;
+        return visibleItems;
     }
 
     private void ScrollToSong_Click(object sender, RoutedEventArgs e)
@@ -482,7 +469,65 @@ public sealed partial class AllSongsListPage : Page
         ScrollToSong(MyViewModel.CurrentPlayingSongView);
     }
 
+    private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
+    {
+        Debug.WriteLine(e.Column?.Header);
+        Debug.WriteLine(e.Column?.Order);
+        // later, log it in vm
 
+        
+
+        Debug.WriteLine($"SORT: {e.Column?.Header} â†’ {e.Column?.Order}");
+    }
+    private void OnSorting(object? sender, TableViewSortingEventArgs e)
+    {
+        string tqlSort = e.Column.Order switch
+        {
+            0 => $"asc {e.Column.Header.ToString()?.ToLower()}",
+            1 => $"desc {e.Column.Header.ToString()?.ToLower()}",
+            _ => string.Empty
+        };
+        Debug.WriteLine($"TQL from sort: {tqlSort}");
+        ApplyTql(tqlSort);
+
+    }
+    private void ApplyTql(string tql)
+    {
+        var currentQuery = MyViewModel.CurrentTqlQuery ?? "";
+
+        // Combine old + new
+        var combined = string.Join(" ", currentQuery, tql).Trim();
+
+        // Regex patterns for sorting/shuffling directives
+        var sortPattern = @"\b(asc|desc)\s+\w+\b";
+        var firstLastPattern = @"\b(first|last)\s+\d+\b";
+        var shufflePattern = @"\b(shuffle|random)(\s+\d+)?\b";
+
+        // Collect all matches
+        var allMatches = System.Text.RegularExpressions.Regex.Matches(combined,
+            $"{sortPattern}|{firstLastPattern}|{shufflePattern}",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        string? lastDirective = null;
+
+        if (allMatches.Count > 0)
+        {
+            // Keep only the last one
+            lastDirective = allMatches[allMatches.Count - 1].Value;
+            // Remove all directives from combined string
+            combined = System.Text.RegularExpressions.Regex.Replace(combined,
+                $"{sortPattern}|{firstLastPattern}|{shufflePattern}", "").Trim();
+        }
+
+        // Append last directive to end if exists
+        if (!string.IsNullOrWhiteSpace(lastDirective))
+            combined = $"{combined} {lastDirective}".Trim();
+
+        MyViewModel.CurrentTqlQuery = combined;
+
+        // Re-run TQL query
+        MyViewModel.SearchSongForSearchResultHolder(combined);
+    }
 
     private void SearchSongSB_Text
         (object sender, RoutedEventArgs e)
@@ -732,22 +777,6 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-    public class QueryComponentTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate? FilterTemplate { get; set; }
-        public DataTemplate? JoinerTemplate { get; set; }
-
-        protected override DataTemplate? SelectTemplateCore(object? item, DependencyObject? container)
-        {
-            return item switch
-            {
-                ViewModel.ActiveFilterViewModel => FilterTemplate,
-                ViewModel.LogicalJoinerViewModel => JoinerTemplate,
-                _ => base.SelectTemplateCore(item, container)
-            };
-        }
-    }
-
 
 
     private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
@@ -939,16 +968,16 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-    private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
-    {
-        Debug.WriteLine(e.Column?.Header);
-        Debug.WriteLine(e.Column?.Order);
-        Debug.WriteLine(e.Handled);
-        // latter, log it in vm
-    }
 
     private void MySongsTableView_Loading(FrameworkElement sender, object args)
     {
+
+    }
+
+    private void MySongsTableView_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        MyViewModel.MySongsTableView = MySongsTableView;
 
     }
 
@@ -959,7 +988,6 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_QuerySubmitted_1(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-
     }
 
     private void RemoveChipButton_Click(object sender, RoutedEventArgs e)
@@ -1200,6 +1228,7 @@ public sealed partial class AllSongsListPage : Page
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
         var vm = e.Parameter as BaseViewModelWin;
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
@@ -1216,6 +1245,8 @@ public sealed partial class AllSongsListPage : Page
             }
 
             MyViewModel = vm;
+
+            MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
@@ -1249,7 +1280,7 @@ public sealed partial class AllSongsListPage : Page
         // spring animation toward neutral position
         var spring = compositor.CreateSpringVector3Animation();
         spring.FinalValue = Vector3.Zero;
-        spring.DampingRatio = 0.55f;                     // how “bouncy” it feels
+        spring.DampingRatio = 0.55f;                     // how â€œbouncyâ€ it feels
         spring.Period = TimeSpan.FromMilliseconds(280); // shorter = snappier
         spring.InitialValue = new Vector3(0, 40, 0);     // make sure start matches
         spring.StopBehavior = AnimationStopBehavior.SetToFinalValue;
@@ -1264,7 +1295,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(SearchTetxBox.Text);
+        MyViewModel.SearchSongForSearchResultHolder(SearchTextBox.Text);
     }
 
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
@@ -1479,7 +1510,7 @@ public sealed partial class AllSongsListPage : Page
 
                     var songContext = ((MenuFlyoutItem)obj).Text;
 
-                    ArtistModelView selectedArtist = _storedSong.ArtistToSong.First(x => x.Name == songContext);
+                    ArtistModelView? selectedArtist = _storedSong.ArtistToSong.First(x => x.Name == songContext);
 
 
                     var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
@@ -1588,4 +1619,83 @@ public sealed partial class AllSongsListPage : Page
             Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
         });
     }
+
+    private void MySongsTableView_Loaded_1()
+    {
+
+    }
+
+    private void Animated_GotItem(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void NowPlayingQueueExpander_Loaded(object sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private void Animated_ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
+    {
+
+    }
+
+    private async void PlaySongBtn_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        var send = (Microsoft.UI.Xaml.Controls.Border)sender;
+        var song = send.DataContext as SongModelView;
+        if (MyViewModel.PlaybackQueue.Count < 1)
+        {
+            //MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
+        }
+        await MyViewModel.PlaySong(song, CurrentPage.HomePage);
+    }
+
+    private void NowPlayingQueueExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
+    {
+        
+    }
+
+    private void AnimatedScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
+    {
+        //Button SelectedItem = GetSelectedItemFromViewport() as Button;
+        
+        //var song = SelectedItem.DataContext as SongModelView;
+
+    }
+
+
+    //private Button? GetSelectedItemFromViewport()
+    //{
+    //    if (ItemsHost == null || ItemsHost.Children.Count == 0)
+    //        return null;
+
+    //    double viewportTop = MyScroller.VerticalOffset;
+    //    double viewportCenter = viewportTop + MyScroller.ViewportHeight / 2;
+
+    //    Button? best = null;
+    //    double bestDistance = double.MaxValue;
+
+    //    foreach (var child in ItemsHost.Children)
+    //    {
+    //        if (child is not Button btn)
+    //            continue;
+
+    //        // child's vertical position relative to ScrollViewer content
+    //        var transform = btn.TransformToVisual(ItemsHost);
+    //        var pos = transform.TransformPoint(new Point(0, 0)).Y;
+
+    //        double childCenter = pos + btn.ActualHeight / 2;
+    //        double distance = Math.Abs(childCenter - viewportCenter);
+
+    //        if (distance < bestDistance)
+    //        {
+    //            bestDistance = distance;
+    //            best = btn;
+    //        }
+    //    }
+
+    //    return best;
+    //}
+
 }

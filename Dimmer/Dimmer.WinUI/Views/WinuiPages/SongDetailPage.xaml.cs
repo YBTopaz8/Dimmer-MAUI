@@ -53,22 +53,26 @@ public sealed partial class SongDetailPage : Page
 
         if (e.Parameter is SongDetailNavArgs args)
         {
-            MyViewModel = (args.ExtraParam as BaseViewModelWin)!;       // reference, not copy
-            DetailedSong = args.Song;
+            var vm = args.ExtraParam is null ? args.ViewModel as BaseViewModelWin : args.ExtraParam as BaseViewModelWin;
+
+            if (vm != null)
+            {
+                MyViewModel = vm;
+                DetailedSong = args.Song;
+
+                MyViewModel.CurrentWinUIPage = this;
+                Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
+                ApplyEntranceEffect(visual);
+
+                var animation = ConnectedAnimationService.GetForCurrentView()
+               .GetAnimation("ForwardConnectedAnimation");
+
+                detailedImage.Loaded += (_, __) =>
+                {
+                    animation?.TryStart(detailedImage, new UIElement[] { coordinatedPanel });
+                };
+            }
         }
-
-
-        Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
-        ApplyEntranceEffect(visual);
-
-        var animation = ConnectedAnimationService.GetForCurrentView()
-       .GetAnimation("ForwardConnectedAnimation");
-
-        detailedImage.Loaded += (_, __) =>
-        {
-            animation?.TryStart(detailedImage, new UIElement[] { coordinatedPanel });
-        };
-
     }
 
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)

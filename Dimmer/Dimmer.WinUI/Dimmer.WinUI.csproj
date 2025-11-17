@@ -24,6 +24,8 @@
 	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\HoverCardControl.xaml" />
+	  <None Remove="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml" />
+	  <None Remove="Views\CustomViews\WinuiViews\VolumeTab.xaml" />
 	  <None Remove="Views\MAUIPages\HomePage.xaml" />
 	  <None Remove="Views\WinuiPages\AlbumPage.xaml" />
 	  <None Remove="Views\WinuiPages\AllSongsListPage.xaml" />
@@ -85,6 +87,21 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\AudioDeviceListTab.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\VolumeTab.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\SettingsPage.xaml">

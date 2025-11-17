@@ -51,6 +51,7 @@ public static class MauiProgram
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
+        builder.Services.AddSingleton<IUiErrorPresenter, WinUiErrorPresenter>();
 
         builder.ConfigureLifecycleEvents(events =>
         {

@@ -86,7 +86,7 @@ public partial class App : Application
         }
         if (ex is InvalidCastException)
         {
-            Debugger.Break();
+            //Debugger.Break();
         }
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +

@@ -130,7 +130,7 @@
 
 
                 <TextBox
-                    x:Name="SearchTetxBox"
+                    x:Name="SearchTextBox"
                     Width="550"
                     AccessKey="F"
                     AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
@@ -144,10 +144,7 @@
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Spacing="10">
-                <Button
-                    x:Name="RunBtn"
-                    Click="RunBtn_Click"
-                    Content="Run" />
+                <Button Content="View Queue"/>
                 <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
                 <Button Command="{x:Bind MyViewModel.ResetSearchCommand}" Content="Clear" />
                 <Button Command="{x:Bind MyViewModel.AddToNextCommand}" Content="Add To Next" />
@@ -163,8 +160,70 @@
 
             </StackPanel>
 
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                <ScrollViewer x:Name="AnimatedScrollViewer"
+                        ViewChanging="AnimatedScrollViewer_ViewChanging"
+                        MaxHeight="375" 
+                        MinWidth="250" MaxWidth="450">
 
+                    <Expander x:Name="NowPlayingQueueExpander" 
+                              VerticalAlignment="Top" 
+                              CornerRadius="12"
+                              Expanding="NowPlayingQueueExpander_Expanding"
+                          
+                              BorderBrush="Transparent"
+                              BorderThickness="3">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal" 
+                                         Spacing="15">
+                                <TextBlock Text="Queue"/>
+                                <TextBlock Text="{x:Bind MyViewModel.PlaybackQueue.Count, Mode=OneWay}"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <Expander.Content>
+                            <ItemsRepeater x:Name="NowPlayingQueueRepeater" 
+                                       
+                                           ItemsSource="{x:Bind MyViewModel.PlaybackQueue}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="15" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate >
+                                        <Button 
+                                                DoubleTapped="PlaySongBtn_DoubleTapped" x:Name="PlaySongBtn"
+                                HorizontalAlignment="Stretch">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="22"
+                                                           HorizontalTextAlignment="Center"/>
+                                                <TextBlock Text="{Binding ArtistName}"
+                                                           FontSize="13"
+                                                       
+                                                       
+                                                           />
+                                            </StackPanel>
+                                        </Button>
 
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </Expander.Content>
+                    </Expander>
+                            
+                </ScrollViewer>
+                <StackPanel >
+                    <Image x:Name="FocusedSongImage"/>
+                    <Button x:Name="FocusedSongTextBlockTitle"
+                               Content="Title"/>
+                    <Button x:Name="FocusedSongTextBlockArtistName"
+                               Content="Artist Name"/>
+                    <Button x:Name="FocusedSongTextBlockAlbumName"
+                               Content="Album Name"/>
+                    <Button x:Name="FocusedSongTextBlockGenre"
+                               Content="Genre"/>
+
+                </StackPanel>
+            </StackPanel>
         </StackPanel>
 
 
@@ -198,6 +257,7 @@
             ItemClick="MySongsTableView_ItemClick"
             ItemsSource="{x:Bind MyViewModel.SearchResults}"
             Loading="MySongsTableView_Loading"
+            Loaded="MySongsTableView_Loaded"
             LosingFocus="MySongsTableView_LosingFocus"
             LostFocus="MySongsTableView_LostFocus"
             PointerEntered="MySongsTableView_PointerEntered"

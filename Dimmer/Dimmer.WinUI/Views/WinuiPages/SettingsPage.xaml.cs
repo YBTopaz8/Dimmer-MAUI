@@ -54,7 +54,7 @@ public sealed partial class SettingsPage : Page
         // Cast it to your ViewModel type and set your properties.
         if (MyViewModel != null)
         {
-          
+            //MyViewModel.CurrentWinUIPage = this;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }

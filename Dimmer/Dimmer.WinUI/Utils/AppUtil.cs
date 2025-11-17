@@ -1,17 +1,20 @@
-﻿using Windows.Graphics;
+﻿using Dimmer.WinUI.Utils.WinMgt;
+
+using Windows.Graphics;
 
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
 
-    public AppUtil(BaseViewModelWin baseViewModelWin)
+    public AppUtil(BaseViewModelWin baseViewModelWin, IWinUIWindowMgrService winuimgt)
     {
 
-        BaseViewModelWin=baseViewModelWin;
-        this.dimmerMAUIWin ??=baseViewModelWin.MainMAUIWindow;
-
+        BaseViewModelWin = baseViewModelWin;
+        this.dimmerMAUIWin ??= baseViewModelWin.MainMAUIWindow;
+        this.winUIWindowMgrService = winuimgt;
     }
     Microsoft.Maui.Controls.Window? dimmerMAUIWin;
+    IWinUIWindowMgrService winUIWindowMgrService;
     public Shell GetShell()
     {
         return new AppShell(BaseViewModelWin)
@@ -22,8 +25,8 @@ public class AppUtil : IAppUtil
 
         if (this.dimmerWinUI is null)
         {
-            
-            this.dimmerWinUI = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
+            dimmerWinUI = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(BaseViewModelWin, () => new DimmerWin());
+
             UiThreads.InitializeWinUIDispatcher(dimmerWinUI!.DispatcherQueue);
         }
         else

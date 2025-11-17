@@ -11,6 +11,15 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\AudioDeviceListTab.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\VolumeTab.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\WinuiPages\SettingsPage.xaml">
       <SubType>Designer</SubType>
     </Page>

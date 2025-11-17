@@ -85,6 +85,7 @@ public sealed partial class ArtistPage : Page
         if (e.Parameter is SongDetailNavArgs args)
         {
             MyViewModel = (args.ExtraParam as BaseViewModelWin)!;       // reference, not copy
+            MyViewModel.CurrentWinUIPage = this;
             DetailedSong = args.Song;
         }
         this.DataContext = MyViewModel;

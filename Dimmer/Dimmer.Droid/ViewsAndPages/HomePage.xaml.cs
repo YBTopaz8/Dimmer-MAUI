@@ -35,6 +35,18 @@ public partial class HomePage : ContentPage
 
     private void ScrollToCurrSong_Tap(object sender, HandledEventArgs e)
     {
+        if (MyViewModel.CurrentPlayingSongView.Title is not null)
+        {
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                int itemHandle = MyViewModel.SongsColView.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                MyViewModel.SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+            });
+
+
+
+        }
 
     }
 
@@ -130,12 +142,14 @@ public partial class HomePage : ContentPage
 
     private void Settings_Tap(object sender, HandledEventArgs e)
     {
-
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
     }
 
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
 
+        MyViewModel.SongsColViewNPQ ??= SongsColView;
     }
 
     private void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)

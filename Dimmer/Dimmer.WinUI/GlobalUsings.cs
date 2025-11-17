@@ -20,7 +20,7 @@ global using Dimmer.WinUI.Views.MAUIPages;
 global using Dimmer.WinUI.Views.WinuiPages;
 
 global using WinUI.TableView;
-
+global using Dimmer.WinUI.Animations;
 global using Dimmer.Data;
 global using Dimmer.DimmerSearch;
 global using static Dimmer.WinUI.Utils.AppUtil;
@@ -49,7 +49,7 @@ global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 global using Dimmer.LastFM;
 global using Window = Microsoft.UI.Xaml.Window;
-global using Microsoft.UI.Xaml.Controls;
+global using Dimmer.WinUI.Animations.UiComponentAnims;
 global using Microsoft.Extensions.Logging;
 global using Dimmer.Orchestration;
 global using Dimmer.Utilities.Enums;

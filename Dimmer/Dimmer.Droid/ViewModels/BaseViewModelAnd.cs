@@ -68,6 +68,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     partial void OnNowPlayingTabIndexChanged(int oldValue, int newValue)
     {
+        
         switch (newValue)
         {
             case 0: IsNowPlayingQueue =false;

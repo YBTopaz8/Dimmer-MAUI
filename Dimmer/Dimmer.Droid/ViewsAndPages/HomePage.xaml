@@ -399,6 +399,7 @@
                             HeaderPanelMinWidth="1"
                             HeaderPanelPadding="-50"
                             HeaderPanelPosition="Top"
+                            
                             ItemHeaderFontFamily="MatRoundReg"
                             ScrollAnimationEnabled="True"
                             SelectedItemIndex="{Binding NowPlayingTabIndex, Mode=TwoWay}"
@@ -477,7 +478,8 @@
                                     RowDefinitions="*,auto,auto">
                                     <Grid Grid.Row="0">
 
-                                        <dx:DXBorder CornerRadius="15" StyleClass="Elevation2">
+                                        <dx:DXBorder CornerRadius="15" 
+                                                    WidthRequest="100" StyleClass="Elevation2">
                                             <dx:DXBorder.Triggers>
 
                                                 <DataTrigger
@@ -524,7 +526,7 @@
                                                         </DataTrigger>
 
                                                         <DataTrigger
-                                                            Binding="{Binding IsPlaying}"
+                                                            Binding="{Binding IsDimmerPlaying}"
                                                             TargetType="VerticalStackLayout"
                                                             Value="false">
                                                             <Setter Property="IsVisible" Value="False" />
@@ -572,7 +574,7 @@
                                             HeightRequest="150"
                                             HorizontalOptions="Center"
                                             IsScrollBarVisible="False"
-                                            IsVisible="{Binding IsPlaying}"
+                                            IsVisible="{Binding IsDimmerPlaying}"
                                             ItemsSource="{Binding AllLines}"
                                             SelectedItem="{Binding CurrentLine}"
                                             SelectionChanged="DXCollectionView_SelectionChanged"

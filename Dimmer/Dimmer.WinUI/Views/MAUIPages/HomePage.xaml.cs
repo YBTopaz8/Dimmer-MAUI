@@ -471,7 +471,7 @@ public partial class HomePage : ContentPage
             }
             MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", res));
 
-            winMgr.GetOrCreateUniqueWindow(MyViewModel, windowFactory: () => new DimmerWin());
+            winMgr.GetOrCreateUniqueWindow<DimmerWin>(MyViewModel, windowFactory: () => new DimmerWin());
 
             return;
         }

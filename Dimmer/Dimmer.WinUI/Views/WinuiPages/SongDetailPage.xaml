@@ -25,6 +25,7 @@
     <Page.Resources>
 
         <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
+        <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
         <converters:BoolToImageConverter
             x:Key="PlayPauseConverter"
             FalseValue="play.png"
