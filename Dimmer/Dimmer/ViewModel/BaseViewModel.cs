@@ -3498,6 +3498,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _subsMgr.Add(
             playbackStateObservable
             .Where(s => s.State == DimmerUtilityEnum.FolderScanCompleted)
+            .ObserveOn(RxSchedulers.UI)
                 .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
 
         _subsMgr.Add(

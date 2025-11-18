@@ -76,9 +76,9 @@
 
         </VerticalStackLayout>
 
-        <Grid x:Name="MediaControlsView"
+        <Grid x:Name="MediaControlsView" IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
               Grid.Row="1" BackgroundColor="Transparent"
-              IsVisible="True" ColumnDefinitions="*" RowDefinitions="auto,*">
+               ColumnDefinitions="*" RowDefinitions="auto,*">
             <Border
  x:Name="NavTab"
  Grid.Row="0"
