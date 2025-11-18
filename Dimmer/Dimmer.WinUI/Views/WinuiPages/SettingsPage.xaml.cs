@@ -50,13 +50,14 @@ public sealed partial class SettingsPage : Page
     {
         base.OnNavigatedTo(e);
         MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModel>();
+        var baseVM = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
         if (MyViewModel != null)
         {
             //MyViewModel.CurrentWinUIPage = this;
             // Now that the ViewModel is set, you can set the DataContext.
-            this.DataContext = MyViewModel;
+            this.DataContext = baseVM;
         }
 
     }
@@ -171,6 +172,7 @@ public sealed partial class SettingsPage : Page
 
     private void LoginLastFM_Click(object sender, RoutedEventArgs e)
     {
+        MyViewModel?.UserLocal.LastFMAccountInfo.Name = LastFMUname.Text;
         MyViewModel?.LoginToLastfmCommand.Execute(null);
     }
 
@@ -181,7 +183,7 @@ public sealed partial class SettingsPage : Page
         send.IsEnabled = MyViewModel?.IsDarkModeOn ?? false;
         var currentWinUITheme = Microsoft.UI.Xaml.Application.Current.RequestedTheme;
         // set new theme if different
-        Microsoft.UI.Xaml.Application.Current.RequestedTheme = currentWinUITheme == ApplicationTheme.Dark ? ApplicationTheme.Light : ApplicationTheme.Dark;
+        //Microsoft.UI.Xaml.Application.Current.RequestedTheme = currentWinUITheme == ApplicationTheme.Dark ? ApplicationTheme.Light : ApplicationTheme.Dark;
         
     }
 

@@ -502,24 +502,7 @@ IRepository<SongModel> songRepository, // Inject the repository
             await SaveLyricsToDB(isInstrument, plainLyrics ?? string.Empty, song, syncedLyrics ?? string.Empty, newLyricsInfo);
             _logger.LogInformation("Successfully saved lyrics to file and database for '{Track}'.", song.Title);
 
-            if(!isInstrument)
-            {
-
-            // try to publish if not instru to online
-            LrcLibPublishRequest newRequest = new LrcLibPublishRequest
-            {
-                TrackName = song.Title,
-                ArtistName = song.ArtistName,
-                AlbumName = song.AlbumName ?? string.Empty,
-                Duration = (int)song.DurationInSeconds,
-                PlainLyrics = plainLyrics ?? string.Empty,
-                SyncedLyrics = syncedLyrics ?? string.Empty
-            };
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-
-            await PublishLyricsAsync(newRequest, cancellationTokenSource.Token);
-
-            }
+       
             return true;
         }
         catch (Exception ex)
@@ -552,18 +535,7 @@ IRepository<SongModel> songRepository, // Inject the repository
             return null;
         }
 
-        LrcLibLyrics lyricsProps = new LrcLibLyrics()
-        {
-            AlbumName = songInDb.AlbumName,
-            ArtistName = songInDb.OtherArtistsName,
-            Duration = songInDb.DurationInSeconds,
-            TrackName = songInDb.Title,
-            SyncedLyrics = songInDb.SyncLyrics,
-            Instrumental = songInDb.IsInstrumental is not null && (bool)songInDb.IsInstrumental,
-            PlainLyrics = songInDb.UnSyncLyrics
-        };
-        List<LrcLibLyrics> list = new List<LrcLibLyrics>();
-        list.Add(lyricsProps);
+     
         string? lyrics = songInDb.SyncLyrics;
         if (lyrics is not null)
         {

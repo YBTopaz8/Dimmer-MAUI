@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
 
@@ -9,6 +10,7 @@ using Dimmer.DimmerSearch;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -16,6 +18,7 @@ using Microsoft.UI.Xaml.Navigation;
 
 using Windows.Storage.FileProperties;
 
+using static System.Net.Mime.MediaTypeNames;
 using static Dimmer.WinUI.Utils.AppUtil;
 
 using Border = Microsoft.UI.Xaml.Controls.Border;
@@ -39,7 +42,7 @@ namespace Dimmer.WinUI.Views.WinuiPages;
 public sealed partial class SongDetailPage : Page
 {
     readonly Microsoft.UI.Xaml.Controls.Page? NativeWinUIPage;
-    private readonly SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
+    private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
 
     private readonly Compositor _compositor;
     public SongModelView? DetailedSong { get; set; }
@@ -71,9 +74,9 @@ public sealed partial class SongDetailPage : Page
         {
             var item = new MenuFlyoutItem { Text = name };
             item.Click += (_, __) => target.StartBringIntoView();
-            if(current== name)
+            if(CurrentSectionLabel.Text == name)
             {
-                item.IsEnabled = false;
+                
                 item.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
                 item.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
 
@@ -91,6 +94,14 @@ public sealed partial class SongDetailPage : Page
                 var pos = e.GetCurrentPoint(this).Position;
                 menu.ShowAt(this,pos);
             }
+        };
+
+        this.BgImage.Loaded += async (s, e) =>
+        {
+            var visualBgImage = ElementCompositionPreview.GetElementVisual(this.BgImage);
+            await Task.Delay(200); // slight delay to ensure smoothness
+            PlatUtils.ApplyEntranceEffect(visualBgImage, BgImage, _userPrefAnim, _compositor);
+            
         };
     }
 
@@ -111,7 +122,7 @@ public sealed partial class SongDetailPage : Page
 
                 MyViewModel.CurrentWinUIPage = this;
                 Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
-                ApplyEntranceEffect(visual);
+                PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim,_compositor);
 
                 var animation = ConnectedAnimationService.GetForCurrentView()
                .GetAnimation("ForwardConnectedAnimation");
@@ -122,8 +133,45 @@ public sealed partial class SongDetailPage : Page
                 };
                 MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadSelectedSongLastFMData();
+                LoadUiComponents();
+
             }
         }
+    }
+
+    private void LoadUiComponents()
+    {
+        LoadWikiOfSong();
+    }
+
+    private void LoadWikiOfSong()
+    {
+        if (MyViewModel.SelectedSongLastFMData is null || MyViewModel.SelectedSongLastFMData.Wiki is null ||
+            MyViewModel.SelectedSongLastFMData.Wiki.Summary is null) return;
+        var html = MyViewModel.SelectedSongLastFMData.Wiki.Summary;
+        BioBlock.Blocks.Clear();
+
+        Paragraph p = new Paragraph();
+
+        var parts = html.Split(new[] { "<a", "</a>" }, StringSplitOptions.None);
+
+        p.Inlines.Add(new Run { Text = parts[0] });
+
+        // crude but works for Last.fm since it only has 1 link
+        if (parts.Length > 1)
+        {
+            // Extract the URL
+            var hrefMatch = Regex.Match(html, "href=\"(.*?)\"");
+            string url = hrefMatch.Success ? hrefMatch.Groups[1].Value : "";
+
+            Hyperlink h = new Hyperlink();
+            h.Inlines.Add(new Run { Text = "Read more on Last.fm" });
+            h.NavigateUri = new Uri(url);
+
+            p.Inlines.Add(h);
+        }
+
+        BioBlock.Blocks.Add(p);
     }
 
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -156,48 +204,11 @@ public sealed partial class SongDetailPage : Page
 
     }
 
-    private void ApplyEntranceEffect(Visual visual)
+    private void ApplyEntranceEffect(Visual visual, FrameworkElement element)
     {
-
-        switch (_userPrefAnim)
-        {
-            case SongTransitionAnimation.Fade:
-                visual.Opacity = 0f;
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(1f, 1f);
-                fade.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Opacity", fade);
-                break;
-
-            case SongTransitionAnimation.Scale:
-                visual.CenterPoint = new Vector3((float)detailedImage.ActualWidth / 2,
-                                                 (float)detailedImage.ActualHeight / 2, 0);
-                visual.Scale = new Vector3(0.8f);
-                var scale = _compositor.CreateVector3KeyFrameAnimation();
-                scale.InsertKeyFrame(1f, Vector3.One);
-                scale.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Scale", scale);
-                break;
-
-            case SongTransitionAnimation.Slide:
-                visual.Offset = new Vector3(80f, 0, 0);
-                var slide = _compositor.CreateVector3KeyFrameAnimation();
-                slide.InsertKeyFrame(1f, Vector3.Zero);
-                slide.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Offset", slide);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.FinalValue = new Vector3(0, 0, 0);
-                spring.DampingRatio = 0.5f;
-                spring.Period = TimeSpan.FromMilliseconds(350);
-                visual.Offset = new Vector3(0, 40, 0);//c matching
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
+       
     }
+
     private void ResultsList_ItemClick(object sender, ItemClickEventArgs e)
     {
 
@@ -427,8 +438,8 @@ public sealed partial class SongDetailPage : Page
                 ExtraParam = MyViewModel,
                 ViewModel = MyViewModel
             };
-            
 
+            MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var selectedArtist = DetailedSong.ArtistToSong.FirstOrDefault(x=>x.Name== DetailedSong.ArtistName);
 
                   
@@ -491,6 +502,28 @@ public sealed partial class SongDetailPage : Page
         CurrentSectionLabel.Text = current;
     }
 
+    private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if(props.IsXButton1Pressed)
+        {
+            if (Frame.CanGoBack)
+            {
+                //var image = detailedImage;
+                //ConnectedAnimationService.GetForCurrentView()
+                //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+                Frame.GoBack();
+            }
+        }
+    }
 
+    private void BioBlock_Loaded(object sender, RoutedEventArgs e)
+    {
+        
+    }
 
+    private void SectionAnalytics_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

@@ -44,7 +44,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IMauiWindowManagerService, WindowManagerService>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
 
-        builder.Services.AddTransient<DimmerWin>();
+        builder.Services.AddSingleton<DimmerWin>();
 
         builder.Services.AddSingleton<SessionTransferVMWin>();
 
@@ -130,8 +130,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<ArtistPage>();
         builder.Services.AddSingleton<DimmerMAUIWin>();
         builder.Services.AddSingleton<AlbumPage>();
-        builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddSingleton<SettingsPage>();
         builder.Services.AddSingleton<SongDetailPage>();
+        builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
 

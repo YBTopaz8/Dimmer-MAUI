@@ -58,6 +58,8 @@ public sealed partial class AlbumPage : Page
             DetailedSong = args.Song;
         }
         this.DataContext = MyViewModel;
+
+        MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
         Visual? visual2 = ElementCompositionPreview.GetElementVisual(DestinationElement);
         ApplyEntranceEffect(visual);
@@ -154,6 +156,17 @@ public sealed partial class AlbumPage : Page
     private void CoordinatedPanel2_Click(object sender, RoutedEventArgs e)
     {
         // Standard navigation back
+        if (Frame.CanGoBack)
+        {
+            //var image = detailedImage;
+            //ConnectedAnimationService.GetForCurrentView()
+            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+            Frame.GoBack();
+        }
+    }
+
+    private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
         if (Frame.CanGoBack)
         {
             //var image = detailedImage;

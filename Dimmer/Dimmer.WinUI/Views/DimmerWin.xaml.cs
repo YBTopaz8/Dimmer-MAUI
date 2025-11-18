@@ -48,7 +48,9 @@ public sealed partial class DimmerWin : Window
         
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
 
-        
+#if DEBUG
+        this.Title = "DimmerDebug";
+#endif
         //New window size: 1621 x 749
         appWin.Resize(new SizeInt32(1600, 750));
     }
@@ -90,56 +92,7 @@ public sealed partial class DimmerWin : Window
         }
         if (MyViewModel is null)
             return;
-
-
-        if (MyViewModel.IsLastFMNeedsToConfirm)
-        {
-            ContentDialog lastFMConfirmDialog = new ContentDialog
-            {
-                Title = "LAST FM Confirm",
-                Content = "Is Authorization done?",
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
-                XamlRoot = this.ContentFrame.XamlRoot
-
-            };
-            var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
-
-            if (isLastFMAuthorized)
-            {
-                await MyViewModel.CompleteLastFMLoginAsync();
-            }
-            else
-            {
-                MyViewModel.IsLastFMNeedsToConfirm = false;
-                ContentDialog cancelledDialog = new ContentDialog
-                {
-                    Title = "Action Cancelled",
-                    Content = "Last FM Authorization Cancelled",
-                    CloseButtonText = "OK",
-                    XamlRoot = this.ContentFrame.XamlRoot
-                };
-
-
-            }
-        }
-
-
-
-        if (MyViewModel.IsLastFMNeedsToConfirm)
-        {
-            bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
-            if (isLastFMAuthorized)
-            {
-                await MyViewModel.CompleteLastFMLoginAsync();
-            }
-            else
-            {
-                MyViewModel.IsLastFMNeedsToConfirm = false;
-                await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
-
-            }
-        }
+        await MyViewModel.CheckToCompleteActivation();
     }
 
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
@@ -150,13 +103,13 @@ public sealed partial class DimmerWin : Window
 
     private void CurrentlyPlayingBtn_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        ButtonAnims.AnimateBtnPointerEntered((Button)sender, _compositorMainGrid);
+        UIControlsAnims.AnimateBtnPointerEntered((Button)sender, _compositorMainGrid);
 
     }
 
     private void CurrentlyPlayingBtn_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        ButtonAnims.AnimateBtnPointerExited((Button)sender, _compositorMainGrid);
+        UIControlsAnims.AnimateBtnPointerExited((Button)sender, _compositorMainGrid);
 
     }
 

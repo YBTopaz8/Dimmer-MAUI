@@ -36,20 +36,21 @@
 
                         <Button
 x:Name="BackButton" Background="Transparent"
-Click="BackButton_Click" 
+Click="BackButton_Click"  Visibility="{Binding IsBackButtonVisible}"
+                            
 Content="&#xE72B;"
 FontFamily="Segoe MDL2 Assets" />
                         <TextBlock 
     VerticalAlignment="Center"
-    Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay, Converter={StaticResource DurationConverter}}"
+    Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}"
     />
-                        <Slider Value="{x:Bind MyViewModel.CurrentTrackPositionPercentage, Mode=OneWay}"
+                        <Slider Value="{Binding CurrentTrackPositionPercentage}"
     Minimum="0" Maximum="100" VerticalAlignment="Center"
        Width="400"/>
 
                         <TextBlock 
                         VerticalAlignment="Center"
-                        Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay, Converter={StaticResource DurationConverter}}"
+                        Text="{Binding CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}}"
                         />
 
 
@@ -57,53 +58,43 @@ FontFamily="Segoe MDL2 Assets" />
                     <StackPanel
                     x:Name="TopPanelTwo"
                     HorizontalAlignment="Left"
-                    Orientation="Horizontal" Margin="180,0,0,0"
+                    Orientation="Horizontal" Margin="0,0,0,0"
                     Spacing="10">
                         <Button Content="Prev" 
                                 x:Name="PrevBtn" AccessKey="B"
                                 Command="{Binding PreviousTrackCommand}"/>
-                        <Button Content="{Binding IsDimmerPlaying,
+                        <ToggleButton Content="{Binding IsDimmerPlaying,
                             Converter={StaticResource BoolToPlayingPauseConverter}}" x:Name="PlayBtn"
                                 Command="{Binding PlayPauseToggleCommand}"
-                                AccessKey="P"
+                                AccessKey="P" IsChecked="{Binding IsDimmerPlaying}"
                                 />
                         <Button AccessKey="N"
                                 AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
                                 AccessKeyInvoked="NextBtn_AccessKeyInvoked"
-                            Command="{x:Bind MyViewModel.NextTrackCommand}"
+                            Command="{Binding NextTrackCommand}"
                             Content="Next" x:Name="NextBtn" />
 
 
                         <TextBlock
                         HorizontalAlignment="Center"
-                        IsTextSelectionEnabled="True"
+                        IsTextSelectionEnabled="True" VerticalAlignment="Center"
                         Text="{Binding CurrentPlayingSongView.Title}"
                         TextDecorations="Underline" />
 
 
                         <TextBlock
-                        HorizontalAlignment="Center"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
                         FontStyle="Italic"
                         IsTextSelectionEnabled="True"
                         Text="{Binding CurrentPlayingSongView.ArtistName}" />
 
-                        <TextBlock
+                        <TextBlock VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         IsTextSelectionEnabled="True"
                         Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
                     </StackPanel>
                
-                </StackPanel>
-                <StackPanel Grid.Column="1"  Orientation="Horizontal">
-                    <TextBlock
-    x:Name="SearchSongSB" VerticalAlignment="Center"
-    HorizontalAlignment="Center"
-    FocusVisualPrimaryBrush="DarkSlateBlue"
-    FontSize="25"
-    FontStretch="Expanded"
-    FontWeight="ExtraBold"
-    Text="{Binding CurrentTqlQuery}" />
                 </StackPanel>
             </Grid>
 
