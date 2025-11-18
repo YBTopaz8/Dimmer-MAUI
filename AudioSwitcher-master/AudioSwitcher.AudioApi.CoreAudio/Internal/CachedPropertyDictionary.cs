@@ -98,7 +98,12 @@ namespace AudioSwitcher.AudioApi.CoreAudio
                     _propertyStoreInteface.GetValue(ref key, out variant);
 
                     if (variant.IsSupported())
-                        properties.Add(key, variant.Value);
+                    {
+                        if(properties.ContainsKey(key))
+                            properties[key] = variant.Value;
+                        else
+                            properties.Add(key, variant.Value);
+                    }
                 }
             }
             catch(Exception)
