@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 using Dimmer.Data;
 using Dimmer.DimmerSearch;
@@ -17,11 +18,14 @@ using Windows.Storage.FileProperties;
 
 using static Dimmer.WinUI.Utils.AppUtil;
 
+using Border = Microsoft.UI.Xaml.Controls.Border;
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
+using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using Visual = Microsoft.UI.Composition.Visual;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -45,7 +49,51 @@ public sealed partial class SongDetailPage : Page
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
         //DataContext = viewModelWin;
         //MyViewModel = viewModelWin;
+
+        _sectionNames = new()
+        {
+            { SectionOverview, "Overview" },
+            { SectionPlayback, "Playback" },
+            { SectionLyrics, "Lyrics" },
+            { SectionAnalytics, "Analytics" },
+            { SectionHistory, "History" },
+            { SectionRelated, "Related" }
+        };
+
+        SetupRightClickMenu();
     }
+
+    private void SetupRightClickMenu()
+    {
+        var menu = new MenuFlyout();
+
+        void add(string name, FrameworkElement target)
+        {
+            var item = new MenuFlyoutItem { Text = name };
+            item.Click += (_, __) => target.StartBringIntoView();
+            if(current== name)
+            {
+                item.IsEnabled = false;
+                item.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                item.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
+
+            }
+            menu.Items.Add(item);
+        }
+
+        foreach (var kv in _sectionNames)
+            add(kv.Value, kv.Key);
+
+        this.PointerPressed += (s, e) =>
+        {
+            if (e.GetCurrentPoint(this).Properties.IsRightButtonPressed)
+            {
+                var pos = e.GetCurrentPoint(this).Position;
+                menu.ShowAt(this,pos);
+            }
+        };
+    }
+
     BaseViewModelWin MyViewModel { get; set; }
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
@@ -85,7 +133,7 @@ public sealed partial class SongDetailPage : Page
 
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
+            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
             {
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("BackConnectedAnimation", detailedImage);
@@ -413,4 +461,36 @@ public sealed partial class SongDetailPage : Page
             }
 
     }
+    private readonly Dictionary<FrameworkElement, string> _sectionNames;
+
+    private void ScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+    {
+
+        UpdateCurrentSectionIndicator();
+    }
+    string current = "Overview";
+    private void UpdateCurrentSectionIndicator()
+    {
+        double scrollY = Scroller.VerticalOffset;
+        double viewport = Scroller.ViewportHeight;
+
+
+        foreach (var kv in _sectionNames)
+        {
+            var item = kv.Key;
+            var transform = item.TransformToVisual(Scroller);
+            var pos = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
+
+            if (pos.Y + item.ActualHeight > 0 && pos.Y < viewport / 2)
+            {
+                current = kv.Value;
+                break;
+            }
+        }
+
+        CurrentSectionLabel.Text = current;
+    }
+
+
+
 }

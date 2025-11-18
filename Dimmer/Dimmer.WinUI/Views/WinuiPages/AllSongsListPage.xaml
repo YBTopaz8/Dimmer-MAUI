@@ -69,12 +69,27 @@
             CornerRadius="20"
             Spacing="5">
 
-         
-            
+
 
 
 
             <StackPanel
+                HorizontalAlignment="Left"
+                Orientation="Horizontal" 
+                
+                Spacing="10">
+                <Button Content="View Queue"
+                        Click="ViewQueue_Click"
+                        x:Name="ViewQueue"/>
+
+                <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
+
+
+
+
+            </StackPanel>
+
+            <StackPanel x:Name="SearchTextBoxPanel"
                 HorizontalAlignment="Left"
                 Orientation="Horizontal"
                 Spacing="10">
@@ -93,24 +108,9 @@
                 <TextBlock VerticalAlignment="Center" Text="{Binding SearchResults.Count}" />
 
             </StackPanel>
-            <StackPanel
-                HorizontalAlignment="Left"
-                Orientation="Horizontal" 
-                
-                Spacing="10">
-                <Button Content="View Queue"
-                        Click="ViewQueue_Click"
-                        x:Name="ViewQueue"/>
-                
-                <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
-              
 
-
-
-            </StackPanel>
-
-            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15"
-                        x:Name="ViewQueueStackPanel" Visibility="Collapsed"
+            <StackPanel x:Name="ViewQueueStackPanel"  Grid.Column="0" Orientation="Horizontal" Spacing="15"
+                        Visibility="Collapsed"
                         PointerPressed="ViewQueueStackPanel_PointerPressed"
                        Background="Transparent">
                 <ScrollViewer x:Name="AnimatedScrollViewer"
@@ -133,34 +133,30 @@
                             </StackPanel>
                         </Expander.Header>
                         <Expander.Content>
-                            <ItemsRepeater x:Name="NowPlayingQueueRepeater" 
-                                       
-                                           ItemsSource="{x:Bind MyViewModel.PlaybackQueue}">
-                                <ItemsRepeater.Layout>
-                                    <StackLayout Spacing="15" />
-                                </ItemsRepeater.Layout>
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate >
-                                        <Button 
-                                            PointerEntered="PlaySongBtn_PointerEntered"
-                                            PointerExited="PlaySongBtn_PointerExited"
-                                                DoubleTapped="PlaySongBtn_DoubleTapped" x:Name="PlaySongBtn"
-                                HorizontalAlignment="Stretch">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Title}"
-                                                           FontSize="22"
-                                                           HorizontalTextAlignment="Center"/>
-                                                <TextBlock Text="{Binding ArtistName}"
-                                                           FontSize="13"
-                                                       
-                                                       
-                                                           />
-                                            </StackPanel>
-                                        </Button>
+                            <dgView:TableView 
+            x:Name="MyPlaybackQueueSongsTableView"
+                               AutoGenerateColumns="False" >
 
-                                    </DataTemplate>
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
+
+                                <dgView:TableViewTemplateColumn
+                                    IsReadOnly="True" x:Name="QueueTitle"
+                                    Header="Title">
+                                    <dgView:TableViewTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid HorizontalAlignment="Center">
+                                                <TextBlock
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                      
+                    Text="{Binding Title}"                    
+                     />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </dgView:TableViewTemplateColumn.CellTemplate>
+
+                                </dgView:TableViewTemplateColumn>
+
+                            </dgView:TableView>
                         </Expander.Content>
                     </Expander>
                             
@@ -179,6 +175,12 @@
                                Content="Album Name"/>
                     <Button x:Name="FocusedSongTextBlockGenre"
                                Content="Genre"/>
+                    <Button x:Name="FocusedSongTextBlockLastTimePlayed"
+                               />
+                    <Button x:Name="FocusedSongTextBlockIsFav"
+                               />
+                    <Button x:Name="FocusedSongTextBlockHasSyncLyrics"
+                               />
 
                 </StackPanel>
             </StackPanel>
@@ -193,7 +195,7 @@
             AllowFocusWhenDisabled="False"
             AutoGenerateColumns="False"
             BringIntoViewRequested="TableView_BringIntoViewRequested"
-            CanDrag="False"
+            
             CanDragItems="True"
             CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
             CellSelectionChanged="MySongsTableView_CellSelectionChanged"
@@ -322,7 +324,7 @@
 
 
                 <dgView:TableViewTextColumn
-                    MaxWidth="320"
+                    MaxWidth="200"
                     Binding="{Binding Title}"
                     Header="Title"
                     x:Name="Title"
@@ -339,8 +341,7 @@
                                 <Border
                                     x:Name="ArtistNameTextOnly"
                                     HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.Name="{Binding}">
+                                    VerticalAlignment="Center">
 
                                     <TextBlock
                                         x:Name="ArtistNameTxt"

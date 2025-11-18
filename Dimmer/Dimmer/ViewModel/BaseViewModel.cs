@@ -5177,6 +5177,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             await _lyricsMetadataService.SaveLyricsForSongAsync(
                 SelectedSong.Id,
+                false,
                 string.Empty,
                 selectedResult.SyncedLyrics);
 
@@ -5212,7 +5213,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         var emptyLyricsInfo = new LyricsInfo();
-        await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong.Id, string.Empty, string.Empty);
+        await _lyricsMetadataService.SaveLyricsForSongAsync(SelectedSong.Id,false, string.Empty, string.Empty);
 
 
         SelectedSong.SyncLyrics = string.Empty;
@@ -6292,6 +6293,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         await _lyricsMetadataService.SaveLyricsForSongAsync(
             songToUpdate.Id,
+            false,
             plainLyrics,
             finalLrcContent);
 
@@ -6365,6 +6367,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (SelectedSong is null) return;
         var parsedLyrics = await _lyricsMetadataService.SaveLyricsForSongAsync(
             SelectedSong.Id,
+            false,
             string.Empty,
             fileContent);
         if (!parsedLyrics)

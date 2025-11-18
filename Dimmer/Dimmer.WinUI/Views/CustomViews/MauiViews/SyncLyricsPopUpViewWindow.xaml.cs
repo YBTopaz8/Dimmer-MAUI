@@ -43,9 +43,12 @@ public partial class SyncLyricsPopUpViewWindow : Window
             current?.NowPlayingLyricsFontSize = 40;
             current?.IsHighlighted = true;
             current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
-            //AllLyricsColView.ScrollTo(item: current, null,ScrollToPosition.Center, animate: true);
-
-            //}
+            
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                AllLyricsColView.ScrollTo(item: current, null,ScrollToPosition.Center, animate: true);
+            });
+            
         }
     }
 
