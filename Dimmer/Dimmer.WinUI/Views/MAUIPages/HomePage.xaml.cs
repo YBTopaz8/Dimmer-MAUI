@@ -343,13 +343,10 @@ public partial class HomePage : ContentPage
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
 
-        var dimmerWindow = IPlatformApplication.Current!
-            .Services.GetRequiredService<DimmerWin>()!;
+        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
 
-      
-        dimmerWindow.NavigateToPage(typeof(SettingsPage));
-        
-        
+        MyViewModel.MainWindow.NavigateToPage(typeof(SettingsPage));
+
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
@@ -505,25 +502,6 @@ public partial class HomePage : ContentPage
     }
 
 
-    private void AllLyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
-    {
-
-
-        var currentList = e.CurrentSelection as IReadOnlyList<object>;
-        var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
-        if (current != null)
-        {
-            var pastList = e.PreviousSelection as IReadOnlyList<object>;
-            if (pastList.Count > 0 && pastList?[0] is Dimmer.Data.ModelView.LyricPhraseModelView past)
-            {
-                past?.NowPlayingLyricsFontSize = 25;
-                past?.HighlightColor = Microsoft.Maui.Graphics.Colors.White;
-            }
-            current?.NowPlayingLyricsFontSize = 30;
-            current?.HighlightColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
-
-        }
-    }
 
 
     private void Slider_Loaded(object sender, EventArgs e)
@@ -770,6 +748,7 @@ public partial class HomePage : ContentPage
     private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
     {
         MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+        MyViewModel.MainWindow.NavigateToPage(typeof(AllSongsListPage));
     }
 
     private void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
@@ -1257,5 +1236,19 @@ public partial class HomePage : ContentPage
             
                 menu.ShowAt(platView, flyoutPlace);
         
+    }
+
+    private void ArtistBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", MyViewModel.CurrentPlayingSongView.ArtistName));
+
+    }
+
+    private void AlbumBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", MyViewModel.CurrentPlayingSongView.AlbumName));
+
     }
 }

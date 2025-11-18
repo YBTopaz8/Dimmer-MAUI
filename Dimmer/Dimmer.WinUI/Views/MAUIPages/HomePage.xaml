@@ -78,7 +78,7 @@
 
         <Grid x:Name="MediaControlsView"
               Grid.Row="1" BackgroundColor="Transparent"
-              IsVisible="True" ColumnDefinitions="*" RowDefinitions="*,auto">
+              IsVisible="True" ColumnDefinitions="*" RowDefinitions="auto,*">
             <Border
  x:Name="NavTab"
  Grid.Row="0"
@@ -107,8 +107,8 @@
          x:Name="NowPlayingSong"
          Aspect="AspectFit"
          Clicked="NowPlayingSong_Clicked"
-                HeightRequest="200"
-                WidthRequest="200"
+                HeightRequest="250"
+                WidthRequest="250"
          Opacity="0.3"
          Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
          ToolTipProperties.Text="Click to view song details"
@@ -212,7 +212,6 @@
          x:Name="AddFavoriteRatingToSong"
                  Command="{Binding AddFavoriteRatingToSongCommand}"
          Loaded="ButtonLoaded"
-         Clicked="AddFavoriteRatingToSong_Clicked"
                  ImageSource="heart.png"
                 Text="{Binding CurrentPlayingSongView.NumberOfTimesFaved}"
          CommandParameter="{Binding CurrentPlayingSongView}">
@@ -265,13 +264,14 @@
          FontSize="16"
          HorizontalOptions="Start"
          Loaded="ButtonLoaded"
+                        Clicked="ArtistBtn_Clicked"
          Text="{Binding CurrentPlayingSongView.ArtistName}"
          TextColor="{AppThemeBinding Light=Black,
                                      Dark=White}"
          ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}" />
                         
                     <Button
-         x:Name="AlbumBtn"
+         x:Name="AlbumBtn" Clicked="AlbumBtn_Clicked"
          Padding="5"
          BackgroundColor="Transparent"
          BorderWidth="0"

@@ -97,44 +97,9 @@ public class LyricsMgtFlow : IDisposable
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(lrcContent))
-            {
-                ClearLyrics();
-                return;
-            }
-            // All the parsing and synchronizer setup logic is now here.
-            var lyricsInfo = new LyricsInfo();
-            lyricsInfo.Parse(lrcContent);
-
-
-            if (lyricsInfo.SynchronizedLyrics.Count == 0)
-            {
-                ClearLyrics();
-                return;
-            }
-
-            // Your existing parsing logic to create List<LyricPhraseModelView> is good.
-            var phrases = lyricsInfo.SynchronizedLyrics
-                .Select(p => new LyricPhraseModelView
-                {
-                    TimestampStart = p.TimestampStart
-                ,
-                    TimeStampMs = p.TimestampEnd
-                ,
-                    Text = p.Text,
-                    IsLyricSynced = true
-                })
-                .OrderBy(p => p.TimestampStart)
-                .ToList();
-
-            for (int i = 0; i < phrases.Count; i++)
-            {
-                phrases[i].DurationMs = (i + 1 < phrases.Count)
-                    ? phrases[i + 1].TimeStampMs - phrases[i].TimeStampMs
-                    : 3000; // Guess duration for the last line
-            }
-
-            _lyrics = phrases;
+            
+            _lyrics= GetListLyricsCol(lrcContent);
+            
             _synchronizer = new LyricSynchronizer(_lyrics);
             _allLyricsSubject.OnNext(_lyrics);
             ResetCurrentLyricDisplay();
@@ -144,6 +109,46 @@ public class LyricsMgtFlow : IDisposable
             _logger.LogError(ex, "Failed to parse and load provided LRC content.");
             ClearLyrics();
         }
+    }
+
+    public static List<LyricPhraseModelView> GetListLyricsCol(string? lrcContent)
+    {
+        if (string.IsNullOrWhiteSpace(lrcContent))
+        {
+            
+            return Enumerable.Empty<LyricPhraseModelView>().ToList();
+        }
+        // All the parsing and synchronizer setup logic is now here.
+        var lyricsInfo = new LyricsInfo();
+        lyricsInfo.Parse(lrcContent);
+
+
+        if (lyricsInfo.SynchronizedLyrics.Count == 0)
+        {
+            return Enumerable.Empty<LyricPhraseModelView>().ToList();
+        }
+
+        // Your existing parsing logic to create List<LyricPhraseModelView> is good.
+       var phrases = lyricsInfo.SynchronizedLyrics
+            .Select(p => new LyricPhraseModelView
+            {
+                TimestampStart = p.TimestampStart
+            ,
+                TimeStampMs = p.TimestampEnd
+            ,
+                Text = p.Text,
+                IsLyricSynced = true
+            })
+            .OrderBy(p => p.TimestampStart)
+            .ToList();
+        for (int i = 0; i < phrases.Count; i++)
+        {
+            phrases[i].DurationMs = (i + 1 < phrases.Count)
+                ? phrases[i + 1].TimeStampMs - phrases[i].TimeStampMs
+                : 3000; // Guess duration for the last line
+        }
+
+        return phrases;
     }
 
     /// <summary>
@@ -251,7 +256,7 @@ public class LyricsMgtFlow : IDisposable
             _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
             // Optionally, save to DB or local storage here.
-            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id, false,onlineLyrics.PlainLyrics, onlineLyrics.SyncedLyrics, true
+            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id, false,onlineLyrics.PlainLyrics, onlineLyrics.SyncedLyrics, false
                 );
             return onlineResults;
 

@@ -78,7 +78,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _coverArtService = coverArtService ?? throw new ArgumentNullException(nameof(coverArtService));
         this.albumRepo = albumModel;
         this.genreRepo = genreModel;
-        LyricsMgtFlow = lyricsMgtFlow;
+        _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
         UserLocal = new UserModelView();
@@ -1029,7 +1029,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IFolderMonitorService folderMonitorService;
     private IRepository<GenreModel> genreRepo;
     private IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
-    public LyricsMgtFlow LyricsMgtFlow;
+    public LyricsMgtFlow _lyricsMgtFlow;
     private MusicRelationshipService musicRelationshipService;
     private MusicArtistryService musicArtistryService;
     private MusicStatsService musicStatsService;
@@ -1219,6 +1219,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial LyricPhraseModelView? CurrentLine { get; set; }
 
     [ObservableProperty]
+    public partial bool IsNowPlayingQueueExpanded { get; set; }
+
+    [ObservableProperty]
     public partial double? ProgressOpacity { get; set; } = 0.6;
 
     [ObservableProperty]
@@ -1316,21 +1319,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string? CurrentNoteToSave { get; set; }
 
-    partial void OnSelectedSongForContextChanged(SongModelView? oldValue, SongModelView? newValue)
-    {
-        if (newValue is not null)
-        {
-            ATL.Track track = new(newValue.FilePath);
 
-            var imgg = track.EmbeddedPictures?.FirstOrDefault()?.PictureData;
-            if (imgg is null)
-            {
-                return;
-            }
-
-            //newValue.CoverImageBytes = ImageResizer.ResizeImage(imgg);
-        }
-    }
 
     private IDialogueService _dialogueService;
     protected ILastfmService lastfmService;
@@ -1502,13 +1491,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
 
+    [ObservableProperty]
+    public partial ObservableCollection<LyricPhraseModelView>? SelectedSongLyricsObsCol { get; set; }
+
 
     async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
+        
         if (newValue is not null)
         {
             SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
+        
+            var lyrics= await _lyricsMetadataService.GetLocalLyricsAsync(newValue);
+
+            SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(lyrics).ToObservableCollection();
         }
+
 
         //LoadSongLastFMData().ConfigureAwait(false);
         //LoadSongLastFMMoreData().ConfigureAwait(false);
@@ -1680,7 +1678,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
-
+    partial void OnFolderPathsChanged(ObservableCollection<string> oldValue, ObservableCollection<string> newValue)
+    {
+        
+    }
     private BaseAppFlow _baseAppFlow;
 
     #region public partials
@@ -2144,6 +2145,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         try
         {
+            if (CurrentPlayingSongView.TitleDurationKey is null) return;
             _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
             await _baseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
@@ -3511,7 +3513,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void SubscribeToLyricsFlow()
     {
         _subsMgr.Add(
-            LyricsMgtFlow.CurrentLyric.ObserveOn(RxSchedulers.UI)
+            _lyricsMgtFlow.CurrentLyric.ObserveOn(RxSchedulers.UI)
             .Subscribe(line =>
             {
                 CurrentPlayingSongView.HasSyncedLyrics = line is not null;
@@ -3519,7 +3521,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }));
         _subsMgr.Add(
 
-            LyricsMgtFlow.IsLoadingLyrics
+            _lyricsMgtFlow.IsLoadingLyrics
             .ObserveOn(RxSchedulers.UI)
                 .Subscribe(isLoading =>
                 {
@@ -3530,7 +3532,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 }));
 
         _subsMgr.Add(
-            LyricsMgtFlow.IsSearchingLyrics
+            _lyricsMgtFlow.IsSearchingLyrics
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(isSearching =>
             {
@@ -3538,7 +3540,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }));
 
 
-        LyricsMgtFlow.AllSyncLyrics
+        _lyricsMgtFlow.AllSyncLyrics
                 .ObserveOn(RxSchedulers.UI)
                 .Subscribe(lines =>
                 {
@@ -3570,7 +3572,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     
 
         _subsMgr.Add(
-            LyricsMgtFlow.PreviousLyric
+            _lyricsMgtFlow.PreviousLyric
                 .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     line =>
@@ -3584,7 +3586,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }));
 
         _subsMgr.Add(
-            LyricsMgtFlow.NextLyric
+            _lyricsMgtFlow.NextLyric
                 .ObserveOn(RxSchedulers.UI)
                 .Subscribe(
                     line =>
@@ -5168,7 +5170,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
-            LyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
+            _lyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
 
 
             var lyricsInfo = new LyricsInfo();
@@ -5221,7 +5223,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SelectedSong.HasLyrics = false;
 
 
-        LyricsMgtFlow.LoadLyrics(string.Empty);
+        _lyricsMgtFlow.LoadLyrics(string.Empty);
     }
 
     [RelayCommand]
@@ -6962,6 +6964,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsLastFMNeedsToConfirm { get; set; }
+    partial void OnIsLastFMNeedsToConfirmChanging(bool oldValue, bool newValue)
+    {
+        AutoConfirmLastFM(newValue);
+    }
+    public virtual bool AutoConfirmLastFM(bool val) => val;
 
     [ObservableProperty]
     public partial bool IsLastFMNeedsUsername { get; set; }
@@ -7000,10 +7007,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             string? webUrl = await lastfmService.GetAuthenticationUrlAsync();
 
             if (string.IsNullOrEmpty(webUrl)) return;
-            IsLastFMNeedsToConfirm = true;
+            
+            
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = true;
             await Launcher.Default.OpenAsync(new Uri(webUrl));
+            MainThread.BeginInvokeOnMainThread(()=> IsLastFMNeedsToConfirm = true);
         }
         catch (Exception ex)
         {
@@ -7017,8 +7026,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task CompleteLastFMLoginAsync()
     {
         IsBusy = true;
+        if (!IsLastFMNeedsToConfirm) return;
         try
         {
+
             string? lastFMUName = UserLocal.LastFMAccountInfo.Name;
             if (string.IsNullOrEmpty(lastFMUName)) return;
 
@@ -7072,10 +7083,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         }
         if (SelectedSong.ArtistToSong is null) return;
-        var artistName = SelectedSong.ArtistToSong[0]!.Name;
+
+        var realm = RealmFactory.GetRealmInstance();
+        var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+
+        if(songInDb is null  || songInDb.ArtistToSong.Count == 0)
+        {
+            return;
+        }
+        var artistName = songInDb.ArtistToSong[0]!.Name;
         artistName ??= string.Empty;
 
-        SelectedSongLastFMData = await lastfmService.GetTrackInfoAsync(artistName, SelectedSong.Title);
+        SelectedSongLastFMData = await lastfmService.GetTrackInfoAsync(artistName, songInDb.Title);
         if (SelectedSongLastFMData is null)
         {
             return;
@@ -7083,7 +7102,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await UpdateSongFromLastFMDataAsync();
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
         
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, SelectedSong.AlbumName);
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, songInDb.AlbumName);
 
         await UpdateSongArtistInDbWithLastFMData();
         await UpdateSongAlbumInDbWithLastFMData();

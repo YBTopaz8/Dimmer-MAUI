@@ -42,12 +42,15 @@ using Colors = Microsoft.UI.Colors;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using DataTemplateSelector = Microsoft.UI.Xaml.Controls.DataTemplateSelector;
 using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
+using GeneralTransform = Microsoft.UI.Xaml.Media.GeneralTransform;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
+using Point = System.Drawing.Point;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
+using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Visual = Microsoft.UI.Composition.Visual;
 using VisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
@@ -147,12 +150,12 @@ public sealed partial class AllSongsListPage : Page
     private void ButtonHover_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
         
-     ButtonAnims.AnimateBtnPointerEntered((Button)sender, _compositor);
+     UIControlsAnims.AnimateBtnPointerEntered((Button)sender, _compositor);
     }
 
     private void ButtonHover_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-     ButtonAnims.AnimateBtnPointerExited((Button)sender, _compositor);
+     UIControlsAnims.AnimateBtnPointerExited((Button)sender, _compositor);
      
     }
     private void CardBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -683,73 +686,6 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-
-    private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-    {
-        var send = (sender as MenuFlyoutItem);
-        if (send == null)
-            return;
-        // Handle the click event for the MenuFlyoutItem
-        var selectedSongs = MySongsTableView.SelectedItems
-            .OfType<SongModelView>()
-            .ToList();
-        if (selectedSongs.Count == 0)
-        {
-            // If no songs are selected, you might want to show a message or handle it accordingly
-            Debug.WriteLine("No songs selected.");
-            return;
-        }
-        // Perform the action based on the MenuFlyoutItem clicked
-        switch (send.Name)
-        {
-            case "PlaySelected":
-                // Play the selected songs
-                await MyViewModel.PlayNextSongsImmediately(selectedSongs);
-                break;
-            case "AddToQueue":
-                // Add the selected songs to the queue
-                MyViewModel.AddListOfSongsToQueueEnd(selectedSongs);
-                break;
-            case "DeleteSelected":
-                // Delete the selected songs
-                MyViewModel.DeleteSongsCommand.Execute(selectedSongs);
-                break;
-            case "AddToPlaylist":
-                // Add the selected songs to a playlist
-                //await MyViewModel.AddToPlaylist(selectedSongs);
-                break;
-            case "AddToFavorites":
-                // Add the selected songs to favorites
-                //MyViewModel.AddToFavorites(selectedSongs);
-                break;
-            case "RemoveFromFavorites":
-                // Remove the selected songs from favorites
-                //MyViewModel.RemoveFromFavorites(selectedSongs);
-                break;
-            case "AddNotes":
-                // Add notes to the selected songs
-                //await MyViewModel.AddNotesToSongs(selectedSongs);
-                break;
-            case "EditTags":
-                // Edit tags for the selected songs
-                //await MyViewModel.EditTagsForSongs(selectedSongs);
-                break;
-            case "OpenFileLocation":
-                // Open the file location of the selected songs
-                //MyViewModel.OpenFileLocationForSongs(selectedSongs);
-                break;
-            case "CopyToClipboard":
-                // Copy the selected songs to the clipboard
-
-                break;
-
-            default:
-                Debug.WriteLine($"Unknown action: {send.Name}");
-                break;
-        }
-        //MyViewModel.DeleteSongs()
-    }
-
     private void MySongsTableView_CellContextFlyoutOpening(object sender, TableViewCellContextFlyoutEventArgs e)
     {
         e.Handled = true;
@@ -1049,7 +985,7 @@ public sealed partial class AllSongsListPage : Page
         }
         var updateKind = pointerProps.PointerUpdateKind;
         // if it is a middle click, exclude in tql explictly
-
+        
         if (updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased
             || updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonPressed)
         {
@@ -1207,7 +1143,7 @@ public sealed partial class AllSongsListPage : Page
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-
+        
         var vm = e.Parameter as BaseViewModelWin;
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
@@ -1224,6 +1160,9 @@ public sealed partial class AllSongsListPage : Page
             }
 
             MyViewModel = vm;
+
+            MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
+
 
             MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
@@ -1678,10 +1617,6 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void Animated_GotItem(object sender, RoutedEventArgs e)
-    {
-
-    }
 
     private void NowPlayingQueueExpander_Loaded(object sender, RoutedEventArgs e)
     {
@@ -1695,7 +1630,7 @@ public sealed partial class AllSongsListPage : Page
 
     private async void PlaySongBtn_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        var send = (Microsoft.UI.Xaml.Controls.Button)sender;
+        var send = (FrameworkElement)sender;
         var song = send.DataContext as SongModelView;
         if (MyViewModel.PlaybackQueue.Count < 1)
         {
@@ -1722,24 +1657,13 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void PlaySongBtn_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        Button playSongBtn = (sender as Button)!;
-        if (playSongBtn != null)
-        {
-            if (_isHovered || _isAnimating) return;
-            _isHovered = true;
-            AnimateScaleControlUp(playSongBtn);
-        }
-    }
     private async void AnimateScaleControlUp(FrameworkElement btn)
     {
         try
         {
             var song= btn.DataContext as SongModelView;
             if(song is null) return;
-            if (song.CoverImagePath is null)
-                return;
+            
 
             await btn.DispatcherQueue.EnqueueAsync(() => { });
             var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
@@ -1751,14 +1675,20 @@ public sealed partial class AllSongsListPage : Page
             rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
             rootVisual.StartAnimation("Scale", scale);
 
-            var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
-            FocusedSongImage.Source = img;
+            if (song.CoverImagePath is not null)
+            {
 
+                var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
+                FocusedSongImage.Source = img;
+            }
             FocusedSongTextBlockTitle.Content = song.Title;
             FocusedSongTextBlockArtistName.Content = song.ArtistName;
             FocusedSongTextBlockAlbumName.Content = song.AlbumName;
             FocusedSongTextBlockGenre.Content = song.GenreName;
-
+            FocusedSongTextBlockHasSyncLyrics.Content = song.HasSyncedLyrics ? "Has Synced Lyrics" : "No Synced Lyrics";
+            FocusedSongTextBlockIsFav.Content = song.IsFavorite ? "Favorite Song" : "Not Favorite";
+            FocusedSongTextBlockIsFav.Visibility = song.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
+            FocusedSongTextBlockLastTimePlayed.Content = song.LastPlayed != null ? $"Last Played: {song.LastPlayed.Value.ToLocalTime().ToString("g")}" : "Never Played";
 
         }
         catch (Exception ex)
@@ -2003,5 +1933,67 @@ public sealed partial class AllSongsListPage : Page
             ViewQueueStackPanel.Visibility = Visibility.Collapsed;
             ViewQueue.Content = "View Queue";
         }
+    }
+
+    private void BorderOfSongInPBQueue_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        var btn = (FrameworkElement)sender;
+
+        AnimateScaleControlUp(btn);
+
+    }
+
+    private void BorderOfSongInPBQueue_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        Border send = (Border)sender;
+        UIControlsAnims.AnimateBorderPointerExited(send, _compositor);
+    }
+
+    private void CardBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        ViewSongBtn_Click(sender, e);
+    }
+
+    private void animatedScrollRepeater_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+       
+        var currentList = e.AddedItems as IList<object>;
+
+        var testt = currentList?.FirstOrDefault()?.GetType();
+        Debug.WriteLine($"Type of current selected item: {testt}");
+        var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
+        if (current != null)
+        {
+            var pastList = e.RemovedItems as IReadOnlyList<object>;
+            if (pastList is not null)
+            {
+                if (pastList.Count > 0 && pastList?[0] is Dimmer.Data.ModelView.LyricPhraseModelView past)
+                {
+                    past?.NowPlayingLyricsFontSize = 19;
+                    past?.HighlightColor = Microsoft.Maui.Graphics.Colors.White;
+                    past?.IsHighlighted = false;
+                }
+            }
+            current?.NowPlayingLyricsFontSize = 29;
+            current?.IsHighlighted = true;
+            current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                var container = animatedScrollRepeater.ContainerFromItem(current) as ListViewItem;
+                if (container != null)
+                {
+                    container.UpdateLayout();
+                    container.StartBringIntoView(new BringIntoViewOptions
+                    {
+                        AnimationDesired = true,
+                        VerticalAlignmentRatio = 0.5 // 0 = top, 0.5 = center
+                    });
+                }
+
+            });
+
+        }
+
     }
 }

@@ -87,6 +87,7 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
+        return;
         MyViewModel?.MainWindow.ContentFrame.GoBack();
     }
 }

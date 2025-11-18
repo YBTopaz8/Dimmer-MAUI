@@ -1,6 +1,7 @@
 ﻿
 using System.Drawing.Imaging;
 
+using Microsoft.Maui.Controls;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -8,8 +9,10 @@ using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
 using Windows.Graphics;
+using Windows.UI.Composition;
 
 using Application = Microsoft.Maui.Controls.Application;
+using Compositor = Microsoft.UI.Composition.Compositor;
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using ImageSource = Microsoft.Maui.Controls.ImageSource;
@@ -611,4 +614,54 @@ public static class PlatUtils
 
     }
 
+    internal static void ApplyEntranceEffect(Microsoft.UI.Composition.Visual visual, FrameworkElement element, SongTransitionAnimation _userPrefAnim, Microsoft.UI.Composition.Compositor _compositor)
+    {
+        visual.CenterPoint = new Vector3(
+            (float)element.ActualWidth / 2f,
+            (float)element.ActualHeight / 2f,
+            0f);
+
+        switch (_userPrefAnim)
+        {
+            case SongTransitionAnimation.Fade:
+                visual.Opacity = 0f;
+                var fade = _compositor.CreateScalarKeyFrameAnimation();
+                fade.InsertKeyFrame(1f, 1f);
+                fade.Duration = TimeSpan.FromMilliseconds(350);
+                visual.StartAnimation("Opacity", fade);
+                break;
+
+            case SongTransitionAnimation.Scale:
+                visual.Scale = new Vector3(0.85f);
+                var scale = _compositor.CreateVector3KeyFrameAnimation();
+                scale.InsertKeyFrame(1f, Vector3.One);
+                scale.Duration = TimeSpan.FromMilliseconds(350);
+                visual.StartAnimation("Scale", scale);
+                break;
+
+            case SongTransitionAnimation.Slide:
+                visual.Offset = new Vector3(60f, 0f, 0f);
+                var slide = _compositor.CreateVector3KeyFrameAnimation();
+                slide.InsertKeyFrame(1f, Vector3.Zero);
+                slide.Duration = TimeSpan.FromMilliseconds(350);
+                visual.StartAnimation("Offset", slide);
+                break;
+
+            case SongTransitionAnimation.Spring:
+            default:
+
+                var original = visual.Offset;
+
+
+                visual.Offset = new Vector3(original.X, original.Y + 40f, 0f);
+
+                var spring = _compositor.CreateSpringVector3Animation();
+                spring.FinalValue = original;
+                spring.DampingRatio = 0.55f;
+                spring.Period = TimeSpan.FromMilliseconds(350);
+
+                visual.StartAnimation("Offset", spring);
+                break;
+        }
+    }
 }

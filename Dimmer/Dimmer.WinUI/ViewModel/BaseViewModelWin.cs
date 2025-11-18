@@ -830,11 +830,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [RelayCommand]
     private async Task NowPlayingQueueBtnClicked()
     {
-        var dimmerWin = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
-        if (dimmerWin is null) return;
+        MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+        if (MainWindow is null) return;
 
         await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
-        dimmerWin.NavigateToPage(typeof(AllSongsListPage));
+        
 
     }
 
@@ -1127,4 +1127,62 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     static string BuildDiscogsArtistSearchUrl(string artist) =>
         $"https://www.discogs.com/search/?q={Uri.EscapeDataString(artist)}&type=artist";
 
+    [ObservableProperty]
+    public partial WinUIVisibility IsBackButtonVisible { get; set; }
+
+    partial void OnIsBackButtonVisibleChanged(WinUIVisibility oldValue, WinUIVisibility newValue)
+    {
+        
+
+
+    }
+    [ObservableProperty]
+    public partial bool AutoConfirmLastFMVar { get; set; }
+    public override bool AutoConfirmLastFM(bool val)
+    {
+
+        AutoConfirmLastFMVar = base.AutoConfirmLastFM(val);
+
+        return AutoConfirmLastFMVar;
+    }
+
+    public async Task CheckToCompleteActivation()
+    {
+
+        if (AutoConfirmLastFMVar)
+        {
+            ContentDialog lastFMConfirmDialog = new ContentDialog
+            {
+                Title = "LAST FM Confirm",
+                Content = "Is Authorization done?",
+                PrimaryButtonText = "Yes",
+                CloseButtonText = "No",
+                XamlRoot = MainWindow.ContentFrame.XamlRoot
+
+            };
+            var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
+
+            if (isLastFMAuthorized)
+            {
+                await CompleteLastFMLoginAsync();
+            }
+            else
+            {
+                IsLastFMNeedsToConfirm = false;
+                ContentDialog cancelledDialog = new ContentDialog
+                {
+                    Title = "Action Cancelled",
+                    Content = "Last FM Authorization Cancelled",
+                    CloseButtonText = "OK",
+                    XamlRoot = MainWindow.ContentFrame.XamlRoot
+                };
+                await cancelledDialog.ShowAsync();
+
+            }
+        }
+
+
+
+
+    }
 }

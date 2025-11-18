@@ -88,6 +88,8 @@ public sealed partial class ArtistPage : Page
             MyViewModel.CurrentWinUIPage = this;
             DetailedSong = args.Song;
         }
+        MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
+
         this.DataContext = MyViewModel;
         Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
         Visual? visual2 = ElementCompositionPreview.GetElementVisual(DestinationElement);
@@ -246,4 +248,20 @@ public sealed partial class ArtistPage : Page
     {
 
     }
+
+    private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props.IsXButton1Pressed)
+        {
+            if (Frame.CanGoBack)
+            {
+                //var image = detailedImage;
+                //ConnectedAnimationService.GetForCurrentView()
+                //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+                Frame.GoBack();
+            }
+        }
+    }
+
 }

@@ -17,6 +17,7 @@
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+        xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     x:Name="MyPageGrid"
     Loaded="MyPageGrid_Loaded"
@@ -25,6 +26,8 @@
 
     <Page.Resources>
         <ResourceDictionary>
+            
+              
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Default">
                     <media:AcrylicBrush
@@ -39,6 +42,9 @@
                         TintOpacity="0.8" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter"/>
+            <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter"/>
 
             <DataTemplate x:Key="ColorTemplate" x:DataType="SolidColorBrush">
                 <StackPanel AutomationProperties.Name="{x:Bind Color}" Orientation="Horizontal">
@@ -60,13 +66,18 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <Grid 
+            Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+        
         <StackPanel
-            Grid.Row="0"
-            Padding="10"
             
             PointerReleased="StackPanel_PointerReleased"
             BorderThickness="1"
-            CornerRadius="20"
+            CornerRadius="00"
             Spacing="5">
 
 
@@ -85,9 +96,10 @@
                 <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
 
 
+                    <Button Content="Shuffle"
+        Command="{Binding RandomizeCommand}"/>
 
-
-            </StackPanel>
+                </StackPanel>
 
             <StackPanel x:Name="SearchTextBoxPanel"
                 HorizontalAlignment="Left"
@@ -109,6 +121,8 @@
 
             </StackPanel>
 
+            <TextBlock Text="{Binding CurrentTqlQuery}" />
+
             <StackPanel x:Name="ViewQueueStackPanel"  Grid.Column="0" Orientation="Horizontal" Spacing="15"
                         Visibility="Collapsed"
                         PointerPressed="ViewQueueStackPanel_PointerPressed"
@@ -122,7 +136,7 @@
                               VerticalAlignment="Top" 
                               CornerRadius="12" HorizontalAlignment="Center"
                               Expanding="NowPlayingQueueExpander_Expanding"
-                          IsEnabledChanged="NowPlayingQueueExpander_IsEnabledChanged"
+                              IsExpanded="{x:Bind MyViewModel.IsNowPlayingQueueExpanded}"
                               BorderBrush="Transparent"
                               BorderThickness="3">
                         <Expander.Header>
@@ -133,30 +147,29 @@
                             </StackPanel>
                         </Expander.Header>
                         <Expander.Content>
-                            <dgView:TableView 
-            x:Name="MyPlaybackQueueSongsTableView"
-                               AutoGenerateColumns="False" >
-
-
-                                <dgView:TableViewTemplateColumn
-                                    IsReadOnly="True" x:Name="QueueTitle"
-                                    Header="Title">
-                                    <dgView:TableViewTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid HorizontalAlignment="Center">
-                                                <TextBlock
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                      
-                    Text="{Binding Title}"                    
-                     />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </dgView:TableViewTemplateColumn.CellTemplate>
-
-                                </dgView:TableViewTemplateColumn>
-
-                            </dgView:TableView>
+                            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.PlaybackQueue}"
+                                           >
+                                <ItemsRepeater.Layout>
+                                    <UniformGridLayout
+                                        Orientation="Vertical"
+                                        MinRowSpacing="3"/>
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate >
+                                        <Border BorderThickness="1" BorderBrush="Gray"
+                                                PointerEntered="BorderOfSongInPBQueue_PointerEntered" x:Name="BorderOfSongInPBQueue"
+                                                PointerExited="BorderOfSongInPBQueue_PointerExited"
+                                                DoubleTapped="PlaySongBtn_DoubleTapped"
+                                                
+                                                Padding="5" CornerRadius="5" Width="200">
+                                            <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontSize="19"/>
+                                                <TextBlock Text="{Binding ArtistName}" FontSize="14"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
                         </Expander.Content>
                     </Expander>
                             
@@ -164,9 +177,15 @@
                 <StackPanel x:Name="SidePanelForSelectedSong" 
                             Visibility="Collapsed" HorizontalAlignment="Center"
                             Spacing="15">
-                    <Image x:Name="FocusedSongImage"
+                        <Grid Height="150">
+
+                            <Image Source="/Dimmer/Resources/Images/lyrics.svg"
+                                           Height="40" 
+                                           Grid.Row="0"/>
+                            <Image x:Name="FocusedSongImage"
                            HorizontalAlignment="Left"
                            MaxHeight="150" MaxWidth="150"/>
+                    </Grid>
                     <Button x:Name="FocusedSongTextBlockTitle"
                                Content="Title"/>
                     <Button x:Name="FocusedSongTextBlockArtistName"
@@ -186,6 +205,39 @@
             </StackPanel>
         </StackPanel>
 
+            <StackPanel Grid.Column="1" Visibility="{Binding IsDimmerPlaying, Converter={StaticResource BoolToVisibilityConverter}}">
+                
+                    <ListView x:Name="animatedScrollRepeater" ItemsSource="{Binding AllLines}"
+                                   SelectionChanged="animatedScrollRepeater_SelectionChanged"
+                              SelectionMode="Single"
+                              
+                              SelectedItem="{Binding CurrentLine}"
+                    Grid.Column="0"
+                    Height="150"
+                    MaxWidth="550">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border>
+                                    <Grid>
+                                        <Border
+        
+        
+        Opacity="0.7"
+        BorderBrush="DarkSlateBlue" />
+
+                                        <TextBlock
+        FontSize="{Binding NowPlayingLyricsFontSize}"
+        HorizontalTextAlignment="Center" TextWrapping="Wrap"
+        Text="{Binding Text}"
+         />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+            </StackPanel>
+        </Grid>
 
         <dgView:TableView
             x:Name="MySongsTableView"
@@ -194,7 +246,7 @@
             AllowFocusOnInteraction="False"
             AllowFocusWhenDisabled="False"
             AutoGenerateColumns="False"
-            BringIntoViewRequested="TableView_BringIntoViewRequested"
+            
             
             CanDragItems="True"
             CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
@@ -246,8 +298,7 @@
                                 Margin="3,5,3,-20"
                                 AllowFocusOnInteraction="False"
                                 BorderThickness="1"
-                                CornerRadius="12" 
-                                
+                                CornerRadius="12"  Background="Transparent"
                                 IsDoubleTapEnabled="True"
                                 DoubleTapped="CardBorder_DoubleTapped"
                                 IsHitTestVisible="True"
@@ -255,6 +306,7 @@
                                 PointerEntered="CardBorder_PointerEntered"
                                 PointerExited="CardBorder_PointerExited">
                                 <Grid x:Name="CoverImageGrid" 
+                                PointerReleased="CardBorder_PointerReleased"
                                 >
 
                                     <Grid.RowDefinitions>
@@ -263,11 +315,12 @@
                                     </Grid.RowDefinitions>
 
                                     <!--  You can even overlay a "favorite" icon like in your example  -->
+
                                     <Image
                                         x:Name="coverArtImage"
                                         Grid.Row="0"
                                         Width="180"
-                                        Height="180"
+                                        Height="180" 
                                         x:FieldModifier="Public"
                                         
                                         Source="{Binding CoverImagePath}"
@@ -367,6 +420,7 @@
                 <dgView:TableViewTextColumn
                     Binding="{Binding GenreName}"
                     Header="Genre" x:Name="GenreName"
+                    MaxWidth="210"
                     IsReadOnly="True" />
                 <dgView:TableViewTextColumn
                     Binding="{Binding FileFormat}"
