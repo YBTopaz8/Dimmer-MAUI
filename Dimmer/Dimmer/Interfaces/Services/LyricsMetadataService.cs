@@ -485,7 +485,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// <returns>True if both operations succeed.</returns>
     /// 
 
-    public async Task<bool> SaveLyricsForSongAsync(ObjectId SongID, string? plainLyrics, string? syncedLyrics,bool isInstrument=false)
+    public async Task<bool> SaveLyricsForSongAsync(ObjectId SongID,bool publishAfterSave, string? plainLyrics, string? syncedLyrics,bool isInstrument=false)
     {
         var song = _songRepository.GetById(SongID);
         if (string.IsNullOrEmpty(song?.FilePath))

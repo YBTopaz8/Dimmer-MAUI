@@ -3,6 +3,9 @@
 using CommunityToolkit.Maui.Behaviors;
 using CommunityToolkit.WinUI;
 
+using Dimmer.Utilities.CustomAnimations;
+
+
 
 //using Dimmer.DimmerLive;
 //using Dimmer.DimmerSearch;
@@ -1080,14 +1083,14 @@ public partial class HomePage : ContentPage
 
             native.PointerEntered += (s, _) =>
             {
-                AnimateHover(native, true);
+                PlatUtils.AnimateHoverUIElement(native, true, _compositor);
                 send.BorderWidth= 2;
                 send.BorderColor = Colors.DarkSlateBlue;
 
             };
             native.PointerExited += (s, _) =>
             {
-                AnimateHover(native, false); 
+                PlatUtils.AnimateHoverUIElement(native, false, _compositor); 
                 send.BorderWidth = 0;
                 send.BorderColor = Colors.Transparent;
             };
@@ -1098,58 +1101,7 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void AnimateHover(Microsoft.UI.Xaml.UIElement element, bool isHover)
-    {
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-
-        // scale up / down
-        var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-        scaleAnim.Duration = TimeSpan.FromMilliseconds(250);
-        scaleAnim.InsertKeyFrame(1f, isHover
-            ? new System.Numerics.Vector3(1.2f)
-            : new System.Numerics.Vector3(1f));
-
-        // keep scale centered
-        visual.CenterPoint = new System.Numerics.Vector3(
-            (float)element.RenderSize.Width / 2,
-            (float)element.RenderSize.Height / 2,
-            0);
-
-        visual.StartAnimation(nameof(visual.Scale), scaleAnim);
-
-        // OPTIONAL: subtle fade instead of full vanish
-        var opacityAnim = _compositor.CreateScalarKeyFrameAnimation();
-        opacityAnim.Duration = TimeSpan.FromMilliseconds(250);
-        opacityAnim.InsertKeyFrame(1f, isHover ? 1f : 0.85f);   // not 0
-        visual.StartAnimation(nameof(visual.Opacity), opacityAnim);
-        
-
-    }
-    private async void AnimateBorderColor(Border border, bool isHover)
-    {
-        if (border.Stroke is not Microsoft.Maui.Controls.SolidColorBrush solid)
-            return;
-
-        var start = solid.Color;
-        var end = isHover ? Colors.DarkSlateBlue : Colors.Transparent;
-        const int steps = 20;
-        const int durationMs = 200;
-
-        for (int i = 1; i <= steps; i++)
-        {
-            float t = i / (float)steps;
-
-            var color = new Microsoft.Maui.Graphics.Color(
-                start.Red + (end.Red - start.Red) * t,
-                start.Green + (end.Green - start.Green) * t,
-                start.Blue + (end.Blue - start.Blue) * t,
-                start.Alpha + (end.Alpha - start.Alpha) * t);
-
-            solid.Color = color;
-            await Task.Delay(durationMs / steps);
-        }
-    }
-
+ 
     private void SetupChainedAnimations(Microsoft.UI.Xaml.UIElement[] buttons)
     {
         for (int i = 1; i < buttons.Length; i++)
@@ -1181,14 +1133,14 @@ public partial class HomePage : ContentPage
 
             native.PointerEntered += (s, _) =>
             {
-                AnimateHover(native, true);
+               PlatUtils.AnimateHoverUIElement(native, true, _compositor);
 
 
                 //AnimateBorderColor(send, true);
             };
             native.PointerExited += (s, _) =>
             {
-                AnimateHover(native, false);
+                PlatUtils.AnimateHoverUIElement(native, false, _compositor);
                 //AnimateBorderColor(send, false);
             };
 

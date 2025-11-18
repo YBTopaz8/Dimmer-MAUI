@@ -581,4 +581,34 @@ public static class PlatUtils
         }
         return null;
     }
+
+    public static void AnimateHoverUIElement(Microsoft.UI.Xaml.UIElement element, bool isHover, Microsoft.UI.Composition.Compositor _compositor)
+    {
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+
+        // scale up / down
+        var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
+        scaleAnim.Duration = TimeSpan.FromMilliseconds(250);
+        scaleAnim.InsertKeyFrame(1f, isHover
+            ? new System.Numerics.Vector3(1.2f)
+            : new System.Numerics.Vector3(1f));
+
+        // keep scale centered
+        visual.CenterPoint = new System.Numerics.Vector3(
+            (float)element.RenderSize.Width / 2,
+            (float)element.RenderSize.Height / 2,
+            0);
+
+        visual.StartAnimation(nameof(visual.Scale), scaleAnim);
+
+        // OPTIONAL: subtle fade instead of full vanish
+        var opacityAnim = _compositor.CreateScalarKeyFrameAnimation();
+        opacityAnim.Duration = TimeSpan.FromMilliseconds(250);
+        opacityAnim.InsertKeyFrame(1f, isHover ? 1f : 0.85f);   // not 0
+        visual.StartAnimation(nameof(visual.Opacity), opacityAnim);
+
+
+    }
+
 }

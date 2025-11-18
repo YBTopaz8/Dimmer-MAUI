@@ -24,29 +24,48 @@
 
         <StackPanel Grid.Row="0" x:Name="TopPanel" Background="Transparent"
               PointerReleased="TopPanel_PointerReleased">
-            <Grid>
+            <Grid 
+            Padding="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
 
-                    <StackPanel
-                    x:Name="TopPanelTwo"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="10">
+                    <StackPanel  Orientation="Horizontal" Spacing="10"  HorizontalAlignment="Center">
+
                         <Button
 x:Name="BackButton" Background="Transparent"
-Click="BackButton_Click"
+Click="BackButton_Click" 
 Content="&#xE72B;"
 FontFamily="Segoe MDL2 Assets" />
-                        <Button Content="Prev"
-                                x:Name="PrevBtn" 
+                        <TextBlock 
+    VerticalAlignment="Center"
+    Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay, Converter={StaticResource DurationConverter}}"
+    />
+                        <Slider Value="{x:Bind MyViewModel.CurrentTrackPositionPercentage, Mode=OneWay}"
+    Minimum="0" Maximum="100" VerticalAlignment="Center"
+       Width="400"/>
+
+                        <TextBlock 
+                        VerticalAlignment="Center"
+                        Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay, Converter={StaticResource DurationConverter}}"
+                        />
+
+
+                    </StackPanel>
+                    <StackPanel
+                    x:Name="TopPanelTwo"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal" Margin="180,0,0,0"
+                    Spacing="10">
+                        <Button Content="Prev" 
+                                x:Name="PrevBtn" AccessKey="B"
                                 Command="{Binding PreviousTrackCommand}"/>
                         <Button Content="{Binding IsDimmerPlaying,
                             Converter={StaticResource BoolToPlayingPauseConverter}}" x:Name="PlayBtn"
                                 Command="{Binding PlayPauseToggleCommand}"
+                                AccessKey="P"
                                 />
                         <Button AccessKey="N"
                                 AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
@@ -75,22 +94,6 @@ FontFamily="Segoe MDL2 Assets" />
 
                     </StackPanel>
                
-                <StackPanel  Orientation="Horizontal" Spacing="10" Margin="10" HorizontalAlignment="Center">
-                    <TextBlock 
-    VerticalAlignment="Center"
-    Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay, Converter={StaticResource DurationConverter}}"
-    />
-                    <Slider Value="{x:Bind MyViewModel.CurrentTrackPositionPercentage, Mode=OneWay}"
-    Minimum="0" Maximum="100" VerticalAlignment="Center"
-       Width="400"/>
-                    
-                    <TextBlock 
-                        VerticalAlignment="Center"
-                        Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay, Converter={StaticResource DurationConverter}}"
-                        />
-                
-                
-                </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1"  Orientation="Horizontal">
                     <TextBlock

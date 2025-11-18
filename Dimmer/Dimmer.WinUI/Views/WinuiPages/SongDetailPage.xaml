@@ -38,27 +38,34 @@
 
 
     <Grid>
+        
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Orientation="Horizontal" Grid.Column="0" >
-                <StackPanel Grid.Column="0" Margin="12"  >
-                   
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border Background="#111" Grid.Row="0" Height="50" VerticalAlignment="Top">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12">
+                    <TextBlock x:Name="CurrentSectionLabel"
+                           Text="Overview"
+                           FontSize="18"
+                           FontWeight="SemiBold"/>
                 </StackPanel>
-            </StackPanel>
+            </Border>
             <!--  Main content area  -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Background="Transparent">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                      Margin="0,50,0,0" x:Name="Scroller"
+                          
+                          ViewChanged="ScrollViewer_ViewChanged"
+                          Grid.Row="1" Background="Transparent">
                 <StackPanel
-            Padding="24"
+            Padding="24" x:Name="SegmentStack"
             Orientation="Vertical"
             Spacing="20" >
 
                     <!--  The elements involved in the animation  -->
 
-                    <Grid ColumnSpacing="10" >
+                    <Grid ColumnSpacing="10" x:Name="SectionOverview">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -116,13 +123,96 @@
                         </Border>
                     </Grid>
 
-                    <!--  This panel's animation will be coordinated with the main one  -->
+                    <StackPanel x:Name="SectionPlayback" Height="400" Background="LightGray">
+
+                        <ItemsRepeater>
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MaximumRowsOrColumns="3" />
+                            </ItemsRepeater.Layout>
+
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        Margin="6"
+                                        Padding="12">
+
+                                        <StackPanel>
+                                            
+                                        <TextBlock Text="Item" Foreground="Black"/>
+
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                    </StackPanel>
+
+                    <!-- SECTION 3: LYRICS -->
+                    <StackPanel x:Name="SectionLyrics" Height="1" Visibility="Collapsed" Background="WhiteSmoke">
+                        <TextBlock Margin="20" Text="Lyrics Section" FontSize="24"/>
+                        <TextBlock Margin="20" Text="{x:Bind MyViewModel.SelectedSong.SyncLyrics}" FontSize="24"/>
+                        
+                    </StackPanel>
+
+                    <!-- SECTION 4: ANALYTICS -->
+                    <StackPanel x:Name="SectionAnalytics" Background="Gainsboro">
+                        <TextBlock Margin="20" Text="Analytics Section" FontSize="24"/>
+                        <Button x:Name="ManualFavoriteCount" Content="{x:Bind MyViewModel.SelectedSong.ManualFavoriteCount}"/>
+                        <Button x:Name="PlayCompletedCount" Content="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount}"/>
+                        <Button x:Name="PlayCount" Content="{x:Bind MyViewModel.SelectedSong.PlayCount}"/>
+                        <Button x:Name="PlayEventsCount" Content="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count}"/>
+                        <Button x:Name="ListenThroughRate" Content="{x:Bind MyViewModel.SelectedSong.ListenThroughRate}"/>
+                        <Button x:Name="PlayStreakDays" Content="{x:Bind MyViewModel.SelectedSong.PlayStreakDays}"/>
+                        <Button x:Name="PreviousCount" Content="{x:Bind MyViewModel.SelectedSong.PreviousCount}"/>
+                        <Button x:Name="RankInAlbum" Content="{x:Bind MyViewModel.SelectedSong.RankInAlbum}"/>
+                        <Button x:Name="RankInArtist" Content="{x:Bind MyViewModel.SelectedSong.RankInArtist}"/>
+                        <Button x:Name="RepeatCount" Content="{x:Bind MyViewModel.SelectedSong.RepeatCount}"/>
+                        <Button x:Name="RestartCount" Content="{x:Bind MyViewModel.SelectedSong.RestartCount}"/>
+                        <Button x:Name="ResumeCount" Content="{x:Bind MyViewModel.SelectedSong.ResumeCount}"/>
+                        <Button x:Name="SeekCount" Content="{x:Bind MyViewModel.SelectedSong.SeekCount}"/>
+                        <Button x:Name="SkipCount" Content="{x:Bind MyViewModel.SelectedSong.SkipCount}"/>
+                        <Button x:Name="SkipRate" Content="{x:Bind MyViewModel.SelectedSong.SkipRate}"/>
+                        <Button x:Name="Rating" Content="{x:Bind MyViewModel.SelectedSong.Rating}"/>
+                    </StackPanel>
+
+                    <!-- SECTION 5: HISTORY -->
+                    <StackPanel x:Name="SectionHistory" Height="400" Background="WhiteSmoke">
+                        <TextBlock Margin="20" Text="History Section" FontSize="24"/>
+                        <ItemsRepeater ItemsSource="{x:Bind DetailedSong.PlayEvents}">
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding PlayTypeStr}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
 
 
-                    <!--  More info can go here  -->
-                    <StackPanel x:Name="secondPanel" Margin="0,20,0,0">
-                        <TextBlock Style="{ThemeResource SubheaderTextBlockStyle}" Text="More Details..." />
-                        <!--  Add more details like Genre, Year, etc.  -->
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+
+                    <!-- SECTION 6: RELATED -->
+                    <StackPanel x:Name="SectionRelated" Height="400" Background="LightGray">
+                        <TextBlock Margin="20" Text="Related Section" FontSize="24"/>
+                        <StackPanel Orientation="Horizontal">
+
+                            <TextBlock Margin="20" Text="{x:Bind MyViewModel.SelectedSongLastFMData.Statistics.Listeners}" FontSize="24"/>
+                            <TextBlock Margin="20" Text="Listeners"
+                                       ToolTipService.ToolTip="Total LastFM Listeners"
+                                       FontSize="24"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+
+                            <TextBlock Margin="20" Text="{x:Bind MyViewModel.SelectedSongLastFMData.Statistics.PlayCount}" FontSize="24"/>
+                            <TextBlock Margin="20" Text="Dimms"
+                                       ToolTipService.ToolTip="Total LastFM Scrobbles"
+                                       FontSize="24"/>
+                        </StackPanel>
                     </StackPanel>
 
                 </StackPanel>

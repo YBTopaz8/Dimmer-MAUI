@@ -251,7 +251,8 @@ public class LyricsMgtFlow : IDisposable
             _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
             // Optionally, save to DB or local storage here.
-            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id, onlineLyrics.PlainLyrics, onlineLyrics.SyncedLyrics, true);
+            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id, false,onlineLyrics.PlainLyrics, onlineLyrics.SyncedLyrics, true
+                );
             return onlineResults;
 
         }
