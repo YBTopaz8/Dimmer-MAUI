@@ -60,7 +60,7 @@ global using Microsoft.Maui.Controls.Compatibility.Platform.Android;
 
 global using System.ComponentModel;
 
-global using Button = Microsoft.Maui.Controls.Button;
+global using Button = Android.Widget.Button;
 global using Platform = Microsoft.Maui.ApplicationModel.Platform;
 global using Dimmer.Droid;
 global using Dimmer.Interfaces;

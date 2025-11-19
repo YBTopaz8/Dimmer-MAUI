@@ -96,4 +96,8 @@
 	  </MauiXaml>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Utils\CustomObjects\" />
+	</ItemGroup>
+
 </Project>

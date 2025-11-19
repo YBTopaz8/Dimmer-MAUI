@@ -114,7 +114,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory, _mapper);
 
-        searchResultsHolder.Connect()
+        SearchResultsHolder.Connect()
             .ObserveOn(RxSchedulers.UI) // Important for UI updates
             .Bind(out _searchResults)
             .Subscribe(x =>
@@ -324,7 +324,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                             processedSongs = QueryResultProcessor.ApplyLimiter(finalSongs, plan.Limiter);
                         }
 
-                        searchResultsHolder.Edit(
+                        SearchResultsHolder.Edit(
                             updater =>
                             {
                                 updater.Clear();
@@ -634,7 +634,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             case ViewAlbumAction vaa:
                 // This requires more complex logic. You need to get the album from the search results.
-                var distinctAlbums = searchResultsHolder.Items
+                var distinctAlbums = SearchResultsHolder.Items
                     .Where(s => !string.IsNullOrEmpty(s.AlbumName))
                     .GroupBy(s => s.AlbumName)
                     .Select(g => g.Key)
@@ -1002,7 +1002,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public RuleBasedPlaybackManager PlaybackManager { get; }
 
     #region private fields
-    SourceList<SongModelView> searchResultsHolder = new SourceList<SongModelView>();
+    public SourceList<SongModelView> SearchResultsHolder = new SourceList<SongModelView>();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;

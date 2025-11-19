@@ -256,12 +256,13 @@ public partial class MyShellItemRenderer : ShellItemRenderer
     protected override BottomSheetDialog CreateMoreBottomSheet(Action<int, BottomSheetDialog> selectCallback)
     {
         _moreBottomSheetDialogInstance = new BottomSheetDialog(Context!);
-        var bottomSheetLayout = new LinearLayout(Context);
+        var bottomSheetLayout = new LinearLayout(Context)
+        { Id = View.GenerateViewId() };
 
 
         using (var bottomShellLP = new LP(LP.MatchParent, LP.WrapContent))
             bottomSheetLayout.LayoutParameters = bottomShellLP;
-
+        
 
         bottomSheetLayout.Orientation = Orientation.Vertical;
 
@@ -275,6 +276,7 @@ public partial class MyShellItemRenderer : ShellItemRenderer
 
             using (var innerLayout = new LinearLayout(Context))
             {
+                innerLayout.Id = View.GenerateViewId();
                 innerLayout.SetClipToOutline(true);
                 innerLayout.SetBackground(CreateItemBackgroundDrawable());
                 innerLayout.SetPadding(0, (int)Context.ToPixels(6), 0, (int)Context.ToPixels(6));

@@ -4,7 +4,9 @@
 	<uses-permission android:name="android.permission.BIND_QUICK_SETTINGS_TILE" />
 	<application android:allowBackup="true" android:icon="@mipmap/appicon"  android:debuggable="true"
 				 android:roundIcon="@mipmap/appicon_round" android:label="@string/app_name" 
-				 android:supportsRtl="true">
+				 android:supportsRtl="true"
+				 android:enableOnBackInvokedCallback="true">
+		
 		<meta-data android:name="NothingKey" android:value="test" />
 		<activity android:name="com.yvanbrunel.dimmer.MainActivity"
               android:directBootAware="true"

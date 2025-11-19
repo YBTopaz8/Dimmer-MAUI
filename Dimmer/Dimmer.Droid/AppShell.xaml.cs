@@ -65,17 +65,17 @@ public partial class AppShell : Shell
     private void NavBtnClicked_Clicked(object sender, EventArgs e)
     {
         var send = (Button)sender;
-        var param = send.CommandParameter.ToString();
-        switch (param)
-        {
-            case "0":
-                break;
-            case "1":
-                break;
-            default:
+        //var param = send.CommandParameter.ToString();
+        //switch (param)
+        //{
+        //    case "0":
+        //        break;
+        //    case "1":
+        //        break;
+        //    default:
 
-                break;
-        }
+        //        break;
+        //}
 
     }
 
@@ -90,7 +90,7 @@ public partial class AppShell : Shell
 
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
-        this.IsBusy=true;
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     private async void Logintolastfm_Clicked(object sender, EventArgs e)

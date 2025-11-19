@@ -55,10 +55,12 @@
                 Grid.Row="0"
                 Margin="5"
                 Spacing="10">
-                <ImageButton
+                <dx:DXButton
                     x:Name="ViewDeviceAudio"
-                    Clicked="ViewDeviceAudio_Clicked"
-                    Source="headphonesround.png" />
+                    Clicked="SettingsNavChips_ChipClicked"
+                    BackgroundColor="Transparent"
+                    
+                    Icon="settings.png" />
                 <Button
                     Grid.Row="0"
                     BackgroundColor="Transparent"
