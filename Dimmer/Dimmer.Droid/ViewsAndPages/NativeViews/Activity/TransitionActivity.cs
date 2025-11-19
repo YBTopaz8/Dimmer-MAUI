@@ -1,15 +1,4 @@
-﻿using Android.App;
-using Android.Content.PM;
-using Android.OS;
-using Android.Transitions;
-using Android.Util;
-using Android.Window;
-
-using AndroidX.AppCompat.App;
-using AndroidX.Lifecycle;
-
-
-using View = Android.Views.View;
+﻿
 
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
@@ -98,19 +87,17 @@ public class TransitionActivity : AppCompatActivity
         }
         base.OnCreate(savedInstanceState);
 
-        var container = new FrameLayout(this);
-
-        // ensure valid ID (>0x00ffffff range is reserved)
-        int validId = View.GenerateViewId();
-        if (validId == 0 || validId == 1)
-            validId = Resource.Id.content; // fallback to Android's main content id
-
-        container.Id = validId;
-        MyStaticID = validId;
+        var container = new FrameLayout(this)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+        ViewGroup.LayoutParams.MatchParent,
+        ViewGroup.LayoutParams.MatchParent)
+        };
+        container.Id = Resource.Id.content;
+        MyStaticID = container.Id;
 
         SetContentView(container);
-
-
+      
         if (savedInstanceState == null)
         {
             var startFragment = new HomePageFragment();

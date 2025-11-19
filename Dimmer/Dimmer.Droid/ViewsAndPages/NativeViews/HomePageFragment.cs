@@ -1,38 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
-using Android.OS;
 
-using AndroidX.Activity;
-using AndroidX.CoordinatorLayout.Widget;
-using AndroidX.Core.View;
-using AndroidX.DynamicAnimation;
-using AndroidX.Fragment.App;
-using AndroidX.Lifecycle;
-using AndroidX.RecyclerView.Widget;
-using AndroidX.Transitions;
 
-using Dimmer.ViewsAndPages.NativeViews.Activity;
 
-using Google.Android.Material.Card;
-using Google.Android.Material.FloatingActionButton;
-using Google.Android.Material.Shape;
 using Google.Android.Material.Transition;
 
-using static Android.Provider.DocumentsContract;
-using static Android.Provider.Telephony.Mms;
-using static Microsoft.Maui.LifecycleEvents.AndroidLifecycle;
+using Kotlin.Text;
 
-using Color = Android.Graphics.Color;
-using Orientation = Android.Widget.Orientation;
-using View = Android.Views.View;
+using MongoDB.Bson;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
-public partial class HomePageFragment : Fragment
+public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 {
     private RecyclerView _songList = null!;
     private TextView _emptyLabel = null!;
@@ -44,9 +23,14 @@ public partial class HomePageFragment : Fragment
     private ImageView _albumArt = null!;
     private float _downX;
     private float _downY;
+    private FloatingActionButton _pageFAB;
+    private string _transitionName;
+
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context!;
+
+        View?.TransitionName = "homePageRoot";
 
         // ROOT FRAME (needed for FAB overlay)
         var root = new FrameLayout(ctx)
@@ -73,7 +57,6 @@ public partial class HomePageFragment : Fragment
         };
         
         searchBar.SetPadding(40, 30, 40, 30);
-        searchBar.Background = null;
 
         var searchBorder = new FrameLayout(ctx)
         {
@@ -125,14 +108,18 @@ public partial class HomePageFragment : Fragment
         btmBar.SetGravity(GravityFlags.CenterVertical);
         btmBar.SetBackgroundColor(Color.ParseColor("#303030"));
 
+        
         // SAMPLE bottom bar content
-        var albumArt = new View(ctx)
+        
+         _albumArt = new ImageView(ctx)
         {
             LayoutParameters = new LinearLayout.LayoutParams(
-                (int)(ctx.Resources.DisplayMetrics.Density * 40),
-                (int)(ctx.Resources.DisplayMetrics.Density * 40))
+                (int)(ctx.Resources.DisplayMetrics.Density * 60),
+                (int)(ctx.Resources.DisplayMetrics.Density * 50))
         };
-        albumArt.SetBackgroundColor(Color.Gray);
+        _albumArt.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+
+        _albumArt.TransitionName = "homePageFAB";
 
         var textStack = new LinearLayout(ctx)
         {
@@ -173,7 +160,7 @@ public partial class HomePageFragment : Fragment
         rightStack.AddView(currentTime);
         rightStack.AddView(playCount);
 
-        btmBar.AddView(albumArt);
+        btmBar.AddView(_albumArt);
         btmBar.AddView(textStack);
         btmBar.AddView(rightStack);
 
@@ -186,26 +173,91 @@ public partial class HomePageFragment : Fragment
         root.AddView(column);
 
         // FAB
-        var fab = new FloatingActionButton(ctx)
+        _pageFAB = new FloatingActionButton(ctx)
         {
             LayoutParameters = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WrapContent,
                 ViewGroup.LayoutParams.WrapContent,
                 GravityFlags.Bottom | GravityFlags.End)
         };
-        
-        int fabMargin = (int)(ctx.Resources.DisplayMetrics.Density * 20);
-        ((FrameLayout.LayoutParams)fab.LayoutParameters).SetMargins(fabMargin, fabMargin, fabMargin, fabMargin);
-        fab.Click += (s, e) =>
+        int fabMargin = (int)(ctx.Resources.DisplayMetrics.Density * 30);
+        int fabMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
+        ((FrameLayout.LayoutParams)_pageFAB.LayoutParameters).SetMargins(fabMargin, fabMargin, fabMargin, fabMarginBottom);
+        _pageFAB.Click += (s, e) =>
         {
             Toast.MakeText(ctx, "Play/Pause clicked!", ToastLength.Short)?.Show();
+            NavToAlbumaPage(_albumArt.TransitionName);
         };
-        fab.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+        ColorStateList colorStateList = new ColorStateList(
+            new int[][] {
+                new int[] { } // default
+            },
+            new int[] {
+                Color.White,
+                Color.DarkSlateBlue,
+                Color.Black
+            }
 
-        root.AddView(fab);
+        );
+        _pageFAB.SetRippleColor(colorStateList);
+        
+        _pageFAB.SetBackgroundColor(Color.DarkSlateBlue);
+        _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+
+        root.AddView(_pageFAB);
 
         return root;
     }
+
+    private void NavToAlbumaPage(string transitionName)
+    {
+        ArtistDetailFragment fragment = new ArtistDetailFragment(transitionName);
+
+
+        var mcTAnim = new MaterialContainerTransform
+        {
+            DrawingViewId = TransitionActivity.MyStaticID,  // container for fragments
+            ScrimColor = Color.Transparent,
+            ContainerColor = Color.Transparent,
+            FadeMode = MaterialContainerTransform.FadeModeThrough,
+            StartShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 50f).Build(),
+            EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
+        };
+        mcTAnim.PathMotion = new MaterialArcMotion();
+        mcTAnim.SetDuration(750);
+        mcTAnim.SetInterpolator(PublicStats.DecelerateInterpolator).SetDuration(280);
+
+        _pageFAB?.Animate()?
+        .Alpha(0f)
+        .SetDuration(mcTAnim.Duration)
+        .Start();
+        
+
+        fragment.SharedElementEnterTransition = mcTAnim;
+        fragment.SharedElementReturnTransition = mcTAnim;
+
+        var nonSharedEnterAnim= new Google.Android.Material.Transition.MaterialFadeThrough
+        {
+        
+        };
+        
+        fragment.EnterTransition = nonSharedEnterAnim;
+        fragment.ExitTransition = new Google.Android.Material.Transition.MaterialFadeThrough
+        {
+        };
+
+        Hold enterHold = new Hold();
+        enterHold.AddTarget(TransitionActivity.MyStaticID);
+        enterHold.SetDuration(mcTAnim.Duration);
+        ParentFragment?.ExitTransition = enterHold;
+
+        ParentFragmentManager.BeginTransaction()
+            .AddSharedElement(_albumArt!, transitionName)
+            .Replace(TransitionActivity.MyStaticID, fragment)
+            .AddToBackStack(null)
+            .Commit();
+    }
+
 
     private void OnBottomBarDrag(object? sender, View.TouchEventArgs e)
     {
@@ -242,5 +294,10 @@ public partial class HomePageFragment : Fragment
     private bool IsDark()
     {
         return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;
+    }
+
+    public void OnBackInvoked()
+    {
+        Toast.MakeText(Context!, "Back invoked in HomePageFragment", ToastLength.Short)?.Show();
     }
 }

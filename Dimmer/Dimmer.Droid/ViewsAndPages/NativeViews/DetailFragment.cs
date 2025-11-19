@@ -1,29 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Color = Android.Graphics.Color;
-using Android.OS;
-
-using AndroidX.Core.View;
-using AndroidX.Fragment.App;
-using AndroidX.Lifecycle;
-using AndroidX.RecyclerView.Widget;
-using AndroidX.Transitions;
-
-using Google.Android.Material.FloatingActionButton;
-using Google.Android.Material.Transition;
-
-using static Android.Provider.DocumentsContract;
-using static Android.Provider.Telephony.Mms;
-using static Microsoft.Maui.LifecycleEvents.AndroidLifecycle;
-
-using Orientation = Android.Widget.Orientation;
-
+﻿
 using Dimmer.ViewsAndPages.NativeViews.Activity;
-using View = Android.Views.View;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
@@ -79,7 +55,7 @@ public class DetailFragment : Fragment
 
         var enter = new MaterialContainerTransform(Context!, true)
         {
-            DrawingViewId = TransitionActivity.MyStaticID,
+            DrawingViewId = Resource.Id.content,
             ScrimColor = Color.Transparent,
             FadeMode = MaterialContainerTransform.FadeModeIn
         };
@@ -87,7 +63,7 @@ public class DetailFragment : Fragment
 
         var returnTrans = new MaterialContainerTransform(Context!, false)
         {
-            DrawingViewId = TransitionActivity.MyStaticID,
+            DrawingViewId = Resource.Id.content,
             ScrimColor = Color.Transparent,
             FadeMode = MaterialContainerTransform.FadeModeOut
         };

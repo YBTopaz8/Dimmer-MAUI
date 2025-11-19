@@ -6,7 +6,7 @@ using AndroidX.DrawerLayout.Widget;
 
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 
-using Debug = System.Diagnostics.Debug;
+using Environment = System.Environment;
 namespace Dimmer;
 
 #if DEBUG

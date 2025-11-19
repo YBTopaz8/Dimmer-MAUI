@@ -16,10 +16,7 @@ using Java.Security;
 
 using Microsoft.Maui.Controls;
 
-using Color = Android.Graphics.Color;
 using ImageButton = Android.Widget.ImageButton;
-using Orientation = Android.Widget.Orientation;
-using View = Android.Views.View;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 

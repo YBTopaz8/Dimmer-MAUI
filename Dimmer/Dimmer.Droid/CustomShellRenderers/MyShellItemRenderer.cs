@@ -4,11 +4,7 @@ using AndroidX.Fragment.App;
 
 using Google.Android.Material.BottomNavigation;
 
-using AColor = Android.Graphics.Color;
 using LP = Android.Views.ViewGroup.LayoutParams;
-using Orientation = Android.Widget.Orientation;
-
-using View = Android.Views.View;
 
 namespace Dimmer.CustomShellRenderers;
 public partial class MyShellItemRenderer : ShellItemRenderer
@@ -19,8 +15,6 @@ public partial class MyShellItemRenderer : ShellItemRenderer
     public MyShellItemRenderer(IShellContext context)
         : base(context)
     {
-        ShellStylingBridge.BackgroundColorChanged += OnBridgeBackgroundColorChanged;
-        ShellStylingBridge.TextColorChanged += OnBridgeTextColorChanged;
         ShellStylingBridge.ElevationChanged += OnBridgeElevationChanged;
         ShellStylingBridge.TabBehaviorChanged += OnBridgeTabBehaviorChanged;
         ShellStylingBridge.ShellElementRefreshRequested += OnBridgeRefreshRequested;
@@ -28,30 +22,9 @@ public partial class MyShellItemRenderer : ShellItemRenderer
     }
 
     // --- Event Handlers from ShellStylingBridge ---
-    private void OnBridgeBackgroundColorChanged(object? sender, ColorChangedEventArgs e)
-    {
-        if (e.TargetElement == ShellElement.BottomNavBar && _theBottomViewInstance != null)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                _theBottomViewInstance.SetBackgroundColor(e.NewColor.ToPlatform());
-                _theBottomViewInstance.Invalidate();
-            });
-        }
-        // Handle MoreSheetBackground if e.TargetElement matches
-    }
+   
 
-    private void OnBridgeTextColorChanged(object? sender, ColorChangedEventArgs e)
-    {
-        if (e.TargetElement == ShellElement.BottomNavItem && _theBottomViewInstance != null && e.SecondaryColor != null)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                UpdateBottomNavItemColors(e.NewColor.ToPlatform(), e.SecondaryColor.ToPlatform());
-            });
-        }
-        // Handle MoreSheetItem text color
-    }
+ 
 
     private void OnBridgeElevationChanged(object? sender, ElevationChangedEventArgs e)
     {
@@ -161,8 +134,6 @@ public partial class MyShellItemRenderer : ShellItemRenderer
 
     public override void OnDestroy() // Or protected override void Dispose(bool disposing)
     {
-        ShellStylingBridge.BackgroundColorChanged -= OnBridgeBackgroundColorChanged;
-        ShellStylingBridge.TextColorChanged -= OnBridgeTextColorChanged;
         ShellStylingBridge.ElevationChanged -= OnBridgeElevationChanged;
         ShellStylingBridge.TabBehaviorChanged -= OnBridgeTabBehaviorChanged;
         ShellStylingBridge.ShellElementRefreshRequested -= OnBridgeRefreshRequested;

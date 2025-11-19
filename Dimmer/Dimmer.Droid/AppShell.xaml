@@ -4,7 +4,6 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-    xmlns:dx="http://schemas.devexpress.com/maui"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:utils="clr-namespace:Dimmer.Utils"
@@ -31,84 +30,8 @@
         <converters:VolumeConverter x:Key="VolConverter" />
         <ResourceDictionary />
     </Shell.Resources>
-    <Shell.FlyoutContent>
-        <Grid BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" RowDefinitions="auto,*">
-            <VerticalStackLayout Grid.Row="0" Margin="10,5">
-                <Label Text="{Binding LatestAppLog.Log}" />
-            </VerticalStackLayout>
-
-
-        </Grid>
-    </Shell.FlyoutContent>
-
-
-    <Shell.FlyoutFooter>
-        <Grid
-            x:Name="TopLeft"
-            BackgroundColor="{AppThemeBinding Light=#999999,
-                                              Dark=#1e1e1e}"
-            RowDefinitions="*,*">
-            <Grid.GestureRecognizers>
-                <PointerGestureRecognizer PointerReleased="TogglePanelClicked" />
-            </Grid.GestureRecognizers>
-            <VerticalStackLayout
-                Grid.Row="0"
-                Margin="5"
-                Spacing="10">
-                <dx:DXButton
-                    x:Name="ViewDeviceAudio"
-                    Clicked="SettingsNavChips_ChipClicked"
-                    BackgroundColor="Transparent"
-                    
-                    Icon="settings.png" />
-                <Button
-                    Grid.Row="0"
-                    BackgroundColor="Transparent"
-                    Command="{Binding ToggleAppThemeCommand}"
-                    FontAttributes="Bold"
-                    FontSize="13"
-                    HorizontalOptions="Center"
-                    Text="{Binding IsDarkModeOn}"
-                    TextColor="{AppThemeBinding Light=Black,
-                                                Dark=WHite}">
-                    <Button.Triggers>
-                        <DataTrigger
-                            Binding="{Binding IsDarkModeOn}"
-                            TargetType="Button"
-                            Value="True">
-                            <Setter Property="Text" Value="Dark Mode On" />
-                        </DataTrigger>
-                        <DataTrigger
-                            Binding="{Binding IsDarkModeOn}"
-                            TargetType="Button"
-                            Value="False">
-                            <Setter Property="Text" Value="Light Mode On" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-
-
-
-                <Grid ColumnDefinitions="auto,*" ColumnSpacing="10">
-
-                    <Label Text="Volume" />
-                    <Slider
-                        Grid.Column="1"
-                        Loaded="VolumeSlider_Loaded"
-                        Minimum="0"
-                        MinimumTrackColor="DarkSlateBlue"
-                        ThumbColor="{Binding CurrentPlaySongDominantColor}"
-                        Unloaded="VolumeSlider_Unloaded"
-                        Value="{Binding DeviceVolumeLevel}" />
-
-                </Grid>
-            </VerticalStackLayout>
-
-        </Grid>
-
-    </Shell.FlyoutFooter>
-    <ShellContent
+    <!--<ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate views:HomePage}"
-        Route="MainPage" />
+        Route="MainPage" />-->
 </Shell>
