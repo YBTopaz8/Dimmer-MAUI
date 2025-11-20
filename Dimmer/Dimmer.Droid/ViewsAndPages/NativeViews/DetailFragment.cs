@@ -70,6 +70,30 @@ public class DetailFragment : Fragment
         returnTrans.SetDuration(300);
 
         SharedElementEnterTransition = enter;
+        PostponeEnterTransition();
         SharedElementReturnTransition = returnTrans;
     }
+
+    public override void OnViewCreated(View view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+        //View 
+    }
+
+    //class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    //{
+    //    private readonly View _fragmentView;
+    //    private readonly DetailFragment _parentFragment;
+    //    public OnPreDrawListenerImpl(View fragmentView, DetailFragment parentFragment)
+    //    {
+    //        _fragmentView = fragmentView;
+    //        _parentFragment = parentFragment;
+    //    }
+    //    //public bool OnPreDraw()
+        
+    //    //    _fragmentView.ViewTreeObserver.RemoveOnPreDrawListener(this);
+    //    //    _parentFragment.StartPostponedEnterTransition();
+    //    //    return true;
+    //    //}
+    //}
 }

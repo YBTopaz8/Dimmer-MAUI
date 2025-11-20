@@ -100,7 +100,7 @@ public class TransitionActivity : AppCompatActivity
       
         if (savedInstanceState == null)
         {
-            var startFragment = new HomePageFragment();
+            var startFragment = new HomePageFragment(MyViewModel);
             SupportFragmentManager
                 .BeginTransaction()
                 .Replace(container.Id, startFragment)
@@ -108,6 +108,7 @@ public class TransitionActivity : AppCompatActivity
         }
 
 
+        MyViewModel.InitializeAllVMCoreComponents();
 
 
         ProcessIntent(Intent);
