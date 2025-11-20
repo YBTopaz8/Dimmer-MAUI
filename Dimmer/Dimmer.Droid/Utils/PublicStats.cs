@@ -79,6 +79,18 @@ internal static class PublicStats
     {
         OnSheetItemClicked?.Invoke(itemIndex, itemName);
     }
+
+    internal static string? FormatTimeSpan(double songPosition)
+    {
+
+        return songPosition switch
+        {
+            < 0 => null,
+            >= 3600 => TimeSpan.FromSeconds(songPosition).ToString(@"h\:mm\:ss"),
+            _ => TimeSpan.FromSeconds(songPosition).ToString(@"m\:ss"),
+        };
+    }
+
     public static Dictionary<int, int> TabBadgeCounts { get; set; } = new();
     public static Color TabBadgeColor { get; set; } = Color.Red;
     public static bool ShowBarShadow { get; set; } = true;

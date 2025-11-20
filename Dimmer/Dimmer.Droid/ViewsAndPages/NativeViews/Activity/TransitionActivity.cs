@@ -97,7 +97,10 @@ public class TransitionActivity : AppCompatActivity
         MyStaticID = container.Id;
 
         SetContentView(container);
-      
+
+
+        UiThreads.InitializeMainHandler();
+
         if (savedInstanceState == null)
         {
             var startFragment = new HomePageFragment(MyViewModel);
@@ -134,7 +137,7 @@ public class TransitionActivity : AppCompatActivity
 
         SetStatusBarColor();
 
-
+        SetupBackNavigation();
         // Optional: close MainActivity so back button won't return to it
         //Finish();
         return;
@@ -185,6 +188,7 @@ public class TransitionActivity : AppCompatActivity
 
                 //}
             }
+            SetupBackNavigation();
             // Log that the activity resumed
             Console.WriteLine("MainActivity: OnResume called.");
         }

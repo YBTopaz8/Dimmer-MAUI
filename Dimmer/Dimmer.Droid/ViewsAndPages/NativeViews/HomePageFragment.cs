@@ -1,16 +1,21 @@
-﻿namespace Dimmer.ViewsAndPages.NativeViews;
+﻿using System.Threading.Tasks;
+
+using Dimmer.Utilities.Extensions;
+using BitmapFactory = Android.Graphics.BitmapFactory;
+using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
+
+namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 {
 
     string toSettingsTrans = "homePageFAB";
 
-    public RecyclerView _songListRecycler = null!;
+    public RecyclerView? _songListRecycler = null!;
     public TextView _emptyLabel = null!;
     public LinearLayout _bottomBar = null!;
     public TextView _titleTxt = null!;
     public TextView _albumTxt = null!;
-    public TextView _currentTime = null!;
     public TextView _playCount = null!;
     public ImageView _albumArt = null!;
     public float _downX;
@@ -18,7 +23,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public FloatingActionButton _pageFAB = null!;
     public FloatingActionButton? cogButton = null!;
     FrameLayout? root;
-    TextView currentTimeTextView;
+    public TextView CurrentTimeTextView;
     public FrameLayout? Root => root;
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     private bool _isNavigating;
@@ -26,6 +31,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public HomePageFragment(BaseViewModelAnd myViewModel)
     {
         MyViewModel = myViewModel;
+
+     
     }
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
@@ -112,8 +119,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent)
         };
-
-        _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
+        
+        var recyclerLayoutManager = new LinearLayoutManager(ctx);
+        
+        _songListRecycler.SetLayoutManager(recyclerLayoutManager);
 
         var emptyText = new TextView(ctx)
         {
@@ -125,13 +134,20 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         var scrListener = new RecyclerViewOnScrollListener(
             (dy) =>
             {
+                
                 Console.WriteLine($"Scrolled by {dy} pixels");
                 // Handle scroll events here
             });
         _adapter = new SongAdapter(ctx, MyViewModel, this);
         _songListRecycler.SetAdapter(_adapter);
         _songListRecycler.AddOnScrollListener(scrListener);
+
         
+            var touch = new TouchListener(Context, _songListRecycler);
+
+        touch.SingleTap += Touch_SingleTap; 
+
+        _songListRecycler.AddOnItemTouchListener(touch);
 
 
         middleContainer.AddView(_songListRecycler);
@@ -155,10 +171,17 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
          _albumArt = new ImageView(ctx)
         {
             LayoutParameters = new LinearLayout.LayoutParams(
-                (int)(ctx.Resources.DisplayMetrics.Density * 60),
-                (int)(ctx.Resources.DisplayMetrics.Density * 50))
+                (int)(ctx.Resources.DisplayMetrics.Density * 80),
+                (int)(ctx.Resources.DisplayMetrics.Density * 70))
         };
-        _albumArt.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+          // handle image
+        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath) && System.IO.File.Exists(MyViewModel.CurrentPlayingSongView.CoverImagePath))
+        {
+            // Load from disk
+            var bmp = Android.Graphics.BitmapFactory.DecodeFile(MyViewModel.CurrentPlayingSongView.CoverImagePath);
+
+            _albumArt.SetImageBitmap(bmp);
+        }
 
         //_albumArt.TransitionName = "homePageFAB";
 
@@ -171,32 +194,32 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 1f)
         };
 
-        var title = new TextView(ctx) { Text = "Song Title", TextSize = 19f };
-        var album = new TextView(ctx) { Text = "Album", TextSize = 14f };
+        _titleTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.Title, TextSize = 19f };
+        _albumTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.Title, TextSize = 14f };
 
-        textStack.AddView(title);
-        textStack.AddView(album);
+        textStack.AddView(_titleTxt);
+        textStack.AddView(_albumTxt);
 
         var rightStack = new LinearLayout(ctx)
         {
             Orientation = Orientation.Vertical
         };
 
-        currentTimeTextView = new TextView(ctx)
+        CurrentTimeTextView = new TextView(ctx)
         {
-            Text = "0:00",
+            Text = MyViewModel.CurrentTrackDurationSeconds.ToString(),
             TextSize = 12f
         };
-        currentTimeTextView.Click += CurrentTime_Click;
+        CurrentTimeTextView.Click += CurrentTime_Click;
         
 
         var playCount = new TextView(ctx)
         {
-            Text = "Plays: 0",
+            Text = $"Plays: {MyViewModel.CurrentPlayingSongView.PlayCompletedCount}",
             TextSize = 12f
         };
 
-        rightStack.AddView(currentTimeTextView);
+        rightStack.AddView(CurrentTimeTextView);
         rightStack.AddView(playCount);
 
         btmBar.AddView(_albumArt);
@@ -231,7 +254,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         ViewGroup.LayoutParams.WrapContent,
         GravityFlags.Bottom | GravityFlags.End)
         };
-        cogButton.TransitionName = "homePageFAB";
+
+
+        cogButton.TransitionName = "SongDetailsTrans";
         int cogMarginRight = fabMargin + (int)(ctx.Resources.DisplayMetrics.Density * 80); // spacing left of FAB
         ((FrameLayout.LayoutParams)cogButton.LayoutParameters).SetMargins(fabMargin, fabMargin, cogMarginRight, fabMarginBottom);
         cogButton.SetImageResource(Resource.Drawable.settings); // simple cog icon
@@ -271,6 +296,18 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         return root;
     }
 
+    private async void Touch_SingleTap(int pos, View arg2, SongModelView song)
+    {
+
+        if (song != null)
+        {
+            await MyViewModel.PlaySong(song,CurrentPage.AllSongs,MyViewModel.SearchResults);
+            _adapter.NotifyDataSetChanged();
+        }
+        Toast.MakeText(Context, $"Single tap {pos}", ToastLength.Short)?.Show();
+    }
+
+   
     private void PageFAB_Click(object? sender, EventArgs e)
     {
         if (_isNavigating || !IsAdded) return;
@@ -328,7 +365,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         MyViewModel.NavigateToSingleSongPageFromHome(
             this,
-            transitionName,cogButton);
+            transitionName,_albumArt);
     }
 
 
@@ -347,6 +384,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _pageFAB.Alpha = 1f;
         _isNavigating = false;
         MyViewModel.CurrentPage = this;
+        MyViewModel.SetupSubscriptions();
     }
 
     private void HomePageFragment_GlobalLayout(object? sender, EventArgs e)
@@ -359,10 +397,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         base.OnDestroyView();
         _isNavigating = false;
         _searchCts?.Cancel();
-        currentTimeTextView.Click -= CurrentTime_Click;
+        CurrentTimeTextView.Click -= CurrentTime_Click;
         _pageFAB.Click -= PageFAB_Click;
         View?.ViewTreeObserver?.GlobalLayout -= HomePageFragment_GlobalLayout;
-        _songListRecycler.SetAdapter(null);
+        _songListRecycler?    .SetAdapter(null);
+
+        _songListRecycler = null;
 
     }
     private bool IsDark()

@@ -52,7 +52,6 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        UiThreads.MauiUI = Current!.Dispatcher;
 
         var win = AppUtilImple.LoadWindow();
         

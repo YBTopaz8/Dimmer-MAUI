@@ -1,8 +1,11 @@
 ﻿
 //using System.Reactive.Linq;
 
+using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+
+using Android.Graphics;
 
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
@@ -12,6 +15,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
+using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewsAndPages.NativeViews;
 
@@ -410,7 +414,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             {
                 if(File.Exists(song.FilePath))
                 {
-                    RemoveFromQueue(song);
+                   await RemoveFromQueue(song);
                     var songsToDelete = new List<SongModelView> { song };
                     await PerformFileOperationAsync(songsToDelete, string.Empty, FileOperation.Delete);
                     // Then, remove from the database.
@@ -447,10 +451,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     #region Navigation Section
 
+
     public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)
     {
         if (callerFrag == null) return;
         if (!callerFrag.IsAdded || callerFrag.Activity == null) return;
+
+    
+        sharedView.TransitionName = transitionName;
 
         var typeOfFragment = callerFrag.GetType();
         if (typeOfFragment == typeof(HomePageFragment))
@@ -459,6 +467,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             var fragment = new SongDetailPage(transitionName, this);
             CurrentPage = fragment;
 
+            
 
             var mcTAnim = new MaterialContainerTransform
             {
@@ -469,6 +478,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 StartShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 50f).Build(),
                 EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
             };
+            
             mcTAnim.PathMotion = new MaterialArcMotion();
             mcTAnim.SetDuration(380)
                 .SetInterpolator(PublicStats.DecelerateInterpolator);
@@ -518,5 +528,59 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
     #endregion
+
+    #region Binding Views Section
+
+    private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
+    public IObservable<SongModelView?> CurrentSongChanged => _currentSong.AsObservable();
+
+    public void SetCurrentSong(SongModelView? song)
+    {
+        _currentSong.OnNext(song);
+    }
+
+    protected override async Task ProcessSongChangeAsync(SongModelView value)
+    {
+        await base.ProcessSongChangeAsync(value);
+        SetCurrentSong(value);
+    }
+    
+    public void SetupSubscriptions()
+    {
+        // Example subscription to CurrentSongChanged
+        var songSubscription = CurrentSongChanged
+            .Where(song => song != null)
+         .ObserveOn(RxSchedulers.UI)    
+
+            .Subscribe(song =>
+            {
+                if (song == null || song.TitleDurationKey is null) return;
+                var isCurrentHomePage = CurrentPage is HomePageFragment;
+                if (!isCurrentHomePage) return;
+                var currenthomeFrag = (HomePageFragment)CurrentPage!;
+
+                currenthomeFrag._albumArt?.SetImageBitmap(BitmapFactory.DecodeFile(song.CoverImagePath));
+                currenthomeFrag._titleTxt?.Text = song.Title;
+                currenthomeFrag._albumTxt?.Text = song.AlbumName;
+            });
+
+        SubsManager.Add(songSubscription);
+
+
+        var songPos= AudioEnginePositionObservable.
+            ObserveOn(RxSchedulers.UI)
+            .Subscribe(songPosition =>
+            {
+                
+            
+                var isCurrentHomePage = CurrentPage is HomePageFragment;
+                if (!isCurrentHomePage) return;
+                var currenthomeFrag = (HomePageFragment)CurrentPage!;
+                currenthomeFrag.CurrentTimeTextView?.Text = PublicStats.FormatTimeSpan(songPosition);
+            });
+
+    }
+    #endregion
+
 
 }

@@ -153,101 +153,103 @@ public class SongDetailPage : Fragment
         root.AddView(infoStack);
 
         // ScrollView with 2-column grid cards
-        var scroll = new ScrollView(ctx)
-        {
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1f)
-        };
-        scroll.SetBackgroundColor(Color.Transparent);
-        var linLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical,
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
-        };
+        //var scroll = new ScrollView(ctx)
+        //{
+        //    LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1f)
+        //};
+        //scroll.SetBackgroundColor(Color.Transparent);
+        //var linLayout = new LinearLayout(ctx)
+        //{
+        //    Orientation = Orientation.Vertical,
+        //    LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        //};
         
-        var testText = new TextView(ctx)
-        {
-            Text = "Song Details Coming Soon...",
-            TextSize = 50f,
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
-        };
-
-        var testText2 = new TextView(ctx)
-        {
-            Text = "Song Details Coming Soon...",
-            TextSize = 50f,
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
-        };
-
-        var testText3 = new TextView(ctx)
-        {
-            Text = "Song Details Coming Soon...",
-            TextSize = 50f,
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
-        };
-        testText.SetTextColor(Color.White);
-        linLayout.AddView(testText);
-        linLayout.AddView(testText2);
-        linLayout.AddView(testText3);
-        scroll.AddView(linLayout);
-        //var grid = new GridLayout(ctx)
+        //var testText = new TextView(ctx)
         //{
-        //    ColumnCount = 2,
-        //    LayoutParameters = new GridLayout.LayoutParams()
-        //    {
-        //        Width = ViewGroup.LayoutParams.MatchParent,
-        //        Height = ViewGroup.LayoutParams.WrapContent,
-        //    }
-        //};
-        //var marginPx = (int)(16 * ctx.Resources.DisplayMetrics.Density);
-
-        //var gLayoutParams = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
-        //{
-        //    LeftMargin = marginPx,
-        //    RightMargin = marginPx,
-        //    TopMargin = marginPx,
-        //    BottomMargin = marginPx
+        //    Text = "Song Details Coming Soon...",
+        //    TextSize = 50f,
+        //    LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         //};
 
-        //// Helper to create a card with 2 TextViews
-        //CardView CreateCard(string left, string right)
+        //var testText2 = new TextView(ctx)
         //{
-        //    var card = new MaterialCardView(ctx)
-        //    {
-        //        Radius = 12f,
-        //        CardElevation = 6f,
-        //    };
-        //    // Create unique LayoutParams for each card
-        //    var lp = new GridLayout.LayoutParams()
-        //    {
-        //        Width = 0, // 0 + weight = fill half of row
-        //        Height = ViewGroup.LayoutParams.WrapContent,
-        //        ColumnSpec = GridLayout.InvokeSpec(GridLayout.Undefined, 1f)
-        //    };
-        //    lp.SetMargins(marginPx, marginPx, marginPx, marginPx);
-        //    card.LayoutParameters = lp;
+        //    Text = "Song Details Coming Soon...",
+        //    TextSize = 50f,
+        //    LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        //};
 
-        //    card.SetCardBackgroundColor(Color.DarkSlateGray);
-        //    var linear = new LinearLayout(ctx) { Orientation = Orientation.Vertical};
-        //    linear.SetPadding(16, 16, 16, 16);
+        //var testText3 = new TextView(ctx)
+        //{
+        //    Text = "Song Details Coming Soon...",
+        //    TextSize = 50f,
+        //    LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        //};
+        //testText.SetTextColor(Color.White);
+        //linLayout.AddView(testText);
+        //linLayout.AddView(testText2);
+        //linLayout.AddView(testText3);
+        //scroll.AddView(linLayout);
 
-        //    var txt1 = new TextView(ctx) { Text = left, TextSize = 16f };
-        //    txt1.SetTextColor(Color.White);
-        //    linear.AddView(txt1);
 
-        //    var txt2 = new TextView(ctx)
-        //    {
-        //        Text = right,
-        //        TextSize = 14f,
-        //    };
-        //    txt2.SetTextColor(Color.LightGray);
+        var grid = new GridLayout(ctx)
+        {
+            ColumnCount = 2,
+            LayoutParameters = new GridLayout.LayoutParams()
+            {
+                Width = ViewGroup.LayoutParams.MatchParent,
+                Height = ViewGroup.LayoutParams.WrapContent,
+            }
+        };
+        var marginPx = (int)(16 * ctx.Resources.DisplayMetrics.Density);
 
-        //    linear.AddView(txt2);
-        //    card.AddView(linear);
-        //    return card;
-        //}
+        var gLayoutParams = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        {
+            LeftMargin = marginPx,
+            RightMargin = marginPx,
+            TopMargin = marginPx,
+            BottomMargin = marginPx
+        };
+
+        // Helper to create a card with 2 TextViews
+        CardView CreateCard(string left, string right)
+        {
+            var card = new MaterialCardView(ctx)
+            {
+                Radius = 12f,
+                CardElevation = 6f,
+            };
+            // Create unique LayoutParams for each card
+            var lp = new GridLayout.LayoutParams()
+            {
+                Width = 0, // 0 + weight = fill half of row
+                Height = ViewGroup.LayoutParams.WrapContent,
+                ColumnSpec = GridLayout.InvokeSpec(GridLayout.Undefined, 1f)
+            };
+            lp.SetMargins(marginPx, marginPx, marginPx, marginPx);
+            card.LayoutParameters = lp;
+
+            card.SetCardBackgroundColor(Color.DarkSlateGray);
+            var linear = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+            linear.SetPadding(16, 16, 16, 16);
+
+            var txt1 = new TextView(ctx) { Text = left, TextSize = 16f };
+            txt1.SetTextColor(Color.White);
+            linear.AddView(txt1);
+
+            var txt2 = new TextView(ctx)
+            {
+                Text = right,
+                TextSize = 14f,
+            };
+            txt2.SetTextColor(Color.LightGray);
+
+            linear.AddView(txt2);
+            card.AddView(linear);
+            return card;
+        }
 
         //// Add cards
-        //grid.AddView(CreateCard("Total Plays", selectedSong.PlayCompletedCount.ToString()));
+        grid.AddView(CreateCard("Total Plays", selectedSong.PlayCompletedCount.ToString()));
         //grid.AddView(CreateCard("Completion Rate", selectedSong.ArtistName.ToString()));
         //grid.AddView(CreateCard("Eddington Number", selectedSong.EddingtonNumber.ToString()));
         //grid.AddView(CreateCard("Last Played", selectedSong.LastPlayed.ToString()));
@@ -255,7 +257,7 @@ public class SongDetailPage : Fragment
         //grid.AddView(CreateCard("First Played", selectedSong.FirstPlayed.ToString()));
 
         //scroll.AddView(grid);
-        root.AddView(scroll);
+        //root.AddView(scroll);
 
         return root;
     }

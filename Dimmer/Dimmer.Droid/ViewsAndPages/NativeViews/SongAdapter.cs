@@ -28,6 +28,7 @@ internal class SongAdapter : RecyclerView.Adapter
     private BaseViewModelAnd vm;
     private IEnumerable<SongModelView> _songs = Enumerable.Empty<SongModelView>();
     private readonly IDisposable _subscription;
+    public IEnumerable<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
     private void OnItemClick(View sharedView, string transitionName, int position)
     {
@@ -36,6 +37,8 @@ internal class SongAdapter : RecyclerView.Adapter
         vm.NavigateToSingleSongPageFromHome(ParentFragement, transitionName, sharedView);
         //OpenDetailFragment(sharedView, transitionName);
     }
+    public SongModelView GetItem(int position) => Songs.ElementAt(position);
+
     public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment)
     {
         ParentFragement = pFragment;
@@ -120,7 +123,7 @@ internal class SongAdapter : RecyclerView.Adapter
             .Commit();
     }
 
-
+    
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -133,12 +136,12 @@ internal class SongAdapter : RecyclerView.Adapter
         row.SetGravity(GravityFlags.CenterVertical);
 
         var imgBtn = new ImageButton(ctx);
-        imgBtn.LayoutParameters = new LinearLayout.LayoutParams(100, 100);
+        imgBtn.LayoutParameters = new LinearLayout.LayoutParams(200, 200);
         imgBtn.SetBackgroundColor(Android.Graphics.Color.Transparent);
         row.AddView(imgBtn);
 
         var textCol = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        var title = new TextView(ctx) { TextSize = 19 };
+        var title = new TextView(ctx) {  TextSize = 19 };
         var artist = new TextView(ctx) { TextSize = 15 };
         var album = new TextView(ctx) { TextSize = 11 };
 
@@ -187,7 +190,7 @@ internal class SongAdapter : RecyclerView.Adapter
             };
         }
     }
- public static Action<View, string, int>? AdapterCallbacks;
+    public static Action<View, string, int>? AdapterCallbacks;
     class SongDiff : DiffUtil.Callback
     {
         List<SongModelView> oldList;
@@ -207,6 +210,99 @@ internal class SongAdapter : RecyclerView.Adapter
 
         public override bool AreContentsTheSame(int oldPos, int newPos)
             => oldList[oldPos].Equals(newList[newPos]);
+    }
+
+    public class ItemGestureListener : GestureDetector.SimpleOnGestureListener
+    {   
+    public event Action<int,View, SongModelView>? SingleTap;
+    public event Action<int,View>? LongPressStage1;
+    public event Action<int,View>? LongPressStage2;
+
+    private readonly RecyclerView recycler;
+    private readonly Handler handler = new Handler(Looper.MainLooper);
+    private int currentPos = -1;
+
+    private const int Stage1Delay = 3000;
+    private const int Stage2Delay = 6000;
+
+
+         public ItemGestureListener(RecyclerView rv)
+        {
+            recycler = rv;
+        }
+        public override bool OnSingleTapUp(MotionEvent e)
+        {
+            var child = recycler.FindChildViewUnder(e.GetX(), e.GetY());
+            if (child == null) return false;
+
+            int pos = recycler.GetChildAdapterPosition(child);
+
+            Console.WriteLine(child.GetType().FullName);
+            // get adapter
+            var adapter = recycler.GetAdapter() as SongAdapter; // replace SongAdapter with your actual adapter type
+            var song = adapter?.GetItem(pos); // this assumes your adapter has a GetItem method
+
+            SingleTap?.Invoke(pos, child, song); // pass song too if you want
+
+            return true;
+        }
+
+
+
+        public void CancelTimers()
+    {
+        handler.RemoveCallbacksAndMessages(null);
+    }
+    }
+
+    public class TouchListener : Java.Lang.Object, RecyclerView.IOnItemTouchListener
+    {
+        private readonly GestureDetector detector;
+        private readonly ItemGestureListener listener;
+
+        public TouchListener(Context ctx, RecyclerView rv)
+        {
+            
+            listener = new ItemGestureListener(rv);
+            detector = new GestureDetector(ctx, listener);
+        }
+        
+        public event Action<int, View, SongModelView>? SingleTap
+        {
+            add => listener.SingleTap += value;
+            remove => listener.SingleTap -= value;
+        }
+
+        public event Action<int, View>? LongPressStage1
+        {
+            add => listener.LongPressStage1 += value;
+            remove => listener.LongPressStage1 -= value;
+        }
+
+        public event Action<int, View>? LongPressStage2
+        {
+            add => listener.LongPressStage2 += value;
+            remove => listener.LongPressStage2 -= value;
+        }
+
+        public bool OnInterceptTouchEvent(RecyclerView rv, MotionEvent e)
+        {
+            detector.OnTouchEvent(e);
+
+            if (e.Action == MotionEventActions.Cancel)
+                listener.CancelTimers();
+
+            return false;
+        }
+
+        public void OnTouchEvent(RecyclerView rv, MotionEvent e)
+        {
+            detector.OnTouchEvent(e);
+            if (e.Action == MotionEventActions.Cancel)
+                listener.CancelTimers();
+        }
+
+        public void OnRequestDisallowInterceptTouchEvent(bool disallowIntercept) { }
     }
 
 }

@@ -1037,7 +1037,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IDimmerAudioService _audioService;
     private ILibraryScannerService libScannerService;
 
-
+    public CompositeDisposable SubsManager => _subsManager;
     private readonly CompositeDisposable _subsManager = new CompositeDisposable();
 
 

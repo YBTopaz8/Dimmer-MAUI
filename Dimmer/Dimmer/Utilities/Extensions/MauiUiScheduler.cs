@@ -53,17 +53,11 @@ public sealed class MauiUiScheduler : IScheduler
     }
 
 
-    private void Dispatch(Action action)
+    private static void Dispatch(Action action)
     {
         if (UiThreads.DispatchAction != null)
         {
             UiThreads.DispatchAction(action);
-            return;
-        }
-
-        if (UiThreads.MauiUI != null)
-        {
-            UiThreads.MauiUI.Dispatch(action);
             return;
         }
 

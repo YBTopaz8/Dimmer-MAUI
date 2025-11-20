@@ -4,7 +4,7 @@ using Dimmer.ViewsAndPages.NativeViews.Activity;
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 
-public class DetailFragment : Fragment
+public class DetailFragment : Fragment, IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     public BaseViewModelAnd MyViewModel { get; }
@@ -82,6 +82,12 @@ public class DetailFragment : Fragment
         //View 
     }
 
+    public void OnBackInvoked()
+    {
+        Toast.MakeText(Context!, "Back invoked in HomePageFragment", ToastLength.Short)?.Show();
+
+    }
+
     //class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
     //{
     //    private readonly View _fragmentView;
@@ -92,7 +98,7 @@ public class DetailFragment : Fragment
     //        _parentFragment = parentFragment;
     //    }
     //    //public bool OnPreDraw()
-        
+
     //    //    _fragmentView.ViewTreeObserver.RemoveOnPreDrawListener(this);
     //    //    _parentFragment.StartPostponedEnterTransition();
     //    //    return true;

@@ -9,8 +9,8 @@ namespace Dimmer.WinUI.Utils.StaticUtils;
 public static partial class UiThreads
 {
     
-    public static DispatcherQueue WinUI { get; set; }
-    
+    public static DispatcherQueue WinUI { get; set; } = null!;
+
     public static void InitializeWinUIDispatcher(DispatcherQueue dispatcher)
     {
         WinUI = dispatcher;
