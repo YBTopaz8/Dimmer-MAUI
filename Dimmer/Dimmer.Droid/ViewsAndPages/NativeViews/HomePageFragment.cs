@@ -1,29 +1,22 @@
-﻿
-
-
-
-
-using Google.Android.Material.Transition;
-
-using Kotlin.Text;
-
-using MongoDB.Bson;
-
-namespace Dimmer.ViewsAndPages.NativeViews;
+﻿namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 {
-    private RecyclerView _songListRecycler = null!;
-    private TextView _emptyLabel = null!;
-    private LinearLayout _bottomBar = null!;
-    private TextView _titleTxt = null!;
-    private TextView _albumTxt = null!;
-    private TextView _currentTime = null!;
-    private TextView _playCount = null!;
-    private ImageView _albumArt = null!;
-    private float _downX;
-    private float _downY;
-    private FloatingActionButton _pageFAB = null!;
+
+    string toSettingsTrans = "homePageFAB";
+
+    public RecyclerView _songListRecycler = null!;
+    public TextView _emptyLabel = null!;
+    public LinearLayout _bottomBar = null!;
+    public TextView _titleTxt = null!;
+    public TextView _albumTxt = null!;
+    public TextView _currentTime = null!;
+    public TextView _playCount = null!;
+    public ImageView _albumArt = null!;
+    public float _downX;
+    public float _downY;
+    public FloatingActionButton _pageFAB = null!;
+    public FloatingActionButton? cogButton = null!;
     FrameLayout? root;
     TextView currentTimeTextView;
     public FrameLayout? Root => root;
@@ -135,9 +128,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 Console.WriteLine($"Scrolled by {dy} pixels");
                 // Handle scroll events here
             });
-        _adapter = new SongAdapter(ctx, MyViewModel, MyViewModel.SearchResults);
+        _adapter = new SongAdapter(ctx, MyViewModel, this);
         _songListRecycler.SetAdapter(_adapter);
         _songListRecycler.AddOnScrollListener(scrListener);
+        
+
+
         middleContainer.AddView(_songListRecycler);
         middleContainer.AddView(emptyText);
 
@@ -164,7 +160,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         _albumArt.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
 
-        _albumArt.TransitionName = "homePageFAB";
+        //_albumArt.TransitionName = "homePageFAB";
 
         var textStack = new LinearLayout(ctx)
         {
@@ -227,7 +223,31 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         int fabMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
         ((FrameLayout.LayoutParams)_pageFAB.LayoutParameters).SetMargins(fabMargin, fabMargin, fabMargin, fabMarginBottom);
         _pageFAB.Click += PageFAB_Click;
-        
+
+         cogButton = new FloatingActionButton(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+        ViewGroup.LayoutParams.WrapContent,
+        ViewGroup.LayoutParams.WrapContent,
+        GravityFlags.Bottom | GravityFlags.End)
+        };
+        cogButton.TransitionName = "homePageFAB";
+        int cogMarginRight = fabMargin + (int)(ctx.Resources.DisplayMetrics.Density * 80); // spacing left of FAB
+        ((FrameLayout.LayoutParams)cogButton.LayoutParameters).SetMargins(fabMargin, fabMargin, cogMarginRight, fabMarginBottom);
+        cogButton.SetImageResource(Resource.Drawable.settings); // simple cog icon
+        cogButton.SetBackgroundColor(Color.Gray);
+        cogButton.Click += (s, e) =>
+        {
+            if (!IsAdded || _isNavigating) return;
+            _isNavigating = true;
+            ParentFragmentManager.BeginTransaction()
+                .Replace(TransitionActivity.MyStaticID, new SettingsFragment(MyViewModel))
+                .AddToBackStack(null)
+                .Commit();
+        };
+
+
+
         ColorStateList colorStateList = new ColorStateList(
             new int[][] {
                 new int[] { } // default
@@ -246,8 +266,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
 
         root.AddView(_pageFAB);
+        root.AddView(cogButton);
 
-        
         return root;
     }
 
@@ -257,7 +277,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         _isNavigating = true;
         Toast.MakeText(Context!, "Play/Pause clicked!", ToastLength.Short)?.Show();
-        NavToAlbumaPage(_albumArt.TransitionName);
+        NavToAlbumaPage(toSettingsTrans);
     }
 
     private void CurrentTime_Click(object? sender, EventArgs e)
@@ -302,83 +322,20 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         }
     }
 
-    private void NavToAlbumaPage(string transitionName)
+    public void NavToAlbumaPage(string transitionName)
     {
         if (!IsAdded || Activity == null) return;
 
-        ArtistDetailFragment fragment = new ArtistDetailFragment(transitionName);
-
-
-        var mcTAnim = new MaterialContainerTransform
-        {
-            DrawingViewId = TransitionActivity.MyStaticID,  // container for fragments
-            ScrimColor = Color.Transparent,
-            ContainerColor = Color.Transparent,
-            FadeMode = MaterialContainerTransform.FadeModeThrough,
-            StartShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 50f).Build(),
-            EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
-        };
-        mcTAnim.PathMotion = new MaterialArcMotion();
-        mcTAnim.SetDuration(380)
-            .SetInterpolator(PublicStats.DecelerateInterpolator);
-        
-        _pageFAB?.Animate()?
-        .Alpha(0f)
-        .SetDuration(mcTAnim.Duration)
-        .Start();
-        
-
-        fragment.SharedElementEnterTransition = mcTAnim;
-        fragment.SharedElementReturnTransition = mcTAnim.Clone();
-
-        var nonSharedEnterAnim= new Google.Android.Material.Transition.MaterialFadeThrough
-        {
-        
-        };
-        nonSharedEnterAnim.SetDuration(200);
-        fragment.EnterTransition = nonSharedEnterAnim;
-
-        var nonShareExitAnim = new Google.Android.Material.Transition.MaterialFadeThrough
-        {
-        };
-        nonShareExitAnim.SetDuration(180);
-        fragment.ExitTransition = nonShareExitAnim;
-
-
-
-
-        Hold enterHold = new Hold();
-        enterHold.AddTarget(TransitionActivity.MyStaticID);
-        enterHold.SetDuration(mcTAnim.Duration);
-        ParentFragment?.ExitTransition = enterHold;
-
-        if (_albumArt is not null)
-        {
-            ParentFragmentManager.BeginTransaction()
-                .AddSharedElement(_albumArt, transitionName)
-                .Replace(TransitionActivity.MyStaticID, fragment)
-                .AddToBackStack(null)
-                .Commit();
-        }
+        MyViewModel.NavigateToSingleSongPageFromHome(
+            this,
+            transitionName,cogButton);
     }
 
 
     public override void OnResume()
     {
         base.OnResume();
-        if (_songListRecycler is not null)
-        {
-            for (int i = 0; i < _songListRecycler.ChildCount; i++)
-            {
-                var child = _songListRecycler.GetChildAt(i);
-                if (child != null)
-                {
-                    var vh = _songListRecycler.GetChildViewHolder(child);
-                    if (vh is null) return;
-                    vh.IsRecyclable = true;
-                }
-            }
-        }
+        
         _pageFAB?.Animate()?.Alpha(1f)?.SetDuration(0)?.Start();
         _isNavigating = false;
     }
@@ -389,6 +346,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         _pageFAB.Alpha = 1f;
         _isNavigating = false;
+        MyViewModel.CurrentPage = this;
     }
 
     private void HomePageFragment_GlobalLayout(object? sender, EventArgs e)

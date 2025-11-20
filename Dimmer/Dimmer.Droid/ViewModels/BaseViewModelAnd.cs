@@ -1,9 +1,11 @@
 ﻿
 //using System.Reactive.Linq;
 
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
-
 
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
@@ -11,12 +13,13 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.Events;
 using Dimmer.Utilities.StatsUtils;
-using RegexOption = System.Text.RegularExpressions.RegexOptions;
+using Dimmer.ViewsAndPages.NativeViews;
 
 using Microsoft.Extensions.Logging;
 
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
+using static System.TimeZoneInfo;
+
+using RegexOption = System.Text.RegularExpressions.RegexOptions;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -43,6 +46,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private readonly BaseViewModel baseVM;
     public BaseViewModel BaseVM => baseVM; // Expose BaseViewModel reference if needed
 
+    public Fragment? PreviousPage { get; set; }
+    public Fragment? CurrentPage { get; set; }
 
     // Removed local stateService and mapper as they are protected in BaseViewModel
 
@@ -129,7 +134,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
 
-    [ObservableProperty] public partial Page CurrentUserPage { get; set; }
 
     [ObservableProperty] public partial ObservableCollection<AnimationSetting>? PageAnimations { get; set; }
     public void GetAllAnimations()
@@ -154,7 +158,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         await Shell.Current.DisplayAlert("Success", "Settings saved!", "OK");
     }
-    public async Task AddMusicFolderViaPickerAsync(string? selectedFolder = null)
+    public async Task AddMusicFolderViaPickerAsync()
     {
 
         try
@@ -439,4 +443,80 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         }
     }
+
+
+    #region Navigation Section
+
+    public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)
+    {
+        if (callerFrag == null) return;
+        if (!callerFrag.IsAdded || callerFrag.Activity == null) return;
+
+        var typeOfFragment = callerFrag.GetType();
+        if (typeOfFragment == typeof(HomePageFragment))
+        {
+            HomePageFragment homeFrag = (HomePageFragment)callerFrag;
+            var fragment = new SongDetailPage(transitionName, this);
+            CurrentPage = fragment;
+
+
+            var mcTAnim = new MaterialContainerTransform
+            {
+                DrawingViewId = TransitionActivity.MyStaticID,  // container for fragments
+                ScrimColor = Color.Transparent,
+                ContainerColor = Color.Transparent,
+                FadeMode = MaterialContainerTransform.FadeModeThrough,
+                StartShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 50f).Build(),
+                EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
+            };
+            mcTAnim.PathMotion = new MaterialArcMotion();
+            mcTAnim.SetDuration(380)
+                .SetInterpolator(PublicStats.DecelerateInterpolator);
+
+            homeFrag._pageFAB?.Animate()?
+            .Alpha(0f)
+            .SetDuration(mcTAnim.Duration)
+            .Start();
+
+
+            fragment.SharedElementEnterTransition = mcTAnim;
+            fragment.SharedElementReturnTransition = mcTAnim.Clone();
+
+            var nonSharedEnterAnim = new Google.Android.Material.Transition.MaterialFadeThrough
+            {
+
+            };
+            nonSharedEnterAnim.SetDuration(400);
+            fragment.EnterTransition = nonSharedEnterAnim;
+
+            var nonShareExitAnim = new Google.Android.Material.Transition.MaterialFadeThrough
+            {
+            };
+            nonShareExitAnim.SetDuration(380);
+            fragment.ExitTransition = nonShareExitAnim;
+
+
+
+
+            Hold enterHold = new Hold();
+            enterHold.AddTarget(TransitionActivity.MyStaticID);
+            enterHold.SetDuration(mcTAnim.Duration);
+            homeFrag.ParentFragment?.ExitTransition = enterHold;
+
+
+            homeFrag.ParentFragmentManager.BeginTransaction()
+                .AddSharedElement(sharedView, transitionName)
+                .Replace(TransitionActivity.MyStaticID, fragment)
+                .AddToBackStack(null)
+                .Commit();
+
+
+            // Set up the transition (this is pseudo-code; actual implementation may vary)
+            // You would typically use a navigation service that supports shared element transitions.
+        }
+
+    }
+
+    #endregion
+
 }

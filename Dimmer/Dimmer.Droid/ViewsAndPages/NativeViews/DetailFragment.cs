@@ -8,23 +8,25 @@ public class DetailFragment : Fragment
 {
     private readonly string _transitionName;
     public BaseViewModelAnd MyViewModel { get; }
-
-    public DetailFragment(string transitionName)
+    private readonly SongModelView selectedSong;
+    public DetailFragment(string transitionName, BaseViewModelAnd vm)
     {
+        MyViewModel = vm;
+        selectedSong= vm.SelectedSong;
         _transitionName = transitionName;
-        MyViewModel = IPlatformApplication.Current!.Services!.GetService<BaseViewModelAnd>()!;
     }
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var layout = new FrameLayout(Context);
         layout.SetBackgroundColor(Color.White);
 
+        //_sharedImage.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
 
 
         var image = new ImageView(Context);
         image.TransitionName = _transitionName;
         // handle image
-        if (!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath) && System.IO.File.Exists(MyViewModel.SelectedSong.CoverImagePath))
+        if (!string.IsNullOrEmpty(selectedSong.CoverImagePath) && System.IO.File.Exists(selectedSong.CoverImagePath))
         {
             // Load from disk
             var bmp = Android.Graphics.BitmapFactory.DecodeFile(MyViewModel.SelectedSong.CoverImagePath);

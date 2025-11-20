@@ -28,14 +28,17 @@ internal class SongAdapter : RecyclerView.Adapter
     private BaseViewModelAnd vm;
     private IEnumerable<SongModelView> _songs = Enumerable.Empty<SongModelView>();
     private readonly IDisposable _subscription;
+    private Fragment ParentFragement;
     private void OnItemClick(View sharedView, string transitionName, int position)
     {
         var song = _songs.ElementAt(position);
         vm.SelectedSong = song;
-        OpenDetailFragment(sharedView, transitionName);
+        vm.NavigateToSingleSongPageFromHome(ParentFragement, transitionName, sharedView);
+        //OpenDetailFragment(sharedView, transitionName);
     }
-    public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, IEnumerable<SongModelView> songs)
+    public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment)
     {
+        ParentFragement = pFragment;
         this.ctx = ctx;
         this.vm = myViewModel;
         _subscription = vm.SearchResultsHolder
@@ -49,7 +52,7 @@ internal class SongAdapter : RecyclerView.Adapter
            //_songs = vm.SearchResults;   // update enumerable reference
            
        });
-    SongViewHolder.AdapterCallbacks = OnItemClick;
+        AdapterCallbacks = OnItemClick;
     }
 
     public override int ItemCount => _songs.Count();
@@ -95,7 +98,7 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         if (ctx is not AndroidX.Fragment.App.FragmentActivity activity) return;
 
-        var fragment = new DetailFragment(transitionName);
+        var fragment = new DetailFragment(transitionName, vm);
 
         var hostFragment = activity.SupportFragmentManager.FindFragmentById(TransitionActivity.MyStaticID);
         if (hostFragment == null) return;
@@ -176,9 +179,15 @@ internal class SongAdapter : RecyclerView.Adapter
                 AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
             };
 
+            title.Click += (s, e) =>
+            {
+                var transitionName = ViewCompat.GetTransitionName(ImageBtn);
+                if (transitionName is null) return;
+                AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
+            };
         }
-        public static Action<View, string, int>? AdapterCallbacks;
     }
+ public static Action<View, string, int>? AdapterCallbacks;
     class SongDiff : DiffUtil.Callback
     {
         List<SongModelView> oldList;
