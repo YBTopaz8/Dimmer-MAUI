@@ -481,6 +481,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 StartShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 50f).Build(),
                 EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
             };
+
+            
             
             container.PathMotion = new MaterialArcMotion();
             container.SetDuration(380);
