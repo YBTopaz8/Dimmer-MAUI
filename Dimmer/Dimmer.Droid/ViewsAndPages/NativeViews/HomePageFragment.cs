@@ -16,6 +16,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public LinearLayout _bottomBar = null!;
     public TextView _titleTxt = null!;
     public TextView _albumTxt = null!;
+    public TextView _artistTxt = null!;
     public TextView _playCount = null!;
     public ImageView _albumArt = null!;
     public float _downX;
@@ -162,7 +163,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         btmBar.SetBackgroundColor(Color.ParseColor("#303030"));
 
         
-        // SAMPLE bottom bar content
         
          _albumArt = new ImageView(ctx)
         {
@@ -170,6 +170,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 (int)(ctx.Resources.DisplayMetrics.Density * 80),
                 (int)(ctx.Resources.DisplayMetrics.Density * 70))
         };
+        _albumArt.Click += AlbumArt_Click;
           // handle image
         if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath) && System.IO.File.Exists(MyViewModel.CurrentPlayingSongView.CoverImagePath))
         {
@@ -191,9 +192,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
 
         _titleTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.Title, TextSize = 19f };
-        _albumTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.Title, TextSize = 14f };
+        _albumTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.AlbumName, TextSize = 10f };
+        _artistTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.ArtistName, TextSize = 14f };
 
         textStack.AddView(_titleTxt);
+        textStack.AddView(_artistTxt);
         textStack.AddView(_albumTxt);
 
         var rightStack = new LinearLayout(ctx)
@@ -293,6 +296,14 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         root.AddView(cogButton);
 
         return root;
+    }
+
+    private void AlbumArt_Click(object? sender, EventArgs e)
+    {
+        MyViewModel.NavigateToNowPlayingFragmentFromHome
+            (this, _albumArt,
+            _titleTxt,_artistTxt,
+            _albumTxt);
     }
 
     private async void Touch_SingleTap(int pos, View arg2, SongModelView song)
@@ -400,7 +411,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _pageFAB.Click -= PageFAB_Click;
         View?.ViewTreeObserver?.GlobalLayout -= HomePageFragment_GlobalLayout;
         _songListRecycler?    .SetAdapter(null);
-
+        _albumArt.Click -= AlbumArt_Click;
         _songListRecycler = null;
 
     }

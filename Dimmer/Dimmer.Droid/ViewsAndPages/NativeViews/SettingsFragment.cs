@@ -237,6 +237,7 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
         };
         
         var materialContext = new ContextThemeWrapper(ctx, Resource.Style.Theme_Material3_DayNight_NoActionBar);
+        
         rememberMeSwitch = new MaterialSwitch(materialContext)
         {
             Text = "Remember Me",
@@ -250,7 +251,8 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
         rememberMeSwitch.CheckedChange += RememberMeSwitch_CheckedChange;
 
 
-
+        var materialContextBtn = new ContextThemeWrapper(ctx, Resource.Style.Theme_Material3_DayNight_NoActionBar);
+        
         lastFMSubmitButton = new MaterialButton(ctx)
         {
             Text = "Submit",

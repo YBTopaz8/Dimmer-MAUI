@@ -7,6 +7,10 @@ using System.Text.RegularExpressions;
 
 using Android.Graphics;
 
+using AndroidX.Interpolator.View.Animation;
+using AndroidX.Lifecycle;
+using AndroidX.Transitions;
+
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
@@ -23,7 +27,8 @@ using Microsoft.Extensions.Logging;
 
 using static System.TimeZoneInfo;
 
-using RegexOption = System.Text.RegularExpressions.RegexOptions;
+using ChangeTransform = AndroidX.Transitions.ChangeTransform;
+
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -452,7 +457,69 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     #region Navigation Section
 
+    public void NavigateToNowPlayingFragmentFromHome(
+        Fragment callerFrag, View sourceArt,
+        View sourceTitle, View sourceArtist,
+        View sourceAlbum)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
 
+        // 1. Setup Unique Transition Names
+        // We use GUIDs or static strings to ensure they are unique for this transaction
+        string artTransName = "trans_art_" + Guid.NewGuid().ToString();
+        string titleTransName = "trans_title_" + Guid.NewGuid().ToString();
+        string artistTransName = "trans_artist_" + Guid.NewGuid().ToString();
+        string albumTransName = "trans_album_" + Guid.NewGuid().ToString();
+
+        // 2. Assign these names to the SOURCE views (Home Page)
+        sourceArt.TransitionName = artTransName;
+        sourceTitle.TransitionName = titleTransName;
+        sourceArtist.TransitionName = artistTransName;
+        sourceAlbum.TransitionName = albumTransName;
+
+        // 3. Create Destination Fragment and pass the names
+        var nowPlayingFrag = new NowPlayingFragment(this)
+        {
+            ArtTransitionName = artTransName,
+            TitleTransitionName = titleTransName,
+            ArtistTransitionName = artistTransName,
+            AlbumTransitionName = albumTransName
+        };
+
+        CurrentPage = nowPlayingFrag; // Update your tracking property
+
+        // 4. Define the Shared Element Transition (The Fly Animation)
+        var sharedSet = new TransitionSet();
+        sharedSet.AddTransition(new ChangeBounds());
+        sharedSet.AddTransition(new ChangeTransform());
+        sharedSet.AddTransition(new ChangeImageTransform()); // Crucial for ImageViews
+        sharedSet.SetDuration(400);
+        sharedSet.SetInterpolator(new FastOutSlowInInterpolator());
+
+        nowPlayingFrag.SharedElementEnterTransition = sharedSet;
+        nowPlayingFrag.SharedElementReturnTransition = sharedSet;
+
+        // 5. Define the Page Transition (The Fade In/Out of non-shared stuff)
+        // Fade Through is standard for Material 3
+        var fadeThrough = new Google.Android.Material.Transition.MaterialFadeThrough();
+        fadeThrough.SetDuration(300);
+        nowPlayingFrag.EnterTransition = fadeThrough;
+        nowPlayingFrag.ExitTransition = fadeThrough;
+
+        // 6. Execute Transaction
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .SetReorderingAllowed(true) // REQUIRED for shared elements
+
+            // Map the Source View to the Transition Name
+            .AddSharedElement(sourceArt, artTransName)
+            .AddSharedElement(sourceTitle, titleTransName)
+            .AddSharedElement(sourceArtist, artistTransName)
+            .AddSharedElement(sourceAlbum, albumTransName)
+
+            .Replace(TransitionActivity.MyStaticID, nowPlayingFrag)
+            .AddToBackStack("NowPlaying")
+            .Commit();
+    }
     public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)
     {
         if (callerFrag == null) return;
@@ -496,38 +563,29 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             fragment.SharedElementEnterTransition = container;
             fragment.SharedElementReturnTransition = container.Clone();
 
-            var nonSharedEnterAnim = new Google.Android.Material.Transition.MaterialFadeThrough
-            {
-
-            };
 
             var scaleUp = new MaterialElevationScale(true);
             scaleUp.SetDuration(300);
 
             var scaleDown = new MaterialElevationScale(false);
             scaleDown.SetDuration(200);
-            nonSharedEnterAnim.SetDuration(360);
             fragment.EnterTransition = scaleUp;
 
-            var nonShareExitAnim = new Google.Android.Material.Transition.MaterialFadeThrough
-            {
-            };
-            nonShareExitAnim.SetDuration(180);
-            fragment.ExitTransition = scaleDown;
 
 
 
 
             Hold enterHold = new Hold();
             enterHold.AddTarget(TransitionActivity.MyStaticID);
-            enterHold.SetDuration(100);
-            homeFrag.ParentFragment?.ExitTransition = enterHold;
+            enterHold.SetDuration(400);
+            homeFrag.ExitTransition = enterHold;
 
 
             homeFrag.ParentFragmentManager.BeginTransaction()
+                .SetReorderingAllowed(true)
                 .AddSharedElement(sharedView, transitionName)
                 .Replace(TransitionActivity.MyStaticID, fragment)
-                .AddToBackStack(null)
+                .AddToBackStack(transitionName)
                 .Commit();
 
 
@@ -560,39 +618,89 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         // Example subscription to CurrentSongChanged
         var songSubscription = CurrentSongChanged
             .Where(song => song != null)
-         .ObserveOn(RxSchedulers.UI)    
-
-            .Subscribe(song =>
+            .Select(song => song!)
+            .DistinctUntilChanged(s => s.FilePath)
+            .ObserveOn(RxSchedulers.Background)
+            .Do(song =>
             {
-                if (song == null || song.TitleDurationKey is null) return;
-                var isCurrentHomePage = CurrentPage is HomePageFragment;
-                if (!isCurrentHomePage) return;
-                var currenthomeFrag = (HomePageFragment)CurrentPage!;
+                if (CurrentPage is HomePageFragment homeFrag)
+                {
+                    homeFrag._titleTxt.Text = song.Title;
+                    homeFrag._albumTxt.Text = song.AlbumName;
+                }
 
-                currenthomeFrag._albumArt?.SetImageBitmap(BitmapFactory.DecodeFile(song.CoverImagePath));
-                currenthomeFrag._titleTxt?.Text = song.Title;
-                currenthomeFrag._albumTxt?.Text = song.AlbumName;
-            });
+                if (CurrentPage is NowPlayingFragment npFrag)
+                {
+                    npFrag.SongTitle.Text = song.Title;
+                    npFrag.ArtistName.Text = song.ArtistName;
+                    npFrag.AlbumName.Text = song.AlbumName;
+                    npFrag.FileFormatText.Text = song.FileFormat; // e.g. "mp3"
+                }
+
+            }).ObserveOn(RxSchedulers.Background)
+        .Select(song =>
+        {
+            // This runs on TaskPool. No UI jank!
+            if (!string.IsNullOrEmpty(song.CoverImagePath) && System.IO.File.Exists(song.CoverImagePath))
+            {
+                // DecodeFile is synchronous, but that's fine because we are on bg thread
+                return BitmapFactory.DecodeFile(song.CoverImagePath);
+            }
+            return null;
+        })
+        // STEP C: Switch back to UI to set the Image
+        .ObserveOn(RxSchedulers.UI)
+        .Subscribe(bitmap =>
+        {
+            if (CurrentPage is HomePageFragment homeFrag && homeFrag._albumArt != null)
+            {
+                if (bitmap != null)
+                    homeFrag._albumArt.SetImageBitmap(bitmap);
+                else
+                    homeFrag._albumArt.SetBackgroundColor(Color.DarkGray);
+            }
+
+            if (CurrentPage is NowPlayingFragment npFrag && npFrag.AlbumArtImage != null)
+            {
+                if (bitmap != null)
+                    npFrag.AlbumArtImage.SetImageBitmap(bitmap);
+                else
+                    npFrag.AlbumArtImage.SetBackgroundColor(Color.DarkGray);
+            }
+        },
+        error =>
+        {
+            // Always good to catch errors in image loading so stream doesn't die
+            Console.WriteLine($"Image Load Error: {error.Message}");
+        });
 
         SubsManager.Add(songSubscription);
 
 
-        var songPos= AudioEnginePositionObservable.
-            ObserveOn(RxSchedulers.UI)
+        // 2. Position Timer Subscription
+        var positionSub = AudioEnginePositionObservable
+            .Sample(TimeSpan.FromMilliseconds(250)) // 4 times a second is plenty for smooth UI
+            .ObserveOn(RxSchedulers.UI) // Ensure we are on UI thread
             .Subscribe(songPosition =>
             {
-                
-            
-                var isCurrentHomePage = CurrentPage is HomePageFragment;
-                if (!isCurrentHomePage) return;
-                
-                var currenthomeFrag = (HomePageFragment)CurrentPage!;
-                
-                
-                
-                currenthomeFrag.CurrentTimeTextView?.Text = PublicStats.FormatTimeSpan(songPosition);
+                if (CurrentPage is HomePageFragment homeFrag && homeFrag.CurrentTimeTextView != null)
+                {
+                    homeFrag.CurrentTimeTextView.Text = PublicStats.FormatTimeSpan(songPosition);
+                }
+
+                if (CurrentPage is NowPlayingFragment npFrag && npFrag.SeekSlider != null)
+                {
+                    // ONLY update slider if user is NOT currently dragging it
+                    if (!npFrag.IsDragging)
+                    {
+
+                        npFrag.SeekSlider.Value = (float)CurrentTrackPositionPercentage;
+
+                    }
+                }
             });
 
+        SubsManager.Add(positionSub);
     }
     #endregion
 

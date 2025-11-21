@@ -35,18 +35,21 @@ public partial class NowPlayingFragment : Fragment
     public MaterialTextView FileFormatText { get; private set; }
     public Slider SeekSlider { get; private set; }
     public Slider VolumeSlider { get; private set; }
-
+    public bool IsDragging { get; private set; } = false;
+    public string ArtTransitionName { get; set; }
+    public string TitleTransitionName { get; set; }
+    public string ArtistTransitionName { get; set; }
+    public string AlbumTransitionName { get; set; }
     public NowPlayingFragment()
     {
         
     }
-    private CancellationTokenSource? _sliderDebounceCts;
 
     public NowPlayingFragment(BaseViewModelAnd viewModel)
     {
         MyViewModel = viewModel;
     }
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
 
 
@@ -81,7 +84,8 @@ public partial class NowPlayingFragment : Fragment
                 ViewGroup.LayoutParams.WrapContent)
         };
         ((LinearLayout.LayoutParams)SongTitle.LayoutParameters).BottomMargin = DpToPx(16);
-
+        if (!string.IsNullOrEmpty(TitleTransitionName))
+            SongTitle.TransitionName = TitleTransitionName;
 
         // --- ELEMENT 2: CardView with Image + Overlay ---
         var albumCard = new MaterialCardView(ctx)
@@ -111,6 +115,9 @@ public partial class NowPlayingFragment : Fragment
         };
         AlbumArtImage.SetScaleType(ImageView.ScaleType.CenterCrop);
         AlbumArtImage.SetBackgroundColor(Color.DarkGray); // Placeholder color
+        if (!string.IsNullOrEmpty(ArtTransitionName))
+            AlbumArtImage.TransitionName = ArtTransitionName;
+
 
         // Layer B: Border/Lyrics Layout (Superposed)
         LyricsOverlay = new FrameLayout(ctx)
@@ -153,6 +160,9 @@ public partial class NowPlayingFragment : Fragment
             TextSize = 18f,
             LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
         };
+        if (!string.IsNullOrEmpty(ArtistTransitionName))
+            ArtistName.TransitionName = ArtistTransitionName;
+
 
         FavIcon = new ImageView(ctx)
         {
@@ -256,14 +266,13 @@ public partial class NowPlayingFragment : Fragment
 
         
         // --- ELEMENT 8: Seek Slider ---
-        SeekSlider = new Google.Android.Material.Slider.Slider(ctx)
+        SeekSlider = new Slider(ctx)
         {
             ValueFrom = 0f,
             ValueTo = 100f,
             Value = 30f,
             LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         };
-        
        
 
         ((LinearLayout.LayoutParams)SeekSlider.LayoutParameters).TopMargin = DpToPx(16);
@@ -272,14 +281,16 @@ public partial class NowPlayingFragment : Fragment
             // 1. IMPORTANT: Set Handled to false so the Slider still slides!
             e.Handled = false;
 
-            // 2. Check if the user lifted their finger (Action.Up)
-            if (e.Event.Action == MotionEventActions.Up || e.Event.Action == MotionEventActions.Cancel)
+            if (e.Event?.Action == MotionEventActions.Down)
             {
-                // The user has stopped dragging
+                IsDragging = true; // User grabbed the handle
+            }
+            else if (e.Event?.Action == MotionEventActions.Up || e.Event?.Action == MotionEventActions.Cancel)
+            {
+                IsDragging = false; // User let go
                 if (sender is Slider s)
                 {
-                    double doubleVal = s.Value;
-                    OnSeekCompleted(doubleVal);
+                    OnSeekCompleted(s.Value);
                 }
             }
         };

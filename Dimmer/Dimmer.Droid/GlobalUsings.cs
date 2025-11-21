@@ -80,6 +80,10 @@ global using Button = Android.Widget.Button;
 global using Platform = Microsoft.Maui.ApplicationModel.Platform;
 global using Dimmer.Droid;
 global using Dimmer.Interfaces;
+global using ChangeBounds = AndroidX.Transitions.ChangeBounds;
+global using RegexOption = System.Text.RegularExpressions.RegexOptions;
+global using TransitionSet = AndroidX.Transitions.TransitionSet;
+global using ChangeImageTransform = AndroidX.Transitions.ChangeImageTransform;
 namespace Dimmer;
 
 internal class GlobalUsings

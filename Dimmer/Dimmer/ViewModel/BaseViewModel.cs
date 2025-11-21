@@ -5738,6 +5738,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task LoadUserLastFMDataAsync()
     {
+        if (lastfmService.AuthenticatedUser is null) return;
         ListOfUserRecentTracks = await lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50);
 
         LastFMUserInfo = await lastfmService.GetUserInfoAsync();
