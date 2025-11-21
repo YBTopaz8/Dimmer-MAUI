@@ -437,6 +437,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public async Task ShareSongViewClipboard(SongModelView song)
     {
 
+
         var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
 
         if (byteData.imgBytes != null)
@@ -468,8 +469,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             CurrentPage = fragment;
 
             
+            var enterSet = new TransitionSet();
 
-            var mcTAnim = new MaterialContainerTransform
+
+            var container = new MaterialContainerTransform
             {
                 DrawingViewId = TransitionActivity.MyStaticID,  // container for fragments
                 ScrimColor = Color.Transparent,
@@ -479,38 +482,43 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
             };
             
-            mcTAnim.PathMotion = new MaterialArcMotion();
-            mcTAnim.SetDuration(380)
-                .SetInterpolator(PublicStats.DecelerateInterpolator);
+            container.PathMotion = new MaterialArcMotion();
+            container.SetDuration(380);
 
             homeFrag._pageFAB?.Animate()?
             .Alpha(0f)
-            .SetDuration(mcTAnim.Duration)
+            .SetDuration(container.Duration)
             .Start();
 
 
-            fragment.SharedElementEnterTransition = mcTAnim;
-            fragment.SharedElementReturnTransition = mcTAnim.Clone();
+            fragment.SharedElementEnterTransition = container;
+            fragment.SharedElementReturnTransition = container.Clone();
 
             var nonSharedEnterAnim = new Google.Android.Material.Transition.MaterialFadeThrough
             {
 
             };
-            nonSharedEnterAnim.SetDuration(400);
-            fragment.EnterTransition = nonSharedEnterAnim;
+
+            var scaleUp = new MaterialElevationScale(true);
+            scaleUp.SetDuration(300);
+
+            var scaleDown = new MaterialElevationScale(false);
+            scaleDown.SetDuration(200);
+            nonSharedEnterAnim.SetDuration(360);
+            fragment.EnterTransition = scaleUp;
 
             var nonShareExitAnim = new Google.Android.Material.Transition.MaterialFadeThrough
             {
             };
-            nonShareExitAnim.SetDuration(380);
-            fragment.ExitTransition = nonShareExitAnim;
+            nonShareExitAnim.SetDuration(180);
+            fragment.ExitTransition = scaleDown;
 
 
 
 
             Hold enterHold = new Hold();
             enterHold.AddTarget(TransitionActivity.MyStaticID);
-            enterHold.SetDuration(mcTAnim.Duration);
+            enterHold.SetDuration(100);
             homeFrag.ParentFragment?.ExitTransition = enterHold;
 
 
@@ -575,7 +583,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             
                 var isCurrentHomePage = CurrentPage is HomePageFragment;
                 if (!isCurrentHomePage) return;
+                
                 var currenthomeFrag = (HomePageFragment)CurrentPage!;
+                
+                
+                
                 currenthomeFrag.CurrentTimeTextView?.Text = PublicStats.FormatTimeSpan(songPosition);
             });
 

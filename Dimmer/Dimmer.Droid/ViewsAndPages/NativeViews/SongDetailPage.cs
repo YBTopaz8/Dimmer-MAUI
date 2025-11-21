@@ -39,22 +39,24 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 public class SongDetailPage : Fragment
 {
     private ImageView? _sharedImage;
+    internal TextView? TitleText;
+    internal TextView? ArtistText;
+    internal TextView? AlbumText;
     public static string TAG = "ArtistDetailFrag";
     public static string ArtistId;
-    private string transitionName;
+    private string _transitionName;
     FloatingActionButton fab;
     AppBarLayout appBarLayout;
     SongModelView selectedSong;
     BaseViewModelAnd MyViewModel;
     public SongDetailPage(string transitionName, BaseViewModelAnd vm)
     {
-        this.transitionName = transitionName;
+        this._transitionName = transitionName;
         MyViewModel = vm;
-        if(vm.SelectedSong == null)
+        if(vm.SelectedSong != null)
         {
-            throw new ArgumentNullException("SelectedSong cannot be null in SongDetailPage");
+            selectedSong = vm.SelectedSong;
         }
-        selectedSong = vm.SelectedSong;
     }
 
     //public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -124,10 +126,10 @@ public class SongDetailPage : Fragment
         int screenHeight = displayMetrics.HeightPixels;
         _sharedImage = new ImageView(ctx)
         {
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, (int)(screenHeight * 0.2f)),
-            TransitionName = transitionName,
+            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, (int)(screenHeight * 0.4f)),
+            TransitionName = _transitionName,
         };
-        _sharedImage.SetScaleType(ImageView.ScaleType.CenterCrop);
+        _sharedImage.SetScaleType(ImageView.ScaleType.FitCenter);
         if (!string.IsNullOrEmpty(selectedSong.CoverImagePath) && System.IO.File.Exists(selectedSong.CoverImagePath))
         {
             Glide.With(ctx).Load(selectedSong.CoverImagePath).Placeholder(Resource.Drawable.musicnotess).Into(_sharedImage);
@@ -142,7 +144,13 @@ public class SongDetailPage : Fragment
         };
         var titleTxt = new TextView(ctx) { Text = selectedSong.Title, TextSize = 26f };
         titleTxt.SetTextColor(Color.White);
+        
+        
         var artistTxt = new TextView(ctx) { Text = selectedSong.ArtistName ?? "Unknown Artist", TextSize = 18f };
+        
+        
+
+
         artistTxt.SetTextColor(Color.LightGray);
         var albumTxt = new TextView(ctx) { Text = selectedSong.AlbumName ?? "Unknown Album", TextSize = 16f};
         albumTxt.SetTextColor(Color.Gray);

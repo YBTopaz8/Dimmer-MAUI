@@ -1,4 +1,6 @@
 ﻿
+using System.ComponentModel;
+
 using Android.Content;
 
 using AndroidX.Core.View;
@@ -25,7 +27,7 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 internal class SongAdapter : RecyclerView.Adapter
 {
     private Context ctx;
-    private BaseViewModelAnd vm;
+    internal BaseViewModelAnd vm;
     private IEnumerable<SongModelView> _songs = Enumerable.Empty<SongModelView>();
     private readonly IDisposable _subscription;
     public IEnumerable<SongModelView> Songs => _songs;
@@ -129,21 +131,27 @@ internal class SongAdapter : RecyclerView.Adapter
         base.Dispose(disposing);
         if (disposing) _subscription.Dispose();
     }
+    ImageButton imgBtn;
+    LinearLayout row;
+    TextView title;
+    TextView artist;
+    TextView album;
     public override AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {
-        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         row.SetPadding(0, 20, 0, 20);
         row.SetGravity(GravityFlags.CenterVertical);
 
-        var imgBtn = new ImageButton(ctx);
-        imgBtn.LayoutParameters = new LinearLayout.LayoutParams(200, 200);
+        imgBtn = new ImageButton(ctx);
+        
+        imgBtn.LayoutParameters = new LinearLayout.LayoutParams(150, 150);
         imgBtn.SetBackgroundColor(Android.Graphics.Color.Transparent);
         row.AddView(imgBtn);
 
         var textCol = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        var title = new TextView(ctx) {  TextSize = 19 };
-        var artist = new TextView(ctx) { TextSize = 15 };
-        var album = new TextView(ctx) { TextSize = 11 };
+        title = new TextView(ctx) {  TextSize = 19 };
+        artist = new TextView(ctx) { TextSize = 15 };
+        album = new TextView(ctx) { TextSize = 11 };
 
         album.SetTextColor(Color.Gray);
         textCol.AddView(title);
@@ -155,9 +163,16 @@ internal class SongAdapter : RecyclerView.Adapter
         var moreBtn = new ImageButton(ctx);
         moreBtn.SetBackgroundColor(Color.Transparent);
         moreBtn.SetImageResource(Resource.Drawable.more1);
+        
         row.AddView(moreBtn, new LinearLayout.LayoutParams(90, 90));
 
         return new SongViewHolder(row, imgBtn, title, album, artist);
+    }
+
+    private void ImgBtn_Click(object? sender, EventArgs e)
+    {
+        var imgBtn = (ImageButton)sender!;
+        vm.NavigateToSingleSongPageFromHome(ParentFragement, imgBtn.TransitionName, sender as View);
     }
 
     class SongViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
@@ -166,6 +181,7 @@ internal class SongAdapter : RecyclerView.Adapter
         public TextView SongTitle { get; }
         public TextView AlbumName { get; }
         public TextView ArtistName { get; }
+        public View ContainerView => base.ItemView;
 
         public SongViewHolder(View itemView, ImageButton img, TextView title, TextView album, TextView artistName)
             : base(itemView)
@@ -174,22 +190,34 @@ internal class SongAdapter : RecyclerView.Adapter
             SongTitle = title;
             AlbumName = album;
             ArtistName = artistName;
+            ImageBtn.Click += ImageBtn_Click;
+            ContainerView.Click += ContainerView_Click;
+        }
 
-            ImageBtn.Click += (s, e) =>
-            {
-                var transitionName = ViewCompat.GetTransitionName(ImageBtn);
-                if (transitionName is null) return;
-                AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
-            };
+        private void ContainerView_Click(object? sender, EventArgs e)
+        {
+            //vm.PlaySong()
+        }
 
-            title.Click += (s, e) =>
-            {
-                var transitionName = ViewCompat.GetTransitionName(ImageBtn);
-                if (transitionName is null) return;
-                AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
-            };
+        private void ImageBtn_Click(object? sender, EventArgs e)
+        {
+            var transitionName = ViewCompat.GetTransitionName(ImageBtn);
+            if (transitionName is null) return;
+            AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
+
+        }
+
+        ~SongViewHolder()
+        {
+            ImageBtn.Click -= ImageBtn_Click;
         }
     }
+
+    ~SongAdapter()
+    {
+        AdapterCallbacks = null;
+    }
+    public enum ViewId { Image, Title, Artist, Container }
     public static Action<View, string, int>? AdapterCallbacks;
     class SongDiff : DiffUtil.Callback
     {

@@ -123,7 +123,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         var recyclerLayoutManager = new LinearLayoutManager(ctx);
         
         _songListRecycler.SetLayoutManager(recyclerLayoutManager);
-
+        
         var emptyText = new TextView(ctx)
         {
             Text = "No songs found",
@@ -135,7 +135,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             (dy) =>
             {
                 
-                Console.WriteLine($"Scrolled by {dy} pixels");
                 // Handle scroll events here
             });
         _adapter = new SongAdapter(ctx, MyViewModel, this);
@@ -145,9 +144,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         
             var touch = new TouchListener(Context, _songListRecycler);
 
-        touch.SingleTap += Touch_SingleTap; 
-
-        _songListRecycler.AddOnItemTouchListener(touch);
 
 
         middleContainer.AddView(_songListRecycler);
@@ -265,8 +261,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             if (!IsAdded || _isNavigating) return;
             _isNavigating = true;
+
+            var fragment = new SettingsFragment("SettingsTrans", MyViewModel);
+
             ParentFragmentManager.BeginTransaction()
-                .Replace(TransitionActivity.MyStaticID, new SettingsFragment(MyViewModel))
+                .Replace(TransitionActivity.MyStaticID, fragment )
                 .AddToBackStack(null)
                 .Commit();
         };

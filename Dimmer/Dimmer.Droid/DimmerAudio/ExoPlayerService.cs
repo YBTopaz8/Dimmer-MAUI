@@ -752,6 +752,7 @@ public class ExoPlayerService : MediaSessionService
         }
 
         const string TAG = "MediaSessionCallback";
+
         // --- Connection Handling ---
         public MediaSession.ConnectionResult OnConnect(
   MediaSession? session,
@@ -785,14 +786,14 @@ public class ExoPlayerService : MediaSessionService
         // --- Command Handling ---
 
 
-        public async static Task<bool> OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
+        public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
 
             if (intent == null || intent.Action == null)
                 return false;
 
 
-            await Shell.Current.DisplayAlert("Media Button Event", $"Received intent: {intent.Action}", "OK");
+            
             return true;
         }
         // Decide whether to allow a specific PLAYER command requested by a controllerInfo

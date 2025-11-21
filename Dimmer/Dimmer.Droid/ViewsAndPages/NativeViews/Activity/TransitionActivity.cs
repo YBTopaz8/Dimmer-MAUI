@@ -274,7 +274,12 @@ public class TransitionActivity : AppCompatActivity
         {
             _onBackInvokedCallback = new BackInvokedCallback(() =>
             {
-                HandleBackPressInternal();
+                var currentFragment = MyViewModel.CurrentPage as HomePageFragment;
+                if (currentFragment is not null) 
+                {
+                    HandleBackPressInternal();
+
+                };
             });
             // Registering with Priority_DEFAULT. Higher priority callbacks are invoked first.
             OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(IOnBackInvokedDispatcher.PriorityDefault, _onBackInvokedCallback);
