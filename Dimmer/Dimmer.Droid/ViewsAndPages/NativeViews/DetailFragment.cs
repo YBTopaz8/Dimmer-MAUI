@@ -1,6 +1,8 @@
 ﻿
 using Dimmer.ViewsAndPages.NativeViews.Activity;
 
+using AlertDialog = Android.App.AlertDialog;
+
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 
@@ -9,10 +11,28 @@ public class DetailFragment : Fragment, IOnBackInvokedCallback
     private readonly string _transitionName;
     public BaseViewModelAnd MyViewModel { get; }
     private readonly SongModelView selectedSong;
+    public DetailFragment()
+    {
+        
+    }
     public DetailFragment(string transitionName, BaseViewModelAnd vm)
     {
         MyViewModel = vm;
-        selectedSong= vm.SelectedSong;
+        if (vm.SelectedSong == null)
+            { 
+        var popUpDialog = new AlertDialog.Builder(Context)
+            .SetTitle("Error")
+            .SetMessage("No song selected. Returning to previous screen.")
+            .SetPositiveButton("OK", (sender, args) =>
+            {
+                // Dismiss dialog and navigate back
+                Activity?.OnBackPressed();
+            })
+            .Create();
+            popUpDialog.Show();
+            return;
+        }
+        selectedSong = vm.SelectedSong;
         _transitionName = transitionName;
     }
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)

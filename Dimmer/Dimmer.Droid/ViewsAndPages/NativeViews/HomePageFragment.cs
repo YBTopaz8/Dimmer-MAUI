@@ -1,8 +1,20 @@
 ﻿using System.Threading.Tasks;
 
+using Android.Graphics;
+using Android.Views.InputMethods;
+
 using Dimmer.Utilities.Extensions;
-using BitmapFactory = Android.Graphics.BitmapFactory;
+
+using Google.Android.Material.BottomSheet;
+using Google.Android.Material.Card;
+using Google.Android.Material.Chip;
+using Google.Android.Material.Search;
+using Google.Android.Material.TextField;
+
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
+
+using BitmapFactory = Android.Graphics.BitmapFactory;
+using SearchBar = Google.Android.Material.Search.SearchBar;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
@@ -29,19 +41,27 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     private bool _isNavigating;
 
+    public HomePageFragment()
+    {
+        
+    }
     public HomePageFragment(BaseViewModelAnd myViewModel)
     {
         MyViewModel = myViewModel;
 
-     
+
     }
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
+    private TextInputEditText searchBar;
+
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         PostponeEnterTransition();
-        var ctx = Context!;
-
+        if (Context == null)
+            return null;
+        var ctx = Context;
+        
 
         // ROOT FRAME (needed for FAB overlay)
          root = new FrameLayout(ctx)
@@ -50,7 +70,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent)
         };
-
         // MAIN COLUMN
         var column = new LinearLayout(ctx)
         {
@@ -61,14 +80,14 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
 
         // SEARCHBAR (top)
-        var searchBar = new EditText(ctx)
+         searchBar = new TextInputEditText(ctx)
         {
             Hint = "Search songs, artists, albums...",
             TextSize = 16f
         };
         
         searchBar.SetPadding(40, 30, 40, 30);
-
+        
         searchBar.TextChanged += (s, e) =>
         {
             _searchCts?.Cancel();
@@ -96,15 +115,35 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
 
-        var searchBorder = new FrameLayout(ctx)
+        var searchBorder = new LinearLayout(ctx)
         {
             LayoutParameters = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
-                (int)(ctx.Resources.DisplayMetrics.Density * 60))
+                ViewGroup.LayoutParams.MatchParent
+                )
+            
         };
 
+        var lyP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent, (int)(ctx.Resources.DisplayMetrics.Density * 60));
+        lyP.SetMargins(
+            (int)(ctx.Resources.DisplayMetrics.Density * 16),
+            (int)(ctx.Resources.DisplayMetrics.Density * 16),
+            (int)(ctx.Resources.DisplayMetrics.Density * 16),
+            (int)(ctx.Resources.DisplayMetrics.Density * 8)
+            );
+
+        var mdCardView = new MaterialCardView(ctx)
+        {
+           LayoutParameters = lyP,
+           CardElevation = 8f,
+           Elevation = 8f,
+        };
+        mdCardView.StrokeColor = Color.Red;
+        mdCardView.StrokeWidth = 2;
         searchBorder.AddView(searchBar);
 
+        mdCardView.AddView(searchBorder);
         // MIDDLE ZONE (RecyclerView + empty text)
         var middleContainer = new FrameLayout(ctx)
         {
@@ -143,7 +182,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler.AddOnScrollListener(scrListener);
 
         
-            var touch = new TouchListener(Context, _songListRecycler);
 
 
 
@@ -191,9 +229,23 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 1f)
         };
 
+        var txtColorList = new ColorStateList(
+            new int[][] {
+                new int[] { } // default
+            },
+            new int[] {
+                Color.White,
+                Color.DarkSlateBlue,
+                Color.Black
+            }
+        );
         _titleTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.Title, TextSize = 19f };
+        _titleTxt.SetTextColor(txtColorList);
         _albumTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.AlbumName, TextSize = 10f };
+        _albumTxt.SetTextColor(txtColorList);
         _artistTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.ArtistName, TextSize = 14f };
+        _artistTxt.SetTextColor(txtColorList);
+
 
         textStack.AddView(_titleTxt);
         textStack.AddView(_artistTxt);
@@ -208,7 +260,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             Text = MyViewModel.CurrentTrackDurationSeconds.ToString(),
             TextSize = 12f
-        };
+        }; CurrentTimeTextView.SetTextColor(txtColorList);
         CurrentTimeTextView.Click += CurrentTime_Click;
         
 
@@ -217,7 +269,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             Text = $"Plays: {MyViewModel.CurrentPlayingSongView.PlayCompletedCount}",
             TextSize = 12f
         };
-
+        playCount.SetTextColor(txtColorList);
         rightStack.AddView(CurrentTimeTextView);
         rightStack.AddView(playCount);
 
@@ -226,7 +278,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         btmBar.AddView(rightStack);
 
         // ADD TOP + MIDDLE + BOTTOM TO COLUMN
-        column.AddView(searchBorder);
+        column.AddView(mdCardView);
         column.AddView(middleContainer);
         column.AddView(btmBar);
 
@@ -245,8 +297,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         int fabMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
         ((FrameLayout.LayoutParams)_pageFAB.LayoutParameters).SetMargins(fabMargin, fabMargin, fabMargin, fabMarginBottom);
         _pageFAB.Click += PageFAB_Click;
-
-         cogButton = new FloatingActionButton(ctx)
+        _pageFAB.LongClickable = true;
+        _pageFAB.LongClick += _pageFAB_LongClick;
+        cogButton = new FloatingActionButton(ctx)
         {
             LayoutParameters = new FrameLayout.LayoutParams(
         ViewGroup.LayoutParams.WrapContent,
@@ -292,10 +345,45 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _pageFAB.SetBackgroundColor(Color.DarkSlateBlue);
         _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
 
+        var scrollToChip = new Chip(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent,
+                GravityFlags.Bottom | GravityFlags.End)
+        };
+        int chipMargin = (int)(ctx.Resources.DisplayMetrics.Density * 160);
+        int chipMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
+        
+        scrollToChip.Click += (s, e) =>
+        {
+            var currentlyPlayingIndex= MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+            _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+        }; 
+        ((FrameLayout.LayoutParams)scrollToChip.LayoutParameters).SetMargins(chipMargin, chipMargin, chipMargin, chipMarginBottom);
+
+        scrollToChip.SetChipIconResource(Resource.Drawable.eye);
+   
         root.AddView(_pageFAB);
         root.AddView(cogButton);
-
+        root.AddView(scrollToChip);
+        _albumArt.TransitionName = "home_bottom_bar_art";
+        _titleTxt.TransitionName = "home_bottom_bar_title";
+        _artistTxt.TransitionName = "home_bottom_bar_artist";
+        _albumTxt.TransitionName = "home_bottom_bar_album";
         return root;
+    }
+
+    private void _pageFAB_LongClick(object? sender, View.LongClickEventArgs e)
+    {
+        if(searchBar.RequestFocus())
+            {
+            InputMethodManager? imm = Context!.GetSystemService(Context.InputMethodService) as InputMethodManager;
+            if (imm is null) return;
+            imm.ShowSoftInput(searchBar, ShowFlags.Implicit);
+        }
+        
+
     }
 
     private void AlbumArt_Click(object? sender, EventArgs e)
@@ -320,11 +408,47 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
    
     private void PageFAB_Click(object? sender, EventArgs e)
     {
-        if (_isNavigating || !IsAdded) return;
 
-        _isNavigating = true;
-        Toast.MakeText(Context!, "Play/Pause clicked!", ToastLength.Short)?.Show();
-        NavToAlbumaPage(toSettingsTrans);
+
+        var bottomSheetDialog = new BottomSheetDialog(Context!);
+
+        var layout = new LinearLayout(Context!)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        }; 
+        layout.SetPadding(0, 20, 0, 40); // Add some bottom padding for safety
+
+        var title = new TextView(Context!)
+        {
+            Text = "Current Queue",
+            TextSize = 20f,
+            Gravity = GravityFlags.Center,
+            
+        };
+        title.SetPadding(0, 20, 0, 20);
+
+        title.SetTypeface(null, TypefaceStyle.Bold);
+
+        layout.AddView(title);
+        var recyclerView = new RecyclerView(Context!)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+        recyclerView.SetLayoutManager(new LinearLayoutManager(Context!));
+        var adapter = new SongAdapter(Context!, MyViewModel, this, "queue");
+        recyclerView.SetAdapter(adapter);
+
+        layout.AddView(recyclerView);
+        bottomSheetDialog.SetContentView(layout);
+        bottomSheetDialog.Show();
+
+
+
     }
 
     private void CurrentTime_Click(object? sender, EventArgs e)
@@ -389,18 +513,40 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
     {
         base.OnViewCreated(view, savedInstanceState);
-        view?.ViewTreeObserver?.GlobalLayout += HomePageFragment_GlobalLayout;
+        PostponeEnterTransition();
+
+
+        view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
 
         _pageFAB.Alpha = 1f;
         _isNavigating = false;
         MyViewModel.CurrentPage = this;
+
+        this.View!.Tag = "HomePageFragment";
         MyViewModel.SetupSubscriptions();
     }
-
-    private void HomePageFragment_GlobalLayout(object? sender, EventArgs e)
+    public class MyPreDrawListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
     {
-         StartPostponedEnterTransition();
+        private readonly Fragment _fragment;
+        private readonly View _view;
+
+        public MyPreDrawListener(Fragment fragment, View view)
+        {
+            _fragment = fragment;
+            _view = view;
+        }
+
+        public bool OnPreDraw()
+        {
+            // Remove listener so it only fires once
+            _view.ViewTreeObserver.RemoveOnPreDrawListener(this);
+
+            // 3. Tell transition system: "Okay, views are ready. Start the animation!"
+            _fragment.StartPostponedEnterTransition();
+            return true;
+        }
     }
+    
 
     public override void OnDestroyView()
     {
@@ -409,7 +555,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchCts?.Cancel();
         CurrentTimeTextView.Click -= CurrentTime_Click;
         _pageFAB.Click -= PageFAB_Click;
-        View?.ViewTreeObserver?.GlobalLayout -= HomePageFragment_GlobalLayout;
         _songListRecycler?    .SetAdapter(null);
         _albumArt.Click -= AlbumArt_Click;
         _songListRecycler = null;

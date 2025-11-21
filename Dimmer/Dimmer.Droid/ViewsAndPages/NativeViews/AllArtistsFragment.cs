@@ -9,6 +9,8 @@ public class AllArtistsFragment : Fragment
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
+        if(Context == null)
+            return base.OnCreateView(inflater, container, savedInstanceState);
         var ctx = Context!;
         var root = new LinearLayout(ctx)
         {

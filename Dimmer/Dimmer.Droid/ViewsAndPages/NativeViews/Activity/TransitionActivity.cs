@@ -138,8 +138,30 @@ public class TransitionActivity : AppCompatActivity
         SetStatusBarColor();
 
         SetupBackNavigation();
-        // Optional: close MainActivity so back button won't return to it
-        //Finish();
+
+
+        SupportFragmentManager.BackStackChanged += (s, e) =>
+        {
+            int count = SupportFragmentManager.BackStackEntryCount;
+
+            if (count == 0)
+            {
+                // If stack is empty, we must be back at Home
+                // You might need to cast or search via Tag if you store the instance elsewhere
+                var homeFrag = SupportFragmentManager.FindFragmentByTag("HomePageFragment");
+                MyViewModel.CurrentPage = homeFrag as Fragment;
+            }
+            else
+            {
+                // If stack has items, get the top one
+                // (This assumes you manage CurrentPage strictly for UI state)
+                var topFrag = SupportFragmentManager.Fragments.LastOrDefault();
+                MyViewModel.CurrentPage = topFrag;
+            }
+        };
+
+
+
         return;
 
 
@@ -299,40 +321,20 @@ public class TransitionActivity : AppCompatActivity
     // This method contains the logic for what to do when back is pressed.
     private void HandleBackPressInternal()
     {
-        System.Diagnostics.Debug.WriteLine("HandleBackPressInternal invoked.");
-
-
-
-        System.Diagnostics.Debug.WriteLine("MAUI did not handle OnBackPressed. Calling base.OnBackPressed().");
-        // If MAUI didn't handle it, and we're on API < 33 using the OnBackPressed override,
-        // calling base.OnBackPressed() would perform the default finish.
-        // For API 33+, if this callback is invoked and MAUI didn't handle it,
-        // the system will typically finish the activity if this callback doesn't do something else
-        // or if there isn't a lower priority callback.
-        // If this is the root activity, it might go to background instead of finishing.
-        // To explicitly finish:
-        // Finish();
-        // Or move to back:
-        // MoveTaskToBack(true);
-
-        // For API 33+, if you want the *default system behavior* after your checks,
-        // you might need to unregister the callback TEMPORARILY and then trigger a back press,
-        // or rely on the fact that if your callback doesn't "consume" the event fully,
-        // the system might proceed. This area is a bit nuanced.
-        // Often, if MAUI doesn't handle it, and it's the root page, you let the system minimize the app.
-        // If it's NOT the root, you'd typically call Finish();
-
-        // For now, let's assume if MAUI doesn't handle it, and this is our callback,
-        // we might want to finish if it's not the root task.
-        // This logic mirrors roughly what the default OnBackPressed does.
-        if (!IsTaskRoot)
+        // 1. Check if there are Fragments in the stack (e.g., NowPlaying or Settings)
+        if (SupportFragmentManager.BackStackEntryCount > 0)
         {
-            Finish();
+            // Go back one step in the native Fragment history
+            SupportFragmentManager.PopBackStack();
         }
         else
         {
-            // If it's the root task, the system will usually move it to the back.
-            // You could explicitly do MoveTaskToBack(true); but often not needed here.
+            // 2. We are at the Root (HomePageFragment)
+            // Minimize the app (Standard Android behavior)
+            MoveTaskToBack(true);
+
+            // OR if you truly want to close the app process:
+            // Finish(); 
         }
     }
     private void ProcessIntent(Android.Content.Intent? intent)

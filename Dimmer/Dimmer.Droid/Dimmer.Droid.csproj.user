@@ -3,10 +3,13 @@
   <PropertyGroup>
     <SelectedDevice>pixel_7_-_api_36</SelectedDevice>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <ActiveDebugProfile>Pixel 7 - API 36 (Android 16.0 - API 36)</ActiveDebugProfile>
+    <ActiveDebugProfile>pixel_7_-_api_36</ActiveDebugProfile>
     <DefaultDevice>pixel_7_-_api_36</DefaultDevice>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

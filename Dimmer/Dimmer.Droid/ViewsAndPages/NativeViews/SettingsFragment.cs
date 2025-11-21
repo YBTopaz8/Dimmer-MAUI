@@ -1,5 +1,7 @@
 ﻿
 
+using System.Threading.Tasks;
+
 using Android.Content;
 using Android.Graphics;
 
@@ -19,7 +21,7 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
 {
     private readonly string _transitionName;
-    private BaseViewModelAnd _viewModel;
+    private BaseViewModelAnd MyViewModel;
     private RecyclerView _folderRecycler;
     private Button _addFolderButton;
     private FolderAdapter _adapter;
@@ -32,8 +34,12 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
     public SettingsFragment(string transitionName, BaseViewModelAnd myViewModel)
     {
-        this._viewModel = myViewModel;
+        this.MyViewModel = myViewModel;
         _transitionName = transitionName;
+    }
+    public SettingsFragment()
+    {
+        
     }
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
@@ -134,6 +140,7 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
                 ViewGroup.LayoutParams.WrapContent,
                 ViewGroup.LayoutParams.WrapContent)
         };
+        backMaterialChip.Click += BackMaterialChip_Click;
         
         HorizontalLayout.AddView(backMaterialChip);
         HorizontalLayout.AddView(pageIcon);
@@ -327,8 +334,8 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
         };
         _folderRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
-        _viewModel.ReloadFolderPathsCommand.Execute(null);
-        _adapter = new FolderAdapter(_viewModel.FolderPaths);
+        MyViewModel.ReloadFolderPathsCommand.Execute(null);
+        _adapter = new FolderAdapter(MyViewModel.FolderPaths);
         _folderRecycler.SetAdapter(_adapter);
 
 
@@ -396,11 +403,72 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         musicFoldersCard.AddView(musicFoldersCardLinLayout);
 
+
+        var utilitiesCard = new MaterialCardView(ctx)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent),
+            Radius = 12f,
+            CardElevation = 8f,
+        };
+        var gridOfTwoColumnsUtil = new GridLayout(ctx)
+        {
+            ColumnCount = 2,
+            LayoutParameters = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+        var colOneTextUtil = new TextView(ctx)
+        {
+            Text = "Reload All Album Covers",
+            TextSize = 18f,
+            Gravity = GravityFlags.Left,
+            LayoutParameters = new GridLayout.LayoutParams()
+            {
+                Width = ViewGroup.LayoutParams.WrapContent,
+                Height = ViewGroup.LayoutParams.WrapContent,
+                ColumnSpec = GridLayout.InvokeSpec(0),
+                RowSpec = GridLayout.InvokeSpec(0)
+            }
+        };
+        var colTwoButtonUtil = new MaterialButton(ctx)
+        {
+            Text = "Reload",
+            Gravity = GravityFlags.Right,
+            LayoutParameters = new GridLayout.LayoutParams()
+            {
+                Width = ViewGroup.LayoutParams.WrapContent,
+                Height = ViewGroup.LayoutParams.WrapContent,
+                ColumnSpec = GridLayout.InvokeSpec(1),
+                RowSpec = GridLayout.InvokeSpec(0)
+            }
+        };
+        colTwoButtonUtil.Click += ColTwoButtonUtil_Click;
+        gridOfTwoColumnsUtil.AddView(colOneTextUtil);
+        gridOfTwoColumnsUtil.AddView(colTwoButtonUtil);
+        utilitiesCard.AddView(gridOfTwoColumnsUtil);
+        scrollLinearLayout.AddView(utilitiesCard);
+
         scrollLinearLayout.AddView(musicFoldersCard);
         
         pageScrollViewer.AddView(scrollLinearLayout);
         root.AddView(pageScrollViewer);
         return root;
+    }
+
+    private async void ColTwoButtonUtil_Click(object? sender, EventArgs e)
+    {
+      await MyViewModel.EnsureAllCoverArtCachedForSongsCommand.ExecuteAsync(null);
+    }
+
+    private void BackMaterialChip_Click(object? sender, EventArgs e)
+    {
+
+        if (Activity is TransitionActivity mainActivity)
+        {
+            mainActivity.OnBackPressedDispatcher.OnBackPressed();
+        }
     }
 
     private void RememberMeSwitch_CheckedChange(object? sender, CompoundButton.CheckedChangeEventArgs e)
@@ -411,7 +479,7 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
     private async void AddFolderButton_Click(object? sender, EventArgs e)
     {
         
-        await _viewModel.AddMusicFolderViaPickerAsync();
+        await MyViewModel.AddMusicFolderViaPickerAsync();
     }
 
     // Simple string adapter

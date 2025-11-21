@@ -465,17 +465,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (callerFrag == null || !callerFrag.IsAdded) return;
 
         // 1. Setup Unique Transition Names
-        // We use GUIDs or static strings to ensure they are unique for this transaction
-        string artTransName = "trans_art_" + Guid.NewGuid().ToString();
-        string titleTransName = "trans_title_" + Guid.NewGuid().ToString();
-        string artistTransName = "trans_artist_" + Guid.NewGuid().ToString();
-        string albumTransName = "trans_album_" + Guid.NewGuid().ToString();
+        string? artTransName = sourceArt?.TransitionName;
+        string? titleTransName = sourceTitle?.TransitionName;
+        string? artistTransName = sourceArtist?.TransitionName;
+        string? albumTransName = sourceAlbum?.TransitionName;
 
-        // 2. Assign these names to the SOURCE views (Home Page)
-        sourceArt.TransitionName = artTransName;
-        sourceTitle.TransitionName = titleTransName;
-        sourceArtist.TransitionName = artistTransName;
-        sourceAlbum.TransitionName = albumTransName;
 
         // 3. Create Destination Fragment and pass the names
         var nowPlayingFrag = new NowPlayingFragment(this)
@@ -505,20 +499,24 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         fadeThrough.SetDuration(300);
         nowPlayingFrag.EnterTransition = fadeThrough;
         nowPlayingFrag.ExitTransition = fadeThrough;
+        var trans = callerFrag.ParentFragmentManager.BeginTransaction()
+            .SetReorderingAllowed(true);
+        // 6. Add Shared Elements Only if they exist
+        if (sourceArt != null && artTransName != null)
+            trans.AddSharedElement(sourceArt, artTransName);
 
-        // 6. Execute Transaction
-        callerFrag.ParentFragmentManager.BeginTransaction()
-            .SetReorderingAllowed(true) // REQUIRED for shared elements
+        if (sourceTitle != null && titleTransName != null)
+            trans.AddSharedElement(sourceTitle, titleTransName);
 
-            // Map the Source View to the Transition Name
-            .AddSharedElement(sourceArt, artTransName)
-            .AddSharedElement(sourceTitle, titleTransName)
-            .AddSharedElement(sourceArtist, artistTransName)
-            .AddSharedElement(sourceAlbum, albumTransName)
+        if (sourceArtist != null && artistTransName != null)
+            trans.AddSharedElement(sourceArtist, artistTransName);
 
-            .Replace(TransitionActivity.MyStaticID, nowPlayingFrag)
-            .AddToBackStack("NowPlaying")
-            .Commit();
+        if (sourceAlbum != null && albumTransName != null)
+            trans.AddSharedElement(sourceAlbum, albumTransName);
+
+        trans.Replace(TransitionActivity.MyStaticID, nowPlayingFrag)
+             .AddToBackStack("NowPlaying")
+             .Commit();
     }
     public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)
     {
@@ -620,7 +618,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             .Where(song => song != null)
             .Select(song => song!)
             .DistinctUntilChanged(s => s.FilePath)
-            .ObserveOn(RxSchedulers.Background)
+            .ObserveOn(RxSchedulers.UI)
             .Do(song =>
             {
                 if (CurrentPage is HomePageFragment homeFrag)
@@ -635,6 +633,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                     npFrag.ArtistName.Text = song.ArtistName;
                     npFrag.AlbumName.Text = song.AlbumName;
                     npFrag.FileFormatText.Text = song.FileFormat; // e.g. "mp3"
+                    npFrag.LyricsPlaceholder.Text = string.Empty;
                 }
 
             }).ObserveOn(RxSchedulers.Background)
@@ -690,12 +689,15 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
                 if (CurrentPage is NowPlayingFragment npFrag && npFrag.SeekSlider != null)
                 {
-                    // ONLY update slider if user is NOT currently dragging it
                     if (!npFrag.IsDragging)
                     {
+                        float rawValue = (float)CurrentTrackPositionPercentage;
+                        float safeValue = Math.Clamp(rawValue, 0f, 100f);
 
-                        npFrag.SeekSlider.Value = (float)CurrentTrackPositionPercentage;
+                        npFrag.SeekSlider.Value = safeValue;
 
+                        npFrag.LyricsPlaceholder.Text = CurrentLine?.Text;
+                        npFrag.LyricsPlaceholder.TextSize = AppUtil.DpToPx(23);
                     }
                 }
             });

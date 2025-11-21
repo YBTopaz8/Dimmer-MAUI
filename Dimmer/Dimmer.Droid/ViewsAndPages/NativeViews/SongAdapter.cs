@@ -14,6 +14,7 @@ using Dimmer.ViewsAndPages.NativeViews.Activity;
 
 using DynamicData;
 
+using Google.Android.Material.Card;
 using Google.Android.Material.Transition;
 
 using Java.Security;
@@ -26,8 +27,10 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class SongAdapter : RecyclerView.Adapter
 {
+    public enum ViewId { Image, Title, Artist, Container }
+    public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
-    internal BaseViewModelAnd vm;
+    public BaseViewModelAnd MyViewModel;
     private IEnumerable<SongModelView> _songs = Enumerable.Empty<SongModelView>();
     private readonly IDisposable _subscription;
     public IEnumerable<SongModelView> Songs => _songs;
@@ -35,28 +38,48 @@ internal class SongAdapter : RecyclerView.Adapter
     private void OnItemClick(View sharedView, string transitionName, int position)
     {
         var song = _songs.ElementAt(position);
-        vm.SelectedSong = song;
-        vm.NavigateToSingleSongPageFromHome(ParentFragement, transitionName, sharedView);
+        MyViewModel.SelectedSong = song;
+        MyViewModel.NavigateToSingleSongPageFromHome(ParentFragement, transitionName, sharedView);
         //OpenDetailFragment(sharedView, transitionName);
     }
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
-    public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment)
+    public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch="main")
     {
         ParentFragement = pFragment;
         this.ctx = ctx;
-        this.vm = myViewModel;
-        _subscription = vm.SearchResultsHolder
-       .Connect()
-       .ObserveOn(RxSchedulers.UI)
-       .Subscribe(changes =>
-       {
-           var diff = DiffUtil.CalculateDiff(new SongDiff(_songs.ToList(), vm.SearchResults.ToList()));
-           _songs = vm.SearchResults.ToList();
-           diff.DispatchUpdatesTo(this);
-           //_songs = vm.SearchResults;   // update enumerable reference
+        this.MyViewModel = myViewModel;
+        if(songsToWatch=="main")
+        {
+            _subscription = MyViewModel.SearchResultsHolder
+           .Connect()
+           .ObserveOn(RxSchedulers.UI)
+           .Subscribe(changes =>
+           {
+               var diff = DiffUtil.CalculateDiff(new SongDiff(_songs.ToList(), MyViewModel.SearchResults.ToList()));
+               _songs = MyViewModel.SearchResults.ToList();
+               diff.DispatchUpdatesTo(this);
+               //_songs = vm.SearchResults;   // update enumerable reference
+
+           });
+        }
+        else if(songsToWatch=="queue")
+        {
+            _songs = MyViewModel.PlaybackQueue.ToList();
+            _subscription = MyViewModel.PlaybackQueueSource
+           .Connect()
+           .ObserveOn(RxSchedulers.UI)
+           .Subscribe(changes =>
+           {
            
-       });
+               var diff = DiffUtil.CalculateDiff(new SongDiff(_songs.ToList(), MyViewModel.PlaybackQueue.ToList()));
+               _songs = MyViewModel.PlaybackQueue.ToList();
+               diff.DispatchUpdatesTo(this);
+               //_songs = vm.SearchResults;   // update enumerable reference
+
+           });
+        }
+        
         AdapterCallbacks = OnItemClick;
     }
 
@@ -64,13 +87,14 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public override void OnBindViewHolder(AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder holder, int position)
     {
-        if (holder is SongViewHolder vh)
+        if (holder is SongViewHolder songHolder)
         {
             // find song in given position
             var song = _songs.ElementAt(position);
-            vm.SelectedSong = song;
-            vh.SongTitle.Text = song.Title;
-            vh.AlbumName.Text = song.AlbumName ?? "Unknown";
+            songHolder.Bind(song);
+            MyViewModel.SelectedSong = song;
+            songHolder.SongTitle.Text = song.Title;
+            songHolder.AlbumName.Text = song.AlbumName ?? "Unknown";
             // handle image
             if (!string.IsNullOrEmpty(song.CoverImagePath) && System.IO.File.Exists(song.CoverImagePath))
             {
@@ -78,7 +102,7 @@ internal class SongAdapter : RecyclerView.Adapter
                 Glide.With(ctx)
                      .Load(song.CoverImagePath)
                      .Placeholder(Resource.Drawable.musicnotess)
-                     .Into(vh.ImageBtn);
+                     .Into(songHolder.ImageBtn);
 
                 //// Load from disk
                 //var bmp = Android.Graphics.BitmapFactory.DecodeFile(song.CoverImagePath);
@@ -88,11 +112,11 @@ internal class SongAdapter : RecyclerView.Adapter
             else
             {
                 // Fallback placeholder
-                vh.ImageBtn.SetImageResource(Resource.Drawable.musicnotess);
+                songHolder.ImageBtn.SetImageResource(Resource.Drawable.musicnotess);
             }
             // ensure unique transition name
             var transitionName = $"sharedImage_{song.Id}";
-            ViewCompat.SetTransitionName(vh.ImageBtn, transitionName);
+            ViewCompat.SetTransitionName(songHolder.ImageBtn, transitionName);
             
 
 
@@ -103,7 +127,7 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         if (ctx is not AndroidX.Fragment.App.FragmentActivity activity) return;
 
-        var fragment = new DetailFragment(transitionName, vm);
+        var fragment = new DetailFragment(transitionName, MyViewModel);
 
         var hostFragment = activity.SupportFragmentManager.FindFragmentById(TransitionActivity.MyStaticID);
         if (hostFragment == null) return;
@@ -138,9 +162,35 @@ internal class SongAdapter : RecyclerView.Adapter
     TextView album;
     public override AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {
+
+        var materialCardView = new MaterialCardView(ctx)
+        {
+            CardElevation = AppUtil.DpToPx(4),
+            Radius = AppUtil.DpToPx(8),
+        };
+        
+        var rippleColorList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue);
+        materialCardView.RippleColor = rippleColorList;
+        
+        var lyParams = new RecyclerView.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.WrapContent
+        );
+        lyParams.SetMargins(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
+        
+        materialCardView.LayoutParameters = lyParams;
+        materialCardView.StrokeWidth = 2;
+        materialCardView.StrokeColor = Color.Gray;
+        
         row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        row.SetPadding(0, 20, 0, 20);
-        row.SetGravity(GravityFlags.CenterVertical);
+         row.LayoutParameters = new ViewGroup.LayoutParams(
+        ViewGroup.LayoutParams.MatchParent, // Width: Fill the screen
+        ViewGroup.LayoutParams.WrapContent  // Height: Fit content
+    );
+
+        row.SetPadding(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
+        row.SetGravity(GravityFlags.CenterVertical|GravityFlags.FillHorizontal);
+
 
         imgBtn = new ImageButton(ctx);
         
@@ -166,26 +216,25 @@ internal class SongAdapter : RecyclerView.Adapter
         
         row.AddView(moreBtn, new LinearLayout.LayoutParams(90, 90));
 
-        return new SongViewHolder(row, imgBtn, title, album, artist);
+        materialCardView.AddView(row);
+        return new SongViewHolder(MyViewModel, materialCardView, imgBtn, title, album, artist);
     }
 
-    private void ImgBtn_Click(object? sender, EventArgs e)
-    {
-        var imgBtn = (ImageButton)sender!;
-        vm.NavigateToSingleSongPageFromHome(ParentFragement, imgBtn.TransitionName, sender as View);
-    }
 
     class SongViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
     {
+        public BaseViewModelAnd MyViewModel { get; }
         public ImageButton ImageBtn { get; }
         public TextView SongTitle { get; }
         public TextView AlbumName { get; }
         public TextView ArtistName { get; }
         public View ContainerView => base.ItemView;
 
-        public SongViewHolder(View itemView, ImageButton img, TextView title, TextView album, TextView artistName)
+        public SongModelView? CurrentSong { get; private set; }
+        public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageButton img, TextView title, TextView album, TextView artistName)
             : base(itemView)
         {
+            MyViewModel = vm;
             ImageBtn = img;
             SongTitle = title;
             AlbumName = album;
@@ -194,13 +243,25 @@ internal class SongAdapter : RecyclerView.Adapter
             ContainerView.Click += ContainerView_Click;
         }
 
-        private void ContainerView_Click(object? sender, EventArgs e)
+        private async void ContainerView_Click(object? sender, EventArgs e)
         {
-            //vm.PlaySong()
-        }
+            // 3. Access the data context here!
+            if (CurrentSong == null) return;
 
+            // Example usage:
+            // Toast.MakeText(ItemView.Context, $"Clicked {CurrentSong.Title}", ToastLength.Short).Show();
+            MyViewModel.SelectedSong = CurrentSong;
+            // Or call your VM
+            await MyViewModel.PlaySong(CurrentSong,CurrentPage.AllSongs);
+        }
+        public void Bind(SongModelView song)
+        {
+            CurrentSong = song;
+            
+        }
         private void ImageBtn_Click(object? sender, EventArgs e)
         {
+            if (CurrentSong == null) return;
             var transitionName = ViewCompat.GetTransitionName(ImageBtn);
             if (transitionName is null) return;
             AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
@@ -217,8 +278,6 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         AdapterCallbacks = null;
     }
-    public enum ViewId { Image, Title, Artist, Container }
-    public static Action<View, string, int>? AdapterCallbacks;
     class SongDiff : DiffUtil.Callback
     {
         List<SongModelView> oldList;

@@ -29,6 +29,7 @@ using Java.Util.Streams;
 
 using MongoDB.Bson;
 
+using AlertDialog = Android.App.AlertDialog;
 using ScrollView = Android.Widget.ScrollView;
 using TransitionManager = AndroidX.Transitions.TransitionManager;
 
@@ -58,12 +59,15 @@ public class SongDetailPage : Fragment
             selectedSong = vm.SelectedSong;
         }
     }
-
+    public SongDetailPage()
+    {
+        
+    }
     //public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     //{
-        
+
     //    var ctx = Context!;
-        
+
     //    var root = new LinearLayout(ctx)
     //    {
     //        Id = View.GenerateViewId(),
@@ -130,6 +134,20 @@ public class SongDetailPage : Fragment
             TransitionName = _transitionName,
         };
         _sharedImage.SetScaleType(ImageView.ScaleType.FitCenter);
+        if (selectedSong == null)
+        {
+            var popUpDialog = new AlertDialog.Builder(Context)
+                .SetTitle("Error")
+                .SetMessage("No song selected. Returning to previous screen.")
+                .SetPositiveButton("OK", (sender, args) =>
+                {
+                    // Dismiss dialog and navigate back
+                    Activity?.OnBackPressed();
+                })
+                .Create();
+            popUpDialog.Show();
+            return base.OnCreateView(inflater,container,savedInstanceState);
+        }
         if (!string.IsNullOrEmpty(selectedSong.CoverImagePath) && System.IO.File.Exists(selectedSong.CoverImagePath))
         {
             Glide.With(ctx).Load(selectedSong.CoverImagePath).Placeholder(Resource.Drawable.musicnotess).Into(_sharedImage);

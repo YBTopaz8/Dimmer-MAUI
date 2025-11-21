@@ -24,6 +24,8 @@ public partial class NowPlayingFragment : Fragment
 {
     FloatingActionButton fabMD3;
     private FrameLayout root;
+    public TextView LyricsPlaceholder;
+
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     public MaterialTextView SongTitle { get; private set; }
     public ImageView AlbumArtImage { get; private set; }
@@ -76,7 +78,7 @@ public partial class NowPlayingFragment : Fragment
         // --- ELEMENT 1: Song Title ---
         SongTitle = new MaterialTextView(ctx)
         {
-            Text = "Song Title Placeholder",
+            Text = MyViewModel.CurrentPlayingSongView.Title,
             TextSize = 24f,
             Gravity = GravityFlags.Center,
             LayoutParameters = new LinearLayout.LayoutParams(
@@ -114,7 +116,14 @@ public partial class NowPlayingFragment : Fragment
                 ViewGroup.LayoutParams.MatchParent)
         };
         AlbumArtImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-        AlbumArtImage.SetBackgroundColor(Color.DarkGray); // Placeholder color
+        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath) && System.IO.File.Exists(MyViewModel.CurrentPlayingSongView.CoverImagePath))
+        {
+            // Load from disk
+            var bmp = Android.Graphics.BitmapFactory.DecodeFile(MyViewModel.CurrentPlayingSongView.CoverImagePath);
+
+            AlbumArtImage.SetImageBitmap(bmp);
+        }
+
         if (!string.IsNullOrEmpty(ArtTransitionName))
             AlbumArtImage.TransitionName = ArtTransitionName;
 
@@ -130,7 +139,7 @@ public partial class NowPlayingFragment : Fragment
         LyricsOverlay.SetBackgroundColor(Color.ParseColor("#66000000"));
 
         // Add a sample text to the overlay to show it works
-        var lyricsPlaceholder = new TextView(ctx)
+         LyricsPlaceholder = new TextView(ctx)
         {
             Text = "Lyrics will appear here...",
             Gravity = GravityFlags.Center,
@@ -139,8 +148,8 @@ public partial class NowPlayingFragment : Fragment
                 ViewGroup.LayoutParams.WrapContent,
                 GravityFlags.Center)
         };
-        lyricsPlaceholder.SetTextColor(Color.White);
-        LyricsOverlay.AddView(lyricsPlaceholder);
+        LyricsPlaceholder.SetTextColor(Color.White);
+        LyricsOverlay.AddView(LyricsPlaceholder);
 
         cardInternalFrame.AddView(AlbumArtImage);
         cardInternalFrame.AddView(LyricsOverlay);
@@ -156,7 +165,7 @@ public partial class NowPlayingFragment : Fragment
 
         ArtistName = new MaterialTextView(ctx)
         {
-            Text = "Artist Name",
+            Text = MyViewModel.CurrentPlayingSongView.ArtistName,
             TextSize = 18f,
             LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
         };
@@ -185,7 +194,7 @@ public partial class NowPlayingFragment : Fragment
 
         AlbumName = new MaterialTextView(ctx)
         {
-            Text = "Album Title",
+            Text = MyViewModel.CurrentPlayingSongView.AlbumName,
             TextSize = 14f,
             LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f)
         };
@@ -193,7 +202,7 @@ public partial class NowPlayingFragment : Fragment
 
         PlayCount = new MaterialTextView(ctx)
         {
-            Text = "Plays: 0",
+            Text = $"Plays: {MyViewModel.CurrentPlayingSongView.PlayCompletedCount}",
             TextSize = 12f,
             LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
         };
@@ -338,7 +347,9 @@ public partial class NowPlayingFragment : Fragment
 
         var sleepChip = new Chip(ctx) { Text = "Sleep Timer" };
         sleepChip.SetEnsureMinTouchTargetSize(false);
-        ((LinearLayout.LayoutParams)sleepChip.LayoutParameters).LeftMargin = DpToPx(8);
+        var sleepChipLyParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+        sleepChipLyParams.LeftMargin = DpToPx(8);
+        sleepChip.LayoutParameters = sleepChipLyParams;
 
         chipsLayout.AddView(queueChip);
         chipsLayout.AddView(sleepChip);
@@ -367,8 +378,8 @@ public partial class NowPlayingFragment : Fragment
         // This method fires ONLY when the user lets go of the handle
         // Implement your ViewModel command here
         Toast.MakeText(Context, $"Seek to: {value}", ToastLength.Short)?.Show();
-
-          MyViewModel.SeekTrackPositionCommand.Execute(value);
+        var position = MyViewModel.CurrentPlayingSongView.DurationInSeconds * (value / 100.0);
+        MyViewModel.SeekTrackPositionCommand.Execute(value);
     }
 
     // --- HELPER: DP to PX ---
