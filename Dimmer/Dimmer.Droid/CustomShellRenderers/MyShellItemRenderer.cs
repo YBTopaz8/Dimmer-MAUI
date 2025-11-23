@@ -15,10 +15,6 @@ public partial class MyShellItemRenderer : ShellItemRenderer
     public MyShellItemRenderer(IShellContext context)
         : base(context)
     {
-        ShellStylingBridge.ElevationChanged += OnBridgeElevationChanged;
-        ShellStylingBridge.TabBehaviorChanged += OnBridgeTabBehaviorChanged;
-        ShellStylingBridge.ShellElementRefreshRequested += OnBridgeRefreshRequested;
-        ShellStylingBridge.AnimationSettingsChanged += OnBridgeAnimationSettingsChanged;
     }
 
     // --- Event Handlers from ShellStylingBridge ---

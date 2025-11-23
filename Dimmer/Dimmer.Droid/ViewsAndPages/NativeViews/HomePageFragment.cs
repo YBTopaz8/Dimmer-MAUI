@@ -358,7 +358,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         scrollToChip.Click += (s, e) =>
         {
             var currentlyPlayingIndex= MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+            if(currentlyPlayingIndex >=0)
+                _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
         }; 
         ((FrameLayout.LayoutParams)scrollToChip.LayoutParameters).SetMargins(chipMargin, chipMargin, chipMargin, chipMarginBottom);
 
