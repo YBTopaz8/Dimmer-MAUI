@@ -14,6 +14,7 @@ using AndroidX.Transitions;
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
 
+using Dimmer.Data;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
@@ -226,25 +227,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     private bool _isExpanded;
 
-    public BaseViewModelAnd(IDimmerAudioService AudioService, ILogger<BaseViewModelAnd> logger, 
-        IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService,
-        IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, 
-        ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, 
-        ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> SongRepo, 
-        IDuplicateFinderService duplicateFinderService, ILastfmService LastfmService, IRepository<ArtistModel> artistRepo, 
-        IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, SongRepo, duplicateFinderService, LastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
-    {
-       
-        
-        // mapper and stateService are accessible via base class protected fields.
-        // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
 
-        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
-        isAppBooting=true;
-        this._logger.LogInformation("BaseViewModelAnd initialized.");
-        audioService=AudioService;
-    }
-
+  
     public bool IsExpanded
     {
         get => _isExpanded;
@@ -598,6 +582,20 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     #region Binding Views Section
 
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
+
+    public BaseViewModelAnd(IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService,
+        
+        IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+    {
+        // mapper and stateService are accessible via base class protected fields.
+        // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
+
+        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
+        isAppBooting = true;
+        this._logger.LogInformation("BaseViewModelAnd initialized.");
+        audioService = audioServ;
+    }
+
     public IObservable<SongModelView?> CurrentSongChanged => _currentSong.AsObservable();
 
     public void SetCurrentSong(SongModelView? song)

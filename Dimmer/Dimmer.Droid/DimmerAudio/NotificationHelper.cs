@@ -88,7 +88,7 @@ public static class NotificationHelper
     {
         CreateChannel(service);
 
-        var mainIntent = new Intent(service, typeof(MainActivity))
+        var mainIntent = new Intent(service, typeof(TransitionActivity))
             .SetAction(Intent.ActionMain)
             .AddCategory(Intent.CategoryLauncher);
 

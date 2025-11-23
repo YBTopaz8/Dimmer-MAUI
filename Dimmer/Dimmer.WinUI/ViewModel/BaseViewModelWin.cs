@@ -9,6 +9,9 @@ using System.Windows.Media;
 
 using CommunityToolkit.WinUI;
 
+using Dimmer.ViewModel;
+using Dimmer.WinUI.Utils.StaticUtils;
+using Dimmer.WinUI.Utils.WinMgt;
 using Dimmer.WinUI.Views.CustomViews.MauiViews;
 using Dimmer.WinUI.Views.MAUIPages;
 
@@ -47,19 +50,15 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     private readonly LoginViewModel loginViewModel;
     private readonly IFolderPicker _folderPicker; 
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
-    public BaseViewModelWin(IMapper mapper, MusicDataService musicDataService, LoginViewModel _loginViewModel,
-        IWinUIWindowMgrService winUIWindowMgrService,
-        IMauiWindowManagerService mauiWindowManagerService,
-         IDimmerStateService dimmerStateService, IFolderPicker _folderPicker,
-         IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService,
-         ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow,
-         ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo,
-         IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo,
-         IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel,
-         IDialogueService dialogueService, ILogger<BaseViewModel> logger, DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, logger)
-    {
 
-        this.winUIWindowMgrService = winUIWindowMgrService;
+    public BaseViewModelWin(IMapper mapper, IDimmerStateService dimmerStateService,
+        LoginViewModel _loginViewModel,
+        DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator,
+        IMauiWindowManagerService mauiWindowManagerService,
+        IWinUIWindowMgrService winUIWinMgrService,
+    MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+    {
+        this.winUIWindowMgrService = winUIWinMgrService;
         this.loginViewModel = _loginViewModel;
         this._folderPicker = _folderPicker;
         DimmerMultiWindowCoordinator = dimmerMultiWindowCoordinator;
@@ -68,11 +67,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         {
             RebuildAndExecuteQuery();
         };
+
         windowManager = mauiWindowManagerService;
         //AddNextEvent += BaseViewModelWin_AddNextEvent;
         //MainWindowActivated
     }
-
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {

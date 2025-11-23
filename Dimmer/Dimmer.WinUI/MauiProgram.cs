@@ -21,22 +21,9 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
                 handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-                //Microsoft.Maui.Handlers.LabelHandler.Mapper.AppendToMapping(
-                //    nameof(FlyoutBase.ContextFlyoutProperty), (handler, view) =>
-                //{
-                //    if (handler.PlatformView is Microsoft.UI.Xaml.FrameworkElement nativeView && view is Element element)
-                //    {
-                //        var contextFlyout = FlyoutBase.GetContextFlyout(element);
-                //        if (contextFlyout?.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase nativeFlyout)
-                //        {
-                //            Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase.SetAttachedFlyout(nativeView, nativeFlyout);
-                //        }
-                //    }
-                //});
-
-
-
+             
             });
+        builder.Services.AddDimmerCoreServices();
 
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
@@ -47,7 +34,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<DimmerWin>();
 
         builder.Services.AddSingleton<SessionTransferVMWin>();
-
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();
@@ -140,40 +126,5 @@ public static class MauiProgram
         return builder.Build();
     }
 
-    private static void TouchBehavior_HoverStateChanged(object? sender, CommunityToolkit.Maui.Core.HoverStateChangedEventArgs e)
-    {
-        // The 'sender' of this event is the TouchBehavior itself.
-        // We need to get the Button it is attached to.
-        //var touchBehavior = (CommunityToolkit.Maui.Behaviors.TouchBehavior)sender;
-        //var button = (Button)touchBehavior.p; // Get the Button
-
-        // Find the IconTintColorBehavior that is already attached to the button.
-        // The easiest way is to use the x:Name we gave it in XAML, if the handler is in the same class.
-        // Or, more robustly, find it in the Behaviors collection.
-        //var iconTintBehavior = button.Behaviors.OfType<CommunityToolkit.Maui.Behaviors.IconTintColorBehavior>().FirstOrDefault();
-
-        //if (iconTintBehavior is null)
-        //{
-        //    // This should not happen if you set it up in XAML
-        //    return;
-        //}
-
-        //// Now, just change the TintColor property based on the hover state
-        //switch (e.State)
-        //{
-        //    case CommunityToolkit.Maui.Core.HoverState.Hovered:
-        //        // When hovered, change the tint color to White
-        //        iconTintBehavior.TintColor = Microsoft.Maui.Graphics.Colors.White;
-        //        // You might also want to change the button's background
-        //        button.BackgroundColor = Microsoft.Maui.Graphics.Colors.RoyalBlue; // Example highlight color
-        //        break;
-
-        //    case CommunityToolkit.Maui.Core.HoverState.Default:
-        //    default:
-        //        // When not hovered, change it back to the original color
-        //        iconTintBehavior.TintColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
-        //        button.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue; // Back to original
-        //        break;
-        //}
-    }
+  
 }

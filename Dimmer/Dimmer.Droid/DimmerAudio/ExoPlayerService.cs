@@ -236,7 +236,7 @@ public class ExoPlayerService : MediaSessionService
             sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
 
 
-            Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
+            Intent nIntent = new Intent(Platform.AppContext, typeof(TransitionActivity));
 
             PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
             if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
@@ -380,27 +380,6 @@ public class ExoPlayerService : MediaSessionService
     public MediaSession? GetMediaSessionInstance()
     {
         return mediaSession;
-    }
-
-    // --- Private Helpers ---
-    private PendingIntent GetMainActivityPendingIntent()
-    {
-        // Intent to launch your main UI when the notification/session is tapped
-
-        var launchIntent = new Intent(this, typeof(MainActivity)); // Ensure MainActivity is correct
-        launchIntent.SetAction(Intent.ActionMain);
-        launchIntent.AddCategory(Intent.CategoryLauncher);
-        // Flags ensure existing instance is brought forward or new one started cleanly
-        launchIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
-
-        // Use Immutable flag for security on Android S+
-        PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
-        {
-            flags |= PendingIntentFlags.Immutable;
-        }
-
-        return PendingIntent.GetActivity(this, 0, launchIntent, flags)!;
     }
 
     private static void LogInitWarning(string stage)

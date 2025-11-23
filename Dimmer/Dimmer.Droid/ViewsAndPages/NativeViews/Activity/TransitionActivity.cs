@@ -17,13 +17,18 @@ namespace Dimmer.ViewsAndPages.NativeViews.Activity;
               Categories = new[] { Intent.CategoryDefault })]
 [IntentFilter(new[] { "android.intent.action.MUSIC_PLAYER" },
               Categories = new[] { Intent.CategoryDefault, "android.intent.category.APP_MUSIC" })]
-[Activity(Theme = "@style/Maui.MainTheme",
-          LaunchMode = LaunchMode.SingleTop,
-          Exported = true)]
 
-
+[Activity(Theme = "@style/Maui.SplashTheme",
+    MainLauncher = true, SupportsPictureInPicture = true,
+        Name = "com.yvanbrunel.dimmer.TransitionActivity",
+    LaunchMode = LaunchMode.SingleTop,
+    ConfigurationChanges = ConfigChanges.ScreenSize |
+    ConfigChanges.Orientation | ConfigChanges.UiMode |
+    ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize |
+    ConfigChanges.Density)]
 public class TransitionActivity : AppCompatActivity
 {
+    public TransitionActivity() { }
     public static int MyStaticID;
     private IOnBackInvokedCallback? _onBackInvokedCallback; // For API 33+
     private bool _isBackCallbackRegistered = false;
@@ -40,16 +45,12 @@ public class TransitionActivity : AppCompatActivity
 
     }
 
-    public TransitionActivity()
-    {
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelAnd>() ?? throw new InvalidOperationException("BaseViewModelAnd not found in DI container");
-
-    }
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
         {
-            Window?.RequestFeature(WindowFeatures.ContentTransitions); // Crucial for enabling transitions
+            Window?.RequestFeature(WindowFeatures.ContentTransitions); 
 
             // Define Enter Transition (how this activity appears when started)
             Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
@@ -86,6 +87,23 @@ public class TransitionActivity : AppCompatActivity
 
         }
         base.OnCreate(savedInstanceState);
+
+        if (MainApplication.ServiceProvider == null)
+        {
+            // Failsafe: If app was killed and restored oddly
+            MainApplication.ServiceProvider = Bootstrapper.Init();
+        }
+
+        try
+        {
+            MyViewModel = MainApplication.ServiceProvider.GetRequiredService<BaseViewModelAnd>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DI Error: {ex.Message}");
+         
+
+        }
 
         var container = new FrameLayout(this)
         {
@@ -196,6 +214,8 @@ public class TransitionActivity : AppCompatActivity
         {
             base.OnResume();
             Platform.OnResume(this);
+
+            if (MyViewModel is null) return;
             if (MyViewModel.IsLastFMNeedsToConfirm)
             {
                 //bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
@@ -372,7 +392,7 @@ public class TransitionActivity : AppCompatActivity
 
                 MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    Intent mainActivityIntent = new Intent(this, typeof(MainActivity)); // <<< YOUR MAIN ACTIVITY
+                    Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
                     mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
                     try
                     {

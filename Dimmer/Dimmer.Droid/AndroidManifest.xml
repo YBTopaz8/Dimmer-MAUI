@@ -8,9 +8,9 @@
 				 android:enableOnBackInvokedCallback="true">
 		
 		<meta-data android:name="NothingKey" android:value="test" />
-		<activity android:name="com.yvanbrunel.dimmer.MainActivity"
+		<activity android:name="com.yvanbrunel.dimmer.TransitionActivity"
               android:directBootAware="true"
-              android:exported="true" android:launchMode="singleTask"
+              android:exported="true" android:launchMode="singleTop"
               android:theme="@style/Maui.SplashTheme">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -21,7 +21,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<!-- Replace 'yourdomain.com' with your actual, verified domain -->
-				<data android:scheme="https" android:host="yourdomain.com" />
+				<data android:scheme="https" android:host="dimmer.ybtopaz.com" />
 				<!-- Optional: android:pathPrefix="/invite" if your links always start with /invite -->
 				<!-- <data android:scheme="https"
                           android:host="yourdomain.com"

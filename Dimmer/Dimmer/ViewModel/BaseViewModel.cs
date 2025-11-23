@@ -60,7 +60,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         IRepository<AlbumModel> albumModel,
         IRepository<GenreModel> genreModel,
         IDialogueService dialogueService,
-
+        IRepository<PlaylistModel> PlaylistRepo,
+        IRealmFactory RealmFact,
+        IFolderMonitorService FolderServ,
+        ILibraryScannerService LibScannerService,
+        IRepository<DimmerPlayEvent> DimmerPlayEventRepo,
+        BaseAppFlow BaseAppClass,
         ILogger<BaseViewModel> logger)
     {
         Dump();
@@ -82,11 +87,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
         UserLocal = new UserModelView();
-        dimmerPlayEventRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<DimmerPlayEvent>>()!;
-        _playlistRepo ??= IPlatformApplication.Current!.Services.GetService<IRepository<PlaylistModel>>()!;
+        dimmerPlayEventRepo ??= DimmerPlayEventRepo;
+        _playlistRepo = PlaylistRepo;
 
         _duplicateFinderService = duplicateFinderService;
-        libScannerService ??= IPlatformApplication.Current!.Services.GetService<ILibraryScannerService>()!;
+        libScannerService = LibScannerService;
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
             h => audioServ.PositionChanged += h,
             h => audioServ.PositionChanged -= h)
@@ -96,10 +101,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .RefCount();
 
         CurrentPlayingSongView = new();
-        _baseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>()!;
+        _baseAppFlow = BaseAppClass;
 
-        folderMonitorService = IPlatformApplication.Current!.Services.GetService<IFolderMonitorService>()!;
-        RealmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
+        folderMonitorService = FolderServ;
+        RealmFactory = RealmFact;
 
 
         this.musicRelationshipService = new MusicRelationshipService(RealmFactory);

@@ -78,7 +78,7 @@ public class QuickSettingsTileService : TileService
 
     private void LaunchMainActivity()
     {
-        Intent mainActivityIntent = new Intent(this, typeof(MainActivity)); // <<< YOUR MAIN ACTIVITY
+        Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
         mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
         try
         {
@@ -209,7 +209,7 @@ public class QuickSettingsTileService : TileService
     {
         try
         {
-            Intent activityIntent = new Intent(this, typeof(MainActivity));
+            Intent activityIntent = new Intent(this, typeof(TransitionActivity));
             activityIntent.AddFlags(ActivityFlags.NewTask);
             activityIntent.SetAction(ActionTogglePlayback);
             StartActivity(activityIntent);

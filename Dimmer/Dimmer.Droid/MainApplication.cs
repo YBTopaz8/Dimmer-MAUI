@@ -6,6 +6,7 @@ using AndroidX.DrawerLayout.Widget;
 
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 
+using Application = Android.App.Application;
 using Environment = System.Environment;
 namespace Dimmer;
 
@@ -19,12 +20,19 @@ namespace Dimmer;
 // [Application(Debuggable = false)]
 #endif
 [Application(Debuggable = true)]
-public class MainApplication : MauiApplication
+public class MainApplication : Application
 {
+
+    public static IServiceProvider ServiceProvider { get; set; }
+
+    
+
     public MainApplication(nint handle, JniHandleOwnership ownership)
         : base(handle, ownership)
     {
         Console.WriteLine("Dimmer Android :D");
+
+        Microsoft.Maui.ApplicationModel.Platform.Init(this);
 
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
@@ -32,13 +40,17 @@ public class MainApplication : MauiApplication
         Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += OnAndroidUnhandledExceptionRaiser;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
     }
-    //    RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-    //    {
-    //        Debug.WriteLine($"REACTIVEUI DEFAULT EXCEPTION HANDLER (Android): {ex}");
-    //        var errorHandler = IPlatformApplication.Current!.Services.GetService<IErrorHandler>();
-    //        errorHandler?.HandleError(ex);
-    //    });
-    //}
+
+
+    public override void OnCreate()
+    {
+        base.OnCreate();
+
+
+        ServiceProvider = Bootstrapper.Init();
+
+    }
+
 
     private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
@@ -232,10 +244,6 @@ public class MainApplication : MauiApplication
             base.OnDrawerStateChanged(newState);
             // newState can be DrawerLayout.StateIdle, StateDragging, StateSettling
         }
-    }
-    protected override MauiApp CreateMauiApp()
-    {
-        return MauiProgram.CreateMauiApp();
     }
 
     internal static void HandleIntent(Intent? intent)
