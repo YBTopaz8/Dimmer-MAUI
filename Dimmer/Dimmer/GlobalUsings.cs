@@ -53,7 +53,5 @@ global using Dimmer.DimmerLive.Interfaces.Implementations;
 global using Dimmer.DimmerSearch.Interfaces;
 
 global using DynamicData;
-
-
 global using System.Reactive.Disposables;
 global using System.Reactive.Disposables.Fluent;

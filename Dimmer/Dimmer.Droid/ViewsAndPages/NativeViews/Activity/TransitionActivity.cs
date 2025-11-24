@@ -51,6 +51,7 @@ public class TransitionActivity : AppCompatActivity
     {
         SetTheme(Resource.Style.Theme_Dimmer);
 
+        Android.Util.Log.Error("DIMMER_INIT2", "log2");
         base.OnCreate(savedInstanceState);
         //if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
         //{
@@ -86,27 +87,35 @@ public class TransitionActivity : AppCompatActivity
         //}
 
 
+        Android.Util.Log.Error("DIMMER_INITeec", "logec");
         var container = new FrameLayout(this)
         {
             LayoutParameters = new FrameLayout.LayoutParams(
         ViewGroup.LayoutParams.MatchParent,
         ViewGroup.LayoutParams.MatchParent)
         };
-        container.Id = Resource.Id.content;
+        //container.Id = Resource.Id.content;
+        //MyStaticID = container.Id;
+        container.Id = View.GenerateViewId();
+        MyStaticID = container.Id;
+
         //container.SetFitsSystemWindows(true);
 
+        Android.Util.Log.Error("DIMMER_INITeew", "logew");
 
         var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
         if (currentTheme == UiMode.NightYes)
             container.SetBackgroundColor(Color.Black);
         else
             container.SetBackgroundColor(Color.ParseColor("#3E3E42"));
-        MyStaticID = container.Id;
+        
 
         SetContentView(container);
 
-         MainApplication.ServiceProvider ??= Bootstrapper.Init();
+        Android.Util.Log.Error("DIMMER_INITee", "loge");
+        MainApplication.ServiceProvider ??= Bootstrapper.Init();
 
+        Android.Util.Log.Error("DIMMER_INITe", "logx");
         try
         {
             MyViewModel = MainApplication.ServiceProvider.GetRequiredService<BaseViewModelAnd>();
@@ -120,8 +129,9 @@ public class TransitionActivity : AppCompatActivity
                 .SetMessage($"Failed to load dependencies:\n{ex.Message}\n\nInner: {ex.InnerException?.Message}")?
                 .SetPositiveButton("Close", (s, e) => FinishAffinity())?
                 .Show();
-         
 
+
+            Android.Util.Log.Error("DIMMER_INITA", "loga Error");
         }
 
 
@@ -137,10 +147,22 @@ public class TransitionActivity : AppCompatActivity
                 .Commit();
         }
 
+        Android.Util.Log.Error("DIMMER_INIT1", "log1" );
 
-       Task.Run(()=>  MyViewModel.InitializeAllVMCoreComponents());
+        Task.Run( () =>
+        {
+            try
+            {
+                 MyViewModel.InitializeAllVMCoreComponents();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VM INIT CRASH: {ex}");
+                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+            }
+        });
 
-
+        Android.Util.Log.Error("DIMMER_INITOK2", "logOK2");
         ProcessIntent(Intent);
 
         _serviceConnection = new MediaPlayerServiceConnection();

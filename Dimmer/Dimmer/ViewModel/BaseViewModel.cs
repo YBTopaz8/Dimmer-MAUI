@@ -5,6 +5,7 @@ using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
+using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -709,7 +710,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Where(s => s != null)
             .ToList();
 
-        return _mapper.Map<List<SongModelView>>(orderedSongs);
+        return SongMapper.ToSongViewList(orderedSongs);
     }
 
 
@@ -5370,7 +5371,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
 
-        var updatedSongs = _mapper.Map<List<SongModelView>>(songRepo.Query(s => songIds.Contains(s.Id)));
+        var updatedSongs = SongMapper.ToSongViewList(songRepo.Query(s => songIds.Contains(s.Id)));
     }
 
 
@@ -5423,7 +5424,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
 
 
-        var updatedSongs = _mapper.Map<List<SongModelView>>(songRepo.Query(s => songIds.Contains(s.Id)));
+        var updatedSongs = SongMapper.ToSongViewList (songRepo.Query(s => songIds.Contains(s.Id)));
     }
 
 

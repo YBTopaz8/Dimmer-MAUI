@@ -48,6 +48,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             }
             catch (Exception ex)
             {
+                Android.Widget.Toast.MakeText(context, $"DI FAILED: {ex.Message}", Android.Widget.ToastLength.Long)?.Show();
                 Console.WriteLine($"HomePageFragment Injection Failed: {ex}");
             }
         }
@@ -67,10 +68,14 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         if (Context == null)
             return null;
         var ctx = Context;
-        
+        if (MyViewModel == null)
+        {
+            var errText = new TextView(Context) { Text = "ViewModel is NULL!", TextSize = 30 };
+            return errText;
+        }
 
         // ROOT FRAME (needed for FAB overlay)
-         root = new FrameLayout(ctx)
+        root = new FrameLayout(ctx)
         {
             LayoutParameters = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
@@ -390,6 +395,17 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _titleTxt.TransitionName = "home_bottom_bar_title";
         _artistTxt.TransitionName = "home_bottom_bar_artist";
         _albumTxt.TransitionName = "home_bottom_bar_album";
+        var debugText = new TextView(ctx)
+        {
+            Text = "I AM HERE!",
+            TextSize = 40,
+
+        };
+        debugText.SetTextColor(Color.Red);
+        root.AddView(debugText, new FrameLayout.LayoutParams(
+    ViewGroup.LayoutParams.WrapContent,
+    ViewGroup.LayoutParams.WrapContent,
+    GravityFlags.Center));
         return root;
     }
 

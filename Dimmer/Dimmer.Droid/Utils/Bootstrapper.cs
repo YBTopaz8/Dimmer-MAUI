@@ -6,7 +6,9 @@ internal class Bootstrapper
 {
     public static IServiceProvider Init()
     {
-        var services = new ServiceCollection();
+        try
+        {
+            var services = new ServiceCollection();
 
         // 1. Logging (Replaces builder.Logging)
         services.AddLogging(configure =>
@@ -25,17 +27,29 @@ internal class Bootstrapper
         // 4. Register Logic/Data Services
         services.AddScoped<IAppUtil, AppUtil>();
 
-        //services.AddSingleton<IDimmerStateService, DimmerStateService>();
-        //services.AddSingleton<MusicDataService>();
-        // ... Add ALL your other repos and services here ...
-        // services.AddSingleton<IRepository<SongModel>, SongRepository>(); 
+            //services.AddSingleton<IDimmerStateService, DimmerStateService>();
+            //services.AddSingleton<MusicDataService>();
+            // ... Add ALL your other repos and services here ...
+            // services.AddSingleton<IRepository<SongModel>, SongRepository>(); 
 
-        // 5. Handle "Shared" logic
-        // If "UseSharedMauiApp" was an extension method in your shared project,
-        // Refactor it to accept IServiceCollection instead of MauiAppBuilder.
-        // e.g., services.AddSharedServices();
+            // 5. Handle "Shared" logic
+            // If "UseSharedMauiApp" was an extension method in your shared project,
+            // Refactor it to accept IServiceCollection instead of MauiAppBuilder.
+            // e.g., services.AddSharedServices();
 
-        // 6. Build the provider
-        return services.BuildServiceProvider();
+
+            // 6. Build the provider
+            var provider = services.BuildServiceProvider();
+
+            Log.Error("DIMMER_BOOT", "Bootstrapper finished successfully.");
+            return provider;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("DIMMER_BOOT_FAIL", $"CRITICAL: {ex.Message}");
+            Log.Error("DIMMER_BOOT_FAIL", $"Inner: {ex.InnerException?.Message}");
+            Log.Error("DIMMER_BOOT_FAIL", $"Stack: {ex.StackTrace}");
+            throw; // Rethrow so TransitionActivity catches it
+        }
     }
 }

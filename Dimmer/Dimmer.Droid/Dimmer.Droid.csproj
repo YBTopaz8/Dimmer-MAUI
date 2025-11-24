@@ -11,6 +11,29 @@
 		<UseMaui>false</UseMaui>
 	</PropertyGroup>
 
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugSymbols>false</DebugSymbols>
+		<DebugType>portable</DebugType>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<Optimize>false</Optimize>
+		<OutputPath>bin\Release\</OutputPath>
+
+		<!-- FIX 1: Disable Resource Shrinking temporarily -->
+		<AndroidLinkResources>false</AndroidLinkResources>
+
+		<AndroidLinkMode>None</AndroidLinkMode>
+		<!-- FIX 2: Make Linker less aggressive -->
+		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
+		<!-- "SdkOnly" links Android assemblies but leaves YOUR code and NuGet packages alone. -->
+
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
+
+
 	<ItemGroup>
 	  <Compile Remove="ViewsAndPages\NativeViews\GraphFragment.cs" />
 	</ItemGroup>
@@ -73,6 +96,7 @@
 		<PackageReference Include="Xamarin.AndroidX.Palette.Palette.Ktx" Version="1.0.0.27" />
 		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.3.3" />
 		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.3.3" />
+		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0" />
 	</ItemGroup>
 
 	<ItemGroup>

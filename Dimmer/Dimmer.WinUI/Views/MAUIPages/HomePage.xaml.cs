@@ -833,7 +833,7 @@ public partial class HomePage : ContentPage
 
         var point = e.GetCurrentPoint(nativeElement);
 
-        if (properties.IsRightButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        if (properties.IsLeftButtonPressed || properties.IsRightButtonPressed) //also properties.IsXButton2Pressed for mouse 5
         {
             // --- Source data & guards ---
             var song = MyViewModel?.CurrentPlayingSongView;
@@ -940,6 +940,7 @@ public partial class HomePage : ContentPage
                 var findOn = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Find On..." };
                 findOn.Items.Add(MakeExternalLink("Spotify", $"https://open.spotify.com/search/{Uri.EscapeDataString(artistName)}"));
                 findOn.Items.Add(MakeExternalLink("YouTube Music", $"https://music.youtube.com/search?q={Uri.EscapeDataString(artistName)}"));
+                findOn.Items.Add(MakeExternalLink("Youtube", $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(artistName)}"));
                 findOn.Items.Add(MakeExternalLink("Bandcamp", $"https://bandcamp.com/search?q={Uri.EscapeDataString(artistName)}&item_type=b"));
                 findOn.Items.Add(MakeExternalLink("SoundCloud", $"https://soundcloud.com/search?q={Uri.EscapeDataString(artistName)}"));
                 findOn.Items.Add(MakeExternalLink("MusicBrainz", $"https://musicbrainz.org/search?query={Uri.EscapeDataString(artistName)}&type=artist&advanced=0"));

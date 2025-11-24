@@ -814,7 +814,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [RelayCommand]
     private async Task NowPlayingQueueBtnClicked()
     {
-        MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+        MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin())!;
         if (MainWindow is null) return;
 
         await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
