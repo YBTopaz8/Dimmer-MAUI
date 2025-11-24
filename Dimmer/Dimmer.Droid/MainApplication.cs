@@ -1,10 +1,4 @@
-using Android.App;
 using Android.Runtime;
-
-using AndroidX.DrawerLayout.Widget;
-
-
-using Microsoft.Maui.Controls.Handlers.Compatibility;
 
 using Application = Android.App.Application;
 using Environment = System.Environment;
@@ -32,7 +26,6 @@ public class MainApplication : Application
     {
         Console.WriteLine("Dimmer Android :D");
 
-        Microsoft.Maui.ApplicationModel.Platform.Init(this);
 
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
@@ -55,7 +48,8 @@ public class MainApplication : Application
     private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         Debug.WriteLine($"UNOBSERVED TASK EXCEPTION (Android): {e.Exception}");
-        var errorHandler = IPlatformApplication.Current!.Services.GetService<IErrorHandler>();
+
+        var errorHandler = ServiceProvider?.GetService<IErrorHandler>();
         errorHandler?.HandleError(e.Exception);
         e.SetObserved();
     }
@@ -63,27 +57,28 @@ public class MainApplication : Application
     private static void OnAndroidUnhandledExceptionRaiser(object? sender, RaiseThrowableEventArgs e)
     {
         Debug.WriteLine($"ANDROID UNHANDLED EXCEPTION: {e.Exception}");
-        var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();
+        var errorHandler = ServiceProvider?.GetService<IErrorHandler>();
         errorHandler?.HandleError(e.Exception);
         e.Handled = true; // Prevent the application from crashing
     }
 
     private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
+        if (ServiceProvider == null)
+        {
+            Console.WriteLine($"Cannot log to IErrorHandler: ServiceProvider is null." +
+                $"{e.IsTerminating} | {e.ExceptionObject?.GetType()}" +
+                $"|" );
+            return;
+        }
         Debug.WriteLine($"GLOBAL UNHANDLED EXCEPTION (Android): {e.ExceptionObject}");
-        var errorHandler = IPlatformApplication.Current.Services.GetService<IErrorHandler>();
+        var errorHandler = ServiceProvider?.GetService<IErrorHandler>();
         errorHandler?.HandleError((Exception)e.ExceptionObject);
         // On Android, unhandled exceptions in the main thread might still cause a crash.
         // The AndroidEnvironment.UnhandledExceptionRaiser is generally more effective for preventing crashes.
         // However, we still log here for completeness.
     }
 
-    public static void HandleAppAction(AppAction appAction)
-    {
-        Debug.WriteLine($"HandleAppAction invoked with ID: {appAction.Id}"); // Add logging!
-                                                                             // Ensure you dispatch to the main thread for UI work
-
-    }
 
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -170,79 +165,6 @@ public class MainApplication : Application
         catch (Exception loggingEx)
         {
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
-        }
-    }
-    sealed partial class MyDrawerListener : DrawerLayout.SimpleDrawerListener
-    {
-        private readonly MyShellRenderer _renderer;
-        private readonly Android.Views.View _contentViewToAnimate; // The main content view
-
-        public MyDrawerListener(MyShellRenderer renderer, Android.Views.View contentView)
-        {
-            _renderer = renderer;
-            _contentViewToAnimate = contentView;
-        }
-
-        public override void OnDrawerSlide(Android.Views.View drawerView, float slideOffset)
-        {
-            base.OnDrawerSlide(drawerView, slideOffset);
-
-            // `drawerView` is the flyout menu view itself.
-            // `_contentViewToAnimate` is the page content area.
-
-            if (_contentViewToAnimate != null)
-            {
-                // 1. Parallax effect for content
-                // float contentTranslationX = drawerView.Width * slideOffset * 0.3f; // Adjust 0.3f for intensity
-                //_contentViewToAnimate.TranslationX = contentTranslationX;
-
-                // 2. Scale down content (subtle)
-                float scale = 1.0f - (slideOffset * 0.1f); // Scale down by 10% when fully open
-                _contentViewToAnimate.ScaleX = scale;
-                _contentViewToAnimate.ScaleY = scale;
-
-                // 3. Corner Radius for content (requires a CardView or custom background drawable)
-                // If _contentViewToAnimate is a CardView or has a GradientDrawable background,
-                // you can animate its corner radius.
-                // This is more complex as you'd need to ensure _contentViewToAnimate has this capability.
-                // For example, if _contentViewToAnimate is a FrameLayout, you could wrap its first child in a CardView.
-
-                // 4. Fade out content slightly
-                _contentViewToAnimate.Alpha = 1.0f - (slideOffset * 0.2f); // Fade out by 20%
-
-                // 5. Rotate drawer icon (hamburger to arrow) - This is usually handled by DrawerLayout itself
-                // if the Toolbar is correctly set up with it. But you could do custom things here.
-            }
-
-            // Animate flyout items (staggered reveal) - best done in MyShellFlyoutRenderer with RecyclerView
-            // but you *could* try to access children of `drawerView` here (more fragile)
-        }
-
-        public override void OnDrawerOpened(Android.Views.View drawerView)
-        {
-            base.OnDrawerOpened(drawerView);
-            // E.g., Announce for accessibility
-            drawerView.AnnounceForAccessibility("Navigation menu opened");
-        }
-
-        public override void OnDrawerClosed(Android.Views.View drawerView)
-        {
-            base.OnDrawerClosed(drawerView);
-            // Reset any transformations if not fully reset by slideOffset = 0
-            if (_contentViewToAnimate != null)
-            {
-                _contentViewToAnimate.TranslationX = 0;
-                _contentViewToAnimate.ScaleX = 1f;
-                _contentViewToAnimate.ScaleY = 1f;
-                _contentViewToAnimate.Alpha = 1f;
-            }
-            drawerView.AnnounceForAccessibility("Navigation menu closed");
-        }
-
-        public override void OnDrawerStateChanged(int newState)
-        {
-            base.OnDrawerStateChanged(newState);
-            // newState can be DrawerLayout.StateIdle, StateDragging, StateSettling
         }
     }
 

@@ -1,25 +1,10 @@
-﻿
-using System.ComponentModel;
-
-using Android.Content;
-
-using AndroidX.Core.View;
-using AndroidX.RecyclerView.Widget;
-using AndroidX.Transitions;
+﻿using AndroidX.Core.View;
 
 using Bumptech.Glide;
 
 using Dimmer.Utilities.Extensions;
-using Dimmer.ViewsAndPages.NativeViews.Activity;
-
-using DynamicData;
 
 using Google.Android.Material.Card;
-using Google.Android.Material.Transition;
-
-using Java.Security;
-
-using Microsoft.Maui.Controls;
 
 using ImageButton = Android.Widget.ImageButton;
 

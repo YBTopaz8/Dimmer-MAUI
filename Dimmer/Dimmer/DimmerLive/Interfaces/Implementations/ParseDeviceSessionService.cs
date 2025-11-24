@@ -1,8 +1,4 @@
-﻿using Dimmer.DimmerSearch.Interfaces;
-
-using DynamicData;
-
-using Parse.LiveQuery;
+﻿using Parse.LiveQuery;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable

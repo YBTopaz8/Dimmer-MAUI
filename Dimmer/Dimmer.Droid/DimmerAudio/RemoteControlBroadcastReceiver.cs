@@ -1,6 +1,4 @@
-﻿using Android.App;
-
-namespace Dimmer.DimmerAudio; 
+﻿namespace Dimmer.DimmerAudio; 
 [BroadcastReceiver(Exported = true)]
 [IntentFilter(new[] { Intent.ActionMediaButton })]
 public class RemoteControlBroadcastReceiver : BroadcastReceiver

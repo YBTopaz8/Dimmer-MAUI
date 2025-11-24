@@ -3,31 +3,16 @@
 
 
 
-using System.Security.Policy;
-using System.Threading.Tasks;
-using System.Windows.Media;
-
 using CommunityToolkit.WinUI;
 
-using Dimmer.ViewModel;
-using Dimmer.WinUI.Utils.StaticUtils;
-using Dimmer.WinUI.Utils.WinMgt;
+using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.CustomViews.MauiViews;
-using Dimmer.WinUI.Views.MAUIPages;
-
-using Hqub.Lastfm.Entities;
-
-using Realms;
-
-using WinUI.TableView;
 
 using Colors = Microsoft.UI.Colors;
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
 using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
-using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
 using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using TableView = WinUI.TableView.TableView;
 using Thickness = Microsoft.UI.Xaml.Thickness;
@@ -460,7 +445,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             if (PlaybackQueueCV is not null && PlaybackQueueCV.IsLoaded)
             {
-                MainThread.BeginInvokeOnMainThread(() =>
+                RxSchedulers.UI.Schedule(() =>
                 {
 
                     PlaybackQueueCV?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
@@ -857,7 +842,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));
 
         
-        MainThread.BeginInvokeOnMainThread(()=>
+        RxSchedulers.UI.Schedule(()=>
         {
             SelectedArtist = artist;
         });

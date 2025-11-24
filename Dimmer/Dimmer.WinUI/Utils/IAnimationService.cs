@@ -1,6 +1,4 @@
-﻿using Microsoft.UI.Xaml.Media.Animation;
-
-namespace Dimmer.WinUI.Utils;
+﻿namespace Dimmer.WinUI.Utils;
 public interface IAnimationService
 {
     // Gets all animations found in the Android project's resources

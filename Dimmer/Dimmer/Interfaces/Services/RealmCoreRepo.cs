@@ -1,8 +1,6 @@
 ﻿// ----------------------------
 // RealmCoreRepo.cs
 // ----------------------------
-using DynamicData;
-
 using Realms.Exceptions;
 
 using System.Linq.Expressions;

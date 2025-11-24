@@ -20,7 +20,6 @@ global using Dimmer.WinUI.Views.MAUIPages;
 global using Dimmer.WinUI.Views.WinuiPages;
 
 global using WinUI.TableView;
-global using Dimmer.WinUI.Animations;
 global using Dimmer.Data;
 global using Dimmer.DimmerSearch;
 global using static Dimmer.WinUI.Utils.AppUtil;
@@ -41,7 +40,6 @@ global using CommunityToolkit.Maui.Storage;
 global using CommunityToolkit.Mvvm.Input;
 global using Dimmer.Data.Models;
 global using Dimmer.Data.ModelView.DimmerSearch;
-global using Dimmer.DimmerSearch;
 global using Dimmer.DimmerSearch.TQL;
 global using Dimmer.Interfaces;
 global using Dimmer.Interfaces.IDatabase;

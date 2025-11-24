@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Diagnostics;
-using System.Linq;
 namespace Dimmer.Utils;
 
 /// <summary>
@@ -172,7 +171,7 @@ public class ListeningReportGenerator
             .OrderByDescending(kvp => kvp.Value)
             .Take(15)
             .Select((kvp,index) => songsDict.TryGetValue(kvp.Key, out var song)
-                ? new DimmerStats { Rank=index+1,  Song = song.ToModelView(), Count = kvp.Value }
+                ? new DimmerStats { Rank=index+1,  Song = song.ToModelView(_mapper), Count = kvp.Value }
                 : null)
 
             .Where(s => s != null)
@@ -209,7 +208,7 @@ public class ListeningReportGenerator
             .Select(g => new { Album = g.Key, PlayCount = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.PlayCount)
             .Take(15)
-            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
+            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(_mapper), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
             .ToList();
     }
 

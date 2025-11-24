@@ -1,5 +1,4 @@
 ﻿using Android;
-using Android.OS;
 
 namespace Dimmer.Utils; 
 public class CheckPermissions : Permissions.BasePlatformPermission 

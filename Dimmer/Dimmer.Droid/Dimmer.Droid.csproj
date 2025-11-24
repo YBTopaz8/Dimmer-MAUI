@@ -16,6 +16,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Linker.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.11.0" />
@@ -76,14 +80,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="AppShell.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+	  <Folder Include="Adapters\HomePage\" />
+	  <Folder Include="Utils\CustomObjects\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Adapters\HomePage\" />
-	  <Folder Include="Utils\CustomObjects\" />
+	  <LinkDescription Include="Linker.xml" />
 	</ItemGroup>
 
 </Project>

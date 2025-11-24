@@ -87,7 +87,7 @@ public static class SongDataProcessor
                         {
 
                             // Update the UI model on the main thread
-                            //MainThread.BeginInvokeOnMainThread(() =>
+                            //RxSchedulers.UI.Schedule(() =>
                             //{
                             //    song.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
                             //    song.UnSyncLyrics = plainLyrics;
@@ -275,7 +275,7 @@ public static class SongDataProcessor
                              if (saved)
                              {
                                  // C. Update the UI model on the main thread
-                                 MainThread.BeginInvokeOnMainThread(() =>
+                                 RxSchedulers.UI.Schedule(() =>
                                  {
                                      song.HasLyrics = !string.IsNullOrWhiteSpace(newLyricsInfo.UnsynchronizedLyrics);
 

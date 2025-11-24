@@ -1,7 +1,4 @@
-﻿using Android.App;
-using Android.OS;
-using Android.Service.QuickSettings;
-using Android.Util;
+﻿using Android.Service.QuickSettings;
 
 using AndroidX.Media3.Session;
 
@@ -327,12 +324,7 @@ public class QuickSettingsTileService : TileService
     // or ideally, just reflecting the state passed when the service requested an update.
     private bool IsCurrentlyPlaying()
     {
-        var vm = IPlatformApplication.Current.Services.GetService<AudioService>();
-        if (vm != null)
-        {
-            //return vm.IsPlaying; // Use the ExoPlayer's IsPlaying property
-        }
-        Log.Warn(TAG, "IsCurrentlyPlaying() using placeholder value (false). Implement actual state check!");
+
         return false; // Default/placeholder
     }
 }

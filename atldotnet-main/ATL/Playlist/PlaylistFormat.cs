@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Headers;
-
-namespace ATL.Playlist
+﻿namespace ATL.Playlist
 {
     /// <summary>
     /// Defines the format of a playlist

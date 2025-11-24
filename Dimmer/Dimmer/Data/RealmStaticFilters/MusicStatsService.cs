@@ -22,7 +22,7 @@ public class MusicStatsService
     /// </summary>
     public SongStat? GetMostPlayedSongInLastNDays(int days)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         // 1. RQL Filter: Get all recent 'Play' or 'Completed' events.
@@ -46,7 +46,7 @@ public class MusicStatsService
     /// </summary>
     public ArtistStat? GetTopArtistInLastNDays(int days)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", sinceDate);

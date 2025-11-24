@@ -1,23 +1,12 @@
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.WinUI;
 
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media.Imaging;
-
 using Windows.Graphics;
 
 using Button = Microsoft.UI.Xaml.Controls.Button;
-using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
-using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
-using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
-using RadioMenuFlyoutItem = Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem;
 using Slider = Microsoft.UI.Xaml.Controls.Slider;
-using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 
 using Window = Microsoft.UI.Xaml.Window;
 

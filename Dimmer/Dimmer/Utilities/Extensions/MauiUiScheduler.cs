@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Concurrency;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reactive.Concurrency;
 #if WINDOWS
 using Microsoft.UI.Dispatching;
 #endif
@@ -21,7 +15,11 @@ public sealed class MauiUiScheduler : IScheduler
 
     public IDisposable Schedule<TState>(TState state, Func<IScheduler, TState, IDisposable> action)
     {
-        Dispatch(() => action(this, state));
+        UiThreads.DispatchAction?.Invoke(() =>
+        {
+            action(this, state);
+        });
+
         return Disposable.Empty;
     }
 
@@ -34,8 +32,15 @@ public sealed class MauiUiScheduler : IScheduler
             try
             {
                 await Task.Delay(dueTime, cts.Token).ConfigureAwait(false);
-                if (!cts.Token.IsCancellationRequested)
-                    Dispatch(() => action(this, state));
+
+                if(cts.IsCancellationRequested)
+                    return;
+
+                UiThreads.DispatchAction?.Invoke(() =>
+                {
+                    if (!cts.IsCancellationRequested)
+                        action(this, state);
+                });
             }
             catch (TaskCanceledException) { }
         });
@@ -52,17 +57,5 @@ public sealed class MauiUiScheduler : IScheduler
         return Schedule(state, delay, action);
     }
 
-
-    private static void Dispatch(Action action)
-    {
-        if (UiThreads.DispatchAction != null)
-        {
-            UiThreads.DispatchAction(action);
-            return;
-        }
-
-        // Background-safe fallback
-        Task.Run(action);
-    }
 
 }

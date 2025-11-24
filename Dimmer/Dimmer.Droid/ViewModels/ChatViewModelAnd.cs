@@ -1,5 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces;
-using Dimmer.DimmerLive.Models;
+﻿using Dimmer.DimmerLive.Models;
 using Dimmer.ViewModel.DimmerLiveVM;
 
 namespace Dimmer.ViewModels;

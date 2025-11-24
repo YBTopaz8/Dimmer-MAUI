@@ -1,8 +1,5 @@
-﻿using Android.App;
-using Android.OS;
-using AndroidX.Media3.Session;
+﻿using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
-using Android.Util;
 using AndroidX.Core.App;
 using AndroidX.Media3.Common;
 

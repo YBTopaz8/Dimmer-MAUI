@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+
+	<!-- 1. The Main App Theme (Applied to Activities) -->
+	<style name="Theme.Dimmer" parent="Theme.Material3.DayNight.NoActionBar">
+		<!-- Brand Colors -->
+		<item name="colorPrimary">@color/dimmer_primary</item>
+		<item name="colorSecondary">@color/dimmer_accent</item>
+
+		<!-- Backgrounds -->
+		<item name="android:windowBackground">@color/dimmer_background</item>
+		<item name="android:colorBackground">@color/dimmer_background</item>
+
+		<!-- Text Colors -->
+		<item name="android:textColorPrimary">@color/white</item>
+	</style>
+
+	<!-- 2. The Splash Screen Theme (Applied to Launch Activity) -->
+	<!-- Note: This requires 'Xamarin.AndroidX.Core.SplashScreen' NuGet if you use the new API, 
+         but for now, we use the standard window background trick for compatibility. -->
+	<style name="Theme.Dimmer.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="android:windowBackground">@drawable/splash_screen</item>
+		<!-- See Step 4 -->
+		<item name="android:statusBarColor">@color/dimmer_primary</item>
+	</style>
+
+</resources>

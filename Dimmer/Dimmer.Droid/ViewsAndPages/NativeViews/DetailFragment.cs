@@ -1,7 +1,4 @@
-﻿
-using Dimmer.ViewsAndPages.NativeViews.Activity;
-
-using AlertDialog = Android.App.AlertDialog;
+﻿using AlertDialog = Android.App.AlertDialog;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 

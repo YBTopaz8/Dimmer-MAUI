@@ -1,37 +1,12 @@
-﻿using System;
-
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Android.Graphics;
-using Android.OS;
-using Android.Text;
-
-using AndroidX.AppCompat.Content.Res;
-using AndroidX.CardView.Widget;
+﻿using AndroidX.CardView.Widget;
 using AndroidX.ConstraintLayout.Widget;
-using AndroidX.DynamicAnimation;
-using AndroidX.Fragment.App;
-using AndroidX.Transitions;
 
 using Bumptech.Glide;
 
 using Google.Android.Material.AppBar;
-using Google.Android.Material.Button;
 using Google.Android.Material.Card;
-using Google.Android.Material.ProgressIndicator;
-
-using Java.Util.Streams;
-
-using MongoDB.Bson;
 
 using AlertDialog = Android.App.AlertDialog;
-using ScrollView = Android.Widget.ScrollView;
-using TransitionManager = AndroidX.Transitions.TransitionManager;
 
 
 

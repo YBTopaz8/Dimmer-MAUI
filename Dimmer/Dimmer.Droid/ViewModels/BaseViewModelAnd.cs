@@ -8,8 +8,6 @@ using System.Text.RegularExpressions;
 using Android.Graphics;
 
 using AndroidX.Interpolator.View.Animation;
-using AndroidX.Lifecycle;
-using AndroidX.Transitions;
 
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Storage;
@@ -25,8 +23,6 @@ using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewsAndPages.NativeViews;
 
 using Microsoft.Extensions.Logging;
-
-using static System.TimeZoneInfo;
 
 using ChangeTransform = AndroidX.Transitions.ChangeTransform;
 

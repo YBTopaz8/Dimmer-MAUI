@@ -1,20 +1,9 @@
-﻿using System.Threading.Tasks;
-
-using Android.Graphics;
+﻿using Android.Graphics;
 using Android.Views.InputMethods;
 
-using Dimmer.Utilities.Extensions;
-
-using Google.Android.Material.BottomSheet;
 using Google.Android.Material.Card;
 using Google.Android.Material.Chip;
-using Google.Android.Material.Search;
 using Google.Android.Material.TextField;
-
-using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
-
-using BitmapFactory = Android.Graphics.BitmapFactory;
-using SearchBar = Google.Android.Material.Search.SearchBar;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
@@ -45,6 +34,24 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     {
         
     }
+    public override void OnAttach(Context context)
+    {
+        base.OnAttach(context);
+        if (MyViewModel == null)
+        {
+            try
+            {
+                if (MainApplication.ServiceProvider != null)
+                {
+                    MyViewModel = MainApplication.ServiceProvider.GetRequiredService<BaseViewModelAnd>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"HomePageFragment Injection Failed: {ex}");
+            }
+        }
+    }
     public HomePageFragment(BaseViewModelAnd myViewModel)
     {
         MyViewModel = myViewModel;
@@ -57,7 +64,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        PostponeEnterTransition();
         if (Context == null)
             return null;
         var ctx = Context;
@@ -181,13 +187,23 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler.SetAdapter(_adapter);
         _songListRecycler.AddOnScrollListener(scrListener);
 
-        
+        if (_adapter.ItemCount == 0)
+        {
+            emptyText.Visibility = ViewStates.Visible;
+            _songListRecycler.Visibility = ViewStates.Gone;
+        }
+        else
+        {
+            emptyText.Visibility = ViewStates.Gone;
+            _songListRecycler.Visibility = ViewStates.Visible;
+        }
 
 
 
         middleContainer.AddView(_songListRecycler);
         middleContainer.AddView(emptyText);
 
+        var currentSong = MyViewModel.CurrentPlayingSongView;
         // BOTTOM BAR
         var btmBar = new LinearLayout(ctx)
         {
@@ -210,10 +226,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         _albumArt.Click += AlbumArt_Click;
           // handle image
-        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath) && System.IO.File.Exists(MyViewModel.CurrentPlayingSongView.CoverImagePath))
+        if (!string.IsNullOrEmpty(currentSong?.CoverImagePath) && System.IO.File.Exists(currentSong?.CoverImagePath))
         {
             // Load from disk
-            var bmp = Android.Graphics.BitmapFactory.DecodeFile(MyViewModel.CurrentPlayingSongView.CoverImagePath);
+            var bmp = Android.Graphics.BitmapFactory.DecodeFile(currentSong?.CoverImagePath);
 
             _albumArt.SetImageBitmap(bmp);
         }
@@ -239,11 +255,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 Color.Black
             }
         );
-        _titleTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.Title, TextSize = 19f };
+        _titleTxt = new TextView(ctx) { Text = currentSong?.Title ?? "Select a Song", TextSize = 19f };
         _titleTxt.SetTextColor(txtColorList);
-        _albumTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.AlbumName, TextSize = 10f };
+        _albumTxt = new TextView(ctx) { Text = currentSong?.AlbumName ?? "", TextSize = 10f };
         _albumTxt.SetTextColor(txtColorList);
-        _artistTxt = new TextView(ctx) { Text = MyViewModel.CurrentPlayingSongView.ArtistName, TextSize = 14f };
+        _artistTxt = new TextView(ctx) { Text = currentSong?.ArtistName ?? "", TextSize = 14f };
         _artistTxt.SetTextColor(txtColorList);
 
 
@@ -266,7 +282,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         var playCount = new TextView(ctx)
         {
-            Text = $"Plays: {MyViewModel.CurrentPlayingSongView.PlayCompletedCount}",
+            Text = $"Plays: {currentSong?.PlayCompletedCount}",
             TextSize = 12f
         };
         playCount.SetTextColor(txtColorList);
@@ -341,8 +357,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         );
 
         _pageFAB.SetRippleColor(colorStateList);
-        
-        _pageFAB.SetBackgroundColor(Color.DarkSlateBlue);
+
+        _pageFAB.BackgroundTintList = ColorStateList.ValueOf(Color.DarkSlateBlue);
+
+
         _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
 
         var scrollToChip = new Chip(ctx)
@@ -375,15 +393,54 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         return root;
     }
 
+
+    public override void OnResume()
+    {
+        base.OnResume();
+        
+        _pageFAB?.Animate()?.Alpha(1f)?.SetDuration(0)?.Start();
+        _isNavigating = false;
+    }
+    public override void OnViewCreated(View view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+        //PostponeEnterTransition();
+
+
+        //view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
+
+        _pageFAB.Alpha = 1f;
+        _isNavigating = false;
+        MyViewModel.CurrentPage = this;
+
+        this.View!.Tag = "HomePageFragment";
+        MyViewModel.SetupSubscriptions();
+    }
+   
+    
+
+    public override void OnDestroyView()
+    {
+        base.OnDestroyView();
+        _isNavigating = false;
+        _searchCts?.Cancel();
+        CurrentTimeTextView.Click -= CurrentTime_Click;
+        _pageFAB.Click -= PageFAB_Click;
+        _songListRecycler?    .SetAdapter(null);
+        _albumArt.Click -= AlbumArt_Click;
+        _songListRecycler = null;
+
+    }
+
     private void _pageFAB_LongClick(object? sender, View.LongClickEventArgs e)
     {
-        if(searchBar.RequestFocus())
-            {
+        if (searchBar.RequestFocus())
+        {
             InputMethodManager? imm = Context!.GetSystemService(Context.InputMethodService) as InputMethodManager;
             if (imm is null) return;
             imm.ShowSoftInput(searchBar, ShowFlags.Implicit);
         }
-        
+
 
     }
 
@@ -391,7 +448,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     {
         MyViewModel.NavigateToNowPlayingFragmentFromHome
             (this, _albumArt,
-            _titleTxt,_artistTxt,
+            _titleTxt, _artistTxt,
             _albumTxt);
     }
 
@@ -400,13 +457,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         if (song != null)
         {
-            await MyViewModel.PlaySong(song,CurrentPage.AllSongs,MyViewModel.SearchResults);
+            await MyViewModel.PlaySong(song, CurrentPage.AllSongs, MyViewModel.SearchResults);
             _adapter.NotifyDataSetChanged();
         }
         Toast.MakeText(Context, $"Single tap {pos}", ToastLength.Short)?.Show();
     }
 
-   
+
     private void PageFAB_Click(object? sender, EventArgs e)
     {
 
@@ -419,7 +476,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             LayoutParameters = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.WrapContent)
-        }; 
+        };
         layout.SetPadding(0, 20, 0, 40); // Add some bottom padding for safety
 
         var title = new TextView(Context!)
@@ -427,7 +484,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             Text = "Current Queue",
             TextSize = 20f,
             Gravity = GravityFlags.Center,
-            
+
         };
         title.SetPadding(0, 20, 0, 20);
 
@@ -459,7 +516,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     partial class RecyclerViewOnScrollListener : RecyclerView.OnScrollListener
     {
-        private readonly Action<int> _onScrolledAction; 
+        private readonly Action<int> _onScrolledAction;
         private readonly Action<int> _scrollStateChanged = _ => { };
 
         public RecyclerViewOnScrollListener(Action<int> onScrolledAction)
@@ -473,24 +530,24 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         }
         public override void OnScrollStateChanged(RecyclerView rv, int newState)
         {
-            
+
             if (newState == RecyclerView.ScrollStateIdle)
             {
                 // load higher-quality images
-                
+
             }
-            else if(newState == RecyclerView.ScrollStateDragging)
+            else if (newState == RecyclerView.ScrollStateDragging)
             {
                 // pause image loading
             }
-            else if(newState == RecyclerView.ScrollStateSettling)
+            else if (newState == RecyclerView.ScrollStateSettling)
             {
                 // pause image loading
             }
             _scrollStateChanged(newState);
 
 
-                base.OnScrollStateChanged(rv, newState);
+            base.OnScrollStateChanged(rv, newState);
         }
     }
 
@@ -500,32 +557,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         MyViewModel.NavigateToSingleSongPageFromHome(
             this,
-            transitionName,_albumArt);
+            transitionName, _albumArt);
     }
 
-
-    public override void OnResume()
-    {
-        base.OnResume();
-        
-        _pageFAB?.Animate()?.Alpha(1f)?.SetDuration(0)?.Start();
-        _isNavigating = false;
-    }
-    public override void OnViewCreated(View view, Bundle? savedInstanceState)
-    {
-        base.OnViewCreated(view, savedInstanceState);
-        PostponeEnterTransition();
-
-
-        view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
-
-        _pageFAB.Alpha = 1f;
-        _isNavigating = false;
-        MyViewModel.CurrentPage = this;
-
-        this.View!.Tag = "HomePageFragment";
-        MyViewModel.SetupSubscriptions();
-    }
     public class MyPreDrawListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
     {
         private readonly Fragment _fragment;
@@ -547,20 +581,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             return true;
         }
     }
-    
 
-    public override void OnDestroyView()
-    {
-        base.OnDestroyView();
-        _isNavigating = false;
-        _searchCts?.Cancel();
-        CurrentTimeTextView.Click -= CurrentTime_Click;
-        _pageFAB.Click -= PageFAB_Click;
-        _songListRecycler?    .SetAdapter(null);
-        _albumArt.Click -= AlbumArt_Click;
-        _songListRecycler = null;
-
-    }
     private bool IsDark()
     {
         return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;

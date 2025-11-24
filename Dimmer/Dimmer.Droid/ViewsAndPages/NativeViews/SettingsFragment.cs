@@ -1,9 +1,4 @@
-﻿
-
-using System.Threading.Tasks;
-
-using Android.Content;
-using Android.Graphics;
+﻿using Android.Graphics;
 
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
@@ -11,8 +6,6 @@ using Google.Android.Material.Chip;
 using Google.Android.Material.MaterialSwitch;
 using Google.Android.Material.TextField;
 using Google.Android.Material.TextView;
-
-using static System.TimeZoneInfo;
 
 using ScrollView = Android.Widget.ScrollView;
 

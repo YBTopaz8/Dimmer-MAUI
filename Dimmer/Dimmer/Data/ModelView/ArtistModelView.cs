@@ -1,4 +1,5 @@
 ﻿
+
 namespace Dimmer.Data.ModelView;
 
 public partial class ArtistModelView : ObservableObject
@@ -74,4 +75,5 @@ public partial class ArtistModelView : ObservableObject
     public partial int TotalAlbumsByArtist { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<string> ListOfSimilarArtists { get;  set; }
+
 }

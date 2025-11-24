@@ -1,4 +1,5 @@
 using Dimmer.Utilities.CustomAnimations;
+using Dimmer.Utilities.Extensions;
 
 using Windows.Graphics;
 
@@ -44,7 +45,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
             current?.IsHighlighted = true;
             current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
             
-            MainThread.BeginInvokeOnMainThread(() =>
+            RxSchedulers.UI.Schedule(() =>
             {
                 AllLyricsColView.ScrollTo(item: current, null,ScrollToPosition.Center, animate: true);
             });

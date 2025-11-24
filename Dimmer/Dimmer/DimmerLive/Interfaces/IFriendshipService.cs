@@ -1,8 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces.Implementations;
-
-using DynamicData;
-
-namespace Dimmer.DimmerLive.Interfaces;
+﻿namespace Dimmer.DimmerLive.Interfaces;
 
 public interface IFriendshipService
 {

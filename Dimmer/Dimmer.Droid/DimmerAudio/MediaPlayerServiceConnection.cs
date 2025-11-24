@@ -1,6 +1,4 @@
-﻿using Android.OS;
-
-namespace Dimmer.DimmerAudio;
+﻿namespace Dimmer.DimmerAudio;
 
 /// <summary>
 /// Connects the native Android ExoPlayerService to the cross-platform singleton AudioService proxy.
@@ -20,8 +18,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
 
         // Step 2: Get the application-wide singleton instance of our AudioService proxy.
         // We need the concrete class to call the 'SetBinder' method.
-        var audioServiceProxy = IPlatformApplication.Current?.Services.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
-
+        var audioServiceProxy = MainApplication.ServiceProvider.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
         // Step 3: Activate the proxy by giving it the binder.
         // The proxy's internal logic will then handle subscribing to all necessary events.
         audioServiceProxy?.SetBinder(binder);
@@ -30,8 +27,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
     public void OnServiceDisconnected(ComponentName? name)
     {
         // When the OS unexpectedly kills the service, we must deactivate the proxy.
-        var audioServiceProxy = IPlatformApplication.Current?.Services.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
-
+        var audioServiceProxy = MainApplication.ServiceProvider.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
         // Setting the binder to null will cause the proxy to unsubscribe from the old service's events.
         audioServiceProxy?.SetBinder(null);
     }

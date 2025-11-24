@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
+using Dimmer.Utilities.Extensions;
 using Dimmer.Utils;
 
 using Microsoft.Windows.AppLifecycle;
@@ -114,7 +115,7 @@ public partial class App : MauiWinUIApplication
         }
         catch (Exception ex)
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
+            RxSchedulers.UI.Schedule(async () =>
             {
                 await Shell.Current.DisplayAlert("Error", $"An error occurred during activation: {ex.Message}", "OK");
             });
@@ -235,7 +236,7 @@ public partial class App : MauiWinUIApplication
 
             // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe
             // or dispatched to the UI thread if it updates UI-bound properties directly.
-            // e.g., MainThread.BeginInvokeOnMainThread(() => homePageVM.LoadLocalSongFromOutSideApp(validPaths));
+            // e.g., RxSchedulers.UI.Schedule(() => homePageVM.LoadLocalSongFromOutSideApp(validPaths));
             //homePageVM.LoadLocalSongFromOutSideApp(validPaths);
         }
         else

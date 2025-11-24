@@ -1,28 +1,13 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
+﻿using System.ComponentModel;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-using Dimmer.Data.Models;
 using Dimmer.DimmerLive.ParseStatics;
-using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
-using Dimmer.UIUtils;
 using Dimmer.Utils;
 
-using DynamicData;
-using DynamicData.Binding;
-
-using Hqub.Lastfm.Entities;
-
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 
 using Parse.LiveQuery;
 //using MoreLinq;
@@ -339,13 +324,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         if (plan.CommandNode is not null)
                         {
                             var commandAction = commandEvaluator.Evaluate(plan.CommandNode, processedSongs);
-
-                            MainThread.BeginInvokeOnMainThread(
+                           
+                             RxSchedulers.UI.Schedule(
                                 () =>
                                 {
                                     HandleCommandAction(commandAction);
                                 });
-                            MainThread.BeginInvokeOnMainThread(() =>
+                            RxSchedulers.UI.Schedule(() =>
                             {
 
                                 if (CurrentTqlQuery != NLPQuery)
@@ -483,7 +468,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //if (appUpdateObj is not null)
             //{
             //    // When the background task completes, update UI properties on the main thread.
-            //    MainThread.BeginInvokeOnMainThread(() =>
+            //    RxSchedulers.UI.Schedule(() =>
             //    {
             //        AppUpdateObj = appUpdateObj;
             //        IsAppToDate = false;
@@ -838,7 +823,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     if (songModel != null)
                     {
                         // Step 2: If found, map the database model to a view model for the UI.
-                        CurrentPlayingSongView = songModel.ToModelView();
+                        CurrentPlayingSongView = songModel.ToModelView(_mapper);
                     }
                     else
                     {
@@ -880,7 +865,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
                     if (lastSong != null)
                     {
-                        CurrentPlayingSongView = lastSong.ToModelView();
+                        CurrentPlayingSongView = lastSong.ToModelView(_mapper);
                     }
                     else
                     {
@@ -1886,7 +1871,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task EnsureCoverArtCachedForSongsAsync(IEnumerable<SongModelView> songsToProcess)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        RxSchedulers.UI.Schedule(() =>
         {
 
             ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
@@ -1935,7 +1920,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
 
-        MainThread.BeginInvokeOnMainThread(() =>
+        RxSchedulers.UI.Schedule(() =>
         {
 
             ProgressCoverArtLoad = new Progress<(int current, int total, SongModelView song)>(p =>
@@ -2342,7 +2327,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (song is null) continue;
 
                 var songView = _mapper.Map<SongModelView>(song);
-                MainThread.BeginInvokeOnMainThread(() =>
+                RxSchedulers.UI.Schedule(() =>
                 {
                     PlaybackQueueSource.Add(songView);
                 });
@@ -2928,26 +2913,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // If playback fails (e.g., file deleted), automatically skip to the next track.
         if (!await PlayInternalAsync(songToPlay))
         {
-            var result = await UiDialogs.SafeDisplayActionSheetAsync(
-                        "Failed to play the selected song. What would you like to do?",
-                        "Cancel",
-                        null,
-                        "Remove from Queue",
-                        "Skip to Next");
+            
 
-            if (result == "Remove from Queue")
-            {
-                await RemoveFromQueue(songToPlay);
-            }
-            else if (result == "Skip to Next")
-            {
-                await NextTrackAsync();
-            }
-            else
-            {
-                // User cancelled or closed the dialog
-                _logger.LogInformation("User cancelled action after playback failure for '{Title}'.", songToPlay.Title);
-            }
+            //if (result == "Remove from Queue")
+            //{
+            //    await RemoveFromQueue(songToPlay);
+            //}
+            //else if (result == "Skip to Next")
+            //{
+            //    await NextTrackAsync();
+            //    return;
+            //}
+            //else
+            //{
+            //    // User cancelled or closed the dialog
+            //    _logger.LogInformation("User cancelled action after playback failure for '{Title}'.", songToPlay.Title);
+            //}
 
             await NextTrackAsync();
         }
@@ -3695,13 +3676,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private async Task OnPlayBackErrorOccured(PlaybackEventArgs x)
     {
         _logger.LogError(message: x.EventType.ToString());
-        await UiDialogs.SafeDisplayActionSheetAsync(x.EventType.ToString(), "OK");
     }
 
     private void LatestDeviceLog(AppLogModel model)
     {
 
-        MainThread.BeginInvokeOnMainThread(() =>
+        RxSchedulers.UI.Schedule(() =>
         {
             LatestAppLog = model;
             LatestScanningLog = model.Log;
@@ -3958,7 +3938,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     _logger.LogInformation(
                         "No songs found that require artist linking. Database is already up-to-date!");
 
-                    MainThread.BeginInvokeOnMainThread(
+                    RxSchedulers.UI.Schedule(
                         async () =>
                         {
                             await Shell.Current
@@ -4042,7 +4022,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     stopwatch.ElapsedMilliseconds);
 
 
-                MainThread.BeginInvokeOnMainThread(
+                RxSchedulers.UI.Schedule(
                     async () =>
                     {
                         await Shell.Current
@@ -4078,7 +4058,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         AllAlbumsInDb = new ObservableCollection<AlbumModelView>();
         foreach (var alb in allAlbs)
         {
-            AllAlbumsInDb.Add(alb.ToModelView());
+            
+            AllAlbumsInDb.Add(alb.ToModelView(_mapper));
         }
         _logger.LogInformation("Loaded {AlbumCount} albums from the database.", AllAlbumsInDb.Count);
     }
@@ -4397,14 +4378,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var song = songRepo.Upsert(songModel);
         _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
-        _stateService.SetCurrentSong(song.ToModelView());
+        _stateService.SetCurrentSong(song.ToModelView(_mapper));
     }
 
     [RelayCommand]
     public void ToggleArtistAsFavorite(ArtistModelView artist)
     {
         artist.IsFavorite = !artist.IsFavorite;
-        _baseAppFlow.UpsertArtist(artist.ToModel());
+        _baseAppFlow.UpsertArtist(artist.ToModel(_mapper));
     }
     
 
@@ -4412,7 +4393,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ToggleAlbumAsFavorite(AlbumModelView album)
     {
         album.IsFavorite = !album.IsFavorite;
-        _baseAppFlow.UpsertAlbum(album.ToModel());
+        _baseAppFlow.UpsertAlbum(album.ToModel(_mapper));
     }
 
 
@@ -4445,9 +4426,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 songModel.ManualFavoriteCount + (songModel.PlayCompletedCount / 4);
 
             // persist Realm update off-UI thread
-            var updated = await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)).ToModelView());
+            var updated = await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)).ToModelView(_mapper));
             if (updated is not null)
-                MainThread.BeginInvokeOnMainThread(() => songModel =updated);
+                RxSchedulers.UI.Schedule(() => songModel =updated);
 
 
             // network side effect only once per manual first love
@@ -7019,7 +7000,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = true;
             await Launcher.Default.OpenAsync(new Uri(webUrl));
-            MainThread.BeginInvokeOnMainThread(()=> IsLastFMNeedsToConfirm = true);
+            RxSchedulers.UI.Schedule(()=> IsLastFMNeedsToConfirm = true);
         }
         catch (Exception ex)
         {

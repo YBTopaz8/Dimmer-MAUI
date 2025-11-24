@@ -1,6 +1,4 @@
-﻿using DynamicData;
-
-namespace Dimmer.DimmerLive.Interfaces;
+﻿namespace Dimmer.DimmerLive.Interfaces;
 
 // The interface for our new service
 public interface ILiveRealmService : IDisposable

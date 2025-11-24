@@ -1,19 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces.Implementations;
-using Dimmer.DimmerSearch.Interfaces;
-using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using Dimmer.Interfaces.Services.Lyrics;
-using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
-using Dimmer.ViewModel.DimmerLiveVM;
-
-using Microsoft.Extensions.Configuration;
-
-using Parse.LiveQuery;
-
-
-using System.Reflection;
-
-namespace Dimmer;
+﻿namespace Dimmer;
 
 public static class MauiProgramExtensions
 {

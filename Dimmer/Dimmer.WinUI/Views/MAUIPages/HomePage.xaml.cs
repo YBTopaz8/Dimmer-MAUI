@@ -1,19 +1,10 @@
-﻿using System.Numerics;
-
-using CommunityToolkit.Maui.Behaviors;
-using CommunityToolkit.WinUI;
-
-using Dimmer.Utilities.CustomAnimations;
+﻿using CommunityToolkit.Maui.Behaviors;
 
 
 
 //using Dimmer.DimmerLive;
 //using Dimmer.DimmerSearch;
-using Dimmer.WinUI.Views.WinuiPages;
-
-using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Hosting;
 
 
 using Application = Microsoft.Maui.Controls.Application;

@@ -11,8 +11,6 @@ using ATL;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
-using Hqub.Lastfm.Entities;
-
 using Microsoft.Extensions.Logging;
 
 

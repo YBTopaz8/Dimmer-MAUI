@@ -1,5 +1,7 @@
 ﻿
 
+using Dimmer.Utilities.Extensions;
+
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
 
@@ -18,7 +20,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 [IntentFilter(new[] { "android.intent.action.MUSIC_PLAYER" },
               Categories = new[] { Intent.CategoryDefault, "android.intent.category.APP_MUSIC" })]
 
-[Activity(Theme = "@style/Maui.SplashTheme",
+[Activity(
     MainLauncher = true, SupportsPictureInPicture = true,
         Name = "com.yvanbrunel.dimmer.TransitionActivity",
     LaunchMode = LaunchMode.SingleTop,
@@ -47,63 +49,42 @@ public class TransitionActivity : AppCompatActivity
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+        SetTheme(Resource.Style.Theme_Dimmer);
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
-        {
-            Window?.RequestFeature(WindowFeatures.ContentTransitions); 
-
-            // Define Enter Transition (how this activity appears when started)
-            Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
-            if (enterTransition != null)
-            {
-                Window?.EnterTransition = enterTransition;
-            }
-
-            // Define Exit Transition (how this activity disappears when finishing)
-            Transition? exitTransition = CreateTransition(PublicStats.ExitTransition);
-            if (exitTransition != null)
-            {
-                Window?.ExitTransition = exitTransition;
-            }
-
-            // Define Reenter Transition (how this activity appears when returning from a subsequent activity)
-            Transition? reenterTransition = CreateTransition(PublicStats.ReenterTransition);
-            if (reenterTransition != null)
-            {
-                Window?.ReenterTransition = reenterTransition;
-            }
-
-            // Define Return Transition (how this activity disappears when it's the one returning to a previous activity)
-            // This is often the reverse of the Enter transition of the activity it's returning to.
-            Transition? returnTransition = CreateTransition(PublicStats.ReturnTransition);
-            if (returnTransition != null)
-            {
-                Window?.ReturnTransition = returnTransition;
-            }
-
-            // Optional: Allow overlap for smoother transitions between activities
-            Window?.AllowEnterTransitionOverlap = true;
-            Window?.AllowReturnTransitionOverlap = true;
-
-        }
         base.OnCreate(savedInstanceState);
+        //if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop) // Transitions API Level 21+
+        //{
+        //    Window?.RequestFeature(WindowFeatures.ContentTransitions);
 
-        if (MainApplication.ServiceProvider == null)
-        {
-            // Failsafe: If app was killed and restored oddly
-            MainApplication.ServiceProvider = Bootstrapper.Init();
-        }
+        //    Transition? enterTransition = CreateTransition(PublicStats.EnterTransition);
+        //    if (enterTransition != null)
+        //    {
+        //        Window?.EnterTransition = enterTransition;
+        //    }
 
-        try
-        {
-            MyViewModel = MainApplication.ServiceProvider.GetRequiredService<BaseViewModelAnd>();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"DI Error: {ex.Message}");
-         
+        //    Transition? exitTransition = CreateTransition(PublicStats.ExitTransition);
+        //    if (exitTransition != null)
+        //    {
+        //        Window?.ExitTransition = exitTransition;
+        //    }
 
-        }
+        //     Transition? reenterTransition = CreateTransition(PublicStats.ReenterTransition);
+        //    if (reenterTransition != null)
+        //    {
+        //        Window?.ReenterTransition = reenterTransition;
+        //    }
+
+        //     Transition? returnTransition = CreateTransition(PublicStats.ReturnTransition);
+        //    if (returnTransition != null)
+        //    {
+        //        Window?.ReturnTransition = returnTransition;
+        //    }
+
+        //    Window?.AllowEnterTransitionOverlap = true;
+        //    Window?.AllowReturnTransitionOverlap = true;
+
+        //}
+
 
         var container = new FrameLayout(this)
         {
@@ -112,12 +93,40 @@ public class TransitionActivity : AppCompatActivity
         ViewGroup.LayoutParams.MatchParent)
         };
         container.Id = Resource.Id.content;
+        //container.SetFitsSystemWindows(true);
+
+
+        var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
+        if (currentTheme == UiMode.NightYes)
+            container.SetBackgroundColor(Color.Black);
+        else
+            container.SetBackgroundColor(Color.ParseColor("#3E3E42"));
         MyStaticID = container.Id;
 
         SetContentView(container);
 
+         MainApplication.ServiceProvider ??= Bootstrapper.Init();
 
-        UiThreads.InitializeMainHandler();
+        try
+        {
+            MyViewModel = MainApplication.ServiceProvider.GetRequiredService<BaseViewModelAnd>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CRITICAL DI ERROR: {ex}");
+
+            new Android.App.AlertDialog.Builder(this)?
+                .SetTitle("Startup Error")?
+                .SetMessage($"Failed to load dependencies:\n{ex.Message}\n\nInner: {ex.InnerException?.Message}")?
+                .SetPositiveButton("Close", (s, e) => FinishAffinity())?
+                .Show();
+         
+
+        }
+
+
+
+        Dimmer.Utils.UiThreads.InitializeMainHandler();
 
         if (savedInstanceState == null)
         {
@@ -129,18 +138,14 @@ public class TransitionActivity : AppCompatActivity
         }
 
 
-        MyViewModel.InitializeAllVMCoreComponents();
+       Task.Run(()=>  MyViewModel.InitializeAllVMCoreComponents());
 
 
         ProcessIntent(Intent);
 
-        //SetupBackNavigation();
-
-        // 2. Create the service connection and give it the proxy instance.
         _serviceConnection = new MediaPlayerServiceConnection();
 
 
-        // 1) StartAsync the foreground service
         _serviceIntent = new Intent(this, typeof(ExoPlayerService));
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {
@@ -150,7 +155,6 @@ public class TransitionActivity : AppCompatActivity
         }
         else
             StartService(_serviceIntent);
-        //_serviceConnection = new MediaPlayerServiceConnection(audioSvc);
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
 
         SetStatusBarColor();
@@ -164,23 +168,16 @@ public class TransitionActivity : AppCompatActivity
 
             if (count == 0)
             {
-                // If stack is empty, we must be back at Home
-                // You might need to cast or search via Tag if you store the instance elsewhere
-                var homeFrag = SupportFragmentManager.FindFragmentByTag("HomePageFragment");
+                 var homeFrag = SupportFragmentManager.FindFragmentByTag("HomePageFragment");
                 MyViewModel.CurrentPage = homeFrag as Fragment;
             }
             else
             {
-                // If stack has items, get the top one
-                // (This assumes you manage CurrentPage strictly for UI state)
-                var topFrag = SupportFragmentManager.Fragments.LastOrDefault();
+                 var topFrag = SupportFragmentManager.Fragments.LastOrDefault();
                 MyViewModel.CurrentPage = topFrag;
             }
         };
 
-
-
-        return;
 
 
     }
@@ -195,7 +192,7 @@ public class TransitionActivity : AppCompatActivity
     private void SetStatusBarColor()
     {
         if (Window == null)
-            return; // Should not happen in OnCreate after base call
+            return; 
 
 #if RELEASE
         Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
@@ -213,22 +210,11 @@ public class TransitionActivity : AppCompatActivity
         try
         {
             base.OnResume();
-            Platform.OnResume(this);
 
             if (MyViewModel is null) return;
             if (MyViewModel.IsLastFMNeedsToConfirm)
             {
-                //bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
-                //if (isLastFMAuthorized)
-                //{
-                //    await MyViewModel.CompleteLastFMLoginCommand.ExecuteAsync(null);
-                //}
-                //else
-                //{
-                //    MyViewModel.IsLastFMNeedsToConfirm = false;
-                //    await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
-
-                //}
+               
             }
             SetupBackNavigation();
             // Log that the activity resumed
@@ -272,8 +258,7 @@ public class TransitionActivity : AppCompatActivity
 
         if (transition != null)
         {
-            // Use setter methods instead of property initializers
-            transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
+             transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
             transition.SetInterpolator(PublicStats.BounceInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
 
             transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, false);
@@ -299,8 +284,7 @@ public class TransitionActivity : AppCompatActivity
         if (_serviceConnection != null)
         {
             UnbindService(_serviceConnection);
-            //_serviceConnection.OnServiceDisconnected(App);
-        }
+         }
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu && _onBackInvokedCallback != null && _isBackCallbackRegistered)
         {
             OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
@@ -323,74 +307,53 @@ public class TransitionActivity : AppCompatActivity
 
                 };
             });
-            // Registering with Priority_DEFAULT. Higher priority callbacks are invoked first.
             OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(IOnBackInvokedDispatcher.PriorityDefault, _onBackInvokedCallback);
             _isBackCallbackRegistered = true;
         }
         else
         {
-            // For older versions, OnBackPressed() will be called by the system.
-            // We can also use the AndroidX OnBackPressedDispatcher for a more consistent approach
-            // across versions if preferred, but overriding OnBackPressed is simpler for API < 33
-            // if you are not using other Jetpack Activity features that rely on OnBackPressedDispatcher.
-            // Example using AndroidX (MauiAppCompatActivity provides this dispatcher):
-            // OnBackPressedDispatcher.AddCallback(this, new MyOnBackPressedCallback(true, this));
-        }
+             }
     }
 
-    // This method contains the logic for what to do when back is pressed.
     private void HandleBackPressInternal()
     {
-        // 1. Check if there are Fragments in the stack (e.g., NowPlaying or Settings)
         if (SupportFragmentManager.BackStackEntryCount > 0)
         {
-            // Go back one step in the native Fragment history
             SupportFragmentManager.PopBackStack();
         }
         else
         {
-            // 2. We are at the Root (HomePageFragment)
-            // Minimize the app (Standard Android behavior)
             MoveTaskToBack(true);
 
-            // OR if you truly want to close the app process:
-            // Finish(); 
         }
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
-        // First, check if the intent and action are what we expect
         if (intent == null || string.IsNullOrEmpty(intent.Action))
         {
             return;
         }
 
-        // Handle "Open With..." or "Share" for a single file
         if (intent.Action == Android.Content.Intent.ActionView || intent.Action == Android.Content.Intent.ActionSend)
         {
             var uri = intent.Data;
             if (uri != null)
             {
-                // TODO: Pass this URI to your audio service to be played
                 System.Diagnostics.Debug.WriteLine($"Received file to play: {uri}");
             }
             return;
         }
 
-        // *** THIS IS THE KEY PART FOR SearchManager.Query ***
-        // Handle a search request from Google Assistant or Android Search
-        if (intent.Action == "android.media.action.MEDIA_PLAY_FROM_SEARCH")
+         if (intent.Action == "android.media.action.MEDIA_PLAY_FROM_SEARCH")
         {
-            // Use the constant SearchManager.Query to get the search string
-            // It's just a key to look inside the Intent's "extras" data.
-            string? searchQuery = intent.GetStringExtra(SearchManager.Query);
+             string? searchQuery = intent.GetStringExtra(SearchManager.Query);
 
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
                 System.Diagnostics.Debug.WriteLine($"Voice Search Query Received: '{searchQuery}'");
 
 
-                MainThread.InvokeOnMainThreadAsync(() =>
+                RxSchedulers.UI.Schedule(() =>
                 {
                     Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
                     mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
@@ -409,7 +372,6 @@ public class TransitionActivity : AppCompatActivity
     }
 
 }
-// This is a helper class for the OnBackInvokedCallback
 sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
 {
     private readonly Action _action;

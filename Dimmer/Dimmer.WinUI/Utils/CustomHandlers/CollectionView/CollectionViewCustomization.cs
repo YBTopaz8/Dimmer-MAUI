@@ -1,9 +1,6 @@
 ﻿using CommunityToolkit.WinUI;
 
 using Microsoft.Maui.Controls.Handlers.Items;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Hosting;
-using Microsoft.UI.Xaml.Media;
 
 using Windows.Foundation;
 

@@ -1,15 +1,10 @@
 ﻿
 using System.Drawing.Imaging;
 
-using Microsoft.Maui.Controls;
-using Microsoft.UI.Composition;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
 using Windows.Graphics;
-using Windows.UI.Composition;
 
 using Application = Microsoft.Maui.Controls.Application;
 using Compositor = Microsoft.UI.Composition.Compositor;

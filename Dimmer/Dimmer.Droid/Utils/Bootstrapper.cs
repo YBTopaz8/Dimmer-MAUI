@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace Dimmer.Utils;
 
@@ -27,8 +21,6 @@ internal class Bootstrapper
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
-        services.AddSingleton<ChatViewModelAnd>();
-        //services.AddSingleton<AnimationSettingsViewModel>();
 
         // 4. Register Logic/Data Services
         services.AddScoped<IAppUtil, AppUtil>();

@@ -1,8 +1,4 @@
-﻿using Dimmer.Data.ModelView.LibSanityModels;
-
-using DynamicData;
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public class DuplicateFinderService : IDuplicateFinderService

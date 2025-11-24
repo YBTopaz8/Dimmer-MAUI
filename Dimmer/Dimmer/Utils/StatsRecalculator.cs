@@ -1,8 +1,4 @@
-﻿using Hqub.Lastfm.Entities;
-
-using Realms;
-
-namespace Dimmer.Utils;
+﻿namespace Dimmer.Utils;
 public class StatsRecalculator
 {
     IRealmFactory realmFactory;

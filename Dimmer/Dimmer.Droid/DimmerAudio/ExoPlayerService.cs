@@ -1,9 +1,5 @@
 ﻿#region Using Directives
 // Android Core
-using Android.App;
-using Android.Content.PM;
-using Android.OS;
-
 using AndroidX.Media3.UI;
 
 using Uri = Android.Net.Uri;

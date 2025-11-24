@@ -1,6 +1,4 @@
-﻿using Microsoft.UI.Xaml.Media.Animation;
-
-namespace Dimmer.WinUI.Utils;
+﻿namespace Dimmer.WinUI.Utils;
 public partial class WindowsAnimationService : IAnimationService
 {
 

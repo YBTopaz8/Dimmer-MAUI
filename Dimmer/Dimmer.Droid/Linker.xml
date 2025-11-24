@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<linker>
+	<!-- Keep your Shared Project Code -->
+	<assembly fullname="Dimmer">
+		<type fullname="*" />
+	</assembly>
+
+	<!-- Keep Android Project Code -->
+	<assembly fullname="Dimmer.Droid">
+		<type fullname="*" />
+	</assembly>
+
+	<!-- Keep AutoMapper -->
+	<assembly fullname="AutoMapper" />
+
+	<!-- Keep Configuration/JSON libraries -->
+	<assembly fullname="Microsoft.Extensions.Configuration" />
+	<assembly fullname="Microsoft.Extensions.Configuration.Json" />
+	<assembly fullname="System.Text.Json" />
+
+	<assembly fullname="Xamarin.AndroidX.AppCompat" />
+	<assembly fullname="Xamarin.AndroidX.Fragment" />
+	<assembly fullname="Xamarin.AndroidX.Core" />
+	<assembly fullname="Xamarin.Google.Android.Material" />
+	<assembly fullname="Google.Android.Material" />
+	<assembly fullname="Realm">
+		<type fullname="*" />
+	</assembly>
+</linker>

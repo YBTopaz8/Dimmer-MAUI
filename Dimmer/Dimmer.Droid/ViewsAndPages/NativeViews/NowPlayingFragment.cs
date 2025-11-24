@@ -1,19 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using AndroidX.Core.View;
-using AndroidX.Core.Widget;
-
-using Google.Android.Material.Button;
+﻿using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 using Google.Android.Material.Chip;
-using Google.Android.Material.Slider;
 using Google.Android.Material.TextView;
-
-using Microsoft.Maui.Handlers;
 
 using ScrollView = Android.Widget.ScrollView;
 using Slider = Google.Android.Material.Slider.Slider;
