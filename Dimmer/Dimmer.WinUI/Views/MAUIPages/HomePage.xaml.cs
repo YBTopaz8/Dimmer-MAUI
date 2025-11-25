@@ -160,7 +160,7 @@ public partial class HomePage : ContentPage
         {
             MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
         }
-        await MyViewModel.PlaySong(song, CurrentPage.HomePage);
+        await MyViewModel.PlaySong(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueueSource.Items);
         //ScrollToSong_Clicked(sender, e);
     }
 
@@ -1242,5 +1242,30 @@ public partial class HomePage : ContentPage
         MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", MyViewModel.CurrentPlayingSongView.AlbumName));
 
+    }
+
+    private async void NowPlayingQueuePGR_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var gridSenderAsUIElement = sender as Microsoft.UI.Xaml.UIElement;
+        //detect if it's middle click
+        var props = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(gridSenderAsUIElement).Properties;
+        if (props != null)
+        {
+
+            if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
+            {
+                if (MyViewModel.CurrentPlayingSongView is null) return;
+                var items = MyViewModel.PlaybackQueueSource.Items;
+                var isInItems = items.Contains(MyViewModel.CurrentPlayingSongView);
+                if(!isInItems) return;
+                PBQueueCollectionView.ScrollTo(MyViewModel.CurrentPlayingSongView,null,ScrollToPosition.Start,true);
+                await MainScrollView.ScrollToAsync(0, PBQueueCollectionView.Y+110, true);
+            }
+        }
+    }
+
+    private void MainScrollView_Scrolled(object sender, ScrolledEventArgs e)
+    {
+        
     }
 }

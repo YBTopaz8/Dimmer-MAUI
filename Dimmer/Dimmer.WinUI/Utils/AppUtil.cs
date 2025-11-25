@@ -41,18 +41,12 @@ public class AppUtil : IAppUtil
             throw new Exception("DimmerWin is null");
         }
         dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
-        if (BaseViewModelWin.FolderPaths.Count > 0)
-        {   
-            dimmerWinUI.NavigateToPage(typeof(AllSongsListPage));
-            PlatUtils.ResizeNativeWindow(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1080 });
-        }
-        else
-        {
-            
-        }
+       
             dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
-        
-        return  dimmerMAUIWin;
+        dimmerWinUI.NavigateToPage(typeof(AllSongsListPage));
+        PlatUtils.MoveAndResizeCenter(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1360 });
+
+        return dimmerMAUIWin;
     }
 
     private async void MauiWin_Created(object? sender, EventArgs e)

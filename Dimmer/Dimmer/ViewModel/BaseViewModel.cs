@@ -2178,6 +2178,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         }
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
+        CurrentLine = null;
+        PreviousLine = null;
+        NextLine = null;
 
         CurrentPlayingSongView = args.MediaSong;
         _songToScrobble = CurrentPlayingSongView;
@@ -2723,53 +2726,70 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 return;
             }
 
-            CurrentPagePlayingSong = curPage;
 
             var sourceList = new List<SongModelView>();
             int startIndex = -1;
 
-            if (CurrentPagePlayingSong == Utilities.Enums.CurrentPage.AllSongs)
+            switch (curPage)
             {
-                var songSource = (songs ?? _searchResults).ToList();
-                startIndex = songSource.FindIndex(s => s.Id == songToPlay.Id);
-
-                if (startIndex == -1)
-                {
-                    _logger.LogWarning("Song '{Title}' not in current source. Playing it alone.", songToPlay.Title);
-                    sourceList.Add(songToPlay);
-                    startIndex = 0;
-                }
-                else
-                {
-                    // *** SIMPLIFIED QUEUE SLICING LOGIC ***
-                    // Take a window of 150 songs (50 before, 100 after) for performance.
-                    const int songsToTakeBefore = 100;
-                    const int songsToTakeAfter = 300;
-                    const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
-
-                    int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
-                    sourceList = songSource.Skip(sliceStart).Take(totalQueueSize).ToList();
-
-                    // The start index is now relative to this new, smaller list.
-                    startIndex = sourceList.IndexOf(songToPlay);
-                }
-            }
-            else if (CurrentPagePlayingSong == Utilities.Enums.CurrentPage.HomePage)
-            {
-                if (songs is null)
-                {
-                    sourceList = _playbackQueue.ToList();
-                    startIndex = sourceList.IndexOf(songToPlay);
-
-                    if (startIndex == -1)
+                case Utilities.Enums.CurrentPage.AllSongs:
                     {
-                        _logger.LogWarning("Song '{Title}' not in current queue. Playing it alone.", songToPlay.Title);
-                        sourceList = new List<SongModelView> { songToPlay };
-                        startIndex = 0;
+                        var songSource = (songs ?? _searchResults).ToList();
+                        startIndex = songSource.FindIndex(s => s.Id == songToPlay.Id);
+
+                        if (startIndex == -1)
+                        {
+                            _logger.LogWarning("Song '{Title}' not in current source. Playing it alone.", songToPlay.Title);
+                            sourceList.Add(songToPlay);
+                            startIndex = 0;
+                        }
+                        else
+                        {
+                            // *** SIMPLIFIED QUEUE SLICING LOGIC ***
+                            // Take a window of 150 songs (50 before, 100 after) for performance.
+                            const int songsToTakeBefore = 100;
+                            const int songsToTakeAfter = 300;
+                            const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
+
+                            int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
+                            sourceList = songSource.Skip(sliceStart).Take(totalQueueSize).ToList();
+
+                            // The start index is now relative to this new, smaller list.
+                            startIndex = sourceList.IndexOf(songToPlay);
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
+
+                case Utilities.Enums.CurrentPage.HomePage:
+                    if (songs is null)
+                    {
+                        sourceList = _playbackQueue.ToList();
+                        startIndex = sourceList.IndexOf(songToPlay);
+
+                        if (startIndex == -1)
+                        {
+                            _logger.LogWarning("Song '{Title}' not in current queue. Playing it alone.", songToPlay.Title);
+                            sourceList = new List<SongModelView> { songToPlay };
+                            startIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        sourceList = songs.ToList();
+                        startIndex = sourceList.IndexOf(songToPlay);
+                        if (startIndex == -1)
+                        {
+                            _logger.LogWarning("Song '{Title}' not in provided source. Playing it alone.", songToPlay.Title);
+                            sourceList = new List<SongModelView> { songToPlay };
+                            startIndex = 0;
+                        }
+                    }
+
+
+                    break;
+                default:
+                    if (songs is null) return;
                     sourceList = songs.ToList();
                     startIndex = sourceList.IndexOf(songToPlay);
                     if (startIndex == -1)
@@ -2778,21 +2798,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         sourceList = new List<SongModelView> { songToPlay };
                         startIndex = 0;
                     }
-                }
-
-
-            }
-            else
-            {
-                if (songs is null) return;
-                sourceList = songs.ToList();
-                startIndex = sourceList.IndexOf(songToPlay);
-                if (startIndex == -1)
-                {
-                    _logger.LogWarning("Song '{Title}' not in provided source. Playing it alone.", songToPlay.Title);
-                    sourceList = new List<SongModelView> { songToPlay };
-                    startIndex = 0;
-                }
+                    break;
             }
 
 

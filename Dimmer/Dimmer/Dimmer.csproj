@@ -56,14 +56,20 @@
 		<PackageReference Include="Realm" Version="20.1.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
-	  <ProjectReference Include="..\..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
-	  <ProjectReference Include="..\..\atldotnet-main\ATL\ATL.csproj" />
-	</ItemGroup>
+
 
 	<ItemGroup>
 	  <Folder Include="UIUtils\CustomPopups\" />
+	</ItemGroup>
+
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+	  <ProjectReference Include="..\..\..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
+	  <ProjectReference Include="..\..\atldotnet-main\ATL\ATL.csproj" />
+	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
+	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" />
 	</ItemGroup>
 
 </Project>

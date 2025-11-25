@@ -589,7 +589,7 @@ public static class PlatUtils
         var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
         scaleAnim.Duration = TimeSpan.FromMilliseconds(250);
         scaleAnim.InsertKeyFrame(1f, isHover
-            ? new System.Numerics.Vector3(1.2f)
+            ? new System.Numerics.Vector3(1.1f)
             : new System.Numerics.Vector3(1f));
 
         // keep scale centered
@@ -658,5 +658,13 @@ public static class PlatUtils
                 visual.StartAnimation("Offset", spring);
                 break;
         }
+    }
+
+    internal static bool IsElementInView(Microsoft.Maui.Controls.ScrollView mainScrollView, Microsoft.Maui.Controls.Grid coverImageSection)
+    {
+        var checkIfInView = mainScrollView.Bounds;
+        var elementBounds = coverImageSection.Bounds;
+        return (elementBounds.Top >= checkIfInView.Top) && (elementBounds.Bottom <= checkIfInView.Bottom);
+
     }
 }

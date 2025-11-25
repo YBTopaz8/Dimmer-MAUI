@@ -1,12 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{BC63A063-98DB-4E36-2BFC-ADF891F208E3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ATL", "atldotnet-main\ATL\ATL.csproj", "{23AAC909-B435-4525-0180-F102B5182CA4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioSwitcher.AudioApi", "AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj", "{4C133719-CD8A-8977-8190-43E4F7D2B4A6}"
@@ -19,7 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.Droid", "Dimmer\Dimm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.WinUI", "Dimmer\Dimmer.WinUI\Dimmer.WinUI.csproj", "{0E16CC04-4DD3-425A-B34C-8F59955676F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimmerTQLUnitTest", "DimmerTQLUnitTest\DimmerTQLUnitTest.csproj", "{A1D5A7D7-2D38-4113-8046-51D9DD25A612}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{886317CF-0ACD-4F35-0620-7EE6531FDEBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{D2B1714D-C0CE-C85C-FB88-B7E12695F344}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,14 +25,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23AAC909-B435-4525-0180-F102B5182CA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{23AAC909-B435-4525-0180-F102B5182CA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23AAC909-B435-4525-0180-F102B5182CA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,10 +51,14 @@ Global
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Debug|Any CPU.Build.0 = Debug|x64
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Release|Any CPU.ActiveCfg = Release|x64
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Release|Any CPU.Build.0 = Release|x64
-		{A1D5A7D7-2D38-4113-8046-51D9DD25A612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1D5A7D7-2D38-4113-8046-51D9DD25A612}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1D5A7D7-2D38-4113-8046-51D9DD25A612}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1D5A7D7-2D38-4113-8046-51D9DD25A612}.Release|Any CPU.Build.0 = Release|Any CPU
+		{886317CF-0ACD-4F35-0620-7EE6531FDEBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{886317CF-0ACD-4F35-0620-7EE6531FDEBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{886317CF-0ACD-4F35-0620-7EE6531FDEBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{886317CF-0ACD-4F35-0620-7EE6531FDEBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2B1714D-C0CE-C85C-FB88-B7E12695F344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2B1714D-C0CE-C85C-FB88-B7E12695F344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2B1714D-C0CE-C85C-FB88-B7E12695F344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2B1714D-C0CE-C85C-FB88-B7E12695F344}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
