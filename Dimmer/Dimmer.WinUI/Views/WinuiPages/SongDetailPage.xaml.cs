@@ -1,27 +1,7 @@
-using System.Diagnostics;
-using System.Numerics;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Media;
 
-using Dimmer.Data;
-using Dimmer.DimmerSearch;
-
-using Microsoft.UI.Composition;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Hosting;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Navigation;
 
-using Windows.Storage.FileProperties;
-
-using static System.Net.Mime.MediaTypeNames;
-using static Dimmer.WinUI.Utils.AppUtil;
-
-using Border = Microsoft.UI.Xaml.Controls.Border;
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;

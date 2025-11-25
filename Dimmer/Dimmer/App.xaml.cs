@@ -2,13 +2,9 @@
 //using Dimmer.DimmerLive.Models;
 //using Dimmer.DimmerLive.Orchestration;
 
-using System.Threading.Tasks;
-
 using Dimmer.DimmerLive.Orchestration;
 using Dimmer.Interfaces;
 using Dimmer.Utils;
-
-using Microsoft.Maui.Controls;
 
 namespace Dimmer;
 
@@ -52,7 +48,6 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        UiThreads.MauiUI = Current!.Dispatcher;
 
         var win = AppUtilImple.LoadWindow();
         

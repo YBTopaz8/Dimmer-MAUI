@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-using Dimmer.Utils;
+﻿using Dimmer.Utils;
 
 namespace Dimmer.Interfaces;
 public interface IErrorHandler

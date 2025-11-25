@@ -17,7 +17,7 @@ private const int PlayType_Skipped = 5;
 #region --- UPGRADED: Core Library Stats with Full Context ---
 //==========================================================================
 
-public static List<DimmerStats> GetOverallListeningByDayOfWeek(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs)
+public static List<DimmerStats> GetOverallListeningByDayOfWeek(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
@@ -27,11 +27,11 @@ public static List<DimmerStats> GetOverallListeningByDayOfWeek(IQueryable<Dimmer
             StatTitle = "Listening by Day",
             XValue = g.Key.ToString(),
             YValue = g.Count(),
-            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView()).DistinctBy(s => s.Id).ToList()
+            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (int)Enum.Parse<DayOfWeek>((string)s.XValue!)).ToList();
 }
 
-public static List<DimmerStats> GetGenrePopularityOverTime(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs)
+public static List<DimmerStats> GetGenrePopularityOverTime(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.AsEnumerable()
@@ -43,11 +43,11 @@ public static List<DimmerStats> GetGenrePopularityOverTime(IQueryable<DimmerPlay
             XValue = g.Key.Month,
             Category = g.Key.Genre,
             YValue = g.Count(),
-            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView()).DistinctBy(s => s.Id).ToList()
+            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (DateTime)s.XValue!).ToList();
 }
 
-public static List<DimmerStats> GetDailyListeningTimeRange(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate)
+public static List<DimmerStats> GetDailyListeningTimeRange(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate, IMapper mapper)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.Where(e => e.EventDate >= startDate && e.EventDate < endDate && e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
@@ -59,11 +59,11 @@ public static List<DimmerStats> GetDailyListeningTimeRange(IQueryable<DimmerPlay
             XValue = g.Key,
             Low = g.Min(ev => ev.EventDate.Hour),
             High = g.Max(ev => ev.EventDate.Hour),
-            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView()).DistinctBy(s => s.Id).ToList()
+            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (DateTime)s.XValue!).ToList();
 }
 
-public static List<DimmerStats> GetSongProfileBubbleChartData(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs)
+public static List<DimmerStats> GetSongProfileBubbleChartData(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
@@ -77,16 +77,16 @@ public static List<DimmerStats> GetSongProfileBubbleChartData(IQueryable<DimmerP
             return new DimmerStats
             {
                 StatTitle = "Song Profile",
-                Song = song.ToModelView(),
+                Song = song.ToModelView(mapper),
                 XValue = (double)totalStarts,
                 YValue = listenThroughRate,
                 SizeDouble = song.DurationInSeconds,
-                ContributingSongs = new List<SongModelView> { song.ToModelView() }
+                ContributingSongs = new List<SongModelView> { song.ToModelView(mapper) }
             };
         }).Where(s => (double)s.XValue! > 0).ToList();
 }
 
-public static List<DimmerStats> GetDailyListeningRoutineOHLC(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate)
+public static List<DimmerStats> GetDailyListeningRoutineOHLC(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate, IMapper mapper)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
@@ -107,7 +107,7 @@ public static List<DimmerStats> GetDailyListeningRoutineOHLC(IQueryable<DimmerPl
                 High = maxPlayHour,
                 Low = minPlayHour,
                 Close = g.Max(ev => ev.EventDate.Hour),
-                ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView()).DistinctBy(s => s.Id).ToList()
+                ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
             };
         }).Where(s => s != null).OrderBy(s => (DateTime)s!.XValue!).ToList()!;
 }
@@ -156,7 +156,7 @@ public static List<DimmerStats> GetListeningFingerprint(IQueryable<DimmerPlayEve
 /// <summary>
 /// (Inspired by Last.fm Music by Decade) - Groups all listening history by decade.
 /// </summary>
-public static List<DimmerStats> GetMusicByDecade(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs)
+public static List<DimmerStats> GetMusicByDecade(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
@@ -172,7 +172,7 @@ public static List<DimmerStats> GetMusicByDecade(IQueryable<DimmerPlayEvent> eve
                 Name = $"{g.Key}s",
                 YValue = g.Count(),
                 Category = topAlbumInDecade, // Store the top album name here
-                ContributingSongs = g.Select(s => s.ToModelView()).DistinctBy(s => s.Id).ToList()
+                ContributingSongs = g.Select(s => s.ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
             };
         }).OrderBy(s => s.Name).ToList();
 }

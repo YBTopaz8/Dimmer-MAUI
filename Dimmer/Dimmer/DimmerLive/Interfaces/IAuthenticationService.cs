@@ -1,6 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces.Implementations;
-
-namespace Dimmer.DimmerLive.Interfaces;
+﻿namespace Dimmer.DimmerLive.Interfaces;
 
 public interface IAuthenticationService
 {

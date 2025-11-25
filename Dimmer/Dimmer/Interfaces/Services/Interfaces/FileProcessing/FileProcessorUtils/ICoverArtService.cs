@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-
-namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 public interface ICoverArtService
 {
     Task<string?> SaveOrGetCoverImageAsync(ObjectId songId, string audioFilePath, PictureInfo? embeddedPictureInfo);

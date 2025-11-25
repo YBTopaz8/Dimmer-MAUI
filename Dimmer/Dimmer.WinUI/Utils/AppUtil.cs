@@ -1,6 +1,4 @@
-﻿using Dimmer.WinUI.Utils.WinMgt;
-
-using Windows.Graphics;
+﻿using Windows.Graphics;
 
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil

@@ -1,59 +1,25 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
 
 using CommunityToolkit.WinUI;
 
-using Dimmer.Data;
-using Dimmer.DimmerSearch;
-using Dimmer.DimmerSearch.TQL;
-using Dimmer.Utils;
-using Dimmer.WinUI.Utils.CustomHandlers;
-
 using Microsoft.Graphics.Canvas.Effects;
-using Microsoft.Maui.Controls;
-using Microsoft.UI.Composition;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Hosting;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Navigation;
 
-using Windows.ApplicationModel.DataTransfer;
-using Windows.System.Threading;
-using Windows.UI.Composition;
 using Windows.UI.Text;
 
-using WinUI.TableView;
-
 using static Dimmer.DimmerSearch.TQlStaticMethods;
-using static Dimmer.WinUI.Utils.AppUtil;
 
 using AnimationStopBehavior = Microsoft.UI.Composition.AnimationStopBehavior;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using Colors = Microsoft.UI.Colors;
-using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
-using DataTemplateSelector = Microsoft.UI.Xaml.Controls.DataTemplateSelector;
 using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
-using GeneralTransform = Microsoft.UI.Xaml.Media.GeneralTransform;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
-using Point = System.Drawing.Point;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using Visibility = Microsoft.UI.Xaml.Visibility;
-using Visual = Microsoft.UI.Composition.Visual;
-using VisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.

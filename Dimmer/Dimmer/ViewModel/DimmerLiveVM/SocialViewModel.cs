@@ -1,10 +1,4 @@
-﻿using DynamicData;
-
-
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 public partial class SocialViewModel : ObservableObject, IDisposable
 {
     private readonly IFriendshipService _friendshipService;

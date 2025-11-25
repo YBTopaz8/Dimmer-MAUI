@@ -1,7 +1,5 @@
 ﻿using Java.Lang;
 
-using AndroidX.RecyclerView.Widget;
-
 namespace Dimmer.Utils.CustomHandlers.CollectionView;
 
 public class SelectionAnimator : DefaultItemAnimator

@@ -1,6 +1,5 @@
 ﻿// --- START OF FILE FolderMgtService.cs ---
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Reactive.Disposables;
 // Add other necessary using statements
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
@@ -162,13 +161,14 @@ public class FolderMgtService : IFolderMgtService
         var newPathsToAdd = new List<string>();
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        var knowPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+        if (appModel == null) return;
+        var knowPaths = appModel.UserMusicFoldersPreference ?? new List<string>();
 
         foreach (var path in paths)
         {
             if (!knowPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
             {
-                appModel.UserMusicFoldersPreference.Add(path);
+                appModel.UserMusicFoldersPreference?.Add(path);
                 newPathsToAdd.Add(path);
             }
         }

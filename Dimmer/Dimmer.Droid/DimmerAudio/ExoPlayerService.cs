@@ -1,9 +1,5 @@
 ﻿#region Using Directives
 // Android Core
-using Android.App;
-using Android.Content.PM;
-using Android.OS;
-
 using AndroidX.Media3.UI;
 
 using Uri = Android.Net.Uri;
@@ -236,7 +232,7 @@ public class ExoPlayerService : MediaSessionService
             sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
 
 
-            Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
+            Intent nIntent = new Intent(Platform.AppContext, typeof(TransitionActivity));
 
             PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
             if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
@@ -380,27 +376,6 @@ public class ExoPlayerService : MediaSessionService
     public MediaSession? GetMediaSessionInstance()
     {
         return mediaSession;
-    }
-
-    // --- Private Helpers ---
-    private PendingIntent GetMainActivityPendingIntent()
-    {
-        // Intent to launch your main UI when the notification/session is tapped
-
-        var launchIntent = new Intent(this, typeof(MainActivity)); // Ensure MainActivity is correct
-        launchIntent.SetAction(Intent.ActionMain);
-        launchIntent.AddCategory(Intent.CategoryLauncher);
-        // Flags ensure existing instance is brought forward or new one started cleanly
-        launchIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
-
-        // Use Immutable flag for security on Android S+
-        PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
-        {
-            flags |= PendingIntentFlags.Immutable;
-        }
-
-        return PendingIntent.GetActivity(this, 0, launchIntent, flags)!;
     }
 
     private static void LogInitWarning(string stage)
@@ -752,6 +727,7 @@ public class ExoPlayerService : MediaSessionService
         }
 
         const string TAG = "MediaSessionCallback";
+
         // --- Connection Handling ---
         public MediaSession.ConnectionResult OnConnect(
   MediaSession? session,
@@ -785,14 +761,14 @@ public class ExoPlayerService : MediaSessionService
         // --- Command Handling ---
 
 
-        public async static Task<bool> OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
+        public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
 
             if (intent == null || intent.Action == null)
                 return false;
 
 
-            await Shell.Current.DisplayAlert("Media Button Event", $"Received intent: {intent.Action}", "OK");
+            
             return true;
         }
         // Decide whether to allow a specific PLAYER command requested by a controllerInfo

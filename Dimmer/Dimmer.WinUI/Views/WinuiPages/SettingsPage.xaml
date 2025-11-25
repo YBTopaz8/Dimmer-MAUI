@@ -449,6 +449,8 @@ GroupName="PositionsGroup"
             </Grid>
         </FlipView>
 
+        <TextBlock Grid.Row="2" Text="{Binding LatestAppLog.Log}"
+                   VerticalAlignment="Bottom" Margin="5"/>
         <!-- Navigation buttons -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0"
                      Visibility="Collapsed" Grid.Row="2"  >

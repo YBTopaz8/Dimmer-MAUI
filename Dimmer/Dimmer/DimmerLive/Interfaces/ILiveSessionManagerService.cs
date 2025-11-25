@@ -1,6 +1,4 @@
-﻿using DynamicData;
-
-namespace Dimmer.DimmerSearch.Interfaces;
+﻿namespace Dimmer.DimmerSearch.Interfaces;
 
 public interface ILiveSessionManagerService
 {

@@ -1,6 +1,4 @@
-﻿using AndroidX.RecyclerView.Widget;
-
-using Microsoft.Maui.Controls.Handlers.Items;
+﻿using Microsoft.Maui.Controls.Handlers.Items;
 
 namespace Dimmer.Utils.CustomHandlers.CollectionView;
 public class CustomCollectionViewHandler : CollectionViewHandler

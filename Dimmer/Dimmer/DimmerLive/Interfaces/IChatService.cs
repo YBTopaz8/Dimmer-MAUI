@@ -1,6 +1,4 @@
-﻿using DynamicData;
-
-namespace Dimmer.DimmerLive.Interfaces;
+﻿namespace Dimmer.DimmerLive.Interfaces;
 public interface IChatService
 {
     Task<ChatConversation?> GetGeneralChatAsync();

@@ -1,6 +1,4 @@
-﻿using DynamicData;
-
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace Dimmer.Interfaces;
 public interface IRepository<T> where T : new()

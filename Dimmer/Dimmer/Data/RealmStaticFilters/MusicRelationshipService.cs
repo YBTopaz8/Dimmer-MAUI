@@ -6,6 +6,7 @@ public class MusicRelationshipService
 
     public MusicRelationshipService(IRealmFactory factory)
     {
+        _realm = factory.GetRealmInstance();
     }
     // Common record types for clean returns
     public record RelationshipStat<T>(T Item, int PlayCount, DateTimeOffset FirstPlayed, DateTimeOffset LastPlayed);
@@ -21,7 +22,7 @@ public class MusicRelationshipService
     // COMPLIANT: Min/Max are called on a materialized list.
     public RelationshipStat<SongModel>? GetUserSongRelationship(ObjectId songId)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var song = _realm.Find<SongModel>(songId);
         if (song == null)
@@ -45,7 +46,7 @@ public class MusicRelationshipService
     // REWRITTEN FOR COMPLIANCE: Avoids in-memory .Contains on a Realm-backed query.
     public List<SongDiscovery> GetNewSongDiscoveries(int days)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
 
@@ -87,7 +88,7 @@ public class MusicRelationshipService
     // COMPLIANT: All logic is on a materialized list.
     public List<TrendStat> GetSongWeeklyTrend(ObjectId songId)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var trends = new List<TrendStat>();
         var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).ToList();
@@ -116,7 +117,7 @@ public class MusicRelationshipService
     // COMPLIANT: All logic is on a materialized list.
     public List<TrendStat> GetSongMonthlyTrend(ObjectId songId)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var trends = new List<TrendStat>();
         var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).ToList();
@@ -145,7 +146,7 @@ public class MusicRelationshipService
     // COMPLIANT: All logic is on a materialized list.
     public (int PlayCount, int Skips, double CompletionRate) GetSongStatsBetweenDates(ObjectId songId, DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var query = "SongId == $0 AND DatePlayed > $1 AND DatePlayed <= $2";
         var events = _realm.All<DimmerPlayEvent>().Filter(query, songId, startDate, endDate).ToList();
@@ -163,7 +164,7 @@ public class MusicRelationshipService
     // COMPLIANT: Reuses compliant logic and processes results in memory.
     public List<SongDiscovery> GetTopDiscoveriesOfMonth(int year, int month)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
         // Be generous with days to ensure all relevant data is captured.
@@ -177,7 +178,7 @@ public class MusicRelationshipService
     // COMPLIANT: Uses supported "IN" filter. OrderBy/FirstOrDefault are supported.
     public SongModel? GetSongThatHookedMeOnAnArtist(ObjectId artistId)
     {
-        _realm=IPlatformApplication.Current.Services.GetService<IRealmFactory>().GetRealmInstance();
+        
 
         // Step 1: Get the list of song IDs for the artist.
         // A HashSet is used for fast O(1) in-memory lookups, which is more

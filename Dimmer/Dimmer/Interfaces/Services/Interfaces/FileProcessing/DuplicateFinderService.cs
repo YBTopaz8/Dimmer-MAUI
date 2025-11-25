@@ -1,8 +1,6 @@
-﻿using Dimmer.Data.ModelView.LibSanityModels;
+﻿using System.Collections.Concurrent;
 
-using DynamicData;
-
-using System.Collections.Concurrent;
+using Dimmer.Utilities.TypeConverters;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public class DuplicateFinderService : IDuplicateFinderService
@@ -33,7 +31,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         progress?.Report("Loading all songs from the database...");
 
         // Materialize the list now that we need to process it
-        List<SongModelView>? allSongsList = _mapper.Map<List<SongModelView>>(allSongsQuery.ToList());
+        List<SongModelView>? allSongsList = SongMapper.ToSongViewList(allSongsQuery.ToList());
 
         var result = new DuplicateSearchResult
         {
@@ -462,7 +460,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         }
 
 
-        var duplicates = _mapper.Map<List<SongModelView>>(potentialDuplicatesQuery.ToList());
+        var duplicates = SongMapper.ToSongViewList(potentialDuplicatesQuery.ToList());
 
         if (duplicates.Count == 0)
         {

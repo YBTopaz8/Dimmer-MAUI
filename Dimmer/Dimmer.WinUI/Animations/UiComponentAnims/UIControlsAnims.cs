@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
-
-using CommunityToolkit.WinUI;
+﻿using CommunityToolkit.WinUI;
 
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using Border = Microsoft.UI.Xaml.Controls.Border;

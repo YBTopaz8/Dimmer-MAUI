@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 
+using Application = Android.App.Application;
 using Window = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.Utils;
@@ -245,5 +246,12 @@ public class AppUtil : IAppUtil
             Debug.WriteLine($"Error validating icon resource '{iconName}': {ex.Message}");
             return false;
         }
+    }
+
+    public static int DpToPx(int dp)
+    {
+        var ctx = Application.Context;
+
+        return (int)(dp * ctx.Resources.DisplayMetrics.Density);
     }
 }

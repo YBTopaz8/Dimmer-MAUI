@@ -1,6 +1,4 @@
-﻿using DynamicData;
-
-namespace Dimmer.ViewModel.NewFolder;
+﻿namespace Dimmer.ViewModel.NewFolder;
 public interface ILibraryQueryService
 {
     // INPUTS: These are the "control knobs" the ViewModel will set.

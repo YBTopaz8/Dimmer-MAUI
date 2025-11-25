@@ -1,0 +1,610 @@
+﻿using Android.Graphics;
+using Android.Views.InputMethods;
+
+using Google.Android.Material.Card;
+using Google.Android.Material.Chip;
+using Google.Android.Material.TextField;
+
+namespace Dimmer.ViewsAndPages.NativeViews;
+
+public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
+{
+
+    string toSettingsTrans = "homePageFAB";
+
+    public RecyclerView? _songListRecycler = null!;
+    public TextView _emptyLabel = null!;
+    public LinearLayout _bottomBar = null!;
+    public TextView _titleTxt = null!;
+    public TextView _albumTxt = null!;
+    public TextView _artistTxt = null!;
+    public TextView _playCount = null!;
+    public ImageView _albumArt = null!;
+    public float _downX;
+    public float _downY;
+    public FloatingActionButton _pageFAB = null!;
+    public FloatingActionButton? cogButton = null!;
+    FrameLayout? root;
+    public TextView CurrentTimeTextView;
+    public FrameLayout? Root => root;
+    public BaseViewModelAnd MyViewModel { get; private set; } = null!;
+    private bool _isNavigating;
+
+    public HomePageFragment()
+    {
+        
+    }
+    public override void OnAttach(Context context)
+    {
+        base.OnAttach(context);
+        if (MyViewModel == null)
+        {
+            try
+            {
+                if (MainApplication.ServiceProvider != null)
+                {
+                    MyViewModel = MainApplication.ServiceProvider.GetRequiredService<BaseViewModelAnd>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Android.Widget.Toast.MakeText(context, $"DI FAILED: {ex.Message}", Android.Widget.ToastLength.Long)?.Show();
+                Console.WriteLine($"HomePageFragment Injection Failed: {ex}");
+            }
+        }
+    }
+    public HomePageFragment(BaseViewModelAnd myViewModel)
+    {
+        MyViewModel = myViewModel;
+
+
+    }
+    private CancellationTokenSource? _searchCts;
+    private SongAdapter _adapter;
+    private TextInputEditText searchBar;
+
+    public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+    {
+        if (Context == null)
+            return null;
+        var ctx = Context;
+        if (MyViewModel == null)
+        {
+            var errText = new TextView(Context) { Text = "ViewModel is NULL!", TextSize = 30 };
+            return errText;
+        }
+
+        // ROOT FRAME (needed for FAB overlay)
+        root = new FrameLayout(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.MatchParent)
+        };
+        // MAIN COLUMN
+        var column = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.MatchParent)
+        };
+
+        // SEARCHBAR (top)
+         searchBar = new TextInputEditText(ctx)
+        {
+            Hint = "Search songs, artists, albums...",
+            TextSize = 16f
+        };
+        
+        searchBar.SetPadding(40, 30, 40, 30);
+        
+        searchBar.TextChanged += (s, e) =>
+        {
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+
+            var text = e?.Text?.ToString()?.Trim() ?? "";
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(250, _searchCts.Token); // debounce
+
+                    MyViewModel.SearchSongForSearchResultHolder(text); // implement this in VM
+
+                    Activity?.RunOnUiThread(() =>
+                    {
+                        //_adapter.UpdateData(results);
+                        //emptyText.Visibility = results.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
+                    });
+                }
+                catch (TaskCanceledException) { }
+            });
+        };
+
+
+
+        var searchBorder = new LinearLayout(ctx)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.MatchParent
+                )
+            
+        };
+
+        var lyP = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent, (int)(ctx.Resources.DisplayMetrics.Density * 60));
+        lyP.SetMargins(
+            (int)(ctx.Resources.DisplayMetrics.Density * 16),
+            (int)(ctx.Resources.DisplayMetrics.Density * 16),
+            (int)(ctx.Resources.DisplayMetrics.Density * 16),
+            (int)(ctx.Resources.DisplayMetrics.Density * 8)
+            );
+
+        var mdCardView = new MaterialCardView(ctx)
+        {
+           LayoutParameters = lyP,
+           CardElevation = 8f,
+           Elevation = 8f,
+        };
+        mdCardView.StrokeColor = Color.Red;
+        mdCardView.StrokeWidth = 2;
+        searchBorder.AddView(searchBar);
+
+        mdCardView.AddView(searchBorder);
+        // MIDDLE ZONE (RecyclerView + empty text)
+        var middleContainer = new FrameLayout(ctx)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                0,
+                1f)  // weight fills all remaining space
+        };
+
+        _songListRecycler = new RecyclerView(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.MatchParent)
+        };
+        
+        var recyclerLayoutManager = new LinearLayoutManager(ctx);
+        
+        _songListRecycler.SetLayoutManager(recyclerLayoutManager);
+        
+        var emptyText = new TextView(ctx)
+        {
+            Text = "No songs found",
+            Gravity = Android.Views.GravityFlags.Center,
+            TextSize = 16f,
+            Visibility = ViewStates.Gone
+        };
+        var scrListener = new RecyclerViewOnScrollListener(
+            (dy) =>
+            {
+                
+                // Handle scroll events here
+            });
+        _adapter = new SongAdapter(ctx, MyViewModel, this);
+        _songListRecycler.SetAdapter(_adapter);
+        _songListRecycler.AddOnScrollListener(scrListener);
+
+        if (_adapter.ItemCount == 0)
+        {
+            emptyText.Visibility = ViewStates.Visible;
+            _songListRecycler.Visibility = ViewStates.Gone;
+        }
+        else
+        {
+            emptyText.Visibility = ViewStates.Gone;
+            _songListRecycler.Visibility = ViewStates.Visible;
+        }
+
+
+
+        middleContainer.AddView(_songListRecycler);
+        middleContainer.AddView(emptyText);
+
+        var currentSong = MyViewModel.CurrentPlayingSongView;
+        // BOTTOM BAR
+        var btmBar = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Horizontal,
+            
+            LayoutParameters = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                (int)(ctx.Resources.DisplayMetrics.Density * 90)) // 50-60dp
+        };
+        btmBar.SetGravity(GravityFlags.CenterVertical);
+        btmBar.SetBackgroundColor(Color.ParseColor("#303030"));
+
+        
+        
+         _albumArt = new ImageView(ctx)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(
+                (int)(ctx.Resources.DisplayMetrics.Density * 80),
+                (int)(ctx.Resources.DisplayMetrics.Density * 70))
+        };
+        _albumArt.Click += AlbumArt_Click;
+          // handle image
+        if (!string.IsNullOrEmpty(currentSong?.CoverImagePath) && System.IO.File.Exists(currentSong?.CoverImagePath))
+        {
+            // Load from disk
+            var bmp = Android.Graphics.BitmapFactory.DecodeFile(currentSong?.CoverImagePath);
+
+            _albumArt.SetImageBitmap(bmp);
+        }
+
+        //_albumArt.TransitionName = "homePageFAB";
+
+        var textStack = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WrapContent,
+                1f)
+        };
+
+        var txtColorList = new ColorStateList(
+            new int[][] {
+                new int[] { } // default
+            },
+            new int[] {
+                Color.White,
+                Color.DarkSlateBlue,
+                Color.Black
+            }
+        );
+        _titleTxt = new TextView(ctx) { Text = currentSong?.Title ?? "Select a Song", TextSize = 19f };
+        _titleTxt.SetTextColor(txtColorList);
+        _albumTxt = new TextView(ctx) { Text = currentSong?.AlbumName ?? "", TextSize = 10f };
+        _albumTxt.SetTextColor(txtColorList);
+        _artistTxt = new TextView(ctx) { Text = currentSong?.ArtistName ?? "", TextSize = 14f };
+        _artistTxt.SetTextColor(txtColorList);
+
+
+        textStack.AddView(_titleTxt);
+        textStack.AddView(_artistTxt);
+        textStack.AddView(_albumTxt);
+
+        var rightStack = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Vertical
+        };
+
+        CurrentTimeTextView = new TextView(ctx)
+        {
+            Text = MyViewModel.CurrentTrackDurationSeconds.ToString(),
+            TextSize = 12f
+        }; CurrentTimeTextView.SetTextColor(txtColorList);
+        CurrentTimeTextView.Click += CurrentTime_Click;
+        
+
+        var playCount = new TextView(ctx)
+        {
+            Text = $"Plays: {currentSong?.PlayCompletedCount}",
+            TextSize = 12f
+        };
+        playCount.SetTextColor(txtColorList);
+        rightStack.AddView(CurrentTimeTextView);
+        rightStack.AddView(playCount);
+
+        btmBar.AddView(_albumArt);
+        btmBar.AddView(textStack);
+        btmBar.AddView(rightStack);
+
+        // ADD TOP + MIDDLE + BOTTOM TO COLUMN
+        column.AddView(mdCardView);
+        column.AddView(middleContainer);
+        column.AddView(btmBar);
+
+        // ADD COLUMN TO ROOT
+        root.AddView(column);
+
+        // FAB
+        _pageFAB = new FloatingActionButton(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent,
+                GravityFlags.Bottom | GravityFlags.End)
+        };
+        int fabMargin = (int)(ctx.Resources.DisplayMetrics.Density * 30);
+        int fabMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
+        ((FrameLayout.LayoutParams)_pageFAB.LayoutParameters).SetMargins(fabMargin, fabMargin, fabMargin, fabMarginBottom);
+        _pageFAB.Click += PageFAB_Click;
+        _pageFAB.LongClickable = true;
+        _pageFAB.LongClick += _pageFAB_LongClick;
+        cogButton = new FloatingActionButton(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+        ViewGroup.LayoutParams.WrapContent,
+        ViewGroup.LayoutParams.WrapContent,
+        GravityFlags.Bottom | GravityFlags.End)
+        };
+
+
+        cogButton.TransitionName = "SongDetailsTrans";
+        int cogMarginRight = fabMargin + (int)(ctx.Resources.DisplayMetrics.Density * 80); // spacing left of FAB
+        ((FrameLayout.LayoutParams)cogButton.LayoutParameters).SetMargins(fabMargin, fabMargin, cogMarginRight, fabMarginBottom);
+        cogButton.SetImageResource(Resource.Drawable.settings); // simple cog icon
+        cogButton.SetBackgroundColor(Color.Gray);
+        cogButton.Click += (s, e) =>
+        {
+            if (!IsAdded || _isNavigating) return;
+            _isNavigating = true;
+
+            var fragment = new SettingsFragment("SettingsTrans", MyViewModel);
+
+            ParentFragmentManager.BeginTransaction()
+                .Replace(TransitionActivity.MyStaticID, fragment )
+                .AddToBackStack(null)
+                .Commit();
+        };
+
+
+
+        ColorStateList colorStateList = new ColorStateList(
+            new int[][] {
+                new int[] { } // default
+            },
+            new int[] {
+                Color.White,
+                Color.DarkSlateBlue,
+                Color.Black
+            }
+
+        );
+
+        _pageFAB.SetRippleColor(colorStateList);
+
+        _pageFAB.BackgroundTintList = ColorStateList.ValueOf(Color.DarkSlateBlue);
+
+
+        _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+
+        var scrollToChip = new Chip(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent,
+                GravityFlags.Bottom | GravityFlags.End)
+        };
+        int chipMargin = (int)(ctx.Resources.DisplayMetrics.Density * 160);
+        int chipMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
+        
+        scrollToChip.Click += (s, e) =>
+        {
+            var currentlyPlayingIndex= MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+            if(currentlyPlayingIndex >=0)
+                _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+        }; 
+        ((FrameLayout.LayoutParams)scrollToChip.LayoutParameters).SetMargins(chipMargin, chipMargin, chipMargin, chipMarginBottom);
+
+        scrollToChip.SetChipIconResource(Resource.Drawable.eye);
+   
+        root.AddView(_pageFAB);
+        root.AddView(cogButton);
+        root.AddView(scrollToChip);
+        _albumArt.TransitionName = "home_bottom_bar_art";
+        _titleTxt.TransitionName = "home_bottom_bar_title";
+        _artistTxt.TransitionName = "home_bottom_bar_artist";
+        _albumTxt.TransitionName = "home_bottom_bar_album";
+        var debugText = new TextView(ctx)
+        {
+            Text = "I AM HERE!",
+            TextSize = 40,
+
+        };
+        debugText.SetTextColor(Color.Red);
+        root.AddView(debugText, new FrameLayout.LayoutParams(
+    ViewGroup.LayoutParams.WrapContent,
+    ViewGroup.LayoutParams.WrapContent,
+    GravityFlags.Center));
+        return root;
+    }
+
+
+    public override void OnResume()
+    {
+        base.OnResume();
+        
+        _pageFAB?.Animate()?.Alpha(1f)?.SetDuration(0)?.Start();
+        _isNavigating = false;
+    }
+    public override void OnViewCreated(View view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+        //PostponeEnterTransition();
+
+
+        //view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
+
+        _pageFAB.Alpha = 1f;
+        _isNavigating = false;
+        MyViewModel.CurrentPage = this;
+
+        this.View!.Tag = "HomePageFragment";
+        MyViewModel.SetupSubscriptions();
+    }
+   
+    
+
+    public override void OnDestroyView()
+    {
+        base.OnDestroyView();
+        _isNavigating = false;
+        _searchCts?.Cancel();
+        CurrentTimeTextView.Click -= CurrentTime_Click;
+        _pageFAB.Click -= PageFAB_Click;
+        _songListRecycler?    .SetAdapter(null);
+        _albumArt.Click -= AlbumArt_Click;
+        _songListRecycler = null;
+
+    }
+
+    private void _pageFAB_LongClick(object? sender, View.LongClickEventArgs e)
+    {
+        if (searchBar.RequestFocus())
+        {
+            InputMethodManager? imm = Context!.GetSystemService(Context.InputMethodService) as InputMethodManager;
+            if (imm is null) return;
+            imm.ShowSoftInput(searchBar, ShowFlags.Implicit);
+        }
+
+
+    }
+
+    private void AlbumArt_Click(object? sender, EventArgs e)
+    {
+        MyViewModel.NavigateToNowPlayingFragmentFromHome
+            (this, _albumArt,
+            _titleTxt, _artistTxt,
+            _albumTxt);
+    }
+
+    private async void Touch_SingleTap(int pos, View arg2, SongModelView song)
+    {
+
+        if (song != null)
+        {
+            await MyViewModel.PlaySong(song, CurrentPage.AllSongs, MyViewModel.SearchResults);
+            _adapter.NotifyDataSetChanged();
+        }
+        Toast.MakeText(Context, $"Single tap {pos}", ToastLength.Short)?.Show();
+    }
+
+
+    private void PageFAB_Click(object? sender, EventArgs e)
+    {
+
+
+        var bottomSheetDialog = new BottomSheetDialog(Context!);
+
+        var layout = new LinearLayout(Context!)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+        layout.SetPadding(0, 20, 0, 40); // Add some bottom padding for safety
+
+        var title = new TextView(Context!)
+        {
+            Text = "Current Queue",
+            TextSize = 20f,
+            Gravity = GravityFlags.Center,
+
+        };
+        title.SetPadding(0, 20, 0, 20);
+
+        title.SetTypeface(null, TypefaceStyle.Bold);
+
+        layout.AddView(title);
+        var recyclerView = new RecyclerView(Context!)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+        recyclerView.SetLayoutManager(new LinearLayoutManager(Context!));
+        var adapter = new SongAdapter(Context!, MyViewModel, this, "queue");
+        recyclerView.SetAdapter(adapter);
+
+        layout.AddView(recyclerView);
+        bottomSheetDialog.SetContentView(layout);
+        bottomSheetDialog.Show();
+
+
+
+    }
+
+    private void CurrentTime_Click(object? sender, EventArgs e)
+    {
+        Android.Widget.Toast.MakeText(Context, "hey!", ToastLength.Short).Show();
+    }
+
+    partial class RecyclerViewOnScrollListener : RecyclerView.OnScrollListener
+    {
+        private readonly Action<int> _onScrolledAction;
+        private readonly Action<int> _scrollStateChanged = _ => { };
+
+        public RecyclerViewOnScrollListener(Action<int> onScrolledAction)
+        {
+            _onScrolledAction = onScrolledAction;
+        }
+        public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
+        {
+            base.OnScrolled(recyclerView, dx, dy);
+            _onScrolledAction(dy);
+        }
+        public override void OnScrollStateChanged(RecyclerView rv, int newState)
+        {
+
+            if (newState == RecyclerView.ScrollStateIdle)
+            {
+                // load higher-quality images
+
+            }
+            else if (newState == RecyclerView.ScrollStateDragging)
+            {
+                // pause image loading
+            }
+            else if (newState == RecyclerView.ScrollStateSettling)
+            {
+                // pause image loading
+            }
+            _scrollStateChanged(newState);
+
+
+            base.OnScrollStateChanged(rv, newState);
+        }
+    }
+
+    public void NavToAlbumaPage(string transitionName)
+    {
+        if (!IsAdded || Activity == null) return;
+
+        MyViewModel.NavigateToSingleSongPageFromHome(
+            this,
+            transitionName, _albumArt);
+    }
+
+    public class MyPreDrawListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    {
+        private readonly Fragment _fragment;
+        private readonly View _view;
+
+        public MyPreDrawListener(Fragment fragment, View view)
+        {
+            _fragment = fragment;
+            _view = view;
+        }
+
+        public bool OnPreDraw()
+        {
+            // Remove listener so it only fires once
+            _view.ViewTreeObserver.RemoveOnPreDrawListener(this);
+
+            // 3. Tell transition system: "Okay, views are ready. Start the animation!"
+            _fragment.StartPostponedEnterTransition();
+            return true;
+        }
+    }
+
+    private bool IsDark()
+    {
+        return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;
+    }
+
+    public void OnBackInvoked()
+    {
+        Toast.MakeText(Context!, "Back invoked in HomePageFragment", ToastLength.Short)?.Show();
+    }
+}

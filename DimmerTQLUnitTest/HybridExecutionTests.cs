@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.Data.ModelView;
+﻿using Dimmer.Data.ModelView;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 

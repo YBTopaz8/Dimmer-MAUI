@@ -1,6 +1,4 @@
-﻿using Android.Views.Animations;
-
-using Dimmer.Utils.CustomShellUtils.Enums;
+﻿using Dimmer.Utils.CustomShellUtils.Enums;
 using Dimmer.Utils.CustomShellUtils.Models;
 
 namespace Dimmer.Utils;

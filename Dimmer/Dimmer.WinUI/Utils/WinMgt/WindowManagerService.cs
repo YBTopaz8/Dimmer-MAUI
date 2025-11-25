@@ -1,6 +1,4 @@
-﻿using Microsoft.UI.Xaml;
-
-using Application = Microsoft.Maui.Controls.Application;
+﻿using Application = Microsoft.Maui.Controls.Application;
 using MPage = Microsoft.Maui.Controls.Page;
 using MWindow = Microsoft.Maui.Controls.Window;
 

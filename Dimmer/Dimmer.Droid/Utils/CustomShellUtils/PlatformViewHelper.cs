@@ -24,7 +24,7 @@ public static class PlatformViewHelper
         // If the view is not yet part of the visual tree, its Handler.MauiContext might be null.
         IMauiContext mauiContext = mauiView.Handler?.MauiContext ??
                                    (mauiView.Parent as Element)?.Handler?.MauiContext ??
-                                   Application.Current?.Windows.FirstOrDefault()?.Handler?.MauiContext;
+                                   Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Handler?.MauiContext;
 
         if (mauiContext == null)
         {

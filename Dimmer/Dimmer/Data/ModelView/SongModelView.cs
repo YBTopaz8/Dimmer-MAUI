@@ -89,7 +89,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsInstrumental { get; set; }
     [ObservableProperty]
-    public partial string CoverImagePath { get; set; } = "musicnote1.png";
+    public partial string? CoverImagePath { get; set; } = "musicnote1.png";
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
     //[ObservableProperty]

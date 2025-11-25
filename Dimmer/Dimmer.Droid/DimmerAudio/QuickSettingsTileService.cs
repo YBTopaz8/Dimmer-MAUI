@@ -1,9 +1,8 @@
-﻿using Android.App;
-using Android.OS;
-using Android.Service.QuickSettings;
-using Android.Util;
+﻿using Android.Service.QuickSettings;
 
 using AndroidX.Media3.Session;
+
+using AlertDialog = AndroidX.AppCompat.App.AlertDialog;
 
 namespace Dimmer.DimmerAudio;
 [Service(Name = "com.yvanbrunel.dimmer.QuickSettingsTileService", // <<< CHANGE TO YOUR UNIQUE NAME
@@ -76,7 +75,7 @@ public class QuickSettingsTileService : TileService
 
     private void LaunchMainActivity()
     {
-        Intent mainActivityIntent = new Intent(this, typeof(MainActivity)); // <<< YOUR MAIN ACTIVITY
+        Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
         mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
         try
         {
@@ -207,7 +206,7 @@ public class QuickSettingsTileService : TileService
     {
         try
         {
-            Intent activityIntent = new Intent(this, typeof(MainActivity));
+            Intent activityIntent = new Intent(this, typeof(TransitionActivity));
             activityIntent.AddFlags(ActivityFlags.NewTask);
             activityIntent.SetAction(ActionTogglePlayback);
             StartActivity(activityIntent);
@@ -325,12 +324,7 @@ public class QuickSettingsTileService : TileService
     // or ideally, just reflecting the state passed when the service requested an update.
     private bool IsCurrentlyPlaying()
     {
-        var vm = IPlatformApplication.Current.Services.GetService<AudioService>();
-        if (vm != null)
-        {
-            //return vm.IsPlaying; // Use the ExoPlayer's IsPlaying property
-        }
-        Log.Warn(TAG, "IsCurrentlyPlaying() using placeholder value (false). Implement actual state check!");
+
         return false; // Default/placeholder
     }
 }

@@ -28,7 +28,6 @@ global using Dimmer.DimmerSearch.TQL.TQLCommands;
 global using Dimmer.DimmerSearch.TQL.TQLCommands.Interfaces;
 global using Dimmer.Interfaces.IDatabase;
 global using Dimmer.Interfaces.Services;
-global using Dimmer.Interfaces.Services.Interfaces;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 global using Dimmer.LastFM;
 global using Dimmer.Utilities.Events;
@@ -54,7 +53,5 @@ global using Dimmer.DimmerLive.Interfaces.Implementations;
 global using Dimmer.DimmerSearch.Interfaces;
 
 global using DynamicData;
-
-
 global using System.Reactive.Disposables;
 global using System.Reactive.Disposables.Fluent;

@@ -1,8 +1,5 @@
-﻿using Android.App;
-using Android.OS;
-using AndroidX.Media3.Session;
+﻿using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
-using Android.Util;
 using AndroidX.Core.App;
 using AndroidX.Media3.Common;
 
@@ -88,7 +85,7 @@ public static class NotificationHelper
     {
         CreateChannel(service);
 
-        var mainIntent = new Intent(service, typeof(MainActivity))
+        var mainIntent = new Intent(service, typeof(TransitionActivity))
             .SetAction(Intent.ActionMain)
             .AddCategory(Intent.CategoryLauncher);
 
