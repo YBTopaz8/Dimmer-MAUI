@@ -19,10 +19,10 @@ public static class SongMapper
             DurationInSeconds = src.DurationInSeconds,
             FilePath = src.FilePath,
             CoverImagePath = src.CoverImagePath,
-            ArtistName = src.OtherArtistsName,
+            ArtistName = src.ArtistName,
             AlbumName = src.AlbumName,
             GenreName = src.GenreName,
-
+            OtherArtistsName = src.OtherArtistsName,
             // Basic Stats
             PlayCount = src.PlayCount,
             PlayCompletedCount = src.PlayCompletedCount,

@@ -1154,7 +1154,7 @@ public partial class HomePage : ContentPage
 
     private void TooltipHSL_Loaded(object sender, EventArgs e)
     {
-        var send = (View)sender;
+        var send = (Button)sender;
         var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
         if (native is null) return;
         native.PointerEntered += (s, e) =>
@@ -1173,12 +1173,23 @@ public partial class HomePage : ContentPage
             ToolTipService.SetToolTip(native, volumeToolTip);
             volumeToolTip.IsOpen = true;
 
+            PlatUtils.AnimateHoverUIElement(native, true, _compositor);
+
+            send.BorderWidth = 2;
+            send.BorderColor = Colors.DarkSlateBlue;
+
         };
         native.PointerExited += (s, e2) =>
         {
             var tt = ToolTipService.GetToolTip(native) as ToolTip;
             if (tt != null)
-                tt.IsOpen = false;
+                tt.IsOpen = false; 
+         
+            PlatUtils.AnimateHoverUIElement(native, false, _compositor);
+            
+            send.BorderWidth = 0;
+            send.BorderColor = Colors.Transparent;
+           
         };
     }
 
@@ -1318,4 +1329,38 @@ public partial class HomePage : ContentPage
         native.PointerEntered -= Native_PointerEntered;
     }
 
+  
+    private void ArtistBtn_ClickedFromNPQ(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistBtnFromNPQ_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var artistName = send.CommandParameter as string;
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", artistName));
+
+    }
+
+    private void AlbumBtnFromNPQ_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var albumName = send.CommandParameter as string;
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", albumName));
+    }
+
+    private void Button_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ThemeToggler_Loaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        var currentTheme = Application.Current.RequestedTheme;
+        MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
+    }
 }

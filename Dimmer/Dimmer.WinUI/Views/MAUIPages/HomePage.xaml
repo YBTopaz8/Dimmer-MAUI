@@ -55,7 +55,7 @@
                 Spacing="10">
                 <HorizontalStackLayout
                     HorizontalOptions="End"
-                    IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
+                    IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
                     Spacing="10">
 
                     <Button
@@ -85,7 +85,7 @@
                 Grid.Row="1"
                 BackgroundColor="Transparent"
                 ColumnDefinitions="*"
-                IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
+                IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
                 RowDefinitions="auto,*">
                 <Border
                     x:Name="NavTab"
@@ -516,7 +516,7 @@
                 x:Name="Btm"
                 Grid.Row="2"
                 BackgroundColor="{AppThemeBinding Dark=transparent}"
-                IsVisible="{Binding SearchResults.Count, Converter={converters:CollectionSizeToVisibility}}"
+                IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
                 RowDefinitions="auto,*">
                 <Grid.GestureRecognizers>
                     <PointerGestureRecognizer PointerReleased="TogglePanelClicked" />
@@ -534,8 +534,10 @@
                         Command="{Binding ToggleAppThemeCommand}"
                         FontAttributes="Bold"
                         FontSize="13"
+                        x:Name="ThemeToggler"
+                        
                         HorizontalOptions="Center"
-                        Loaded="ButtonLoaded"
+                        Loaded="ThemeToggler_Loaded"
                         Text="{Binding IsDarkModeOn}"
                         TextColor="{AppThemeBinding Light=Black,
                                                     Dark=White}">
@@ -560,7 +562,7 @@
                         windows:VisualElement.AccessKey="Q"
                         windows:VisualElement.AccessKeyPlacement="Bottom"
                         Background="Transparent"
-                        BorderWidth="0" 
+                        BorderWidth="0"
                         Clicked="ViewNPQ_Clicked"
                         HorizontalOptions="Center"
                         Loaded="ViewNPQ_Loaded"
@@ -596,12 +598,9 @@
                             Unloaded="VolumeSlider_Unloaded"
                             VerticalOptions="Center"
                             Value="{Binding DeviceVolumeLevel}" />
-                        <HorizontalStackLayout
-                            x:Name="TooltipHSL"
-                            Grid.Column="2"
-                            Loaded="TooltipHSL_Loaded">
-                            
-                            
+                        <HorizontalStackLayout x:Name="TooltipHSL" Grid.Column="2">
+
+
                             <Button
                                 x:Name="AudioDeviceSwitcher"
                                 BackgroundColor="Transparent"
@@ -639,11 +638,12 @@
                                 StrokeThickness="0.1">
                                 <Grid
                                     Padding="5"
-                                    ColumnDefinitions="70,*,auto"
+                                    ColumnDefinitions="120,*,auto"
                                     ColumnSpacing="10"
-                                    RowDefinitions="70">
+                                    RowDefinitions="140">
                                     <Image
                                         Grid.Column="0"
+                                        Margin="5"
                                         Aspect="AspectFill"
                                         Source="{Binding CoverImagePath}" />
 
@@ -657,27 +657,41 @@
                                         <Button
                                             BackgroundColor="Transparent"
                                             FontAttributes="Bold"
-                                            FontSize="16"
+                                            FontSize="17"
                                             HorizontalOptions="Start"
                                             LineBreakMode="TailTruncation"
                                             Loaded="ButtonLoaded"
                                             Text="{Binding Title}" />
 
                                         <Button
+                                            x:Name="ArtistBtnFromNPQ"
                                             BackgroundColor="Transparent"
+                                            Clicked="ArtistBtnFromNPQ_Clicked"
+                                            CommandParameter="{Binding ArtistName}"
+                                            FontSize="15"
                                             HorizontalOptions="Start"
                                             Loaded="ButtonLoaded"
                                             Text="{Binding ArtistName}" />
+
+                                        <Button
+                                            BackgroundColor="Transparent"
+                                            FontSize="13"
+                                            x:Name="AlbumBtnFromNPQ"
+                                            HorizontalOptions="Start"
+                                            Clicked="AlbumBtnFromNPQ_Clicked"
+                                            CommandParameter="{Binding AlbumName}"
+                                            Loaded="ButtonLoaded"
+                                            Text="{Binding Album.Name}" />
                                     </VerticalStackLayout>
 
-                                    <HorizontalStackLayout Grid.Column="2" BackgroundColor="Transparent">
+                                    <HorizontalStackLayout
+                                        Grid.Column="2"
+                                        Padding="5"
+                                        BackgroundColor="Transparent"
+                                        VerticalOptions="Start">
 
                                         <VerticalStackLayout>
 
-                                            <Label
-                                                BackgroundColor="Transparent"
-                                                HorizontalOptions="Center"
-                                                Text="{Binding HasSyncedLyrics}" />
 
                                             <Image
                                                 BackgroundColor="Transparent"
