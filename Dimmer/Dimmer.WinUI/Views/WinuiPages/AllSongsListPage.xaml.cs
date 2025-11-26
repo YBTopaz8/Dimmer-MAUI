@@ -1765,24 +1765,7 @@ public sealed partial class AllSongsListPage : Page
         AnimateCollapseControlDown(send);
     }
 
-    private async void ViewQueue_Click(object sender, RoutedEventArgs e)
-    {
-        
-        if (ViewQueueStackPanel.Visibility == Visibility.Visible)
-        {
-            NowPlayingQueueExpander.IsExpanded = false;
-            ViewQueueStackPanel.Visibility = Visibility.Collapsed;
-            ViewQueue.Content = "View Queue";
-        }
-        else
-        {   
-            ViewQueueStackPanel.Visibility = Visibility.Visible;
-            NowPlayingQueueExpander.IsExpanded = true;
-            await Task.Delay(100);
-            NowPlayingQueueExpander.UpdateLayout();
-            ViewQueue.Content = "Close View Queue";
-        }
-    }
+ 
 
     private void NowPlayingQueueExpander_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
     {

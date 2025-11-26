@@ -1,23 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.AllSongsListPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
-        xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     x:Name="MyPageGrid"
     Loaded="MyPageGrid_Loaded"
@@ -26,8 +25,8 @@
 
     <Page.Resources>
         <ResourceDictionary>
-            
-              
+
+
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Default">
                     <media:AcrylicBrush
@@ -42,9 +41,9 @@
                         TintOpacity="0.8" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
-            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter"/>
-            <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter"/>
+            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
 
             <DataTemplate x:Key="ColorTemplate" x:DataType="SolidColorBrush">
                 <StackPanel AutomationProperties.Name="{x:Bind Color}" Orientation="Horizontal">
@@ -66,188 +65,189 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid 
-            Grid.Row="0">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-        
-        <StackPanel
-            
-            PointerReleased="StackPanel_PointerReleased"
-            BorderThickness="1"
-            CornerRadius="00"
-            Spacing="5">
-
-
-
-
 
             <StackPanel
-                HorizontalAlignment="Left"
-                Orientation="Horizontal" 
-                
-                Spacing="10">
-                <Button Content="View Queue"
-                        Click="ViewQueue_Click"
-                        x:Name="ViewQueue"/>
-
-                <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
+                BorderThickness="1"
+                CornerRadius="00"
+                PointerReleased="StackPanel_PointerReleased"
+                Spacing="5">
 
 
-                    <Button Content="Shuffle"
-        Command="{Binding RandomizeCommand}"/>
+
+
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal"
+                    Spacing="10">
+                    <Button x:Name="ViewQueue" 
+                        
+                            Command="{x:Bind MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResultCommand}"
+                            Content="View Queue" />
+
+                    <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
+
+
+                    <Button Command="{Binding RandomizeCommand}" Content="Shuffle" />
 
                 </StackPanel>
 
-            <StackPanel x:Name="SearchTextBoxPanel"
-                HorizontalAlignment="Left"
-                Orientation="Horizontal"
-                Spacing="10">
+                <StackPanel
+                    x:Name="SearchTextBoxPanel"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal"
+                    Spacing="10">
 
 
-                <TextBox
-                    x:Name="SearchTextBox"
-                    Width="435"
-                    AccessKey="F"
-                    AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
-                    BorderThickness="2"
-                    KeyboardAcceleratorPlacementMode="Auto"
-                    PlaceholderText="Search with TQL..."
-                    Text="{x:Bind MyViewModel.CurrentTqlQuery}"
-                    TextChanged="SearchAutoSuggestBox_TextChanged" />
-                <TextBlock VerticalAlignment="Center" Text="{Binding SearchResults.Count}" />
+                    <TextBox
+                        x:Name="SearchTextBox"
+                        Width="435"
+                        AccessKey="F"
+                        AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
+                        BorderThickness="2"
+                        KeyboardAcceleratorPlacementMode="Auto"
+                        PlaceholderText="Search with TQL..."
+                        Text="{x:Bind MyViewModel.CurrentTqlQuery}"
+                        TextChanged="SearchAutoSuggestBox_TextChanged" />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding SearchResults.Count}" />
 
-            </StackPanel>
+                </StackPanel>
 
-            <TextBlock Text="{Binding CurrentTqlQuery}" />
+                <TextBlock Text="{Binding CurrentTqlQuery}" />
 
-            <StackPanel x:Name="ViewQueueStackPanel"  Grid.Column="0" Orientation="Horizontal" Spacing="15"
-                        Visibility="Collapsed"
-                        PointerPressed="ViewQueueStackPanel_PointerPressed"
-                       Background="Transparent">
-                <ScrollViewer x:Name="AnimatedScrollViewer"
-                        ViewChanging="AnimatedScrollViewer_ViewChanging"
-                        MaxHeight="375"  HorizontalAlignment="Left"
-                        MinWidth="250" MaxWidth="450">
+                <StackPanel
+                    x:Name="ViewQueueStackPanel"
+                    Grid.Column="0"
+                    Background="Transparent"
+                    Orientation="Horizontal"
+                    PointerPressed="ViewQueueStackPanel_PointerPressed"
+                    Spacing="15"
+                    Visibility="Collapsed">
+                    <ScrollViewer
+                        x:Name="AnimatedScrollViewer"
+                        MinWidth="250"
+                        MaxWidth="450"
+                        MaxHeight="375"
+                        HorizontalAlignment="Left"
+                        ViewChanging="AnimatedScrollViewer_ViewChanging">
 
-                    <Expander x:Name="NowPlayingQueueExpander" 
-                              VerticalAlignment="Top" 
-                              CornerRadius="12" HorizontalAlignment="Center"
-                              Expanding="NowPlayingQueueExpander_Expanding"
-                              IsExpanded="{x:Bind MyViewModel.IsNowPlayingQueueExpanded}"
-                              BorderBrush="Transparent"
-                              BorderThickness="3">
-                        <Expander.Header>
-                            <StackPanel Orientation="Horizontal" 
-                                         Spacing="15">
-                                <TextBlock Text="Queue"/>
-                                <TextBlock Text="{x:Bind MyViewModel.PlaybackQueue.Count, Mode=OneWay}"/>
-                            </StackPanel>
-                        </Expander.Header>
-                        <Expander.Content>
-                            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.PlaybackQueue}"
-                                           >
-                                <ItemsRepeater.Layout>
-                                    <UniformGridLayout
-                                        Orientation="Vertical"
-                                        MinRowSpacing="3"/>
-                                </ItemsRepeater.Layout>
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate >
-                                        <Border BorderThickness="1" BorderBrush="Gray"
-                                                PointerEntered="BorderOfSongInPBQueue_PointerEntered" x:Name="BorderOfSongInPBQueue"
-                                                PointerExited="BorderOfSongInPBQueue_PointerExited"
+                        <Expander
+                            x:Name="NowPlayingQueueExpander"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            BorderBrush="Transparent"
+                            BorderThickness="3"
+                            CornerRadius="12"
+                            Expanding="NowPlayingQueueExpander_Expanding"
+                            IsExpanded="{x:Bind MyViewModel.IsNowPlayingQueueExpanded}">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="15">
+                                    <TextBlock Text="Queue" />
+                                    <TextBlock Text="{x:Bind MyViewModel.PlaybackQueue.Count, Mode=OneWay}" />
+                                </StackPanel>
+                            </Expander.Header>
+                            <Expander.Content>
+                                <ItemsRepeater ItemsSource="{x:Bind MyViewModel.PlaybackQueue}">
+                                    <ItemsRepeater.Layout>
+                                        <UniformGridLayout MinRowSpacing="3" Orientation="Vertical" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                x:Name="BorderOfSongInPBQueue"
+                                                Width="200"
+                                                Padding="5"
+                                                BorderBrush="Gray"
+                                                BorderThickness="1"
+                                                CornerRadius="5"
                                                 DoubleTapped="PlaySongBtn_DoubleTapped"
-                                                
-                                                Padding="5" CornerRadius="5" Width="200">
-                                            <StackPanel>
-                                            <TextBlock Text="{Binding Title}" FontSize="19"/>
-                                                <TextBlock Text="{Binding ArtistName}" FontSize="14"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
-                        </Expander.Content>
-                    </Expander>
-                            
-                </ScrollViewer>
-                <StackPanel x:Name="SidePanelForSelectedSong" 
-                            Visibility="Collapsed" HorizontalAlignment="Center"
-                            Spacing="15">
+                                                PointerEntered="BorderOfSongInPBQueue_PointerEntered"
+                                                PointerExited="BorderOfSongInPBQueue_PointerExited">
+                                                <StackPanel>
+                                                    <TextBlock FontSize="19" Text="{Binding Title}" />
+                                                    <TextBlock FontSize="14" Text="{Binding ArtistName}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </Expander.Content>
+                        </Expander>
+
+                    </ScrollViewer>
+                    <StackPanel
+                        x:Name="SidePanelForSelectedSong"
+                        HorizontalAlignment="Center"
+                        Spacing="15"
+                        Visibility="Collapsed">
                         <Grid Height="150">
 
-                            <Image Source="/Dimmer/Resources/Images/lyrics.svg"
-                                           Height="40" 
-                                           Grid.Row="0"/>
-                            <Image x:Name="FocusedSongImage"
-                           HorizontalAlignment="Left"
-                           MaxHeight="150" MaxWidth="150"/>
-                    </Grid>
-                    <Button x:Name="FocusedSongTextBlockTitle"
-                               Content="Title"/>
-                    <Button x:Name="FocusedSongTextBlockArtistName"
-                               Content="Artist Name"/>
-                    <Button x:Name="FocusedSongTextBlockAlbumName"
-                               Content="Album Name"/>
-                    <Button x:Name="FocusedSongTextBlockGenre"
-                               Content="Genre"/>
-                    <Button x:Name="FocusedSongTextBlockLastTimePlayed"
-                               />
-                    <Button x:Name="FocusedSongTextBlockIsFav"
-                               />
-                    <Button x:Name="FocusedSongTextBlockHasSyncLyrics"
-                               />
+                            <Image
+                                Grid.Row="0"
+                                Height="40"
+                                Source="/Dimmer/Resources/Images/lyrics.svg" />
+                            <Image
+                                x:Name="FocusedSongImage"
+                                MaxWidth="150"
+                                MaxHeight="150"
+                                HorizontalAlignment="Left" />
+                        </Grid>
+                        <Button x:Name="FocusedSongTextBlockTitle" Content="Title" />
+                        <Button x:Name="FocusedSongTextBlockArtistName" Content="Artist Name" />
+                        <Button x:Name="FocusedSongTextBlockAlbumName" Content="Album Name" />
+                        <Button x:Name="FocusedSongTextBlockGenre" Content="Genre" />
+                        <Button x:Name="FocusedSongTextBlockLastTimePlayed" />
+                        <Button x:Name="FocusedSongTextBlockIsFav" />
+                        <Button x:Name="FocusedSongTextBlockHasSyncLyrics" />
 
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
-        </StackPanel>
 
             <StackPanel Grid.Column="1" Visibility="{Binding IsDimmerPlaying, Converter={StaticResource BoolToVisibilityConverter}}">
-                
-                    <ListView x:Name="animatedScrollRepeater" ItemsSource="{Binding AllLines}"
-                                   SelectionChanged="animatedScrollRepeater_SelectionChanged"
-                              SelectionMode="Single"
-                              
-                              SelectedItem="{Binding CurrentLine}"
+
+                <ListView
+                    x:Name="animatedScrollRepeater"
                     Grid.Column="0"
                     Height="150"
-                    MaxWidth="550">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border>
-                                    <Grid>
-                                        <Border
-        
-        
-        Opacity="0.7"
-        BorderBrush="DarkSlateBlue" />
+                    MaxWidth="550"
+                    ItemsSource="{Binding AllLines}"
+                    SelectedItem="{Binding CurrentLine}"
+                    SelectionChanged="animatedScrollRepeater_SelectionChanged"
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border>
+                                <Grid>
+                                    <Border BorderBrush="DarkSlateBlue" Opacity="0.7" />
 
-                                        <TextBlock
-        FontSize="{Binding NowPlayingLyricsFontSize}"
-        HorizontalTextAlignment="Center" TextWrapping="Wrap"
-        Text="{Binding Text}"
-         />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                                    <TextBlock
+                                        FontSize="{Binding NowPlayingLyricsFontSize}"
+                                        HorizontalTextAlignment="Center"
+                                        Text="{Binding Text}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
             </StackPanel>
         </Grid>
 
         <dgView:TableView
             x:Name="MySongsTableView"
-            Grid.Row="1" HorizontalContentAlignment="Stretch"
+            Grid.Row="1"
             HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
             AllowFocusOnInteraction="False"
             AllowFocusWhenDisabled="False"
             AutoGenerateColumns="False"
-            
-            
             CanDragItems="True"
             CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
             CellSelectionChanged="MySongsTableView_CellSelectionChanged"
@@ -269,10 +269,10 @@
             IsSwipeEnabled="True"
             ItemClick="MySongsTableView_ItemClick"
             ItemsSource="{x:Bind MyViewModel.SearchResults}"
-            Loading="MySongsTableView_Loading"
             Loaded="MySongsTableView_Loaded"
+            Loading="MySongsTableView_Loading"
             LosingFocus="MySongsTableView_LosingFocus"
-            LostFocus="MySongsTableView_LostFocus" 
+            LostFocus="MySongsTableView_LostFocus"
             PointerEntered="MySongsTableView_PointerEntered"
             PointerExited="MySongsTableView_PointerExited"
             PointerPressed="TableView_PointerPressed"
@@ -297,21 +297,20 @@
                                 Height="210"
                                 Margin="3,5,3,-20"
                                 AllowFocusOnInteraction="False"
+                                Background="Transparent"
                                 BorderThickness="1"
-                                CornerRadius="12"  Background="Transparent"
-                                IsDoubleTapEnabled="True"
+                                CornerRadius="12"
                                 DoubleTapped="CardBorder_DoubleTapped"
+                                IsDoubleTapEnabled="True"
                                 IsHitTestVisible="True"
                                 Loaded="CardBorder_Loaded"
                                 PointerEntered="CardBorder_PointerEntered"
                                 PointerExited="CardBorder_PointerExited">
-                                <Grid x:Name="CoverImageGrid" 
-                                PointerReleased="CardBorder_PointerReleased"
-                                >
+                                <Grid x:Name="CoverImageGrid" PointerReleased="CardBorder_PointerReleased">
 
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
-                                        
+
                                     </Grid.RowDefinitions>
 
                                     <!--  You can even overlay a "favorite" icon like in your example  -->
@@ -320,9 +319,8 @@
                                         x:Name="coverArtImage"
                                         Grid.Row="0"
                                         Width="180"
-                                        Height="180" 
+                                        Height="180"
                                         x:FieldModifier="Public"
-                                        
                                         Source="{Binding CoverImagePath}"
                                         Stretch="UniformToFill" />
 
@@ -332,10 +330,10 @@
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Bottom"
                                         Loaded="ExtraPanel_Loaded"
-                                        Opacity="0" 
+                                        Opacity="0"
                                         Orientation="Horizontal"
                                         RenderTransformOrigin="0.5,0.5"
-                                        Spacing="10" 
+                                        Spacing="10"
                                         Visibility="Visible">
                                         <StackPanel.RenderTransform>
                                             <TranslateTransform Y="150" />
@@ -352,7 +350,6 @@
                                             PointerExited="ButtonHover_PointerExited" />
                                         <Button
                                             x:Name="ViewOtherBtn"
-                                            
                                             HorizontalAlignment="Center"
                                             Background="DarkSlateBlue"
                                             Click="ViewOtherBtn_Click"
@@ -377,13 +374,14 @@
 
 
                 <dgView:TableViewTextColumn
+                    x:Name="Title"
                     MaxWidth="200"
                     Binding="{Binding Title}"
                     Header="Title"
-                    x:Name="Title"
                     IsReadOnly="True" />
                 <dgView:TableViewTemplateColumn
-                    MaxWidth="200" x:Name="Artist"
+                    x:Name="Artist"
+                    MaxWidth="200"
                     Header="Artist"
                     IsReadOnly="True">
                     <dgView:TableViewTemplateColumn.CellTemplate>
@@ -413,33 +411,39 @@
 
                 <dgView:TableViewTextColumn
                     x:Name="AlbumName"
+                    MaxWidth="300"
                     Binding="{Binding AlbumName}"
-                    Header="Album" MaxWidth="300"
+                    Header="Album"
                     IsReadOnly="True" />
 
                 <dgView:TableViewTextColumn
-                    Binding="{Binding GenreName}"
-                    Header="Genre" x:Name="GenreName"
+                    x:Name="GenreName"
                     MaxWidth="210"
+                    Binding="{Binding GenreName}"
+                    Header="Genre"
                     IsReadOnly="True" />
                 <dgView:TableViewTextColumn
+                    x:Name="FileFormat"
                     Binding="{Binding FileFormat}"
-                    Header="Format" x:Name="FileFormat"
+                    Header="Format"
                     IsReadOnly="True" />
                 <dgView:TableViewTextColumn
+                    x:Name="DurationFormatted"
                     Binding="{Binding DurationFormatted}"
-                    Header="Duration" x:Name="DurationFormatted"
+                    Header="Duration"
                     IsReadOnly="True" />
                 <dgView:TableViewTextColumn
+                    x:Name="ReleaseYear"
                     Binding="{Binding ReleaseYear}"
                     CanFilter="False"
                     CanSort="True"
-                    Header="Year" x:Name="ReleaseYear"
+                    Header="Year"
                     IsFiltered="False"
                     IsReadOnly="True" />
                 <dgView:TableViewTextColumn
+                    x:Name="PlayCompletedCount"
                     Binding="{Binding PlayCompletedCount}"
-                    Header="Dims" x:Name="PlayCompletedCount"
+                    Header="Dims"
                     IsReadOnly="True" />
                 <dgView:TableViewTemplateColumn Header="Is Fav" IsReadOnly="False">
                     <dgView:TableViewTemplateColumn.CellTemplate>
@@ -454,9 +458,9 @@
                             </Grid>
                         </DataTemplate>
                     </dgView:TableViewTemplateColumn.CellTemplate>
-               
+
                 </dgView:TableViewTemplateColumn>
-           
+
 
             </dgView:TableView.Columns>
         </dgView:TableView>

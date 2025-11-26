@@ -56,11 +56,14 @@ public sealed partial class DimmerWin : Window
                 ContentFrame.Navigate(pageType, MyViewModel);
 
             });
+
+            MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
         }
     }
     public BaseViewModelWin? MyViewModel { get; internal set; }
     private void DimmerWindowClosed(object sender, WindowEventArgs args)
     {
+        MyViewModel.MainWindow = null;
         WinUIWindowsMgr?.UntrackWindow(this);
         this.Closed -= DimmerWindowClosed;
 

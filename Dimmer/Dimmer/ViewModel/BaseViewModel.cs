@@ -1330,6 +1330,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
+    public void GetCurrentAudioDevice()
+    {
+        var currentDevice = _audioService.GetCurrentAudioOutputDevice();
+        SelectedAudioDevice = currentDevice;
+    }
+    [RelayCommand]
     public void SetPreferredAudioDevice(AudioOutputDevice device)
     {
         if (device == null)
@@ -7440,8 +7446,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 break;
         }
     }
-
-
+    
+    [RelayCommand]
+    public void CopyAllSongsInNowPlayingQueueToMainSearchResult()
+    {
+        SearchResultsHolder.Edit(updater =>
+        {
+            SearchResultsHolder.Clear();
+            foreach (var song in PlaybackQueue)
+            {
+                SearchResultsHolder.Add(song);
+            }
+        });
+    }
 }
 
 

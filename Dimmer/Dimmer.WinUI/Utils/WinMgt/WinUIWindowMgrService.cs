@@ -380,8 +380,8 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         if (!_openWindows.Contains(window) || !IsWindowOpen(window))
         {
             
-            TrackWindow(window);
             window.Activate();
+            TrackWindow(window);
             return;
         }
 

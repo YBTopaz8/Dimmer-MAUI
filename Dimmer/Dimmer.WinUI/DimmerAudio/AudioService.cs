@@ -117,6 +117,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         });
         
     }
+    public AudioOutputDevice GetCurrentAudioOutputDevice()
+    {
+        var currentDev = _controller.DefaultPlaybackDevice;
+        return new AudioOutputDevice
+        {
+            Id = currentDev.Id.ToString(),
+            Name = currentDev.Name,
+            IsDefaultDevice = currentDev.IsDefaultDevice,
+            IsMuted = currentDev.IsMuted,
+            Volume = currentDev.Volume
+        };
+    }
     public double GetCurrentVolume()
     {
         return _controller.DefaultPlaybackDevice.Volume;

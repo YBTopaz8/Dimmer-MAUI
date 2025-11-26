@@ -145,8 +145,8 @@
                                                 Content="ReScan" />
                                             <Button
                                                 x:Name="UpdateFolder"
-                                                Click="UpdateFolder_Click"
                                                 Background="DarkGreen"
+                                                Click="UpdateFolder_Click"
                                                 Content="Update" />
                                             <Button
                                                 Background="DarkRed"

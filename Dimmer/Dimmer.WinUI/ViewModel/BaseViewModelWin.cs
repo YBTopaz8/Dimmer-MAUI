@@ -321,7 +321,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public partial bool? CanGoBack { get; set; }
     
     
-    public DimmerWin MainWindow { get; set; }
+    public DimmerWin? MainWindow { get; set; }
     public DimmerMAUIWin MainMAUIWindow { get; set; }
 
     // --- The partial OnChanged methods that are our triggers ---
@@ -858,7 +858,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public void NavigateToAnyPageOfGivenType(Type pageType)
     {
-        if (MainWindow is null) return;
+        if (MainWindow is null)
+            MainWindow= winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+
         MainWindow.NavigateToPage(pageType);
     }
 
@@ -1177,4 +1179,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
 
     }
+
+    
 }

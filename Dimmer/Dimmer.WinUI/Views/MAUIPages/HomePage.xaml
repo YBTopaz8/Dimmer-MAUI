@@ -194,7 +194,7 @@
 
                         <VerticalStackLayout
                             Grid.Column="1"
-                            BackgroundColor="Red"
+                            BackgroundColor="Transparent"
                             Spacing="15">
                             <Label
                                 FontAttributes="Bold"
@@ -560,14 +560,15 @@
                         windows:VisualElement.AccessKey="Q"
                         windows:VisualElement.AccessKeyPlacement="Bottom"
                         Background="Transparent"
-                        BorderWidth="0"
+                        BorderWidth="0" 
+                        Clicked="ViewNPQ_Clicked"
                         HorizontalOptions="Center"
                         Loaded="ViewNPQ_Loaded"
-                        Unloaded="ViewNPQ_Unloaded"
                         Text="View Now Playing Queue"
                         TextColor="{AppThemeBinding Light=Black,
                                                     Dark=White}"
-                        ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}">
+                        ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}"
+                        Unloaded="ViewNPQ_Unloaded">
 
                         <Button.Behaviors>
 
@@ -599,19 +600,15 @@
                             x:Name="TooltipHSL"
                             Grid.Column="2"
                             Loaded="TooltipHSL_Loaded">
-                            <Button
-                                BackgroundColor="Transparent"
-                                HeightRequest="40"
-                                ImageSource="volumemute.png"
-                                IsVisible="False"
-                                Loaded="TooltipHSL_Loaded" />
+                            
+                            
                             <Button
                                 x:Name="AudioDeviceSwitcher"
                                 BackgroundColor="Transparent"
                                 Clicked="Button_Clicked"
                                 HeightRequest="40"
                                 ImageSource="devices.png"
-                                Loaded="ButtonLoaded" />
+                                Loaded="TooltipHSL_Loaded" />
                         </HorizontalStackLayout>
 
                     </Grid>
@@ -620,6 +617,7 @@
             </Grid>
 
             <Grid
+                x:Name="NowPlayingGrid"
                 Grid.Row="3"
                 Padding="3"
                 BackgroundColor="Transparent">

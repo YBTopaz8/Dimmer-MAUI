@@ -394,7 +394,8 @@ public partial class HomePage : ContentPage
 
     private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-
+        bool isNPQVisible = NowPlayingGrid.IsVisible;
+        NowPlayingGrid.IsVisible = !isNPQVisible;
 
 
 
@@ -734,12 +735,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
-    {
-        
-            MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.MainWindow.NavigateToPage(typeof(AllSongsListPage));
-    }
+
 
     private void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
     {
@@ -1049,9 +1045,19 @@ public partial class HomePage : ContentPage
         {
             ElementCompositionPreview.SetIsTranslationEnabled(native, true);
 
-            native.PointerEntered += Native_PointerEntered;
+            native.PointerEntered += (s, e) =>
+            {
+                Native_PointerEntered(s, e); 
+                send.BorderWidth = 2;
+                send.BorderColor = Colors.DarkSlateBlue;
+            };
 
-            native.PointerExited += Native_PointerExited;
+            native.PointerExited += (s, e) =>
+            {
+                Native_PointerExited(s, e); 
+                send.BorderWidth = 0;
+                send.BorderColor = Colors.Transparent;
+            };
 
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
@@ -1074,8 +1080,6 @@ public partial class HomePage : ContentPage
             return;
         PlatUtils.AnimateHoverUIElement(native, false, _compositor);
             
-        native.PointerExited -= Native_PointerExited;
-        native.PointerEntered -= Native_PointerEntered;
     }
 
     private void SetupChainedAnimations(Microsoft.UI.Xaml.UIElement[] buttons)
@@ -1155,6 +1159,7 @@ public partial class HomePage : ContentPage
         if (native is null) return;
         native.PointerEntered += (s, e) =>
         {
+            MyViewModel.GetCurrentAudioDevice();
             var CurrentVolumeAndCurrentDeviceSelected=
             $"Volume: {MyViewModel.DeviceVolumeLevel * 100:0}%\n" +
             $"Device: {MyViewModel.SelectedAudioDevice?.Name?? "Default"}";
@@ -1164,6 +1169,7 @@ public partial class HomePage : ContentPage
                 Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Top,
 
             };
+            
             ToolTipService.SetToolTip(native, volumeToolTip);
             volumeToolTip.IsOpen = true;
 
@@ -1278,8 +1284,13 @@ public partial class HomePage : ContentPage
     private void ViewNPQ_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
-        var senderUIElement = sender as Microsoft.UI.Xaml.UIElement;
+        var senderUIElement = (sender as Button).Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
         if(senderUIElement is null) return;
+        ElementCompositionPreview.SetIsTranslationEnabled(senderUIElement, true);
+
+        senderUIElement.PointerEntered += Native_PointerEntered;
+
+        senderUIElement.PointerExited += Native_PointerExited;
         senderUIElement.PointerPressed += WinUIBtn_PointerPressed;
     }
 
@@ -1287,12 +1298,10 @@ public partial class HomePage : ContentPage
     {
         var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
         var properties = e.GetCurrentPoint(nativeElement).Properties;
-        if (properties.IsLeftButtonPressed)
+        
+        if(properties.IsRightButtonPressed)
         {
-
-        }
-        else if(properties.IsRightButtonPressed)
-        {
+            MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
             MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
         }
     }
@@ -1308,4 +1317,5 @@ public partial class HomePage : ContentPage
         native.PointerExited -= Native_PointerExited;
         native.PointerEntered -= Native_PointerEntered;
     }
+
 }
