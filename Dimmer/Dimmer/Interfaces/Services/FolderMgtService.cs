@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 // Add other necessary using statements
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using System.Threading.Tasks;
 
 namespace Dimmer.Interfaces.Services;
 
@@ -88,8 +89,6 @@ public class FolderMgtService : IFolderMgtService
         _monitorSubscriptions.Clear();
 
 
-
-
         _folderMonitor.OnCreated += HandleFileOrFolderCreated;
         _folderMonitor.OnRenamed += HandleFileOrFolderRenamed;
         _folderMonitor.OnDeleted += HandleFileOrFolderDeleted;
@@ -119,6 +118,31 @@ public class FolderMgtService : IFolderMgtService
         _isCurrentlyWatching = false;
     }
 
+    public async Task UpdateFolderInWatchListAsync(string path)
+    {
+        if (!Directory.Exists(path))
+        {
+            _logger.LogWarning("Attempted to update non-existent folder in watch list: {Path}", path);
+            return;
+        }
+        _logger.LogInformation("Updating folder in watch list: {Path}", path);
+        var realm = realmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        if (appModel != null)
+        {
+            var foldersToWatchPaths = appModel.UserMusicFoldersPreference;
+            if (foldersToWatchPaths != null)
+            {
+                var indexx = foldersToWatchPaths.IndexOf(path);
+                if (indexx != -1)
+                {
+                    // For simplicity, we just re-add the same path to trigger any internal updates.
+                    foldersToWatchPaths[indexx] = path;
+                }
+                await StartWatchingConfiguredFoldersAsync();
+            }
+        }
+    }
     public async Task AddFolderToWatchListAndScan(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -369,4 +393,5 @@ public class FolderMgtService : IFolderMgtService
     {
         await _libraryScanner.ScanSpecificPaths(new List<string> { folderPath }, isIncremental: false);
     }
+
 }

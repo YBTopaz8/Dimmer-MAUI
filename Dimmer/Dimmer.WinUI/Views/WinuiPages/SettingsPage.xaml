@@ -1,189 +1,233 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
-        xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
-xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
-xmlns:media="using:Microsoft.UI.Xaml.Media"
-xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
-xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
-xmlns:queryBuilder="queries"
-xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
-xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:queryBuilder="queries"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     mc:Ignorable="d">
     <Page.Resources>
         <ResourceDictionary>
-            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter"/>
+            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
-    <Grid  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <StackPanel Background="Transparent"
-                    Grid.Row="0"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" >
-            <TextBlock Text="{x:Bind MyViewModel.LatestAppLog, Mode=OneWay}"
-                       />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
-                
-                <ToggleButton x:Name="MusicFoldersBtn" Click="MusicFoldersView_Click"
-              Content="Music Folders" FontSize="20"/>
-                <ToggleButton x:Name="LastFMBtn" Click="LastFMView_Click"
-              Content="LastFM Section" FontSize="20"/>
-                <ToggleButton x:Name="UtilsBtn" Click="UtilsView_Click"
-              Content="Utilities" FontSize="20"/>
+        <StackPanel
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="Transparent">
+            <TextBlock Text="{x:Bind MyViewModel.LatestAppLog, Mode=OneWay}" />
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="20">
+
+                <ToggleButton
+                    x:Name="MusicFoldersBtn"
+                    Click="MusicFoldersView_Click"
+                    Content="Music Folders"
+                    FontSize="20" />
+                <ToggleButton
+                    x:Name="LastFMBtn"
+                    Click="LastFMView_Click"
+                    Content="LastFM Section"
+                    FontSize="20" />
+                <ToggleButton
+                    x:Name="UtilsBtn"
+                    Click="UtilsView_Click"
+                    Content="Utilities"
+                    FontSize="20" />
             </StackPanel>
-           
+
 
         </StackPanel>
-        <!-- Wizard content -->
-        <FlipView x:Name="WizardFlipView" Grid.Row="1" SelectedIndex="{x:Bind MyViewModel.WizardCurrentViewIndex}"
-                      SelectionChanged="WizardFlipView_SelectionChanged"
-                      PointerReleased="WizardFlipView_PointerReleased"
-                      >
-            <!-- Step 1 -->
-            <Grid Background="#1C1C1C" x:Name="MusicFoldersGrid" Padding="40">
+        <!--  Wizard content  -->
+        <FlipView
+            x:Name="WizardFlipView"
+            Grid.Row="1"
+            PointerReleased="WizardFlipView_PointerReleased"
+            SelectedIndex="{x:Bind MyViewModel.WizardCurrentViewIndex}"
+            SelectionChanged="WizardFlipView_SelectionChanged">
+            <!--  Step 1  -->
+            <Grid
+                x:Name="MusicFoldersGrid"
+                Padding="40"
+                Background="#1C1C1C">
                 <StackPanel>
 
-                    <Image Source="/Dimmer/Resources/Images/appicon.png"/>
+                    <Image Source="/Dimmer/Resources/Images/appicon.png" />
 
 
-                    <TextBlock Text="Folders"
-                                   FontSize="35"
-                                   Foreground="White"
-                                   Margin="0,0,0,10"/>
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontSize="35"
+                        Foreground="White"
+                        Text="Folders" />
 
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Spacing="10">
-                        <TextBlock Text="Total :"
-                                       Foreground="White"
-                                       VerticalAlignment="Center"/>
+                    <StackPanel
+                        Margin="0,0,0,10"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            Text="Total Folders:" />
 
-                        <TextBlock Text="{Binding FolderPaths.Count}"
-                                       Foreground="White"
-                                       VerticalAlignment="Center"/>
-
-                    </StackPanel>
-
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Text="Add your music folders to get started."
-                                       Foreground="White"
-                                       VerticalAlignment="Center"/>
-                        <Button Content="Add Folder"
-                                    Margin="10,0,0,0"
-                                    Click="AddFolder_Click"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            Text="{Binding FolderPaths.Count}" />
 
                     </StackPanel>
 
 
-                    <dgView:TableView x:Name="FolderPathView"
-                                          Loaded="FolderPathView_Loaded"
-                            ItemsSource="{x:Bind MyViewModel.FolderPaths}">
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            Text="Add your music folders to get started." />
+                        <Button
+                            Margin="10,0,0,0"
+                            Click="AddFolder_Click"
+                            Content="Add Folder" />
 
-                        <dgView:TableView.Columns>
+                    </StackPanel>
 
-                            <dgView:TableViewTextColumn
-                    MaxWidth="310"
-                    Binding="{Binding .}"
-                    Header="Path"
-                    IsReadOnly="True" />
-                            <dgView:TableViewTemplateColumn
-       MaxWidth="200"
-       Header="Artist"
-       IsReadOnly="True">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
+                    <ItemsRepeater ItemsSource="{Binding FolderPaths}">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Orientation="Vertical" Spacing="10" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock
+                                                Margin="0,5,0,5"
+                                                FontSize="20"
+                                                Foreground="White"
+                                                Text="{Binding}" />
+                                        </StackPanel>
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            Spacing="10">
+                                            <Button
+                                                Background="MidnightBlue"
+                                                BorderBrush="MidnightBlue"
+                                                Click="ReScanButton_Click"
+                                                Content="ReScan" />
+                                            <Button
+                                                x:Name="UpdateFolder"
+                                                Click="UpdateFolder_Click"
+                                                Background="DarkGreen"
+                                                Content="Update" />
+                                            <Button
+                                                Background="DarkRed"
+                                                BorderBrush="DarkRed"
+                                                Click="RemoveFolder_Click"
+                                                Content="Delete"
+                                                Tag="{Binding}" />
+                                        </StackPanel>
 
-                                    <DataTemplate>
-                                        <Border Background="Transparent"
-                                                    Padding="5"
+                                    </Grid>
+                                </StackPanel>
+                            </DataTemplate>
 
-                                                    >
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <Button Content="Update" 
-                                                            
-                                                            Click="ChangePathBtn_Click"
-                                                            x:Name="ChangePathBtn"/>
-                                                <Button Content="Delete" Background="Red"
-                                                            x:Name="DeletePathBtn"
-                                                            Click="DeletePathBtn_Click"/>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
 
-
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-
-                        </dgView:TableView.Columns>
-
-                    </dgView:TableView>
 
                 </StackPanel>
             </Grid>
 
-            <!-- Step 2 -->
-            <Grid Background="#202020" x:Name="LastFMGrid" Padding="40">
-                <StackPanel Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated,
-                        Converter={StaticResource BoolToInverseVisibilityConverter}}"
-                                HorizontalAlignment="Center">
+            <!--  Step 2  -->
+            <Grid
+                x:Name="LastFMGrid"
+                Padding="40"
+                Background="#202020">
+                <StackPanel HorizontalAlignment="Center" Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated, Converter={StaticResource BoolToInverseVisibilityConverter}}">
 
-                    <TextBox Header="Enter your Last FM username:" PlaceholderText="User Name"
-                                 FontSize="25" x:Name="LastFMUname"/>
+                    <TextBox
+                        x:Name="LastFMUname"
+                        FontSize="25"
+                        Header="Enter your Last FM username:"
+                        PlaceholderText="User Name" />
 
-                    <Button Content="Login to Last FM"
-                                HorizontalAlignment="Center"
-                            FontWeight="Bold"
-                            FontSize="19"
-                                Margin="0,10,0,0" Background="#BE0606"
-                                Click="LoginLastFM_Click"/>
+                    <Button
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Background="#BE0606"
+                        Click="LoginLastFM_Click"
+                        Content="Login to Last FM"
+                        FontSize="19"
+                        FontWeight="Bold" />
                 </StackPanel>
 
 
-                <StackPanel Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated,
-                        Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
 
-                    <Image Source="{x:Bind MyViewModel.UserLocal.LastFMAccountInfo.Image.Url}"/>
+                    <Image Source="{x:Bind MyViewModel.UserLocal.LastFMAccountInfo.Image.Url}" />
 
-                    <TextBlock Text="You are logged in to Last FM."
-                                   FontSize="24"
-                                   Foreground="White"
-                                   Margin="0,0,0,10"/>
-                    <Button Content="Logout"
-                                HorizontalAlignment="Left"
-                                Click="LogoutLastFM_Click"/>
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontSize="24"
+                        Foreground="White"
+                        Text="You are logged in to Last FM." />
+                    <Button
+                        HorizontalAlignment="Left"
+                        Click="LogoutLastFM_Click"
+                        Content="Logout" />
                 </StackPanel>
             </Grid>
 
-            <!-- Step 3 -->
-            <Grid Background="#252525" x:Name="UtilitiesGrid" Padding="10">
+            <!--  Step 3  -->
+            <Grid
+                x:Name="UtilitiesGrid"
+                Padding="10"
+                Background="#252525">
 
-                <StackPanel >
-                    <TextBlock Text="Preferences"
-                                       FontSize="28"
-                                       Foreground="White"
-                                       Margin="0,0,0,10"/>
-                    <TextBlock Text="Review your preferences before finishing."
-                                       Foreground="White"
-                                       Margin="0,0,0,20"/>
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontSize="28"
+                        Foreground="White"
+                        Text="Preferences" />
+                    <TextBlock
+                        Margin="0,0,0,20"
+                        Foreground="White"
+                        Text="Review your preferences before finishing." />
 
-                    <Border CornerRadius="5" HorizontalAlignment="Left"
-                                    MinWidth="550">
+                    <Border
+                        MinWidth="550"
+                        HorizontalAlignment="Left"
+                        CornerRadius="5">
                         <ScrollView>
                             <StackPanel>
                                 <Grid>
@@ -191,17 +235,19 @@ xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Enable Auto Scrobbling to Last FM"
-                                                           FontSize="20"
-                                                           Foreground="White"
-                                                           VerticalAlignment="Center"
-                                                           Margin="10"
-                                                           Grid.Column="0"/>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Margin="10"
+                                        VerticalAlignment="Center"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Enable Auto Scrobbling to Last FM" />
 
-                                    <ToggleButton x:Name="AutoScrobbleToggle"
-                                                              Content="Enable"
-                                                              Grid.Column="1"
-                                                              Margin="10"/>
+                                    <ToggleButton
+                                        x:Name="AutoScrobbleToggle"
+                                        Grid.Column="1"
+                                        Margin="10"
+                                        Content="Enable" />
                                 </Grid>
 
 
@@ -210,18 +256,20 @@ xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Theme"
-                                                           FontSize="20"
-                                                           Foreground="White"
-                                                           VerticalAlignment="Center"
-                                                           Margin="10"
-                                                           Grid.Column="0"/>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Margin="10"
+                                        VerticalAlignment="Center"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Theme" />
 
-                                    <ToggleButton x:Name="ThemeToggle"
-                                                              Content="Dark"
-                                                              Click="ThemeToggle_Click"
-                                                              Grid.Column="1"
-                                                              Margin="10"/>
+                                    <ToggleButton
+                                        x:Name="ThemeToggle"
+                                        Grid.Column="1"
+                                        Margin="10"
+                                        Click="ThemeToggle_Click"
+                                        Content="Dark" />
                                 </Grid>
 
 
@@ -231,30 +279,34 @@ xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Back Navigate With Mouse 4"
-                                                           FontSize="20"
-                                                           Foreground="White"
-                                                           VerticalAlignment="Center"
-                                                           Margin="10"
-                                                           Grid.Column="0"/>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Margin="10"
+                                        VerticalAlignment="Center"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Back Navigate With Mouse 4" />
 
-                                    <ToggleButton x:Name="BackNavM4"
-                                                              Content="Enable"
-                                                              Click="BackNavM4_Click"
-                                                              Grid.Column="1"
-                                                              Margin="10"/>
+                                    <ToggleButton
+                                        x:Name="BackNavM4"
+                                        Grid.Column="1"
+                                        Margin="10"
+                                        Click="BackNavM4_Click"
+                                        Content="Enable" />
                                 </Grid>
 
 
-                                <Expander x:Name="MiniLyricsExpander"
-                                                  IsExpanded="False"
-                                                  MinWidth="550"
-                                                  ExpandDirection="Down">
+                                <Expander
+                                    x:Name="MiniLyricsExpander"
+                                    MinWidth="550"
+                                    ExpandDirection="Down"
+                                    IsExpanded="False">
                                     <Expander.Header>
-                                        <CheckBox Content="Enable Mini Lyrics View"
-                                                          x:Name="EnableMiniLyricsView"
-                                                          Checked="EnableMiniLyricsView_Checked"
-                                                          IsChecked="True"/>
+                                        <CheckBox
+                                            x:Name="EnableMiniLyricsView"
+                                            Checked="EnableMiniLyricsView_Checked"
+                                            Content="Enable Mini Lyrics View"
+                                            IsChecked="True" />
                                     </Expander.Header>
 
                                     <Expander.Content>
@@ -264,41 +316,44 @@ xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Preferred Position"
-                                                                       FontSize="20"
-                                                                       Foreground="White"
-                                                                       VerticalAlignment="Center"
-                                                                       Margin="10"
-                                                                       Grid.Column="0"/>
-                                                <DropDownButton x:Name="PreferredPosition"
-                                                                          Content="Top Left"
-                                                                          Grid.Column="1"
-                                                                          Margin="10">
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="10"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="20"
+                                                    Foreground="White"
+                                                    Text="Preferred Position" />
+                                                <DropDownButton
+                                                    x:Name="PreferredPosition"
+                                                    Grid.Column="1"
+                                                    Margin="10"
+                                                    Content="Top Left">
                                                     <DropDownButton.Flyout>
                                                         <MenuFlyout Placement="Right">
-                                                            <RadioMenuFlyoutItem IsChecked="True" 
-                                                                                         x:Name="TopLeftPosition"
-                                                                                         Text="Top Left"
-GroupName="PositionsGroup"
-                                                                                         Click="PositionChange_Click"/>
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="TopLeftPosition"
+                                                                Click="PositionChange_Click"
+                                                                GroupName="PositionsGroup"
+                                                                IsChecked="True"
+                                                                Text="Top Left" />
 
-                                                            <RadioMenuFlyoutItem  
-                                                                                         Text="TopRight"
-GroupName="PositionsGroup"
-                                                                                         x:Name="TopRightPosition"
-                                                                                         Click="PositionChange_Click"/>
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="TopRightPosition"
+                                                                Click="PositionChange_Click"
+                                                                GroupName="PositionsGroup"
+                                                                Text="TopRight" />
 
-                                                            <RadioMenuFlyoutItem  
-                                                                                         x:Name="BottomRightPosition"
-                                                                                         Text="Bottom Right"
-                                                                                        GroupName="PositionsGroup"
-                                                                                         Click="PositionChange_Click"/>
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="BottomRightPosition"
+                                                                Click="PositionChange_Click"
+                                                                GroupName="PositionsGroup"
+                                                                Text="Bottom Right" />
 
-                                                            <RadioMenuFlyoutItem  
-                                                                                         Text="Bottom Left"
-                                                                                         GroupName="PositionsGroup"
-                                                                                         x:Name="BottomLeftPosition"
-                                                                                         Click="PositionChange_Click"/>
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="BottomLeftPosition"
+                                                                Click="PositionChange_Click"
+                                                                GroupName="PositionsGroup"
+                                                                Text="Bottom Left" />
 
                                                         </MenuFlyout>
                                                     </DropDownButton.Flyout>
@@ -312,17 +367,20 @@ GroupName="PositionsGroup"
 
 
 
-                                <Expander x:Name="LyricsExpander" 
-                                                  MinWidth="550"
-                                                  IsExpanded="False" Grid.Column="0"
-                                                    ExpandDirection="Down">
+                                <Expander
+                                    x:Name="LyricsExpander"
+                                    Grid.Column="0"
+                                    MinWidth="550"
+                                    ExpandDirection="Down"
+                                    IsExpanded="False">
                                     <Expander.Header>
-                                        <ToggleButton x:Name="EnableLyricsBtn"
-                                                          Content="Enable Fetch With LrcLib"
-                                                          Checked="EnableLyricsBtn_Checked"
-                                                          IsChecked="True"
-                                                          RightTapped="EnableLyricsBtn_RightTapped"
-                                                          ToolTipService.ToolTip="Enable Download of Synchronized or Plain Lyrics. Right Click to know more."/>
+                                        <ToggleButton
+                                            x:Name="EnableLyricsBtn"
+                                            Checked="EnableLyricsBtn_Checked"
+                                            Content="Enable Fetch With LrcLib"
+                                            IsChecked="True"
+                                            RightTapped="EnableLyricsBtn_RightTapped"
+                                            ToolTipService.ToolTip="Enable Download of Synchronized or Plain Lyrics. Right Click to know more." />
                                     </Expander.Header>
                                     <Expander.Content>
                                         <StackPanel>
@@ -331,29 +389,31 @@ GroupName="PositionsGroup"
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Preferred Lyrics Source"
-                                                                   FontSize="20"
-                                                                   Foreground="White"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="10"
-                                                                   Grid.Column="0"/>
-                                                <DropDownButton x:Name="PreferredLyricsSource"
-                                                                      Content="LrcLib"
-                                                                      Grid.Column="1"
-                                                                      Margin="10">
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="10"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="20"
+                                                    Foreground="White"
+                                                    Text="Preferred Lyrics Source" />
+                                                <DropDownButton
+                                                    x:Name="PreferredLyricsSource"
+                                                    Grid.Column="1"
+                                                    Margin="10"
+                                                    Content="LrcLib">
                                                     <DropDownButton.Flyout>
                                                         <MenuFlyout Placement="Right">
-                                                            <RadioMenuFlyoutItem IsChecked="True" 
-                                                                                     x:Name="LrcLibSource"
-                                                                                     Text="LrcLib"
-                                                                                     GroupName="LyricsSourceGroup"
-                                                                                     Click="LrcLibSource_Click"/>
-                                                            <RadioMenuFlyoutItem 
-                                                                                     x:Name="SongFileOnly"
-                                                                                     Text="Song File"
-                                                                                    GroupName="LyricsSourceGroup"
-                                                                                    Click="SongFileOnly_Click"
-                                                                                     />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="LrcLibSource"
+                                                                Click="LrcLibSource_Click"
+                                                                GroupName="LyricsSourceGroup"
+                                                                IsChecked="True"
+                                                                Text="LrcLib" />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="SongFileOnly"
+                                                                Click="SongFileOnly_Click"
+                                                                GroupName="LyricsSourceGroup"
+                                                                Text="Song File" />
                                                         </MenuFlyout>
                                                     </DropDownButton.Flyout>
                                                 </DropDownButton>
@@ -363,36 +423,37 @@ GroupName="PositionsGroup"
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Preferred Search Format"
-                    FontSize="20"
-                    Foreground="White"
-                    VerticalAlignment="Center"
-                    Margin="10"
-                    Grid.Column="0"/>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="10"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="20"
+                                                    Foreground="White"
+                                                    Text="Preferred Search Format" />
 
-                                                <DropDownButton x:Name="PreferredLyricsFormat"
-                                                                      Content="Synchronized"
-                                                                      Grid.Column="1"
-                                                                      Margin="10">
+                                                <DropDownButton
+                                                    x:Name="PreferredLyricsFormat"
+                                                    Grid.Column="1"
+                                                    Margin="10"
+                                                    Content="Synchronized">
                                                     <DropDownButton.Flyout>
                                                         <MenuFlyout Placement="Right">
-                                                            <RadioMenuFlyoutItem IsChecked="True" 
-                                                                                     x:Name="SynchronizedFormat"
-                                                                                     Text="Synchronized"
-                                                                                     GroupName="LyricsFormatGroup"
-                                                                                     Click="SynchronizedFormat_Click"/>
-                                                            <RadioMenuFlyoutItem 
-                                                                                     x:Name="PlainFormat"
-                                                                                     Text="Plain"
-                                                                                    GroupName="LyricsFormatGroup"
-                                                                                    Click="PlainFormat_Click"
-                                                                                     />
-                                                            <RadioMenuFlyoutItem 
-                                                                                     x:Name="AllFormats"
-                                                                                     Text="All"
-                                                                                    GroupName="LyricsFormatGroup"
-                                                                                    Click="AllFormats_Click"
-                                                                                     />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="SynchronizedFormat"
+                                                                Click="SynchronizedFormat_Click"
+                                                                GroupName="LyricsFormatGroup"
+                                                                IsChecked="True"
+                                                                Text="Synchronized" />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="PlainFormat"
+                                                                Click="PlainFormat_Click"
+                                                                GroupName="LyricsFormatGroup"
+                                                                Text="Plain" />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="AllFormats"
+                                                                Click="AllFormats_Click"
+                                                                GroupName="LyricsFormatGroup"
+                                                                Text="All" />
                                                         </MenuFlyout>
                                                     </DropDownButton.Flyout>
                                                 </DropDownButton>
@@ -402,32 +463,33 @@ GroupName="PositionsGroup"
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Contribute Lyrics to LrcLib"
-                                                               ToolTipService.ToolTip
-                                                               ="Toggle allow Manually Synced lyrics to feature on LrcLib as Contribution"
-                    FontSize="20"
-                    Foreground="White"
-                    VerticalAlignment="Center"
-                    Margin="10"
-                    Grid.Column="0"/>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="10"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="20"
+                                                    Foreground="White"
+                                                    Text="Contribute Lyrics to LrcLib"
+                                                    ToolTipService.ToolTip="Toggle allow Manually Synced lyrics to feature on LrcLib as Contribution" />
 
-                                                <DropDownButton x:Name="AllLyricsContribute"
-                                                                      Content="Yes"
-                                                                      Grid.Column="1"
-                                                                      Margin="10">
+                                                <DropDownButton
+                                                    x:Name="AllLyricsContribute"
+                                                    Grid.Column="1"
+                                                    Margin="10"
+                                                    Content="Yes">
                                                     <DropDownButton.Flyout>
                                                         <MenuFlyout Placement="Right">
-                                                            <RadioMenuFlyoutItem IsChecked="True" 
-                                                                                     x:Name="AllowYes"
-                                                                                     Text="Yes"
-                                                                                     GroupName="LyricsContributionGroup"
-                                                                                     Click="AllowLyricsContribution_Click"/>
-                                                            <RadioMenuFlyoutItem 
-                                                                                     x:Name="NotAllow"
-                                                                                     Text="No"
-                                                                                    GroupName="LyricsContributionGroup"
-                                                                                    Click="AllowLyricsContribution_Click"
-                                                                                     />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="AllowYes"
+                                                                Click="AllowLyricsContribution_Click"
+                                                                GroupName="LyricsContributionGroup"
+                                                                IsChecked="True"
+                                                                Text="Yes" />
+                                                            <RadioMenuFlyoutItem
+                                                                x:Name="NotAllow"
+                                                                Click="AllowLyricsContribution_Click"
+                                                                GroupName="LyricsContributionGroup"
+                                                                Text="No" />
 
                                                         </MenuFlyout>
                                                     </DropDownButton.Flyout>
@@ -449,18 +511,31 @@ GroupName="PositionsGroup"
             </Grid>
         </FlipView>
 
-        <TextBlock Grid.Row="2" Text="{Binding LatestAppLog.Log}"
-                   VerticalAlignment="Bottom" Margin="5"/>
-        <!-- Navigation buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0"
-                     Visibility="Collapsed" Grid.Row="2"  >
-            <Button x:Name="BackButton" 
-                        Content="◀ Back" FontSize="50" CornerRadius="15"
-                        Click="BackButton_Click"
-                        Margin="0,0,10,0"/>
-            <Button x:Name="NextButton" FontSize="50" CornerRadius="15"
-                        Content="Next ▶"
-                        Click="NextButton_Click"/>
+        <TextBlock
+            Grid.Row="2"
+            Margin="5"
+            VerticalAlignment="Bottom"
+            Text="{Binding LatestAppLog.Log}" />
+        <!--  Navigation buttons  -->
+        <StackPanel
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Visibility="Collapsed">
+            <Button
+                x:Name="BackButton"
+                Margin="0,0,10,0"
+                Click="BackButton_Click"
+                Content="◀ Back"
+                CornerRadius="15"
+                FontSize="50" />
+            <Button
+                x:Name="NextButton"
+                Click="NextButton_Click"
+                Content="Next ▶"
+                CornerRadius="15"
+                FontSize="50" />
         </StackPanel>
     </Grid>
 </Page>

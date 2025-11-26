@@ -138,10 +138,10 @@ public sealed partial class SettingsPage : Page
     private void FolderPathView_Loaded(object sender, RoutedEventArgs e)
     {
         
-        if (MyViewModel?.FolderPaths.Count==0)
-        {
-            FolderPathView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-        }
+        //if (MyViewModel?.FolderPaths.Count==0)
+        //{
+        //    FolderPathView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        //}
         
     }
 
@@ -279,5 +279,31 @@ public sealed partial class SettingsPage : Page
                 WizardFlipView.SelectedIndex += 1;
             }
         }
+    }
+
+    private void RemoveFolder_Click(object sender, RoutedEventArgs e)
+    {
+
+        var button = (Button)sender;
+        var path = button.DataContext as string;
+        MyViewModel.DeleteFolderPath(path);
+    }
+
+    private async void UpdateFolder_Click(object sender, RoutedEventArgs e)
+    {
+
+        var button = (Button)sender;
+        var path = button.DataContext as string;
+        await MyViewModel.UpdateFolderPath(path);
+    }
+
+
+    private async void ReScanButton_Click(object sender, RoutedEventArgs e)
+    {
+        var button = (Button)sender;
+        var path = button.DataContext as string;
+        if (path is null) return;
+        if (MyViewModel is null) return;
+        await MyViewModel.ReScanMusicFolderByPassingToService(path);
     }
 }

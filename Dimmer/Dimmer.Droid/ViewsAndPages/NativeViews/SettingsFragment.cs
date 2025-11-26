@@ -11,7 +11,7 @@ using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
-internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
+public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     private BaseViewModelAnd MyViewModel;
@@ -328,7 +328,7 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
         _folderRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
         MyViewModel.ReloadFolderPathsCommand.Execute(null);
-        _adapter = new FolderAdapter(MyViewModel.FolderPaths);
+        _adapter = new FolderAdapter( MyViewModel);
         _folderRecycler.SetAdapter(_adapter);
 
 
@@ -479,10 +479,11 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
     class FolderAdapter : RecyclerView.Adapter
     {
         private readonly IList<string> _items;
-
-        public FolderAdapter(IList<string> items)
+        BaseViewModelAnd MyViewModel { get; set; }
+        public FolderAdapter(BaseViewModelAnd myViewModel)
         {
-            _items = items;
+            _items = myViewModel.FolderPaths;
+            MyViewModel = myViewModel;
         }
 
         public override int ItemCount => _items.Count;
@@ -526,15 +527,35 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
             };
             // Optional: Add gravity to center buttons vertically
             buttonsLayout.SetGravity(GravityFlags.CenterVertical);
+            var materialRescanBtn = new Google.Android.Material.Button.MaterialButton(context)
+            {
+                Text = "Rescan",
+                LayoutParameters = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WrapContent,
+                    ViewGroup.LayoutParams.WrapContent)
+                
+            };
+            materialRescanBtn.Click +=async (s,e) =>
+            {
+                               Toast.MakeText(context, "Rescan clicked for " + txt.Text, ToastLength.Short)?.Show();
+                await MyViewModel.ReScanMusicFolderByPassingToService(txt.Text);
+            };
+            materialRescanBtn.RippleColor = ColorStateList.ValueOf(Color.MidnightBlue);
 
             // Edit Button
             var materialEditBtn = new MaterialButton(context)
             {
-                Text = "Edit",
+                Text = "Update",
                 LayoutParameters = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WrapContent,
                     ViewGroup.LayoutParams.WrapContent)
             };
+            materialEditBtn.Click += async (s, e) =>
+            {
+                Toast.MakeText(context, "Update clicked for " + txt.Text, ToastLength.Short)?.Show();
+                await MyViewModel.UpdateFolderPath(txt.Text);
+            };
+            materialEditBtn.RippleColor = ColorStateList.ValueOf(Color.DarkGreen);
 
             // Delete Button
             var materialDeleteBtn = new MaterialButton(context)
@@ -544,6 +565,12 @@ internal class SettingsFragment  : Fragment, IOnBackInvokedCallback
                     ViewGroup.LayoutParams.WrapContent,
                     ViewGroup.LayoutParams.WrapContent)
             };
+            materialDeleteBtn.Click += (s, e) =>
+            {
+                Toast.MakeText(context, "Delete clicked for " + txt.Text, ToastLength.Short)?.Show();
+                MyViewModel.DeleteFolderPath(txt.Text);
+            };
+            materialDeleteBtn.RippleColor = ColorStateList.ValueOf(Color.DarkRed);
 
             // Add some margin between buttons if you want
             ((LinearLayout.LayoutParams)materialDeleteBtn.LayoutParameters).LeftMargin = 10;

@@ -110,12 +110,12 @@
                     </Border.Triggers>
                     <Grid
                         x:Name="CoverImageSection"
-                        ColumnDefinitions="*,*"
+                        ColumnDefinitions="*,0.5*"
                         VerticalOptions="Start">
                         <Image
                             x:Name="NowPlayingSong"
                             Grid.Column="0"
-                            Aspect="AspectFill"
+                            Aspect="AspectFit"
                             BackgroundColor="Transparent"
                             HeightRequest="190"
                             HorizontalOptions="Center"
@@ -192,7 +192,10 @@
 
 
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="15">
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            BackgroundColor="Red"
+                            Spacing="15">
                             <Label
                                 FontAttributes="Bold"
                                 FontSize="20"
@@ -558,9 +561,9 @@
                         windows:VisualElement.AccessKeyPlacement="Bottom"
                         Background="Transparent"
                         BorderWidth="0"
-                        Clicked="NowPlayingQueueBtnClicked"
                         HorizontalOptions="Center"
-                        Loaded="ButtonLoaded"
+                        Loaded="ViewNPQ_Loaded"
+                        Unloaded="ViewNPQ_Unloaded"
                         Text="View Now Playing Queue"
                         TextColor="{AppThemeBinding Light=Black,
                                                     Dark=White}"

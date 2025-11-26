@@ -175,38 +175,23 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         
         _songListRecycler.SetLayoutManager(recyclerLayoutManager);
         
-        var emptyText = new TextView(ctx)
-        {
-            Text = "No songs found",
-            Gravity = Android.Views.GravityFlags.Center,
-            TextSize = 16f,
-            Visibility = ViewStates.Gone
-        };
+       
         var scrListener = new RecyclerViewOnScrollListener(
             (dy) =>
             {
                 
                 // Handle scroll events here
             });
-        _adapter = new SongAdapter(ctx, MyViewModel, this);
+        _adapter = new SongAdapter(ctx, MyViewModel, this
+            );
         _songListRecycler.SetAdapter(_adapter);
         _songListRecycler.AddOnScrollListener(scrListener);
 
-        if (_adapter.ItemCount == 0)
-        {
-            emptyText.Visibility = ViewStates.Visible;
-            _songListRecycler.Visibility = ViewStates.Gone;
-        }
-        else
-        {
-            emptyText.Visibility = ViewStates.Gone;
-            _songListRecycler.Visibility = ViewStates.Visible;
-        }
+       
 
 
 
         middleContainer.AddView(_songListRecycler);
-        middleContainer.AddView(emptyText);
 
         var currentSong = MyViewModel.CurrentPlayingSongView;
         // BOTTOM BAR
@@ -395,17 +380,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _titleTxt.TransitionName = "home_bottom_bar_title";
         _artistTxt.TransitionName = "home_bottom_bar_artist";
         _albumTxt.TransitionName = "home_bottom_bar_album";
-        var debugText = new TextView(ctx)
-        {
-            Text = "I AM HERE!",
-            TextSize = 40,
-
-        };
-        debugText.SetTextColor(Color.Red);
-        root.AddView(debugText, new FrameLayout.LayoutParams(
-    ViewGroup.LayoutParams.WrapContent,
-    ViewGroup.LayoutParams.WrapContent,
-    GravityFlags.Center));
+       
         return root;
     }
 
@@ -442,7 +417,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchCts?.Cancel();
         CurrentTimeTextView.Click -= CurrentTime_Click;
         _pageFAB.Click -= PageFAB_Click;
-        _songListRecycler?    .SetAdapter(null);
+        _songListRecycler?.SetAdapter(null);
         _albumArt.Click -= AlbumArt_Click;
         _songListRecycler = null;
 

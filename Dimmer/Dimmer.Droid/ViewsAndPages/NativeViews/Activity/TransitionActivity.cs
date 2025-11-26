@@ -1,5 +1,6 @@
 ﻿
 
+using Dimmer.NativeServices;
 using Dimmer.Utilities.Extensions;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
@@ -46,7 +47,7 @@ public class TransitionActivity : AppCompatActivity
 
 
     }
-
+    const int REQUEST_AUDIO_PERMS = 99;
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         SetTheme(Resource.Style.Theme_Dimmer);
@@ -94,9 +95,9 @@ public class TransitionActivity : AppCompatActivity
         ViewGroup.LayoutParams.MatchParent,
         ViewGroup.LayoutParams.MatchParent)
         };
-        //container.Id = Resource.Id.content;
-        //MyStaticID = container.Id;
-        container.Id = View.GenerateViewId();
+        container.Id = Resource.Id.content;
+        ////MyStaticID = container.Id;
+        //container.Id = View.GenerateViewId();
         MyStaticID = container.Id;
 
         //container.SetFitsSystemWindows(true);
@@ -105,9 +106,9 @@ public class TransitionActivity : AppCompatActivity
 
         var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
         if (currentTheme == UiMode.NightYes)
-            container.SetBackgroundColor(Color.Black);
-        else
             container.SetBackgroundColor(Color.ParseColor("#3E3E42"));
+        else
+            container.SetBackgroundColor(Color.ParseColor("#DAD9E0"));
         
 
         SetContentView(container);
@@ -149,18 +150,7 @@ public class TransitionActivity : AppCompatActivity
 
         Android.Util.Log.Error("DIMMER_INIT1", "log1" );
 
-        Task.Run( () =>
-        {
-            try
-            {
-                 MyViewModel.InitializeAllVMCoreComponents();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"VM INIT CRASH: {ex}");
-                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
-            }
-        });
+      
 
         Android.Util.Log.Error("DIMMER_INITOK2", "logOK2");
         ProcessIntent(Intent);
@@ -202,7 +192,66 @@ public class TransitionActivity : AppCompatActivity
 
 
 
+        CheckAndRequestPermissions();
     }
+    private void CheckAndRequestPermissions()
+    {
+        if (!AndroidPermissionsService.HasAudioPermissions())
+        {
+            // Show UI explanation? Or just request
+            AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
+        }
+        else
+        {
+            // Permissions already granted, load music
+            InitializeAppLogic();
+        }
+    }
+
+    public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+    {
+        base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_AUDIO_PERMS)
+        {
+            // Check if all were granted
+            bool allGranted = grantResults.All(r => r == Permission.Granted);
+
+            if (allGranted)
+            {
+                // Success! Start scanning
+                InitializeAppLogic();
+            }
+            else
+            {
+
+                // Denied. Show a dialog explaining why you need them.
+                var materialDialog = new Google.Android.Material.Dialog.MaterialAlertDialogBuilder(this);
+                materialDialog.SetTitle("Permissions Required");
+                materialDialog.SetMessage("Dimmer needs access to storage to play your music.");
+                materialDialog.SetPositiveButton("Retry", (s, e) => CheckAndRequestPermissions());
+                materialDialog.SetNegativeButton("Exit", (s, e) => FinishAffinity());
+                materialDialog.Show();
+            }
+        }
+    }
+
+    private void InitializeAppLogic()
+    {
+        Task.Run(() =>
+        {
+            try
+            {
+                MyViewModel.InitializeAllVMCoreComponents();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VM INIT CRASH: {ex}");
+                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+            }
+        });
+    }
+
 
     protected override void OnNewIntent(Intent? intent)
     {
@@ -240,7 +289,7 @@ public class TransitionActivity : AppCompatActivity
             }
             SetupBackNavigation();
             // Log that the activity resumed
-            Console.WriteLine("MainActivity: OnResume called.");
+            Console.WriteLine("TransitionActivity: OnResume called.");
         }
         catch (Exception ex)
         {
@@ -290,17 +339,53 @@ public class TransitionActivity : AppCompatActivity
         return transition;
     }
 
-    const int REQUEST_WRITE_STORAGE = 1001;
-    public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-    {
-        base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+    const int REQUEST_OPEN_FOLDER = 100;
+    TaskCompletionSource<string?>? _folderPickerTcs;
 
-        if (requestCode == REQUEST_WRITE_STORAGE)
+    public Task<string?> PickFolderAsync()
+    {
+        _folderPickerTcs = new TaskCompletionSource<string?>();
+
+        var intent = new Intent(Intent.ActionOpenDocumentTree);
+        intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantPersistableUriPermission);
+
+        StartActivityForResult(intent, REQUEST_OPEN_FOLDER);
+
+        return _folderPickerTcs.Task;
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        base.OnActivityResult(requestCode, resultCode, data);
+        if (requestCode == AndroidFolderPicker.PICK_FOLDER_REQUEST_CODE && resultCode == Result.Ok && data?.Data != null)
         {
-            bool granted = grantResults.Length > 0 && grantResults[0] == Permission.Granted;
-            Android.Util.Log.Debug("MainActivity", $"WRITE_EXTERNAL_STORAGE granted? {granted}");
+            var picker = MainApplication.ServiceProvider.GetRequiredService<AndroidFolderPicker>();
+            picker.OnResult((int)resultCode, data);
+        }
+        if (requestCode == REQUEST_OPEN_FOLDER)
+        {
+            
+            if (resultCode == Result.Ok && data?.Data != null)
+            {
+                var uri = data.Data;
+
+                // Persist permission so we can access it after reboot
+                ContentResolver?.TakePersistableUriPermission(uri, ActivityFlags.GrantReadUriPermission);
+
+                // Convert URI to a usable string/path (depends on your logic, 
+                // but for SAF you usually keep the string URI)
+                _folderPickerTcs?.TrySetResult(uri.ToString());
+            }
+            else
+            {
+                _folderPickerTcs?.TrySetResult(null); // Cancelled
+            }
         }
     }
+
+
+    const int REQUEST_WRITE_STORAGE = 1001;
+
     protected override void OnDestroy()
     {
         if (_serviceConnection != null)
@@ -322,9 +407,10 @@ public class TransitionActivity : AppCompatActivity
         {
             _onBackInvokedCallback = new BackInvokedCallback(() =>
             {
+                
                 var currentFragment = MyViewModel.CurrentPage as HomePageFragment;
-                if (currentFragment is not null) 
-                {
+                if (currentFragment is null)
+                { 
                     HandleBackPressInternal();
 
                 };

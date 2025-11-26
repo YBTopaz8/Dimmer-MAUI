@@ -7,9 +7,16 @@ public partial class SettingsViewModel : BaseViewModel
 {
     private readonly IFolderPicker _folderPicker;
 
-    public SettingsViewModel(IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+    public SettingsViewModel(IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService,
+        IAppInitializerService appInitializerService, IDimmerAudioService audioServ,
+        ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, 
+        SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService,
+        IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, 
+        ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, 
+        IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, 
+        IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, 
+        IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
-        this._folderPicker = _folderPicker;
     }
 
     [ObservableProperty]
@@ -18,7 +25,7 @@ public partial class SettingsViewModel : BaseViewModel
     {
         try
         {
-            var res = await _folderPicker.PickAsync(CancellationToken.None);
+            var res = await FolderPicker.Default.PickAsync(CancellationToken.None);
 
             if (res is not null && res.Folder is not null)
             {
@@ -116,4 +123,6 @@ public partial class SettingsViewModel : BaseViewModel
             });
         }
     }
+
+    
 }

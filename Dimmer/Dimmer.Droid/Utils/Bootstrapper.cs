@@ -17,8 +17,9 @@ internal class Bootstrapper
         });
         services.AddDimmerCoreServices();
 
-        // 2. Register your Core Services (Same as before)
-        services.AddSingleton<IDimmerAudioService, AudioService>();
+            services.AddSingleton<AndroidFolderPicker>();
+            // 2. Register your Core Services (Same as before)
+            services.AddSingleton<IDimmerAudioService, AudioService>();
         services.AddSingleton<IAnimationService, AndroidAnimationService>();
 
         // 3. Register ViewModels

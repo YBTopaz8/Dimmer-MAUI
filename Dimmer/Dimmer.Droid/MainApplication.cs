@@ -14,19 +14,21 @@ namespace Dimmer;
 // [Application(Debuggable = false)]
 #endif
 [Application(Debuggable = true)]
-public class MainApplication : Application
+public class MainApplication : Application, Application.IActivityLifecycleCallbacks
 {
 
     public static IServiceProvider ServiceProvider { get; set; }
 
-    
+
+    public static Activity? CurrentActivity { get; private set; }
 
     public MainApplication(nint handle, JniHandleOwnership ownership)
         : base(handle, ownership)
     {
         Console.WriteLine("Dimmer Android :D");
+        
 
-
+        RegisterActivityLifecycleCallbacks(this);
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -171,5 +173,40 @@ public class MainApplication : Application
     internal static void HandleIntent(Intent? intent)
     {
         Debug.WriteLine($"HandleIntent invoked with Intent: {intent}"); // Add logging!
+    }
+
+    public void OnActivityCreated(Activity activity, Bundle? savedInstanceState)
+    {
+
+    }
+
+    public void OnActivityDestroyed(Activity activity)
+    {
+
+    }
+
+    public void OnActivityPaused(Activity activity)
+    {
+        if (CurrentActivity == activity) CurrentActivity = null;
+    }
+
+    public void OnActivityResumed(Activity activity)
+    {
+        CurrentActivity = activity;
+    }
+
+    public void OnActivitySaveInstanceState(Activity activity, Bundle outState)
+    {
+
+    }
+
+    public void OnActivityStarted(Activity activity)
+    {
+
+    }
+
+    public void OnActivityStopped(Activity activity)
+    {
+
     }
 }

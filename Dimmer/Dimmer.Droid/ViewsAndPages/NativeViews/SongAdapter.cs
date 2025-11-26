@@ -162,10 +162,13 @@ internal class SongAdapter : RecyclerView.Adapter
             ViewGroup.LayoutParams.WrapContent
         );
         lyParams.SetMargins(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
-        
+
+        // set color gray if light theme and dark gray if dark theme
+        var isDarkTheme = ctx.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
+
         materialCardView.LayoutParameters = lyParams;
         materialCardView.StrokeWidth = 2;
-        materialCardView.StrokeColor = Color.Gray;
+        materialCardView.StrokeColor = isDarkTheme? Color.MidnightBlue : Color.Gray;
         
         row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
          row.LayoutParameters = new ViewGroup.LayoutParams(

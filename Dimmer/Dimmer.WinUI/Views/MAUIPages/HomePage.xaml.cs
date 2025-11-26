@@ -334,9 +334,7 @@ public partial class HomePage : ContentPage
     private async void SettingsNavChips_ChipClicked(object sender, EventArgs e)
     {
 
-        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
-
-        MyViewModel.MainWindow.NavigateToPage(typeof(SettingsPage));
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
 
     }
 
@@ -738,7 +736,8 @@ public partial class HomePage : ContentPage
 
     private void NowPlayingQueueBtnClicked(object sender, EventArgs e)
     {
-        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+        
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
         MyViewModel.MainWindow.NavigateToPage(typeof(AllSongsListPage));
     }
 
@@ -1048,23 +1047,11 @@ public partial class HomePage : ContentPage
 
         if (native is not null)
         {
-            native.PointerPressed += WinUIArtistChip_PointerPressed;
-
             ElementCompositionPreview.SetIsTranslationEnabled(native, true);
 
-            native.PointerEntered += (s, _) =>
-            {
-                PlatUtils.AnimateHoverUIElement(native, true, _compositor);
-                send.BorderWidth= 2;
-                send.BorderColor = Colors.DarkSlateBlue;
+            native.PointerEntered += Native_PointerEntered;
 
-            };
-            native.PointerExited += (s, _) =>
-            {
-                PlatUtils.AnimateHoverUIElement(native, false, _compositor); 
-                send.BorderWidth = 0;
-                send.BorderColor = Colors.Transparent;
-            };
+            native.PointerExited += Native_PointerExited;
 
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
@@ -1072,7 +1059,25 @@ public partial class HomePage : ContentPage
         }
     }
 
- 
+    private void Native_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        var native = sender as Microsoft.UI.Xaml.UIElement;
+        if (native is null)
+            return;
+        PlatUtils.AnimateHoverUIElement(native, true, _compositor);
+    }
+
+    private void Native_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        var native = sender as Microsoft.UI.Xaml.UIElement;
+        if ( native is null)
+            return;
+        PlatUtils.AnimateHoverUIElement(native, false, _compositor);
+            
+        native.PointerExited -= Native_PointerExited;
+        native.PointerEntered -= Native_PointerEntered;
+    }
+
     private void SetupChainedAnimations(Microsoft.UI.Xaml.UIElement[] buttons)
     {
         for (int i = 1; i < buttons.Length; i++)
@@ -1232,14 +1237,15 @@ public partial class HomePage : ContentPage
 
     private void ArtistBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", MyViewModel.CurrentPlayingSongView.ArtistName));
 
     }
 
     private void AlbumBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.NowPlayingQueueBtnClickedCommand.Execute(null);
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", MyViewModel.CurrentPlayingSongView.AlbumName));
 
     }
@@ -1248,7 +1254,7 @@ public partial class HomePage : ContentPage
     {
         var gridSenderAsUIElement = sender as Microsoft.UI.Xaml.UIElement;
         //detect if it's middle click
-        var props = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(gridSenderAsUIElement).Properties;
+        var props = e.PlatformArgs?.PointerRoutedEventArgs.GetCurrentPoint(gridSenderAsUIElement).Properties;
         if (props != null)
         {
 
@@ -1267,5 +1273,39 @@ public partial class HomePage : ContentPage
     private void MainScrollView_Scrolled(object sender, ScrolledEventArgs e)
     {
         
+    }
+
+    private void ViewNPQ_Loaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        var senderUIElement = sender as Microsoft.UI.Xaml.UIElement;
+        if(senderUIElement is null) return;
+        senderUIElement.PointerPressed += WinUIBtn_PointerPressed;
+    }
+
+    private void WinUIBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
+        var properties = e.GetCurrentPoint(nativeElement).Properties;
+        if (properties.IsLeftButtonPressed)
+        {
+
+        }
+        else if(properties.IsRightButtonPressed)
+        {
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+        }
+    }
+
+    private void ViewNPQ_Unloaded(object sender, EventArgs e)
+    {
+        var native = sender as Microsoft.UI.Xaml.UIElement;
+        if (native is null) return;
+        native.PointerPressed -= WinUIBtn_PointerPressed;
+       
+        PlatUtils.AnimateHoverUIElement(native, false, _compositor);
+
+        native.PointerExited -= Native_PointerExited;
+        native.PointerEntered -= Native_PointerEntered;
     }
 }

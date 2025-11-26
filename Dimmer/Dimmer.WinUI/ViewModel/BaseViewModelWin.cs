@@ -812,7 +812,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [RelayCommand]
-    private async Task NowPlayingQueueBtnClicked()
+    private async Task OpenDimmerWindow()
     {
         MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin())!;
         if (MainWindow is null) return;
@@ -852,8 +852,16 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         base.ShowAllSongsWindowActivate();
 
-        await NowPlayingQueueBtnClicked();
+        await OpenDimmerWindow();
+        MainWindow.NavigateToPage(typeof(AllSongsListPage));
     }
+
+    public void NavigateToAnyPageOfGivenType(Type pageType)
+    {
+        if (MainWindow is null) return;
+        MainWindow.NavigateToPage(pageType);
+    }
+
     /// <summary>
     /// Populates a MenuFlyout tailored to right-clicking a song title.
     /// - Implements utilities and external searches.

@@ -50,6 +50,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private readonly LyricsMgtFlow lyricsMgtFlow;
     private readonly IFolderMgtService folderMgtService;
     private readonly BaseViewModel baseVM;
+    AndroidFolderPicker fPicker;
     public BaseViewModel BaseVM => baseVM; // Expose BaseViewModel reference if needed
 
     public Fragment? PreviousPage { get; set; }
@@ -169,53 +170,39 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         try
         {
+            if (fPicker is null) return;
+            // 2. Call it (No need to request permissions first, the picker handles the grant)
+            string? selectedFolderPath = await fPicker.PickFolderAsync();
 
-            _logger.LogInformation("SelectSongFromFolderAndroid: Requesting storage permission.");
-            var status = await Permissions.RequestAsync<CheckPermissions>();
-
-            if (status == PermissionStatus.Granted)
+            if (!string.IsNullOrEmpty(selectedFolderPath))
             {
-                
-                var res = await FolderPicker.Default.PickAsync(CancellationToken.None);
+                _logger.LogInformation($"Native Folder Selected: {selectedFolderPath}");
 
-                if (res is not null)
-                {
-
-
-                    string? selectedFolderPath = res?.Folder?.Path;
-
-
-
-                    if (!string.IsNullOrEmpty(selectedFolderPath))
-                    {
-                        _logger.LogInformation("Folder selected: {FolderPath}. Adding to preferences and triggering scan.", selectedFolderPath);
-                        // The FolderManagementService should handle adding to settings and triggering the scan.
-                        // We just need to tell it the folder was selected by the user.
-
-                        await AddMusicFolderByPassingToService(selectedFolderPath);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("No folder selected by user.");
-                    }
-
-
-                }
-
+                // Pass to your logic
+                await AddMusicFolderByPassingToService(selectedFolderPath);
             }
             else
             {
-                _logger.LogWarning("Storage permission denied for adding music folder.");
-                // TODO: Show message to user explaining why permission is needed.
+                _logger.LogInformation("No folder selected.");
             }
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+            _logger.LogError(ex, "Native Picker Failed");
+
+            // Native Alert
+            MainApplication.CurrentActivity?.RunOnUiThread(() =>
+            {
+                var materialDialog = new Google.Android.Material.Dialog.MaterialAlertDialogBuilder(MainApplication.CurrentActivity)?
+                    .SetTitle("Error")?
+                    .SetMessage(ex.Message)?
+                    .SetPositiveButton("OK", (s, e) => { })
+                    .Show();
+
+
+            });
         }
-
     }
-
     internal void ViewArtistDetails(ArtistModelView? s)
     {
         ViewArtistDetails(s);
@@ -527,8 +514,12 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
             };
 
-            
-            
+            var sharedSet = new TransitionSet();
+            sharedSet.AddTransition(new ChangeBounds());
+            sharedSet.AddTransition(new ChangeTransform());
+            sharedSet.AddTransition(new ChangeImageTransform()); // Crucial for ImageViews
+
+
             container.PathMotion = new MaterialArcMotion();
             container.SetDuration(380);
 
@@ -555,7 +546,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
             Hold enterHold = new Hold();
             enterHold.AddTarget(TransitionActivity.MyStaticID);
-            enterHold.SetDuration(400);
+            enterHold.SetDuration(80);
             homeFrag.ExitTransition = enterHold;
 
 
@@ -579,10 +570,13 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
 
-    public BaseViewModelAnd(IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService,
+    public BaseViewModelAnd(IMapper mapper,
+        AndroidFolderPicker picker,
+        IDimmerStateService dimmerStateService, MusicDataService musicDataService,
         
         IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
+        fPicker= picker;
         // mapper and stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
 

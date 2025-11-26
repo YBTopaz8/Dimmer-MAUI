@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.Interfaces;
@@ -4339,10 +4340,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         //TODO : make an error handling logic here
     }
+    [RelayCommand]
+    public async Task UpdateFolderPath(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+        _logger.LogInformation("Requesting to update folder path: {Path}", path);
 
+        // update in observable collection
+        var index = FolderPaths.IndexOf(path);
+        if (index >= 0)
+        {
+            FolderPaths[index] = path;
+        }
+
+       await _folderMgtService.UpdateFolderInWatchListAsync(path);
+
+    }
 
     [RelayCommand]
-    public void DeleteFolderPath(string path)
+    public void DeleteFolderPath(string? path)
     {
         if (string.IsNullOrEmpty(path))
             return;

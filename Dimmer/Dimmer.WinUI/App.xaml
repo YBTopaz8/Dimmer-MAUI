@@ -1,19 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <maui:MauiWinUIApplication
     x:Class="Dimmer.WinUI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:WinUI.TableView"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
-    xmlns:maui="using:Microsoft.Maui"
-    xmlns:local="using:Dimmer.WinUI">
+    xmlns:local="using:Dimmer.WinUI"
+    xmlns:maui="using:Microsoft.Maui">
     <maui:MauiWinUIApplication.Resources>
-        
+
         <ResourceDictionary>
 
-           
+
             <ResourceDictionary.MergedDictionaries>
-                
+
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
 
                 <!--  Other merged dictionaries here  -->
@@ -23,13 +23,13 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
             <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
             <converters:BoolToImageConverter
-x:Key="PlayPauseConverter"
-FalseValue="play.png"
-TrueValue="pause.png" />
+                x:Key="PlayPauseConverter"
+                FalseValue="play.png"
+                TrueValue="pause.png" />
             <converters:BoolToImageConverter
-x:Key="FavIconConverter"
-FalseValue="heartbroken.png"
-TrueValue="heartlock.png" />
+                x:Key="FavIconConverter"
+                FalseValue="heartbroken.png"
+                TrueValue="heartlock.png" />
 
             <Color x:Key="MyAccentColor">#483D8B</Color>
             <!--  DarkSlateBlue  -->
