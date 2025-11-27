@@ -394,10 +394,8 @@ public partial class HomePage : ContentPage
 
     private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-        bool isNPQVisible = NowPlayingGrid.IsVisible;
-        NowPlayingGrid.IsVisible = !isNPQVisible;
-
-
+        MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
 
     }
 
@@ -1302,26 +1300,13 @@ public partial class HomePage : ContentPage
         senderUIElement.PointerEntered += Native_PointerEntered;
 
         senderUIElement.PointerExited += Native_PointerExited;
-        senderUIElement.PointerPressed += WinUIBtn_PointerPressed;
     }
 
-    private void WinUIBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
-        var properties = e.GetCurrentPoint(nativeElement).Properties;
-        
-        if(properties.IsRightButtonPressed)
-        {
-            MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
-            MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        }
-    }
-
+ 
     private void ViewNPQ_Unloaded(object sender, EventArgs e)
     {
         var native = sender as Microsoft.UI.Xaml.UIElement;
         if (native is null) return;
-        native.PointerPressed -= WinUIBtn_PointerPressed;
        
         PlatUtils.AnimateHoverUIElement(native, false, _compositor);
 

@@ -7112,10 +7112,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
         
         SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, songInDb.AlbumName);
+        SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
 
         await UpdateSongArtistInDbWithLastFMData();
         await UpdateSongAlbumInDbWithLastFMData();
     }
+
 
 
     public async Task UpdateSongFromLastFMDataAsync()
@@ -7235,13 +7237,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         //AllLyricsResultsLrcLib = s.ToObservableCollection();
     }
 
-
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> SimilarSongs
-    {
-        get;
-        set;
-    } = new ObservableCollection<Hqub.Lastfm.Entities.Track>();
 
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }

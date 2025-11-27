@@ -1,18 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.SongDetailPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    
     xmlns:CustomViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
-        xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:cw="using:Dimmer.WinUI.Views.WinuiPages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
@@ -25,6 +24,7 @@
     <Page.Resources>
 
         <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
+        <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
         <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
         <converters:BoolToImageConverter
             x:Key="PlayPauseConverter"
@@ -38,40 +38,53 @@
 
 
     <Grid PointerPressed="Grid_PointerPressed">
-        <Image x:Name="BgImage"
-               
-            Stretch="Uniform"
-Opacity="0.05" 
-Source="{x:Bind DetailedSong.CoverImagePath}" />
+        <Image
+            x:Name="BgImage"
+            Opacity="0.05"
+            Source="{x:Bind DetailedSong.CoverImagePath}"
+            Stretch="Uniform" />
         <Grid x:Name="FgGrid">
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Border Background="#111" HorizontalAlignment="Left" Width="150"
-                    CornerRadius="5"
-                    Grid.Row="0" Margin="10,0" Height="50" VerticalAlignment="Top">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12" >
-                    <TextBlock x:Name="CurrentSectionLabel"
-                           Text="Overview" 
-                           FontSize="18"
-                           FontWeight="SemiBold"/>
+            <Border
+                Grid.Row="0"
+                Width="150"
+                Height="50"
+                Margin="10,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="#111"
+                CornerRadius="5">
+                <StackPanel
+                    Margin="12"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        x:Name="CurrentSectionLabel"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="Overview" />
                 </StackPanel>
             </Border>
             <!--  Main content area  -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                      Margin="0,0,0,0" x:Name="Scroller"
-                          
-                          ViewChanged="ScrollViewer_ViewChanged"
-                          Grid.Row="1" Background="Transparent">
+            <ScrollViewer
+                x:Name="Scroller"
+                Grid.Row="1"
+                Margin="0,0,0,0"
+                Background="Transparent"
+                VerticalScrollBarVisibility="Auto"
+                ViewChanged="ScrollViewer_ViewChanged">
                 <StackPanel
-            Padding="12" x:Name="SegmentStack"
-            Orientation="Vertical"
-            Spacing="20" >
+                    x:Name="SegmentStack"
+                    Padding="12"
+                    Orientation="Vertical"
+                    Spacing="20">
 
                     <!--  The elements involved in the animation  -->
 
-                    <Grid ColumnSpacing="10" x:Name="SectionOverview">
+                    <Grid x:Name="SectionOverview" ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -80,68 +93,73 @@ Source="{x:Bind DetailedSong.CoverImagePath}" />
 
                         <!--  The Image that will be the target of the connected animation  -->
                         <Border
-                            Width="300" Height="300"        
-                            Grid.Column="0" CornerRadius="8">
-                        <Image
-                    x:Name="detailedImage"
-                    
-                    Source="{x:Bind DetailedSong.CoverImagePath}" />
+                            Grid.Column="0"
+                            Width="300"
+                            Height="300"
+                            CornerRadius="8">
+                            <Image x:Name="detailedImage" Source="{x:Bind DetailedSong.CoverImagePath}" />
 
                         </Border>
-                        
+
                         <Border Grid.Column="1">
 
                             <StackPanel
-                        x:Name="coordinatedPanel"
-                        
-                        Spacing="5"
-                        HorizontalAlignment="Left"
-                        >
+                                x:Name="coordinatedPanel"
+                                HorizontalAlignment="Left"
+                                Spacing="5">
 
                                 <TextBlock
-                                HorizontalAlignment="Left"
-                                Style="{ThemeResource TitleTextBlockStyle}"
-                                Text="{x:Bind DetailedSong.Title,Mode=OneWay}" FontSize="80" 
-                                TextWrapping="Wrap" />
+                                    HorizontalAlignment="Left"
+                                    FontSize="80"
+                                    Style="{ThemeResource TitleTextBlockStyle}"
+                                    Text="{x:Bind DetailedSong.Title, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
 
                                 <Button
-                                HorizontalAlignment="Left"                                                
-                                Content="{x:Bind DetailedSong.ArtistName,Mode=OneWay}" 
-                                BorderThickness="2" FontWeight="Bold"
-                            Click="ArtistBtn_Click" x:Name="ArtistBtn"
-                                Background="Transparent"/>
-                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0"
-                                    >
+                                    x:Name="ArtistBtn"
+                                    HorizontalAlignment="Left"
+                                    Background="Transparent"
+                                    BorderThickness="2"
+                                    Click="ArtistBtn_Click"
+                                    Content="{x:Bind DetailedSong.ArtistName, Mode=OneWay}"
+                                    FontWeight="Bold" />
+                                <StackPanel
+                                    Margin="0,10,0,0"
+                                    Orientation="Horizontal"
+                                    Spacing="10">
 
                                     <Button
-                                HorizontalAlignment="Left" 
-                                
-                                Content="{x:Bind DetailedSong.AlbumName,Mode=OneWay}"
-                                BorderThickness="2"
-                            Background="Transparent"/>
-                                    <TextBlock Text="{x:Bind DetailedSong.ReleaseYear,Mode=OneWay}"
-                                       VerticalAlignment="Center"/>
+                                        HorizontalAlignment="Left"
+                                        Background="Transparent"
+                                        BorderThickness="2"
+                                        Content="{x:Bind DetailedSong.AlbumName, Mode=OneWay}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind DetailedSong.ReleaseYear, Mode=OneWay}" />
 
                                 </StackPanel>
 
-                                <Button Content="{x:Bind DetailedSong.GenreName,Mode=OneWay}"
-                                            BorderThickness="2"
-Background="Transparent"/>
+                                <Button
+                                    Background="Transparent"
+                                    BorderThickness="2"
+                                    Content="{x:Bind DetailedSong.GenreName, Mode=OneWay}" />
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock Text="Dimms" FontSize="19"/>
+                                    <TextBlock FontSize="19" Text="Dimms" />
 
-                                    <Button Content="{x:Bind DetailedSong.PlayCompletedCount,Mode=OneWay}"/>
+                                    <Button Content="{x:Bind DetailedSong.PlayCompletedCount, Mode=OneWay}" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock Text="Is Fav:" FontSize="19"/>
+                                    <TextBlock FontSize="19" Text="Is Fav:" />
 
-                                    <ToggleButton Height="20" VerticalAlignment="Bottom"
-                                                  CommandParameter="{Binding SelectedSong}"
-                                                  Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
-                                                  IsChecked="{x:Bind DetailedSong.IsFavorite,Mode=OneWay}"/>
+                                    <ToggleButton
+                                        Height="20"
+                                        VerticalAlignment="Bottom"
+                                        Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
+                                        CommandParameter="{Binding SelectedSong}"
+                                        IsChecked="{x:Bind DetailedSong.IsFavorite, Mode=OneWay}" />
                                 </StackPanel>
-                                <RichTextBlock x:Name="BioBlock" TextWrapping="Wrap"
-                                               Loaded="BioBlock_Loaded"/>
+                                <RichTextBlock
+                                    x:Name="BioBlock"
+                                    Loaded="BioBlock_Loaded"
+                                    TextWrapping="Wrap" />
                             </StackPanel>
 
                         </Border>
@@ -163,7 +181,7 @@ Background="Transparent"/>
                                         Padding="12">
 
                                         <StackPanel>
-                                            
+
                                         <TextBlock Text="Item" Foreground="Black"/>
 
                                         </StackPanel>
@@ -174,67 +192,118 @@ Background="Transparent"/>
 
                     </StackPanel>
 
-                    <!-- SECTION 3: LYRICS -->
-                    <StackPanel x:Name="SectionLyrics" HorizontalAlignment="Left"
-                                Background="Transparent">
-                        <TextBlock FontWeight="ExtraBold"  Text="Lyrics Section" FontSize="34"/>
-                        <ScrollViewer Height="400" VerticalScrollBarVisibility="Auto">
-                            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSongLyricsObsCol}"
-                                       >
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border>
-                                            <StackPanel Orientation="Horizontal"
-                                                    Background="Transparent" Spacing="15">
+                    <!--  SECTION 3: LYRICS  -->
+                    <StackPanel x:Name="SectionLyrics" Background="Transparent">
+                        <TextBlock
+                            FontSize="34"
+                            FontWeight="ExtraBold"
+                            Text="Lyrics Section" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                                                <TextBlock FontSize="26" Text="{Binding Text}"/>
-                                                
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSongLyricsObsCol}">
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border>
+                                                <StackPanel
+                                                    Background="Transparent"
+                                                    Orientation="Horizontal"
+                                                    Spacing="15">
+
+                                                    <TextBlock FontSize="26" Text="{Binding Text}" />
+
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
 
 
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
-                        </ScrollViewer>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock
+                                    FontSize="28"
+                                    FontWeight="SemiBold"
+                                    Text="Artists In This Song" />
+                                <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSong.ArtistToSong}">
+
+                                    <ItemsRepeater.ItemTemplate>
+
+                                        <DataTemplate>
+                                            <Button
+                                                Margin="0,10,0,0"
+                                                BorderThickness="1"
+                                                CornerRadius="15">
+                                                <StackPanel
+                                                    Background="Transparent"
+                                                    Orientation="Horizontal"
+                                                    Spacing="15">
+                                                    <Image
+                                                        Width="50"
+                                                        Height="50"
+                                                        Source="{Binding ImagePath}"
+                                                        Visibility="{Binding ImagePath, Converter={StaticResource StringNullOrEmptyToVisibility}}" />
+                                                    <TextBlock FontSize="26" Text="{Binding Name}" />
+
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
 
-                    <!-- SECTION 4: ANALYTICS -->
+                    <!--  SECTION 4: ANALYTICS  -->
                     <StackPanel x:Name="SectionAnalytics" Visibility="Collapsed">
-                        <TextBlock  Text="Analytics Section" FontSize="34" FontWeight="ExtraBold"/>
-                        
-                        
-                        <Button x:Name="ManualFavoriteCount" Content="{Binding SelectedSong.ManualFavoriteCount}"/>
-                        <Button x:Name="PlayCompletedCount" Content="{Binding SelectedSong.PlayCompletedCount}"/>
-                        <Button x:Name="PlayCount" Content="{Binding SelectedSong.PlayCount}"/>
-                        <Button x:Name="PlayEventsCount" Content="{Binding SelectedSong.PlayEvents.Count}"/>
-                        <Button x:Name="ListenThroughRate" Content="{Binding SelectedSong.ListenThroughRate}"/>
-                        <Button x:Name="PlayStreakDays" Content="{Binding SelectedSong.PlayStreakDays}"/>
-                        <Button x:Name="PreviousCount" Content="{Binding SelectedSong.PreviousCount}"/>
-                        <Button x:Name="RankInAlbum" Content="{Binding SelectedSong.RankInAlbum}"/>
-                        <Button x:Name="RankInArtist" Content="{Binding SelectedSong.RankInArtist}"/>
-                        <Button x:Name="RepeatCount" Content="{Binding SelectedSong.RepeatCount}"/>
-                        <Button x:Name="RestartCount" Content="{Binding SelectedSong.RestartCount}"/>
-                        <Button x:Name="ResumeCount" Content="{Binding SelectedSong.ResumeCount}"/>
-                        <Button x:Name="SeekCount" Content="{Binding SelectedSong.SeekCount}"/>
-                        <Button x:Name="SkipCount" Content="{Binding SelectedSong.SkipCount}"/>
-                        <Button x:Name="SkipRate" Content="{Binding SelectedSong.SkipRate}"/>
-                        <Button x:Name="Rating" Content="{Binding SelectedSong.Rating}"/>
+                        <TextBlock
+                            FontSize="34"
+                            FontWeight="ExtraBold"
+                            Text="Analytics Section" />
+
+
+                        <Button x:Name="ManualFavoriteCount" Content="{Binding SelectedSong.ManualFavoriteCount}" />
+                        <Button x:Name="PlayCompletedCount" Content="{Binding SelectedSong.PlayCompletedCount}" />
+                        <Button x:Name="PlayCount" Content="{Binding SelectedSong.PlayCount}" />
+                        <Button x:Name="PlayEventsCount" Content="{Binding SelectedSong.PlayEvents.Count}" />
+                        <Button x:Name="ListenThroughRate" Content="{Binding SelectedSong.ListenThroughRate}" />
+                        <Button x:Name="PlayStreakDays" Content="{Binding SelectedSong.PlayStreakDays}" />
+                        <Button x:Name="PreviousCount" Content="{Binding SelectedSong.PreviousCount}" />
+                        <Button x:Name="RankInAlbum" Content="{Binding SelectedSong.RankInAlbum}" />
+                        <Button x:Name="RankInArtist" Content="{Binding SelectedSong.RankInArtist}" />
+                        <Button x:Name="RepeatCount" Content="{Binding SelectedSong.RepeatCount}" />
+                        <Button x:Name="RestartCount" Content="{Binding SelectedSong.RestartCount}" />
+                        <Button x:Name="ResumeCount" Content="{Binding SelectedSong.ResumeCount}" />
+                        <Button x:Name="SeekCount" Content="{Binding SelectedSong.SeekCount}" />
+                        <Button x:Name="SkipCount" Content="{Binding SelectedSong.SkipCount}" />
+                        <Button x:Name="SkipRate" Content="{Binding SelectedSong.SkipRate}" />
+                        <Button x:Name="Rating" Content="{Binding SelectedSong.Rating}" />
                     </StackPanel>
 
-                    <!-- SECTION 5: HISTORY -->
-                    <StackPanel x:Name="SectionHistory" Height="400" >
-                        <TextBlock  Text="History Section" FontSize="34"
-                                    FontWeight="ExtraBold"/>
-                        
-                        
-                        <ItemsRepeater ItemsSource="{x:Bind DetailedSong.PlayEvents, Mode=OneWay}">
+                    <!--  SECTION 5: HISTORY  -->
+                    <StackPanel x:Name="SectionHistory">
+                        <TextBlock
+                            FontSize="34"
+                            FontWeight="ExtraBold"
+                            Text="History Section" />
+
+
+                        <ItemsRepeater
+                            Height="400"
+                            ItemsSource="{x:Bind DetailedSong.PlayEvents, Mode=OneWay}"
+                            Visibility="{x:Bind DetailedSong.PlayEvents.Count, Converter={StaticResource CollectionSizeToVisibility}}">
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
                                     <Border>
                                         <StackPanel>
-                                            <TextBlock Text="{Binding PlayTypeStr}"/>
-                                            <TextBlock Text="{Binding EventDate}"/>
+                                            <TextBlock Text="{Binding PlayTypeStr}" />
+                                            <TextBlock Text="{Binding EventDate}" />
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -244,34 +313,47 @@ Background="Transparent"/>
                         </ItemsRepeater>
                     </StackPanel>
 
-                    <!-- SECTION 6: RELATED -->
-                    <StackPanel x:Name="SectionRelated" Height="400" Spacing="10" >
-                        <TextBlock  Text="Related Section"
-                                   FontWeight="ExtraBold"
-                                   FontSize="34"/>
-                        <StackPanel Orientation="Horizontal" BorderThickness="1"
-                                    Padding="8" Spacing="10"
-                                    BorderBrush="Gray" HorizontalAlignment="Left"
-                                    CornerRadius="10">
+                    <!--  SECTION 6: RELATED  -->
+                    <StackPanel
+                        x:Name="SectionRelated"
+                        Height="400"
+                        Spacing="10">
+                        <TextBlock
+                            FontSize="34"
+                            FontWeight="ExtraBold"
+                            Text="Related Section" />
+                        <StackPanel
+                            Padding="8"
+                            HorizontalAlignment="Left"
+                            BorderBrush="Gray"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Orientation="Horizontal"
+                            Spacing="10">
 
-                            <TextBlock  Text="{Binding SelectedSongLastFMData.Statistics.Listeners}" FontSize="24"/>
-                            <TextBlock  Text="Listeners"
-                                       ToolTipService.ToolTip="Total LastFM Listeners"
-                                       FontSize="24"/>
+                            <TextBlock FontSize="24" Text="{Binding SelectedSongLastFMData.Statistics.Listeners}" />
+                            <TextBlock
+                                FontSize="24"
+                                Text="Listeners"
+                                ToolTipService.ToolTip="Total LastFM Listeners" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal"
-                                    BorderThickness="1"
-                                    Padding="8" Spacing="10"
-                                    BorderBrush="Gray" HorizontalAlignment="Left"
-                                    CornerRadius="10">
+                        <StackPanel
+                            Padding="8"
+                            HorizontalAlignment="Left"
+                            BorderBrush="Gray"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Orientation="Horizontal"
+                            Spacing="10">
 
-                            <TextBlock  Text="{Binding  SelectedSongLastFMData.Statistics.PlayCount}" FontSize="24"/>
-                            <TextBlock  Text="Dimms"
-                                       ToolTipService.ToolTip="Total LastFM Scrobbles"
-                                       FontSize="24"/>
+                            <TextBlock FontSize="24" Text="{Binding SelectedSongLastFMData.Statistics.PlayCount}" />
+                            <TextBlock
+                                FontSize="24"
+                                Text="Dimms"
+                                ToolTipService.ToolTip="Total LastFM Scrobbles" />
                         </StackPanel>
-                            <TextBlock Text="Last FM Stats..."
-                                       />
+                        <TextBlock Text="Last FM Stats..." />
+                        <TextBlock Text="{x:Bind MyViewModel.SimilarTracks}" />
                     </StackPanel>
 
                 </StackPanel>

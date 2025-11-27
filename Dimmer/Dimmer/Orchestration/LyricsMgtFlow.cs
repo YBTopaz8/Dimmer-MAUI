@@ -78,14 +78,24 @@ public class LyricsMgtFlow : IDisposable
                 ));
 
 
+        _subsManager.Add(Observable.FromEventPattern<double>(
+                h => _audioService.PositionChanged += h,
+                h => _audioService.PositionChanged -= h)
+                .Select(evt => evt.EventArgs)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(posInSec =>
+                {
+                    if (_audioService.IsPlaying && _synchronizer != null)
+                    {
+                        UpdateLyricsForPosition(TimeSpan.FromSeconds(posInSec));
+                    }
+                }, ex =>
+                {
+                    _logger.LogError(ex, "Error in PositionChanged subscription");
+                }));
 
-        AudioEnginePositionObservable = Observable.FromEventPattern<double>(
-                                             h => audioService.PositionChanged += h,
-                                             h => audioService.PositionChanged -= h)
-                                         .Select(evt => evt.EventArgs)
-                                         .StartWith(audioService.CurrentPosition)
-                                         .Replay(1).RefCount();
-        SubscribeToPosition();
+
+    
     }
 
     public IObservable<double> AudioEnginePositionObservable { get; }
@@ -300,27 +310,6 @@ public class LyricsMgtFlow : IDisposable
         _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
     }
 
-    private void SubscribeToPosition()
-    {
-        _subsManager.Add(
-      AudioEnginePositionObservable
-          .Sample(TimeSpan.FromMilliseconds(100)) // We still sample to avoid too many updates.
-          .DistinctUntilChanged() // And only take distinct position values.
-          .ObserveOn(RxSchedulers.UI)
-          .Subscribe(
-              positionInSeconds =>
-              {
-                  // Check our conditions right here, in the moment.
-                  // This avoids the complex stream logic and potential race conditions.
-                  if (_audioService.IsPlaying && _synchronizer != null)
-                  {
-                      UpdateLyricsForPosition(TimeSpan.FromSeconds(positionInSeconds));
-                  }
-              },
-              ex => _logger.LogError(ex, "Error in position subscription.")
-          )
-        );
-    }
 
     public void Dispose()
     {

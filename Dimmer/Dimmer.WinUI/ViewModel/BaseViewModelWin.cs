@@ -1129,7 +1129,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public override async Task UpdateSongSpecificUi(SongModelView? song)
     {
         await base.UpdateSongSpecificUi(song);
-        MainMAUIWindow.Title = AppTitle;
+        
         Microsoft.Maui.Controls.TitleBar mauiTitleBar = new Microsoft.Maui.Controls.TitleBar
         {
             Title = AppTitle            

@@ -121,84 +121,88 @@
                         x:Name="CoverImageSection"
                         RowDefinitions="*,0.5*"
                         VerticalOptions="Start">
-                        <Image
-                            x:Name="NowPlayingSong"
-                            Grid.Column="0"
-                            Aspect="AspectFit"
-                            BackgroundColor="Transparent"
-                            HeightRequest="190"
-                            HorizontalOptions="Center"
-                            Opacity="1"
-                            Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
-                            ToolTipProperties.Text="Click to view song details">
+                        <Grid Grid.Row="0">
 
-                            <Image.Triggers>
-                                <DataTrigger
-                                    Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
-                                    TargetType="Image"
-                                    Value="True">
-                                    <Setter Property="Opacity" Value="1" />
-                                </DataTrigger>
+                            <Image
+                                x:Name="NowPlayingSong"
+                                Aspect="AspectFit"
+                                BackgroundColor="Transparent"
+                                HeightRequest="190"
+                                HorizontalOptions="Center"
+                                Opacity="1"
+                                Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
+                                ToolTipProperties.Text="Click to view song details">
 
-                            </Image.Triggers>
-                        </Image>
+                                <Image.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
+                                        TargetType="Image"
+                                        Value="True">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+
+                                </Image.Triggers>
+                            </Image>
 
 
-                        <VerticalStackLayout
-                            x:Name="LyricsSection"
-                            Grid.Row="0"
-                            HorizontalOptions="Start"
-                            IsVisible="True"
-                            VerticalOptions="Center">
-                            <VerticalStackLayout.Triggers>
+                            <VerticalStackLayout
+                                x:Name="LyricsSection"
+                                HorizontalOptions="Center"
+                                IsVisible="True"
+                                VerticalOptions="Center">
+                                <VerticalStackLayout.Triggers>
 
-                                <DataTrigger
-                                    Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                                    TargetType="VerticalStackLayout"
-                                    Value="true">
-                                    <Setter Property="IsVisible" Value="True" />
-                                </DataTrigger>
+                                    <DataTrigger
+                                        Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                                        TargetType="VerticalStackLayout"
+                                        Value="true">
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </DataTrigger>
 
-                                <DataTrigger
-                                    Binding="{Binding IsDimmerPlaying}"
-                                    TargetType="VerticalStackLayout"
-                                    Value="false">
-                                    <Setter Property="IsVisible" Value="False" />
-                                </DataTrigger>
+                                    <DataTrigger
+                                        Binding="{Binding IsDimmerPlaying}"
+                                        TargetType="VerticalStackLayout"
+                                        Value="false">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
 
-                                <DataTrigger
-                                    Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
-                                    TargetType="VerticalStackLayout"
-                                    Value="false">
-                                    <Setter Property="IsVisible" Value="False" />
-                                </DataTrigger>
-                            </VerticalStackLayout.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
+                                        TargetType="VerticalStackLayout"
+                                        Value="false">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </VerticalStackLayout.Triggers>
 
-                            <Label
-                                FontSize="15"
-                                HorizontalTextAlignment="Center"
-                                Opacity="0.7"
-                                Text="{Binding PreviousLine.Text}" />
-                            <Grid HorizontalOptions="Center">
-                                <Border BackgroundColor="{AppThemeBinding Dark=#1e1e1e}" Opacity="0.7" />
                                 <Label
-                                    Margin="10"
-                                    FontAttributes="Bold"
-                                    FontSize="36"
+                                    FontSize="15"
                                     HorizontalTextAlignment="Center"
-                                    Opacity="1"
-                                    Text="{Binding CurrentLine.Text}"
-                                    TextColor="DarkSlateBlue">
-                                    <Label.Triggers />
-                                </Label>
-                            </Grid>
-                            <Label
-                                FontSize="17"
-                                HorizontalTextAlignment="Center"
-                                Opacity="0.7"
-                                Text="{Binding NextLine.Text}" />
-                        </VerticalStackLayout>
+                                    Opacity="0.7"
+                                    Text="{Binding PreviousLine.Text}" />
+                                <Grid HorizontalOptions="Center">
+                                    <Border
+                                        BackgroundColor="{AppThemeBinding Dark=#1e1e1e}"
+                                        Opacity="0.7"
+                                        StrokeShape="RoundRectangle 15" />
+                                    <Label
+                                        Margin="10"
+                                        FontAttributes="Bold"
+                                        FontSize="36"
+                                        HorizontalTextAlignment="Center"
+                                        Opacity="1"
+                                        Text="{Binding CurrentLine.Text}"
+                                        TextColor="MediumSlateBlue">
+                                        <Label.Triggers />
+                                    </Label>
+                                </Grid>
+                                <Label
+                                    FontSize="17"
+                                    HorizontalTextAlignment="Center"
+                                    Opacity="0.7"
+                                    Text="{Binding NextLine.Text}" />
+                            </VerticalStackLayout>
 
+                        </Grid>
 
 
                         <VerticalStackLayout

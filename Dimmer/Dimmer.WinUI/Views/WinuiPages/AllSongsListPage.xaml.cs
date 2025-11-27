@@ -1907,9 +1907,6 @@ public sealed partial class AllSongsListPage : Page
     {
        
         var currentList = e.AddedItems as IList<object>;
-
-        var testt = currentList?.FirstOrDefault()?.GetType();
-        Debug.WriteLine($"Type of current selected item: {testt}");
         var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
         if (current != null)
         {

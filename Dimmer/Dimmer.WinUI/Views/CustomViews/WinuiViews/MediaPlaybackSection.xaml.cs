@@ -75,4 +75,9 @@ public sealed partial class MediaPlaybackSection : UserControl
         return;
         MyViewModel?.MainWindow.ContentFrame.GoBack();
     }
+
+    private void CurrentPlayingSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+
+    }
 }
