@@ -8,6 +8,8 @@ using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using Thickness = Microsoft.UI.Xaml.Thickness;
+using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using Visual = Microsoft.UI.Composition.Visual;
 
 
@@ -408,8 +410,6 @@ public sealed partial class SongDetailPage : Page
         try
         {
 
-
-
             // Navigate to the detail page, passing the selected song object.
             // Suppress the default page transition to let ours take over.
             var supNavTransInfo = new SuppressNavigationTransitionInfo();
@@ -425,24 +425,24 @@ public sealed partial class SongDetailPage : Page
             var selectedArtist = DetailedSong.ArtistToSong.FirstOrDefault(x=>x.Name== DetailedSong.ArtistName);
 
                   
-                await MyViewModel.SetSelectedArtist(selectedArtist);
+            await MyViewModel.SetSelectedArtist(selectedArtist);
 
 
-                FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-                {
-                    TransitionInfoOverride = supNavTransInfo,
-                    IsNavigationStackEnabled = true
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
 
-                };
-                // prepare the animation BEFORE navigation
-                var ArtistNameTxt = PlatUtils.FindVisualChild<TextBlock>((UIElement)sender, "ArtistNameTxt");
-                if (ArtistNameTxt != null)
-                {
-                    ConnectedAnimationService.GetForCurrentView()
-                        .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
-                }
+            };
+            // prepare the animation BEFORE navigation
+            var ArtistNameTxt = PlatUtils.FindVisualChild<TextBlock>((UIElement)sender, "ArtistNameTxt");
+            if (ArtistNameTxt != null)
+            {
+                ConnectedAnimationService.GetForCurrentView()
+                    .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
+            }
 
-                Frame?.NavigateToType(pageType, navParams, navigationOptions);
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
                
              
             }
@@ -575,5 +575,111 @@ public sealed partial class SongDetailPage : Page
 
         bgVisual.CenterPoint = new Vector3((float)BgImage.ActualWidth / 2, (float)BgImage.ActualHeight / 2, 0);
         bgVisual.StartAnimation("Scale", scaleAnim);
+    }
+
+    private void SimilarSongStackPanel_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        // Apply a slight scale-up effect on pointer enter
+        // fetch image from lastfm in vm and show in custom tooltip 
+        // custom tooltip shows larger image and song details
+        // stackpanel height 300 width 200 with two textblocks below image
+        var stackPanel = (StackPanel)sender;
+        var track = (stackPanel.DataContext as Hqub.Lastfm.Entities.Track);
+       UIElement? uiElement = (UIElement)sender;
+        var visual = ElementCompositionPreview.GetElementVisual(uiElement);
+        var anim = _compositor.CreateScalarKeyFrameAnimation();
+        anim.InsertKeyFrame(1f, 1.05f);
+        anim.Duration = TimeSpan.FromMilliseconds(150);
+        visual.CenterPoint = new Vector3((float)stackPanel.RenderSize.Width / 2, (float)stackPanel.RenderSize.Height / 2, 0);
+        visual.StartAnimation("Scale.X", anim);
+        visual.StartAnimation("Scale.Y", anim);
+        LoadToolTipForSimilarTracks(uiElement, track);
+    }
+
+    void LoadToolTipForSimilarTracks(UIElement elt, Hqub.Lastfm.Entities.Track trck)
+    {
+        toolTip ??= new ToolTip();
+
+        var toolTipContent = new StackPanel
+        {
+            Width = 200,
+            Height = 200,
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
+        };
+        var imgSourceFromUrl = trck.Images?.FirstOrDefault(img => img.Size == "large")?.Url;
+        
+        var img = new Microsoft.UI.Xaml.Controls.Image
+        {
+            Width = 120,
+            Height = 120,
+            Margin = new Thickness(10)
+        };
+        img.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(imgSourceFromUrl ?? "ms-appx:///Assets/PlaceholderImage.png"));
+
+        toolTipContent.Children.Add(img);
+        var titleBlock = new TextBlock
+        {
+            Text = trck.Name,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
+            Margin = new Thickness(10, 5, 10, 0),
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold
+        };
+        toolTipContent.Children.Add(titleBlock);
+        var artistBlock = new TextBlock
+        {
+            Text = trck.Artist.Name,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
+            Margin = new Thickness(10, 0, 10, 10)
+        };
+        toolTipContent.Children.Add(artistBlock);
+        toolTip.Content = toolTipContent;
+        toolTip.Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Top;
+        
+
+
+        ToolTipService.SetToolTip(elt, toolTip);
+        toolTip.IsOpen = true;
+
+
+    }
+    ToolTip toolTip;
+    private void SimilarSongStackPanel_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        var send = (UIElement)sender;
+        toolTip.IsOpen = false;
+    }
+
+    private void ArtistPickerAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+
+    }
+
+    private void ArtistPickerAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        var chosen = args.SelectedItem as string;
+        if (chosen is not null)
+        {
+            sender.Text = chosen;
+        }
+        MyViewModel.UpdateSongWithNoArtistToNewArtist(chosen);
+
+    }
+
+    private void ArtistPickerAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+
+    }
+
+
+
+    private void ArtistPickerAutoSuggestBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        var autoSuggestBox = (AutoSuggestBox)sender;
+        var sourceFromDb = MyViewModel.SelectedSong.ArtistToSong
+            .Where(x=> x is not null)
+            .Where(x=> !string.IsNullOrWhiteSpace(x.Name))
+            .Select(a => a.Name)
+            .Distinct()
+            .ToList();
     }
 }

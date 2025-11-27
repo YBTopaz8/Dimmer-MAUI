@@ -85,10 +85,10 @@
                     HorizontalAlignment="Left"
                     Orientation="Horizontal"
                     Spacing="10">
-                    <Button x:Name="ViewQueue" 
-                        
-                            Command="{x:Bind MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResultCommand}"
-                            Content="View Queue" />
+                    <Button
+                        x:Name="ViewQueue"
+                        Command="{x:Bind MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResultCommand}"
+                        Content="View Queue" />
 
                     <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
 

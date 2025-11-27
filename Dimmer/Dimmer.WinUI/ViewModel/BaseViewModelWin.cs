@@ -1196,5 +1196,17 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-    
+    internal void UpdateSongWithNoArtistToNewArtist(string? chosen)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var exactArtist = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == chosen);
+        if (exactArtist is null) return;
+        var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+        if (songInDb is null) return;
+        realm.Write(() =>
+        {
+            songInDb.ArtistToSong.Clear();
+            songInDb.ArtistToSong.Add(exactArtist);
+        });
+    }
 }
