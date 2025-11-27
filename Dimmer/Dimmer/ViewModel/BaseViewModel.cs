@@ -175,33 +175,36 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 changes =>
                 {
                     // Handle the changes here
-                    foreach (var change in changes)
-                    {
-                        switch (change.Reason)
-                        {
-                            case ListChangeReason.Add:
-                                // Handle addition
-                                break;
-                            case ListChangeReason.Remove:
-                                // Handle removal
-                                break;
+                    //foreach (var change in changes)
+                    //{
+                    //    //switch (change.Reason)
+                    //    //{
+                    //    //    case ListChangeReason.Add:
+                    //    //        // Handle addition
+                    //    //        break;
+                    //    //    case ListChangeReason.Remove:
+                    //    //        // Handle removal
+                    //    //        break;
 
-                            case ListChangeReason.Refresh:
-                                break;
+                    //    //    case ListChangeReason.Refresh:
+                    //    //        break;
 
-                            case
-                            ListChangeReason.Moved:
-                                break;
-                            case ListChangeReason.Clear:
-                                break;
-                            case ListChangeReason.RemoveRange:
-                                break;
-                            case ListChangeReason.AddRange:
-                                break;
-                        }
-                    }
+                    //    //    case
+                    //    //    ListChangeReason.Moved:
+                    //    //        break;
+                    //    //    case ListChangeReason.Clear:
+                    //    //        break;
+                    //    //    case ListChangeReason.RemoveRange:
+                    //    //        break;
+                    //    //    case ListChangeReason.AddRange:
+                    //    //        break;
+                    //    }
+                    //}
                 },
-                ex => _logger.LogError(ex, "Error observing SongModel changes"))
+                ex =>
+                {
+                    _logger.LogError(ex, "Error observing SongModel changes");
+                })
             .DisposeWith(CompositeDisposables);
 
 
@@ -281,7 +284,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                     try
                     {
-                        var realm = RealmFactory.GetRealmInstance();
+                       using var realm = RealmFactory.GetRealmInstance();
 
                         IQueryable<SongModel> query = realm.All<SongModel>().Filter(plan.RqlFilter);
 
@@ -291,17 +294,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if (plan.SortDescriptions.Count > 0)
                         {
-                            var orderByString = string.Join(
-                                ", ",
-                                plan.SortDescriptions
-                                    .Select(
+                            var orderByString = string.Join(", ",plan.SortDescriptions.Select(
                                         desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
                             query = query.OrderBy(orderByString);
                         }
 
-                        var resultsFromDb = query.ToList();
-                        var mappedSongs = _mapper.Map<List<SongModelView>>(resultsFromDb);
-                        var finalSongs = mappedSongs.Where(plan.InMemoryPredicate).ToList();
+                        var mappedSongs = _mapper.Map<List<SongModelView>>(query);
+                        var finalSongs = mappedSongs
+                        .Where(plan.InMemoryPredicate)
+                        .ToList();
                         Debug.WriteLine(
                             $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count} to {finalSongs.Count} songs.");
 
@@ -1466,7 +1467,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 _logger.LogInformation(
                     "Successfully finished refreshing metadata for song ID {SongId}",
                     songViewModel.Id);
-            });
+            }
+            )
+            ;
     }
 
 
@@ -1745,7 +1748,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string CurrentCoverImagePath { get; set; }
 
-    private async Task UpdateSongSpecificUi(SongModelView? song)
+    public virtual async Task UpdateSongSpecificUi(SongModelView? song)
     {
         try
         {
@@ -1756,6 +1759,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
 
             AppTitle = $"{CurrentAppVersion} - {CurrentAppStage}";
+            
             CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
 
             await LoadAndCacheCoverArtAsync(song);
@@ -4048,20 +4052,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
     }
 
-    [RelayCommand]
-    public void LoadAllArtistsFromOurDatabase()
-    {
-        var db = RealmFactory.GetRealmInstance();
-        var allArts = db.All<ArtistModel>().ToList().OrderBy(a => a.Name).ToList();
 
-        AllArtistsInDb?.Clear();
-        AllArtistsInDb = new ObservableCollection<ArtistModelView>();
-        foreach (var art in allArts)
-        {
-            AllArtistsInDb.Add(art.ToModelView(_mapper));
-        }
-        _logger.LogInformation("Loaded {ArtistCount} artists from the database.", AllArtistsInDb.Count);
-    }
 
     [RelayCommand]
     public void LoadAllAlbumsFromOurDatabase()
@@ -7176,8 +7167,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     return;
                 }
                 artist.Url = SelectedSongLastFMData.Artist.Url;
-                artist.Bio = SelectedSongLastFMData.Artist.Biography.Summary;
-                artist.ImagePath = SelectedSongLastFMData.Artist.Images.FirstOrDefault(x=>x.Size == "mega")?.Url;
+                if(artist.Bio is null)
+                {
+                    artist.Bio = SelectedSongLastFMData.Artist.Biography?.Summary;
+                }
+                if(string.IsNullOrEmpty(artist.ImagePath))
+                    artist.ImagePath = SelectedSongLastFMData.Artist.Images.FirstOrDefault(x=>x.Size == "mega")?.Url;
+
                 artist.Name = SelectedSongLastFMData.Artist.Name;
                 
                 realm.Add(artist, update: true);

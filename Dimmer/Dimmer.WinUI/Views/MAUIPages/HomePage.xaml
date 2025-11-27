@@ -48,6 +48,15 @@
     <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
 
         <Grid RowDefinitions="auto,*,auto,*">
+            <Image
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                Aspect="AspectFit"
+                BackgroundColor="Transparent"
+                HorizontalOptions="Center"
+                Opacity="0.05"
+                Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
+                ToolTipProperties.Text="Click to view song details" />
             <VerticalStackLayout
                 Grid.Row="0"
                 Margin="10,5"
@@ -110,7 +119,7 @@
                     </Border.Triggers>
                     <Grid
                         x:Name="CoverImageSection"
-                        ColumnDefinitions="*,0.5*"
+                        RowDefinitions="*,0.5*"
                         VerticalOptions="Start">
                         <Image
                             x:Name="NowPlayingSong"
@@ -137,7 +146,7 @@
 
                         <VerticalStackLayout
                             x:Name="LyricsSection"
-                            Grid.Column="0"
+                            Grid.Row="0"
                             HorizontalOptions="Start"
                             IsVisible="True"
                             VerticalOptions="Center">
@@ -193,7 +202,7 @@
 
 
                         <VerticalStackLayout
-                            Grid.Column="1"
+                            Grid.Row="1"
                             BackgroundColor="Transparent"
                             Spacing="15">
                             <Label
@@ -529,13 +538,12 @@
                     Spacing="5">
 
                     <Button
+                        x:Name="ThemeToggler"
                         Grid.Row="0"
                         BackgroundColor="Transparent"
                         Command="{Binding ToggleAppThemeCommand}"
                         FontAttributes="Bold"
                         FontSize="13"
-                        x:Name="ThemeToggler"
-                        
                         HorizontalOptions="Center"
                         Loaded="ThemeToggler_Loaded"
                         Text="{Binding IsDarkModeOn}"
@@ -623,106 +631,6 @@
                 <Grid.GestureRecognizers>
                     <PointerGestureRecognizer x:Name="NowPlayingQueuePGR" PointerReleased="NowPlayingQueuePGR_PointerReleased" />
                 </Grid.GestureRecognizers>
-                <CollectionView
-                    x:Name="PBQueueCollectionView"
-                    ItemsSource="{Binding PlaybackQueue}"
-                    SelectionMode="None">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout ItemSpacing="5" Orientation="Vertical" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:SongModelView">
-                            <Border
-                                Stroke="LightGray"
-                                StrokeShape="RoundRectangle 5"
-                                StrokeThickness="0.1">
-                                <Grid
-                                    Padding="5"
-                                    ColumnDefinitions="120,*,auto"
-                                    ColumnSpacing="10"
-                                    RowDefinitions="140">
-                                    <Image
-                                        Grid.Column="0"
-                                        Margin="5"
-                                        Aspect="AspectFill"
-                                        Source="{Binding CoverImagePath}" />
-
-                                    <VerticalStackLayout
-                                        Grid.Column="1"
-                                        Padding="10,0,0,0"
-                                        VerticalOptions="Start">
-                                        <VerticalStackLayout.GestureRecognizers>
-                                            <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="PlaySongGestRec_Tapped" />
-                                        </VerticalStackLayout.GestureRecognizers>
-                                        <Button
-                                            BackgroundColor="Transparent"
-                                            FontAttributes="Bold"
-                                            FontSize="17"
-                                            HorizontalOptions="Start"
-                                            LineBreakMode="TailTruncation"
-                                            Loaded="ButtonLoaded"
-                                            Text="{Binding Title}" />
-
-                                        <Button
-                                            x:Name="ArtistBtnFromNPQ"
-                                            BackgroundColor="Transparent"
-                                            Clicked="ArtistBtnFromNPQ_Clicked"
-                                            CommandParameter="{Binding ArtistName}"
-                                            FontSize="15"
-                                            HorizontalOptions="Start"
-                                            Loaded="ButtonLoaded"
-                                            Text="{Binding ArtistName}" />
-
-                                        <Button
-                                            BackgroundColor="Transparent"
-                                            FontSize="13"
-                                            x:Name="AlbumBtnFromNPQ"
-                                            HorizontalOptions="Start"
-                                            Clicked="AlbumBtnFromNPQ_Clicked"
-                                            CommandParameter="{Binding AlbumName}"
-                                            Loaded="ButtonLoaded"
-                                            Text="{Binding Album.Name}" />
-                                    </VerticalStackLayout>
-
-                                    <HorizontalStackLayout
-                                        Grid.Column="2"
-                                        Padding="5"
-                                        BackgroundColor="Transparent"
-                                        VerticalOptions="Start">
-
-                                        <VerticalStackLayout>
-
-
-                                            <Image
-                                                BackgroundColor="Transparent"
-                                                HeightRequest="35"
-                                                HorizontalOptions="Center"
-                                                IsVisible="{Binding HasSyncedLyrics}"
-                                                Source="lyrics.png" />
-                                            <Image
-                                                BackgroundColor="Transparent"
-                                                HeightRequest="35"
-                                                HorizontalOptions="Center"
-                                                IsVisible="{Binding IsFavorite}"
-                                                Source="heart.png" />
-
-                                        </VerticalStackLayout>
-                                        <VerticalStackLayout WidthRequest="80">
-
-                                            <Label HorizontalOptions="Center" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
-
-                                            <Button
-                                                BackgroundColor="Transparent"
-                                                HorizontalOptions="Center"
-                                                ImageSource="more1.png"
-                                                Loaded="ButtonLoaded" />
-                                        </VerticalStackLayout>
-                                    </HorizontalStackLayout>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
             </Grid>
         </Grid>
 

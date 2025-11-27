@@ -3,6 +3,7 @@
 
 
 
+using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.WinUI;
 
 using Dimmer.Utilities.Extensions;
@@ -1124,6 +1125,19 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial WinUIVisibility IsBackButtonVisible { get; set; }
 
+
+    public override async Task UpdateSongSpecificUi(SongModelView? song)
+    {
+        await base.UpdateSongSpecificUi(song);
+        MainMAUIWindow.Title = AppTitle;
+        Microsoft.Maui.Controls.TitleBar mauiTitleBar = new Microsoft.Maui.Controls.TitleBar
+        {
+            Title = AppTitle            
+        };
+        if (CurrentPlaySongDominantColor == null) return;
+        await mauiTitleBar.BackgroundColorTo(CurrentPlaySongDominantColor);
+    }
+
     partial void OnIsBackButtonVisibleChanged(WinUIVisibility oldValue, WinUIVisibility newValue)
     {
         
@@ -1132,6 +1146,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
     [ObservableProperty]
     public partial bool AutoConfirmLastFMVar { get; set; }
+    public string? MAUIWindowTitle { get; internal set; }
+
     public override bool AutoConfirmLastFM(bool val)
     {
 

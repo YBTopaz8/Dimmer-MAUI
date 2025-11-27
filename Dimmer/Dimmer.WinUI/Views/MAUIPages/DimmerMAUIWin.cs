@@ -18,7 +18,6 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel = vm;
         AppUtil = appUtil;
         BindingContext = vm;
-
     }
     public Microsoft.Maui.Controls.Page CurrentPage => this.Page as Microsoft.Maui.Controls.Page ?? throw new InvalidOperationException("Current Page is not a valid Page.");
     
@@ -218,6 +217,8 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel.OpenAllSongsPageWinUICommand.Execute(null);
 
     }
+
+    
 
     private void SwitchTheme_Clicked(object sender, EventArgs e)
     {

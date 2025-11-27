@@ -1281,8 +1281,8 @@ public partial class HomePage : ContentPage
                 var items = MyViewModel.PlaybackQueueSource.Items;
                 var isInItems = items.Contains(MyViewModel.CurrentPlayingSongView);
                 if(!isInItems) return;
-                PBQueueCollectionView.ScrollTo(MyViewModel.CurrentPlayingSongView,null,ScrollToPosition.Start,true);
-                await MainScrollView.ScrollToAsync(0, PBQueueCollectionView.Y+110, true);
+
+                //scroll to current song in the now playing queue
             }
         }
     }

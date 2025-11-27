@@ -256,4 +256,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         return Player.Volume;
     }
+
+    public AudioOutputDevice? GetCurrentAudioOutputDevice()
+    {
+        var currentDevice = Service.GetCurrentAudioOutputDevice();
+        return currentDevice;
+
+    }
 }

@@ -117,9 +117,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         });
         
     }
-    public AudioOutputDevice GetCurrentAudioOutputDevice()
+    public AudioOutputDevice? GetCurrentAudioOutputDevice()
     {
         var currentDev = _controller.DefaultPlaybackDevice;
+        if (currentDev is null) return null;
         return new AudioOutputDevice
         {
             Id = currentDev.Id.ToString(),

@@ -11,6 +11,18 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\CustomViews\WinuiViews\SongCoverView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongLyricsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongMetadataView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongStatsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <MauiXaml Update="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

@@ -76,5 +76,5 @@ public interface IDimmerAudioService
     void WatchVolume();
     Task SetVolume(double volume);
     double GetCurrentVolume();
-    AudioOutputDevice GetCurrentAudioOutputDevice();
+    AudioOutputDevice? GetCurrentAudioOutputDevice();
 }

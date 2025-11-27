@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Dimmer.WinUI.Views.CustomViews.WinuiViews.SongMetadataView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Dimmer.Data.ModelView"
+    mc:Ignorable="d">
+
+
+    <ScrollViewer Padding="0,0,15,0">
+        <StackPanel
+            MaxWidth="800"
+            HorizontalAlignment="Left"
+            Spacing="20">
+
+            <TextBlock
+                FontSize="20"
+                FontWeight="Bold"
+                Foreground="MediumSlateBlue"
+                Text="Core Metadata" />
+
+            <!--  Title  -->
+            <TextBox
+                Header="Title"
+                PlaceholderText="Song Title"
+                Text="{x:Bind ViewModel.SelectedSong.Title, Mode=TwoWay}" />
+
+            <!--  Artist (AutoSuggest)  -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <AutoSuggestBox
+                    DisplayMemberPath="Name"
+                    Header="Main Artist"
+                    ItemsSource="{x:Bind ViewModel.AllArtistsInDb, Mode=OneWay}"
+                    PlaceholderText="Search or Enter Artist"
+                    QueryIcon="Find"
+                    Text="{x:Bind ViewModel.SelectedSong.ArtistName, Mode=TwoWay}" />
+
+                <Button
+                    x:Name="LoadAllArtists"
+                    Grid.Column="1"
+                    Margin="0,0,0,5"
+                    VerticalAlignment="Bottom"
+                    Click="LoadAllArtists_Click">
+                    <FontIcon Glyph="&#xE721;" />
+                </Button>
+            </Grid>
+
+            <!--  Other Artists & Album  -->
+            <Grid ColumnSpacing="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    Grid.Column="0"
+                    Header="Feat. Artists"
+                    PlaceholderText="Comma separated"
+                    Text="{x:Bind ViewModel.SelectedSong.OtherArtistsName, Mode=TwoWay}" />
+                <TextBox
+                    Grid.Column="1"
+                    Header="Album"
+                    Text="{x:Bind ViewModel.SelectedSong.AlbumName, Mode=TwoWay}" />
+            </Grid>
+
+            <!--  Details Row  -->
+            <Grid ColumnSpacing="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox
+                    Grid.Column="0"
+                    Header="Genre"
+                    Text="{x:Bind ViewModel.SelectedSong.GenreName, Mode=TwoWay}" />
+                
+                
+            </Grid>
+
+            <!--  Tags / Notes  -->
+            <TextBlock
+                Margin="0,10,0,0"
+                FontWeight="SemiBold"
+                Text="Tags &amp; Notes" />
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.SelectedSong.UserNoteAggregatedCol, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal" Spacing="8" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Padding="10,5"
+                            Background="#333"
+                            CornerRadius="12">
+                            <TextBlock FontSize="12" Text="{Binding UserMessageText}" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox PlaceholderText="Add new tag..." Text="{x:Bind ViewModel.CurrentNoteToSave, Mode=TwoWay}" />
+                <Button
+                    x:Name="AddNoteBtn"
+                    Grid.Column="1"
+                    Click="AddNoteBtn_Click"
+                    Content="Add" />
+            </Grid>
+
+            <StackPanel
+                Margin="0,20,0,0"
+                Orientation="Horizontal"
+                Spacing="10">
+                <Button Content="Save Changes" />
+                <Button Content="Reset" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
