@@ -205,21 +205,18 @@ public class MusicDataService
         if (songId == ObjectId.Empty || string.IsNullOrWhiteSpace(noteText))
             return null;
 
-        var noteToAdd = new UserNoteModel
-        {
-            UserMessageText = noteText,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ModifiedAt = DateTimeOffset.UtcNow
-        };
 
         using var realm = _realmFactory.GetRealmInstance();
 
+        var existingSong = realm.Find<SongModel>(songId);
         await realm.WriteAsync(() =>
         {
-            var existingSong = realm.Find<SongModel>(songId);
             if (existingSong != null)
             {
-                existingSong.UserNotes.Add(noteToAdd);
+                existingSong.UserNotes.Add(new UserNoteModel()
+                {
+                    UserMessageText= noteText
+                });
                 _logger.LogInformation("Added note to song '{SongTitle}'.", existingSong.Title);
             }
             else
@@ -229,7 +226,7 @@ public class MusicDataService
         });
 
         // The note object is now managed by Realm, but we can return it.
-        return noteToAdd;
+        return existingSong?.UserNotes.LastOrDefault();
     }
 
     // You can also add methods to update or remove notes

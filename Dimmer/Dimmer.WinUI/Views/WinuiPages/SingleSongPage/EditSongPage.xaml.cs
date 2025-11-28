@@ -221,7 +221,6 @@ public sealed partial class EditSongPage : Page
 
     private async void AddNoteToSong_Click(object sender, RoutedEventArgs e)
     {
-        var notesCount = MyViewModel.SelectedSong.UserNoteAggregatedCol.Count;
         await MyViewModel.AddNoteToSongAsync();
     }
 }

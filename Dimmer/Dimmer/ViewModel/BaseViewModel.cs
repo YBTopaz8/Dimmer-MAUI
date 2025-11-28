@@ -1579,8 +1579,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (addedNote != null)
             {
-                var addedNoteView = _mapper.Map<UserNoteModelView>(addedNote);
-                RxSchedulers.UI.Schedule(()=> songObject.UserNoteAggregatedCol.Add(addedNoteView));
+                RxSchedulers.UI.Schedule(()=> songObject.UserNoteAggregatedCol.Add(new
+                    UserNoteModelView() { UserMessageText=uNote}));
 
                 _logger.LogInformation("Successfully added user note for song: {SongTitle}", songObject.Title);
             }

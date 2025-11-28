@@ -381,7 +381,7 @@
                     IsReadOnly="True" />
                 <dgView:TableViewTemplateColumn
                     x:Name="Artist"
-                    MaxWidth="200"
+                    Width="250"
                     Header="Artist"
                     IsReadOnly="True">
                     <dgView:TableViewTemplateColumn.CellTemplate>
@@ -411,7 +411,7 @@
 
                 <dgView:TableViewTextColumn
                     x:Name="AlbumName"
-                    MaxWidth="300"
+                    Width="250"
                     Binding="{Binding AlbumName}"
                     Header="Album"
                     IsReadOnly="True" />
