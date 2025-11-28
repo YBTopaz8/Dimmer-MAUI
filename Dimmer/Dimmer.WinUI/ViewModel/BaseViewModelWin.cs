@@ -1250,4 +1250,5 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 break;
         }
     }
+
 }

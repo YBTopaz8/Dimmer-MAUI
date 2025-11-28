@@ -223,4 +223,18 @@ public sealed partial class EditSongPage : Page
     {
         await MyViewModel.AddNoteToSongAsync();
     }
+
+    private async void SaveChangeBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var vis = ElementCompositionPreview.GetElementVisual(PageNotificationText);
+
+        MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong!);
+        Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        PageNotificationText.Text = "Changes saved!";
+        PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Spring , _compositor);
+
+        await Task.Delay(1600); // slight delay to ensure smoothness
+        Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    }
 }

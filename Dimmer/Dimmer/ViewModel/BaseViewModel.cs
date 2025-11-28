@@ -4383,8 +4383,25 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
     }
 
+    [RelayCommand]
+    public void UpdateSongInDB(SongModelView songModelView)
+    {
+        if (songModelView == null || songModelView.Id == ObjectId.Empty)
+        {
+            _logger.LogWarning("UpdateSongInDB called with invalid SongModelView.");
+            return;
+        }
+        var songModel = songModelView.ToModel(_mapper);
+        if (songModel == null)
+        {
+            _logger.LogWarning("UpdateSongInDB: Could not map SongModelView to SongModel.");
+            return;
+        }
+        var song = songRepo.Upsert(songModel);
+        _logger.LogInformation("Song '{SongTitle}' updated in database.", songModel.Title);
+    }
 
-
+    [RelayCommand]
     public void RateSong(int newRating)
     {
         if (CurrentPlayingSongView == null || CurrentPlayingSongView.Id == ObjectId.Empty)
@@ -4402,9 +4419,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogWarning("RateSong: Could not map CurrentPlayingSongView to SongModel.");
             return;
         }
+        var isRatingGreaterNow = newRating > songModel.Rating;
+        var isRatingLowerNow = newRating < songModel.Rating;
+
         songModel.Rating = newRating;
         var song = songRepo.Upsert(songModel);
-        _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
+        
+            _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
         _stateService.SetCurrentSong(song.ToModelView(_mapper));
     }
@@ -7469,6 +7490,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (lastSavedPlaySession is null) return null;
         
         return _mapper.Map<PlaylistModelView>(lastSavedPlaySession);
+    }
+
+
+    public async Task LoadLyricsFromOnlineOrDBIfNeededAsync(SongModelView concernedSong)
+    {
+        await _lyricsMgtFlow.GetLyrics(concernedSong);
     }
 }
 

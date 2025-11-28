@@ -42,7 +42,6 @@ public sealed partial class SongDetailPage : Page
             { SectionOverview, "Overview" },
             { SectionPlayback, "Playback" },
             { SectionLyrics, "Lyrics" },
-            { SectionAnalytics, "Analytics" },
             { SectionHistory, "History" },
             { SectionRelated, "Related" }
         };
@@ -118,6 +117,7 @@ public sealed partial class SongDetailPage : Page
                     animation?.TryStart(detailedImage, new [] { coordinatedPanel });
                 };
                 MyViewModel.SelectedSong = DetailedSong;
+                await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong);
                 await MyViewModel.LoadSelectedSongLastFMData();
                 LoadUiComponents();
 
@@ -439,7 +439,7 @@ public sealed partial class SongDetailPage : Page
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
             }
-
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
                
              
@@ -711,6 +711,11 @@ public sealed partial class SongDetailPage : Page
         };
 
         Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+
+    }
+
+    private void AlbumBtn_Click(object sender, RoutedEventArgs e)
+    {
 
     }
 }

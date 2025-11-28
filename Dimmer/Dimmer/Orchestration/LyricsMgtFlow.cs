@@ -1,4 +1,6 @@
-﻿using Dimmer.Interfaces;
+﻿using System.Threading.Tasks;
+
+using Dimmer.Interfaces;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -121,6 +123,35 @@ public class LyricsMgtFlow : IDisposable
         }
     }
 
+    public async Task<IEnumerable<LyricPhraseModelView>> GetLyrics(SongModelView songConcerned)
+    {
+        var res = await GetStoredLyricsContentAsync(songConcerned);
+        if (res is null)
+        {
+            return Enumerable.Empty<LyricPhraseModelView>();
+        }
+        var _lyrics = GetListLyricsCol(res);
+        if(_lyrics is null)
+        {
+            var OnlineLyrics = await GetLyricsContentAsync(songConcerned);
+            var collectionfOfLyricModelViewsFromOnlineLyrics
+                = new List<LyricPhraseModelView > { };
+            
+            foreach (var onlineLyric in OnlineLyrics ?? Enumerable.Empty<LrcLibLyrics>())
+            {
+                var lyricModelViews = GetListLyricsCol(onlineLyric.SyncedLyrics);
+                collectionfOfLyricModelViewsFromOnlineLyrics.Add(lyricModelViews);
+             
+            }
+
+            return collectionfOfLyricModelViewsFromOnlineLyrics;
+
+        }
+        else
+        {
+            return _lyrics;
+        }
+    }
     public static List<LyricPhraseModelView> GetListLyricsCol(string? lrcContent)
     {
         if (string.IsNullOrWhiteSpace(lrcContent))

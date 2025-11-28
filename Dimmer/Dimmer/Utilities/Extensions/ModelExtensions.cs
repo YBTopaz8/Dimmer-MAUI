@@ -6,7 +6,7 @@ public static class ModelToViewExtensions
     {
         if (view == null || mapper == null)
             return null;
-        return mapper.Map<SongModel>(view); // Assumes AutoMapper or similar IMapper setup
+        return mapper.Map<SongModel>(view); 
     }
 
     public static SongModelView? ToModelView(this SongModel? model, IMapper mapper)

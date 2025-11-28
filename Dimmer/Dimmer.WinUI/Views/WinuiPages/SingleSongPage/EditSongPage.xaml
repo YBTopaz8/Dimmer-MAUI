@@ -40,11 +40,17 @@
                 Click="BackButton_Click"
                 Content="Back" />
             <Button
+                x:Name="SaveChangeBtn"
                 Width="120"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
+                Click="SaveChangeBtn_Click"
                 Content="Save Changes" />
-
+            <TextBlock
+                x:Name="PageNotificationText"
+                FontSize="30"
+                Foreground="DarkOrange"
+                Visibility="Visible" />
         </StackPanel>
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="10" Spacing="15">
@@ -62,8 +68,8 @@
                     <StackPanel Width="450" Spacing="10">
                         <Image
                             x:Name="detailedImage"
-                            Width="300"
-                            Height="300"
+                            Width="500"
+                            Height="500"
                             HorizontalAlignment="Center"
                             Source="{Binding SelectedSong.CoverImagePath}" />
 
@@ -161,11 +167,13 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontWeight="SemiBold"
-                            Text="ReleaseYear:" />
+                            Text="Release Year:" />
+
                         <TextBox
                             x:Name="ReleaseYearTextBox"
                             Width="650"
                             Margin="0,5,0,15"
+                            InputScope="Digits"
                             Text="{Binding SelectedSong.ReleaseYear}" />
                     </StackPanel>
 

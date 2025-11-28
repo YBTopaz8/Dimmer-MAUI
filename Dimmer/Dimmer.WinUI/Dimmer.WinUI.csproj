@@ -39,6 +39,10 @@
 	  <None Remove="Views\WinuiPages\DimmerLivePage.xaml" />
 	  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\EditSongPage.xaml" />
+	  <None Remove="Views\WinuiPages\SingleSongPage\SingleSongLyrics.xaml" />
+	  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\LyricsEditorPage.xaml" />
+	  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\LyricsOverViewPage.xaml" />
+	  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\OnlineLyricsSearchPage.xaml" />
 	  <None Remove="Views\WinuiPages\SongDetailPage.xaml" />
 	</ItemGroup>
 
@@ -98,6 +102,26 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\LyricsEditorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\OnlineLyricsSearchPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\LyricsOverViewPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\SingleSongPage\SingleSongLyrics.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\SingleSongPage\EditSongPage.xaml">
