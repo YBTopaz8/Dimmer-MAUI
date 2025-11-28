@@ -1536,40 +1536,58 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         songToUpdate.ArtistName = string.Join(" | ", artistNames);
     }
 
-    public virtual async Task SaveUserNoteToSong(SongModelView songWithNote)
+    public async Task UpdateSongNoteWithGivenNoteModelView(SongModelView songModelView, UserNoteModelView uNote)
     {
-        var result = await Shell.Current
-            .DisplayPromptAsync(
-                "Note Text",
-                message: $"Note for {Environment.NewLine}" + $"{songWithNote.Title} - {songWithNote.OtherArtistsName}",
-                placeholder: "Tip: Just type this note to search this song through TQL :)",
-                accept: "Done",
-                keyboard: Keyboard.Text);
-        if (result == null)
-        {
+        var realm = RealmFactory.GetRealmInstance();
+        var dbSong = realm.Find<SongModel>(songModelView.Id);
+        if (dbSong == null)
             return;
-        }
-        if (string.IsNullOrWhiteSpace(result))
-        {
+        var specificNoteById = dbSong.UserNotes.FirstOrDefault(x => x.Id == uNote.Id);
+        if (specificNoteById == null)
             return;
-        }
+        await realm.WriteAsync(
+            () =>
+            {
+                specificNoteById.UserMessageText = uNote.UserMessageText;
+            });
+    }
 
+    public async Task RemoveSongNoteById(SongModelView song, UserNoteModelView uNote)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var dbSong = realm.Find<SongModel>(song.Id);
+        if (dbSong == null)
+            return;
+        var specificNoteById = dbSong.UserNotes.FirstOrDefault(x => x.Id == uNote.Id);
+        if (specificNoteById == null)
+            return;
+        await realm.WriteAsync(
+            () =>
+            {
+                realm.Remove(specificNoteById);
+            });
+
+    }
+
+
+    public async Task SaveUserNoteToSong(SongModelView songObject, string uNote)
+    {
+      
         try
         {
-            var addedNote = await _musicDataService.AddNoteToSong(songWithNote.Id, result);
+            var addedNote = await _musicDataService.AddNoteToSong(songObject.Id, uNote);
 
             if (addedNote != null)
             {
                 var addedNoteView = _mapper.Map<UserNoteModelView>(addedNote);
-                songWithNote.UserNoteAggregatedCol.Add(addedNoteView);
+                RxSchedulers.UI.Schedule(()=> songObject.UserNoteAggregatedCol.Add(addedNoteView));
 
-                await Toast.Make($"Note added to {songWithNote.Title}").Show();
-                _logger.LogInformation("Successfully added user note for song: {SongTitle}", songWithNote.Title);
+                _logger.LogInformation("Successfully added user note for song: {SongTitle}", songObject.Title);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save user note for song {SongId}", songWithNote.Id);
+            _logger.LogError(ex, "Failed to save user note for song {SongId}", songObject.Id);
         }
     }
 
@@ -4324,14 +4342,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SongListeningStreak = null;
     }
 
-    public async Task SaveNoteToListOfSongs(IEnumerable<SongModelView> songs)
-    {
-        foreach (var item in songs)
-        {
-            await SaveUserNoteToSong(item);
-        }
-        //TODO : make an error handling logic here
-    }
+ 
     [RelayCommand]
     public async Task UpdateFolderPath(string? path)
     {

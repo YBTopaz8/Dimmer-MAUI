@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+
 using Microsoft.UI.Xaml.Documents;
 
 using Button = Microsoft.UI.Xaml.Controls.Button;
@@ -681,12 +683,34 @@ public sealed partial class SongDetailPage : Page
 
     private void SectionOverview_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        var visual = ElementCompositionPreview.GetElementVisual(UtilitiesSection);  
-        PlatUtils.ApplyEntranceEffect(visual, UtilitiesSection, SongTransitionAnimation.Fade,_compositor);
     }
 
     private async void SectionOverview_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        await PlatUtils.ApplyExitEffectAsync(UtilitiesSection, _compositor,ExitTransitionEffect.FadeSlideDown);
+    }
+
+    private void EditSongBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        // Navigate to the detail page, passing the selected song object.
+        // Suppress the default page transition to let ours take over.
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(EditSongPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = DetailedSong!,
+            ViewModel = MyViewModel
+            
+        };
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+
     }
 }

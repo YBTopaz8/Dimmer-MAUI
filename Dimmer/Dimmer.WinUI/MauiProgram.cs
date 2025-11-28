@@ -1,5 +1,7 @@
 ﻿
 
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+
 namespace Dimmer.WinUI;
 
 
@@ -118,6 +120,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SettingsPage>();
         builder.Services.AddSingleton<DimmerLivePage>();
         builder.Services.AddSingleton<SongDetailPage>();
+        builder.Services.AddSingleton<EditSongPage>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();

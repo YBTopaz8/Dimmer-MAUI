@@ -3,114 +3,407 @@
     x:Class="Dimmer.WinUI.Views.WinuiPages.SingleSongPage.EditSongPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer>
-        <StackPanel>
+    <Page.Resources>
 
-            <StackPanel Grid.Column="0" Margin="20">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="25"
-                    Text="Song Core Edits" />
-                <Grid>
-                    <Image x:Name="detailedImage" Source="{x:Bind DetailedSong.CoverImagePath}" />
+        <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
+        <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
+        <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgo" />
+        <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
+        <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
+        <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
+        <converters:BoolToImageConverter
+            x:Key="PlayPauseConverter"
+            FalseValue="play.png"
+            TrueValue="pause.png" />
+        <converters:BoolToImageConverter
+            x:Key="FavIconConverter"
+            FalseValue="heartbroken.png"
+            TrueValue="heartlock.png" />
+    </Page.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Horizontal"
+            Spacing="15">
+            <Button
+                VerticalAlignment="Center"
+                Click="BackButton_Click"
+                Content="Back" />
+            <Button
+                Width="120"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Content="Save Changes" />
 
-                    <Button Width="60" Height="60">
-                        <Image Source="/Dimmer/Resources/Images/edit.svg" />
-                    </Button>
-                </Grid>
-                <TextBlock FontWeight="SemiBold" Text="Title:" />
-                <TextBox x:Name="TitleTextBox" Margin="0,5,0,15" />
-                <Button
-                    Width="120"
-                    Margin="0,20,0,0"
-                    HorizontalAlignment="Left"
-                    Content="Save Changes" />
-            </StackPanel>
-
-
-            <StackPanel>
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="25"
-                    Text="Song Artist Edits" />
-                <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSong.ArtistToSong}">
-
-                    <ItemsRepeater.ItemTemplate>
-
-                        <DataTemplate>
-                            <Button
-                                Margin="0,10,0,0"
-                                BorderThickness="1"
-                                CornerRadius="15">
-                                <StackPanel
-                                    Background="Transparent"
-                                    Orientation="Horizontal"
-                                    Spacing="15">
-                                    <Image
-                                        Width="50"
-                                        Height="50"
-                                        Source="{Binding ImagePath}"
-                                        Visibility="{Binding ImagePath, Converter={StaticResource StringNullOrEmptyToVisibility}}" />
-                                    <TextBlock FontSize="26" Text="{Binding Name}" />
-                                    <TextBlock FontSize="26" Text="{Binding TotalSongsByArtist}" />
-                                    <TextBlock FontSize="26" Text="{Binding TotalAlbumsByArtist}" />
-
-
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-            </StackPanel>
-
-            <StackPanel>
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="25"
-                    Text="Song Album Edits" />
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock FontWeight="SemiBold" Text="Album:" />
-                    <TextBox
-                        x:Name="AlbumTextBox"
-                        Margin="0,5,0,15"
-                        Text="{x:Bind MyViewModel.SelectedSong.Album.Name}" />
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button x:Name="ViewAlbum" Content="View" />
-                    <Button x:Name="AssignNewAlbumToSong" Content="Update" />
-                    <Button x:Name="RemoveFromAlbum" Content="Remove From Album" />
-                </StackPanel>
-
-            </StackPanel>
-
-            <StackPanel>
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="25"
-                    Text="Song Genre Edit" />
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock FontWeight="SemiBold" Text="Album:" />
-                    <TextBox
-                        x:Name="GenreTextBox"
-                        Margin="0,5,0,15"
-                        Text="{x:Bind MyViewModel.SelectedSong.Genre.Name}" />
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button x:Name="ViewAlbum" Content="View" />
-                    <Button x:Name="AssignNewAlbumToSong" Content="Update" />
-                    <Button x:Name="RemoveFromAlbum" Content="Remove From Album" />
-                </StackPanel>
-
-            </StackPanel>
         </StackPanel>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="10" Spacing="15">
+
+                <StackPanel
+                    Grid.Column="0"
+                    Padding="10"
+                    BorderBrush="SlateGray"
+                    BorderThickness="1"
+                    CornerRadius="15">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+                        Text="Song Core Edits" />
+                    <StackPanel Width="450" Spacing="10">
+                        <Image x:Name="detailedImage" Source="{Binding SelectedSong.CoverImagePath}" />
+
+                        <SplitButton
+                            x:Name="MyImagePickerBtn"
+                            HorizontalAlignment="Right"
+                            Content="Edit Image">
+                            <SplitButton.Flyout>
+
+                                <MenuFlyout>
+                                    <MenuFlyoutItem
+                                        x:Name="ChooseImageFromFileSystem"
+                                        Click="ChooseImageFromFileSystem_Click"
+                                        Text="Choose From File System" />
+                                    <MenuFlyoutItem
+                                        x:Name="ChooseImageFromOtherSongsInAlbum"
+                                        Click="ChooseImageFromOtherSongsInAlbum_Click"
+                                        Text="Choose From Other Songs In Album" />
+                                    <MenuFlyoutItem
+                                        x:Name="RemoveImageFromSong"
+                                        Click="RemoveImageFromSong_Click"
+                                        Text="Remove Image" />
+                                </MenuFlyout>
+                            </SplitButton.Flyout>
+
+                        </SplitButton>
+
+                        <Grid x:Name="GridOfOtherImages" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <ScrollViewer Grid.Column="0">
+                                <ItemsRepeater x:Name="ImagesFromOtherSongsItemsRepeater">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Horizontal" Spacing="10" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <Image
+                                                Width="80"
+                                                Height="80"
+                                                PointerPressed="Image_PointerPressed"
+                                                Source="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+
+                            <Button
+                                Grid.Column="1"
+                                Click="GridOfOtherImagesCloseButton_Click"
+                                Content="X" />
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="Title:" />
+                        <TextBox
+                            x:Name="TitleTextBox"
+                            Width="650"
+                            Margin="0,5,0,15"
+                            Text="{Binding SelectedSong.Title}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="Track Number:" />
+                        <TextBox
+                            x:Name="TrackNumberTextBox"
+                            Width="650"
+                            Margin="0,5,0,15"
+                            Text="{Binding SelectedSong.TrackNumber}" />
+                    </StackPanel>
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="ReleaseYear:" />
+                        <TextBox
+                            x:Name="ReleaseYearTextBox"
+                            Width="650"
+                            Margin="0,5,0,15"
+                            Text="{Binding SelectedSong.ReleaseYear}" />
+                    </StackPanel>
 
 
-    </ScrollViewer>
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="Conductor:" />
+                        <TextBox
+                            x:Name="ConductorTextBox"
+                            Width="650"
+                            Margin="0,5,0,15"
+                            Text="{Binding SelectedSong.Conductor}" />
+                    </StackPanel>
+
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="Composer:" />
+                        <TextBox
+                            x:Name="ComposerTextBox"
+                            Width="650"
+                            Margin="0,5,0,15"
+                            Text="{Binding SelectedSong.Composer}" />
+                    </StackPanel>
+
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="Description:" />
+                        <RichEditBox
+                            x:Name="DescriptionTextBox"
+                            Width="650"
+                            Height="100"
+                            Margin="0,5,0,15" />
+                    </StackPanel>
+
+                </StackPanel>
+
+
+                <StackPanel
+                    Padding="10"
+                    BorderBrush="DarkSlateGray"
+                    BorderThickness="1"
+                    CornerRadius="15">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+                        Text="Song Artist Edits" />
+                    <ItemsRepeater HorizontalAlignment="Center" ItemsSource="{Binding SelectedSong.ArtistToSong}">
+
+                        <ItemsRepeater.ItemTemplate>
+
+                            <DataTemplate>
+                                <Button
+                                    x:Name="ArtistBtn"
+                                    Margin="0,10,0,0"
+                                    BorderThickness="1"
+                                    CornerRadius="15"
+                                    RightTapped="ArtistBtn_RightTapped">
+                                    <StackPanel
+                                        Background="Transparent"
+                                        Orientation="Vertical"
+                                        Spacing="15">
+
+                                        <StackPanel
+                                            Background="Transparent"
+                                            Orientation="Vertical"
+                                            Spacing="15">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="39"
+                                                Text="{Binding Name}" />
+                                        </StackPanel>
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            Background="Transparent"
+                                            Orientation="Horizontal"
+                                            Spacing="15">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="26"
+                                                    Text="{Binding TotalSongsByArtist}" />
+                                                <TextBlock Text="Songs" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="26"
+                                                    Text="{Binding TotalAlbumsByArtist}" />
+                                                <TextBlock Text="Albums" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+                <StackPanel
+                    Padding="10"
+                    BorderBrush="MediumSlateBlue"
+                    BorderThickness="1"
+                    CornerRadius="15">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+                        Text="Song Album Edits" />
+
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            FontSize="25"
+                            FontWeight="SemiBold"
+                            Text="Album:" />
+                        <SplitButton
+                            x:Name="AlbumTextBox"
+                            Margin="0,5,0,15"
+                            Content="{Binding SelectedSong.Album.Name}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button x:Name="ViewAlbum" Content="View" />
+                        <Button x:Name="AssignNewAlbumToSong" Content="Update" />
+                        <Button x:Name="RemoveFromAlbum" Content="Remove From Album" />
+                    </StackPanel>
+
+                </StackPanel>
+
+                <StackPanel
+                    Padding="10"
+                    BorderBrush="LightSlateGray"
+                    BorderThickness="1"
+                    CornerRadius="15">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+                        Text="Song Genre Edit" />
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            FontSize="25"
+                            FontWeight="SemiBold"
+                            Text="Genre:" />
+                        <TextBox
+                            x:Name="GenreTextBox"
+                            Margin="0,5,0,15"
+                            Text="{Binding SelectedSong.Genre.Name}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button x:Name="ViewGenre" Content="View" />
+                        <Button x:Name="AssignNewGenreToSong" Content="Update" />
+                        <Button x:Name="RemoveFromGenre" Content="Remove From Genre" />
+                    </StackPanel>
+
+                </StackPanel>
+
+                <StackPanel
+                    Padding="10"
+                    BorderBrush="DarkSlateBlue"
+                    BorderThickness="1"
+                    CornerRadius="15"
+                    Spacing="10">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+                        Text="Song Notes" />
+                    <Button HorizontalAlignment="Center" Content="Add" x:Name="AddNoteToSong"
+                            Click="AddNoteToSong_Click"/>
+                    <ItemsRepeater ItemsSource="{Binding SelectedSong.UserNoteAggregatedCol}">
+
+                        <ItemsRepeater.ItemTemplate>
+
+                            <DataTemplate>
+                                <Button
+                                    x:Name="UserNoteBtn"
+                                    Margin="0,10,0,0"
+                                    BorderThickness="1"
+                                    CornerRadius="15"
+                                    PointerPressed="UserNoteBtn_PointerPressed">
+                                    <StackPanel
+                                        Background="Transparent"
+                                        Orientation="Horizontal"
+                                        Spacing="15">
+
+                                        <TextBlock
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="26"
+                                            Text="{Binding UserMessageText}" />
+
+
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </StackPanel>
+
+
+        </ScrollViewer>
+    </Grid>
 </Page>

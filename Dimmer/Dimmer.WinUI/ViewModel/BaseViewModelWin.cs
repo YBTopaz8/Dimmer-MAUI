@@ -1214,4 +1214,40 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             songInDb.ArtistToSong.Add(exactArtist);
         });
     }
+
+    internal async Task AddNoteToSongAsync()
+    {
+        var contentDialog = new ContentDialog
+        {
+            Title = "Add Note to Song",
+            Content = new TextBox
+            {
+                AcceptsReturn = true,
+                TextWrapping = TextWrapping.Wrap,
+                Height = 200,
+                Width = 400,
+                
+            },
+            PrimaryButtonText = "Save",
+            CloseButtonText = "Cancel",
+            XamlRoot = MainWindow?.ContentFrame.XamlRoot
+        };
+        var result = await contentDialog.ShowAsync();
+        switch (result)
+        {
+            case ContentDialogResult.None:
+                break;
+            case ContentDialogResult.Primary:
+                var addedNote = (contentDialog.Content as TextBox)?.Text;
+                if (addedNote is null) return;
+                
+                await SaveUserNoteToSong(SelectedSong, addedNote);
+                
+                break;
+            case ContentDialogResult.Secondary:
+                break;
+            default:
+                break;
+        }
+    }
 }

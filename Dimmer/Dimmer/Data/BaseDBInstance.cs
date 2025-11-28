@@ -28,10 +28,7 @@ public class RealmFactory : IRealmFactory
         {
             AppUtils.IsUserFirstTimeOpening = true;
         }
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-        }
+      
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {

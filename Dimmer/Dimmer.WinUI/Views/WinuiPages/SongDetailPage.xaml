@@ -91,9 +91,9 @@
 
                     <Grid
                         x:Name="SectionOverview"
+                        ColumnSpacing="10"
                         PointerEntered="SectionOverview_PointerEntered"
-                        PointerExited="SectionOverview_PointerExited"
-                        ColumnSpacing="10">
+                        PointerExited="SectionOverview_PointerExited">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -103,20 +103,16 @@
                         <!--  The Image that will be the target of the connected animation  -->
 
                         <StackPanel Grid.Column="0" Spacing="10">
-                            <Border
-                                Width="300"
-                                Height="300"
-                                CornerRadius="8">
-                                <Image x:Name="detailedImage" Source="{x:Bind DetailedSong.CoverImagePath}" />
-
-                            </Border>
-                            <StackPanel
-                                x:Name="UtilitiesSection"
-                                Orientation="Horizontal"
-                                Spacing="10">
-                                <Button Content="Edit" FontSize="19" />
-
-                            </StackPanel>
+                            <Button
+                                x:Name="EditSongBtn"
+                                Click="EditSongBtn_Click"
+                                Content="Edit"
+                                FontSize="19" />
+                            <Image
+                                x:Name="detailedImage"
+                                Width="200"
+                                Height="200"
+                                Source="{x:Bind DetailedSong.CoverImagePath}" />
                         </StackPanel>
                         <Border Grid.Column="1">
 
@@ -124,73 +120,71 @@
                                 x:Name="coordinatedPanel"
                                 HorizontalAlignment="Left"
                                 Spacing="5">
-
-                                <TextBlock
-                                    HorizontalAlignment="Left"
-                                    FontSize="80"
-                                    Style="{ThemeResource TitleTextBlockStyle}"
-                                    Text="{x:Bind DetailedSong.Title, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-
-                                <StackPanel Orientation="Horizontal">
-                                    <Button
-                                        x:Name="ArtistBtn"
-                                        HorizontalAlignment="Left"
-                                        Background="Transparent"
-                                        BorderThickness="2"
-                                        Click="ArtistBtn_Click"
-                                        Content="{x:Bind DetailedSong.ArtistName, Mode=OneWay}"
-                                        FontWeight="Bold"
-                                        Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibility}}" />
-                                    <AutoSuggestBox
-                                        x:Name="ArtistPickerAutoSuggestBox"
-                                        Loaded="ArtistPickerAutoSuggestBox_Loaded"
-                                        QuerySubmitted="ArtistPickerAutoSuggestBox_QuerySubmitted"
-                                        SuggestionChosen="ArtistPickerAutoSuggestBox_SuggestionChosen"
-                                        TextChanged="ArtistPickerAutoSuggestBox_TextChanged"
-                                        Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibilityInverted}}" />
-
-                                </StackPanel>
                                 <StackPanel
-                                    Margin="0,10,0,0"
-                                    Orientation="Horizontal"
+                                    x:Name="UtilitiesSection"
+                                    Background="Transparent"
+                                    Orientation="Vertical"
                                     Spacing="10">
+                                    <TextBlock
+                                        HorizontalAlignment="Left"
+                                        FontSize="80"
+                                        Style="{ThemeResource TitleTextBlockStyle}"
+                                        Text="{x:Bind DetailedSong.Title, Mode=OneWay}"
+                                        TextWrapping="Wrap" />
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button
+                                            x:Name="ArtistBtn"
+                                            HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="2"
+                                            Click="ArtistBtn_Click"
+                                            Content="{x:Bind DetailedSong.ArtistName, Mode=OneWay}"
+                                            FontWeight="Bold"
+                                            Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibility}}" />
+
+
+                                    </StackPanel>
+                                    <StackPanel
+                                        Margin="0,10,0,0"
+                                        Orientation="Horizontal"
+                                        Spacing="10">
+
+                                        <Button
+                                            HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="2"
+                                            Content="{x:Bind DetailedSong.AlbumName, Mode=OneWay}" />
+                                        <TextBlock VerticalAlignment="Center" Text="{x:Bind DetailedSong.ReleaseYear, Mode=OneWay}" />
+
+                                    </StackPanel>
 
                                     <Button
-                                        HorizontalAlignment="Left"
                                         Background="Transparent"
                                         BorderThickness="2"
-                                        Content="{x:Bind DetailedSong.AlbumName, Mode=OneWay}" />
-                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind DetailedSong.ReleaseYear, Mode=OneWay}" />
+                                        Content="{x:Bind DetailedSong.GenreName, Mode=OneWay}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock FontSize="19" Text="Dimms" />
 
+                                        <Button Content="{x:Bind DetailedSong.PlayCompletedCount, Mode=OneWay}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock FontSize="19" Text="Is Fav:" />
+
+                                        <ToggleButton
+                                            Height="20"
+                                            VerticalAlignment="Bottom"
+                                            Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
+                                            CommandParameter="{Binding SelectedSong}"
+                                            IsChecked="{x:Bind DetailedSong.IsFavorite, Mode=OneWay}" />
+                                    </StackPanel>
+
+                                    <RichTextBlock
+                                        x:Name="BioBlock"
+                                        Loaded="BioBlock_Loaded"
+                                        TextWrapping="Wrap" />
                                 </StackPanel>
-
-                                <Button
-                                    Background="Transparent"
-                                    BorderThickness="2"
-                                    Content="{x:Bind DetailedSong.GenreName, Mode=OneWay}" />
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock FontSize="19" Text="Dimms" />
-
-                                    <Button Content="{x:Bind DetailedSong.PlayCompletedCount, Mode=OneWay}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock FontSize="19" Text="Is Fav:" />
-
-                                    <ToggleButton
-                                        Height="20"
-                                        VerticalAlignment="Bottom"
-                                        Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
-                                        CommandParameter="{Binding SelectedSong}"
-                                        IsChecked="{x:Bind DetailedSong.IsFavorite, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <RichTextBlock
-                                    x:Name="BioBlock"
-                                    Loaded="BioBlock_Loaded"
-                                    TextWrapping="Wrap" />
                             </StackPanel>
-
                         </Border>
                     </Grid>
 
