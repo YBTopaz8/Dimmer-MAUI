@@ -483,16 +483,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //}
 
             var backgroundRealm = RealmFactory.GetRealmInstance();
-            //var tempListOfSongs = _mapper.Map<IEnumerable<SongModelView>>(backgroundRealm.All<SongModel>());
-            //await EnsureCoverArtCachedForSongsAsync(tempListOfSongs);
+            
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
             redoStats.RecalculateAllStatistics();
             
-            //await EnsureAllCoverArtCachedForSongsAsync();
-
-            // Task 2: Update SearchableText for all songs (Heavy CPU/DB work)
-            
-            
+        
          
             _logger.LogInformation("Finished calculating SearchableText.");
 
@@ -2290,7 +2285,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
         }
 
-
+        IsLibraryEmpty = false;
         ReloadFolderPaths();
     }
 
@@ -4591,6 +4586,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             realm.Dispose();
             _subsManager.Dispose();
             CompositeDisposables.Dispose();
+            
         }
 
         _disposed = true;

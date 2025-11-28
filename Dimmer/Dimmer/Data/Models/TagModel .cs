@@ -3,6 +3,7 @@
 public partial class TagModel : RealmObject, IRealmObjectWithObjectId
 {
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
     public string Name { get; set; } = "Unknown Tag";
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;

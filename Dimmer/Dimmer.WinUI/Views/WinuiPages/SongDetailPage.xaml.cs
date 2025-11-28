@@ -188,10 +188,6 @@ public sealed partial class SongDetailPage : Page
         CalculateSectionOffsets();
     }
 
-    private void ApplyEntranceEffect(Visual visual, FrameworkElement element)
-    {
-       
-    }
 
     private void ResultsList_ItemClick(object sender, ItemClickEventArgs e)
     {
@@ -681,5 +677,16 @@ public sealed partial class SongDetailPage : Page
             .Select(a => a.Name)
             .Distinct()
             .ToList();
+    }
+
+    private void SectionOverview_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(UtilitiesSection);  
+        PlatUtils.ApplyEntranceEffect(visual, UtilitiesSection, SongTransitionAnimation.Fade,_compositor);
+    }
+
+    private async void SectionOverview_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        await PlatUtils.ApplyExitEffectAsync(UtilitiesSection, _compositor,ExitTransitionEffect.FadeSlideDown);
     }
 }

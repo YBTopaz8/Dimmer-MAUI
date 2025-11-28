@@ -10,6 +10,7 @@ public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
     public bool IsFavorite { get; set; }
 
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
     public string Name { get; set; }
     public string? Bio { get; set; }

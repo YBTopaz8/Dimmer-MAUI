@@ -5,6 +5,7 @@ public partial class UserModel : RealmObject, IRealmObjectWithObjectId
 {
 
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
     public string? UserName { get; set; }
     public string? UserEmail { get; set; }

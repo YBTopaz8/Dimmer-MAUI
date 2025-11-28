@@ -608,7 +608,170 @@ public static class PlatUtils
 
 
     }
+    public static async Task ApplyExitEffectAsync(FrameworkElement frameElt, Compositor _compositor, ExitTransitionEffect exitAnim = ExitTransitionEffect.FadeSlideDown)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(frameElt);
+        var duration = TimeSpan.FromMilliseconds(400);
+        // 1. Create a "Batch" to track when animations finish
+        var batch = _compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
 
+        // Ensure the center point is set correctly for Scale/Rotation animations
+        visual.CenterPoint = new Vector3((float)frameElt.ActualWidth / 2f,
+                                         (float)frameElt.ActualHeight / 2f, 0);
+
+        // Standard linear easing for simple fades, Cubic for movement
+        var cubicBezier = _compositor.CreateCubicBezierEasingFunction(new Vector2(0.5f, 0.0f), new Vector2(0.5f, 1.0f));
+
+        switch (exitAnim)
+        {
+            // 1. THE REQUESTED EFFECT: Fade Out + Slide Down
+            case ExitTransitionEffect.FadeSlideDown:
+            default:
+                // Opacity: 1 -> 0
+                var fadeDown = _compositor.CreateScalarKeyFrameAnimation();
+                fadeDown.InsertKeyFrame(1f, 0f);
+                fadeDown.Duration = duration;
+
+                // Offset: (0,0) -> (0, 50)
+                var slideDown = _compositor.CreateVector3KeyFrameAnimation();
+                slideDown.InsertKeyFrame(1f, new Vector3(0, 50f, 0), cubicBezier);
+                slideDown.Duration = duration;
+
+                visual.StartAnimation("Opacity", fadeDown);
+                visual.StartAnimation("Offset", slideDown);
+                break;
+
+            // 2. Zoom Out (Scale down to nothing)
+            case ExitTransitionEffect.ZoomOut:
+                var zoom = _compositor.CreateVector3KeyFrameAnimation();
+                zoom.InsertKeyFrame(1f, new Vector3(0f)); // Scale to 0
+                zoom.Duration = duration;
+
+                var fadeZoom = _compositor.CreateScalarKeyFrameAnimation();
+                fadeZoom.InsertKeyFrame(1f, 0f);
+                fadeZoom.Duration = duration;
+
+                visual.StartAnimation("Scale", zoom);
+                visual.StartAnimation("Opacity", fadeZoom);
+                break;
+
+            // 3. Slide Right
+            case ExitTransitionEffect.SlideRight:
+                var slideR = _compositor.CreateVector3KeyFrameAnimation();
+                // Move right by width + buffer
+                slideR.InsertKeyFrame(1f, new Vector3((float)frameElt.ActualWidth + 50f, 0, 0), cubicBezier);
+                slideR.Duration = duration;
+
+                visual.StartAnimation("Offset", slideR);
+                break;
+
+            // 4. Slide Left
+            case ExitTransitionEffect.SlideLeft:
+                var slideL = _compositor.CreateVector3KeyFrameAnimation();
+                slideL.InsertKeyFrame(1f, new Vector3(-((float)frameElt.ActualWidth + 50f), 0, 0), cubicBezier);
+                slideL.Duration = duration;
+
+                visual.StartAnimation("Offset", slideL);
+                break;
+
+            // 5. Fly Up (Fade out while moving up)
+            case ExitTransitionEffect.FlyUp:
+                var flyUp = _compositor.CreateVector3KeyFrameAnimation();
+                flyUp.InsertKeyFrame(1f, new Vector3(0, -50f, 0), cubicBezier);
+                flyUp.Duration = duration;
+
+                var fadeUp = _compositor.CreateScalarKeyFrameAnimation();
+                fadeUp.InsertKeyFrame(1f, 0f);
+                fadeUp.Duration = duration;
+
+                visual.StartAnimation("Offset", flyUp);
+                visual.StartAnimation("Opacity", fadeUp);
+                break;
+
+            // 6. Spin and Shrink (Whirlpool effect)
+            case ExitTransitionEffect.SpinAndShrink:
+                var spin = _compositor.CreateScalarKeyFrameAnimation();
+                spin.InsertKeyFrame(1f, 360f, cubicBezier); // Rotate full circle
+                spin.Duration = duration;
+
+                var shrink = _compositor.CreateVector3KeyFrameAnimation();
+                shrink.InsertKeyFrame(1f, Vector3.Zero);
+                shrink.Duration = duration;
+
+                visual.StartAnimation("RotationAngleInDegrees", spin);
+                visual.StartAnimation("Scale", shrink);
+                break;
+
+            // 7. Flip Horizontal (Rotates along Y axis until invisible)
+            case ExitTransitionEffect.FlipHorizontal:
+                var flip = _compositor.CreateScalarKeyFrameAnimation();
+                // Rotate 90 degrees (edge-on to viewer, effectively invisible)
+                flip.InsertKeyFrame(1f, 90f, cubicBezier);
+                flip.Duration = duration;
+
+                // Set the Axis of rotation to Y
+                visual.RotationAxis = new Vector3(0, 1, 0);
+                visual.StartAnimation("RotationAngleInDegrees", flip);
+
+                // Helpful to fade it slightly at the end to prevent "clipping" artifacts
+                var fadeFlip = _compositor.CreateScalarKeyFrameAnimation();
+                fadeFlip.InsertKeyFrame(0.5f, 1f);
+                fadeFlip.InsertKeyFrame(1f, 0f);
+                fadeFlip.Duration = duration;
+                visual.StartAnimation("Opacity", fadeFlip);
+                break;
+
+            // 8. Fold Vertical (Squash Y scale)
+            case ExitTransitionEffect.FoldVertical:
+                var fold = _compositor.CreateVector3KeyFrameAnimation();
+                // Keep X scale at 1, squash Y to 0
+                fold.InsertKeyFrame(1f, new Vector3(1f, 0f, 1f), cubicBezier);
+                fold.Duration = duration;
+
+                visual.StartAnimation("Scale", fold);
+                break;
+
+            // 9. Explode (Scale up + Fade out)
+            case ExitTransitionEffect.Explode:
+                var explodeScale = _compositor.CreateVector3KeyFrameAnimation();
+                explodeScale.InsertKeyFrame(1f, new Vector3(1.5f), cubicBezier); // Grow 1.5x
+                explodeScale.Duration = duration;
+
+                var explodeFade = _compositor.CreateScalarKeyFrameAnimation();
+                explodeFade.InsertKeyFrame(0f, 1f);
+                explodeFade.InsertKeyFrame(1f, 0f); // Disappear
+                explodeFade.Duration = duration;
+
+                visual.StartAnimation("Scale", explodeScale);
+                visual.StartAnimation("Opacity", explodeFade);
+                break;
+        }
+
+        // 2. End the batch definition
+        batch.End();
+
+        // 3. Wait for the batch to complete asynchronously
+        var tcs = new TaskCompletionSource<bool>();
+        batch.Completed += (s, e) => tcs.SetResult(true);
+        await tcs.Task;
+
+        // 4. CLEANUP: Now that animation is done, hide the XAML element
+        frameElt.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        // 5. RESET: Reset visuals so if you set Visibility.Visible later, it looks normal
+        ResetElementVisual(frameElt);
+    }
+    private static void ResetElementVisual(FrameworkElement frameElt)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(frameElt);
+
+        // Reset all transform properties to defaults
+        visual.Opacity = 1f;
+        visual.Offset = Vector3.Zero;
+        visual.Scale = Vector3.One;
+        visual.RotationAngleInDegrees = 0f;
+        visual.RotationAxis = new Vector3(0, 0, 1); // Default Z-axis
+    }
     internal static void ApplyEntranceEffect(Microsoft.UI.Composition.Visual visual, FrameworkElement element, SongTransitionAnimation _userPrefAnim, Microsoft.UI.Composition.Compositor _compositor)
     {
         visual.CenterPoint = new Vector3(

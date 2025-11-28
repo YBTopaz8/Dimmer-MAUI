@@ -2,6 +2,7 @@
 public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
 {
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }

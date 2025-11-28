@@ -62,14 +62,12 @@
                 Margin="10,5"
                 BackgroundColor="Transparent"
                 Spacing="10">
-                <HorizontalStackLayout
-                    HorizontalOptions="End"
-                    IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
-                    Spacing="10">
+                <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
 
                     <Button
                         BackgroundColor="Transparent"
                         BorderWidth="1"
+                        Clicked="ViewNPQ_Clicked"
                         ImageSource="playlistminimalistic3.png"
                         WidthRequest="60" />
                     <Button

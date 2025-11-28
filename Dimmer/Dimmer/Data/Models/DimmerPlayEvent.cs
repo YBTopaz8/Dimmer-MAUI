@@ -14,6 +14,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
 
     [Backlink(nameof(SongModel.PlayHistory))] // If you want to navigate from Song to its events

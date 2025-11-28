@@ -8,6 +8,7 @@ public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 
     public bool IsNew { get; set; }
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
     public string CurrentSongId { get; set; }
     public string? CurrentAlbumId { get; set; }

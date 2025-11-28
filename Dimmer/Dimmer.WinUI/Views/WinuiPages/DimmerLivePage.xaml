@@ -3,11 +3,19 @@
     x:Class="Dimmer.WinUI.Views.WinuiPages.DimmerLivePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
+    <Page.Resources>
+        <ResourceDictionary>
+            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <convertersWinUI:StringNullOrEmptyToDefaultIconWithParamtypeConverter x:Key="StringNullOrEmptyToDefaultIconWithParamtypeConverter" />
+            <convertersWinUI:BoolToInverseConverter x:Key="BoolToInverseConverter" />
+            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+        </ResourceDictionary>
+    </Page.Resources>
     <StackPanel>
         <Button
             x:Name="BackBtn"
@@ -148,36 +156,30 @@
             </Grid>
 
             <Grid x:Name="GridFullView" Visibility="Collapsed">
-                <StackPanel>
+                <StackPanel HorizontalAlignment="Center" Spacing="10">
                     <Image
-                        Width="100"
-                        Height="100"
+                        MaxWidth="200"
+                        MaxHeight="200"
                         HorizontalAlignment="Right"
-                        Source="{Binding CurrentUser.ProfileImagePath}" />
+                        Source="/Dimmer/Resources/Images/usercircle.svg" />
 
-                    <StackPanel HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding CurrentUser.Username}" />
-                        <TextBlock Text="{Binding CurrentUser.Email}" />
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock FontSize="26" Text="{Binding CurrentUser.Username}" />
+                        <TextBlock FontSize="20" Text="{Binding CurrentUser.Email}" />
 
                     </StackPanel>
 
                     <StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Spacing="15">
-
-                            <TextBlock FontSize="34" Text="Total Devices" />
-                            <TextBlock FontSize="34" Text="{Binding OtherDevices.Count}" />
-
-                        </StackPanel>
                         <ItemsRepeater ItemsSource="{Binding OtherDevices}">
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel
                                         Padding="10"
-                                        HorizontalAlignment="Left"
                                         BorderBrush="DarkSlateBlue"
                                         BorderThickness="1"
-                                        CornerRadius="20">
+                                        CornerRadius="20"
+                                        Spacing="15">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -185,26 +187,49 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" Margin="0,0,10,0">
 
-                                                <TextBlock Text="Device Idiom" />
-                                                <TextBlock Text="Device Name" />
-                                                <TextBlock Text="Device Platform" />
-                                                <TextBlock Text="Device OS Version" />
-                                                <TextBlock Text="Session StartTime" />
+                                                <TextBlock FontSize="18" Text="Device Idiom" />
+                                                <TextBlock FontSize="18" Text="Device Name" />
+                                                <TextBlock FontSize="18" Text="Device Platform" />
+                                                <TextBlock FontSize="18" Text="Device OS Version" />
+                                                <TextBlock FontSize="18" Text="Session StartTime" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Margin="0,0,10,0">
 
-                                                <TextBlock Text="{Binding DeviceIdiom}" />
-                                                <TextBlock Text="{Binding DeviceName}" />
-                                                <TextBlock Text="{Binding DevicePlatform}" />
-                                                <TextBlock Text="{Binding DeviceOSVersion}" />
-                                                <TextBlock Text="{Binding SessionStartTime}" />
+                                                <TextBlock FontSize="18" Text="{Binding DeviceIdiom}" />
+                                                <TextBlock FontSize="18" Text="{Binding DeviceName}" />
+                                                <TextBlock FontSize="18" Text="{Binding DevicePlatform}" />
+                                                <TextBlock FontSize="18" Text="{Binding DeviceOSVersion}" />
+                                                <TextBlock FontSize="18" Text="{Binding SessionStartTime}" />
                                             </StackPanel>
                                         </Grid>
+
+                                        <Button
+                                            x:Name="BackUpDeviceBtn"
+                                            HorizontalAlignment="Center"
+                                            Click="BackUpDeviceBtn_Click"
+                                            Visibility="Collapsed">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="/Dimmer/Resources/Images/cloudfile.svg" />
+                                                <TextBlock FontSize="16" Text="BackUp Device" />
+                                            </StackPanel>
+                                        </Button>
+
 
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+
+
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="15">
+
+                            <TextBlock FontSize="27" Text="Total Devices" />
+                            <TextBlock FontSize="27" Text="{Binding OtherDevices.Count}" />
+
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </Grid>

@@ -8,6 +8,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
     public string Title { get; set; }
     public string ArtistName { get; set; }

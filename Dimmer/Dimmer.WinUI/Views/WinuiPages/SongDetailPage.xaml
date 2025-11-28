@@ -59,11 +59,13 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Background="#111"
-                CornerRadius="5">
+                CornerRadius="5"
+                Visibility="Collapsed">
                 <StackPanel
                     Margin="12"
                     VerticalAlignment="Center"
-                    Orientation="Horizontal">
+                    Orientation="Horizontal"
+                    Visibility="Collapsed">
                     <TextBlock
                         x:Name="CurrentSectionLabel"
                         FontSize="18"
@@ -87,7 +89,11 @@
 
                     <!--  The elements involved in the animation  -->
 
-                    <Grid x:Name="SectionOverview" ColumnSpacing="10">
+                    <Grid
+                        x:Name="SectionOverview"
+                        PointerEntered="SectionOverview_PointerEntered"
+                        PointerExited="SectionOverview_PointerExited"
+                        ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -95,15 +101,23 @@
                         </Grid.ColumnDefinitions>
 
                         <!--  The Image that will be the target of the connected animation  -->
-                        <Border
-                            Grid.Column="0"
-                            Width="300"
-                            Height="300"
-                            CornerRadius="8">
-                            <Image x:Name="detailedImage" Source="{x:Bind DetailedSong.CoverImagePath}" />
 
-                        </Border>
+                        <StackPanel Grid.Column="0" Spacing="10">
+                            <Border
+                                Width="300"
+                                Height="300"
+                                CornerRadius="8">
+                                <Image x:Name="detailedImage" Source="{x:Bind DetailedSong.CoverImagePath}" />
 
+                            </Border>
+                            <StackPanel
+                                x:Name="UtilitiesSection"
+                                Orientation="Horizontal"
+                                Spacing="10">
+                                <Button Content="Edit" FontSize="19" />
+
+                            </StackPanel>
+                        </StackPanel>
                         <Border Grid.Column="1">
 
                             <StackPanel
@@ -170,6 +184,7 @@
                                         CommandParameter="{Binding SelectedSong}"
                                         IsChecked="{x:Bind DetailedSong.IsFavorite, Mode=OneWay}" />
                                 </StackPanel>
+
                                 <RichTextBlock
                                     x:Name="BioBlock"
                                     Loaded="BioBlock_Loaded"
@@ -502,7 +517,7 @@
                         <TextBlock Text="Last FM Stats..." />
                         <TextBlock Text="{Binding SimilarTracks.Count}" />
 
-                        <ScrollViewer>
+                        <ScrollViewer Visibility="{Binding SimilarTracks.Count, Converter={StaticResource CollectionSizeToVisibility}}">
 
                             <ItemsRepeater ItemsSource="{Binding SimilarTracks}">
                                 <ItemsRepeater.Layout>

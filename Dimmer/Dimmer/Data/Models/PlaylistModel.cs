@@ -2,6 +2,7 @@
 public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
 {
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
 
     public string PlaylistName { get; set; } = "New Playlist";

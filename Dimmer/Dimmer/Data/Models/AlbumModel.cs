@@ -108,6 +108,7 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
+    [MapTo("_id")]
     public ObjectId Id { get; set; }
 
     /// <summary>

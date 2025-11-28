@@ -1,18 +1,23 @@
 ﻿
 
+using System.IO;
+
 namespace Dimmer.ViewModel;
+
 public partial class SessionManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionManagerService _sessionManager;
     public LoginViewModel LoginViewModel;
-    private  BaseViewModel _mainViewModel; // To get current song state
+    private BaseViewModel _mainViewModel; // To get current song state
     private readonly ILogger<SessionManagementViewModel> _logger;
     private readonly CompositeDisposable _disposables = new();
 
     private readonly ReadOnlyObservableCollection<UserDeviceSession> _otherDevices;
     public ReadOnlyObservableCollection<UserDeviceSession> OtherDevices => _otherDevices;
 
-    public UserModelOnline ? CurrentUser => LoginViewModel.CurrentUser;
+    public UserModelOnline? CurrentUser => LoginViewModel.CurrentUser;
+
+    public bool IsBusy { get; private set; }
     [ObservableProperty]
     public partial string StatusMessage { get; set; }
 
@@ -63,7 +68,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         }
     }
 
-    public async Task TransferToDevice(UserDeviceSession targetDevice,SongModelView song)
+    public async Task TransferToDevice(UserDeviceSession targetDevice, SongModelView song)
     {
 
         if (targetDevice == null || _mainViewModel.CurrentPlayingSongView == null)
@@ -74,8 +79,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
         IsTransferInProgress = true;
         StatusMessage = $"Sending session to {targetDevice.DeviceName}...";
- 
-      
+
+
 
         //var stream = await File.ReadAllBytesAsync(song.FilePath);
 
@@ -137,7 +142,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             var sharedPosition = songInfo.SharedPositionInSeconds ?? 0;
 
             _mainViewModel.SeekTrackPosition(sharedPosition);
-            
+
             // Let Device A know we got it.
             await _sessionManager.AcknowledgeTransferCompleteAsync(songInfo);
 
@@ -153,5 +158,62 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     {
         _disposables.Dispose();
         _sessionManager.StopListeners(); // Important
+    }
+    [RelayCommand]
+    public async Task BackUpDeviceRealmFile()
+    {
+        // 1. Get the ACTIVE Realm instance to find the path
+        // We don't use 'using' here because we don't want to close the UI's connection
+        var realm = _mainViewModel.RealmFactory.GetRealmInstance();
+
+        var sourcePath = realm.Config.DatabasePath;
+        var tempPath = Path.Combine(FileSystem.CacheDirectory, "upload_temp.realm");
+
+        // Ensure temp file is clean
+        if (File.Exists(tempPath)) File.Delete(tempPath);
+
+        try
+        {
+            IsBusy = true; // Optional: Show loading indicator
+
+            // 2. THE BYPASS FIX:
+            // Instead of realm.WriteCopy(), we manually copy the bytes.
+            // FileShare.ReadWrite is the magic flag that lets us read a locked file.
+            using (var sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var destStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+            {
+                await sourceStream.CopyToAsync(destStream);
+            }
+
+            // 3. Upload to Parse (Streamed)
+            using (var uploadStream = new FileStream(tempPath, FileMode.Open, FileAccess.Read))
+            {
+                var parseFile = new ParseFile($"{CurrentUser?.ObjectId}_backup.realm.back", uploadStream);
+                await parseFile.SaveAsync(ParseClient.Instance);
+
+                var backupObj = new ParseObject("UserBackup");
+                backupObj["user"] = CurrentUser;
+                backupObj["backupFile"] = parseFile;
+                backupObj["device"] = DeviceInfo.Name; // e.g. "Windows Desktop"
+                backupObj["appVersion"] = AppInfo.VersionString;
+
+                backupObj.ACL = new ParseACL(CurrentUser);
+                await backupObj.SaveAsync();
+            }
+
+            _logger.LogInformation("Backup successful.");
+            await Shell.Current.DisplayAlert("Success", "Backup uploaded successfully!", "OK");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Backup failed");
+            await Shell.Current.DisplayAlert("Error", "Backup failed: " + ex.Message, "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+            // 4. Cleanup
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+        }
     }
 }
