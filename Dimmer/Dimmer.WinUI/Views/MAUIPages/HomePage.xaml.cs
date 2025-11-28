@@ -394,8 +394,8 @@ public partial class HomePage : ContentPage
 
     private void ViewNPQ_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+        MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
 
     }
 

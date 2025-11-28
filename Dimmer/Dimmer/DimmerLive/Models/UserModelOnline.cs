@@ -17,7 +17,8 @@ public class UserModelOnline : ParseUser
         get => GetProperty<string?>();
         set => SetProperty(value);
     }
-
+    public bool IsPremium { get; set; }
+    public bool IsAuthenticated { get; set; }
     private const string UserDeviceSessionsKey = "userDeviceSessions"; // Define key as a constant
 
     [ParseFieldName(UserDeviceSessionsKey)] // Conventionally plural for relations
@@ -59,7 +60,6 @@ public class UserModelOnline : ParseUser
             this.Username = plainUser.Username;
         if (!string.IsNullOrEmpty(plainUser.Email))
             this.Email = plainUser.Email;
-
 
         if (plainUser.ACL != null)
         {

@@ -1,16 +1,18 @@
 ﻿
 
 namespace Dimmer.ViewModel;
-public partial class SessionTransferViewModel : ObservableObject, IDisposable
+public partial class SessionManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionManagerService _sessionManager;
+    public LoginViewModel LoginViewModel;
     private  BaseViewModel _mainViewModel; // To get current song state
-    private readonly ILogger<SessionTransferViewModel> _logger;
+    private readonly ILogger<SessionManagementViewModel> _logger;
     private readonly CompositeDisposable _disposables = new();
 
     private readonly ReadOnlyObservableCollection<UserDeviceSession> _otherDevices;
     public ReadOnlyObservableCollection<UserDeviceSession> OtherDevices => _otherDevices;
 
+    public UserModelOnline ? CurrentUser => LoginViewModel.CurrentUser;
     [ObservableProperty]
     public partial string StatusMessage { get; set; }
 
@@ -18,11 +20,12 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
     public partial bool IsTransferInProgress { get; set; }
 
 
-    public SessionTransferViewModel(
+    public SessionManagementViewModel(LoginViewModel loginViewModel,
         ILiveSessionManagerService sessionManager,
-        ILogger<SessionTransferViewModel> logger,
+        ILogger<SessionManagementViewModel> logger,
         BaseViewModel mainViewModel)
     {
+        LoginViewModel = loginViewModel ?? throw new ArgumentNullException(nameof(loginViewModel));
         _sessionManager = sessionManager;
         _logger = logger;
         _mainViewModel = mainViewModel;
@@ -62,7 +65,7 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
 
     public async Task TransferToDevice(UserDeviceSession targetDevice,SongModelView song)
     {
-        return;
+
         if (targetDevice == null || _mainViewModel.CurrentPlayingSongView == null)
         {
             StatusMessage = "No song is playing to transfer.";
@@ -74,13 +77,13 @@ public partial class SessionTransferViewModel : ObservableObject, IDisposable
  
       
 
-        var stream = await File.ReadAllBytesAsync(song.FilePath);
+        //var stream = await File.ReadAllBytesAsync(song.FilePath);
 
-        ParseChatService.GetSongMimeType(song, out var mimeType, out var fileExtension);
+        //ParseChatService.GetSongMimeType(song, out var mimeType, out var fileExtension);
 
-        ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
+        //ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
 
-        await songFile.SaveAsync(ParseClient.Instance);
+        //await songFile.SaveAsync(ParseClient.Instance);
 
         await _sessionManager.InitiateSessionTransferAsync(targetDevice, null);
 

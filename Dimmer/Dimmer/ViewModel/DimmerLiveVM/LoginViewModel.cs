@@ -9,10 +9,14 @@ public partial class LoginViewModel : ObservableObject
     private readonly IRealmFactory realmFactory;
 
     [ObservableProperty]
-    public partial string Username { get; set; } = string.Empty;
+    public partial string Username { get; set; }
+    partial void OnUsernameChanged(string oldValue, string newValue)
+    {
+        
+    }
 
     [ObservableProperty]
-    public partial string Password { get; set; } = string.Empty;
+    public partial string Password { get; set; } 
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
@@ -72,6 +76,8 @@ public partial class LoginViewModel : ObservableObject
         else
         {
             ErrorMessage = result.ErrorMessage;
+            await Task.Delay(4000);
+            ErrorMessage = null;
         }
 
         IsBusy = false;
@@ -137,27 +143,10 @@ public partial class LoginViewModel : ObservableObject
         if(Connectivity.NetworkAccess == NetworkAccess.Internet)
         {     
 
-        await _authService.AutoLoginAsync();
+            await _authService.AutoLoginAsync();
 
-            if (ParseClient.Instance.CurrentUser is not null)
-            {
-
-                var qr = new ParseQuery<UserModelOnline>(ParseClient.Instance)
-                    .WhereEqualTo("objectId", ParseClient.Instance.CurrentUser.ObjectId);
-
-                var usr = await qr.FirstOrDefaultAsync();
-                if (usr is null)
-                {
-
-                    UserModelOnline newUsr = new UserModelOnline(ParseUser.CurrentUser);
-
-                    await newUsr.SaveAsync();
-                    CurrentUser = newUsr;
-                    return;
-                }
-                CurrentUser = usr;
-            }
-
+            CurrentUser = new UserModelOnline(ParseClient.Instance.CurrentUser);
+            CurrentUser.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
         }
     }
     [RelayCommand]
@@ -191,6 +180,12 @@ public partial class LoginViewModel : ObservableObject
                 // Handle failure, e.g., show an error message
             }
         }
+    }
+    public async Task<AuthResult> SignUpNormally(string username, string password, string email)
+    {
+
+        return await _authService.RegisterAsync(username, email,password ); 
+        
     }
     public async Task<ParseUser> SignUpWithReferralAsync(string username, string password, string email, string referralCode)
     {

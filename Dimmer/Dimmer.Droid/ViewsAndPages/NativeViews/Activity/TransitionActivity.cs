@@ -283,10 +283,7 @@ public class TransitionActivity : AppCompatActivity
             base.OnResume();
 
             if (MyViewModel is null) return;
-            if (MyViewModel.IsLastFMNeedsToConfirm)
-            {
-               
-            }
+         
             SetupBackNavigation();
             // Log that the activity resumed
             Console.WriteLine("TransitionActivity: OnResume called.");

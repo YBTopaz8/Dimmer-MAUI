@@ -33,7 +33,6 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<DimmerWin>();
 
-        builder.Services.AddSingleton<SessionTransferVMWin>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

@@ -118,7 +118,7 @@
 
                 </StackPanel>
 
-                <TextBlock Text="{Binding CurrentTqlQuery}" />
+                <TextBlock Text="{Binding CurrentTqlQueryUI}" />
 
                 <StackPanel
                     x:Name="ViewQueueStackPanel"

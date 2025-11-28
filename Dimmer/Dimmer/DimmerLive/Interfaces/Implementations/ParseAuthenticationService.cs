@@ -17,7 +17,8 @@ public class ParseAuthenticationService : IAuthenticationService
 
     public async Task AutoLoginAsync()
     {
-        if (CurrentUserValue == null)
+        if (ParseClient.Instance is null) return;
+        if (CurrentUserValue == null || CurrentUserValue.SessionToken is null)
         {
             //get saved sessionToken
 
@@ -25,7 +26,7 @@ public class ParseAuthenticationService : IAuthenticationService
 
             if (Tokenn != null)
             {
-                var usr = await ParseClient.Instance.BecomeAsync(Tokenn);
+                 await ParseClient.Instance.BecomeAsync(Tokenn);
                 
             }
 
@@ -55,12 +56,7 @@ public class ParseAuthenticationService : IAuthenticationService
     }
     public async Task<bool> InitializeAsync()
     {
-        if (CurrentUserValue is not null)
-        {
-
-            return true;
-        }
-        
+       
         var parseUser = ParseUser.CurrentUser;
         if (parseUser != null)
         {
@@ -71,10 +67,6 @@ public class ParseAuthenticationService : IAuthenticationService
                 _logger.LogInformation("User session restored for {Username}", parseUser.Username);
                 await SaveTokenAsync();
                 
-
-
-
-
                 return true;
             }
             catch (Exception ex)
@@ -101,6 +93,7 @@ public class ParseAuthenticationService : IAuthenticationService
         try
         {
             var parseUser = await ParseClient.Instance.LogInWithAsync(username, password);
+            await SaveTokenAsync();
             _currentUserSubject.OnNext(new UserModelOnline(parseUser));
             return AuthResult.Success();
         }
@@ -117,7 +110,7 @@ public class ParseAuthenticationService : IAuthenticationService
         try
         {
             await ParseClient.Instance.SignUpWithAsync(parseUser);
-            _currentUserSubject.OnNext(new UserModelOnline(parseUser));
+            _currentUserSubject.OnNext(new UserModelOnline(ParseClient.Instance.CurrentUser));
             return AuthResult.Success();
         }
         catch (Exception ex)

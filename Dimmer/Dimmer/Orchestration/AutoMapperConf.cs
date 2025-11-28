@@ -75,13 +75,13 @@ public static class AutoMapperConf
             cfg.CreateMap<GenreModel, GenreModelView>()
                 .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());
 
-            cfg.CreateMap<PlaylistModel, PlaylistModelView>()
-                .ForMember(dest => dest.SongInPlaylist, opt => opt.Ignore()) // Cannot map RealmObject list to another
+                cfg.CreateMap<PlaylistModel, PlaylistModelView>()
+                    .ForMember(dest => dest.SongInPlaylist, opt => opt.MapFrom(src => src.SongsInPlaylist))
                 .ForMember(dest => dest.SongsIdsInPlaylist, opt => opt.MapFrom(src => src.ManualSongIds))
+                .ForMember(dest => dest.PlaylistEvents, opt => opt.MapFrom(src => src.PlayHistory))
                 .ForMember(dest => dest.CurrentSong, opt => opt.Ignore())
                 .ForMember(dest => dest.Color, opt => opt.Ignore()) // Assuming this is UI state
                 .ForMember(dest => dest.PlaylistType, opt => opt.Ignore())
-                .ForMember(dest => dest.PlaylistEvents, opt => opt.Ignore())
                 .ForMember(dest => dest.DeviceName, opt => opt.Ignore());
 
             cfg.CreateMap<AppStateModel, AppStateModelView>()

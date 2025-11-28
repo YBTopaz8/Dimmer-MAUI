@@ -8,5 +8,206 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid />
+    <StackPanel>
+        <Button
+            x:Name="BackBtn"
+            Background="DarkSlateBlue"
+            BorderBrush="DarkSlateBlue"
+            Click="BackBtn_Click"
+            Content="Back"
+            CornerRadius="0,5,5,0" />
+
+        <Grid x:Name="GridOfAll" Margin="10">
+            <Grid x:Name="GridOfAuth" Visibility="Visible">
+                <StackPanel
+                    x:Name="LoginStackPanel"
+                    Padding="15"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BorderBrush="DarkSlateBlue"
+                    BorderThickness="2"
+                    CornerRadius="20"
+                    Spacing="10">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="39"
+                        Text="Dimmer Login" />
+
+                    <TextBox
+                        x:Name="DimmerUserName"
+                        FontSize="19"
+                        PlaceholderText="Dimmer User Name"
+                        Text="{Binding LoginViewModel.Username}" />
+                    <TextBox
+                        x:Name="DimmerPassword"
+                        FontSize="19"
+                        PlaceholderText="Dimmer Password"
+                        Text="{Binding LoginViewModel.Password}" />
+                    <Button
+                        x:Name="ForgottenPassword"
+                        HorizontalAlignment="Center"
+                        BorderThickness="0"
+                        Click="ForgottenPassword_Click"
+                        Content="Forgotten Password" />
+
+
+                    <Button
+                        HorizontalAlignment="Center"
+                        Background="Transparent"
+                        Click="LoginButton_Click"
+                        Content="Login"
+                        FontSize="26" />
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        Foreground="Red"
+                        Text="{Binding LoginViewModel.ErrorMessage}" />
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+                        <TextBlock VerticalAlignment="Center" Text="Don't have an Account?" />
+                        <Button
+                            x:Name="SwitchToSignUpBtn"
+                            BorderThickness="0"
+                            Click="SwitchToSignUpBtn_Click">
+                            <TextBlock Text="Sign Up" />
+                        </Button>
+
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel
+                    x:Name="SignUpPanel"
+                    Spacing="10"
+                    Visibility="Collapsed">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="39"
+                        Text="Dimmer Login" />
+
+                    <TextBox
+                        x:Name="DimmerUserNameSignUp"
+                        FontSize="19"
+                        PlaceholderText="Dimmer User Name"
+                        Text="{Binding LoginViewModel.Username}" />
+
+                    <TextBox
+                        x:Name="DimmerEmailSignUp"
+                        FontSize="19"
+                        PlaceholderText="Your Email"
+                        Text="{Binding LoginViewModel.Username}" />
+                    <PasswordBox
+                        x:Name="DimmerPasswordSignUp"
+                        FontSize="19"
+                        PlaceholderText="Dimmer Password" />
+                    <PasswordBox
+                        x:Name="DimmerPasswordSignUpConfirm"
+                        FontSize="19"
+                        PasswordChanged="DimmerPasswordSignUpConfirm_PasswordChanged"
+                        PlaceholderText="Confirm Password" />
+
+
+
+                    <TextBlock
+                        x:Name="NotSamePasswordTxtBlock"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        Foreground="Red" />
+                    <Button
+                        x:Name="SignupBtn"
+                        HorizontalAlignment="Center"
+                        Background="Transparent"
+                        Click="SignupBtn_Click"
+                        Content="Signup"
+                        FontSize="26"
+                        IsEnabled="False" />
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        Foreground="Red"
+                        Text="{Binding LoginViewModel.ErrorMessage}" />
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="5">
+                        <TextBlock VerticalAlignment="Center" Text="Already have an Account?" />
+                        <Button
+                            x:Name="SwitchToLogInBtn"
+                            BorderThickness="0"
+                            Click="SwitchToLoginBtn_Click">
+                            <TextBlock Text="Log In" />
+                        </Button>
+
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <Grid x:Name="GridFullView" Visibility="Collapsed">
+                <StackPanel>
+                    <Image
+                        Width="100"
+                        Height="100"
+                        HorizontalAlignment="Right"
+                        Source="{Binding CurrentUser.ProfileImagePath}" />
+
+                    <StackPanel HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding CurrentUser.Username}" />
+                        <TextBlock Text="{Binding CurrentUser.Email}" />
+
+                    </StackPanel>
+
+                    <StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="15">
+
+                            <TextBlock FontSize="34" Text="Total Devices" />
+                            <TextBlock FontSize="34" Text="{Binding OtherDevices.Count}" />
+
+                        </StackPanel>
+                        <ItemsRepeater ItemsSource="{Binding OtherDevices}">
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel
+                                        Padding="10"
+                                        HorizontalAlignment="Left"
+                                        BorderBrush="DarkSlateBlue"
+                                        BorderThickness="1"
+                                        CornerRadius="20">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+
+                                                <TextBlock Text="Device Idiom" />
+                                                <TextBlock Text="Device Name" />
+                                                <TextBlock Text="Device Platform" />
+                                                <TextBlock Text="Device OS Version" />
+                                                <TextBlock Text="Session StartTime" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+
+                                                <TextBlock Text="{Binding DeviceIdiom}" />
+                                                <TextBlock Text="{Binding DeviceName}" />
+                                                <TextBlock Text="{Binding DevicePlatform}" />
+                                                <TextBlock Text="{Binding DeviceOSVersion}" />
+                                                <TextBlock Text="{Binding SessionStartTime}" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </StackPanel>
 </Page>

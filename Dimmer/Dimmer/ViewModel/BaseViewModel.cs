@@ -6408,6 +6408,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial string CurrentTqlQuery { get; set; } = "";
 
     [ObservableProperty]
+    public partial string CurrentTqlQueryUI { get; set; } = "";
+    partial void OnCurrentTqlQueryChanged(string value)
+    {
+        CurrentTqlQueryUI = value;
+    }
+    [ObservableProperty]
     public partial string TQLUserSearchErrorMessage { get; set; }
 
     [ObservableProperty]
@@ -7439,14 +7445,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void CopyAllSongsInNowPlayingQueueToMainSearchResult()
     {
-        SearchResultsHolder.Edit(updater =>
-        {
-            SearchResultsHolder.Clear();
-            foreach (var song in PlaybackQueue)
-            {
-                SearchResultsHolder.Add(song);
-            }
-        });
+        var latestPL = GetLastPlaylist();
+        if (latestPL is null) return;
+        CurrentTqlQueryUI = latestPL.QueryText;
+        SearchSongForSearchResultHolder(CurrentTqlQueryUI);
+      
+      
+    }
+
+    public PlaylistModelView? GetLastPlaylist()
+    {
+        var realm = RealmFactory.GetRealmInstance();
+
+        var lastSavedPlaySession = realm.All<PlaylistModel>().LastOrDefault();
+        if (lastSavedPlaySession is null) return null;
+        
+        return _mapper.Map<PlaylistModelView>(lastSavedPlaySession);
     }
 }
 

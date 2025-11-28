@@ -35,6 +35,24 @@ public class UserDeviceSession : ParseObject
         get => GetProperty<string>();
         set => SetProperty(value);
     }
+    [ParseFieldName("deviceManufacturer")]
+    public string DeviceManufacturer
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("devicePlatform")]
+    public string DevicePlatform
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("deviceModel")]
+    public string DeviceModel
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
     [ParseFieldName("deviceOSVersion")]
     public string DeviceOSVersion
     {

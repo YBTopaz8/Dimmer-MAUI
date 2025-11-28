@@ -1,3 +1,5 @@
+using CommunityToolkit.WinUI;
+
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Button = Microsoft.UI.Xaml.Controls.Button;
@@ -72,15 +74,15 @@ public sealed partial class SettingsPage : Page
 
     private void LastFMView_Click(object sender, RoutedEventArgs e)
     {
-        WizardFlipView.SelectedIndex = 2;
-        var send = (ToggleButton)sender;
+        WizardFlipView.SelectedIndex = 1;
+        var send = (Button)sender;
 
     }
 
 
     private void UtilsView_Click(object sender, RoutedEventArgs e)
     {
-        WizardFlipView.SelectedIndex = 3;
+        WizardFlipView.SelectedIndex = 2;
     }
 
     private void WizardFlipView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -305,10 +307,25 @@ public sealed partial class SettingsPage : Page
         await MyViewModel.ReScanMusicFolderByPassingToService(path);
     }
 
-    private void DimmerSection_Click(object sender, RoutedEventArgs e)
+    private async void DimmerSection_Click(object sender, RoutedEventArgs e)
     {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(DimmerLivePage);
+       
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
 
-        WizardFlipView.SelectedIndex = 1;
+        };
+
+
+        await DispatcherQueue.EnqueueAsync(() =>
+        {
+
+            Frame?.NavigateToType(songDetailType, null, navigationOptions);
+        });
+
     }
 
     private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)

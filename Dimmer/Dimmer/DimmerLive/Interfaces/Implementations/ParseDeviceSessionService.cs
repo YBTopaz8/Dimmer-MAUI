@@ -41,6 +41,9 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
                 { "currentDeviceName", DeviceInfo.Name },
                 { "currentDeviceId", Preferences.Get("MyDeviceId", Guid.NewGuid().ToString()) },
                 { "currentDeviceIdiom", DeviceInfo.Idiom.ToString() },
+                { "currentDevicePlatform", DeviceInfo.Platform.ToString() },
+                { "currentDeviceModel", DeviceInfo.Model.ToString() },
+                { "currentDeviceManufacturer", DeviceInfo.Manufacturer.ToString() },
                 { "currentDeviceOSVersion", DeviceInfo.VersionString }
             };
 
@@ -169,23 +172,23 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     {
         _logger.LogInformation("Received targeted SessionTransfer message.");
 
-        var songPointer = message.Get<ParseObject>("SharedSong");
-        if (songPointer != null)
-        {
-            try
-            {
-                var sharedSong = await songPointer.FetchAsync() as DimmerSharedSong;
-                if (sharedSong != null)
-                {
-                    // Fire the observable for the ViewModel to catch
-                    _incomingTransfers.OnNext(sharedSong);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to fetch shared song from transfer message.");
-            }
-        }
+        //var songPointer = message.Get<ParseObject>("SharedSong");
+        //if (songPointer != null)
+        //{
+        //    try
+        //    {
+        //        var sharedSong = await songPointer.FetchAsync() as DimmerSharedSong;
+        //        if (sharedSong != null)
+        //        {
+        //            // Fire the observable for the ViewModel to catch
+        //            _incomingTransfers.OnNext(sharedSong);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Failed to fetch shared song from transfer message.");
+        //    }
+        //}
     }
 
     public void StopListeners()

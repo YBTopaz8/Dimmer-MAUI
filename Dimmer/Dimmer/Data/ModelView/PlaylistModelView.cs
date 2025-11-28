@@ -11,9 +11,11 @@ public partial class PlaylistModelView : ObservableObject
     /// The date created.
     /// </value>
 
+    public bool IsSmartPlaylist { get; set; }
     [ObservableProperty]
     public partial string DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
 
+    public string QueryText { get; set; } = string.Empty;
     [ObservableProperty]
     public partial bool IsNew { get; set; }
 

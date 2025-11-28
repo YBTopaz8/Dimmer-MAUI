@@ -1,5 +1,8 @@
-﻿using Parse.Abstractions.Infrastructure;
+﻿using Dimmer.Utils;
+
+using Parse.Abstractions.Infrastructure;
 using Parse.Abstractions.Infrastructure.Execution;
+using Parse.Infrastructure;
 
 using System.Net;
 
@@ -12,8 +15,7 @@ public static class ParseSetup
 
     public static bool InitializeParseClient()
     {
-            return false;
-       /* try
+          try
         {
         
 
@@ -26,10 +28,7 @@ public static class ParseSetup
                 Console.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
                 return false;
             }
-            var serviceHub = new MutableServiceHub
-            {
-                WebClient = new RobustWinUiWebClient()
-            };
+            
             // Create ParseClient
             ParseClient client = new ParseClient(new ServerConnectionData
             {
@@ -39,18 +38,13 @@ public static class ParseSetup
 
             }
             );
-            //HostManifestData manifest = new HostManifestData()
-            //{
-            //    Version = "1.0.0",
-            //    Identifier = "com.yvanbrunel.flowhub",
-            //    Name = "Flowhub",
-            //};
+          
 
             client.Publicize();
 
 
             Debug.WriteLine("ParseClient initialized successfully.");
-            return true;
+            return ParseClient.Instance is not null;
         }
         catch (Exception ex)
         {
@@ -90,7 +84,6 @@ public static class ParseSetup
             return null;
         }
 
-            */
     }
 
 

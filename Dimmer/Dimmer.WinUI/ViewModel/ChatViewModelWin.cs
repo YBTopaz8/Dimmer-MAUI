@@ -8,13 +8,13 @@ public  partial class ChatViewModelWin : ChatViewModel
     private readonly IFriendshipService friendshipService;
     private readonly IAuthenticationService auth;
     private readonly BaseViewModel baseViewModel;
-    private readonly SessionTransferViewModel sessionTransferViewModel;
+    private readonly SessionManagementViewModel sessionTransferViewModel;
 
-    public SessionTransferViewModel SessionTransferViewModel => sessionTransferViewModel;
+    public SessionManagementViewModel SessionTransferViewModel => sessionTransferViewModel;
     public BaseViewModel BaseViewModel => baseViewModel;
 
     public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService, LoginViewModel _loginViewModel, IAuthenticationService auth
-       , BaseViewModel baseViewModel, SessionTransferViewModel sessionTransferViewModel) :
+       , BaseViewModel baseViewModel, SessionManagementViewModel sessionTransferViewModel) :
        base(chatService, friendshipService, _loginViewModel, auth, baseViewModel)
     {
         InitializeGeneralChat();
