@@ -74,20 +74,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         {
 
             base.OnActivated();
-            if (MyViewModel.IsLastFMNeedsToConfirm)
-            {
-                bool isLastFMAuthorized = await Shell.Current.DisplayAlert("LAST FM Confirm", "Is Authorization done?", "Yes", "No");
-                if (isLastFMAuthorized)
-                {
-                    await MyViewModel.CompleteLastFMLoginAsync();
-                }
-                else
-                {
-                    MyViewModel.IsLastFMNeedsToConfirm = false;
-                    await Shell.Current.DisplayAlert("Action Cancelled", "Last FM Authorization Cancelled", "OK");
-
-                }
-            }
+          
             var nativeElement = this.Page?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
             if (nativeElement != null)
             {

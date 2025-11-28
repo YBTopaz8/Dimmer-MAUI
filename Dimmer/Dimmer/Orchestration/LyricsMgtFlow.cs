@@ -212,7 +212,7 @@ public class LyricsMgtFlow : IDisposable
 
             if (res is not null && res.Any())
             {
-                var lyrics = res.Where(x=>!string.IsNullOrEmpty(x.SyncedLyrics)).FirstOrDefault().SyncedLyrics;
+                var lyrics = res.Where(x=>!string.IsNullOrEmpty(x.SyncedLyrics)).FirstOrDefault()?.SyncedLyrics;
                 if (lyrics is null) return;
                 LoadLyrics(lyrics);
                 isSearchingLyrics.OnNext(false);

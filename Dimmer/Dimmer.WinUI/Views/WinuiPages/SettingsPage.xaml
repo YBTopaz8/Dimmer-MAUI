@@ -22,6 +22,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <convertersWinUI:BoolToInverseConverter x:Key="BoolToInverseConverter" />
             <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
@@ -37,27 +38,35 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Background="Transparent">
-            <TextBlock Text="{x:Bind MyViewModel.LatestAppLog, Mode=OneWay}" />
+            <TextBlock Text="{Binding LatestAppLog, Mode=OneWay}" />
             <StackPanel
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Spacing="20">
 
-                <ToggleButton
+                <Button
                     x:Name="MusicFoldersBtn"
                     Click="MusicFoldersView_Click"
                     Content="Music Folders"
                     FontSize="20" />
-                <ToggleButton
+
+                <Button
+                    x:Name="DimmerSection"
+                    Click="DimmerSection_Click"
+                    Content="DimmerLive"
+                    FontSize="20" />
+
+                <Button
                     x:Name="LastFMBtn"
                     Click="LastFMView_Click"
                     Content="LastFM Section"
                     FontSize="20" />
-                <ToggleButton
+                <Button
                     x:Name="UtilsBtn"
                     Click="UtilsView_Click"
                     Content="Utilities"
-                    FontSize="20" />
+                    FontSize="20"
+                    Visibility="Collapsed" />
             </StackPanel>
 
 
@@ -67,7 +76,7 @@
             x:Name="WizardFlipView"
             Grid.Row="1"
             PointerReleased="WizardFlipView_PointerReleased"
-            SelectedIndex="{x:Bind MyViewModel.WizardCurrentViewIndex}"
+            SelectedIndex="{Binding WizardCurrentViewIndex}"
             SelectionChanged="WizardFlipView_SelectionChanged">
             <!--  Step 1  -->
             <Grid
@@ -172,12 +181,13 @@
                 x:Name="LastFMGrid"
                 Padding="40"
                 Background="#202020">
-                <StackPanel HorizontalAlignment="Center" Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated, Converter={StaticResource BoolToInverseVisibilityConverter}}">
+                <StackPanel HorizontalAlignment="Center" Visibility="{Binding IsLastfmAuthenticated, Converter={StaticResource BoolToInverseVisibilityConverter}}">
 
                     <TextBox
                         x:Name="LastFMUname"
                         FontSize="25"
                         Header="Enter your Last FM username:"
+                        KeyUp="LastFMUname_KeyUp"
                         PlaceholderText="User Name" />
 
                     <Button
@@ -187,23 +197,92 @@
                         Click="LoginLastFM_Click"
                         Content="Login to Last FM"
                         FontSize="19"
-                        FontWeight="Bold" />
+                        FontWeight="Bold"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BoolToInverseConverter}}" />
+                    <TextBlock Text="LastFM UserName Required" Visibility="{x:Bind MyViewModel.IsLastFMNeedsUsername}" />
                 </StackPanel>
 
 
-                <StackPanel Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Visibility="{Binding IsLastfmAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="0.3*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="1" Spacing="5">
 
-                    <Image Source="{x:Bind MyViewModel.UserLocal.LastFMAccountInfo.Image.Url}" />
+                            <Button
+                                HorizontalAlignment="Right"
+                                Background="DarkRed"
+                                BorderBrush="DarkRed"
+                                Click="LogoutLastFM_Click"
+                                Content="Logout" />
 
-                    <TextBlock
-                        Margin="0,0,0,10"
-                        FontSize="24"
-                        Foreground="White"
-                        Text="You are logged in to Last FM." />
-                    <Button
-                        HorizontalAlignment="Left"
-                        Click="LogoutLastFM_Click"
-                        Content="Logout" />
+
+                            <Border CornerRadius="40">
+                                <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" Stretch="UniformToFill" />
+                            </Border>
+                            <TextBlock
+                                Margin="0,0,0,5"
+                                HorizontalAlignment="Center"
+                                FontSize="24"
+                                Foreground="White"
+                                Text="{Binding UserLocal.LastFMAccountInfo.RealName}" />
+
+
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="10">
+                                <TextBlock
+                                    Margin="0,0,0,5"
+                                    FontSize="24"
+                                    Foreground="White"
+                                    Text="{Binding UserLocal.LastFMAccountInfo.Playcount}" />
+                                <TextBlock
+                                    Margin="0,0,0,5"
+                                    HorizontalAlignment="Center"
+                                    FontSize="24"
+                                    Foreground="White"
+                                    Text="Scrobbles" />
+
+                            </StackPanel>
+
+
+
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock FontSize="43" Text="Recents" />
+                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.ListOfUserRecentTracks}">
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button x:Name="PlayBtnLastFM" Grid.Column="0">
+                                        <Image Source="/Dimmer/Resources/Images/play.svg" />
+
+                                    </Button>
+                                    <Image Grid.Column="1" Source="{Binding Images[4].Url}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Name}" />
+                                    <StackPanel Grid.Column="3">
+
+                                        <TextBlock Text="{Binding Artist.Name}" />
+                                        <TextBlock Text="{Binding Album.Name}" />
+
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="4" Text="{Binding Date}" />
+
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
                 </StackPanel>
             </Grid>
 
@@ -211,7 +290,8 @@
             <Grid
                 x:Name="UtilitiesGrid"
                 Padding="10"
-                Background="#252525">
+                Background="#252525"
+                Visibility="Collapsed">
 
                 <StackPanel>
                     <TextBlock

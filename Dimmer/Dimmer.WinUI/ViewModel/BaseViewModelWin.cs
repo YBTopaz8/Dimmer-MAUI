@@ -3,6 +3,8 @@
 
 
 
+using System.Windows.Controls.Primitives;
+
 using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.WinUI;
 
@@ -616,6 +618,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
+   
     public static async Task PulseWithBorderAsync(
      TableViewCell element,
      int pulses = 2,
@@ -1158,16 +1161,16 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public async Task CheckToCompleteActivation()
     {
-
-        if (AutoConfirmLastFMVar)
+        if(ActivationRequestType == "Confirm LastFM")
         {
+
             ContentDialog lastFMConfirmDialog = new ContentDialog
             {
                 Title = "LAST FM Confirm",
                 Content = "Is Authorization done?",
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "No",
-                XamlRoot = MainWindow.ContentFrame.XamlRoot
+                XamlRoot = MainWindow?.ContentFrame.XamlRoot
 
             };
             var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
@@ -1178,21 +1181,23 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             }
             else
             {
-                IsLastFMNeedsToConfirm = false;
+
                 ContentDialog cancelledDialog = new ContentDialog
                 {
+                    
                     Title = "Action Cancelled",
                     Content = "Last FM Authorization Cancelled",
                     CloseButtonText = "OK",
-                    XamlRoot = MainWindow.ContentFrame.XamlRoot
+                    XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
                 await cancelledDialog.ShowAsync();
 
             }
+            
         }
 
 
-
+        ActivationRequestType = string.Empty;
 
     }
 

@@ -50,3 +50,4 @@
 /DimmerTQLUnitTest/obj
 /DimmerTQLUnitTest/bin/Release/net9.0
 /Dimmer/Dimmer/appsettings.json
+/Dimmer/Dimmer/Utils/ApiKeys.cs

@@ -11,6 +11,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\WinuiPages\DimmerLivePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\CustomViews\WinuiViews\SongCoverView.xaml">
       <SubType>Designer</SubType>
     </Page>

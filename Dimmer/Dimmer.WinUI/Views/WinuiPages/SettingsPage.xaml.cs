@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
+using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -71,7 +72,7 @@ public sealed partial class SettingsPage : Page
 
     private void LastFMView_Click(object sender, RoutedEventArgs e)
     {
-        WizardFlipView.SelectedIndex = 1;
+        WizardFlipView.SelectedIndex = 2;
         var send = (ToggleButton)sender;
 
     }
@@ -79,7 +80,7 @@ public sealed partial class SettingsPage : Page
 
     private void UtilsView_Click(object sender, RoutedEventArgs e)
     {
-        WizardFlipView.SelectedIndex = 2;
+        WizardFlipView.SelectedIndex = 3;
     }
 
     private void WizardFlipView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -93,22 +94,19 @@ public sealed partial class SettingsPage : Page
         switch (addedName)
         {
             case "MusicFoldersBtn":
-                MusicFoldersBtn.IsEnabled = false;
-                MusicFoldersBtn.IsChecked = true;
-                LastFMBtn.IsEnabled = true;
-                UtilsBtn.IsEnabled = true;
+                MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                LastFMBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
+                UtilsBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
                 break;
             case "LastFMBtn":
-                MusicFoldersBtn.IsEnabled = true;
-                LastFMBtn.IsEnabled = false;
-                LastFMBtn.IsChecked = true;
-                UtilsBtn.IsEnabled = true;
+                MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
+                LastFMBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                UtilsBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
                 break;
             case "UtilsBtn":
-                MusicFoldersBtn.IsEnabled = true;
-                LastFMBtn.IsEnabled = true;
-                UtilsBtn.IsEnabled = false;
-                UtilsBtn.IsChecked = true;
+                MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
+                LastFMBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
+                UtilsBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
                 break;
             default:
                 break;
@@ -152,7 +150,7 @@ public sealed partial class SettingsPage : Page
 
     private void LoginLastFM_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel?.UserLocal.LastFMAccountInfo.Name = LastFMUname.Text;
+        BaseViewModel.LastFMName = LastFMUname.Text;
         MyViewModel?.LoginToLastfmCommand.Execute(null);
     }
 
@@ -305,5 +303,26 @@ public sealed partial class SettingsPage : Page
         if (path is null) return;
         if (MyViewModel is null) return;
         await MyViewModel.ReScanMusicFolderByPassingToService(path);
+    }
+
+    private void DimmerSection_Click(object sender, RoutedEventArgs e)
+    {
+
+        WizardFlipView.SelectedIndex = 1;
+    }
+
+    private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)
+    {
+        var send = (TextBox)sender;
+        if (send is null) return;
+        if (MyViewModel is null) return;
+        
+        var isPressedKeyEnterOrReturn = e.Key == Windows.System.VirtualKey.Enter;
+        if(isPressedKeyEnterOrReturn)
+        {
+            MyViewModel?.UserLocal.LastFMAccountInfo.Name = LastFMUname.Text;
+            MyViewModel?.LoginToLastfmCommand.Execute(null);
+
+        }
     }
 }

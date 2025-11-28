@@ -117,6 +117,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<DimmerMAUIWin>();
         builder.Services.AddSingleton<AlbumPage>();
         builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddSingleton<DimmerLivePage>();
         builder.Services.AddSingleton<SongDetailPage>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ChatViewModelWin>();

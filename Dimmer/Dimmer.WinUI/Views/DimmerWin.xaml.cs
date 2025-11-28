@@ -40,7 +40,6 @@ public sealed partial class DimmerWin : Window
 #if DEBUG
         this.Title = "DimmerDebug";
 #endif
-        //New window size: 1621 x 749
         appWin.Resize(new SizeInt32(1160, 1300));
     }
 

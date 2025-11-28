@@ -378,7 +378,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         return;
 
                     IsLastfmAuthenticated = isAuthenticated;
-                    LastfmUsername = lastfmService.AuthenticatedUser ?? "Not Logged In";
+                    LastFMName = lastfmService.AuthenticatedUser ?? "Not Logged In";
                     if (isAuthenticated)
                     {
                         lastFMCOmpleteLoginBtnVisible = false;
@@ -5742,7 +5742,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         IsCreatingSegment = false;
     }
 
-
+    [RelayCommand]
     public async Task LoadUserLastFMDataAsync()
     {
         if (lastfmService.AuthenticatedUser is null) return;
@@ -5751,6 +5751,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         LastFMUserInfo = await lastfmService.GetUserInfoAsync();
 
         CollectionUserTopTracks = await lastfmService.GetUserTopTracksAsync();
+         CollectionUserTopAlbums = await lastfmService.GetTopUserAlbumsAsync();
 
         ListOfUserLovedTracks = await lastfmService.GetLovedTracksAsync();
         ListOfGetTopArtistsChart = await lastfmService.GetTopArtistsChartAsync();
@@ -5776,6 +5777,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? CollectionUserTopTracks { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Album>? CollectionUserTopAlbums { get; set; }
 
 
     /// <summary>
@@ -6891,7 +6895,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        var usr = await lastfmService.GetUserInfoAsync();
+        Hqub.Lastfm.Entities.User? usr = await lastfmService.GetUserInfoAsync();
+        
         if (usr is null)
         {
             _logger.LogWarning("Failed to load Last.fm user info.");
@@ -6958,6 +6963,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 }
             });
+        await LoadUserLastFMDataAsync();
     }
 
 
@@ -6971,12 +6977,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool lastFMCOmpleteLoginBtnVisible { get; set; }
 
-    [ObservableProperty]
-    public partial bool IsLastFMNeedsToConfirm { get; set; }
-    partial void OnIsLastFMNeedsToConfirmChanging(bool oldValue, bool newValue)
-    {
-        AutoConfirmLastFM(newValue);
-    }
+ 
     public virtual bool AutoConfirmLastFM(bool val) => val;
 
     [ObservableProperty]
@@ -6985,8 +6986,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
 
-    [ObservableProperty]
-    public partial string LastfmUsername { get; set; }
 
     [RelayCommand]
     public void LoadLastFMSession()
@@ -6997,31 +6996,39 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = false;
-            IsLastFMNeedsToConfirm = false;
             _ = LoadUserLastFMInfo();
         }
     }
 
+    public static string ActivationRequestType = string.Empty;
+    public static string LastFMName = string.Empty;
+  
     [RelayCommand]
     public async Task LoginToLastfm()
     {
-        if (string.IsNullOrEmpty(UserLocal.LastFMAccountInfo.Name))
+        if (string.IsNullOrEmpty(LastFMName))
         {
+            // alert user that Username is missing and required
+         
             IsLastFMNeedsUsername = true;
             return;
         }
         IsBusy = true;
+        
         try
         {
             string? webUrl = await lastfmService.GetAuthenticationUrlAsync();
+            //string? webUrl = "https://www.google.com/";
 
             if (string.IsNullOrEmpty(webUrl)) return;
             
             
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = true;
+            //IsLastFMNeedsToConfirm = true;
+            ActivationRequestType = "Confirm LastFM";
             await Launcher.Default.OpenAsync(new Uri(webUrl));
-            RxSchedulers.UI.Schedule(()=> IsLastFMNeedsToConfirm = true);
+       
         }
         catch (Exception ex)
         {
@@ -7035,17 +7042,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task CompleteLastFMLoginAsync()
     {
         IsBusy = true;
-        if (!IsLastFMNeedsToConfirm) return;
         try
         {
 
-            string? lastFMUName = UserLocal.LastFMAccountInfo.Name;
+            string? lastFMUName = LastFMName;
             if (string.IsNullOrEmpty(lastFMUName)) return;
 
             IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(lastFMUName);
             if (IsLastfmAuthenticated)
             {
-                IsLastFMNeedsToConfirm = false;
                 lastFMCOmpleteLoginBtnVisible = false;
                 await LoadUserLastFMInfo();
             }
@@ -7056,14 +7061,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         finally
         {
-            if (IsLastFMNeedsToConfirm)
-            {
-                await Shell.Current
-                    .DisplayAlert(
-                        "Error",
-                        "Failed to authenticate with Last.fm. Please ensure you have authorized the app in the browser and try again.",
-                        "OK");
-            }
+            
             IsBusy = false;
         }
     }

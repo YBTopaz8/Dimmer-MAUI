@@ -130,12 +130,12 @@
                                         Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibility}}" />
                                     <AutoSuggestBox
                                         x:Name="ArtistPickerAutoSuggestBox"
+                                        Loaded="ArtistPickerAutoSuggestBox_Loaded"
                                         QuerySubmitted="ArtistPickerAutoSuggestBox_QuerySubmitted"
                                         SuggestionChosen="ArtistPickerAutoSuggestBox_SuggestionChosen"
                                         TextChanged="ArtistPickerAutoSuggestBox_TextChanged"
-                                        Loaded="ArtistPickerAutoSuggestBox_Loaded"
-                                        Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibilityInverted}}"/>
-                                    
+                                        Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibilityInverted}}" />
+
                                 </StackPanel>
                                 <StackPanel
                                     Margin="0,10,0,0"
