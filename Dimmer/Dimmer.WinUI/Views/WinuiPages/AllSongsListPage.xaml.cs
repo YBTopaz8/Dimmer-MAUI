@@ -3,6 +3,7 @@
 using CommunityToolkit.WinUI;
 
 using Microsoft.Graphics.Canvas.Effects;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Windows.UI.Text;
 
@@ -1349,8 +1350,22 @@ public sealed partial class AllSongsListPage : Page
     }
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
+        var btn = (Button)sender;
 
         MyViewModel.SelectedSong = (SongModelView)((Button)sender).DataContext;
+        var menuFlyout = new MenuFlyout();
+        var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
+            addNoteToSongMFItem.Click += async (s, args) =>
+            {
+                await MyViewModel.AddNoteToSongAsync();
+            };
+        menuFlyout.Items.Add(addNoteToSongMFItem);
+        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
+        {
+            Placement = FlyoutPlacementMode.Top,
+            ShowMode = FlyoutShowMode.Auto
+        };
+        menuFlyout.ShowAt(btn, flyoutShowOpt);
 
     }
 

@@ -353,7 +353,7 @@
                                             HorizontalAlignment="Center"
                                             Background="DarkSlateBlue"
                                             Click="ViewOtherBtn_Click"
-                                            Content="Share"
+                                            Content="Options"
                                             Opacity="0.8"
                                             PointerEntered="ButtonHover_PointerEntered"
                                             PointerExited="ButtonHover_PointerExited" />

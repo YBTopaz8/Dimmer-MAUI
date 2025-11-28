@@ -863,7 +863,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
                     if (lastSong != null)
                     {
-                        CurrentPlayingSongView = lastSong.ToModelView(_mapper);
+                        CurrentPlayingSongView = _mapper.Map<SongModelView>(lastSong);
+                        //RxSchedulers.UI.Schedule(()=> CurrentPlayingSongView = lastSong.ToModelView(_mapper));
                     }
                     else
                     {
