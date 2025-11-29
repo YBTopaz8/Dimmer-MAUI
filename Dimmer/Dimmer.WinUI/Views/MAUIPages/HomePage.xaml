@@ -62,6 +62,7 @@
                 Margin="10,5"
                 BackgroundColor="Transparent"
                 Spacing="10">
+                <Label IsVisible="{Binding IsAppScanning}" Text="{Binding LatestAppLog.Log}" />
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
 
                     <Button

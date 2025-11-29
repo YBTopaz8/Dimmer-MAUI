@@ -68,8 +68,8 @@
                     <StackPanel Width="450" Spacing="10">
                         <Image
                             x:Name="detailedImage"
-                            Width="500"
-                            Height="500"
+                            Width="300"
+                            Height="300"
                             HorizontalAlignment="Center"
                             Source="{Binding SelectedSong.CoverImagePath}" />
 

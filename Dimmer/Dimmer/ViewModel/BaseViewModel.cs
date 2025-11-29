@@ -3520,6 +3520,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
 
         _subsMgr.Add(
+            playbackStateObservable
+            .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)
+            .ObserveOn(RxSchedulers.UI)
+                .Subscribe(OnFolderScanStarted, ex => _logger.LogError(ex, "Error on             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)\r\n.")));
+
+        _subsMgr.Add(
             _stateService.LatestDeviceLog
                 .Where(s => s.Log is not null)
                 .Subscribe(
@@ -3527,6 +3533,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                      {
                         LatestDeviceLog(obv);
                     }));
+    }
+
+    private void OnFolderScanStarted(PlaybackStateInfo info)
+    {
+        _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan Started" });
+        
+
+        IsAppScanning = true;
     }
 
     private void SubscribeToLyricsFlow()
@@ -3822,6 +3836,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         _logger.LogInformation("User requested to add music folder.");
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderAdded, folderPath, null, null));
+        IsAppScanning = true;
         _ = Task.Run(async () => await _folderMgtService.AddFolderToWatchListAndScan(folderPath));
     }
 

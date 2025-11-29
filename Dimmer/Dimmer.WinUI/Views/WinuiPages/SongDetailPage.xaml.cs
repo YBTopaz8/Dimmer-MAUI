@@ -105,18 +105,45 @@ public sealed partial class SongDetailPage : Page
                 MyViewModel = vm;
                 DetailedSong = args.Song;
 
-                MyViewModel.CurrentWinUIPage = this;
                 Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
                 PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim,_compositor);
 
                 var animation = ConnectedAnimationService.GetForCurrentView()
                .GetAnimation("ForwardConnectedAnimation");
 
-                detailedImage.Loaded += (_, _) =>
+                if (MyViewModel.CurrentWinUIPage.GetType() == typeof(EditSongPage))
                 {
-                    detailedImage.Opacity = 1;
-                    animation?.TryStart(detailedImage, new [] { coordinatedPanel });
-                };
+                    detailedImage.Loaded += (s, ee) =>
+                    {
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+
+                            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
+
+                            var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
+
+                            animConf.IsShadowEnabled = true;
+
+                            animation.Configuration = animConf;
+                            
+
+                            animation.TryStart(detailedImage);
+                            detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                            detailedImage.Opacity = 1;
+                        });
+                    };
+                }
+                else
+                {
+
+                    detailedImage.Loaded += (_, _) =>
+                    {
+                        detailedImage.Opacity = 1;
+                        animation?.TryStart(detailedImage, new[] { coordinatedPanel });
+                    };
+
+                }
+                MyViewModel.CurrentWinUIPage = this;
                 MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong);
                 await MyViewModel.LoadSelectedSongLastFMData();
@@ -163,9 +190,6 @@ public sealed partial class SongDetailPage : Page
 
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
     {
-        base.OnNavigatingFrom(e);
-
-
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
             if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
@@ -174,6 +198,9 @@ public sealed partial class SongDetailPage : Page
                     .PrepareToAnimate("BackConnectedAnimation", detailedImage);
             }
         }
+        base.OnNavigatingFrom(e);
+
+
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -518,9 +545,7 @@ public sealed partial class SongDetailPage : Page
         {
             if (Frame.CanGoBack)
             {
-                //var image = detailedImage;
-                //ConnectedAnimationService.GetForCurrentView()
-                //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+               
                 Frame.GoBack();
             }
         }
@@ -692,7 +717,13 @@ public sealed partial class SongDetailPage : Page
 
     private void EditSongBtn_Click(object sender, RoutedEventArgs e)
     {
-
+        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(detailedImage);
+        if (detailedImageVisual != null)
+        {
+            ConnectedAnimationService.GetForCurrentView()
+                .PrepareToAnimate("ForwardConnectedAnimation", detailedImage);
+            PlatUtils.ApplyEntranceEffect(detailedImageVisual, detailedImage, SongTransitionAnimation.Spring, _compositor);
+        }
         // Navigate to the detail page, passing the selected song object.
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
@@ -750,4 +781,5 @@ public sealed partial class SongDetailPage : Page
 
 
     }
+
 }

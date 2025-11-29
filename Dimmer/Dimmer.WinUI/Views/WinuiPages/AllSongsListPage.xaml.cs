@@ -1287,49 +1287,9 @@ public sealed partial class AllSongsListPage : Page
 
 
         // Small visual feedback before navigation
-        var visual = ElementCompositionPreview.GetElementVisual(image);
-        switch (SongTransitionAnimation.Slide)
-        {
-            case SongTransitionAnimation.Fade:
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(0f, 0.3f);
-                fade.InsertKeyFrame(1f, 0f);
-                fade.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Opacity", fade);
-                break;
+        var visualImage = ElementCompositionPreview.GetElementVisual(image);
+        PlatUtils.ApplyEntranceEffect(visualImage, row, SongTransitionAnimation.Slide,_compositor);
 
-            case SongTransitionAnimation.Scale:
-                var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-                visual.CenterPoint = new Vector3(
-                    (float)(image.ActualWidth / 2),
-                    (float)(image.ActualHeight / 2),
-                    0);
-                scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
-                scaleAnim.InsertKeyFrame(1f, new Vector3(1.15f));
-                scaleAnim.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Scale", scaleAnim);
-                break;
-
-            case SongTransitionAnimation.Slide:
-                var offsetAnim = _compositor.CreateVector3KeyFrameAnimation();
-                offsetAnim.InsertKeyFrame(0f, Vector3.Zero);
-                offsetAnim.InsertKeyFrame(1f, new Vector3(30f, 0f, 0f));
-                offsetAnim.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Offset", offsetAnim);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.DampingRatio = 0.7f;
-                spring.Period = TimeSpan.FromMilliseconds(200);
-                spring.FinalValue = new Vector3(0, -25, 0);
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
-
-
-        // Navigate to the detail page, passing the selected song object.
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
         Type songDetailType = typeof(SongDetailPage);

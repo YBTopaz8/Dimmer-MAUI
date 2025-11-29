@@ -20,6 +20,7 @@ using Button = Microsoft.UI.Xaml.Controls.Button;
 using Clipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using DataPackage = Windows.ApplicationModel.DataTransfer.DataPackage;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
+using FrameworkElement = Microsoft.UI.Xaml.FrameworkElement;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
@@ -237,4 +238,21 @@ public sealed partial class EditSongPage : Page
         PageNotificationText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
 
     }
+
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+
+        if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
+        {
+            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+            {
+                ConnectedAnimationService.GetForCurrentView()
+                    .PrepareToAnimate("BackConnectedAnimation", detailedImage);
+            }
+        }
+        base.OnNavigatingFrom(e);
+
+    }
+
+  
 }
