@@ -224,7 +224,18 @@ public sealed partial class EditSongPage : Page
     {
         await MyViewModel.AddNoteToSongAsync();
     }
+    private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props.IsXButton1Pressed)
+        {
+            if (Frame.CanGoBack)
+            {
 
+                Frame.GoBack();
+            }
+        }
+    }
     private async void SaveChangeBtn_Click(object sender, RoutedEventArgs e)
     {
         var vis = ElementCompositionPreview.GetElementVisual(PageNotificationText);

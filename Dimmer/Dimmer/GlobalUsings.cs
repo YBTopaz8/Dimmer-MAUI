@@ -12,6 +12,8 @@ global using Microsoft.Extensions.Logging;
 global using Parse;
 global using System.Globalization;
 
+
+global using Dimmer.Data.Models.LyricsModels;
 global using ATL;
 
 global using CommunityToolkit.Maui.Alerts;

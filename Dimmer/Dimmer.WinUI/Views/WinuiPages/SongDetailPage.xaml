@@ -234,13 +234,22 @@
 
                     <!--  SECTION 3: LYRICS  -->
                     <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
-                        <Button
-                            x:Name="LyricsSection"
-                            Background="Transparent"
-                            Click="LyricsSection_Click"
-                            Content="Lyrics Section"
-                            FontSize="34"
-                            FontWeight="ExtraBold" />
+                        <StackPanel Orientation="Horizontal">
+
+                            <Button
+                                x:Name="LyricsSection"
+                                Background="Transparent"
+                                Content="Lyrics Section"
+                                FontSize="34"
+                                FontWeight="ExtraBold" />
+                            <Button
+                                x:Name="EditIconBtn"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="LyricsSection_Click">
+                                <FontIcon FontSize="24" Glyph="&#xE70F;" />
+                            </Button>
+                        </StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -279,15 +288,24 @@
 
                                         <DataTemplate>
                                             <Button
+                                                x:Name="ArtistNameBtn"
                                                 Margin="0,10,0,0"
                                                 BorderThickness="1"
+                                                Click="ArtistNameBtn_Click"
                                                 CornerRadius="15">
                                                 <StackPanel
+                                                    VerticalAlignment="Center"
                                                     Background="Transparent"
                                                     Orientation="Horizontal"
                                                     Spacing="15">
                                                     <TextBlock FontSize="26" Text="{Binding Name}" />
+                                                    <TextBlock FontSize="16" Text="(" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <TextBlock FontSize="16" Text="{Binding SongsByArtist.Count}" />
+                                                        <TextBlock FontSize="16" Text=")" />
+                                                        <TextBlock FontSize="16" Text="Songs" />
 
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </Button>
                                         </DataTemplate>

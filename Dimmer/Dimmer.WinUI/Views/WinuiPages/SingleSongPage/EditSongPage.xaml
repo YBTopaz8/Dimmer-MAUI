@@ -26,7 +26,7 @@
             FalseValue="heartbroken.png"
             TrueValue="heartlock.png" />
     </Page.Resources>
-    <Grid>
+    <Grid PointerPressed="Grid_PointerPressed">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />

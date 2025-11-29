@@ -18,66 +18,6 @@ using Microsoft.Extensions.Logging;
 
 // Represents the full lyrics object returned by /get and /search
 
-public class LrcLibLyrics
-{
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
-
-    [JsonPropertyName("trackName")]
-    public string TrackName { get; set; } = string.Empty;
-
-    [JsonPropertyName("artistName")]
-    public string ArtistName { get; set; } = string.Empty;
-
-    [JsonPropertyName("albumName")]
-    public string AlbumName { get; set; } = string.Empty;
-
-    [JsonPropertyName("duration")]
-    public double Duration { get; set; } // <--- CRITICAL FIX: int -> double
-
-    [JsonPropertyName("instrumental")]
-    public bool Instrumental { get; set; }
-
-    [JsonPropertyName("plainLyrics")]
-    public string? PlainLyrics { get; set; }
-
-    [JsonPropertyName("syncedLyrics")]
-    public string? SyncedLyrics { get; set; }
-}
-
-// Represents the body for a POST request to /publish
-public class LrcLibPublishRequest
-{
-    // These should also use JsonPropertyName for consistency
-    [JsonPropertyName("trackName")]
-    public string TrackName { get; set; } = string.Empty;
-
-    [JsonPropertyName("artistName")]
-    public string ArtistName { get; set; } = string.Empty;
-
-    [JsonPropertyName("albumName")]
-    public string AlbumName { get; set; } = string.Empty;
-
-    [JsonPropertyName("duration")]
-    public int Duration { get; set; } // For publishing, int is fine as we control it
-
-    [JsonPropertyName("plainLyrics")]
-    public string PlainLyrics { get; set; } = string.Empty;
-
-    [JsonPropertyName("syncedLyrics")]
-    public string SyncedLyrics { get; set; } = string.Empty;
-}
-
-// Represents the response from /request-challenge
-public class LrcLibChallengeResponse
-{
-    [JsonPropertyName("prefix")]
-    public string Prefix { get; set; } = string.Empty;
-
-    [JsonPropertyName("target")]
-    public string Target { get; set; } = string.Empty;
-}
-
 #endregion
 
 public class LyricsMetadataService : ILyricsMetadataService
@@ -384,7 +324,6 @@ IRepository<SongModel> songRepository, // Inject the repository
             {
                 _logger.LogInformation("Successfully published lyrics for '{Track}'.", lyricsToPublish.TrackName);
                
-                await Shell.Current.DisplayAlert(nonce, "Successfully published lyrics to LRCLIB!", "OK");
                 return true;
             }
 
@@ -422,7 +361,7 @@ IRepository<SongModel> songRepository, // Inject the repository
                 byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(attempt));
                 string hashString = Convert.ToHexString(hashBytes).ToLowerInvariant();
 
-                if (hashString.CompareTo(target) < 0)
+                if (string.CompareOrdinal(hashString, target) <= 0)
                 {
                     return (string?)nonce; // Solution found!
                 }
@@ -544,7 +483,7 @@ IRepository<SongModel> songRepository, // Inject the repository
         // Priority 1: Embedded Lyrics
         var embeddedLyrics = GetEmbeddedLyrics(song.FilePath);
         if(embeddedLyrics is not null )
-            return embeddedLyrics.First().SyncedLyrics;
+            return embeddedLyrics.SyncedLyrics;
         
 
         // Priority 2: External .lrc file
@@ -557,7 +496,7 @@ IRepository<SongModel> songRepository, // Inject the repository
 
         return null;
     }
-    private IEnumerable<LrcLibLyrics>? GetEmbeddedLyrics(string songPath)
+    private LrcLibLyrics? GetEmbeddedLyrics(string songPath)
     {
         try
         {
@@ -593,13 +532,13 @@ IRepository<SongModel> songRepository, // Inject the repository
                 ArtistName = track.AlbumArtist,
                 Duration = track.Duration,
                 TrackName = track.Title,
-                SyncedLyrics = track.Lyrics[0].SynchronizedLyrics.Select(p=>p.Text).ToString(),
+                SyncedLyrics = string.Join("\n", track.Lyrics[0].SynchronizedLyrics.Select(p =>
+                    $"[{FormatTimestamp(p.TimestampEnd)}]{p.Text}"
+)),
                 PlainLyrics = track.Lyrics[0].UnsynchronizedLyrics,
             };
-            List<LrcLibLyrics> listWith = new List<LrcLibLyrics>();
-            listWith.Add(lyricsProps);
 
-            return listWith;
+            return lyricsProps;
         }
         catch (Exception ex)
         {
@@ -625,6 +564,11 @@ IRepository<SongModel> songRepository, // Inject the repository
         return null;
     }
 
+    private static string FormatTimestamp(double seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        return $"{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds:D3}";
+    }
 
     public async Task<bool> SaveLyricsToDB(bool IsInstru, string planLyrics, SongModel song, string? lrcContent, LyricsInfo? lyrics)
     {

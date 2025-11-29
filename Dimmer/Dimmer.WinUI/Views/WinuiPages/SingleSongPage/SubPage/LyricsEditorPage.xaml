@@ -1,14 +1,287 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage.LyricsEditorPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Dimmer.Data.ModelView"
+    xmlns:modelsLyrics="using:Dimmer.Data.Models.LyricsModels"
     mc:Ignorable="d">
 
-    <Grid>
+    <Page.Resources>
+        <ContentDialog x:Name="LyricsPreviewDialog" CloseButtonText="Close">
+            <ContentDialog.TitleTemplate>
+                <DataTemplate x:DataType="modelsLyrics:LrcLibLyrics">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        TextWrapping="Wrap">
+                        <Run Text="{x:Bind TrackName}" />
+                        <Run Text=" - " />
+                        <Run Text="{x:Bind ArtistName}" />
+                    </TextBlock>
+                </DataTemplate>
+            </ContentDialog.TitleTemplate>
+
+            <ScrollViewer MaxHeight="500">
+                <TextBlock
+                    x:Name="LyricsPreviewText"
+                    FontSize="14"
+                    TextWrapping="Wrap" />
+            </ScrollViewer>
+        </ContentDialog>
+    </Page.Resources>
+
+
+    <Grid Margin="10" PointerPressed="Grid_PointerPressed">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Button Click="BackBtnClick" Content="Back" />
+            <TextBlock
+                x:Name="EditLyricsTxt"
+                Margin="0,10,0,10"
+                FontSize="40"
+                FontWeight="Bold"
+                Text="Edit Lyrics" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+
+            <Image
+                Width="200"
+                HorizontalAlignment="Left"
+                Source="{Binding SelectedSong.CoverImagePath}" />
+            <StackPanel VerticalAlignment="Top">
+                <TextBlock
+                    x:Name="SongTitleTxt"
+                    Margin="10,0,0,0"
+                    FontSize="39"
+                    FontWeight="Bold"
+                    Text="{Binding SelectedSong.Title}" />
+                <TextBlock
+                    x:Name="ArtistNameTxt"
+                    Margin="10,0,0,0"
+                    FontSize="24"
+                    FontWeight="Normal"
+                    Text="{Binding SelectedSong.Artist.Name}" />
+                <TextBlock
+                    x:Name="AlbumNameTxt"
+                    Margin="10,0,0,0"
+                    FontSize="24"
+                    FontWeight="Light"
+                    Text="{Binding SelectedSong.AlbumName}" />
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border
+                Grid.Row="0"
+                Padding="16"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                CornerRadius="8">
+                <Grid ColumnSpacing="10" RowSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--  Title  -->
+                    <TextBox
+                        Grid.Column="0"
+                        Header="Title"
+                        PlaceholderText="Song Title"
+                        Text="{x:Bind MyViewModel.LyricsTrackNameSearch, Mode=TwoWay}" />
+
+                    <!--  Artist  -->
+                    <TextBox
+                        Grid.Column="1"
+                        Header="Artist"
+                        PlaceholderText="Artist Name"
+                        Text="{x:Bind MyViewModel.LyricsArtistNameSearch, Mode=TwoWay}" />
+
+                    <!--  Album  -->
+                    <TextBox
+                        Grid.Column="2"
+                        Header="Album"
+                        PlaceholderText="Album Name"
+                        Text="{x:Bind MyViewModel.LyricsAlbumNameSearch, Mode=TwoWay}" />
+
+                    <!--  Search Button (Spans vertically or sits at the end)  -->
+                    <StackPanel
+                        Grid.Column="3"
+                        Orientation="Horizontal"
+                        Spacing="10">
+
+                        <Button
+                            VerticalAlignment="Bottom"
+                            Command="{Binding SearchLyricsCommand}"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE721;" />
+                                <!--  Search Icon  -->
+                                <TextBlock Text="Search" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            Margin="0,10,0,0"
+                            VerticalAlignment="Bottom"
+                            Command="{Binding ReloadSearchViewAndProduceSearchQueryCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Reset" />
+                            </StackPanel>
+                        </Button>
+
+
+                    </StackPanel>
+                    <!--  Progress Ring  -->
+                    <ProgressBar
+                        Grid.Row="1"
+                        Grid.ColumnSpan="4"
+                        IsIndeterminate="True"
+                        Visibility="{x:Bind MyViewModel.IsLyricsSearchBusy, Mode=OneWay}" />
+                </Grid>
+            </Border>
+
+
+            <ScrollViewer Grid.Row="1">
+                <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="10" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="modelsLyrics:LrcLibLyrics">
+
+                            <!--  Result Card  -->
+                            <Border
+                                Padding="12"
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!--  Left: Metadata Info  -->
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind TrackName}" />
+                                        <StackPanel
+                                            Opacity="0.8"
+                                            Orientation="Horizontal"
+                                            Spacing="8">
+                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ArtistName}" />
+                                            <TextBlock Text="•" />
+                                            <TextBlock Text="{x:Bind AlbumName}" />
+                                            <TextBlock Text="•" />
+                                            <TextBlock Text="Instrumental" />
+                                            <TextBlock Text="{x:Bind Instrumental}" />
+
+                                            <TextBlock Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+                                        </StackPanel>
+
+                                        <StackPanel
+                                            Height="100"
+                                            Background="Transparent"
+                                            Opacity="0.8"
+                                            Orientation="Horizontal"
+                                            Spacing="8">
+
+                                            <TextBlock
+                                                Margin="0,8,0,0"
+                                                FontSize="12"
+                                                MaxLines="12"
+                                                Opacity="0.6"
+                                                Text="{x:Bind SyncedLyrics}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Margin="0,8,0,0"
+                                                FontSize="12"
+                                                MaxLines="12"
+                                                Opacity="0.6"
+                                                Text="{x:Bind PlainLyrics}"
+                                                TextTrimming="CharacterEllipsis" />
+
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!--  Right: Actions  -->
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Orientation="Vertical"
+                                        Spacing="8">
+
+                                        <Button
+                                            x:Name="ViewLyrics"
+                                            Click="ViewLyrics_Click"
+                                            Content="View Lyrics" />
+                                        <!--  Apply Command  -->
+                                        <!--  Note: We pass the current item (LrcLibLyrics) as the parameter  -->
+                                        <Button
+                                            Command="{Binding ElementName=FetchedLyricsIR, Path=DataContext.SelectLyricsCommand}"
+                                            CommandParameter="{x:Bind}"
+                                            Content="Apply"
+                                            Style="{StaticResource AccentButtonStyle}" />
+
+                                        <!--  Edit Command  -->
+                                        <Button
+                                            Command="{Binding ElementName=FetchedLyricsIR, Path=DataContext.LoadLyricsForEditingCommand}"
+                                            CommandParameter="{x:Bind}"
+                                            Content="Edit" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+
+            <ScrollViewer Grid.Row="2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock
+                            Margin="0,0,0,10"
+                            FontSize="24"
+                            FontWeight="Bold"
+                            Text="Plain Lyrics" />
+                        <TextBlock FontSize="18" Text="{Binding SelectedSong.PlainLyrics}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock
+                            Margin="0,0,0,10"
+                            FontSize="24"
+                            FontWeight="Bold"
+                            Text="Sync Lyrics" />
+                        <TextBlock FontSize="18" Text="{Binding SelectedSong.SyncLyrics}" />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
 
     </Grid>
 </Page>

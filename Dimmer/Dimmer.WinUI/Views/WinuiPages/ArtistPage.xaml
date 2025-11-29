@@ -61,13 +61,13 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock
-                    x:Name="DestinationElement"
+                    x:Name="ArtistNameInArtistPage"
                     Grid.Row="0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     FontSize="55"
                     FontWeight="SemiBold"
-                    PointerReleased="DestinationElement_PointerReleased"
+                    PointerReleased="ArtistNameInArtistPage_PointerReleased"
                     Text="{Binding SelectedArtist.Name}" />
 
                 <StackPanel

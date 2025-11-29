@@ -59,6 +59,7 @@
 
 
 	<ItemGroup>
+	  <Folder Include="Interfaces\Services\Lyrics\Models\" />
 	  <Folder Include="UIUtils\CustomPopups\" />
 	</ItemGroup>
 

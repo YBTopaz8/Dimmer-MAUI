@@ -63,12 +63,13 @@ public static class AutoMapperConf
 
                 cfg.CreateMap<AlbumModel, AlbumModelView>()
               .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
-                    .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Ignore backlink
+                    .ForMember(dest => dest.SongsInAlbum, opt => opt.MapFrom(src=>src.SongsInAlbum)) 
               .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());
 
             cfg.CreateMap<ArtistModel, ArtistModelView>()
                 .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
                 .ForMember(dest => dest.ListOfSimilarArtists, opt => opt.Ignore())
+                    .ForMember(dest => dest.SongsByArtist, opt => opt.MapFrom(src => src.Songs))
                 .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore())
                 .ForMember(dest => dest.IsVisible, opt => opt.Ignore());
 

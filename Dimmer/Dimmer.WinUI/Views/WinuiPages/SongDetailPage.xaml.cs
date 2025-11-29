@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
@@ -104,6 +105,7 @@ public sealed partial class SongDetailPage : Page
                 detailedImage.Opacity = 0;
                 MyViewModel = vm;
                 DetailedSong = args.Song;
+                this.DataContext = MyViewModel;
 
                 Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
                 PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim,_compositor);
@@ -111,6 +113,7 @@ public sealed partial class SongDetailPage : Page
                 var animation = ConnectedAnimationService.GetForCurrentView()
                .GetAnimation("ForwardConnectedAnimation");
 
+                MyViewModel.SelectedSong = DetailedSong;
                 if (MyViewModel.CurrentWinUIPage.GetType() == typeof(EditSongPage))
                 {
                     detailedImage.Loaded += (s, ee) =>
@@ -119,7 +122,7 @@ public sealed partial class SongDetailPage : Page
                         {
 
                             var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
-
+                            
                             var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
 
                             animConf.IsShadowEnabled = true;
@@ -144,7 +147,6 @@ public sealed partial class SongDetailPage : Page
 
                 }
                 MyViewModel.CurrentWinUIPage = this;
-                MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong);
                 await MyViewModel.LoadSelectedSongLastFMData();
                 LoadUiComponents();
@@ -751,7 +753,7 @@ public sealed partial class SongDetailPage : Page
 
     }
 
-    private void LyricsSection_Click(object sender, RoutedEventArgs e)
+    private async void LyricsSection_Click(object sender, RoutedEventArgs e)
     {
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
         
@@ -768,18 +770,52 @@ public sealed partial class SongDetailPage : Page
             IsNavigationStackEnabled = true
 
         };
-        
-        // prepare the animation BEFORE navigation
-        var ArtistNameTxt =  PlatUtils.FindVisualChild<TextBlock>(SectionLyricsStackPanel, "LyricsSection");
-        if (ArtistNameTxt != null)
+        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(detailedImage);
+        if (detailedImageVisual != null)
         {
             ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
+                .PrepareToAnimate("MoveViewToLyricsPageFromSongDetailPage", SectionLyricsStackPanel);
+            
+            await PlatUtils.ApplyExitEffectAsync(detailedImage, _compositor, ExitTransitionEffect.FlyUp);
         }
+      
 
         Frame?.NavigateToType(pageType, navParams, navigationOptions);
 
 
     }
 
+    private async void ArtistNameBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var currentView = (Button)sender;
+
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+        Type pageType = typeof(ArtistPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = DetailedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(detailedImage);
+        if (detailedImageVisual != null)
+        {
+            ConnectedAnimationService.GetForCurrentView()
+                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", SectionLyricsStackPanel);
+
+            await PlatUtils.ApplyExitEffectAsync(detailedImage, _compositor, ExitTransitionEffect.FlyUp);
+        }
+
+
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+
+    }
 }

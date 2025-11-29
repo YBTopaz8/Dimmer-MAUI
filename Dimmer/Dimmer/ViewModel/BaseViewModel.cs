@@ -715,7 +715,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
-    #region appc cylce  
+    #region appc cycle 
     public void OnAppClosing()
     {
         var realmm = RealmFactory.GetRealmInstance();
@@ -5102,7 +5102,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-
+    #region Search Lyrics Online
     [ObservableProperty]
     public partial string LyricsAlbumNameSearch { get; set; }
 
@@ -5136,30 +5136,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
-            if (string.IsNullOrEmpty(LyricsTrackNameSearch))
-            {
-                LyricsTrackNameSearch = SelectedSong.Title;
-            }
-            if (string.IsNullOrEmpty(LyricsAlbumNameSearch))
-            {
-                LyricsAlbumNameSearch = SelectedSong.AlbumName;
-            }
-            if (string.IsNullOrEmpty(LyricsArtistNameSearch))
-            {
-                var artistName = SelectedSong.ArtistName
-                    .Split("| ", StringSplitOptions.RemoveEmptyEntries)
-                    .FirstOrDefault();
-                if (artistName != null)
-                {
-                    LyricsArtistNameSearch = artistName;
-                }
-                else
-                {
-                    LyricsArtistNameSearch = SelectedSong.ArtistName;
-                }
-            }
-            var query = $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
-            //ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
+            string query = ReadySearchViewAndProduceSearchText();//ILyricsMetadataService _lyricsMetadataService = IPlatformApplication.Current!.Services.GetService<ILyricsMetadataService>()!;
             CancellationTokenSource cts = new();
 
             IEnumerable<LrcLibLyrics>? results = await _lyricsMetadataService.SearchLyricsAsync(
@@ -5167,7 +5144,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 LyricsArtistNameSearch,
                 LyricsAlbumNameSearch,
                 cts.Token);
-
+            if(results == null)
+            {
+                _logger.LogInformation("No lyrics results returned from search for query: {Query}", query);
+                return;
+            }
             foreach (var result in results)
             {
                 LyricsSearchResults.Add(result);
@@ -5212,8 +5193,96 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
+    public string ReadySearchViewAndProduceSearchText()
+    {
+        if (SelectedSong is null)
+            return string.Empty;
+
+        // 1. Robust Title Handling
+        if (string.IsNullOrWhiteSpace(LyricsTrackNameSearch))
+        {
+            var rawTitle = SelectedSong.Title ?? string.Empty;
+            // Optional: Remove common metadata noise that hurts search results
+            // e.g., "Song (Remastered 2009)" -> "Song"
+            LyricsTrackNameSearch = CleanSongTitle(rawTitle);
+        }
+
+        // 2. Robust Artist Handling
+        if (string.IsNullOrWhiteSpace(LyricsArtistNameSearch))
+        {
+            var rawArtist = SelectedSong.ArtistName ?? string.Empty;
+            LyricsArtistNameSearch = GetPrimaryArtist(rawArtist);
+        }
+
+        // 3. Robust Album Handling
+        if (string.IsNullOrWhiteSpace(LyricsAlbumNameSearch))
+        {
+            var rawAlbum = SelectedSong.AlbumName ?? string.Empty;
+
+            // Don't search for generic placeholders, they pollute results
+            if (!IsGenericAlbumName(rawAlbum))
+            {
+                LyricsAlbumNameSearch = rawAlbum;
+            }
+            else
+            {
+                LyricsAlbumNameSearch = string.Empty;
+            }
+        }
+
+        // 4. Construct Query
+        // Using string.Join ensures we don't have double spaces if one field is empty
+        var parts = new[] { LyricsTrackNameSearch, LyricsArtistNameSearch, LyricsAlbumNameSearch };
+        var query = string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p))).Trim();
+
+        return query;
+    }
+
+    #region Helper Methods for Sanitation
+
+    private string CleanSongTitle(string title)
+    {
+        if (string.IsNullOrEmpty(title)) return string.Empty;
+
+        // Regex to remove things like "(Remastered 2009)", "[Live]", "(2011 Mix)"
+        // This looks for content in brackets/parentheses that contains digits or specific keywords
+        // You can relax this if you want to keep "(Live)"
+        string clean = System.Text.RegularExpressions.Regex.Replace(title,
+            @"\s*[\(\[].*?(remaster|mix|version|deluxe|edit|edition).*?[\)\]]",
+            "",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        return clean.Trim();
+    }
+
+    private string GetPrimaryArtist(string artistRaw)
+    {
+        if (string.IsNullOrEmpty(artistRaw)) return string.Empty;
+
+        // Common separators in tagging standards + "feat" variations
+        string[] separators = { "|", ";", ",", " feat ", " feat. ", " ft ", " ft. ", " with " };
+
+        var parts = artistRaw.Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        // Return the first valid part
+        return parts.FirstOrDefault() ?? artistRaw;
+    }
+
+    private bool IsGenericAlbumName(string album)
+    {
+        if (string.IsNullOrWhiteSpace(album)) return true;
+
+        var lower = album.ToLowerInvariant().Trim();
+        return lower == "unknown album" ||
+               lower == "unknown" ||
+               lower.Contains("greatest hits") || // Often causes wrong lyrics match
+               lower == "single";
+    }
+
+    #endregion
+
     [RelayCommand]
-    private async Task SelectLyricsAsync(LrcLibSearchResult? selectedResult)
+    private async Task SelectLyricsAsync(LrcLibLyrics? selectedResult)
     {
         if (SelectedSong == null || selectedResult == null || string.IsNullOrWhiteSpace(selectedResult.SyncedLyrics))
         {
@@ -5350,6 +5419,432 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var updatedSongView = _mapper.Map<SongModelView>(songRepo.GetById(song.Id));
         //MasterListContext.SetSearchQuery(MasterListContext.CurrentTqlQuery);
     }
+    #endregion
+
+
+    #region lyrics editing region
+    [RelayCommand]
+    private void LoadLyricsForEditing(LrcLibLyrics? selectedResult)
+    {
+        if (selectedResult == null || selectedResult.SyncedLyrics is null) return;
+
+        // Logic to populate the editor without saving to DB yet
+        StartLyricsEditingSession(selectedResult.SyncedLyrics);
+    }
+    /// <summary>
+    /// Takes plain text, splits it into lines, and prepares the editor UI.
+    /// </summary>
+    /// 
+    [RelayCommand]
+    public void StartLyricsEditingSession(string plainText)
+    {
+        if (string.IsNullOrWhiteSpace(plainText))
+            return;
+
+        var rawLines = plainText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Trim())
+            .ToList();
+
+        if (rawLines.Count == 0)
+            return;
+
+        var processedLines = new List<LyricEditingLineViewModel>();
+        LyricEditingLineViewModel? lastSectionHeader = null;
+        int i = 0;
+
+        while (i < rawLines.Count)
+        {
+            string line = rawLines[i];
+
+            // --- [1] Detect SECTION HEADERS ----------------------------------
+            if (line.StartsWith("[") && line.EndsWith("]"))
+            {
+                string sectionName = line.Trim('[', ']');
+                processedLines.Add(new LyricEditingLineViewModel
+                {
+                    Text = sectionName,
+                    IsSectionHeader = true,
+                    SectionType = GetUniversalSectionType(sectionName)
+                });
+                lastSectionHeader = processedLines.Last();
+                i++;
+                continue;
+            }
+
+            // --- [2] Detect LINE-LEVEL repeats (e.g. "Não te percas ... x2") ----
+            if (Regex.IsMatch(line, @"x\d+$"))
+            {
+                var match = Regex.Match(line, @"x(\d+)$");
+                if (match.Success && processedLines.Count > 0)
+                {
+                    int repeatCount = int.Parse(match.Groups[1].Value);
+                    var lastLine = processedLines.LastOrDefault(l => !l.IsSectionHeader);
+                    if (lastLine != null)
+                    {
+                        for (int j = 1; j < repeatCount; j++)
+                            processedLines.Add(new LyricEditingLineViewModel
+                            {
+                                Text = lastLine.Text,
+                                IsRepeated = true,
+                                BelongsToSection = lastSectionHeader?.SectionType
+                            });
+                    }
+                }
+                i++;
+                continue;
+            }
+
+            // --- [3] Detect [RepeatStart] ... [RepeatEnd xN] ---
+            if (line.Equals("[RepeatStart]", StringComparison.OrdinalIgnoreCase))
+            {
+                int start = i + 1;
+                int end = -1;
+                int repeatCount = 1;
+
+                for (int j = start; j < rawLines.Count; j++)
+                {
+                    if (Regex.IsMatch(rawLines[j], @"^\[RepeatEnd(?:\s+x(\d+))?\]$", RegexOptions.IgnoreCase))
+                    {
+                        end = j - 1;
+
+                        var match = Regex.Match(rawLines[j], @"x(\d+)", RegexOptions.IgnoreCase);
+                        if (match.Success)
+                            repeatCount = int.Parse(match.Groups[1].Value);
+                        break;
+                    }
+                }
+
+                if (end != -1)
+                {
+                    var block = rawLines.Skip(start).Take(end - start + 1).ToList();
+                    for (int r = 0; r < repeatCount; r++)
+                    {
+                        foreach (var bl in block)
+                        {
+                            processedLines.Add(new LyricEditingLineViewModel
+                            {
+                                Text = bl,
+                                BelongsToSection = lastSectionHeader?.SectionType,
+                                IsRepeated = r > 0
+                            });
+                        }
+                    }
+
+                    i = end + 2;
+                    continue;
+                }
+            }
+
+            // --- [4] Normal lyric line -----------------------------------------
+            processedLines.Add(new LyricEditingLineViewModel
+            {
+                Text = line,
+                BelongsToSection = lastSectionHeader?.SectionType
+            });
+
+            i++;
+        }
+
+        LyricsInEditor = new ObservableCollection<LyricEditingLineViewModel>(processedLines);
+        _currentLineIndexToTimestamp = 0;
+        if (LyricsInEditor.Any())
+            LyricsInEditor[0].IsCurrentLine = true;
+
+        IsLyricEditorActive = true;
+        _logger.LogInformation("Started lyrics editing session with {Count} lines.", LyricsInEditor.Count);
+    }
+    private string GetUniversalSectionType(string name)
+    {
+        string n = name.ToLowerInvariant();
+
+        string[] intro = { "intro", "entrada", "introduction", "ouverture" };
+        string[] verse = { "verse", "couplet", "estrofe", "estrofa", "strofa" };
+        string[] prechorus = { "pre-chorus", "prechorus", "pré-refrain", "pré-chorus", "precor", "pré-coro" };
+        string[] chorus = { "chorus", "refrain", "coro", "refrao", "ritornello" };
+        string[] bridge = { "bridge", "pont", "ponte" };
+        string[] outro = { "outro", "finale", "conclusion" };
+        string[] instrumental = { "instrumental", "interlude", "solo" };
+
+        if (intro.Any(n.Contains)) return "Intro";
+        if (verse.Any(n.Contains)) return "Verse";
+        if (prechorus.Any(n.Contains)) return "Pre-Chorus";
+        if (chorus.Any(n.Contains)) return "Chorus";
+        if (bridge.Any(n.Contains)) return "Bridge";
+        if (outro.Any(n.Contains)) return "Outro";
+        if (instrumental.Any(n.Contains)) return "Instrumental";
+
+        return "Generic";
+    }
+
+    async partial void OnIsLyricEditorActiveChanged(bool oldValue, bool newValue)
+    {
+        if (newValue)
+        {
+            IsTimestampingInProgress = true;
+
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+        }
+        else
+        {
+            IsTimestampingInProgress = false;
+            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+        }
+
+    }
+
+    [ObservableProperty]
+    public partial bool IsTimestampingInProgress { get; set; }
+
+    [ObservableProperty]
+    public partial string CurrentSongPlainLyricsEdit { get; set; }
+
+    [ObservableProperty]
+    public partial List<LrcLibLyrics>? ListOfPlainLyricsFromLrcLib { get; set; }
+
+    /// <summary>
+    /// This is the main action button. It grabs the current playback time and applies it to the current lyric line.
+    /// </summary>
+    [RelayCommand]
+    public void TimestampCurrentLyricLine(LyricEditingLineViewModel lyricIndex)
+    {
+        _currentLineIndexToTimestamp = LyricsInEditor.IndexOf(lyricIndex);
+
+        if (!IsLyricEditorActive || _currentLineIndexToTimestamp >= LyricsInEditor.Count)
+        {
+            return;
+        }
+        if (lyricIndex.IsSectionHeader || lyricIndex.SectionType == "Generic")
+            return;
+
+        var currentTime = TimeSpan.FromSeconds(_audioService.CurrentPosition);
+        var timestampString = currentTime.ToString(@"mm\:ss\.ff");
+
+
+        LyricEditingLineViewModel? currentLine = lyricIndex;
+        currentLine.Timestamp = $"[{timestampString}]";
+        currentLine.IsTimed = true;
+        currentLine.IsCurrentLine = false;
+
+
+        if (_currentLineIndexToTimestamp < LyricsInEditor.Count)
+        {
+            LyricsInEditor[_currentLineIndexToTimestamp].IsCurrentLine = true;
+        }
+        else
+        {
+            _logger.LogInformation("All lyric lines have been timestamped.");
+        }
+    }
+
+
+    public void SaveLyricEditedByUserBeforeTimestamping(LyricEditingLineViewModel lyricIndex, string newText)
+    {
+        if (!IsLyricEditorActive)
+        {
+            return;
+        }
+        var line = lyricIndex;
+        line.Text = newText;
+    }
+
+
+    [RelayCommand]
+    public void DeleteTimestampFromLine(LyricEditingLineViewModel lyricIndex)
+    {
+        if (!IsLyricEditorActive)
+        {
+            return;
+        }
+
+        var line = lyricIndex;
+        LyricsInEditor.Remove(line);
+        line.Timestamp = string.Empty;
+        line.IsTimed = false;
+        line.IsCurrentLine = false;
+    }
+    [ObservableProperty]
+    public partial int SingleSongPageTabIndex { get; set; }
+    [ObservableProperty]
+    public partial bool IsSearchingLyricsOnline { get; set; }
+    [RelayCommand]
+    public async Task ContributeToLrcLib()
+    {
+        CancellationTokenSource cts = new();
+        if (SelectedSong == null)
+            return;
+        if (string.IsNullOrWhiteSpace(SelectedSong.SyncLyrics))
+        {
+            var ress = await Shell.Current.DisplayAlert("No Lyrics", "Do You wish to synchronize and contribute?", "Yes", "Cancel");
+            if (!ress) return;
+
+            SingleSongPageTabIndex = 1;
+            IsSearchingLyricsOnline = true;
+            ListOfPlainLyricsFromLrcLib = await _lyricsMetadataService.GetAllPlainLyricsOnlineAsync(SelectedSong, cts.Token);
+            if (ListOfPlainLyricsFromLrcLib is not null)
+            {
+
+                if (ListOfPlainLyricsFromLrcLib.Count == 1)
+                {
+                    var plainLyr = ListOfPlainLyricsFromLrcLib[0].PlainLyrics;
+                    if (!string.IsNullOrEmpty(plainLyr))
+                    {
+                        CurrentSongPlainLyricsEdit = plainLyr;
+                    }
+                }
+            }
+            IsSearchingLyricsOnline = false;
+            return;
+        }
+        var syncedLyrics = SelectedSong.SyncLyrics;
+        var plainLyrics = SelectedSong.UnSyncLyrics;
+        //ensure plain lyrics does not have timestamps
+
+        var timestampPattern = new Regex(@"\[\d{2}:\d{2}(?:\.\d{2})?\]");
+
+        plainLyrics = timestampPattern.Replace(plainLyrics ?? string.Empty, string.Empty).Trim();
+
+
+        LrcLibPublishRequest newRequest = new LrcLibPublishRequest
+        {
+            TrackName = SelectedSong.Title,
+            ArtistName = SelectedSong.ArtistName,
+            AlbumName = SelectedSong.AlbumName ?? string.Empty,
+            Duration = (int)SelectedSong.DurationInSeconds,
+            PlainLyrics = plainLyrics ?? string.Empty,
+            SyncedLyrics = syncedLyrics ?? string.Empty
+        };
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+        var res = await _lyricsMetadataService.PublishLyricsAsync(newRequest, cancellationTokenSource.Token);
+        if (res)
+        {
+            await _dialogueService.ShowAlertAsync(
+                "Thank you!",
+                "Your contribution has been submitted to the LRC library. It may take some time for it to be reviewed and published.",
+                "OK");
+        }
+        else
+        {
+            await _dialogueService.ShowAlertAsync(
+                "Submission Failed",
+                "There was an error submitting your lyrics. Please try again later.",
+                "OK");
+        }
+    }
+
+    /// <summary>
+    /// Builds the final LRC content from the editor and saves it using the existing service.
+    /// </summary>
+    [RelayCommand]
+    public async Task SaveTimestampedLyrics(string plainLyrics)
+    {
+        if (!IsLyricEditorActive || !LyricsInEditor.Any())
+            return;
+
+        var songToUpdate = CurrentPlayingSongView;
+        if (songToUpdate == null)
+            return;
+
+        var stringBuilder = new StringBuilder();
+        foreach (var line in LyricsInEditor.Where(l => l.IsTimed))
+        {
+            stringBuilder.AppendLine($"{line.Timestamp}{line.Text}");
+        }
+
+        var finalLrcContent = stringBuilder.ToString();
+
+        _logger.LogInformation("Saving newly timestamped lyrics for '{Title}'", songToUpdate.Title);
+
+        await _lyricsMetadataService.SaveLyricsForSongAsync(
+            songToUpdate.Id,
+            false,
+            plainLyrics,
+            finalLrcContent);
+
+        await Clipboard.Default.SetTextAsync(finalLrcContent);
+
+        IsLyricEditorActive = false;
+        LyricsInEditor.Clear();
+        // offer to save file Next to MusicFile as .lrc 
+        var userSaveChoice = await _dialogueService.ShowConfirmationAsync(
+            "Lyrics Saved",
+            "The timestamped lyrics have been saved to the database and copied to your clipboard. Would you like to save a copy as an .lrc file next to the music file?",
+            "Yes, Save .lrc",
+            "No, Thanks");
+        if (!userSaveChoice)
+        {
+            return;
+        }
+        else
+        {
+            try
+            {
+                var musicFilePath = songToUpdate.FilePath;
+                var lrcFilePath = Path.ChangeExtension(musicFilePath, ".lrc");
+                await File.WriteAllTextAsync(lrcFilePath, finalLrcContent);
+                _logger.LogInformation("Saved .lrc file to '{LrcPath}'", lrcFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save .lrc file.");
+                await _dialogueService.ShowAlertAsync("Error", "Failed to save .lrc file.", "OK");
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void CancelLyricsEditingSession()
+    {
+        IsLyricEditorActive = false;
+        LyricsInEditor?.Clear();
+        _logger.LogInformation("Lyrics editing session cancelled.");
+    }
+
+    public async Task LoadPlainLyricsFromFile(string PickedPath)
+    {
+        var fileContent = await File.ReadAllTextAsync(PickedPath);
+        StartLyricsEditingSession(fileContent);
+    }
+
+    [RelayCommand]
+    public async Task LoadSyncLyricsFromLrcFileOnly()
+    {
+        var res = await FilePicker.PickAsync(
+            new PickOptions
+            {
+                FileTypes =
+                    new FilePickerFileType(
+                            new Dictionary<DevicePlatform, IEnumerable<string>>
+                            {
+                    { DevicePlatform.iOS, new[] { "public.lrc" } },
+                    { DevicePlatform.Android, new[] { "text/x-lrc", "application/octet-stream" } },
+                    { DevicePlatform.WinUI, new[] { ".lrc" } },
+                    { DevicePlatform.Tizen, new[] { "*/*" } },
+                    { DevicePlatform.MacCatalyst, new[] { "public.lrc" } },
+                            }),
+                PickerTitle = "Select an LRC file with synced lyrics"
+            });
+        if (res == null)
+            return;
+        var fileContent = await File.ReadAllTextAsync(res.FullPath);
+
+        if (SelectedSong is null) return;
+        var parsedLyrics = await _lyricsMetadataService.SaveLyricsForSongAsync(
+            SelectedSong.Id,
+            false,
+            string.Empty,
+            fileContent);
+        if (!parsedLyrics)
+        {
+            await _dialogueService.ShowAlertAsync(
+                "No synced lyrics found in the selected LRC file.",
+                "Invalid LRC",
+                "OK");
+            return;
+        }
+    }
+    #endregion
+
 
 
     /// <summary>
@@ -5438,10 +5933,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var updatedSongs = SongMapper.ToSongViewList(songRepo.Query(s => songIds.Contains(s.Id)));
     }
 
-
-    //public SearchContextViewModel ArtistSongsContext { get; }
-    //public SearchContextViewModel MasterListContext { get; }
-    //public SearchContextViewModel CurrentViewContext { get; }
 
 
     /// <summary>
@@ -6019,425 +6510,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsLyricEditorActive { get; set; }
 
     public int _currentLineIndexToTimestamp = 0;
-
-
-    /// <summary>
-    /// Takes plain text, splits it into lines, and prepares the editor UI.
-    /// </summary>
-    [RelayCommand]
-    public void StartLyricsEditingSession(string plainText)
-    {
-        if (string.IsNullOrWhiteSpace(plainText))
-            return;
-
-        var rawLines = plainText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(line => line.Trim())
-            .ToList();
-
-        if (rawLines.Count == 0)
-            return;
-
-        var processedLines = new List<LyricEditingLineViewModel>();
-        LyricEditingLineViewModel? lastSectionHeader = null;
-        int i = 0;
-
-        while (i < rawLines.Count)
-        {
-            string line = rawLines[i];
-
-            // --- [1] Detect SECTION HEADERS ----------------------------------
-            if (line.StartsWith("[") && line.EndsWith("]"))
-            {
-                string sectionName = line.Trim('[', ']');
-                processedLines.Add(new LyricEditingLineViewModel
-                {
-                    Text = sectionName,
-                    IsSectionHeader = true,
-                    SectionType = GetUniversalSectionType(sectionName)
-                });
-                lastSectionHeader = processedLines.Last();
-                i++;
-                continue;
-            }
-
-            // --- [2] Detect LINE-LEVEL repeats (e.g. "Não te percas ... x2") ----
-            if (Regex.IsMatch(line, @"x\d+$"))
-            {
-                var match = Regex.Match(line, @"x(\d+)$");
-                if (match.Success && processedLines.Count > 0)
-                {
-                    int repeatCount = int.Parse(match.Groups[1].Value);
-                    var lastLine = processedLines.LastOrDefault(l => !l.IsSectionHeader);
-                    if (lastLine != null)
-                    {
-                        for (int j = 1; j < repeatCount; j++)
-                            processedLines.Add(new LyricEditingLineViewModel
-                            {
-                                Text = lastLine.Text,
-                                IsRepeated = true,
-                                BelongsToSection = lastSectionHeader?.SectionType
-                            });
-                    }
-                }
-                i++;
-                continue;
-            }
-
-            // --- [3] Detect [RepeatStart] ... [RepeatEnd xN] ---
-            if (line.Equals("[RepeatStart]", StringComparison.OrdinalIgnoreCase))
-            {
-                int start = i + 1;
-                int end = -1;
-                int repeatCount = 1;
-
-                for (int j = start; j < rawLines.Count; j++)
-                {
-                    if (Regex.IsMatch(rawLines[j], @"^\[RepeatEnd(?:\s+x(\d+))?\]$", RegexOptions.IgnoreCase))
-                    {
-                        end = j - 1;
-
-                        var match = Regex.Match(rawLines[j], @"x(\d+)", RegexOptions.IgnoreCase);
-                        if (match.Success)
-                            repeatCount = int.Parse(match.Groups[1].Value);
-                        break;
-                    }
-                }
-
-                if (end != -1)
-                {
-                    var block = rawLines.Skip(start).Take(end - start + 1).ToList();
-                    for (int r = 0; r < repeatCount; r++)
-                    {
-                        foreach (var bl in block)
-                        {
-                            processedLines.Add(new LyricEditingLineViewModel
-                            {
-                                Text = bl,
-                                BelongsToSection = lastSectionHeader?.SectionType,
-                                IsRepeated = r > 0
-                            });
-                        }
-                    }
-
-                    i = end + 2;
-                    continue;
-                }
-            }
-
-            // --- [4] Normal lyric line -----------------------------------------
-            processedLines.Add(new LyricEditingLineViewModel
-            {
-                Text = line,
-                BelongsToSection = lastSectionHeader?.SectionType
-            });
-
-            i++;
-        }
-
-        LyricsInEditor = new ObservableCollection<LyricEditingLineViewModel>(processedLines);
-        _currentLineIndexToTimestamp = 0;
-        if (LyricsInEditor.Any())
-            LyricsInEditor[0].IsCurrentLine = true;
-
-        IsLyricEditorActive = true;
-        _logger.LogInformation("Started lyrics editing session with {Count} lines.", LyricsInEditor.Count);
-    }
-    private string GetUniversalSectionType(string name)
-    {
-        string n = name.ToLowerInvariant();
-
-        string[] intro = { "intro", "entrada", "introduction", "ouverture" };
-        string[] verse = { "verse", "couplet", "estrofe", "estrofa", "strofa" };
-        string[] prechorus = { "pre-chorus", "prechorus", "pré-refrain", "pré-chorus", "precor", "pré-coro" };
-        string[] chorus = { "chorus", "refrain", "coro", "refrao", "ritornello" };
-        string[] bridge = { "bridge", "pont", "ponte" };
-        string[] outro = { "outro", "finale", "conclusion" };
-        string[] instrumental = { "instrumental", "interlude", "solo" };
-
-        if (intro.Any(n.Contains)) return "Intro";
-        if (verse.Any(n.Contains)) return "Verse";
-        if (prechorus.Any(n.Contains)) return "Pre-Chorus";
-        if (chorus.Any(n.Contains)) return "Chorus";
-        if (bridge.Any(n.Contains)) return "Bridge";
-        if (outro.Any(n.Contains)) return "Outro";
-        if (instrumental.Any(n.Contains)) return "Instrumental";
-
-        return "Generic";
-    }
-
-    async partial void OnIsLyricEditorActiveChanged(bool oldValue, bool newValue)
-    {
-        if (newValue)
-        {
-            IsTimestampingInProgress = true;
-
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
-        }
-        else
-        {
-            IsTimestampingInProgress = false;
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
-        }
-
-    }
-
-    [ObservableProperty]
-    public partial bool IsTimestampingInProgress { get; set; }
-
-    [ObservableProperty]
-    public partial string CurrentSongPlainLyricsEdit { get; set; }
-    partial void OnCurrentSongPlainLyricsEditChanged(string oldValue, string newValue)
-    {
-        if (!string.IsNullOrEmpty(newValue))
-        {
-
-        }
-    }
-    [ObservableProperty]
-    public partial List<LrcLibLyrics>? ListOfPlainLyricsFromLrcLib { get; set; }
-
-    /// <summary>
-    /// This is the main action button. It grabs the current playback time and applies it to the current lyric line.
-    /// </summary>
-    [RelayCommand]
-    public void TimestampCurrentLyricLine(LyricEditingLineViewModel lyricIndex)
-    {
-        _currentLineIndexToTimestamp = LyricsInEditor.IndexOf(lyricIndex);
-
-        if (!IsLyricEditorActive || _currentLineIndexToTimestamp >= LyricsInEditor.Count)
-        {
-            return;
-        }
-        if (lyricIndex.IsSectionHeader || lyricIndex.SectionType == "Generic")
-            return;
-
-        var currentTime = TimeSpan.FromSeconds(_audioService.CurrentPosition);
-        var timestampString = currentTime.ToString(@"mm\:ss\.ff");
-
-
-        LyricEditingLineViewModel? currentLine = lyricIndex;
-        currentLine.Timestamp = $"[{timestampString}]";
-        currentLine.IsTimed = true;
-        currentLine.IsCurrentLine = false;
-
-
-        if (_currentLineIndexToTimestamp < LyricsInEditor.Count)
-        {
-            LyricsInEditor[_currentLineIndexToTimestamp].IsCurrentLine = true;
-        }
-        else
-        {
-            _logger.LogInformation("All lyric lines have been timestamped.");
-        }
-    }
-
-
-    public void SaveLyricEditedByUserBeforeTimestamping(LyricEditingLineViewModel lyricIndex, string newText)
-    {
-        if (!IsLyricEditorActive)
-        {
-            return;
-        }
-        var line = lyricIndex;
-        line.Text = newText;
-    }
-
-
-    [RelayCommand]
-    public void DeleteTimestampFromLine(LyricEditingLineViewModel lyricIndex)
-    {
-        if (!IsLyricEditorActive)
-        {
-            return;
-        }
-
-        var line = lyricIndex;
-        LyricsInEditor.Remove(line);
-        line.Timestamp = string.Empty;
-        line.IsTimed = false;
-        line.IsCurrentLine = false;
-    }
-    [ObservableProperty]
-    public partial int SingleSongPageTabIndex { get; set; }
-    [ObservableProperty]
-    public partial bool IsSearchingLyricsOnline { get; set; }
-    [RelayCommand]
-    public async Task ContributeToLrcLib()
-    {
-        CancellationTokenSource cts = new();
-        if (SelectedSong == null)
-            return;
-        if (string.IsNullOrWhiteSpace(SelectedSong.SyncLyrics))
-        {
-            var ress = await Shell.Current.DisplayAlert("No Lyrics", "Do You wish to synchronize and contribute?", "Yes", "Cancel");
-            if (!ress) return;
-
-            SingleSongPageTabIndex = 1;
-            IsSearchingLyricsOnline = true;
-            ListOfPlainLyricsFromLrcLib = await _lyricsMetadataService.GetAllPlainLyricsOnlineAsync(SelectedSong, cts.Token);
-            if (ListOfPlainLyricsFromLrcLib is not null)
-            {
-
-                if (ListOfPlainLyricsFromLrcLib.Count == 1)
-                {
-                    var plainLyr = ListOfPlainLyricsFromLrcLib[0].PlainLyrics;
-                    if (!string.IsNullOrEmpty(plainLyr))
-                    {
-                        CurrentSongPlainLyricsEdit = plainLyr;
-                    }
-                }
-            }
-            IsSearchingLyricsOnline = false;
-            return;
-        }
-        var syncedLyrics = SelectedSong.SyncLyrics;
-        var plainLyrics = SelectedSong.UnSyncLyrics;
-        //ensure plain lyrics does not have timestamps
-
-        var timestampPattern = new Regex(@"\[\d{2}:\d{2}(?:\.\d{2})?\]");
-
-        plainLyrics = timestampPattern.Replace(plainLyrics ?? string.Empty, string.Empty).Trim();
-
-
-        LrcLibPublishRequest newRequest = new LrcLibPublishRequest
-        {
-            TrackName = SelectedSong.Title,
-            ArtistName = SelectedSong.ArtistName,
-            AlbumName = SelectedSong.AlbumName ?? string.Empty,
-            Duration = (int)SelectedSong.DurationInSeconds,
-            PlainLyrics = plainLyrics ?? string.Empty,
-            SyncedLyrics = syncedLyrics ?? string.Empty
-        };
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-
-        var res = await _lyricsMetadataService.PublishLyricsAsync(newRequest, cancellationTokenSource.Token);
-        if (res)
-        {
-            await _dialogueService.ShowAlertAsync(
-                "Thank you!",
-                "Your contribution has been submitted to the LRC library. It may take some time for it to be reviewed and published.",
-                "OK");
-        }
-        else
-        {
-            await _dialogueService.ShowAlertAsync(
-                "Submission Failed",
-                "There was an error submitting your lyrics. Please try again later.",
-                "OK");
-        }
-    }
-
-    /// <summary>
-    /// Builds the final LRC content from the editor and saves it using the existing service.
-    /// </summary>
-    [RelayCommand]
-    public async Task SaveTimestampedLyrics(string plainLyrics)
-    {
-        if (!IsLyricEditorActive || !LyricsInEditor.Any())
-            return;
-
-        var songToUpdate = CurrentPlayingSongView;
-        if (songToUpdate == null)
-            return;
-
-        var stringBuilder = new StringBuilder();
-        foreach (var line in LyricsInEditor.Where(l => l.IsTimed))
-        {
-            stringBuilder.AppendLine($"{line.Timestamp}{line.Text}");
-        }
-
-        var finalLrcContent = stringBuilder.ToString();
-
-        _logger.LogInformation("Saving newly timestamped lyrics for '{Title}'", songToUpdate.Title);
-
-        await _lyricsMetadataService.SaveLyricsForSongAsync(
-            songToUpdate.Id,
-            false,
-            plainLyrics,
-            finalLrcContent);
-
-        await Clipboard.Default.SetTextAsync(finalLrcContent);
-
-        IsLyricEditorActive = false;
-        LyricsInEditor.Clear();
-        // offer to save file Next to MusicFile as .lrc 
-        var userSaveChoice = await _dialogueService.ShowConfirmationAsync(
-            "Lyrics Saved",
-            "The timestamped lyrics have been saved to the database and copied to your clipboard. Would you like to save a copy as an .lrc file next to the music file?",
-            "Yes, Save .lrc",
-            "No, Thanks");
-        if (!userSaveChoice)
-        {
-            return;
-        }
-        else
-        {
-            try
-            {
-                var musicFilePath = songToUpdate.FilePath;
-                var lrcFilePath = Path.ChangeExtension(musicFilePath, ".lrc");
-                await File.WriteAllTextAsync(lrcFilePath, finalLrcContent);
-                _logger.LogInformation("Saved .lrc file to '{LrcPath}'", lrcFilePath);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save .lrc file.");
-                await _dialogueService.ShowAlertAsync("Error", "Failed to save .lrc file.", "OK");
-            }
-        }
-    }
-
-    [RelayCommand]
-    private void CancelLyricsEditingSession()
-    {
-        IsLyricEditorActive = false;
-        LyricsInEditor?.Clear();
-        _logger.LogInformation("Lyrics editing session cancelled.");
-    }
-
-    public async Task LoadPlainLyricsFromFile(string PickedPath)
-    {
-        var fileContent = await File.ReadAllTextAsync(PickedPath);
-        StartLyricsEditingSession(fileContent);
-    }
-
-    [RelayCommand]
-    public async Task LoadSyncLyricsFromLrcFileOnly()
-    {
-        var res = await FilePicker.PickAsync(
-            new PickOptions
-            {
-                FileTypes =
-                    new FilePickerFileType(
-                            new Dictionary<DevicePlatform, IEnumerable<string>>
-                            {
-                    { DevicePlatform.iOS, new[] { "public.lrc" } },
-                    { DevicePlatform.Android, new[] { "text/x-lrc", "application/octet-stream" } },
-                    { DevicePlatform.WinUI, new[] { ".lrc" } },
-                    { DevicePlatform.Tizen, new[] { "*/*" } },
-                    { DevicePlatform.MacCatalyst, new[] { "public.lrc" } },
-                            }),
-                PickerTitle = "Select an LRC file with synced lyrics"
-            });
-        if (res == null)
-            return;
-        var fileContent = await File.ReadAllTextAsync(res.FullPath);
-
-        if (SelectedSong is null) return;
-        var parsedLyrics = await _lyricsMetadataService.SaveLyricsForSongAsync(
-            SelectedSong.Id,
-            false,
-            string.Empty,
-            fileContent);
-        if (!parsedLyrics)
-        {
-            await _dialogueService.ShowAlertAsync(
-                "No synced lyrics found in the selected LRC file.",
-                "Invalid LRC",
-                "OK");
-            return;
-        }
-    }
 
     public enum PlaylistEditMode
     {

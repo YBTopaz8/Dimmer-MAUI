@@ -67,10 +67,6 @@ public sealed partial class ArtistPage : Page
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
         this.DataContext = MyViewModel;
-        Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
-        Visual? visual2 = ElementCompositionPreview.GetElementVisual(DestinationElement);
-        ApplyEntranceEffect(visual);
-        ApplyEntranceEffect(visual2);
 
 
         var animation = ConnectedAnimationService.GetForCurrentView()
@@ -80,24 +76,36 @@ public sealed partial class ArtistPage : Page
         //{
         //    animation?.TryStart(CoordinatedPanel);
         //};
+        if (animation is not null)
+        {
+            ArtistNameInArtistPage.Loaded += async (_, __) =>
+            {
+                animation?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { CoordinatedPanel });
 
-        DestinationElement.Loaded += (_, __) =>
-        {
-            animation?.TryStart(DestinationElement, new List<UIElement>() { CoordinatedPanel });
-        };
-
-        try
-        {
-            //if (MyViewModel.SelectedArtist is not null)
-            //{
-            //    await MyViewModel.LoadFullArtistDetails(MyViewModel.SelectedArtist);
-            //}
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
+                await Task.Delay(500);
+                Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
+                Visual? visual2 = ElementCompositionPreview.GetElementVisual(ArtistNameInArtistPage);
+                ApplyEntranceEffect(visual);
+                ApplyEntranceEffect(visual2);
+            };
+            return;
         }
 
+        var animFromSingleSongPage = ConnectedAnimationService.GetForCurrentView().
+            GetAnimation("MoveViewToArtistPageFromSongDetailPage");
+        if (animFromSingleSongPage is not null)
+        {
+            ArtistNameInArtistPage.Loaded += async (s, ee) =>
+            {
+                animation?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { CoordinatedPanel });
+
+                await Task.Delay(500);
+                Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
+                Visual? visual2 = ElementCompositionPreview.GetElementVisual(ArtistNameInArtistPage);
+                ApplyEntranceEffect(visual);
+                ApplyEntranceEffect(visual2);
+            };            
+        }
     }
 
     private void ApplyEntranceEffect(Visual visual, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
@@ -149,10 +157,10 @@ public sealed partial class ArtistPage : Page
 
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            //if (CoordinatedPanel != null && VisualTreeHelper.GetParent(DestinationElement) != null)
+            //if (CoordinatedPanel != null && VisualTreeHelper.GetParent(ArtistNameInArtistPage) != null)
             //{
             //    ConnectedAnimationService.GetForCurrentView()
-            //        .PrepareToAnimate("BackConnectedAnimation", DestinationElement);
+            //        .PrepareToAnimate("BackConnectedAnimation", ArtistNameInArtistPage);
             //}
             if (CoordinatedPanel != null && VisualTreeHelper.GetParent(CoordinatedPanel) != null)
             {
@@ -214,7 +222,7 @@ public sealed partial class ArtistPage : Page
 
     }
 
-    private void DestinationElement_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private void ArtistNameInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
 
