@@ -33,8 +33,9 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.AlbumName))
                     .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
 
-                    .ForMember(dest => dest.Album, opt => opt.MapFrom(scr => scr.Album)) // Must ignore RealmObject properties
+                    //.ForMember(dest => dest.Album, opt => opt.MapFrom(scr => scr.Album)) // Must ignore RealmObject properties
                     .ForMember(dest => dest.Artist, opt => opt.MapFrom(scr => scr.Artist)) // Must ignore RealmObject properties
+                    .ForMember(dest => dest.Album, opt => opt.MapFrom(scr => scr.Album)) // Must ignore RealmObject properties
                     .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre))
                     .ForMember(dest => dest.HasLyricsColumnIsFiltered, opt => opt.Ignore())
                     .ForMember(dest => dest.PlayEvents, opt => opt.MapFrom(src => src.PlayHistory))
@@ -45,7 +46,8 @@ public static class AutoMapperConf
                     .ForMember(dest => dest.SearchableText, opt => opt.Ignore()) // This is computed in AfterMap
                     .ForMember(dest => dest.CurrentPlaySongDominantColor, opt => opt.Ignore()) // This is computed in AfterMap
 
-                    .ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
+                    .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
+                    //.ForMember(dest => dest.ArtistToSong, opt => opt.MapFrom(src => src.ArtistToSong))
                     .ForMember(dest => dest.PlayCount, opt => opt.MapFrom(src => src.PlayCount))
                     .ForMember(dest => dest.PlayCompletedCount, opt => opt.MapFrom(src => src.PlayCompletedCount))
                     .ForMember(dest => dest.LastPlayed, opt => opt.MapFrom(src => src.LastPlayed))
@@ -58,22 +60,35 @@ public static class AutoMapperConf
                             //dest.RefreshDenormalizedProperties();
 
                         })
-
-                    ;
+                    .PreserveReferences();
 
                 cfg.CreateMap<AlbumModel, AlbumModelView>()
-              .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
-                    .ForMember(dest => dest.SongsInAlbum, opt => opt.MapFrom(src=>src.SongsInAlbum)) 
-              .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());
+                    .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
 
-            cfg.CreateMap<ArtistModel, ArtistModelView>()
+                .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore())
+                // Do NOT map the list of artists on the album automatically.
+                .ForMember(dest => dest.Artists, opt => opt.Ignore())
+                    .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore())
+                    .PreserveReferences();
+
+                cfg.CreateMap<AlbumModelView, AlbumModel>()
+                    .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Must ignore RealmList/backlinks
+                    .ForMember(dest => dest.UserNotes, opt => opt.Ignore())    // Must ignore Realm relationships
+                    .ForMember(dest => dest.Artists, opt => opt.Ignore())   // This is likely managed separately
+                    .ForMember(dest => dest.Tags, opt => opt.Ignore())   // This is likely managed separately
+                    .ForMember(dest => dest.Artist, opt => opt.Ignore())   // This is likely managed separately
+                    .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
+
+
+                cfg.CreateMap<ArtistModel, ArtistModelView>()
                 .ForMember(dest => dest.ImageBytes, opt => opt.Ignore()) // Handle this manually
                 .ForMember(dest => dest.ListOfSimilarArtists, opt => opt.Ignore())
-                    .ForMember(dest => dest.SongsByArtist, opt => opt.MapFrom(src => src.Songs))
-                .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore())
-                .ForMember(dest => dest.IsVisible, opt => opt.Ignore());
 
-            cfg.CreateMap<GenreModel, GenreModelView>()
+                .ForMember(dest => dest.SongsByArtist, opt => opt.Ignore()).ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore())
+                .ForMember(dest => dest.IsVisible, opt => opt.Ignore())
+                .PreserveReferences();
+
+                cfg.CreateMap<GenreModel, GenreModelView>()
                 .ForMember(dest => dest.IsCurrentlySelected, opt => opt.Ignore());
 
                 cfg.CreateMap<PlaylistModel, PlaylistModelView>()
@@ -192,14 +207,6 @@ public static class AutoMapperConf
             cfg.CreateMap<AppStateModel, AppStateModel>();
 
 
-
-            cfg.CreateMap<AlbumModelView, AlbumModel>()
-                .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Must ignore RealmList/backlinks
-                .ForMember(dest => dest.UserNotes, opt => opt.Ignore())    // Must ignore Realm relationships
-                .ForMember(dest => dest.Artists, opt => opt.Ignore())   // This is likely managed separately
-                .ForMember(dest => dest.Tags, opt => opt.Ignore())   // This is likely managed separately
-                .ForMember(dest => dest.Artist, opt => opt.Ignore())   // This is likely managed separately
-                .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
 
             cfg.CreateMap<ArtistModelView, ArtistModel>()
                 .ForMember(dest => dest.Songs, opt => opt.Ignore())       // Must ignore RealmList

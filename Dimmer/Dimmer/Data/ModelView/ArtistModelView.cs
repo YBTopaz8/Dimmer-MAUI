@@ -75,5 +75,5 @@ public partial class ArtistModelView : ObservableObject
     public partial int TotalAlbumsByArtist { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<string> ListOfSimilarArtists { get;  set; }
-    public ObservableCollection<SongModelView> SongsByArtist { get; internal set; }
+    public ObservableCollection<SongModelView> SongsByArtist { get;  set; }
 }

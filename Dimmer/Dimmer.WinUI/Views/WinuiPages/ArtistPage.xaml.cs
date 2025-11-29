@@ -67,8 +67,7 @@ public sealed partial class ArtistPage : Page
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
         this.DataContext = MyViewModel;
-
-
+        pressedCounter = 0;
         var animation = ConnectedAnimationService.GetForCurrentView()
        .GetAnimation("ForwardConnectedAnimation");
 
@@ -97,7 +96,7 @@ public sealed partial class ArtistPage : Page
         {
             ArtistNameInArtistPage.Loaded += async (s, ee) =>
             {
-                animation?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { CoordinatedPanel });
+                animFromSingleSongPage?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { CoordinatedPanel });
 
                 await Task.Delay(500);
                 Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
@@ -181,18 +180,23 @@ public sealed partial class ArtistPage : Page
             Frame.GoBack();
         }
     }
-
+    int pressedCounter = 0;
     private void MyArtistPage_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        if(pressedCounter > 0)
+        {
+            return;
+        }
         var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
         var properties = e.GetCurrentPoint(nativeElement).Properties;
 
 
         var point = e.GetCurrentPoint(nativeElement);
 
-        if (properties.IsXButton1Pressed) //also properties.IsXButton2Pressed for mouse 5
+        if (properties.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.XButton1Pressed)
         {
             CoordinatedPanel2_Click(this, e);
+            pressedCounter++;
         }
 
     }

@@ -142,4 +142,9 @@ public sealed partial class LyricsEditorPage : Page
             EditLyricsTxt.Text = string.Empty;
         }
         }
+
+    private void ReadySearchViewAndProduceSearchText_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.ReadySearchViewAndProduceSearchText();
     }
+}

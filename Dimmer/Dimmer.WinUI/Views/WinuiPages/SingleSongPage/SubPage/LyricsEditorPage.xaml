@@ -75,6 +75,12 @@
                     FontSize="24"
                     FontWeight="Light"
                     Text="{Binding SelectedSong.AlbumName}" />
+                <TextBlock
+                    x:Name="DurationTextBlock"
+                    Margin="10,0,0,0"
+                    FontSize="25"
+                    Text="{Binding SelectedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+
             </StackPanel>
         </StackPanel>
 
@@ -139,9 +145,10 @@
                             </StackPanel>
                         </Button>
                         <Button
+                            x:Name="ReadySearchViewAndProduceSearchText"
                             Margin="0,10,0,0"
                             VerticalAlignment="Bottom"
-                            Command="{Binding ReloadSearchViewAndProduceSearchQueryCommand}"
+                            Click="ReadySearchViewAndProduceSearchText_Click"
                             Style="{StaticResource SecondaryButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="Reset" />
@@ -255,7 +262,7 @@
                 </ItemsRepeater>
             </ScrollViewer>
 
-            <ScrollViewer Grid.Row="2">
+            <ScrollViewer Grid.Row="2" MaxHeight="300">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
@@ -272,12 +279,26 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="0">
+
                         <TextBlock
                             Margin="0,0,0,10"
                             FontSize="24"
                             FontWeight="Bold"
                             Text="Sync Lyrics" />
-                        <TextBlock FontSize="18" Text="{Binding SelectedSong.SyncLyrics}" />
+                        <Grid>
+
+                            <Button
+                                x:Name="EditIconBtn"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Background="Transparent"
+                                BorderThickness="2"
+                                Visibility="Collapsed">
+                                <FontIcon FontSize="24" Glyph="&#xE70F;" />
+                            </Button>
+                            <TextBlock FontSize="18" Text="{Binding SelectedSong.SyncLyrics}" />
+
+                        </Grid>
                     </StackPanel>
                 </Grid>
             </ScrollViewer>

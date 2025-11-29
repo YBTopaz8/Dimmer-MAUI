@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
 
@@ -437,7 +438,7 @@ public sealed partial class SongDetailPage : Page
 
         try
         {
-
+            if (DetailedSong is null) return;
             // Navigate to the detail page, passing the selected song object.
             // Suppress the default page transition to let ours take over.
             var supNavTransInfo = new SuppressNavigationTransitionInfo();
@@ -450,10 +451,12 @@ public sealed partial class SongDetailPage : Page
             };
 
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
-            var selectedArtist = DetailedSong.ArtistToSong.FirstOrDefault(x=>x.Name== DetailedSong.ArtistName);
+            var realm = MyViewModel.RealmFactory.GetRealmInstance();
+            var dbArtist = realm.All<ArtistModel>()
+                .FirstOrDefault(a => a.Name == DetailedSong.Artist.Name);
 
                   
-            await MyViewModel.SetSelectedArtist(selectedArtist);
+            await MyViewModel.SetSelectedArtist(dbArtist.ToModelView(MyViewModel._mapper));
 
 
             FrameNavigationOptions navigationOptions = new FrameNavigationOptions
@@ -467,7 +470,7 @@ public sealed partial class SongDetailPage : Page
             if (ArtistNameTxt != null)
             {
                 ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
+                    .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", ArtistNameTxt);
             }
             MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
@@ -776,7 +779,6 @@ public sealed partial class SongDetailPage : Page
             ConnectedAnimationService.GetForCurrentView()
                 .PrepareToAnimate("MoveViewToLyricsPageFromSongDetailPage", SectionLyricsStackPanel);
             
-            await PlatUtils.ApplyExitEffectAsync(detailedImage, _compositor, ExitTransitionEffect.FlyUp);
         }
       
 
@@ -804,18 +806,85 @@ public sealed partial class SongDetailPage : Page
             IsNavigationStackEnabled = true
 
         };
-        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(detailedImage);
+        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(currentView);
         if (detailedImageVisual != null)
         {
             ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", SectionLyricsStackPanel);
+                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", currentView);
 
-            await PlatUtils.ApplyExitEffectAsync(detailedImage, _compositor, ExitTransitionEffect.FlyUp);
         }
 
 
         Frame?.NavigateToType(pageType, navParams, navigationOptions);
 
+
+    }
+
+    private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
+    {
+        if(MyViewModel.SelectedSong is null) return;
+        var dbSong = MyViewModel.RealmFactory.GetRealmInstance()
+            .All<SongModel>()
+            .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
+        if (dbSong is null) return;
+        var artistToSong = dbSong.ArtistToSong;
+        var listOfArtistsModelView = MyViewModel._mapper.Map<ObservableCollection<ArtistModelView>>(artistToSong);
+        foreach (var art in listOfArtistsModelView)
+        {
+            var songs= artistToSong.FirstOrDefault(x => x.Id == art.Id)?
+                .Songs;
+            art.SongsByArtist = MyViewModel._mapper.Map<ObservableCollection<SongModelView>>(songs);
+        }
+        ArtistToSong.ItemsSource = listOfArtistsModelView;
+    }
+
+    private async void ArtistNameFromAllArtistsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var btn = (Button)sender;
+        try
+        {
+            if (DetailedSong is null) return;
+            // Navigate to the detail page, passing the selected song object.
+            // Suppress the default page transition to let ours take over.
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+            Type pageType = typeof(ArtistPage);
+            var navParams = new SongDetailNavArgs
+            {
+                Song = DetailedSong!,
+                ExtraParam = MyViewModel,
+                ViewModel = MyViewModel
+            };
+
+            MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
+            var realm = MyViewModel.RealmFactory.GetRealmInstance();
+            var dbArtist = realm.All<ArtistModel>()
+                .FirstOrDefault(a => a.Name == DetailedSong.Artist.Name);
+
+
+            await MyViewModel.SetSelectedArtist(dbArtist.ToModelView(MyViewModel._mapper));
+
+
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
+
+            };
+           
+                ConnectedAnimationService.GetForCurrentView()
+                    .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", btn);
+            
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
+            // fallback: anchor without position
+            //flyout.ShowAt(nativeElement);
+        }
 
     }
 }

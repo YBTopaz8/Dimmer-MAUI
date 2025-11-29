@@ -863,7 +863,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
                     if (lastSong != null)
                     {
-                        CurrentPlayingSongView = _mapper.Map<SongModelView>(lastSong);
+                        try
+                        {
+
+                            CurrentPlayingSongView = _mapper.Map<SongModelView>(lastSong);
+                        }
+                        catch (Exception ex)
+                        {
+
+                            Debug.WriteLine(ex.Message);
+                        }
+
                         //RxSchedulers.UI.Schedule(()=> CurrentPlayingSongView = lastSong.ToModelView(_mapper));
                     }
                     else
@@ -5291,6 +5301,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
+            IsBusy = true;
             _lyricsMgtFlow.LoadLyrics(selectedResult.SyncedLyrics);
 
 
@@ -5301,19 +5312,29 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await _lyricsMetadataService.SaveLyricsForSongAsync(
                 SelectedSong.Id,
                 false,
-                string.Empty,
+                selectedResult.PlainLyrics,
                 selectedResult.SyncedLyrics);
 
 
             SelectedSong.SyncLyrics = selectedResult.SyncedLyrics;
-            SelectedSong.HasLyrics = true;
+            SelectedSong.UnSyncLyrics = selectedResult.PlainLyrics;
+
+            SelectedSong.HasSyncedLyrics = !string.IsNullOrEmpty(selectedResult.SyncedLyrics) && selectedResult.SyncedLyrics.Length > 10;
+            SelectedSong.HasLyrics = SelectedSong.HasSyncedLyrics || (!string.IsNullOrEmpty(selectedResult.PlainLyrics) && selectedResult.PlainLyrics.Length > 10);
+            _logger.LogInformation("Lyrics selected and saved for song '{SongTitle}'", SelectedSong.Title);
 
 
+            SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(selectedResult.SyncedLyrics).ToObservableCollection();
             LyricsSearchResults.Clear();
+            
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to select and save lyrics.");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
