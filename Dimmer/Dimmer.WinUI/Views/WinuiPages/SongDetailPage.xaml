@@ -233,11 +233,13 @@
                     </StackPanel>
 
                     <!--  SECTION 3: LYRICS  -->
-                    <StackPanel x:Name="SectionLyrics" Background="Transparent">
+                    <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
                         <Button
                             Background="Transparent"
                             Content="Lyrics Section"
+                            x:Name="LyricsSection"
                             FontSize="34"
+                            Click="LyricsSection_Click"
                             FontWeight="ExtraBold" />
                         <Grid>
                             <Grid.ColumnDefinitions>

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
 
 using Microsoft.UI.Xaml.Documents;
 
@@ -41,7 +42,7 @@ public sealed partial class SongDetailPage : Page
         {
             { SectionOverview, "Overview" },
             { SectionPlayback, "Playback" },
-            { SectionLyrics, "Lyrics" },
+            { SectionLyricsStackPanel, "Lyrics" },
             { SectionHistory, "History" },
             { SectionRelated, "Related" }
         };
@@ -716,6 +717,37 @@ public sealed partial class SongDetailPage : Page
 
     private void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
+
+    }
+
+    private void LyricsSection_Click(object sender, RoutedEventArgs e)
+    {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        
+        Type pageType = typeof(LyricsEditorPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = DetailedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+        
+        // prepare the animation BEFORE navigation
+        var ArtistNameTxt =  PlatUtils.FindVisualChild<TextBlock>(SectionLyricsStackPanel, "LyricsSection");
+        if (ArtistNameTxt != null)
+        {
+            ConnectedAnimationService.GetForCurrentView()
+                .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
+        }
+
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
 
     }
 }

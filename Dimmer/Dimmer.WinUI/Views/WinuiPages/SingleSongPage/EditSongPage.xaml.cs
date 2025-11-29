@@ -234,7 +234,7 @@ public sealed partial class EditSongPage : Page
         PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Spring , _compositor);
 
         await Task.Delay(1600); // slight delay to ensure smoothness
-        Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        PageNotificationText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
 
     }
 }
