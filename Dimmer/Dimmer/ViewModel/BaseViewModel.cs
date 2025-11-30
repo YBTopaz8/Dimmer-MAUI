@@ -3063,7 +3063,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     #endregion
 
     [RelayCommand]
-    public async Task PlayPauseToggle()
+    public async Task PlayPauseToggleAsync()
     {
         if (!_audioService.IsPlaying && CurrentPlayingSongView?.Title == null)
         {
@@ -3172,7 +3172,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task PreviousTrack()
+    public async Task PreviousTrackASync()
     {
         if (_audioService.CurrentPosition > 3)
         {
@@ -3358,7 +3358,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IDisposable? _sleepTimerSubscription;
 
     [RelayCommand]
-    private void SetSleepTimer(TimeSpan duration)
+    public void SetSleepTimer(TimeSpan duration)
     {
         _sleepTimerSubscription?.Dispose();
 
@@ -3725,7 +3725,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 h => _audioService.MediaKeyPreviousPressed += h,
                 h => _audioService.MediaKeyPreviousPressed -= h)
                 .Subscribe(
-                    async _ => await PreviousTrack(),
+                    async _ => await PreviousTrackASync(),
                     ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
 

@@ -100,7 +100,7 @@ public class TransitionActivity : AppCompatActivity
         //container.Id = View.GenerateViewId();
         MyStaticID = container.Id;
 
-        //container.SetFitsSystemWindows(true);
+        container.SetFitsSystemWindows(true);
 
         Android.Util.Log.Error("DIMMER_INITeew", "logew");
 

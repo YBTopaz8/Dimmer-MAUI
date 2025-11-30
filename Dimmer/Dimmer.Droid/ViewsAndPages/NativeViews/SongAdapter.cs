@@ -4,6 +4,8 @@ using Bumptech.Glide;
 
 using Dimmer.Utilities.Extensions;
 
+using DynamicData;
+
 using Google.Android.Material.Card;
 
 using ImageButton = Android.Widget.ImageButton;
@@ -134,7 +136,65 @@ internal class SongAdapter : RecyclerView.Adapter
             .Commit();
     }
 
-    
+
+    public class SimpleItemTouchHelperCallback : ItemTouchHelper.Callback
+    {
+        private readonly SongAdapter _adapter;
+        public SimpleItemTouchHelperCallback(SongAdapter adapter) => _adapter = adapter;
+
+        public override int GetMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder)
+        {
+            int dragFlags = ItemTouchHelper.Up | ItemTouchHelper.Down;
+            int swipeFlags = ItemTouchHelper.Start | ItemTouchHelper.End; // Enable Swipe to Remove?
+            return MakeMovementFlags(dragFlags, swipeFlags);
+        }
+
+        public override bool OnMove(RecyclerView recyclerView, RecyclerView.ViewHolder source, RecyclerView.ViewHolder target)
+        {
+            // Notify Adapter to swap items in the ObservableCollection
+            _adapter.OnItemMove(source.BindingAdapterPosition, target.AdapterPosition);
+            return true;
+        }
+
+        public override void OnSwiped(RecyclerView.ViewHolder viewHolder, int direction)
+        {
+            // Notify Adapter to remove item
+            //_adapter.OnItemDismiss(viewHolder.AdapterPosition);
+        }
+    }
+
+    public bool OnItemMove(int fromPosition, int toPosition)
+    {
+        // 1. Move the item in the actual data list
+        // If it's an ObservableCollection, use Move for efficiency
+       
+        MyViewModel.PlaybackQueueSource.Edit(upd=>
+            {
+                //MyViewModel.PlaybackQueueSource.RemoveAt(fromPosition);
+                //MyViewModel.PlaybackQueueSource.Insert(toPosition, item);
+            });
+
+        // 2. Notify the RecyclerView that the item moved visually
+        // IMPORTANT: Do NOT call NotifyDataSetChanged(), it breaks animations.
+        NotifyItemMoved(fromPosition, toPosition);
+
+        return true;
+    }
+
+    public void OnItemDismiss(int position)
+    {
+        // 1. Remove from data source
+        MyViewModel.PlaybackQueueSource.Edit(upd=>
+            {
+                MyViewModel.PlaybackQueueSource.RemoveAt(position);
+            });
+
+        // 2. Notify RecyclerView
+        NotifyItemRemoved(position);
+
+        // 3. Optional: Notify Playback service that the queue changed?
+        // _viewModel.UpdateQueueService(); 
+    }
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);

@@ -5,6 +5,8 @@ using Google.Android.Material.Card;
 using Google.Android.Material.Chip;
 using Google.Android.Material.TextField;
 
+using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
+
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
@@ -97,7 +99,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             TextSize = 16f
         };
         
-        searchBar.SetPadding(40, 30, 40, 30);
+        searchBar.SetPadding(00, 30, 10, 5);
         
         searchBar.TextChanged += (s, e) =>
         {
@@ -152,6 +154,15 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         mdCardView.StrokeColor = Color.Red;
         mdCardView.StrokeWidth = 2;
+        var colorListBG = new ColorStateList(
+            new int[][] {
+                new int[] { } // default
+            },
+            new int[] {
+                IsDark() ? Color.ParseColor("#424242") : Color.ParseColor("#FFFFFF")
+            }
+        );
+        mdCardView.CardBackgroundColor = colorListBG;
         searchBorder.AddView(searchBar);
 
         mdCardView.AddView(searchBorder);
@@ -185,7 +196,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _adapter = new SongAdapter(ctx, MyViewModel, this
             );
         _songListRecycler.SetAdapter(_adapter);
-        _songListRecycler.AddOnScrollListener(scrListener);
+        //_songListRecycler.AddOnScrollListener(scrListener);
 
        
 
@@ -454,8 +465,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         Toast.MakeText(Context, $"Single tap {pos}", ToastLength.Short)?.Show();
     }
 
-
-    private void PageFAB_Click(object? sender, EventArgs e)
+    
+    public void PageFAB_Click(object? sender, EventArgs e)
     {
 
 
@@ -491,13 +502,49 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         recyclerView.SetLayoutManager(new LinearLayoutManager(Context!));
         var adapter = new SongAdapter(Context!, MyViewModel, this, "queue");
         recyclerView.SetAdapter(adapter);
+        var callback = new SimpleItemTouchHelperCallback(adapter);
+        var itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.AttachToRecyclerView(recyclerView);
+
+
+        var behavior = bottomSheetDialog.Behavior;
+
+        var displayMetrics = Context.Resources.DisplayMetrics;
+        int height = displayMetrics.HeightPixels;
+        behavior.PeekHeight = (int)(height * 0.6); // 60% of screen height
+        behavior.State = BottomSheetBehavior.StateCollapsed;
+
+        recyclerView.NestedScrollingEnabled = true;
+
+        var index = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
+        int currentIndex = index; // Assuming you have this in VM
+        if (currentIndex >= 0 && currentIndex < adapter.ItemCount)
+        {
+            recyclerView.ScrollToPosition(currentIndex);
+        }
 
         layout.AddView(recyclerView);
         bottomSheetDialog.SetContentView(layout);
         bottomSheetDialog.Show();
 
+        // Dismiss when touching outside
+        bottomSheetDialog.SetCanceledOnTouchOutside(true);
+        
+        bottomSheetDialog.DismissWithAnimation = true;
+        bottomSheetDialog.DismissEvent += BottomSheetDialog_DismissEvent;
 
 
+    }
+
+    private void BottomSheetDialog_DismissEvent(object? sender, EventArgs e)
+    {
+        var ctx = Context;
+        if (ctx != null)
+        {
+            _adapter = new SongAdapter(ctx, MyViewModel, this
+                );
+            _songListRecycler?.SetAdapter(_adapter);
+        }
     }
 
     private void CurrentTime_Click(object? sender, EventArgs e)
