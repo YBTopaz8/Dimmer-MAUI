@@ -158,10 +158,24 @@ public sealed partial class EditSongPage : Page
             var dbSong = realm.Find<SongModel>(DetailedSong!.Id);
             GridOfOtherImages.Visibility = WinUIVisibility.Visible;
             //MyImagePickerBtn
-            IEnumerable<string?>? albumPathsFromOtherSongsIngAlbum =
-                dbSong?.Album.SongsInAlbum?.ToList().Select(s => s.CoverImagePath);
-            ImagesFromOtherSongsItemsRepeater.ItemsSource = albumPathsFromOtherSongsIngAlbum;
+            if(dbSong is null) return;
+            if (dbSong.Album is null)
+            {
+                var albumFromDB =
+                    realm.All<AlbumModel>()
+                    .FirstOrDefault(a => a.Name == dbSong.AlbumName);
+                if(albumFromDB is null) return;
+                ImagesFromOtherSongsItemsRepeater.ItemsSource = albumFromDB.SongsInAlbum?.ToList().Select(s=>s.CoverImagePath);
 
+                await MyViewModel.AssignSongToAlbumAsync((MyViewModel.SelectedSong, albumFromDB.Name));
+            }
+            else
+            {
+                IEnumerable<string?>? albumPathsFromOtherSongsIngAlbum =
+                    dbSong?.Album.SongsInAlbum?.ToList().Select(s => s.CoverImagePath);
+                ImagesFromOtherSongsItemsRepeater.ItemsSource = albumPathsFromOtherSongsIngAlbum;
+
+            }
 
         }
         catch (Exception ex)
