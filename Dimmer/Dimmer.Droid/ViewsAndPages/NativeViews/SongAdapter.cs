@@ -1,12 +1,19 @@
-﻿using AndroidX.Core.View;
+﻿using System.Reactive.Disposables.Fluent;
+
+using AndroidX.Core.View;
+using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
 
+using Dimmer.DimmerSearch;
 using Dimmer.Utilities.Extensions;
+using Dimmer.Utilities.TypeConverters;
 
 using DynamicData;
 
+using Google.Android.Material.Button;
 using Google.Android.Material.Card;
+using Google.Android.Material.TextView;
 
 using ImageButton = Android.Widget.ImageButton;
 
@@ -36,8 +43,10 @@ internal class SongAdapter : RecyclerView.Adapter
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
+
         if(songsToWatch=="main")
         {
+            _songs = MyViewModel.SearchResults.ToList();
             _subscription = MyViewModel.SearchResultsHolder
            .Connect()
            .ObserveOn(RxSchedulers.UI)
@@ -48,7 +57,8 @@ internal class SongAdapter : RecyclerView.Adapter
                diff.DispatchUpdatesTo(this);
                //_songs = vm.SearchResults;   // update enumerable reference
 
-           });
+           })
+           ;
         }
         else if(songsToWatch=="queue")
         {
@@ -67,7 +77,7 @@ internal class SongAdapter : RecyclerView.Adapter
            });
         }
         
-        AdapterCallbacks = OnItemClick;
+        //AdapterCallbacks = OnItemClick;
     }
 
     public override int ItemCount => _songs.Count();
@@ -76,12 +86,43 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         if (holder is SongViewHolder songHolder)
         {
+            var isDarkTheme = ctx.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
+
             // find song in given position
             var song = _songs.ElementAt(position);
-            songHolder.Bind(song);
-            MyViewModel.SelectedSong = song;
+            //songHolder.Bind(song);
+            
             songHolder.SongTitle.Text = song.Title;
-            songHolder.AlbumName.Text = song.AlbumName ?? "Unknown";
+            
+            songHolder.AlbumNameView.Text = song.AlbumName ?? "Unknown Album";
+            songHolder.ArtistNameView.Text = song.ArtistName ?? "Unknown Artist";
+
+
+            var isCardView = songHolder.ContainerView.GetType() == typeof(CardView);
+            if (isCardView)
+            {
+                CardView card = (CardView)songHolder.ContainerView;
+                card.StrokeWidth = song.IsFavorite ? 4 : 1;
+
+                var colorListBG = new ColorStateList(
+            new int[][] {
+                new int[] { } // default
+            },
+            new int[] {
+                song.IsFavorite ? Color.DarkSlateBlue : Color.ParseColor("#FFFFFF")
+                }
+            );
+                card.SetStrokeColor(colorListBG);
+            }
+
+
+            var dur = song.DurationInSeconds;
+            if (dur is double duration)
+            {
+                TimeSpan time = TimeSpan.FromSeconds(duration);
+                songHolder.SongDurationView.Text = time.ToString(@"mm\:ss");
+            }
+
             // handle image
             if (!string.IsNullOrEmpty(song.CoverImagePath) && System.IO.File.Exists(song.CoverImagePath))
             {
@@ -103,6 +144,9 @@ internal class SongAdapter : RecyclerView.Adapter
             }
             // ensure unique transition name
             var transitionName = $"sharedImage_{song.Id}";
+            var songIdAsTag = song.Id.ToString();
+            songHolder.ImageBtn.Tag = songIdAsTag;
+            songHolder.ContainerView.Tag = songIdAsTag;
             ViewCompat.SetTransitionName(songHolder.ImageBtn, transitionName);
             
 
@@ -202,9 +246,11 @@ internal class SongAdapter : RecyclerView.Adapter
     }
     ImageButton imgBtn;
     LinearLayout row;
-    TextView title;
-    TextView artist;
-    TextView album;
+    MaterialTextView title;
+    MaterialTextView artist;
+    MaterialTextView album; 
+    MaterialButton moreBtn;
+    MaterialTextView durationTextView;
     public override AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {
 
@@ -217,6 +263,8 @@ internal class SongAdapter : RecyclerView.Adapter
         var rippleColorList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue);
         materialCardView.RippleColor = rippleColorList;
         
+        
+
         var lyParams = new RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent
@@ -227,14 +275,14 @@ internal class SongAdapter : RecyclerView.Adapter
         var isDarkTheme = ctx.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
 
         materialCardView.LayoutParameters = lyParams;
-        materialCardView.StrokeWidth = 2;
+        materialCardView.StrokeWidth = 1;
         materialCardView.StrokeColor = isDarkTheme? Color.MidnightBlue : Color.Gray;
         
         row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
          row.LayoutParameters = new ViewGroup.LayoutParams(
         ViewGroup.LayoutParams.MatchParent, // Width: Fill the screen
         ViewGroup.LayoutParams.WrapContent  // Height: Fit content
-    );
+                );
 
         row.SetPadding(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
         row.SetGravity(GravityFlags.CenterVertical|GravityFlags.FillHorizontal);
@@ -247,10 +295,21 @@ internal class SongAdapter : RecyclerView.Adapter
         row.AddView(imgBtn);
 
         var textCol = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        title = new TextView(ctx) {  TextSize = 19 };
-        artist = new TextView(ctx) { TextSize = 15 };
-        album = new TextView(ctx) { TextSize = 11 };
+        title = new MaterialTextView(ctx) {  TextSize = 19 };
 
+            var playingColorListBG = new ColorStateList(
+        new int[][] {
+                new int[] { } // default
+        },
+        new int[] {
+                    isDarkTheme ? Color.White: Color.Black
+            }
+        );
+
+        title.SetTextColor(playingColorListBG);
+        artist = new MaterialTextView(ctx) { TextSize = 15 };
+        album = new MaterialTextView(ctx) { TextSize = 11 };
+        
         album.SetTextColor(Color.Gray);
         textCol.AddView(title);
         textCol.AddView(artist);
@@ -258,14 +317,24 @@ internal class SongAdapter : RecyclerView.Adapter
         var lp2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
         row.AddView(textCol, lp2);
 
-        var moreBtn = new ImageButton(ctx);
+        moreBtn = new MaterialButton(ctx);
         moreBtn.SetBackgroundColor(Color.Transparent);
-        moreBtn.SetImageResource(Resource.Drawable.more1);
-        
-        row.AddView(moreBtn, new LinearLayout.LayoutParams(90, 90));
+        moreBtn.SetIconResource(Resource.Drawable.more1);
+
+        durationTextView = new MaterialTextView(ctx);
+        durationTextView.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.MatchParent);
+
+        var verticalLayout = new LinearLayout(ctx);
+        verticalLayout.Orientation = Android.Widget.Orientation.Vertical;
+        verticalLayout.AddView(durationTextView);
+        verticalLayout.AddView(moreBtn);
+
+        row.AddView(verticalLayout);
 
         materialCardView.AddView(row);
-        return new SongViewHolder(MyViewModel, materialCardView, imgBtn, title, album, artist);
+        return new SongViewHolder(MyViewModel, materialCardView, imgBtn, title, album, artist
+            ,durationTextView);
     }
 
 
@@ -273,47 +342,65 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         public BaseViewModelAnd MyViewModel { get; }
         public ImageButton ImageBtn { get; }
-        public TextView SongTitle { get; }
-        public TextView AlbumName { get; }
-        public TextView ArtistName { get; }
+        public MaterialTextView SongTitle { get; }
+        public MaterialTextView AlbumNameView { get; }
+        public MaterialTextView ArtistNameView { get; }
+        public MaterialTextView SongDurationView { get; }
         public View ContainerView => base.ItemView;
 
-        public SongModelView? CurrentSong { get; private set; }
-        public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageButton img, TextView title, TextView album, TextView artistName)
+        public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageButton img, MaterialTextView title, MaterialTextView album, MaterialTextView artistName, MaterialTextView songDurView)
             : base(itemView)
         {
             MyViewModel = vm;
             ImageBtn = img;
             SongTitle = title;
-            AlbumName = album;
-            ArtistName = artistName;
+            AlbumNameView = album;
+            ArtistNameView = artistName;
+            SongDurationView = songDurView;
+            ArtistNameView.LongClickable = true;
+            
+            ArtistNameView.LongClick += ArtistName_LongClick;
             ImageBtn.Click += ImageBtn_Click;
             ContainerView.Click += ContainerView_Click;
         }
 
+        
+        private void ArtistName_LongClick(object? sender, View.LongClickEventArgs e)
+        {
+            var send = (TextView)sender;
+            var artistText = send.Text;
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistText));
+        }
+      
         private async void ContainerView_Click(object? sender, EventArgs e)
         {
-            // 3. Access the data context here!
-            if (CurrentSong == null) return;
-
-            // Example usage:
-            // Toast.MakeText(ItemView.Context, $"Clicked {CurrentSong.Title}", ToastLength.Short).Show();
-            MyViewModel.SelectedSong = CurrentSong;
+            var containerView = (View)sender;
+            var songIdAsTag = containerView.Tag.ToString();
+            var song= MyViewModel.SearchResults.FirstOrDefault(x=>x.Id.ToString()==songIdAsTag);
+            if (song == null)
+                return;
+            MyViewModel.SelectedSong = song;
             // Or call your VM
-            await MyViewModel.PlaySong(CurrentSong,CurrentPage.AllSongs);
+            await MyViewModel.PlaySong(song, CurrentPage.AllSongs);
         }
-        public void Bind(SongModelView song)
-        {
-            CurrentSong = song;
-            
-        }
+      
         private void ImageBtn_Click(object? sender, EventArgs e)
         {
-            if (CurrentSong == null) return;
+            var containerView = (View)sender;
+            var songIdAsTag = containerView.Tag.ToString();
+            var song = MyViewModel.SearchResults.FirstOrDefault(x => x.Id.ToString() == songIdAsTag);
+            if (song == null)
+                return;
+            MyViewModel.SelectedSong = song;
+            var sendBtn = sender as ImageButton;
+            //set songAsClicked
+            if (sendBtn == null) return;
+
             var transitionName = ViewCompat.GetTransitionName(ImageBtn);
             if (transitionName is null) return;
-            AdapterCallbacks?.Invoke(ImageBtn, transitionName, BindingAdapterPosition);
 
+            MyViewModel.NavigateToSingleSongPageFromHome((HomePageFragment)MyViewModel.CurrentPage
+                , transitionName, sendBtn);
         }
 
         ~SongViewHolder()

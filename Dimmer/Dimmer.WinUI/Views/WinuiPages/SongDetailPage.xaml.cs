@@ -121,9 +121,14 @@ public sealed partial class SongDetailPage : Page
                     {
                         DispatcherQueue.TryEnqueue(() =>
                         {
-
+                            
                             var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
                             
+                            if (animation == null)
+                            {
+                                detailedImage.Opacity = 1;
+                                return;
+                            }
                             var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
 
                             animConf.IsShadowEnabled = true;
@@ -548,6 +553,12 @@ public sealed partial class SongDetailPage : Page
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if(props.IsXButton1Pressed)
         {
+                if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+                {
+                    ConnectedAnimationService.GetForCurrentView()
+                        .PrepareToAnimate("BackConnectedAnimation", detailedImage);
+                }
+         
             if (Frame.CanGoBack)
             {
                

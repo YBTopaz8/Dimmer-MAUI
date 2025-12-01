@@ -32,8 +32,16 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     }
     public SettingsFragment()
     {
-        
+
     }
+    public override void OnViewCreated(View view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+
+        MyViewModel.CurrentPage = this;
+        MyViewModel.CurrentDeviceLogTextView = LogTextView;
+    }
+    MaterialTextView LogTextView;
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context!;
@@ -134,7 +142,14 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                 ViewGroup.LayoutParams.WrapContent)
         };
         backMaterialChip.Click += BackMaterialChip_Click;
-        
+
+
+        LogTextView = new MaterialTextView(ctx);
+        var lyParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent);
+        LogTextView.LayoutParameters = lyParams;
+
         HorizontalLayout.AddView(backMaterialChip);
         HorizontalLayout.AddView(pageIcon);
 
@@ -545,7 +560,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             // Edit Button
             var materialEditBtn = new MaterialButton(context)
             {
-                Text = "Update",
+                Text = "Rescan",
                 LayoutParameters = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WrapContent,
                     ViewGroup.LayoutParams.WrapContent)
@@ -553,7 +568,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             materialEditBtn.Click += async (s, e) =>
             {
                 Toast.MakeText(context, "Update clicked for " + txt.Text, ToastLength.Short)?.Show();
-                await MyViewModel.UpdateFolderPath(txt.Text);
+                await MyViewModel.ReScanMusicFolderByPassingToService(txt.Text);
             };
             materialEditBtn.RippleColor = ColorStateList.ValueOf(Color.DarkGreen);
 

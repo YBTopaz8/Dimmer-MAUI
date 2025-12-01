@@ -1,6 +1,9 @@
 ﻿using Android.Graphics;
 using Android.Views.InputMethods;
 
+using Bumptech.Glide;
+
+using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 using Google.Android.Material.Chip;
 using Google.Android.Material.TextField;
@@ -127,45 +130,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
 
 
-
-        var searchBorder = new LinearLayout(ctx)
-        {
-            LayoutParameters = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent
-                )
-            
-        };
-
-        var lyP = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent, (int)(ctx.Resources.DisplayMetrics.Density * 60));
-        lyP.SetMargins(
-            (int)(ctx.Resources.DisplayMetrics.Density * 16),
-            (int)(ctx.Resources.DisplayMetrics.Density * 16),
-            (int)(ctx.Resources.DisplayMetrics.Density * 16),
-            (int)(ctx.Resources.DisplayMetrics.Density * 8)
-            );
-
-        var mdCardView = new MaterialCardView(ctx)
-        {
-           LayoutParameters = lyP,
-           CardElevation = 8f,
-           Elevation = 8f,
-        };
-        mdCardView.StrokeColor = Color.Red;
-        mdCardView.StrokeWidth = 2;
-        var colorListBG = new ColorStateList(
-            new int[][] {
-                new int[] { } // default
-            },
-            new int[] {
-                IsDark() ? Color.ParseColor("#424242") : Color.ParseColor("#FFFFFF")
-            }
-        );
-        mdCardView.CardBackgroundColor = colorListBG;
-        searchBorder.AddView(searchBar);
-
-        mdCardView.AddView(searchBorder);
         // MIDDLE ZONE (RecyclerView + empty text)
         var middleContainer = new FrameLayout(ctx)
         {
@@ -214,6 +178,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 ViewGroup.LayoutParams.MatchParent,
                 (int)(ctx.Resources.DisplayMetrics.Density * 90)) // 50-60dp
         };
+        
         btmBar.SetGravity(GravityFlags.CenterVertical);
         btmBar.SetBackgroundColor(Color.ParseColor("#303030"));
 
@@ -295,7 +260,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         btmBar.AddView(rightStack);
 
         // ADD TOP + MIDDLE + BOTTOM TO COLUMN
-        column.AddView(mdCardView);
+        column.AddView(searchBar);
         column.AddView(middleContainer);
         column.AddView(btmBar);
 
@@ -364,29 +329,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
 
-        var scrollToChip = new Chip(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WrapContent,
-                ViewGroup.LayoutParams.WrapContent,
-                GravityFlags.Bottom | GravityFlags.End)
-        };
-        int chipMargin = (int)(ctx.Resources.DisplayMetrics.Density * 160);
-        int chipMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
-        
-        scrollToChip.Click += (s, e) =>
-        {
-            var currentlyPlayingIndex= MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            if(currentlyPlayingIndex >=0)
-                _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
-        }; 
-        ((FrameLayout.LayoutParams)scrollToChip.LayoutParameters).SetMargins(chipMargin, chipMargin, chipMargin, chipMarginBottom);
 
-        scrollToChip.SetChipIconResource(Resource.Drawable.eye);
    
         root.AddView(_pageFAB);
         root.AddView(cogButton);
-        root.AddView(scrollToChip);
         _albumArt.TransitionName = "home_bottom_bar_art";
         _titleTxt.TransitionName = "home_bottom_bar_title";
         _artistTxt.TransitionName = "home_bottom_bar_artist";
@@ -417,6 +363,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         this.View!.Tag = "HomePageFragment";
         MyViewModel.SetupSubscriptions();
+
+
+        var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+        if (currentlyPlayingIndex >= 0)
+            _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
     }
    
     
@@ -483,7 +434,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         var title = new TextView(Context!)
         {
-            Text = "Current Queue",
+            Text = $"Current Queue {MyViewModel.PlaybackQueue.Count} Songs",
             TextSize = 20f,
             Gravity = GravityFlags.Center,
 
@@ -620,7 +571,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         }
     }
 
-    private bool IsDark()
+    public  bool IsDark()
     {
         return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;
     }

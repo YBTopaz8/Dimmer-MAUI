@@ -114,7 +114,7 @@ public class BaseAppFlow : IDisposable
 
         if(lastEvent.ContainsKey(songView?.Id ?? ObjectId.Empty))
         {
-            if(lastEvent[songView?.Id ?? ObjectId.Empty] == type)
+            if(lastEvent[songView?.Id ?? ObjectId.Empty] == type && type != PlayType.Favorited)
             {
                 //same event as last time for this song, ignore
                 Debug.WriteLine($"Ignoring duplicate event {type} for song {songView?.Title} of id {songView?.Id}");

@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Net;
+using System.Runtime.ConstrainedExecution;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Dimmer.Data.Models;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
@@ -1507,7 +1510,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         if (newValue is not null)
         {
-            SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
+            SelectedSecondDominantColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
         
             var lyrics= await _lyricsMetadataService.GetLocalLyricsAsync(newValue);
 
@@ -1520,7 +1523,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
-    public partial Color? SelectedSecondDomColor { get; set; }
+    public partial Color? SelectedSecondDominantColor { get; set; }
 
     [ObservableProperty]
     public partial byte[]? SelectedSecondSongCoverBytes { get; set; } = Array.Empty<byte>();
@@ -2354,11 +2357,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             // Last 10 events that have at least one linked song
             var lastTenEvents = realm.All<DimmerPlayEvent>()
-                .Where(e => e.PlayType == 3 && e.SongsLinkingToThisEvent.Any())
+                //.Where(e => e.PlayType == 3 && e.SongsLinkingToThisEvent.Any())
                 .OrderByDescending(e => e.EventDate)
                 .ToList()
                 .DistinctBy(x => x.SongId)
-                .Take(25);
+                .Take(25).ToList();
 
             foreach (var evt in lastTenEvents)
             {
@@ -3541,7 +3544,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 .Subscribe(
                     obv =>
                      {
-                        LatestDeviceLog(obv);
+                        SetLatestDeviceLog(obv);
                     }));
     }
 
@@ -3559,7 +3562,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _lyricsMgtFlow.CurrentLyric.ObserveOn(RxSchedulers.UI)
             .Subscribe(line =>
             {
+                
                 CurrentPlayingSongView.HasSyncedLyrics = line is not null;
+                Debug.WriteLine(line.Text);
                 CurrentLine = line;
             }));
         _subsMgr.Add(
@@ -3568,9 +3573,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .ObserveOn(RxSchedulers.UI)
                 .Subscribe(isLoading =>
                 {
-
-                    IsLoadingLyrics = isLoading;
-                    
+                    IsLoadingLyrics = isLoading;                    
 
                 }));
 
@@ -3734,7 +3737,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger.LogError(message: x.EventType.ToString());
     }
 
-    private void LatestDeviceLog(AppLogModel model)
+    private void SetLatestDeviceLog(AppLogModel model)
     {
 
         RxSchedulers.UI.Schedule(() =>
@@ -3744,6 +3747,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogInformation("Device Log: {Log}", model.Log);
 
         });
+    }
+    public virtual void SetlatestDevicelog()
+    {
     }
 
     [ObservableProperty] public partial string CurrentPlaybackQuery { get; set; }
@@ -4470,6 +4476,27 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _baseAppFlow.UpsertAlbum(album.ToModel(_mapper));
     }
 
+    [RelayCommand]
+    public async Task RemoveSongFromFavorite(SongModelView concernedSong)
+    {
+        try
+        {
+            concernedSong.IsFavorite = false;
+            concernedSong.ManualFavoriteCount = 0;
+            concernedSong.NumberOfTimesFaved = 0;
+            var updated = await Task.Run(() => songRepo.Upsert(concernedSong.ToModel(_mapper)).ToModelView(_mapper));
+            if (updated is not null)
+                RxSchedulers.UI.Schedule(() => concernedSong = updated);
+            await lastfmService.UnloveTrackAsync(concernedSong);
+            
+
+        }
+        catch (Exception ex)
+        {
+
+            _logger.LogError(ex, ex.Message);
+        }
+    }
 
     [RelayCommand]
     public async Task AddFavoriteRatingToSong(SongModelView songModel)
@@ -5867,6 +5894,47 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     #endregion
 
 
+    public async Task AssignSongToAlbumAsync((SongModelView? Song, string Name) context)
+    {
+        if (context.Song == null || context.Name== null)
+            return;
+        _logger.LogInformation(
+            "Assigning song '{SongTitle}' to album '{AlbumName}'",
+            context.Song.Title,
+            context.Name);
+        await _musicDataService.UpdateSongAlbum(
+            context.Song.Id,context.Name,
+            context.Song.Artist.Name);
+       SelectedSong = _mapper.Map<SongModelView>(songRepo.GetById(context.Song.Id));
+
+    }
+
+    public async Task AssignArtistToSongAsync(ObjectId songId, IEnumerable<string> artistNames)
+    {
+        if (songId == ObjectId.Empty || artistNames == null || !artistNames.Any())
+            return;
+        _logger.LogInformation(
+            "Assigning artists '{ArtistNames}' to song ID '{SongId}'",
+            string.Join(", ", artistNames),
+            songId);
+        await _musicDataService.UpdateSongArtists(songId, artistNames);
+        var updatedSong = _mapper.Map<SongModelView>(songRepo.GetById(songId));
+        SelectedSong = updatedSong;
+    }
+
+    public async Task AssignSongToGenreAsync((SongModelView Song, GenreModelView TargetGenre) context)
+    {
+        if (context.Song == null || context.TargetGenre == null)
+            return;
+        _logger.LogInformation(
+            "Assigning song '{SongTitle}' to genre '{GenreName}'",
+            context.Song.Title,
+            context.TargetGenre.Name);
+        await _musicDataService.UpdateSongGenre(
+            context.Song.Id,
+            context.TargetGenre.Name);
+    }
+
 
     /// <summary>
     /// Quickly assigns a single song to an existing artist. This is a lightweight "move" operation.
@@ -7008,6 +7076,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         }
         var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
+        
         // i need an inverted BG color that will work well with this dominant color
         if (color is not null)
         {
@@ -7222,7 +7291,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
 
-            SelectedSecondDomColor = await ImageResizer.GetDominantMauiColorAsync(SelectedSong.CoverImagePath);
+            SelectedSecondDominantColor = await ImageResizer.GetDominantMauiColorAsync(SelectedSong.CoverImagePath);
             await LoadSongLastFMDataAsync();
         }
     }

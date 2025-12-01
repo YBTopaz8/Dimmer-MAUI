@@ -16,7 +16,9 @@ global using System.Threading.Tasks;
 
 global using Dimmer.Interfaces.Services;
 global using CommunityToolkit.Mvvm.Input;
-
+global using TextView = Google.Android.Material.TextView.MaterialTextView;
+global using Button = Google.Android.Material.Button.MaterialButton;
+global using CardView = Google.Android.Material.Card.MaterialCardView;
 global using Android.Content;
 global using Android.Content.Res;
 global using Android.Graphics.Drawables;
@@ -57,7 +59,35 @@ global using View = Android.Views.View;
 global using Google.Android.Material.FloatingActionButton;
 global using System.ComponentModel;
 
-global using Button = Android.Widget.Button;
+
+global using System.Reactive.Subjects;
+global using System.Runtime.CompilerServices;
+global using System.Text.RegularExpressions;
+
+global using Android.Graphics;
+
+global using AndroidX.Interpolator.View.Animation;
+
+global using CommunityToolkit.Maui.Core.Extensions;
+global using CommunityToolkit.Maui.Storage;
+
+global using Dimmer.Data;
+global using Dimmer.Interfaces.IDatabase;
+global using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+global using Dimmer.LastFM;
+global using Dimmer.Utilities.Events;
+global using Dimmer.Utilities.Extensions;
+global using Dimmer.Utilities.StatsUtils;
+global using Dimmer.ViewsAndPages.NativeViews;
+global using Dimmer.ViewsAndPages.NativeViews.SingleSong;
+
+global using Google.Android.Material.TextView;
+
+global using Microsoft.Extensions.Logging;
+
+global using ChangeTransform = AndroidX.Transitions.ChangeTransform;
+
 global using Platform = Microsoft.Maui.ApplicationModel.Platform;
 global using Dimmer.Interfaces;
 global using ChangeBounds = AndroidX.Transitions.ChangeBounds;

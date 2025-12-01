@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
 
 using Application = Android.App.Application;
+using Path = System.IO.Path;
 using Window = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.Utils;
@@ -253,5 +254,18 @@ public class AppUtil : IAppUtil
         var ctx = Application.Context;
 
         return (int)(dp * ctx.Resources.DisplayMetrics.Density);
+    }
+    public static ColorStateList AnyColorCSL(Color anyColor)
+    {
+
+        var colorListBtxtColor = new ColorStateList(
+           new int[][] {
+                new int[] { } // default
+           },
+           new int[] {
+                anyColor,
+           }
+       );
+        return colorListBtxtColor;
     }
 }

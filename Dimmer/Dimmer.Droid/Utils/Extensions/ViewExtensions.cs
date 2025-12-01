@@ -1,4 +1,7 @@
-﻿namespace Dimmer.Utils.Extensions;
+﻿using Point = Microsoft.Maui.Graphics.Point;
+using Rect = Microsoft.Maui.Graphics.Rect;
+
+namespace Dimmer.Utils.Extensions;
 
 public static class ViewExts
 {

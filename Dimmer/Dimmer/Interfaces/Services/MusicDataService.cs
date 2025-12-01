@@ -348,6 +348,12 @@ public class MusicDataService
             songInDb.HasSyncedLyrics = !string.IsNullOrWhiteSpace(songView.SyncLyrics);
             songInDb.CoverImagePath = songView.CoverImagePath; // Update cover path
             songInDb.LastDateUpdated = DateTimeOffset.UtcNow;
+            songInDb.Achievement = songView.Achievement;
+            songInDb.Conductor = songView.Conductor;
+            songInDb.BitDepth = songView.BitDepth;
+            songInDb.BPM = songView.BPM;
+            songInDb.Description = songView.Description;
+            
 
             // === 2. Handle Complex Relationships using our existing logic ===
             // We re-implement the logic from the other service methods here to ensure
@@ -372,7 +378,10 @@ public class MusicDataService
                     newArtistsList.Add(artist);
                     songInDb.ArtistToSong.Add(artist);
                 }
-                songInDb.Artist = newArtistsList.FirstOrDefault();
+                var firstArtist = newArtistsList.FirstOrDefault();
+                if (firstArtist is not null)
+                    songInDb.Artist = firstArtist;
+
                 songInDb.ArtistName = string.Join(" | ", newArtistsList.Select(a => a.Name));
 
                 // Cleanup

@@ -2,10 +2,13 @@
 
 using AndroidX.Fragment.App;
 
+using Bumptech.Glide;
+
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 using Google.Android.Material.Carousel;
 using Google.Android.Material.Chip;
+using Google.Android.Material.Dialog;
 using Google.Android.Material.TextView;
 
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
@@ -23,8 +26,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     public MaterialTextView SongTitle { get; private set; }
-    public ImageView AlbumArtImage { get; private set; }
-    public FrameLayout LyricsOverlay { get; private set; }
+    public ImageView CoverImageView { get; private set; }
     public MaterialTextView ArtistName { get; private set; }
     public ImageView FavIcon { get; private set; }
     public MaterialTextView AlbumName { get; private set; }
@@ -93,6 +95,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 ViewGroup.LayoutParams.MatchParent,
                 DpToPx(350)) // Fixed Height 350dp
         };
+        albumCard.SetBackgroundColor(Color.Transparent);
         ((LinearLayout.LayoutParams)albumCard.LayoutParameters).BottomMargin = DpToPx(24);
 
         // Internal Frame to stack Image and Lyrics
@@ -104,13 +107,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         };
 
         // Layer A: Album Art
-        AlbumArtImage = new ImageView(ctx)
+        CoverImageView = new ImageView(ctx)
         {
             LayoutParameters = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.MatchParent)
         };
-        AlbumArtImage.SetScaleType(ImageView.ScaleType.CenterCrop);
+        CoverImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
 
         var lyParams =
             new FrameLayout.LayoutParams(
@@ -123,50 +126,24 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         };
         carouselMaskedFramelayout.ShapeAppearanceModel = carouselMaskedFramelayout.ShapeAppearanceModel.ToBuilder()
-            .SetAllCornerSizes(AppUtil.DpToPx(16))
+            .SetAllCornerSizes(AppUtil.DpToPx(10))
             .Build();
-        carouselMaskedFramelayout.AddView(AlbumArtImage);
+        carouselMaskedFramelayout.AddView(CoverImageView);
 
         if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath) && System.IO.File.Exists(MyViewModel.CurrentPlayingSongView.CoverImagePath))
         {
+            Glide.With(this)
+                .Load(MyViewModel.CurrentPlayingSongView.CoverImagePath)
+                .Placeholder(Resource.Drawable.musicnotess)
+                .Into(CoverImageView);
             // Load from disk
-            var bmp = Android.Graphics.BitmapFactory.DecodeFile(MyViewModel.CurrentPlayingSongView.CoverImagePath);
-
-            AlbumArtImage.SetImageBitmap(bmp);
+           
         }
 
         if (!string.IsNullOrEmpty(ArtTransitionName))
-            AlbumArtImage.TransitionName = ArtTransitionName;
+            CoverImageView.TransitionName = ArtTransitionName;
 
-        var recyclerViewForNPQ = new RecyclerView(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
-        };
-        var strategy = new HeroCarouselStrategy();
-        var layoutMgr = new CarouselLayoutManager(strategy)
-        { CarouselAlignment = CarouselLayoutManager.AlignmentCenter };
-        recyclerViewForNPQ.SetLayoutManager(layoutMgr);
-
-        var snapHelper = new CarouselSnapHelper();
-        snapHelper.AttachToRecyclerView(recyclerViewForNPQ);
-
-        recyclerViewForNPQ.AddOnScrollListener(new CarouselScrollListener(layoutMgr, MyViewModel));
-
-        var adapter = new NowPlayingQueueCarouselAdapter(MyViewModel);
-        recyclerViewForNPQ.SetAdapter(adapter);
-
-
-        // Layer B: Border/Lyrics Layout (Superposed)
-        LyricsOverlay = new FrameLayout(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
-        };
-        // Semi-transparent dark overlay to make lyrics readable
-        LyricsOverlay.SetBackgroundColor(Color.ParseColor("#66000000"));
+        
 
         // Add a sample text to the overlay to show it works
          LyricsPlaceholder = new TextView(ctx)
@@ -179,10 +156,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 GravityFlags.Center)
         };
         LyricsPlaceholder.SetTextColor(Color.White);
-        LyricsOverlay.AddView(LyricsPlaceholder);
+        //LyricsOverlay.AddView(LyricsPlaceholder);
 
         cardInternalFrame.AddView(carouselMaskedFramelayout);
-        cardInternalFrame.AddView(LyricsOverlay);
         albumCard.AddView(cardInternalFrame);
 
 
@@ -199,6 +175,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             TextSize = 18f,
             LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
         };
+        ArtistName.Click += ArtistName_Click;
+
+
         if (!string.IsNullOrEmpty(ArtistTransitionName))
             ArtistName.TransitionName = ArtistTransitionName;
 
@@ -228,6 +207,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             TextSize = 14f,
             LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f)
         };
+        AlbumName.Click += AlbumName_Click;
+
         AlbumName.SetTextColor(Color.Gray);
 
         PlayCount = new MaterialTextView(ctx)
@@ -259,32 +240,32 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             await MyViewModel.PreviousTrackASync();
         };
 
-        var btn1_75 = new MaterialButton(ctx)
+        var playBtn_75 = new MaterialButton(ctx)
         {
             Text = MyViewModel.IsDimmerPlaying ? "Pause" : "Play",
             LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 0.75f) // 75%
         };
-        btn1_75.Click += async (s, e) =>
+        playBtn_75.Click += async (s, e) =>
         {
             await MyViewModel.PlayPauseToggleAsync();
 
-            await Task.Delay(400);
-            if (MyViewModel.IsDimmerPlaying)
+            await Task.Delay(100);
+            if (!MyViewModel.IsDimmerPlaying)
             {
          
-                btn1_75.Text = "Play";
+                playBtn_75.Text = "Play";
             }
             else
             {
-                btn1_75.Text = "Pause";
+                playBtn_75.Text = "Pause";
             }
         };
 
         // Add margin between
-        ((LinearLayout.LayoutParams)btn1_75.LayoutParameters).LeftMargin = DpToPx(8);
+        ((LinearLayout.LayoutParams)playBtn_75.LayoutParameters).LeftMargin = DpToPx(8);
 
         rowBtnA.AddView(btn1_25);
-        rowBtnA.AddView(btn1_75);
+        rowBtnA.AddView(playBtn_75);
 
 
         // --- ELEMENT 6: 75% Btn | 25% Btn ---
@@ -424,6 +405,16 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return mainScrollView;
     }
 
+    private void AlbumName_Click(object? sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void ArtistName_Click(object? sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private async void QueueChip_Click(object? sender, EventArgs e)
     {
         // programatically press back key
@@ -442,7 +433,7 @@ var isHomePageType = MyViewModel.CurrentPage is HomePageFragment;
 
 
     }
-
+    
     private void SleepChip_Touch(object? sender, View.TouchEventArgs e)
     {
         //var popUpRequestingUserToChooseTimeToSetTimerForSleep = new dialog
@@ -462,9 +453,12 @@ var isHomePageType = MyViewModel.CurrentPage is HomePageFragment;
         public SleepTimerDialogFragment(BaseViewModelAnd ViewModel)
         {
             MyViewModel= ViewModel;
+            showCounter = 0;
         }
+        int showCounter = 0;
         public override Dialog OnCreateDialog(Bundle? savedInstanceState)
         {
+
             
             var customViewBeingClockPicker = new TimePicker(Activity);
             customViewBeingClockPicker.SetIs24HourView(Java.Lang.Boolean.False);
@@ -477,7 +471,7 @@ var isHomePageType = MyViewModel.CurrentPage is HomePageFragment;
                     ViewGroup.LayoutParams.WrapContent)
             };
             materialCardView.AddView(customViewBeingClockPicker);
-            var builder = new Android.App.AlertDialog.Builder(Activity)
+            var builder = new MaterialAlertDialogBuilder(Activity)
                 .SetView(materialCardView);
             builder.SetTitle("Set Sleep Timer");
             // Here you can add options for sleep timer durations
@@ -496,6 +490,7 @@ var isHomePageType = MyViewModel.CurrentPage is HomePageFragment;
                 var toastMsg = Toast.MakeText(Context, "Sleep Timer Cancelled", ToastLength.Short);
                 toastMsg?.Show();
             });
+            showCounter++;
             return builder.Create();
         }
     }

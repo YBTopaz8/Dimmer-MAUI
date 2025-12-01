@@ -21,15 +21,32 @@ using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewsAndPages.NativeViews;
+using Dimmer.ViewsAndPages.NativeViews.SingleSong;
+
+using Google.Android.Material.TextView;
 
 using Microsoft.Extensions.Logging;
 
-using ChangeTransform = AndroidX.Transitions.ChangeTransform;
 
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
+    public BaseViewModelAnd(IMapper mapper,
+        AndroidFolderPicker picker,
+        IDimmerStateService dimmerStateService, MusicDataService musicDataService,
+
+        IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+    {
+        fPicker = picker;
+        // mapper and stateService are accessible via base class protected fields.
+        // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
+
+        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
+        isAppBooting = true;
+        this._logger.LogInformation("BaseViewModelAnd initialized.");
+        audioService = audioServ;
+    }
     public LoginViewModel LoginViewModel => _loginViewModel;
     private readonly LoginViewModel _loginViewModel;
     private readonly IAppInitializerService appInitializerService;
@@ -455,7 +472,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         sharedSet.AddTransition(new ChangeTransform());
         sharedSet.AddTransition(new ChangeImageTransform()); // Crucial for ImageViews
         sharedSet.SetDuration(400);
-        sharedSet.SetInterpolator(new FastOutSlowInInterpolator());
+        sharedSet.SetInterpolator(new LinearInterpolator());
 
         nowPlayingFrag.SharedElementEnterTransition = sharedSet;
         nowPlayingFrag.SharedElementReturnTransition = sharedSet;
@@ -501,8 +518,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             CurrentPage = fragment;
 
             
-            var enterSet = new TransitionSet();
-
 
             var container = new MaterialContainerTransform
             {
@@ -564,27 +579,81 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
+    public void NavigateToEditSongPage(Fragment callerFragment,
+        string transitionName, List<View> sharedViews)
+    {
+
+        var fragment = new EditSingleSongFragment(
+            this,transitionName, "imageTrans")
+            ;
+        var typeOfCaller = callerFragment.GetType();
+
+        sharedViews.FirstOrDefault()?.TransitionName = transitionName;
+
+        var startShapeAppearanceModel
+            = ShapeAppearanceModel.InvokeBuilder()
+            .SetAllCorners(
+                CornerFamily.Rounded, 30f)
+            .Build();
+
+        var endShapeAppearanceModel
+            = ShapeAppearanceModel.InvokeBuilder()
+            .SetAllCorners(
+                CornerFamily.Rounded, 30f)
+            .Build();
+
+        var container = new MaterialContainerTransform
+        {
+            DrawingViewId = TransitionActivity.MyStaticID,
+            ScrimColor = Color.Transparent,
+            ContainerColor = Color.Transparent,
+            FadeMode = MaterialContainerTransform.FadeModeCross,
+            StartShapeAppearanceModel = startShapeAppearanceModel,
+            EndShapeAppearanceModel = endShapeAppearanceModel
+        };
+
+        var sharedSet = new TransitionSet();
+        sharedSet.AddTransition(new ChangeBounds());
+        sharedSet.AddTransition(new ChangeTransform());
+        sharedSet.AddTransition(new ChangeImageTransform());
+
+        var mArcMotion = new MaterialArcMotion()
+        {
+        };
+        
+        container.PathMotion = mArcMotion;
+        container.SetDuration(400);
+
+        fragment.SharedElementEnterTransition = container;
+        fragment.SharedElementReturnTransition = container.Clone();
+
+        var scaleUp = new MaterialElevationScale(true);
+        scaleUp.SetDuration(300);
+
+        var scaleDown = new MaterialElevationScale(false);
+        scaleDown.SetDuration(200);
+        fragment.EnterTransition = scaleUp;
+
+
+        Hold enterHold = new Hold();
+        enterHold.AddTarget(TransitionActivity.MyStaticID);
+        enterHold.SetDuration(280);
+        callerFragment.ExitTransition = enterHold;
+        
+        callerFragment.ParentFragmentManager.BeginTransaction()
+             .SetReorderingAllowed(true)
+                .AddSharedElement(sharedViews[0], transitionName)
+                .Replace(TransitionActivity.MyStaticID, fragment)
+                .AddToBackStack(transitionName)
+                .Commit();
+    }
+
     #endregion
 
     #region Binding Views Section
 
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
 
-    public BaseViewModelAnd(IMapper mapper,
-        AndroidFolderPicker picker,
-        IDimmerStateService dimmerStateService, MusicDataService musicDataService,
-        
-        IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
-    {
-        fPicker= picker;
-        // mapper and stateService are accessible via base class protected fields.
-        // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
-
-        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
-        isAppBooting = true;
-        this._logger.LogInformation("BaseViewModelAnd initialized.");
-        audioService = audioServ;
-    }
 
     public IObservable<SongModelView?> CurrentSongChanged => _currentSong.AsObservable();
 
@@ -613,6 +682,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 {
                     homeFrag._titleTxt.Text = song.Title;
                     homeFrag._albumTxt.Text = song.AlbumName;
+                    homeFrag._artistTxt.Text = song.ArtistName;
+                    if(homeFrag._playCount is not null)
+                        homeFrag._playCount.Text = song.PlayCount.ToString();
                 }
 
                 if (CurrentPage is NowPlayingFragment npFrag)
@@ -647,12 +719,12 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                     homeFrag._albumArt.SetBackgroundColor(Color.DarkGray);
             }
 
-            if (CurrentPage is NowPlayingFragment npFrag && npFrag.AlbumArtImage != null)
+            if (CurrentPage is NowPlayingFragment npFrag && npFrag.CoverImageView != null)
             {
                 if (bitmap != null)
-                    npFrag.AlbumArtImage.SetImageBitmap(bitmap);
+                    npFrag.CoverImageView.SetImageBitmap(bitmap);
                 else
-                    npFrag.AlbumArtImage.SetBackgroundColor(Color.DarkGray);
+                    npFrag.CoverImageView.SetBackgroundColor(Color.DarkGray);
             }
         },
         error =>
@@ -673,6 +745,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 if (CurrentPage is HomePageFragment homeFrag && homeFrag.CurrentTimeTextView != null)
                 {
                     homeFrag.CurrentTimeTextView.Text = PublicStats.FormatTimeSpan(songPosition);
+                    homeFrag.CurrentTimeTextView.SetTextColor(Color.DarkSlateBlue);
                 }
 
                 if (CurrentPage is NowPlayingFragment npFrag && npFrag.SeekSlider != null)
@@ -693,6 +766,12 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         SubsManager.Add(positionSub);
     }
     #endregion
-
+    public MaterialTextView? CurrentDeviceLogTextView;
+    public override void SetlatestDevicelog()
+    {
+        if(CurrentDeviceLogTextView is null)
+            { return; }
+        CurrentDeviceLogTextView.Text = LatestScanningLog;
+    }
 
 }
