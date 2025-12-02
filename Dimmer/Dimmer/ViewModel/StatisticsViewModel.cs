@@ -5,7 +5,7 @@ public partial class StatisticsViewModel : ObservableObject
 {
     private readonly StatisticsService _statsService;
     private readonly ILogger<StatisticsViewModel> _logger;
-    private readonly IMapper _mapper;
+    public readonly IMapper _mapper;
 
     public StatisticsViewModel(StatisticsService statsService,IMapper mapper, ILogger<StatisticsViewModel> logger)
     {

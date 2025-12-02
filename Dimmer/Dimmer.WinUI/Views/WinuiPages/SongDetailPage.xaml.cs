@@ -1,12 +1,17 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Dimmer.Interfaces.Services;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
 
 using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media.Imaging;
 
+using Windows.Foundation.Metadata;
+
+using Border = Microsoft.UI.Xaml.Controls.Border;
 using Button = Microsoft.UI.Xaml.Controls.Button;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
@@ -107,20 +112,16 @@ public sealed partial class SongDetailPage : Page
                 .Where(x => x.Id == MyViewModel.SelectedSong.Id)
                 .FirstOrDefault().EarnedAchievementIds.ToArray();
             Debug.WriteLine(allAchievementsForSong.Length);
-            
 
-            var allAchievementsForAll = MyViewModel.RealmFactory.GetRealmInstance()
-                .All<SongModel>()
-                .Select(x=> x.EarnedAchievementIds.ToList()).ToArray();
+
+            
             Debug.WriteLine(allAchievementsForSong.Length);
-            Debug.WriteLine(allAchievementsForAll.Length);
             
 
 
             Visual? visual = ElementCompositionPreview.GetElementVisual(TitleBlock);
             PlatUtils.ApplyEntranceEffect(visual, TitleBlock, _userPrefAnim, _compositor);
             MyViewModel.CurrentWinUIPage = this;
-            return;
         }
         if (e.Parameter is SongDetailNavArgs args)
         {
@@ -154,54 +155,63 @@ public sealed partial class SongDetailPage : Page
                 Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
                 PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim,_compositor);
 
-                var animation = ConnectedAnimationService.GetForCurrentView()
-               .GetAnimation("ForwardConnectedAnimation");
-
-                MyViewModel.SelectedSong = DetailedSong;
-                if (MyViewModel.CurrentWinUIPage.GetType() == typeof(EditSongPage))
-                {
-                    detailedImage.Loaded += (s, ee) =>
-                    {
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            
-                            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
-                            
-                            if (animation == null)
-                            {
-                                detailedImage.Opacity = 1;
-                                return;
-                            }
-                            var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
-
-                            animConf.IsShadowEnabled = true;
-
-                            animation.Configuration = animConf;
-                            
-
-                            animation.TryStart(detailedImage);
-                            detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-                            detailedImage.Opacity = 1;
-                        });
-                    };
-                }
-                else
-                {
-
-                    detailedImage.Loaded += (_, _) =>
-                    {
-                        detailedImage.Opacity = 1;
-                        animation?.TryStart(detailedImage, new[] { coordinatedPanel });
-                    };
-
-                }
-                MyViewModel.CurrentWinUIPage = this;
-                await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong);
-                await MyViewModel.LoadSelectedSongLastFMData();
-                LoadUiComponents();
-
+               
             }
         }
+
+        MyViewModel.SelectedSong = DetailedSong;
+      
+        detailedImage.Loaded += (s, ee) =>
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+
+                var animationBack = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
+
+                if (animationBack != null)
+                {
+
+                    detailedImage.Opacity = 1;
+                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
+
+                    animConf.IsShadowEnabled = true;
+
+                    animationBack.Configuration = animConf;
+
+
+                    animationBack.TryStart(detailedImage);
+                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    detailedImage.Opacity = 1;
+                    
+                }
+
+
+                var animationFront = ConnectedAnimationService.GetForCurrentView()
+                 .GetAnimation("ForwardConnectedAnimation");
+
+                if (animationFront != null)
+                {
+
+                    detailedImage.Opacity = 1;
+                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
+
+                    animConf.IsShadowEnabled = true;
+
+                    animationFront.Configuration = animConf;
+
+
+                    animationFront.TryStart(detailedImage);
+                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    detailedImage.Opacity = 1;
+
+                }
+            });
+        };
+        
+        MyViewModel.CurrentWinUIPage = this;
+        await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
+        await MyViewModel.LoadSelectedSongLastFMData();
+        LoadUiComponents();
     }
 
     private void LoadUiComponents()
@@ -895,6 +905,7 @@ public sealed partial class SongDetailPage : Page
     private async void ArtistNameFromAllArtistsBtn_Click(object sender, RoutedEventArgs e)
     {
         var btn = (Button)sender;
+        var artistChosen = btn.DataContext as ArtistModelView;
         try
         {
             if (DetailedSong is null) return;
@@ -911,8 +922,8 @@ public sealed partial class SongDetailPage : Page
 
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
-            var dbArtist = realm.All<ArtistModel>()
-                .FirstOrDefault(a => a.Name == DetailedSong.Artist.Name);
+            var dbArtist = realm.Find<ArtistModel>(artistChosen.Id)
+                ;
 
 
             await MyViewModel.SetSelectedArtist(dbArtist.ToModelView(MyViewModel._mapper));
@@ -928,7 +939,7 @@ public sealed partial class SongDetailPage : Page
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", btn);
             
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistChosen.Name));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
 
 
@@ -946,4 +957,84 @@ public sealed partial class SongDetailPage : Page
     {
 
     }
+
+    private void AllAchievementsIR_Loaded(object sender, RoutedEventArgs e)
+    {
+        // 1. Get the current song
+        var currentSongId = MyViewModel.SelectedSong?.Id;
+        if (currentSongId == null) return;
+
+        // 2. Open Realm to get the song's data
+        var realm = MyViewModel.RealmFactory.GetRealmInstance();
+        var song = realm.Find<SongModel>(currentSongId);
+
+        if (song == null) return;
+
+        var earnedIds = song.EarnedAchievementIds.ToList();
+        if (earnedIds?.Count < 1)
+        {
+            AllAchievementsIR.Header = "No Achievements Yet..";
+
+        }
+        else
+        {
+            var unlockedRules = MyViewModel.BaseAppFlow.AchievementService.GetAchievementsByIds(earnedIds);
+        
+            AllAchievementsIR.ItemsSource = unlockedRules;
+        
+        }
+    }
+    AchievementRule _storedItem;
+    private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", destinationElement);
+        SmokeGrid.Children.Remove(destinationElement);
+
+        // Collapse the smoke when the animation completes.
+        animation.Completed += Animation_Completed;
+
+        // If the connected item appears outside the viewport, scroll it into view.
+        AllAchievementsIR.ScrollIntoView(_storedItem, ScrollIntoViewAlignment.Default);
+        AllAchievementsIR.UpdateLayout();
+
+        // Use the Direct configuration to go back (if the API is available).
+        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+        {
+            animation.Configuration = new DirectConnectedAnimationConfiguration();
+        }
+
+        // Play the second connected animation.
+        await AllAchievementsIR.TryStartConnectedAnimationAsync(animation, _storedItem, "connectedPopUpElement");
+
+    }
+    private void Animation_Completed(ConnectedAnimation sender, object args)
+    {
+        SmokeGrid.Visibility = WinUIVisibility.Collapsed;
+        SmokeGrid.Children.Add(destinationElement);
+    }
+
+
+
+    private void connectedPopUpElement_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        ConnectedAnimation? animation = null;
+        Border send = (Border)sender;
+        var itemm = send.DataContext as AchievementRule;
+        _storedItem = itemm;
+        MyViewModel.SelectedAchievement = itemm;
+        // Prepare the connected animation.
+        // Notice that the stored item is passed in, as well as the name of the connected element.
+        // The animation will actually start on the Detailed info page.
+        animation = AllAchievementsIR.PrepareConnectedAnimation("forwardAnimation", itemm, "connectedPopUpElement");
+
+
+
+        SmokeGrid.Visibility = WinUIVisibility.Visible;
+        if (animation != null)
+        {
+            animation.TryStart(destinationElement);
+        }
+
+    }
 }
+

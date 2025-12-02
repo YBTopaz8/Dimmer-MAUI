@@ -13,6 +13,7 @@
         <Grid.Resources>
             <ResourceDictionary>
                 <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+                <convertersWinUI:IsNullToVisibilityConverter x:Key="IsNullToVisibilityConverter" />
                 <convertersWinUI:RepeatModeConverter x:Key="RepeatModeConverter" />
                 <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
                 <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
@@ -46,7 +47,7 @@
                             Click="BackButton_Click"
                             Content="&#xE72B;"
                             FontFamily="Segoe MDL2 Assets"
-                            Visibility="{Binding IsBackButtonVisible}" />
+                            Visibility="Collapsed" />
                         <TextBlock VerticalAlignment="Center" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
                         <TextBlock VerticalAlignment="Center" Text="/" />
 
@@ -111,11 +112,10 @@
                             <FontIcon Glyph="&#xEC71;" />
                         </Button>
 
-                        <Button
-                            >
+                        <Button Visibility="{Binding UnlockedAch, Converter={StaticResource IsNullToVisibilityConverter}}">
                             <StackPanel Orientation="Vertical">
-                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Name}" FontSize="19"/>
-                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Description}" FontSize="15"/>
+                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Name}" />
+                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Description}" />
                             </StackPanel>
                         </Button>
 

@@ -124,6 +124,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ChatViewModelWin>();
         builder.Services.AddSingleton<TqlTutorialViewModel>();
+        builder.Services.AddSingleton<StatsViewModelWin>();
 
         builder.Services.AddSingleton<DimmerMultiWindowCoordinator>();
         return builder.Build();

@@ -54,7 +54,7 @@
 
             <Image
                 Width="200"
-                HorizontalAlignment="Left"
+                HorizontalAlignment="Left" x:Name="detailedImage"
                 Source="{Binding SelectedSong.CoverImagePath}" />
             <StackPanel VerticalAlignment="Top">
                 <TextBlock

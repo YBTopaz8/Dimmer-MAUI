@@ -411,7 +411,7 @@
                             SelectionMode="Multiple">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border>
+                                    <Border x:Name="ScrollToFirstOrLastArtist" PointerPressed="ScrollToFirstOrLastArtist_PointerPressed">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />

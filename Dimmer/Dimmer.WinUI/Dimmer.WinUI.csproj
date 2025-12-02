@@ -37,6 +37,7 @@
 	  <None Remove="Views\WinuiPages\AllSongsListPage.xaml" />
 	  <None Remove="Views\WinuiPages\ArtistPage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmerLivePage.xaml" />
+	  <None Remove="Views\WinuiPages\LibraryStatsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\EditSongPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\SingleSongLyrics.xaml" />
@@ -59,6 +60,7 @@
 		<DefineConstants>WINDOWS</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.0-rc6.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 
@@ -106,6 +108,11 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\LibraryStatsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml">

@@ -11,6 +11,7 @@ using CommunityToolkit.WinUI;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.CustomViews.MauiViews;
 
+
 using Colors = Microsoft.UI.Colors;
 using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
@@ -1153,6 +1154,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public partial bool AutoConfirmLastFMVar { get; set; }
     public string? MAUIWindowTitle { get; internal set; }
 
+    [ObservableProperty]
+    public partial AchievementRule? SelectedAchievement { get; set; }
+
     public override bool AutoConfirmLastFM(bool val)
     {
 
@@ -1217,6 +1221,12 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         });
     }
 
+    public override void ShowAchievementNotificationToUI(AchievementRule ruleUnlocked)
+    {
+        base.ShowAchievementNotificationToUI(ruleUnlocked);
+
+    }
+
     internal async Task AddNoteToSongAsync()
     {
         var contentDialog = new ContentDialog
@@ -1252,5 +1262,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 break;
         }
     }
+
 
 }

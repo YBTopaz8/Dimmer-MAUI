@@ -130,6 +130,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 #if DEBUG
         Title = "Debug";
 #elif RELEASE
+        Title = "Dimmer v1.04";
 #endif
 
         MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow(this));

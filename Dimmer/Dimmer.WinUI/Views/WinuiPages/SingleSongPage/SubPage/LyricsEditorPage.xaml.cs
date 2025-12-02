@@ -38,6 +38,23 @@ public sealed partial class LyricsEditorPage : Page
     }
 
     BaseViewModelWin MyViewModel { get; set; }
+
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+
+        if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
+        {
+            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+            {
+                ConnectedAnimationService.GetForCurrentView()
+                    .PrepareToAnimate("BackConnectedAnimation", detailedImage);
+            }
+        }
+        base.OnNavigatingFrom(e);
+
+    }
+
+
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);

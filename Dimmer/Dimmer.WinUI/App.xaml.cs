@@ -128,6 +128,12 @@ public partial class App : MauiWinUIApplication
 
     // A debouncer to process files in a single batch after a short delay.
     private readonly Debouncer _fileProcessingDebouncer = new(delayMilliseconds: 300);
+
+    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+    {
+        base.OnLaunched(args);
+        
+    }
     //protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     //{
     //    try

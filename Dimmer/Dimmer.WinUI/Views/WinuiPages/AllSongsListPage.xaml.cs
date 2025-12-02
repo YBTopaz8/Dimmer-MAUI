@@ -1,10 +1,14 @@
 ﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 
 using CommunityToolkit.WinUI;
+
+using Dimmer.Utilities.Extensions;
 
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
+using Windows.Foundation.Metadata;
 using Windows.UI.Text;
 
 using static Dimmer.DimmerSearch.TQlStaticMethods;
@@ -1327,7 +1331,7 @@ public sealed partial class AllSongsListPage : Page
         menuFlyout.Items.Add(addNoteToSongMFItem);
 
 
-        var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Delete" };
+        var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Device" };
         deleteSongFromLibraryMFItem.Click += async (s, args) =>
         {
             await MyViewModel.DeleteSongs(new List<SongModelView>() { selectedSong });
@@ -1400,6 +1404,8 @@ public sealed partial class AllSongsListPage : Page
 
     private ScalarKeyFrameAnimation _fadeInAnim;
     private ScalarKeyFrameAnimation _fadeOutAnim;
+    private SongModelView? _storedItem;
+
     private void CardBorder_Loaded(object sender, RoutedEventArgs e)
     {
 
@@ -1518,7 +1524,9 @@ public sealed partial class AllSongsListPage : Page
 
                     var songContext = ((MenuFlyoutItem)obj).Text;
 
-                    ArtistModelView? selectedArtist = _storedSong.ArtistToSong.First(x => x.Name == songContext);
+                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
+                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First(x => x.Name == songContext)
+                    .ToModelView(MyViewModel._mapper);
 
 
                     var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
@@ -1560,7 +1568,12 @@ public sealed partial class AllSongsListPage : Page
                 }
                 else
                 {
-                    await MyViewModel.SetSelectedArtist(_storedSong.ArtistToSong.FirstOrDefault());
+
+                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
+                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
+                    .ToModelView(MyViewModel._mapper);
+
+                    await MyViewModel.SetSelectedArtist(selectedArtist);
 
 
                     if (properties.IsRightButtonPressed)
@@ -1923,16 +1936,7 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void ViewQueueStackPanel_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var props= e.GetCurrentPoint((UIElement)sender).Properties;
-        if(props.IsRightButtonPressed)
-        {
-            NowPlayingQueueExpander.IsExpanded = false;
-            ViewQueueStackPanel.Visibility = Visibility.Collapsed;
-            ViewQueue.Content = "View Queue";
-        }
-    }
+
 
     private void BorderOfSongInPBQueue_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
@@ -1998,5 +2002,86 @@ public sealed partial class AllSongsListPage : Page
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
     {
         BtmLogPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", viewQueueGrid);
+
+        // Collapse the smoke when the animation completes.
+        animation.Completed += Animation_Completed;
+
+
+        // Use the Direct configuration to go back (if the API is available).
+        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+        {
+            animation.Configuration = new GravityConnectedAnimationConfiguration();
+            
+        }
+
+        if (ViewQueue != null)
+        {
+            await ViewQueue.DispatcherQueue.EnqueueAsync(() =>
+            {
+                animation.TryStart(ViewQueue);
+            });
+
+        }
+    }
+
+    private void Animation_Completed(ConnectedAnimation sender, object args)
+    {
+        SmokeGrid.Visibility = WinUIVisibility.Collapsed;
+    }
+    private void ViewQueue_Click(object sender, RoutedEventArgs e)
+    {
+        ConnectedAnimation? animation;
+
+        FrameworkElement send = (FrameworkElement)sender;
+        var itemm = send.DataContext as SongModelView;
+        _storedItem = itemm;
+        
+        MyViewModel.SelectedSong = itemm;
+        // Prepare the connected animation.
+        // Notice that the stored item is passed in, as well as the name of the connected element.
+        // The animation will actually start on the Detailed info page.
+        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
+        animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("forwardAnimation", ViewQueue);
+
+
+
+
+        SmokeGrid.Visibility = WinUIVisibility.Visible;
+        if (animation != null)
+        {
+            animation.TryStart(viewQueueGrid);
+        }
+    }
+
+    private async void RemoveSongFromQueue_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (FrameworkElement)sender;
+        var song = send.DataContext as SongModelView;
+        await MyViewModel.RemoveFromQueue(song);
+    }
+
+    private void SmokeGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props != null)
+        {
+            if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.XButton1Pressed)
+            {
+                PopUpBackButton_Click(sender, e);
+            }
+        }
+    }
+
+    private async void PlaySongBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+        var song = send.DataContext as SongModelView;
+
+        await MyViewModel.PlaySong(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueue);
     }
 }

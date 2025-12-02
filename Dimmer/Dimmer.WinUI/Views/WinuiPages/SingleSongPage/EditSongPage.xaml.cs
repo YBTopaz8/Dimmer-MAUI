@@ -253,7 +253,15 @@ public sealed partial class EditSongPage : Page
     private async void SaveChangeBtn_Click(object sender, RoutedEventArgs e)
     {
         var vis = ElementCompositionPreview.GetElementVisual(PageNotificationText);
-
+        var ischecked = IsInstrumentalBox.IsChecked;
+        if(ischecked is not null)
+        {
+            MyViewModel.SelectedSong?.IsInstrumental = (bool)ischecked;
+        }
+        if(MyViewModel.CurrentPlayingSongView.TitleDurationKey == MyViewModel.SelectedSong.TitleDurationKey)
+        {
+            MyViewModel.CurrentPlayingSongView.CoverImagePath ??= MyViewModel.SelectedSong.CoverImagePath;
+        }
         MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong!);
         Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         PageNotificationText.Text = "Changes saved!";
@@ -353,14 +361,30 @@ public sealed partial class EditSongPage : Page
         var letter = (char)send.DataContext;
 
         // Find the first artist starting with that letter
-        var artists = AllArtistsIR.ItemsSource as List<ArtistModelView>;
+        var artists = AllArtistsIR.ItemsSource as List<string>;
         if (artists == null || artists.Count == 0) return;
 
-        var firstArtist = artists.FirstOrDefault(a => !string.IsNullOrWhiteSpace(a.Name) && char.ToUpper(a.Name[0]) == char.ToUpper(letter));
+        var firstArtist = artists.FirstOrDefault(a => !string.IsNullOrWhiteSpace(a));
+        //var lastArtist = artists.LastOrDefault(a => !string.IsNullOrWhiteSpace(a));
+
         if (firstArtist == null) return;
+        //if (lastArtist == null) return;
+
+
+        //e.
+        //var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        //if (props is null) return;
+        //if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
+        //{
+        //    MyViewModel?.ScrollToSpecificSongCommand.Execute(MyViewModel.CurrentPlayingSongView);
+        //}
 
         // Scroll into view
         AllArtistsIR.ScrollIntoView(firstArtist);
     }
 
+    private void ScrollToFirstOrLastArtist_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
 }

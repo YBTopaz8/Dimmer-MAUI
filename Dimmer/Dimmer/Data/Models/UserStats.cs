@@ -28,7 +28,17 @@ public class AchievementRule
     public string Description { get; set; }
     public AchievementCategory Category { get; set; }
     public int Threshold { get; set; }
+
+    public AchievementTier Tier { get; set; }
     public Func<Realm, UserStats, SongModel, bool> CustomCheck { get; set; }
+}
+public enum AchievementTier
+{
+    Bronze,     // Easy / Starter
+    Silver,     // Intermediate
+    Gold,       // Hard
+    Platinum,   // Expert / 100%
+    Secret      // Hidden
 }
 public enum AchievementCategory
 {

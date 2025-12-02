@@ -130,6 +130,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .DisposeWith(_subsManager);
     }
 
+
+    
+
     
     
     [RelayCommand] void Dump() => Debug.WriteLine($"VM: {InstanceId}");
@@ -145,6 +148,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
 
     Timer? _bootTimer;
+
+    public virtual void ShowAchievementNotificationToUI(AchievementRule ruleUnlocked)
+    {
+
+    }
+
 
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
@@ -166,10 +175,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if(!IsLibraryEmpty)
         {
             ShowAllSongsWindowActivate();
-        }    
+        }
 
 
-    
+        BaseAppFlow.AchievementService.UnlockedAchievement.
+            Where(rule => rule is not (null, null))
+            .DistinctUntilChanged()
+           .ObserveOn(RxSchedulers.UI)
+           .Subscribe(s =>
+           {
+               UnlockedAch = s.Item1;
+
+               ShowAchievementNotificationToUI(UnlockedAch);
+           });
+
 
         var realmSub = realm.All<SongModel>()
             .AsObservableChangeSet()
@@ -442,13 +461,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await HeavierBackGroundLoadings(folders);
         });
 
-        BaseAppFlow.AchievementService.UnlockedAchievement.
-           DistinctUntilChanged()
-           .ObserveOn(RxSchedulers.UI)
-           .Subscribe(s =>
-           {
-               UnlockedAch = s;
-           });
         IsInitialized = true;
         return;
     }
@@ -2609,7 +2621,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     [RelayCommand]
-    public async Task RemoveFromQueue(SongModelView song)
+    public async Task RemoveFromQueue(SongModelView? song)
     {
         if (song == null || !PlaybackQueueSource.Items.Contains(song))
             return;

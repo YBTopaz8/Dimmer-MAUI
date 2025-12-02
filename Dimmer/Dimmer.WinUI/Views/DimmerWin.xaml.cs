@@ -39,6 +39,8 @@ public sealed partial class DimmerWin : Window
 
 #if DEBUG
         this.Title = "DimmerDebug";
+#elif RELEASE
+        this.Title = "Dimmer v1.04";
 #endif
         appWin.Resize(new SizeInt32(1660, 1300));
     }
