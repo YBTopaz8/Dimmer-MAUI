@@ -1,5 +1,7 @@
 ﻿
 namespace Dimmer.Data.ModelView;
+
+[Utils.Preserve(AllMembers = true)]
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]

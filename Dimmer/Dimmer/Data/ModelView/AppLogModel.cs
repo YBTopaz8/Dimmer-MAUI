@@ -1,4 +1,6 @@
 ﻿namespace Dimmer.Data.ModelView;
+
+[Utils.Preserve(AllMembers = true)]
 public class AppLogModel
 {
     public string Log { get; set; } = string.Empty;

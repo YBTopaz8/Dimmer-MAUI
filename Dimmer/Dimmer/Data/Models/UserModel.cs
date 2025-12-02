@@ -1,6 +1,8 @@
 ﻿using System.Runtime.Serialization;
 
 namespace Dimmer.Data.Models;
+
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class UserModel : RealmObject, IRealmObjectWithObjectId
 {
 

@@ -1,4 +1,6 @@
 ﻿namespace Dimmer.Data.Models;
+
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 {
     public IList<string> EarnedAchievementIds { get; }

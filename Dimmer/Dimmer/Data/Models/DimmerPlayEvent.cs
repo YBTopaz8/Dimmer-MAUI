@@ -4,6 +4,7 @@
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
 {
     public bool IsNew { get; set; }

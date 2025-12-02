@@ -2,6 +2,7 @@
 /// <summary>
 /// The collection stats summary.
 /// </summary>
+[Utils.Preserve(AllMembers = true)]
 public partial class CollectionStatsSummary : ObservableObject
 {
     /// <summary>

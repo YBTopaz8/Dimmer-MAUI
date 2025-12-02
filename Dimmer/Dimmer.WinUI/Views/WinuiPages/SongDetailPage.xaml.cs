@@ -1036,5 +1036,35 @@ public sealed partial class SongDetailPage : Page
         }
 
     }
+
+    private void ViewCharts_Click(object sender, RoutedEventArgs e)
+    {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+        var pageType = typeof(LibraryStatsPage);
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+        // prepare the animation BEFORE navigation
+        var ArtistNameTxt = PlatUtils.FindVisualChild<TextBlock>((UIElement)sender, "ArtistNameTxt");
+        if (ArtistNameTxt != null)
+        {
+            ConnectedAnimationService.GetForCurrentView()
+                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", ArtistNameTxt);
+        }
+        var navParams = new SongDetailNavArgs
+        {
+            Song = DetailedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+
+    }
 }
 

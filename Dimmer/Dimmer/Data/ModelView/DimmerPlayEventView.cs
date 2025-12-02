@@ -1,4 +1,6 @@
 ﻿namespace Dimmer.Data.ModelView;
+
+[Utils.Preserve(AllMembers = true)]
 public class DimmerPlayEventView
 {
     public ObjectId Id { get; set; } // Or public string Id if you prefer for display

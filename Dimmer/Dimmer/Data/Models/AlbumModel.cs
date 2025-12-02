@@ -1,8 +1,11 @@
-﻿namespace Dimmer.Data.Models;
+﻿
+
+namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
+[Utils.Preserve(AllMembers = true)]
 public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
 {
 

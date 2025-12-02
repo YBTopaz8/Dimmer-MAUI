@@ -15,7 +15,6 @@
 
 	<!-- Keep AutoMapper -->
 	<assembly fullname="AutoMapper" preserve="all" />
-	<assembly fullname="AutoMapper.Extensions.Microsoft.DependencyInjection" />
 	
 	<!-- Keep Configuration/JSON libraries -->
 	<assembly fullname="Microsoft.Extensions.Configuration" />
@@ -29,5 +28,4 @@
 	<assembly fullname="Realm" preserve="all">
 		<type fullname="*" />
 	</assembly>
-	<assembly fullname="Realm.DataBinding" />
 </linker>

@@ -3,6 +3,8 @@
 
 
 namespace Dimmer.Data.Models;
+
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 

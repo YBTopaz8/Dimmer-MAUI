@@ -190,6 +190,11 @@
 
                                             <Button Content="{x:Bind DetailedSong.PlayCompletedCount}" />
                                         </StackPanel>
+
+                                        <Button x:Name="ViewCharts"
+                                                Click="ViewCharts_Click">
+                                            <FontIcon Glyph="&#xEB05;" />
+                                        </Button>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <Button
                                                 VerticalAlignment="Bottom"
@@ -657,6 +662,7 @@
                                     FontSize="24"
                                     Text="Dimms"
                                     ToolTipService.ToolTip="Total LastFM Scrobbles" />
+
                             </StackPanel>
                             <TextBlock Text="Last FM Stats..." />
                             <TextBlock Text="{Binding SimilarTracks.Count}" />

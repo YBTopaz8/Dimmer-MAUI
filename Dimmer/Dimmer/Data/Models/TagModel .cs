@@ -1,5 +1,6 @@
 ﻿namespace Dimmer.Data.Models;
 
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class TagModel : RealmObject, IRealmObjectWithObjectId
 {
     [PrimaryKey]

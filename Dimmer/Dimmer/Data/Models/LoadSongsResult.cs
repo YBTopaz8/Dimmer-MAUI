@@ -1,6 +1,7 @@
 ﻿
 namespace Dimmer.Data.Models;
 
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public class FileProcessingResult
 {
     public string FilePath { get; }

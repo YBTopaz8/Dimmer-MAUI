@@ -1,4 +1,6 @@
 ﻿namespace Dimmer.Data.ModelView;
+
+[Utils.Preserve(AllMembers = true)]
 public class LabelValue
 {
     public string Label { get; set; }

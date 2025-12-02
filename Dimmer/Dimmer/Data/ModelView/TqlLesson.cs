@@ -1,4 +1,6 @@
 ﻿namespace Dimmer.Data.ModelView;
+
+[Utils.Preserve(AllMembers = true)]
 public partial class TqlLesson : ObservableObject
 {
     [ObservableProperty]

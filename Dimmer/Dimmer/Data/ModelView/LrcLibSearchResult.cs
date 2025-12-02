@@ -1,5 +1,6 @@
 ﻿namespace Dimmer.Data.ModelView;
 
+[Utils.Preserve(AllMembers = true)]
 public class LrcLibSearchResult
 {
     public int Id { get; set; }

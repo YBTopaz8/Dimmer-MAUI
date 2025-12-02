@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class UserStats : RealmObject
 {
     [PrimaryKey]

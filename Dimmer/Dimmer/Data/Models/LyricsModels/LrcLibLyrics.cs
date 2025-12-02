@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace Dimmer.Data.Models.LyricsModels;
 
 
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public class LrcLibLyrics
 {
     [JsonPropertyName("id")]
