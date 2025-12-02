@@ -1,6 +1,7 @@
 ﻿namespace Dimmer.Data.Models;
 public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
 {
+    public IList<string> EarnedAchievementIds { get; }
     [PrimaryKey]
     [MapTo("_id")]
     public ObjectId Id { get; set; }

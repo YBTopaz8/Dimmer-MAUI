@@ -46,6 +46,7 @@ public static class ServiceRegistration
         services.AddSingleton<IDimmerPlayEventRepository, DimmerPlayEventRepository>();
 
         services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
+        services.AddSingleton<AchievementService>();
         services.AddSingleton<ILibraryScannerService, LibraryScannerService>();
         services.AddSingleton<IAppInitializerService, AppInitializerService>();
         services.AddSingleton<IDialogueService, DialogueService>();

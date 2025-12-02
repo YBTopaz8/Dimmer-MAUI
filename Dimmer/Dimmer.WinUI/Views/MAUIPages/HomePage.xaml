@@ -91,8 +91,8 @@
             <Grid
                 x:Name="MediaControlsView"
                 Grid.Row="1"
+                Padding="5"
                 BackgroundColor="Transparent"
-                ColumnDefinitions="*"
                 IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
                 RowDefinitions="auto,*">
                 <Border
@@ -118,15 +118,16 @@
                     </Border.Triggers>
                     <Grid
                         x:Name="CoverImageSection"
-                        RowDefinitions="*,0.5*"
+                        Padding="5"
+                        RowDefinitions="auto,*"
                         VerticalOptions="Start">
-                        <Grid Grid.Row="0">
+                        <Grid Grid.Row="0" Margin="5">
 
                             <Image
                                 x:Name="NowPlayingSong"
                                 Aspect="AspectFit"
                                 BackgroundColor="Transparent"
-                                HeightRequest="190"
+                                HeightRequest="210"
                                 HorizontalOptions="Center"
                                 Opacity="1"
                                 Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
@@ -206,28 +207,31 @@
 
                         <VerticalStackLayout
                             Grid.Row="1"
+                            Margin="10"
+                            Padding="10"
                             BackgroundColor="Transparent"
-                            Spacing="15">
-                            <Label
+                            Spacing="5">
+                            <Button
+                                BackgroundColor="Transparent"
                                 FontAttributes="Bold"
                                 FontSize="20"
                                 HorizontalOptions="Center"
-                                HorizontalTextAlignment="Justify"
                                 LineBreakMode="WordWrap"
+                                Loaded="ButtonLoaded"
                                 Text="{Binding CurrentPlayingSongView.Title}">
-                                <Label.GestureRecognizers>
+                                <Button.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
-                                </Label.GestureRecognizers>
+                                </Button.GestureRecognizers>
 
 
-                            </Label>
+                            </Button>
                             <Button
                                 x:Name="AddFavoriteRatingToSong"
                                 windows:VisualElement.AccessKey="H"
                                 BackgroundColor="Transparent"
                                 Command="{Binding AddFavoriteRatingToSongCommand}"
                                 CommandParameter="{Binding CurrentPlayingSongView}"
-                                HeightRequest="20"
+                                HeightRequest="3"
                                 ImageSource="heart.png"
                                 Loaded="ButtonLoaded"
                                 Text="{Binding CurrentPlayingSongView.NumberOfTimesFaved}"
@@ -254,17 +258,6 @@
                                 </Button.Triggers>
 
                             </Button>
-                            <Button
-                                BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                                BorderWidth="0"
-                                Clicked="NavigateToSelectedSongPageContextMenuAsync"
-                                Loaded="ButtonLoaded"
-                                Opacity="0.6"
-                                Text="{Binding CurrentPlayingSongView.PlayCompletedCount, StringFormat='{0}'}"
-                                TextColor="{AppThemeBinding Light=Black,
-                                                            Dark=White}"
-                                ToolTipProperties.Text="Number of Dims (Click)"
-                                WidthRequest="60" />
 
                         </VerticalStackLayout>
 
@@ -376,7 +369,7 @@
                                 windows:VisualElement.AccessKeyPlacement="Bottom"
                                 Background="Transparent"
                                 BorderWidth="0"
-                                Command="{Binding PreviousTrackCommand}"
+                                Command="{Binding PreviousTrackASyncCommand}"
                                 ImageSource="skipprevious.png"
                                 IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                 Loaded="ButtonLoaded">

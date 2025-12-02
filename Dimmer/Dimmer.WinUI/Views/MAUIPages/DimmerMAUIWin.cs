@@ -124,11 +124,11 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         base.OnCreated();
         var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow(this);
         PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 800));
-        MinimumHeight = 750;
-        MaximumHeight = 800;
+        MinimumHeight = 850;
         MaximumWidth = 500;
+
 #if DEBUG
-        //DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
+        Title = "Debug";
 #elif RELEASE
 #endif
 
@@ -187,10 +187,6 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 
         this.OnDeactivated();
 
-    }
-    public void SetTitle(SongModelView song)
-    {
-        this.Title = $"{song.AlbumName} by {song.ArtistName}";
     }
 
     private void SettingsBtn_Clicked(object sender, EventArgs e)

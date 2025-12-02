@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SongStatsContainerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="Page_Loaded"
+    mc:Ignorable="d">
+
+    <Grid>
+        <!--  Top Level Nav View  -->
+        <NavigationView
+            x:Name="StatsNavView"
+            IsSettingsVisible="False"
+            PaneDisplayMode="Top"
+            SelectionChanged="StatsNavView_SelectionChanged">
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    Content="Overview"
+                    Icon="Globe"
+                    Tag="Overview" />
+                <NavigationViewItem
+                    Content="Album Context"
+                    Icon="Library"
+                    Tag="Album" />
+                <NavigationViewItem
+                    Content="Artist Comparison"
+                    Icon="People"
+                    Tag="Artist" />
+                <NavigationViewItem
+                    Content="The Journey"
+                    Icon="Clock"
+                    Tag="Journey" />
+            </NavigationView.MenuItems>
+
+            <!--  The Frame where the sub-pages load  -->
+            <Frame x:Name="StatsContentFrame" Padding="20">
+                <Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <NavigationThemeTransition />
+                    </TransitionCollection>
+                </Frame.ContentTransitions>
+            </Frame>
+        </NavigationView>
+    </Grid>
+</Page>

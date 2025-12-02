@@ -2,6 +2,7 @@ using Android.Runtime;
 
 using Application = Android.App.Application;
 using Environment = System.Environment;
+using Path = System.IO.Path;
 namespace Dimmer;
 
 #if DEBUG

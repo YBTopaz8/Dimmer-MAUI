@@ -74,6 +74,9 @@ public static class AutoMapperConf
                 cfg.CreateMap<AlbumModelView, AlbumModel>()
                     .ForMember(dest => dest.SongsInAlbum, opt => opt.Ignore()) // Must ignore RealmList/backlinks
                     .ForMember(dest => dest.UserNotes, opt => opt.Ignore())    // Must ignore Realm relationships
+                    .ForMember(dest => dest.EarnedAchievementIds, opt => opt.Ignore())    // Must ignore Realm relationships
+                                    .ForMember(dest => dest.DynamicApi, opt => opt.Ignore())
+
                     .ForMember(dest => dest.Artists, opt => opt.Ignore())   // This is likely managed separately
                     .ForMember(dest => dest.Tags, opt => opt.Ignore())   // This is likely managed separately
                     .ForMember(dest => dest.Artist, opt => opt.Ignore())   // This is likely managed separately
@@ -168,7 +171,9 @@ public static class AutoMapperConf
             cfg.CreateMap<SongModelView, SongModel>()
                 .ForMember(dest => dest.Album, opt => opt.Ignore())
                 .ForMember(dest => dest.Artist, opt => opt.Ignore())
+                .ForMember(dest => dest.DynamicApi, opt => opt.Ignore())
                 .ForMember(dest => dest.Genre, opt => opt.Ignore())
+                .ForMember(dest => dest.EarnedAchievementIds, opt => opt.Ignore())
                 .ForMember(dest => dest.ArtistToSong, opt => opt.Ignore())
                 .ForMember(dest => dest.Tags, opt => opt.Ignore())
                 .ForMember(dest => dest.PlaylistsHavingSong, opt => opt.Ignore())
@@ -211,18 +216,26 @@ public static class AutoMapperConf
             cfg.CreateMap<ArtistModelView, ArtistModel>()
                 .ForMember(dest => dest.Songs, opt => opt.Ignore())       // Must ignore RealmList
                 .ForMember(dest => dest.Albums, opt => opt.Ignore())      // Must ignore RealmList
+                .ForMember(dest => dest.EarnedAchievementIds, opt => opt.Ignore())      // Must ignore RealmList
                 .ForMember(dest => dest.Tags, opt => opt.Ignore())      // Must ignore RealmList
+                                .ForMember(dest => dest.DynamicApi, opt => opt.Ignore())
+
                 .ForMember(dest => dest.UserNotes, opt => opt.Ignore())      // Must ignore RealmList
                 .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
 
             cfg.CreateMap<GenreModelView, GenreModel>()
                 .ForMember(dest => dest.Songs, opt => opt.Ignore())       // Must ignore backlinks
                 .ForMember(dest => dest.UserNotes, opt => opt.Ignore())       // Must ignore backlinks
+                                .ForMember(dest => dest.DynamicApi, opt => opt.Ignore())
+                                .ForMember(dest => dest.EarnedAchievementIds, opt => opt.Ignore())
+
                     .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()); // Ignore Realm-specific property
 
 
                 cfg.CreateMap<UserNoteModelView, UserNoteModel>()
                 .ForMember(dest => dest.IsManaged, opt => opt.Ignore()) // Ignore relationships
+                                .ForMember(dest => dest.DynamicApi, opt => opt.Ignore())
+
                 .ForMember(dest => dest.ObjectSchema, opt => opt.Ignore()) // Ignore relationships
             ;
             });

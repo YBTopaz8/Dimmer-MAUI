@@ -11,6 +11,21 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongOverviewStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SongStatsContainerPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\WinuiPages\SingleSongPage\SubPage\LyricsEditorPage.xaml">
       <SubType>Designer</SubType>
     </Page>

@@ -19,7 +19,7 @@ public partial class DimmerSettingsService : ISettingsService
     public DimmerSettingsService(IRealmFactory factory)
     {
         _realm = factory.GetRealmInstance();
-        _model = LoadSettings();
+        //_model = LoadSettings();
         this.factory=factory;
     }
 

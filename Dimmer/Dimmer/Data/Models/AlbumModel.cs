@@ -6,6 +6,7 @@
 public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
 {
 
+    public IList<string> EarnedAchievementIds { get; }
     public bool IsNew { get; set; }
 
     /// <summary>

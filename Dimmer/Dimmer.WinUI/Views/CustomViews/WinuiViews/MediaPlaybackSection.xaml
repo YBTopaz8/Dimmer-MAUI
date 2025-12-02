@@ -13,6 +13,7 @@
         <Grid.Resources>
             <ResourceDictionary>
                 <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+                <convertersWinUI:RepeatModeConverter x:Key="RepeatModeConverter" />
                 <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
                 <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
             </ResourceDictionary>
@@ -59,11 +60,15 @@
                         HorizontalAlignment="Left"
                         Orientation="Horizontal"
                         Spacing="10">
+                        <ToggleButton IsChecked="{Binding IsShuffleActive}">
+                            <SymbolIcon Symbol="Shuffle" />
+                        </ToggleButton>
                         <Button
                             x:Name="PrevBtn"
                             AccessKey="B"
-                            Command="{Binding PreviousTrackCommand}"
-                            Content="Prev" />
+                            Command="{Binding PreviousTrackCommand}">
+                            <FontIcon Glyph="&#xE892;" />
+                        </Button>
                         <ToggleButton
                             x:Name="PlayBtn"
                             AccessKey="P"
@@ -75,9 +80,11 @@
                             AccessKey="N"
                             AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
                             AccessKeyInvoked="NextBtn_AccessKeyInvoked"
-                            Command="{Binding NextTrackCommand}"
-                            Content="Next" />
+                            Command="{Binding NextTrackCommand}">
+                            <SymbolIcon Symbol="Next" />
+                        </Button>
 
+                        <Button Content="{Binding CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}}" />
 
                         <TextBlock
                             HorizontalAlignment="Center"
@@ -99,6 +106,18 @@
                             VerticalAlignment="Center"
                             IsTextSelectionEnabled="True"
                             Text="{Binding CurrentPlayingSongView.AlbumName}" />
+
+                        <Button Background="Transparent" Visibility="{Binding CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <FontIcon Glyph="&#xEC71;" />
+                        </Button>
+
+                        <Button
+                            >
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Name}" FontSize="19"/>
+                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Description}" FontSize="15"/>
+                            </StackPanel>
+                        </Button>
 
                     </StackPanel>
 

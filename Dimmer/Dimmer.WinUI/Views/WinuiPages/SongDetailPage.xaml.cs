@@ -45,7 +45,7 @@ public sealed partial class SongDetailPage : Page
             { SectionOverview, "Overview" },
             { SectionPlayback, "Playback" },
             { SectionLyricsStackPanel, "Lyrics" },
-            { SectionHistory, "History" },
+            { StatsSection, "History" },
             { SectionRelated, "Related" }
         };
 
@@ -96,7 +96,32 @@ public sealed partial class SongDetailPage : Page
     {
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
+        if(e.Parameter is BaseViewModelWin myVm)
+        {
+            MyViewModel = myVm;
+            this.DataContext = MyViewModel;
+            DetailedSong = MyViewModel.SelectedSong;
 
+            var allAchievementsForSong = MyViewModel.RealmFactory.GetRealmInstance()
+                .All<SongModel>()
+                .Where(x => x.Id == MyViewModel.SelectedSong.Id)
+                .FirstOrDefault().EarnedAchievementIds.ToArray();
+            Debug.WriteLine(allAchievementsForSong.Length);
+            
+
+            var allAchievementsForAll = MyViewModel.RealmFactory.GetRealmInstance()
+                .All<SongModel>()
+                .Select(x=> x.EarnedAchievementIds.ToList()).ToArray();
+            Debug.WriteLine(allAchievementsForSong.Length);
+            Debug.WriteLine(allAchievementsForAll.Length);
+            
+
+
+            Visual? visual = ElementCompositionPreview.GetElementVisual(TitleBlock);
+            PlatUtils.ApplyEntranceEffect(visual, TitleBlock, _userPrefAnim, _compositor);
+            MyViewModel.CurrentWinUIPage = this;
+            return;
+        }
         if (e.Parameter is SongDetailNavArgs args)
         {
             var vm = args.ExtraParam is null ? args.ViewModel as BaseViewModelWin : args.ExtraParam as BaseViewModelWin;
@@ -105,8 +130,26 @@ public sealed partial class SongDetailPage : Page
             {
                 detailedImage.Opacity = 0;
                 MyViewModel = vm;
+                MyViewModel.SelectedSong = args.Song;
                 DetailedSong = args.Song;
                 this.DataContext = MyViewModel;
+
+
+                var allAchievementsForSong = MyViewModel.RealmFactory.GetRealmInstance()
+                    .All<SongModel>()
+                    .Where(x => x.Id == args.Song.Id)
+                    .FirstOrDefault()?.EarnedAchievementIds.ToArray();
+                Debug.WriteLine(allAchievementsForSong?.Length);
+
+
+                var allAchievementsForAll = MyViewModel.RealmFactory.GetRealmInstance()
+                    .All<SongModel>().ToList()
+                    .Where(x => x.EarnedAchievementIds.ToList() != null && 
+                    x.EarnedAchievementIds.Count > 0).ToArray();
+                Debug.WriteLine(allAchievementsForSong?.Length);
+                Debug.WriteLine(allAchievementsForAll.Length);
+
+
 
                 Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
                 PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim,_compositor);
@@ -896,6 +939,11 @@ public sealed partial class SongDetailPage : Page
             // fallback: anchor without position
             //flyout.ShowAt(nativeElement);
         }
+
+    }
+
+    private void StatsCard_Click(object sender, ItemClickEventArgs e)
+    {
 
     }
 }

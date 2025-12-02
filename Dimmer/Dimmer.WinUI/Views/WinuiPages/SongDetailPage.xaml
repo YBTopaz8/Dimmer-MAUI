@@ -27,6 +27,11 @@
         <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
         <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgo" />
         <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
+        <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+        <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+
         <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
         <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
         <converters:BoolToImageConverter
@@ -126,11 +131,12 @@
                                     Orientation="Vertical"
                                     Spacing="10">
                                     <TextBlock
+                                        x:Name="TitleBlock"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         FontSize="80"
                                         Style="{ThemeResource TitleTextBlockStyle}"
-                                        Text="{x:Bind DetailedSong.Title, Mode=OneWay}"
+                                        Text="{x:Bind DetailedSong.Title}"
                                         TextWrapping="Wrap" />
 
                                     <StackPanel Orientation="Horizontal">
@@ -140,7 +146,7 @@
                                             Background="Transparent"
                                             BorderThickness="2"
                                             Click="ArtistBtn_Click"
-                                            Content="{x:Bind DetailedSong.ArtistName, Mode=OneWay}"
+                                            Content="{x:Bind DetailedSong.ArtistName}"
                                             FontSize="50"
                                             FontWeight="Bold"
                                             Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibility}}" />
@@ -158,12 +164,12 @@
                                             Background="Transparent"
                                             BorderThickness="2"
                                             Click="AlbumBtn_Click"
-                                            Content="{x:Bind DetailedSong.AlbumName, Mode=OneWay}"
+                                            Content="{x:Bind DetailedSong.AlbumName}"
                                             FontSize="30" />
                                         <TextBlock
                                             VerticalAlignment="Center"
                                             FontSize="30"
-                                            Text="{x:Bind DetailedSong.ReleaseYear, Mode=OneWay}" />
+                                            Text="{x:Bind DetailedSong.ReleaseYear}" />
 
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal">
@@ -171,29 +177,30 @@
                                         <Button
                                             Background="Transparent"
                                             BorderThickness="2"
-                                            Content="{x:Bind DetailedSong.GenreName, Mode=OneWay}" />
+                                            Content="{x:Bind DetailedSong.GenreName}" />
                                         <Button
                                             Background="Transparent"
                                             BorderThickness="2"
-                                            Content="{x:Bind DetailedSong.FileFormat, Mode=OneWay}" />
+                                            Content="{x:Bind DetailedSong.FileFormat}" />
 
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                         <TextBlock FontSize="19" Text="Dimms" />
 
-                                        <Button Content="{x:Bind DetailedSong.PlayCompletedCount, Mode=OneWay}" />
+                                        <Button Content="{x:Bind DetailedSong.PlayCompletedCount}" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock FontSize="19" Text="Is Fav:" />
-
-                                        <ToggleButton
-                                            Height="20"
+                                        <Button
                                             VerticalAlignment="Bottom"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
                                             Command="{Binding AddFavoriteRatingToSongCommand}"
-                                            CommandParameter="{Binding SelectedSong}"
-                                            IsChecked="{x:Bind DetailedSong.IsFavorite, Mode=OneWay}">
-                                            <ImageIcon Source="/Dimmer/Resources/Images/heart.svg" />
-                                        </ToggleButton>
+                                            Foreground="SlateBlue"
+                                            Visibility="{Binding DetailedSong.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                                            <FontIcon Glyph="&#xEB52;" />
+                                        </Button>
+
                                     </StackPanel>
 
                                     <RichTextBlock
@@ -205,32 +212,7 @@
                         </Border>
                     </Grid>
 
-                    <StackPanel x:Name="SectionPlayback" Background="Transparent">
-
-                        <!--<ItemsRepeater>
-                            <ItemsRepeater.Layout>
-                                <UniformGridLayout MaximumRowsOrColumns="3" />
-                            </ItemsRepeater.Layout>
-
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="White"
-                                        BorderBrush="Black"
-                                        BorderThickness="1"
-                                        Margin="6"
-                                        Padding="12">
-
-                                        <StackPanel>
-
-                                        <TextBlock Text="Item" Foreground="Black"/>
-
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>-->
-
-                    </StackPanel>
+                    <StackPanel x:Name="SectionPlayback" Background="Transparent" />
 
                     <!--  SECTION 3: LYRICS  -->
                     <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
@@ -326,141 +308,275 @@
                     </StackPanel>
 
 
-                    <!--  SECTION 5: HISTORY  -->
-                    <Grid
-                        x:Name="SectionHistory"
-                        Padding="10"
-                        ColumnSpacing="5"
-                        RowSpacing="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                    <StackPanel x:Name="StatsSection" Spacing="15">
+                        <TextBlock
+                            FontSize="24"
+                            Style="{ThemeResource TitleTextBlockStyle}"
+                            Text="Performance &amp; Analytics" />
 
-                        <StackPanel
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            BorderBrush="DeepSkyBlue"
-                            CornerRadius="10">
-                            <Button
-                                HorizontalAlignment="Stretch"
-                                Background="Transparent"
-                                BorderThickness="1">
-                                <StackPanel>
+                        <!--  Adaptive Grid for Summary Cards  -->
+                        <GridView
+                            IsItemClickEnabled="True"
+                            ItemClick="StatsCard_Click"
+                            SelectionMode="None">
+                            <GridView.ItemContainerStyle>
+                                <Style TargetType="GridViewItem">
+                                    <Setter Property="Margin" Value="0,0,10,10" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </GridView.ItemContainerStyle>
 
-                                    <StackPanel>
+                            <!--  CARD 1: ENGAGEMENT  -->
+                            <GridViewItem>
+                                <Grid
+                                    Width="220"
+                                    Height="140"
+                                    Padding="12"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            FontSize="16"
+                                            Foreground="DeepSkyBlue"
+                                            Glyph="&#xE9D9;" />
                                         <TextBlock
-                                            HorizontalAlignment="Left"
-                                            FontSize="20"
-                                            FontWeight="SemiBold"
-                                            Text="Dimms Completed" />
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontSize="27"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding SelectedSong.PlayCompletedCount}" />
+                                            FontWeight="Bold"
+                                            Opacity="0.7"
+                                            Text="Engagement" />
                                     </StackPanel>
 
-                                    <StackPanel>
+                                    <!--  Visual: Completion Rate Ring  -->
+                                    <Grid
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                        <!--  Background Ring  -->
+                                        <ProgressRing
+                                            Width="70"
+                                            Height="70"
+                                            Foreground="#33FFFFFF"
+                                            IsIndeterminate="False"
+                                            Value="100" />
+                                        <!--  Actual Value Ring  -->
+                                        <ProgressRing
+                                            Width="70"
+                                            Height="70"
+                                            Foreground="DeepSkyBlue"
+                                            IsIndeterminate="False"
+                                            Value="{Binding MyViewModel.SelectedSong.PlayCompletedCount}" />
+                                    </Grid>
+
+                                    <TextBlock
+                                        Grid.Row="2"
+                                        HorizontalAlignment="Center"
+                                        FontSize="12"
+                                        Opacity="0.6"
+                                        Text="{Binding MyViewModel.SelectedSong.TotalSkipsFormatted}" />
+                                </Grid>
+                            </GridViewItem>
+
+                            <!--  CARD 2: TIME CAPSULE  -->
+                            <GridViewItem>
+                                <Grid
+                                    Width="220"
+                                    Height="140"
+                                    Padding="12"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            FontSize="16"
+                                            Foreground="Orange"
+                                            Glyph="&#xEC92;" />
                                         <TextBlock
-                                            HorizontalAlignment="Left"
-                                            FontSize="20"
-                                            FontWeight="SemiBold"
-                                            Text="Eddington Number" />
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontSize="24"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding SelectedSong.EddingtonNumber}" />
+                                            FontWeight="Bold"
+                                            Opacity="0.7"
+                                            Text="Time Capsule" />
                                     </StackPanel>
 
-                                </StackPanel>
-                            </Button>
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        VerticalAlignment="Center"
+                                        Spacing="4">
+                                        <TextBlock
+                                            FontSize="11"
+                                            Opacity="0.5"
+                                            Text="Total Listen Time" />
+                                        <TextBlock
+                                            FontSize="18"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding MyViewModel.SelectedSong.TotalListenTimeFormatted}" />
 
+                                        <Rectangle
+                                            Height="1"
+                                            Margin="0,5"
+                                            Fill="Gray"
+                                            Opacity="0.2" />
 
-                        </StackPanel>
+                                        <TextBlock
+                                            FontSize="11"
+                                            Opacity="0.5"
+                                            Text="Longest Streak" />
+                                        <TextBlock FontSize="14" Text="{Binding MyViewModel.SelectedSong.RepeatCount}" />
+                                    </StackPanel>
+                                </Grid>
+                            </GridViewItem>
 
-                        <StackPanel
-                            Grid.Row="0"
-                            Grid.Column="1"
-                            BorderBrush="DeepSkyBlue"
-                            CornerRadius="10">
-                            <Button
-                                HorizontalAlignment="Stretch"
-                                Background="Transparent"
-                                BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock
-                                        HorizontalAlignment="Left"
-                                        FontSize="20"
-                                        FontWeight="SemiBold"
-                                        Text="Play Streak Days" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="24"
-                                        FontWeight="SemiBold"
-                                        Text="{Binding SelectedSong.PlayStreakDays}" />
-                                </StackPanel>
-                            </Button>
+                            <!--  CARD 3: HABITS (Day vs Night)  -->
+                            <GridViewItem>
+                                <Grid
+                                    Width="220"
+                                    Height="140"
+                                    Padding="12"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
 
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            FontSize="16"
+                                            Foreground="MediumPurple"
+                                            Glyph="&#xE823;" />
+                                        <TextBlock
+                                            FontWeight="Bold"
+                                            Opacity="0.7"
+                                            Text="Habits" />
+                                    </StackPanel>
 
-                        </StackPanel>
+                                    <!--  Simple Custom Bar Chart using Grid Columns  -->
+                                    <Grid Grid.Row="1" Margin="0,10,0,0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
 
-                        <StackPanel
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            BorderBrush="DeepSkyBlue"
-                            CornerRadius="10">
-                            <Button
-                                HorizontalAlignment="Stretch"
-                                Background="Transparent"
-                                BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock
-                                        FontSize="24"
-                                        FontWeight="SemiBold"
-                                        Text="Rank In Artist" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="24"
-                                        FontWeight="SemiBold"
-                                        Text="{Binding SelectedSong.RankInArtist}" />
-                                </StackPanel>
-                            </Button>
+                                        <!--  Day Bar  -->
+                                        <Grid
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            VerticalAlignment="Bottom">
+                                            <Border
+                                                Height="{Binding MyViewModel.SelectedSong.DayPlaysHeight}"
+                                                Background="Gold"
+                                                CornerRadius="4"
+                                                ToolTipService.ToolTip="Day Plays" />
+                                        </Grid>
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            Margin="0,4,0,0"
+                                            HorizontalAlignment="Center"
+                                            FontSize="11"
+                                            Text="Day" />
 
+                                        <!--  Night Bar  -->
+                                        <Grid
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Margin="5,0,0,0"
+                                            VerticalAlignment="Bottom">
+                                            <Border
+                                                Height="{Binding MyViewModel.SelectedSong.NightPlaysHeight}"
+                                                Background="SlateBlue"
+                                                CornerRadius="4"
+                                                ToolTipService.ToolTip="Night Plays" />
+                                        </Grid>
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            Margin="0,4,0,0"
+                                            HorizontalAlignment="Center"
+                                            FontSize="11"
+                                            Text="Night" />
+                                    </Grid>
+                                </Grid>
+                            </GridViewItem>
 
-                        </StackPanel>
+                            <!--  CARD 4: NERDY STATS  -->
+                            <GridViewItem>
+                                <Grid
+                                    Width="220"
+                                    Height="140"
+                                    Padding="12"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
 
-                        <StackPanel
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            BorderBrush="DeepSkyBlue"
-                            CornerRadius="10">
-                            <Button
-                                HorizontalAlignment="Stretch"
-                                Background="Transparent"
-                                BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock
-                                        FontSize="24"
-                                        FontWeight="SemiBold"
-                                        Text="Rank In Album" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="24"
-                                        FontWeight="SemiBold"
-                                        Text="{Binding SelectedSong.RankInAlbum}" />
-                                </StackPanel>
-                            </Button>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            FontSize="16"
+                                            Foreground="LimeGreen"
+                                            Glyph="&#xE909;" />
+                                        <TextBlock
+                                            FontWeight="Bold"
+                                            Opacity="0.7"
+                                            Text="Trivia" />
+                                    </StackPanel>
 
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        VerticalAlignment="Center"
+                                        Spacing="5">
+                                        <TextBlock
+                                            FontSize="11"
+                                            Opacity="0.5"
+                                            Text="Play Count (Roman)" />
+                                        <TextBlock
+                                            FontFamily="Segoe UI Serif"
+                                            FontSize="20"
+                                            FontWeight="ExtraBold"
+                                            Text="{Binding MyViewModel.SelectedSong.PlayCompletedCount}" />
 
-                        </StackPanel>
+                                        <StackPanel
+                                            Orientation="Horizontal"
+                                            Spacing="5"
+                                            Visibility="{Binding MyViewModel.SelectedSong.PlayCount}">
+                                            <FontIcon
+                                                FontSize="12"
+                                                Foreground="Gold"
+                                                Glyph="&#xE735;" />
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="Gold"
+                                                Text="Fibonacci Sequence!" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </GridViewItem>
 
-                    </Grid>
+                        </GridView>
+                    </StackPanel>
 
                     <!--  SECTION 6: RELATED  -->
                     <StackPanel

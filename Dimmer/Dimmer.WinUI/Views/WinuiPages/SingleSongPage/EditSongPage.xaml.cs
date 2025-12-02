@@ -279,5 +279,88 @@ public sealed partial class EditSongPage : Page
 
     }
 
-  
+    private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.SelectedSong is null) return;
+        var dbSong = MyViewModel.RealmFactory.GetRealmInstance()
+            .All<SongModel>()
+            .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
+        if (dbSong is null) return;
+        var artistToSong = dbSong.ArtistToSong;
+        var listOfArtistsModelView = MyViewModel._mapper.Map<ObservableCollection<ArtistModelView>>(artistToSong);
+        foreach (var art in listOfArtistsModelView)
+        {
+            var songs = artistToSong.FirstOrDefault(x => x.Id == art.Id)?
+                .Songs;
+            art.SongsByArtist = MyViewModel._mapper.Map<ObservableCollection<SongModelView>>(songs);
+        }
+        ArtistToSong.ItemsSource = listOfArtistsModelView;
+    }
+
+    private void ArtistNameFromAllArtistsBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void AddArtist_Click(object sender, RoutedEventArgs e)
+    {
+        if (AddArtistGrid.Visibility == Microsoft.UI.Xaml.Visibility.Visible)
+        {
+            FontIcon addArt = new FontIcon();
+            addArt.Glyph = "\uE8FA";
+            AddArtist.Content=addArt;
+            AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            return;
+        }
+        else
+        {
+
+            AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        }
+        var allArtistsInDb = MyViewModel.RealmFactory.GetRealmInstance()
+            .All<ArtistModel>().ToList();
+        var artistView = MyViewModel._mapper.Map<List<ArtistModelView>>(allArtistsInDb);
+        
+            PageScrollviewer.ChangeView(0, 210, 1);
+        var OnlyArtName = allArtistsInDb
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Name))
+                    .DistinctBy(x=>x.Name)
+                    .OrderBy(c => c.Name)
+                   .Select(a=>a.Name)
+                    .ToList();
+        AllArtistsIR.ItemsSource= OnlyArtName;
+
+        var listOfOnlyFirstLetterOfArtist = OnlyArtName.Select(x => x.First()).Distinct();
+        ListOfFirstLetters.ItemsSource = listOfOnlyFirstLetterOfArtist.ToList();
+
+        FontIcon icon = new FontIcon();
+        icon.Glyph = "\uE711";
+        AddArtist.Content = icon;
+    }
+
+    private void MyImagePickerBtn_Click(SplitButton sender, SplitButtonClickEventArgs args)
+    {
+
+    }
+
+    private void ChooseImageFromOtherSongsInAlbum_Click(SplitButton sender, SplitButtonClickEventArgs args)
+    {
+        ChooseImageFromOtherSongsInAlbum_Click(sender, args);
+    }
+    private void UniqueLetterToScrollTo_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+        var letter = (char)send.DataContext;
+
+        // Find the first artist starting with that letter
+        var artists = AllArtistsIR.ItemsSource as List<ArtistModelView>;
+        if (artists == null || artists.Count == 0) return;
+
+        var firstArtist = artists.FirstOrDefault(a => !string.IsNullOrWhiteSpace(a.Name) && char.ToUpper(a.Name[0]) == char.ToUpper(letter));
+        if (firstArtist == null) return;
+
+        // Scroll into view
+        AllArtistsIR.ScrollIntoView(firstArtist);
+    }
+
 }

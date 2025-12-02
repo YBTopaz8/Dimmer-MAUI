@@ -492,6 +492,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         await base.OnPlaybackStarted(args);
         if (args.MediaSong is null) return;
+        CurrentPlayingSongView= args.MediaSong;
         // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
     }
     [RelayCommand]
@@ -609,8 +610,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             TableViewCell? coverImageCell = cells[0];
 
-            await PulseWithBorderAsync(coverImageCell,pulses:2, duration:500);
-
+            await PulseWithBorderAsync(coverImageCell,pulses:3, duration:300);
+            
         }
         catch (Exception ex)
         {
@@ -627,9 +628,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         if (element is null) return;
 
-        
 
+        
         var visual = ElementCompositionPreview.GetElementVisual(element);
+        
         var compositor = visual.Compositor;
 
         visual.CenterPoint = new Vector3(

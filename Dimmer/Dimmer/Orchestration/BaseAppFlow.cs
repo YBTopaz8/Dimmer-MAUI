@@ -8,7 +8,6 @@ public class BaseAppFlow : IDisposable
 {
     protected readonly IDimmerStateService _state;
     protected readonly IMapper _mapper;
-    private readonly IRepository<DimmerPlayEvent> _playEventRepo;
     private readonly ISettingsService _settingsService;
     private readonly ILogger<BaseAppFlow> _logger;
 
@@ -34,12 +33,14 @@ public class BaseAppFlow : IDisposable
     public AppStateModelView? AppStateSnapshot { get; private set; }
     private readonly IDimmerAudioService audioService;
 
+    public AchievementService AchievementService { get; set; }
 
     public BaseAppFlow(
         IDimmerStateService state,
         IMapper mapper,
+
+        AchievementService achService,
        IDimmerAudioService _audioService,
-        IRepository<DimmerPlayEvent> playEventRepo,
         IRepository<UserModel> userRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
@@ -49,13 +50,13 @@ public class BaseAppFlow : IDisposable
         ISettingsService settingsService,
         IFolderMgtService folderManagementService,
         ILibraryScannerService libraryScannerService,
-        SubscriptionManager inheritedSubs,
+        
         ILogger<BaseAppFlow> logger)
     {
+        AchievementService = achService;
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
-        _playEventRepo = playEventRepo ?? throw new ArgumentNullException(nameof(playEventRepo));
         _userRepo = userRepo;
         _playlistRepo = playlistRepo;
         _artistRepo = artistRepo;

@@ -593,9 +593,16 @@ public partial class HomePage : ContentPage
     {
         try
         {
+            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
+            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
 
-            var label = (Label)sender;
-            label.ShowContextMenu();
+            
+
+            //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
+            if(dimmerWindow != null)
+                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+
         }
         catch (Exception ex)
         {

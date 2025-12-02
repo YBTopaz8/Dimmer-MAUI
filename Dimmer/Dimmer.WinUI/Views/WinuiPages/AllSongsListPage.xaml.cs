@@ -19,6 +19,7 @@ using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
+using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
@@ -1310,26 +1311,92 @@ public sealed partial class AllSongsListPage : Page
     }
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
-        var btn = (Button)sender;
+        var UIElt  = (UIElement)sender;
 
-        MyViewModel.SelectedSong = (SongModelView)((Button)sender).DataContext;
+        var selectedSong = (SongModelView)((FrameworkElement)sender).DataContext;
         var menuFlyout = new MenuFlyout();
         var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
             addNoteToSongMFItem.Click += async (s, args) =>
             {
                 await MyViewModel.AddNoteToSongAsync();
             };
+
+        FontIcon iconNote = new FontIcon();
+        iconNote.Glyph = "\uF7BB";
+        addNoteToSongMFItem.Icon = iconNote;
         menuFlyout.Items.Add(addNoteToSongMFItem);
-        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
+
+
+        var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Delete" };
+        deleteSongFromLibraryMFItem.Click += async (s, args) =>
         {
-            Placement = FlyoutPlacementMode.Top,
-            ShowMode = FlyoutShowMode.Auto
+            await MyViewModel.DeleteSongs(new List<SongModelView>() { selectedSong });
         };
-        menuFlyout.ShowAt(btn, flyoutShowOpt);
+        var menuSeparator = new MenuFlyoutSeparator();
+        menuFlyout.Items.Add(menuSeparator);
+
+        FontIcon iconDelete = new FontIcon();
+        iconDelete.Glyph = "\uE74D";
+        deleteSongFromLibraryMFItem.Icon=iconDelete;
+        menuFlyout.Items.Add(deleteSongFromLibraryMFItem);
+
+
+
+        var AddToNextMFItem = new MenuFlyoutItem { Text = "Add to Next" ,
+        };
+        AddToNextMFItem.Click += AddToNextMFItem_Click;
+        FontIcon icon = new FontIcon();
+        icon.Glyph = "\uE70E";
+            AddToNextMFItem.Icon=icon;
+        menuFlyout.Items.Add(AddToNextMFItem);
+
+        FontIcon heartIcon = new FontIcon();
+        heartIcon.Glyph = "\uEB51";
+
+        FontIcon unheartIcon = new FontIcon();
+        unheartIcon.Glyph = "\uEA92";
+        var toggleFavBtn = new ToggleMenuFlyoutItem
+        {
+            Icon = heartIcon,
+            
+        };
+        if (!selectedSong.IsFavorite)
+        {
+            toggleFavBtn.Text = "Love";
+            toggleFavBtn.Click += (s, e) =>
+            {
+
+                _ = MyViewModel.AddFavoriteRatingToSong(selectedSong);
+                toggleFavBtn.Text = "UnLove";
+            };
+
+        }
+        else
+        {
+            toggleFavBtn.Text = "UnLove";
+            toggleFavBtn.Icon = unheartIcon;
+
+            toggleFavBtn.Click += (s, e) =>
+            {
+                _ = MyViewModel.RemoveSongFromFavorite(selectedSong);
+                toggleFavBtn.Text = "Love";
+            };
+        }
+
+        menuFlyout.Items.Add(toggleFavBtn);
+            FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
+            {
+                Placement = FlyoutPlacementMode.Top,
+                ShowMode = FlyoutShowMode.Auto
+            };
+        menuFlyout.ShowAt(UIElt, flyoutShowOpt);
 
     }
 
-
+    private void AddToNextMFItem_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.AddToNext(new List<SongModelView>() { MyViewModel.SelectedSong! });
+    }
 
     private ScalarKeyFrameAnimation _fadeInAnim;
     private ScalarKeyFrameAnimation _fadeOutAnim;
@@ -1414,9 +1481,17 @@ public sealed partial class AllSongsListPage : Page
             };
             var contextMenuFlyout = new MenuFlyout();
 
-            var namesOfartists = _storedSong.ArtistToSong.Select(a => a.Name).ToList();
+            var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance()
+                .Find<SongModel>(_storedSong.Id).ArtistToSong.ToList().Select(x => new ArtistModelView()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Bio = x.Bio,
+                    ImagePath = x.ImagePath
+                });
+            var namesOfartists = dbSongArtists.ToList().Select(a => a.Name);
 
-            bool isSingular = namesOfartists.Count > 1 ? true : false;
+            bool isSingular = namesOfartists.Count() > 1 ? true : false;
             string artistText = string.Empty;
             if (isSingular)
             {
@@ -1429,7 +1504,7 @@ public sealed partial class AllSongsListPage : Page
             contextMenuFlyout.Items.Add(
                 new MenuFlyoutItem
                 {
-                    Text = $"{namesOfartists.Count} {artistText} linked",
+                    Text = $"{namesOfartists.Count()} {artistText} linked",
                     IsTapEnabled = false
 
                 });
@@ -1479,7 +1554,7 @@ public sealed partial class AllSongsListPage : Page
 
             try
             {
-                if (namesOfartists.Count > 1)
+                if (namesOfartists.Count() > 1)
                 {
                     contextMenuFlyout.ShowAt(nativeElement, point.Position);
                 }
@@ -1878,43 +1953,50 @@ public sealed partial class AllSongsListPage : Page
         ViewSongBtn_Click(sender, e);
     }
 
-    private void animatedScrollRepeater_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    
+    private void coverArtImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-       
-        var currentList = e.AddedItems as IList<object>;
-        var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
-        if (current != null)
-        {
-            var pastList = e.RemovedItems as IReadOnlyList<object>;
-            if (pastList is not null)
-            {
-                if (pastList.Count > 0 && pastList?[0] is Dimmer.Data.ModelView.LyricPhraseModelView past)
-                {
-                    past?.NowPlayingLyricsFontSize = 19;
-                    past?.HighlightColor = Microsoft.Maui.Graphics.Colors.White;
-                    past?.IsHighlighted = false;
-                }
-            }
-            current?.NowPlayingLyricsFontSize = 29;
-            current?.IsHighlighted = true;
-            current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
+        ViewOtherBtn_Click(sender, e);
+    }
 
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                var container = animatedScrollRepeater.ContainerFromItem(current) as ListViewItem;
-                if (container != null)
-                {
-                    container.UpdateLayout();
-                    container.StartBringIntoView(new BringIntoViewOptions
-                    {
-                        AnimationDesired = true,
-                        VerticalAlignmentRatio = 0.5 // 0 = top, 0.5 = center
-                    });
-                }
+    private void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+    {
 
-            });
+    }
 
-        }
+    private void ArAscending_Click(object sender, RoutedEventArgs e)
+    {
+        //var myCurrentQueue = MyViewModel.CurrentTqlQueryUI;
+        
+    }
 
+    private void AlbumAscending_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void TitleAscending_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void TitleDescending_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ArtistDescending_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void AlbumDescending_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void HideBtmPart_Click(object sender, RoutedEventArgs e)
+    {
+        BtmLogPanel.Visibility = Visibility.Collapsed;
     }
 }

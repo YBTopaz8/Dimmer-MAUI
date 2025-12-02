@@ -18,6 +18,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public double DurationInSeconds { get; set; }
     public bool IsHidden { get; set; }
 
+    public IList<string> EarnedAchievementIds { get; }
     public int? ReleaseYear { get; set; }
     public int NumberOfTimesFaved { get; set; }
     public int ManualFavoriteCount { get; set; }

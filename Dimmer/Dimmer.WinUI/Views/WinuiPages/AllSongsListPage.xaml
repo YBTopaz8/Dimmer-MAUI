@@ -56,13 +56,11 @@
             </DataTemplate>
         </ResourceDictionary>
     </Page.Resources>
-    <Grid
-        Grid.Row="0"
-        Margin="10"
-        RowSpacing="10">
+    <Grid Margin="10" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="25" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
@@ -90,11 +88,36 @@
                         Command="{x:Bind MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResultCommand}"
                         Content="View Queue" />
 
-                    <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}" Content="Scroll To Current" />
+                    <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}">
+                        <SymbolIcon Symbol="View" />
+                    </Button>
 
 
                     <Button Command="{Binding RandomizeCommand}" Content="Shuffle" />
+                    <SplitButton
+                        x:Name="SortByWithTQL"
+                        Content="Sort By"
+                        IsEnabled="False">
+                        <SplitButton.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutSubItem Text="Artist">
+                                    <MenuFlyoutItem
+                                        x:Name="ArAscending"
+                                        Click="ArAscending_Click"
+                                        Text="Ascending" />
+                                    <MenuFlyoutItem Text="Descending" />
 
+                                </MenuFlyoutSubItem>
+                                <MenuFlyoutSubItem Text="Album">
+                                    <MenuFlyoutItem Text="Ascending" />
+                                    <MenuFlyoutItem Text="Descending" />
+                                </MenuFlyoutSubItem>
+
+
+
+                            </MenuFlyout>
+                        </SplitButton.Flyout>
+                    </SplitButton>
                 </StackPanel>
 
                 <StackPanel
@@ -208,36 +231,6 @@
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
-
-            <StackPanel Grid.Column="1" Visibility="{Binding IsDimmerPlaying, Converter={StaticResource BoolToVisibilityConverter}}">
-
-                <ListView
-                    x:Name="animatedScrollRepeater"
-                    Grid.Column="0"
-                    Height="150"
-                    MaxWidth="550"
-                    ItemsSource="{Binding AllLines}"
-                    SelectedItem="{Binding CurrentLine}"
-                    SelectionChanged="animatedScrollRepeater_SelectionChanged"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <Border>
-                                <Grid>
-                                    <Border BorderBrush="DarkSlateBlue" Opacity="0.7" />
-
-                                    <TextBlock
-                                        FontSize="{Binding NowPlayingLyricsFontSize}"
-                                        HorizontalTextAlignment="Center"
-                                        Text="{Binding Text}"
-                                        TextWrapping="Wrap" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-
-            </StackPanel>
         </Grid>
 
         <dgView:TableView
@@ -294,8 +287,8 @@
                         <DataTemplate>
                             <Border
                                 x:Name="CardBorder"
-                                Height="210"
-                                Margin="3,5,3,-20"
+                                Height="240"
+                                Margin="5,0"
                                 AllowFocusOnInteraction="False"
                                 Background="Transparent"
                                 BorderThickness="1"
@@ -309,24 +302,61 @@
                                 <Grid x:Name="CoverImageGrid" PointerReleased="CardBorder_PointerReleased">
 
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
                                         <RowDefinition Height="*" />
 
                                     </Grid.RowDefinitions>
 
                                     <!--  You can even overlay a "favorite" icon like in your example  -->
+                                    <StackPanel
+                                        Grid.Row="0"
+                                        Margin="0,0,0,5"
+                                        Orientation="Horizontal"
+                                        Spacing="5">
 
+                                        <Button
+                                            Grid.Row="0"
+                                            Height="35"
+                                            Margin="0,0,0,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Foreground="SlateBlue"
+                                            Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <SymbolIcon
+                                                Width="20"
+                                                Height="20"
+                                                Symbol="Microphone" />
+                                        </Button>
+                                        <Button
+                                            Height="35"
+                                            Margin="0,0,5,0"
+                                            HorizontalAlignment="Right"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Foreground="DarkSlateBlue"
+                                            Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <FontIcon
+                                                Width="20"
+                                                Height="20"
+                                                Glyph="&#xEB52;" />
+                                        </Button>
+
+                                    </StackPanel>
                                     <Image
                                         x:Name="coverArtImage"
-                                        Grid.Row="0"
+                                        Grid.Row="1"
                                         Width="180"
                                         Height="180"
                                         x:FieldModifier="Public"
+                                        RightTapped="coverArtImage_RightTapped"
                                         Source="{Binding CoverImagePath}"
                                         Stretch="UniformToFill" />
 
                                     <StackPanel
                                         x:Name="ExtraPanel"
-                                        Grid.Row="0"
+                                        Grid.Row="1"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Bottom"
                                         Loaded="ExtraPanel_Loaded"
@@ -366,28 +396,30 @@
                     </dgView:TableViewTemplateColumn.CellTemplate>
                 </dgView:TableViewTemplateColumn>
 
-                <!--  Other columns for Title, Artist, etc.  -->
-                <dgView:TableViewCheckBoxColumn
-                    Binding="{Binding HasSyncedLyrics}"
-                    Header="HasLyrics"
-                    IsReadOnly="True" />
-
 
                 <dgView:TableViewTextColumn
                     x:Name="Title"
-                    MaxWidth="200"
+                    MaxWidth="350"
                     Binding="{Binding Title}"
                     Header="Title"
-                    IsReadOnly="True" />
+                    IsReadOnly="True"
+                    ToolTipService.Placement="Mouse"
+                    ToolTipService.ToolTip="{Binding Title}" />
                 <dgView:TableViewTemplateColumn
                     x:Name="Artist"
-                    Width="250"
+                    Width="350"
                     Header="Artist"
-                    IsReadOnly="True">
+                    IsReadOnly="True"
+                    ToolTipService.Placement="Mouse"
+                    ToolTipService.ToolTip="{Binding ArtistName}">
                     <dgView:TableViewTemplateColumn.CellTemplate>
 
                         <DataTemplate>
-                            <Grid PointerPressed="Grid_PointerPressed">
+                            <Grid
+                                Height="190"
+                                HorizontalAlignment="Center"
+                                Background="Transparent"
+                                PointerPressed="Grid_PointerPressed">
 
                                 <Border
                                     x:Name="ArtistNameTextOnly"
@@ -411,14 +443,16 @@
 
                 <dgView:TableViewTextColumn
                     x:Name="AlbumName"
-                    Width="250"
+                    Width="350"
                     Binding="{Binding AlbumName}"
                     Header="Album"
-                    IsReadOnly="True" />
+                    IsReadOnly="True"
+                    ToolTipService.Placement="Mouse"
+                    ToolTipService.ToolTip="{Binding AlbumName}" />
 
                 <dgView:TableViewTextColumn
                     x:Name="GenreName"
-                    MaxWidth="210"
+                    MaxWidth="180"
                     Binding="{Binding GenreName}"
                     Header="Genre"
                     IsReadOnly="True" />
@@ -445,21 +479,6 @@
                     Binding="{Binding PlayCompletedCount}"
                     Header="Dims"
                     IsReadOnly="True" />
-                <dgView:TableViewTemplateColumn Header="Is Fav" IsReadOnly="False">
-                    <dgView:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Grid HorizontalAlignment="Center">
-                                <CheckBox
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Click="CheckBox_Click"
-                                    ClickMode="Release"
-                                    IsChecked="{Binding IsFavorite}" />
-                            </Grid>
-                        </DataTemplate>
-                    </dgView:TableViewTemplateColumn.CellTemplate>
-
-                </dgView:TableViewTemplateColumn>
 
 
             </dgView:TableView.Columns>
@@ -467,7 +486,20 @@
 
 
 
-
+        <StackPanel
+            x:Name="BtmLogPanel"
+            Grid.Row="2"
+            Orientation="Horizontal">
+            <Button
+                x:Name="HideBtmPart"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                Click="HideBtmPart_Click"
+                Content="X"
+                FontSize="9" />
+            <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Log}" />
+        </StackPanel>
     </Grid>
 </Page>
 

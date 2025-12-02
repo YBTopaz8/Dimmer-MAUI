@@ -1,6 +1,7 @@
 ﻿namespace Dimmer.Data.Models;
 public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 {
+    public IList<string> EarnedAchievementIds { get; }
 
     /// <summary>
     /// Gets or sets the Url.

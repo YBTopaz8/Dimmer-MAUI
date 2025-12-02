@@ -29,6 +29,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 {
     private IDuplicateFinderService _duplicateFinderService;
 
+
     
 
     public BaseViewModel(
@@ -91,7 +92,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .RefCount();
 
         CurrentPlayingSongView = new();
-        _baseAppFlow = BaseAppClass;
+        BaseAppFlow = BaseAppClass;
 
         folderMonitorService = FolderServ;
         RealmFactory = RealmFact;
@@ -308,7 +309,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         .ToList();
                         Debug.WriteLine(
                             $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count} to {finalSongs.Count} songs.");
+                        Debug.WriteLine($"Current Query is {query.ElementType}" +
+                            $"{plan.CommandNode}" +
+                            $"{plan.ErrorMessage}" +
+                            $"{plan.RqlFilter}" +
+                            $"{plan.InMemoryPredicate}" +
+                            $"{plan.SortDescriptions}" +
+                            $"{plan.Shuffle}" +
+                            $"{plan.Limiter}"
 
+
+                            );
                         // STAGE 3: Apply post-processing (Shuffle and Limiters)
                         List<SongModelView> processedSongs;
                         if (plan.Shuffle != null)
@@ -431,7 +442,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await HeavierBackGroundLoadings(folders);
         });
 
-
+        BaseAppFlow.AchievementService.UnlockedAchievement.
+           DistinctUntilChanged()
+           .ObserveOn(RxSchedulers.UI)
+           .Subscribe(s =>
+           {
+               UnlockedAch = s;
+           });
         IsInitialized = true;
         return;
     }
@@ -863,7 +880,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 if (lastAppEvent is not null)
                 {
-                    var lastSong = lastAppEvent.SongsLinkingToThisEvent.FirstOrDefault();
+                    var lastSong = lastAppEvent.SongsLinkingToThisEvent.ToList().FirstOrDefault();
                     if (lastSong != null)
                     {
                         try
@@ -1708,9 +1725,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<string> FolderPaths { get; set; } = new();
     partial void OnFolderPathsChanged(ObservableCollection<string> oldValue, ObservableCollection<string> newValue)
     {
-        
+       
     }
-    private BaseAppFlow _baseAppFlow;
+
+    [ObservableProperty]
+    public partial AchievementRule UnlockedAch { get; set; }
+    public BaseAppFlow BaseAppFlow;
+
+
+
 
     #region public partials
     [ObservableProperty]
@@ -2029,7 +2052,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
-        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             args.MediaSong,
             StatesMapper.Map(DimmerPlaybackState.PausedUser),
@@ -2047,7 +2070,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
-        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
              RealmFactory,
              args.MediaSong,
              StatesMapper.Map(DimmerPlaybackState.Resumed),
@@ -2066,7 +2089,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
-        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
@@ -2176,7 +2199,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (CurrentPlayingSongView.TitleDurationKey is null) return;
             _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
-            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Seeked),
@@ -2226,7 +2249,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
-        await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
             args.MediaSong,
             StatesMapper.Map(DimmerPlaybackState.Playing),
@@ -2365,7 +2388,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             foreach (var evt in lastTenEvents)
             {
-                var song = evt.SongsLinkingToThisEvent.FirstOrDefault();
+                var song = evt.SongsLinkingToThisEvent.ToList().FirstOrDefault();
                 if (song is null) continue;
 
                 var songView = _mapper.Map<SongModelView>(song);
@@ -2484,7 +2507,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         var CurrentSongIndex = _playbackQueue.IndexOf(CurrentPlayingSongView);
-        PlaybackQueueSource.InsertRange(songs, CurrentSongIndex);
+        PlaybackQueueSource.InsertRange(songs, CurrentSongIndex+1);
     }
 
     [RelayCommand]
@@ -3110,7 +3133,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage < 90)
         {
-            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Skipped),
@@ -3126,7 +3149,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         else if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
         {
-            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
@@ -3184,7 +3207,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         if (IsDimmerPlaying && CurrentPlayingSongView != null)
         {
-            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                   RealmFactory,
                   CurrentPlayingSongView,
                   StatesMapper.Map(DimmerPlaybackState.Skipped),
@@ -3562,8 +3585,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _lyricsMgtFlow.CurrentLyric.ObserveOn(RxSchedulers.UI)
             .Subscribe(line =>
             {
-                
-                CurrentPlayingSongView.HasSyncedLyrics = line is not null;
+                if (line is null) return;
+                CurrentPlayingSongView.HasSyncedLyrics = true;
                 Debug.WriteLine(line.Text);
                 CurrentLine = line;
             }));
@@ -3573,8 +3596,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .ObserveOn(RxSchedulers.UI)
                 .Subscribe(isLoading =>
                 {
-                    IsLoadingLyrics = isLoading;                    
-
+                    IsLoadingLyrics = isLoading;
                 }));
 
         _subsMgr.Add(
@@ -4465,7 +4487,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ToggleArtistAsFavorite(ArtistModelView artist)
     {
         artist.IsFavorite = !artist.IsFavorite;
-        _baseAppFlow.UpsertArtist(artist.ToModel(_mapper));
+        BaseAppFlow.UpsertArtist(artist.ToModel(_mapper));
     }
     
 
@@ -4473,7 +4495,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ToggleAlbumAsFavorite(AlbumModelView album)
     {
         album.IsFavorite = !album.IsFavorite;
-        _baseAppFlow.UpsertAlbum(album.ToModel(_mapper));
+        BaseAppFlow.UpsertAlbum(album.ToModel(_mapper));
     }
 
     [RelayCommand]
@@ -4513,7 +4535,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             songModel.IsFavorite = true;
 
             // record event (favorited)
-            await _baseAppFlow.UpdateDatabaseWithPlayEvent(
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 RealmFactory,
                 songModel,
                 StatesMapper.Map(DimmerPlaybackState.Favorited),
@@ -5235,28 +5257,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (SelectedSong is null)
             return string.Empty;
 
-        // 1. Robust Title Handling
-        if (string.IsNullOrWhiteSpace(LyricsTrackNameSearch))
-        {
+       
             var rawTitle = SelectedSong.Title ?? string.Empty;
-            // Optional: Remove common metadata noise that hurts search results
-            // e.g., "Song (Remastered 2009)" -> "Song"
             LyricsTrackNameSearch = CleanSongTitle(rawTitle);
-        }
+        
 
-        // 2. Robust Artist Handling
-        if (string.IsNullOrWhiteSpace(LyricsArtistNameSearch))
-        {
             var rawArtist = SelectedSong.ArtistName ?? string.Empty;
             LyricsArtistNameSearch = GetPrimaryArtist(rawArtist);
-        }
-
-        // 3. Robust Album Handling
-        if (string.IsNullOrWhiteSpace(LyricsAlbumNameSearch))
-        {
+        
             var rawAlbum = SelectedSong.AlbumName ?? string.Empty;
 
-            // Don't search for generic placeholders, they pollute results
+            
             if (!IsGenericAlbumName(rawAlbum))
             {
                 LyricsAlbumNameSearch = rawAlbum;
@@ -5265,7 +5276,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 LyricsAlbumNameSearch = string.Empty;
             }
-        }
+        
 
         // 4. Construct Query
         // Using string.Join ensures we don't have double spaces if one field is empty

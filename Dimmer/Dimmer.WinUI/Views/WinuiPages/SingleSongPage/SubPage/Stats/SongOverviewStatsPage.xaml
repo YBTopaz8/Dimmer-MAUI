@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage.Stats.SongOverviewStatsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage.Stats"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <StackPanel Spacing="20">
+            <!-- Header -->
+            <TextBlock Text="Performance Metrics" Style="{ThemeResource TitleTextBlockStyle}"/>
+
+            <!-- KPI Grid -->
+            <GridView>
+                <!-- Eddington Number Card -->
+                <GridViewItem>
+                    <Grid Width="200" Height="150" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel>
+                            <TextBlock Text="Eddington Number" Opacity="0.6" FontSize="12"/>
+                            <TextBlock x:Name="EddingtonNum" FontSize="48" FontWeight="Bold" Foreground="Gold"/>
+                            <TextBlock Text="Days with > N plays" TextWrapping="Wrap" FontSize="10" Opacity="0.5" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </GridViewItem>
+
+                <!-- Completion Rate Gauge -->
+                <GridViewItem>
+                    <Grid Width="200" Height="150" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8">
+                        <!-- Use a circular progress bar here -->
+                        <ProgressRing x:Name="CompletionRate" Width="100" Height="100"/>
+                        <TextBlock x:Name="CompletionRateStr" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="Completion Rate" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+                    </Grid>
+                </GridViewItem>
+
+                <!-- More cards for Skips, Total Time, etc. -->
+            </GridView>
+        </StackPanel>
+    </Grid>
+</Page>
