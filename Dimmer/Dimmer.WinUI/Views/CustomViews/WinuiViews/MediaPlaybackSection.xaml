@@ -117,6 +117,12 @@
                             IsTextSelectionEnabled="True"
                             Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
+
+                        <Button
+                            x:Name="ViewNodes"
+                            Click="ViewNodes_Click"
+                            Content="Nodes" />
+
                         <Button Background="Transparent" Visibility="{Binding CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}">
                             <FontIcon Glyph="&#xEC71;" />
                         </Button>
@@ -127,12 +133,6 @@
                                 <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Description}" />
                             </StackPanel>
                         </Button>
-
-                        <Button
-                            x:Name="ViewNodes"
-                            Click="ViewNodes_Click"
-                            Content="Nodes" />
-
                     </StackPanel>
 
                 </StackPanel>

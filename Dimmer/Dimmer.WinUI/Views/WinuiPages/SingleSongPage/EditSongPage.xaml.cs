@@ -422,4 +422,19 @@ public sealed partial class EditSongPage : Page
 
 
     }
+
+    private void ResetFieldsBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        SongTitleSearch.Text = string.Empty;
+        SongArtistNameSearch.Text = string.Empty;
+        SongAlbumNameSearch.Text = string.Empty;
+    }
+
+    private void PrefillFieldsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SongTitleSearch.Text = MyViewModel.SelectedSong?.Title;
+        SongArtistNameSearch.Text = MyViewModel.SelectedSong?.ArtistName;
+        SongAlbumNameSearch.Text = MyViewModel.SelectedSong?.AlbumName;
+    }
 }

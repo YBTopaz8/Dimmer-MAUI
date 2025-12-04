@@ -34,339 +34,196 @@ public partial class EditSingleSongFragment :Fragment
 
     MaterialButton SaveButton { get; set; }
     MaterialButton CancelButton { get; set; }
-    public EditSingleSongFragment()
-    {
-        
-    }
+    private const int PICK_IMAGE_REQUEST = 1001;
 
-    public EditSingleSongFragment(BaseViewModelAnd baseViewModelAnd, string transitionName1, string transName2)
+    public EditSingleSongFragment(BaseViewModelAnd vm, string transName1, string transName2)
     {
-        MyViewModel = baseViewModelAnd;
-        this.transitionName = transitionName1;
+        MyViewModel = vm;
+        this.transitionName = transName1;
         this.TransName2 = transName2;
     }
 
-    public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+    public EditSingleSongFragment() { }
+
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        if (Context is null)
-            return null;
         var ctx = Context;
+        if (ctx == null) return null;
 
         var mainScrollView = new ScrollView(ctx)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(
-               ViewGroup.LayoutParams.MatchParent,
-               ViewGroup.LayoutParams.MatchParent),
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
             FillViewport = true
         };
 
         var root = new LinearLayout(ctx)
         {
             Orientation = Orientation.Vertical,
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.WrapContent)
+            LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         };
-        root.SetPadding(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
+        root.SetPadding(AppUtil.DpToPx(10), AppUtil.DpToPx(10), AppUtil.DpToPx(10), AppUtil.DpToPx(10));
 
-        //verticalLinearLayout.AddView(TopPartOfPageRowOne(ctx));
+        // 1. Top Section (Image + Inputs)
+        root.AddView(CreateTopSection(ctx));
 
-        root.AddView(TopPartOfPageRowOne(ctx));
+        // 2. Middle Section (Album Picker)
+        root.AddView(CreateMiddleSection(ctx));
 
-
-        
-        #region Middle Part Two region
-        var middleCard = new MaterialCardView(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Radius = 16f,
-            CardElevation = 8f,
-            UseCompatPadding = true,
-            PreventCornerOverlap = true,
-        };
-        var middleCardLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        middleCardLayout.SetPadding(16, 16, 16, 16);
-
-        //i'll put a grid of two here, one 20% width with label "album" and other 80% width with album name in a button
-        var gridLayout = new GridLayout(ctx)
-        {
-            ColumnCount = 2,
-            RowCount = 1,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        var albumLabelTwentyPercent = new TextView(ctx)
-        {
-
-            LayoutParameters = new ViewGroup.LayoutParams(AppUtil.DpToPx(60), ViewGroup.LayoutParams.WrapContent),
-            Text = "Album:",
-            TextSize = 16f,
-            Gravity = GravityFlags.CenterVertical|GravityFlags.Left,
-        };
-        var albumNameEightyPercent = new MaterialButton(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(AppUtil.DpToPx(250), ViewGroup.LayoutParams.WrapContent),
-            Text = MyViewModel.SelectedSong.AlbumName,
-            Gravity = GravityFlags.CenterVertical | GravityFlags.CenterHorizontal,
-        };
-        albumNameEightyPercent.Click += AlbumNameEightyPercent_Click;
-
-        gridLayout.AddView(albumLabelTwentyPercent);
-        gridLayout.AddView(albumNameEightyPercent);
-        middleCardLayout.AddView(gridLayout);
-
-        middleCard.AddView(middleCardLayout);
-
-        root.AddView(middleCard);
-#endregion
-
-        #region Bottom Region
-        var bottomCard = new MaterialCardView(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Radius = 16f,
-            CardElevation = 8f,
-            UseCompatPadding = true,
-            PreventCornerOverlap = true,
-        };
-        var bottomCardLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        bottomCardLayout.SetPadding(16, 16, 16, 16);
-        SaveButton = new MaterialButton(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(0, ViewGroup.LayoutParams.WrapContent)
-            {
-                Width = (int)(ctx.Resources.DisplayMetrics.WidthPixels * 0.45),
-            },
-            Text = "Save",
-        };
-        SaveButton.Click += SaveButton_Click;
-        CancelButton = new MaterialButton(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(0, ViewGroup.LayoutParams.WrapContent)
-            {
-                Width = (int)(ctx.Resources.DisplayMetrics.WidthPixels * 0.45),
-            },
-            Text = "Cancel",
-        };
-        CancelButton.Click += (s, e) =>
-        {
-
-            ParentFragmentManager.PopBackStack();
-        };
-
-        var gridOfTwoRows = new GridLayout(ctx)
-        {
-            ColumnCount = 1,
-            RowCount = 2,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        var RowOneLayoutTwentyPercentOfGrid = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        var textViewInRowOne = new TextView(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Text = "Song Notes",
-        };
-        var buttonInRowOne = new MaterialButton(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Text = "Add Note",
-        };
-        RowOneLayoutTwentyPercentOfGrid.AddView(textViewInRowOne);
-        RowOneLayoutTwentyPercentOfGrid.AddView(buttonInRowOne);
-
-        var RowTwoLayoutEightyPercentOfGrid = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        var notesRecyclerView = new RecyclerView(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, 400),
-        };
-        var notesRecyclerViewAdapter = new SongNotesRecyclerViewAdapter(MyViewModel);
-        notesRecyclerView.SetAdapter(notesRecyclerViewAdapter);
-
-        RowTwoLayoutEightyPercentOfGrid.AddView(notesRecyclerView);
-        gridOfTwoRows.AddView(RowOneLayoutTwentyPercentOfGrid);
-        gridOfTwoRows.AddView(RowTwoLayoutEightyPercentOfGrid);
-
-
-
-        bottomCardLayout.AddView(SaveButton);
-        bottomCardLayout.AddView(CancelButton);
-        bottomCard.AddView(bottomCardLayout);
-        #endregion
-
-        root.AddView(bottomCard);
-
+        // 3. Bottom Section (Notes + Actions)
+        root.AddView(CreateBottomSection(ctx));
 
         mainScrollView.AddView(root);
         return mainScrollView;
     }
 
-    public View TopPartOfPageRowOne(Context ctx)
+    private View CreateTopSection(Context ctx)
     {
-        var topCard = new MaterialCardView(ctx)
+        var card = new MaterialCardView(ctx)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Radius = 16f,
-            CardElevation = 8f,
-            UseCompatPadding = true,
-            PreventCornerOverlap = true,
-          
+            Radius = AppUtil.DpToPx(16),
+            CardElevation = AppUtil.DpToPx(4),
+            UseCompatPadding = true
         };
-        var topCardLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            
-        };
-        topCardLayout.SetPadding(16, 16, 16, 16);
+
+        var layout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        layout.SetPadding(AppUtil.DpToPx(16), AppUtil.DpToPx(16), AppUtil.DpToPx(16), AppUtil.DpToPx(16));
+
+        // Header Title
+        var titleText = new MaterialTextView(ctx) { Text = "Edit Details", TextSize = 24 };
+        titleText.TransitionName = transitionName;
+        layout.AddView(titleText);
+
+        // Image Row
+        var imageRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         SongImage = new ImageView(ctx)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(300, 300),
-          TransitionName = TransName2,
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(100), AppUtil.DpToPx(100)),
+            TransitionName = TransName2
         };
         SongImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-        Glide.With(ctx).Load(MyViewModel.SelectedSong.CoverImagePath)
-            .Placeholder(Resource.Drawable.musicnotess).Into(SongImage);
-        var textInputsLayout = new LinearLayout(ctx)
-            {
-            Orientation = Orientation.Vertical,
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-        };
-        SongTitleInput = new TextInputEditText(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Hint = "Song Title",
-            Text = MyViewModel.SelectedSong.Title,
-        };
-        SongTitleInput.SetTextColor
-            (IsDark() ? Color.White : Color.Black);
-        SongTrackNumberInput = new TextInputEditText(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Hint = "Track Number",
-            Text = MyViewModel.SelectedSong.TrackNumber.ToString(),
-            
-        };
-        SongTrackNumberInput.SetTextColor
-            (IsDark() ? Color.White : Color.Black);
 
-        SongYearsInput = new TextInputEditText(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Hint = "Year",
-            Text = MyViewModel.SelectedSong.ReleaseYear.ToString(),
-        };
-        SongYearsInput.SetTextColor
-            (IsDark() ? Color.White : Color.Black);
+        if (!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
+            Glide.With(ctx).Load(MyViewModel.SelectedSong.CoverImagePath).Into(SongImage);
+        else
+            SongImage.SetImageResource(Resource.Drawable.musicnotess); // Ensure you have this drawable
 
-        SongConductorInput = new TextInputEditText(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Hint = "Conductor",
-            Text = MyViewModel.SelectedSong.Conductor,
-        };
-        SongConductorInput.SetTextColor
-            (IsDark() ? Color.White : Color.Black);
+        var changeImgBtn = new MaterialButton(ctx) { Text = "Change Cover" };
+        changeImgBtn.Click += EditImageView_Click;
 
+        imageRow.AddView(SongImage);
+        imageRow.AddView(changeImgBtn);
+        layout.AddView(imageRow);
 
-        SongComposerInput = new TextInputEditText(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Hint = "Composer",
-            Text = MyViewModel.SelectedSong.Composer,
-        };
-        SongComposerInput.SetTextColor
-            (IsDark() ? Color.White : Color.Black);
+        // Inputs
+        SongTitleInput = CreateInput(ctx, "Title", MyViewModel.SelectedSong.Title);
+        SongTrackNumberInput = CreateInput(ctx, "Track #", MyViewModel.SelectedSong.TrackNumber?.ToString());
+        SongYearsInput = CreateInput(ctx, "Year", MyViewModel.SelectedSong.ReleaseYear?.ToString());
+        SongConductorInput = CreateInput(ctx, "Conductor", MyViewModel.SelectedSong.Conductor);
+        SongComposerInput = CreateInput(ctx, "Composer", MyViewModel.SelectedSong.Composer);
+        SongDescriptionInput = CreateInput(ctx, "Description", MyViewModel.SelectedSong.Description);
 
-        SongDescriptionInput = new TextInputEditText(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-            Hint = "Description",
-            Text = MyViewModel.SelectedSong.Description,
-        };
-        SongDescriptionInput.SetTextColor
-            (IsDark() ? Color.White : Color.Black);
+        layout.AddView(SongTitleInput);
+        layout.AddView(SongTrackNumberInput);
+        layout.AddView(SongYearsInput);
+        layout.AddView(SongConductorInput);
+        layout.AddView(SongComposerInput);
+        layout.AddView(SongDescriptionInput);
 
-
-        TextView titleText = new MaterialTextView(ctx);
-        titleText.LayoutParameters = new ViewGroup.LayoutParams
-            (ViewGroup.LayoutParams.MatchParent,
-            AppUtil.DpToPx(60));
-        titleText.Text = "Edit Song";
-        titleText.TextSize = 28;
-        
-        titleText.TransitionName = transitionName;
-
-        textInputsLayout.AddView(titleText);
-        textInputsLayout.AddView(SongTitleInput);
-        textInputsLayout.AddView(SongTrackNumberInput);
-        textInputsLayout.AddView(SongYearsInput);
-        textInputsLayout.AddView(SongConductorInput);
-        textInputsLayout.AddView(SongComposerInput);
-        textInputsLayout.AddView(SongDescriptionInput);
-        topCardLayout.AddView(SongImage);
-        topCardLayout.AddView(textInputsLayout);
-        var editImageBtnView = new MaterialButton(ctx)
-        {
-            LayoutParameters = new LinearLayout.LayoutParams
-            (
-             ViewGroup.LayoutParams.MatchParent,
-             ViewGroup.LayoutParams.MatchParent
-            ),
-            Text = "Edit Image"
-        };
-        editImageBtnView.Click += EditImageView_Click;
-
-        topCardLayout.AddView(editImageBtnView);
-
-        topCard.AddView(topCardLayout);
-        return topCard;
+        card.AddView(layout);
+        return card;
     }
 
-    private void EditImageView_Click(object? sender, EventArgs e)
+    private TextInputEditText CreateInput(Context ctx, string hint, string value)
     {
-        throw new NotImplementedException();
+        var input = new TextInputEditText(ctx) { Hint = hint, Text = value };
+        input.Background = null; // Remove underline for cleaner look if desired
+        return input;
     }
 
-    //public View MiddlePartOfPageRowTwo(Context ctx)
-    //{
-       
-    //    //return middleCard;
-    //}
-
-    //public View BottomPartOfPageRowThree(Context ctx)
-    //{
-      
-    //    return bottomCard;
-    //}
-
-    private void SaveButton_Click(object? sender, EventArgs e)
+    private View CreateMiddleSection(Context ctx)
     {
+        var card = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(16),
+            UseCompatPadding = true
+        };
+        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        row.SetPadding(AppUtil.DpToPx(16), 0, AppUtil.DpToPx(16), 0);
+        row.SetGravity(GravityFlags.CenterVertical);
+        var label = new TextView(ctx) { Text = "Album: " };
+        var albumBtn = new MaterialButton(ctx)
+        {
+            Text = MyViewModel.SelectedSong.AlbumName ?? "Select Album",
+            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
+            { Weight = 1 }
+        };
+        albumBtn.Click += (s, e) =>
+        {
+            var albumNames = MyViewModel.SearchResults.Select(x => x.AlbumName).Distinct().ToList();
+            new AlbumPickerDialogFragment(albumNames, MyViewModel.SelectedSong.AlbumName, MyViewModel)
+                .Show(ParentFragmentManager, "albumPicker");
+        };
+
+        row.AddView(label);
+        row.AddView(albumBtn);
+        card.AddView(row);
+        return card;
+    }
+
+    private View CreateBottomSection(Context ctx)
+    {
+        var layout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+
+        SaveButton = new MaterialButton(ctx) { Text = "Save Changes" };
+        SaveButton.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
+        SaveButton.Click += SaveButton_Click;
+
+        CancelButton = new MaterialButton(ctx) { Text = "Cancel" };
+        CancelButton.SetBackgroundColor(Android.Graphics.Color.Gray);
+        CancelButton.Click += (s, e) => ParentFragmentManager.PopBackStack();
+
+        layout.AddView(SaveButton);
+        layout.AddView(CancelButton);
+        return layout;
+    }
+
+    private void EditImageView_Click(object sender, EventArgs e)
+    {
+        var intent = new Intent(Intent.ActionPick);
+        intent.SetType("image/*");
+        StartActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    public override void OnActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        base.OnActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == (int)Android.App.Result.Ok && data?.Data != null)
+        {
+            // In a real app, copy this URI to a local file accessible by the app
+            var uri = data.Data;
+            MyViewModel.SelectedSong.CoverImagePath = uri.ToString(); // Simplified
+            SongImage.SetImageURI(uri);
+        }
+    }
+
+    private void SaveButton_Click(object sender, EventArgs e)
+    {
+        // 1. Map Inputs to Model
+        MyViewModel.SelectedSong.Title = SongTitleInput.Text;
+        if (int.TryParse(SongTrackNumberInput.Text, out int track)) MyViewModel.SelectedSong.TrackNumber = track;
+        if (int.TryParse(SongYearsInput.Text, out int year)) MyViewModel.SelectedSong.ReleaseYear = year;
+        MyViewModel.SelectedSong.Conductor = SongConductorInput.Text;
+        MyViewModel.SelectedSong.Composer = SongComposerInput.Text;
+        MyViewModel.SelectedSong.Description = SongDescriptionInput.Text;
+
+        // 2. Update DB
         MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong);
+
+        // 3. Return
+        Toast.MakeText(Context, "Song Updated", ToastLength.Short).Show();
         ParentFragmentManager.PopBackStack();
     }
 
-    private void AlbumNameEightyPercent_Click(object? sender, EventArgs e)
-    {
-        var allAlbumNamesInDb = MyViewModel.SearchResults.Select(s => s.AlbumName).Distinct().ToList();
-        var albumPickerDialog = new AlbumPickerDialogFragment(allAlbumNamesInDb, MyViewModel.SelectedSong.AlbumName,
-            MyViewModel);
-        albumPickerDialog.Show(ParentFragmentManager, "albumPicker");
-    }
     public bool IsDark()
     {
         return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;

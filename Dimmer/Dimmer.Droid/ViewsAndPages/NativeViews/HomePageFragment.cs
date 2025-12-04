@@ -19,7 +19,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     public RecyclerView? _songListRecycler = null!;
     public TextView _emptyLabel = null!;
-    public LinearLayout _bottomBar = null!;
     public TextView _titleTxt = null!;
     public TextView _albumTxt = null!;
     public TextView _artistTxt = null!;
@@ -27,7 +26,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public ImageView _albumArt = null!;
     public float _downX;
     public float _downY;
-    public FloatingActionButton _pageFAB = null!;
+    private TextInputEditText _searchBar;
     public FloatingActionButton? cogButton = null!;
     FrameLayout? root;
     public TextView CurrentTimeTextView;
@@ -68,285 +67,83 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private SongAdapter _adapter;
     private TextInputEditText searchBar;
 
-    public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        if (Context == null)
-            return null;
         var ctx = Context;
-        if (MyViewModel == null)
-        {
-            var errText = new TextView(Context) { Text = "ViewModel is NULL!", TextSize = 30 };
-            return errText;
-        }
 
-        // ROOT FRAME (needed for FAB overlay)
-        root = new FrameLayout(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
-        };
-        // MAIN COLUMN
-        var column = new LinearLayout(ctx)
+        // Root
+        var root = new LinearLayout(ctx)
         {
             Orientation = Orientation.Vertical,
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
 
-        // SEARCHBAR (top)
-         searchBar = new TextInputEditText(ctx)
+        // 1. Search Bar
+        var searchCard = new MaterialCardView(ctx)
         {
-            Hint = "Search songs, artists, albums...",
-            TextSize = 16f
+            Radius = AppUtil.DpToPx(25),
+            CardElevation = AppUtil.DpToPx(4),
+            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         };
-        
-        searchBar.SetPadding(00, 30, 10, 5);
-        
-        searchBar.TextChanged += (s, e) =>
+        ((LinearLayout.LayoutParams)searchCard.LayoutParameters).SetMargins(20, 40, 20, 20);
+
+        _searchBar = new TextInputEditText(ctx)
         {
-            _searchCts?.Cancel();
-            _searchCts = new CancellationTokenSource();
-
-            var text = e?.Text?.ToString()?.Trim() ?? "";
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(250, _searchCts.Token); // debounce
-
-                    MyViewModel.SearchSongForSearchResultHolder(text); // implement this in VM
-
-                    Activity?.RunOnUiThread(() =>
-                    {
-                        //_adapter.UpdateData(results);
-                        //emptyText.Visibility = results.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
-                    });
-                }
-                catch (TaskCanceledException) { }
-            });
+            Hint = "Search library...",
+            Background = null // Removes the underline bar you hated
         };
+        _searchBar.SetPadding(40, 30, 40, 30);
+
+        searchCard.AddView(_searchBar);
+        root.AddView(searchCard);
+
+        // 2. RecyclerView
+        _songListRecycler = new RecyclerView(ctx);
+        _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
+        _songListRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+
+        // Attach Adapter
+        var adapter = new SongAdapter(ctx, MyViewModel, this);
+        _songListRecycler.SetAdapter(adapter);
+
+        root.AddView(_songListRecycler);
 
 
-        // MIDDLE ZONE (RecyclerView + empty text)
-        var middleContainer = new FrameLayout(ctx)
+        var helpBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
-            LayoutParameters = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                0,
-                1f)  // weight fills all remaining space
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Android.Resource.Drawable.IcMenuHelp), // Use a real drawable resource
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkGray),
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
         };
+        ((LinearLayout.LayoutParams)helpBtn.LayoutParameters).Gravity = GravityFlags.CenterVertical;
+        helpBtn.Click += (s, e) => OpenTqlGuide();
 
-        _songListRecycler = new RecyclerView(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
-        };
-        
-        var recyclerLayoutManager = new LinearLayoutManager(ctx);
-        
-        _songListRecycler.SetLayoutManager(recyclerLayoutManager);
-        
-       
-        var scrListener = new RecyclerViewOnScrollListener(
-            (dy) =>
-            {
-                
-                // Handle scroll events here
-            });
-        _adapter = new SongAdapter(ctx, MyViewModel, this
-            );
-        _songListRecycler.SetAdapter(_adapter);
-        //_songListRecycler.AddOnScrollListener(scrListener);
+        // Add helpBtn to the searchCard or the layout next to it
+        // If searchCard is horizontal LinearLayout, add it there.
+        // If not, you might want to wrap SearchBar and HelpBtn in a Horizontal LinearLayout.
+        var headerLayout = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        headerLayout.AddView(searchCard); // Adjust params to weight=1
+        headerLayout.AddView(helpBtn);
+        root.AddView(headerLayout, 0); // Add at top
 
-       
-
-
-
-        middleContainer.AddView(_songListRecycler);
-
-        var currentSong = MyViewModel.CurrentPlayingSongView;
-        // BOTTOM BAR
-        var btmBar = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            
-            LayoutParameters = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                (int)(ctx.Resources.DisplayMetrics.Density * 90)) // 50-60dp
-        };
-        
-        btmBar.SetGravity(GravityFlags.CenterVertical);
-        btmBar.SetBackgroundColor(Color.ParseColor("#303030"));
-
-        
-        
-         _albumArt = new ImageView(ctx)
-        {
-            LayoutParameters = new LinearLayout.LayoutParams(
-                (int)(ctx.Resources.DisplayMetrics.Density * 80),
-                (int)(ctx.Resources.DisplayMetrics.Density * 70))
-        };
-        _albumArt.Click += AlbumArt_Click;
-          // handle image
-        if (!string.IsNullOrEmpty(currentSong?.CoverImagePath) && System.IO.File.Exists(currentSong?.CoverImagePath))
-        {
-            // Load from disk
-            var bmp = Android.Graphics.BitmapFactory.DecodeFile(currentSong?.CoverImagePath);
-
-            _albumArt.SetImageBitmap(bmp);
-        }
-
-        //_albumArt.TransitionName = "homePageFAB";
-
-        var textStack = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical,
-            LayoutParameters = new LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WrapContent,
-                1f)
-        };
-
-        var txtColorList = new ColorStateList(
-            new int[][] {
-                new int[] { } // default
-            },
-            new int[] {
-                Color.White,
-                Color.DarkSlateBlue,
-                Color.Black
-            }
-        );
-        _titleTxt = new TextView(ctx) { Text = currentSong?.Title ?? "Select a Song", TextSize = 19f };
-        _titleTxt.SetTextColor(txtColorList);
-        _albumTxt = new TextView(ctx) { Text = currentSong?.AlbumName ?? "", TextSize = 10f };
-        _albumTxt.SetTextColor(txtColorList);
-        _artistTxt = new TextView(ctx) { Text = currentSong?.ArtistName ?? "", TextSize = 14f };
-        _artistTxt.SetTextColor(txtColorList);
-
-
-        textStack.AddView(_titleTxt);
-        textStack.AddView(_artistTxt);
-        textStack.AddView(_albumTxt);
-
-        var rightStack = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical
-        };
-
-        CurrentTimeTextView = new TextView(ctx)
-        {
-            Text = MyViewModel.CurrentTrackDurationSeconds.ToString(),
-            TextSize = 12f
-        }; CurrentTimeTextView.SetTextColor(txtColorList);
-        CurrentTimeTextView.Click += CurrentTime_Click;
-        
-
-        var playCount = new TextView(ctx)
-        {
-            Text = $"Plays: {currentSong?.PlayCompletedCount}",
-            TextSize = 12f
-        };
-        playCount.SetTextColor(txtColorList);
-        rightStack.AddView(CurrentTimeTextView);
-        rightStack.AddView(playCount);
-
-        btmBar.AddView(_albumArt);
-        btmBar.AddView(textStack);
-        btmBar.AddView(rightStack);
-
-        // ADD TOP + MIDDLE + BOTTOM TO COLUMN
-        column.AddView(searchBar);
-        column.AddView(middleContainer);
-        column.AddView(btmBar);
-
-        // ADD COLUMN TO ROOT
-        root.AddView(column);
-
-        // FAB
-        _pageFAB = new FloatingActionButton(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WrapContent,
-                ViewGroup.LayoutParams.WrapContent,
-                GravityFlags.Bottom | GravityFlags.End)
-        };
-        int fabMargin = (int)(ctx.Resources.DisplayMetrics.Density * 30);
-        int fabMarginBottom = (int)(ctx.Resources.DisplayMetrics.Density * 70);
-        ((FrameLayout.LayoutParams)_pageFAB.LayoutParameters).SetMargins(fabMargin, fabMargin, fabMargin, fabMarginBottom);
-        _pageFAB.Click += PageFAB_Click;
-        _pageFAB.LongClickable = true;
-        _pageFAB.LongClick += _pageFAB_LongClick;
-        cogButton = new FloatingActionButton(ctx)
-        {
-            LayoutParameters = new FrameLayout.LayoutParams(
-        ViewGroup.LayoutParams.WrapContent,
-        ViewGroup.LayoutParams.WrapContent,
-        GravityFlags.Bottom | GravityFlags.End)
-        };
-
-
-        cogButton.TransitionName = "SongDetailsTrans";
-        int cogMarginRight = fabMargin + (int)(ctx.Resources.DisplayMetrics.Density * 80); // spacing left of FAB
-        ((FrameLayout.LayoutParams)cogButton.LayoutParameters).SetMargins(fabMargin, fabMargin, cogMarginRight, fabMarginBottom);
-        cogButton.SetImageResource(Resource.Drawable.settings); // simple cog icon
-        cogButton.SetBackgroundColor(Color.Gray);
-        cogButton.Click += (s, e) =>
-        {
-            if (!IsAdded || _isNavigating) return;
-            _isNavigating = true;
-
-            var fragment = new SettingsFragment("SettingsTrans", MyViewModel);
-
-            ParentFragmentManager.BeginTransaction()
-                .Replace(TransitionActivity.MyStaticID, fragment )
-                .AddToBackStack(null)
-                .Commit();
-        };
-
-
-
-        ColorStateList colorStateList = new ColorStateList(
-            new int[][] {
-                new int[] { } // default
-            },
-            new int[] {
-                Color.White,
-                Color.DarkSlateBlue,
-                Color.Black
-            }
-
-        );
-
-        _pageFAB.SetRippleColor(colorStateList);
-
-        _pageFAB.BackgroundTintList = ColorStateList.ValueOf(Color.DarkSlateBlue);
-
-
-        _pageFAB.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
-
-
-   
-        root.AddView(_pageFAB);
-        root.AddView(cogButton);
-        _albumArt.TransitionName = "home_bottom_bar_art";
-        _titleTxt.TransitionName = "home_bottom_bar_title";
-        _artistTxt.TransitionName = "home_bottom_bar_artist";
-        _albumTxt.TransitionName = "home_bottom_bar_album";
-       
         return root;
     }
+    public void OpenTqlGuide()
+    {
+        var guideFrag = new TqlGuideFragment(MyViewModel);
 
+        ParentFragmentManager.BeginTransaction()
+            .SetReorderingAllowed(true)
+            // This adds the fragment on top (like a full screen dialog)
+            .Add(Android.Resource.Id.Content, guideFrag)
+            .AddToBackStack("TqlGuide")
+            .Commit();
+    }
 
     public override void OnResume()
     {
         base.OnResume();
         
-        _pageFAB?.Animate()?.Alpha(1f)?.SetDuration(0)?.Start();
         _isNavigating = false;
     }
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
@@ -357,7 +154,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         //view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
 
-        _pageFAB.Alpha = 1f;
         _isNavigating = false;
         MyViewModel.CurrentPage = this;
 
@@ -378,7 +174,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _isNavigating = false;
         _searchCts?.Cancel();
         CurrentTimeTextView.Click -= CurrentTime_Click;
-        _pageFAB.Click -= PageFAB_Click;
         _songListRecycler?.SetAdapter(null);
         _albumArt.Click -= AlbumArt_Click;
         _songListRecycler = null;

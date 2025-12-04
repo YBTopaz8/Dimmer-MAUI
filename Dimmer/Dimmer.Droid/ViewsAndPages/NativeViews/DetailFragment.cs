@@ -1,4 +1,4 @@
-﻿using AlertDialog = Android.App.AlertDialog;
+﻿using Google.Android.Material.Dialog;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
@@ -17,7 +17,7 @@ public class DetailFragment : Fragment, IOnBackInvokedCallback
         MyViewModel = vm;
         if (vm.SelectedSong == null)
             { 
-        var popUpDialog = new AlertDialog.Builder(Context)
+        var popUpDialog = new MaterialAlertDialogBuilder(Context)
             .SetTitle("Error")
             .SetMessage("No song selected. Returning to previous screen.")
             .SetPositiveButton("OK", (sender, args) =>

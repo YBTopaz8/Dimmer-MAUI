@@ -593,22 +593,30 @@
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Spacing="5">
 
-                <TextBox PlaceholderText="Song Title" />
-                <TextBox PlaceholderText="Song Artist Name" />
-                <TextBox PlaceholderText="Song Album Name" />
+                <TextBox x:Name="SongTitleSearch" PlaceholderText="Song Title" />
+                <TextBox x:Name="SongArtistNameSearch" PlaceholderText="Song Artist Name" />
+                <TextBox x:Name="SongAlbumNameSearch" PlaceholderText="Song Album Name" />
 
                 <Button
                     Command="{x:Bind MyViewModel.FetchSongOnlineOnLastFMCommand}"
                     CommandParameter="{x:Bind DetailedSong}"
                     Content="Search On Last FM" />
 
-                <Button Content="Prefill Fields" />
+                <Button
+                    x:Name="PrefillFieldsBtn"
+                    Click="PrefillFieldsBtn_Click"
+                    Content="Prefill Fields" />
 
-                <Button Content="Reset Fields" />
+                <Button
+                    x:Name="ResetFieldsBtn"
+                    Click="ResetFieldsBtn_Click"
+                    Content="Reset Fields" />
 
                 <ScrollViewer Grid.Column="0" />
             </StackPanel>
-            <ItemsRepeater x:Name="AllLastFMSongs">
+
+            <StackPanel Grid.Column="1" />
+            <!--<ItemsRepeater x:Name="AllLastFMSongs">
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
@@ -619,7 +627,7 @@
                         </StackPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+            </ItemsRepeater>-->
 
 
         </Grid>

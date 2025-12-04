@@ -52,7 +52,6 @@ public sealed partial class SongDetailPage : Page
             { SectionOverview, "Overview" },
             { SectionPlayback, "Playback" },
             { SectionLyricsStackPanel, "Lyrics" },
-            { StatsSection, "History" },
             { SectionRelated, "Related" }
         };
 

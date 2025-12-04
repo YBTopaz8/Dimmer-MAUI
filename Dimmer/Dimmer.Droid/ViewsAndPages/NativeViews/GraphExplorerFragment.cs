@@ -1,20 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.GraphSupport;
-
-using Google.Android.Material.Slider;
-
-using Microsoft.Maui.Graphics.Text;
-
-using SkiaSharp;
-using SkiaSharp.Views.Android;
-
-using Slider = Google.Android.Material.Slider.Slider;
+﻿
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 

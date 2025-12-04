@@ -117,6 +117,7 @@ public sealed partial class GraphAndNodes : Page
     private void OnRendering(object? sender, object e)
     {
         if (_physics is null) return;
+        if (_renderer is null) return;
         // 1. Update Physics
         // Using a fixed step (0.016 = 60fps) is usually smoother for UI physics than variable dt
         _physics.Update(0.016f);
@@ -128,6 +129,8 @@ public sealed partial class GraphAndNodes : Page
 
     private void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
     {
+        if (_physics is null) return;
+        if (_renderer is null) return;
         var canvas = e.Surface.Canvas;
         int width = e.Info.Width;
         int height = e.Info.Height;

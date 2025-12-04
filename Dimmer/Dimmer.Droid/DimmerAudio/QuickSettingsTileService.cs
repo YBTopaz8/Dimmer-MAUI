@@ -2,6 +2,8 @@
 
 using AndroidX.Media3.Session;
 
+using Google.Android.Material.Dialog;
+
 using AlertDialog = AndroidX.AppCompat.App.AlertDialog;
 
 namespace Dimmer.DimmerAudio;
@@ -150,7 +152,7 @@ public class QuickSettingsTileService : TileService
 
     private void BuildAndShowDialog()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this); // Use 'this' (Service context)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this); // Use 'this' (Service context)
 
         builder.SetTitle("Playback Options"); // Set a title
 

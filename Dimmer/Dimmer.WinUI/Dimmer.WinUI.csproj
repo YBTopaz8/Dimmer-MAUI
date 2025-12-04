@@ -51,6 +51,10 @@
 	  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml" />
 	  <None Remove="Views\WinuiPages\SongDetailPage.xaml" />
+	  <None Remove="Views\WinuiPages\Wrapped\WrappedContainerPage.xaml" />
+	  <None Remove="Views\WinuiPages\Wrapped\WrappedSummaryView.xaml" />
+	  <None Remove="Views\WinuiPages\Wrapped\WrappedTopArtistView.xaml" />
+	  <None Remove="Views\WinuiPages\Wrapped\WrappedTopSongView.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -110,6 +114,26 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\Wrapped\WrappedContainerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\Wrapped\WrappedSummaryView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\Wrapped\WrappedTopArtistView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\Wrapped\WrappedTopSongView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\DimmsSection\AllDimsView.xaml">

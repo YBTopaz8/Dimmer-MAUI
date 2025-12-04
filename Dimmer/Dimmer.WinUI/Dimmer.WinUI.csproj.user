@@ -11,6 +11,18 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedContainerPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedSummaryView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedTopArtistView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedTopSongView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\WinuiPages\DimmsSection\AllDimsView.xaml">
       <SubType>Designer</SubType>
     </Page>

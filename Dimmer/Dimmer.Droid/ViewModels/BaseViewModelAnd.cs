@@ -21,6 +21,7 @@ using Dimmer.Utilities.Events;
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewsAndPages.NativeViews;
+using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 using Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
 using Google.Android.Material.TextView;
@@ -457,10 +458,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         // 3. Create Destination Fragment and pass the names
         var nowPlayingFrag = new NowPlayingFragment(this)
         {
-            ArtTransitionName = artTransName,
-            TitleTransitionName = titleTransName,
-            ArtistTransitionName = artistTransName,
-            AlbumTransitionName = albumTransName
+            //ArtTransitionName = artTransName,
+            //TitleTransitionName = titleTransName,
+            //ArtistTransitionName = artistTransName,
+            //AlbumTransitionName = albumTransName
         };
 
         CurrentPage = nowPlayingFrag; // Update your tracking property
@@ -537,10 +538,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             container.PathMotion = new MaterialArcMotion();
             container.SetDuration(380);
 
-            homeFrag._pageFAB?.Animate()?
-            .Alpha(0f)
-            .SetDuration(container.Duration)
-            .Start();
 
 
             fragment.SharedElementEnterTransition = container;
@@ -647,6 +644,127 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 .Commit();
     }
 
+    // --- ARTIST FRAGMENT NAVIGATION ---
+    public void NavigateToArtistPage(Fragment callerFrag, string artistId, string artistName, View sharedImage)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+
+        var fragment = new ArtistFragment(this, artistName, artistId);
+        CurrentPage = fragment;
+
+        // 1. Setup Shared Element Transition (Image Morph)
+        string transitionName = sharedImage?.TransitionName ?? "artist_image_trans";
+        if (sharedImage != null) sharedImage.TransitionName = transitionName;
+
+        var containerTransform = new MaterialContainerTransform
+        {
+            DrawingViewId = TransitionActivity.MyStaticID,
+            ScrimColor = Color.Transparent,
+            ContainerColor = Color.Transparent, // Let fragment handle background
+            FadeMode = MaterialContainerTransform.FadeModeThrough,
+        };
+        containerTransform.SetDuration(400);
+
+        fragment.SharedElementEnterTransition = containerTransform;
+        fragment.SharedElementReturnTransition = containerTransform; // Clone not needed strictly, but good practice if modifying
+
+        // 2. Setup Page Transition (Fade Scale)
+        var elvScl = new MaterialElevationScale(true) ;
+        elvScl.SetDuration(250);
+        fragment.EnterTransition = elvScl;
+        var deElvScl = new MaterialElevationScale(false) ;
+        elvScl.SetDuration(250);
+        fragment.EnterTransition = elvScl;
+
+        fragment.ExitTransition = deElvScl;
+
+        // 3. Hold Exit for Caller
+        var holdd = new Hold() ;
+        holdd.SetDuration(300);
+        callerFrag.ExitTransition = holdd;
+
+        // 4. Commit
+        var trans = callerFrag.ParentFragmentManager.BeginTransaction()
+            .SetReorderingAllowed(true);
+
+        if (sharedImage != null)
+            trans.AddSharedElement(sharedImage, transitionName);
+
+        trans.Replace(TransitionActivity.MyStaticID, fragment)
+             .AddToBackStack($"Artist_{artistId}")
+             .Commit();
+    }
+    public void NavigateToSettings(Fragment callerFrag)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+
+        var fragment = new SettingsFragment("SettingsTrans", this);
+        CurrentPage = fragment;
+
+        // SettingsFragment constructor already sets Enter/Return Transition (SharedAxis Z)
+        // We just need to handle the caller exit
+        callerFrag.ExitTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, true);
+        callerFrag.ReenterTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, false);
+
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .Replace(TransitionActivity.MyStaticID, fragment)
+            .AddToBackStack("Settings")
+            .Commit();
+    }
+    // --- ARTIST EVENTS / STATS SUB-PAGE ---
+    public void NavigateToArtistEventsStats(Fragment callerFrag)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+
+        var fragment = new ArtistEventsStatsFragment();
+        CurrentPage = fragment;
+
+        // Use Shared Axis (X) for lateral navigation (Forward/Back)
+        var forward = new MaterialSharedAxis(MaterialSharedAxis.X, true);
+        var backward = new MaterialSharedAxis(MaterialSharedAxis.X, false);
+
+        fragment.EnterTransition = forward;
+        fragment.ReturnTransition = backward;
+
+        callerFrag.ExitTransition = forward;
+        callerFrag.ReenterTransition = backward;
+
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .Replace(TransitionActivity.MyStaticID, fragment)
+            .AddToBackStack("ArtistStats")
+            .Commit();
+    }
+
+    // --- QUEUE / LIBRARY STATS (General Pages) ---
+    public void NavigateToGeneralPage(Fragment callerFrag, Fragment destinationFrag, string tag)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+
+        CurrentPage = destinationFrag;
+
+        // Fade Through is standard for top-level switches or non-hierarchical moves
+        var fadeThrough = new MaterialFadeThrough();
+
+        destinationFrag.EnterTransition = fadeThrough;
+        callerFrag.ExitTransition = fadeThrough;
+
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .Replace(TransitionActivity.MyStaticID, destinationFrag)
+            .AddToBackStack(tag)
+            .Commit();
+    }
+
+    // Convenience wrapper for Queue
+    public void NavigateToPlayQueue(Fragment callerFrag)
+    {
+        NavigateToGeneralPage(callerFrag, new PlayQueueFragment(this), "PlayQueue");
+    }
+
+    // Convenience wrapper for Library Stats
+    public void NavigateToLibraryStats(Fragment callerFrag)
+    {
+        NavigateToGeneralPage(callerFrag, new LibraryStatsFragment(this), "LibraryStats");
+    }
     #endregion
 
     #region Binding Views Section
@@ -686,13 +804,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                         homeFrag._playCount.Text = song.PlayCount.ToString();
                 }
 
-                if (CurrentPage is NowPlayingFragment npFrag)
+                var npFrag = CurrentPage as NowPlayingFragment ??
+                         (CurrentPage?.Activity as TransitionActivity)?
+                         .SupportFragmentManager.FindFragmentByTag("NowPlayingFragment") as NowPlayingFragment;
+
+                if (npFrag != null)
                 {
-                    npFrag.SongTitle.Text = song.Title;
-                    npFrag.ArtistName.Text = song.ArtistName;
-                    npFrag.AlbumName.Text = song.AlbumName;
-                    npFrag.FileFormatText.Text = song.FileFormat; // e.g. "mp3"
-                    npFrag.LyricsPlaceholder.Text = string.Empty;
+                    if (npFrag.SongTitle != null) npFrag.SongTitle.Text = song.Title;
+                    if (npFrag.ArtistName != null) npFrag.ArtistName.Text = song.ArtistName;
+                    if (npFrag.AlbumName != null) npFrag.AlbumName.Text = song.AlbumName;
+                    if (npFrag.FileFormatText != null) npFrag.FileFormatText.Text = song.FileFormat;
+                    if (npFrag.LyricsPlaceholder != null) npFrag.LyricsPlaceholder.Text = ""; // Clear old lyrics
                 }
 
             }).ObserveOn(RxSchedulers.Background)
@@ -718,12 +840,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                     homeFrag._albumArt.SetBackgroundColor(Color.DarkGray);
             }
 
-            if (CurrentPage is NowPlayingFragment npFrag && npFrag.CoverImageView != null)
+            // Update Now Playing
+            var npFrag = (CurrentPage?.Activity as TransitionActivity)?
+                         .SupportFragmentManager.FindFragmentByTag("NowPlayingFragment") as NowPlayingFragment;
+
+            if (npFrag != null && npFrag.CoverImageView != null)
             {
-                if (bitmap != null)
-                    npFrag.CoverImageView.SetImageBitmap(bitmap);
-                else
-                    npFrag.CoverImageView.SetBackgroundColor(Color.DarkGray);
+                if (bitmap != null) npFrag.CoverImageView.SetImageBitmap(bitmap);
+                else npFrag.CoverImageView.SetImageResource(Resource.Drawable.musicnotess);
             }
         },
         error =>
@@ -741,30 +865,35 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             .ObserveOn(RxSchedulers.UI) // Ensure we are on UI thread
             .Subscribe(songPosition =>
             {
+                // Update Home
                 if (CurrentPage is HomePageFragment homeFrag && homeFrag.CurrentTimeTextView != null)
                 {
-                    homeFrag.CurrentTimeTextView.Text = PublicStats.FormatTimeSpan(songPosition);
-                    homeFrag.CurrentTimeTextView.SetTextColor(Color.DarkSlateBlue);
+                    homeFrag.CurrentTimeTextView.Text = songPosition.ToString(@"mm\:ss");
                 }
 
-                if (CurrentPage is NowPlayingFragment npFrag && npFrag.SeekSlider != null)
+                // Update Now Playing
+                var npFrag = (CurrentPage?.Activity as TransitionActivity)?
+                             .SupportFragmentManager.FindFragmentByTag("NowPlayingFragment") as NowPlayingFragment;
+
+                if (npFrag != null && npFrag.SeekSlider != null && !npFrag.IsDragging)
                 {
-                    if (!npFrag.IsDragging)
+                    // Calculate percentage (0-100)
+                    if (CurrentPlayingSongView != null && CurrentPlayingSongView.DurationInSeconds > 0)
                     {
-                        float rawValue = (float)CurrentTrackPositionPercentage;
-                        float safeValue = Math.Clamp(rawValue, 0f, 100f);
-
-                        npFrag.SeekSlider.Value = safeValue;
-
-                        npFrag.LyricsPlaceholder.Text = CurrentLine?.Text;
-                        npFrag.LyricsPlaceholder.TextSize = AppUtil.DpToPx(23);
+                        float pct = (float)(songPosition / CurrentPlayingSongView.DurationInSeconds) * 100f;
+                        npFrag.SeekSlider.Value = Math.Clamp(pct, 0f, 100f);
                     }
                 }
             });
 
         SubsManager.Add(positionSub);
     }
+
+
     #endregion
+
+
+
     public MaterialTextView? CurrentDeviceLogTextView;
     public override void SetlatestDevicelog()
     {

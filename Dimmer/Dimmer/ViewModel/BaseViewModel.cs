@@ -6410,7 +6410,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
         LastFMTrackOnEditPage = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
     }
-
+   
 
 
     [ObservableProperty]
