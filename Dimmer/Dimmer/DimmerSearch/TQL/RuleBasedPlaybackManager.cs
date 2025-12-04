@@ -4,14 +4,12 @@ namespace Dimmer.DimmerSearch.TQL;
 public class RuleBasedPlaybackManager
 {
     private readonly IRealmFactory _realmFactory;
-    private readonly IMapper _mapper;
     private readonly Random _random = new();
     private readonly HashSet<ObjectId> _sessionPlayHistory = new();
 
-    public RuleBasedPlaybackManager(IRealmFactory realmFactory, IMapper mapper)
+    public RuleBasedPlaybackManager(IRealmFactory realmFactory)
     {
         _realmFactory = realmFactory;
-        _mapper = mapper;
     }
     private int _recursionDepth = 0;
     private const int MAX_RECURSION_DEPTH = 3;
@@ -48,7 +46,7 @@ public class RuleBasedPlaybackManager
                 {
                     var songToPlayModel = candidateSongs[_random.Next(candidateSongs.Count)];
                     _recursionDepth = 0;
-                    return _mapper.Map<SongModelView>(songToPlayModel);
+                    return songToPlayModel.ToSongModelView();
                 }
             }
             catch (Exception ex)
@@ -67,7 +65,7 @@ public class RuleBasedPlaybackManager
         {
             var randomId = anyUnplayedIds[_random.Next(anyUnplayedIds.Count)];
             var songToPlay = realm.Find<SongModel>(randomId);
-            return _mapper.Map<SongModelView>(songToPlay);
+            return songToPlay.ToSongModelView();
         }
 
         ClearSessionHistory();

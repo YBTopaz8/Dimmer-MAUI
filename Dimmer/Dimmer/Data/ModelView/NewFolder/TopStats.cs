@@ -24,8 +24,8 @@ public static class TopStats
     /// <param name="endDate">Optional end date to filter events.</param>
     /// <returns>A ranked list of songs and their corresponding event counts.</returns>
     public static List<DimmerStats> GetTopSongsByEventType(
-        IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> events, int count, int playType,
-        IMapper mapper,
+        IQueryable<SongModel> songs, IList<DimmerPlayEvent> events, int count, int playType,
+        
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
@@ -38,7 +38,7 @@ public static class TopStats
             .OrderByDescending(x => x.EventCount)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId)) // Ensure song still exists in library
-            .Select(x => (new DimmerStats(){Song=songLookup[x.SongId].ToModelView(mapper),Count=x.EventCount }))];
+            .Select(x => (new DimmerStats(){Song=songLookup[x.SongId].ToSongModelView(),Count=x.EventCount }))];
     }
 
     /// <summary>
@@ -46,11 +46,11 @@ public static class TopStats
     /// </summary>
     /// <returns>A ranked list of artist names and their corresponding event counts.</returns>
     public static List<DimmerStats> GetTopArtistsByEventType(
-        IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> events, int count, int playType,
-        IMapper mapper,
+        IQueryable<SongModel> songs, IList<DimmerPlayEvent> events, int count, int playType,
+        
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
-        return GetTopRankedByProperty(songs, events, count, playType, s => s.ArtistName, startDate, endDate,mapper);
+        return GetTopRankedByProperty(songs, events, count, playType, s => s.ArtistName, startDate, endDate);
     }
 
     /// <summary>
@@ -58,12 +58,12 @@ public static class TopStats
     /// </summary>
     /// <returns>A ranked list of album names and their corresponding event counts.</returns>
     public static List<DimmerStats> GetTopAlbumsByEventType(
-        IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> events, int count, int playType,
+        IQueryable<SongModel> songs, IList<DimmerPlayEvent> events, int count, int playType,
         
-        IMapper mapper,
+        
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
-        return GetTopRankedByProperty(songs, events, count, playType, s => s.AlbumName, startDate, endDate,mapper);
+        return GetTopRankedByProperty(songs, events, count, playType, s => s.AlbumName, startDate, endDate);
     }
 
     /// <summary>
@@ -71,8 +71,8 @@ public static class TopStats
     /// </summary>
     /// <returns>A ranked list of songs and their total listening time in seconds.</returns>
     public static List<DimmerStats> GetTopSongsByListeningTime(
-        IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> events, int count,
-        IMapper mapper,
+        IQueryable<SongModel> songs, IList<DimmerPlayEvent> events, int count,
+        
         DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
@@ -91,7 +91,7 @@ public static class TopStats
             .OrderByDescending(x => x.Time)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId))
-            .Select(x => (new DimmerStats (){Song= songLookup[x.SongId].ToModelView(mapper), TotalSecondsNumeric=x.Time }))];
+            .Select(x => (new DimmerStats (){Song= songLookup[x.SongId].ToSongModelView(), TotalSecondsNumeric=x.Time }))];
     }
 
     #endregion
@@ -100,7 +100,7 @@ public static class TopStats
     /// (Chart: Polar/Radar) Gets the distribution of play events by the hour of the day for a single song.
     /// Insight: "Is this a morning, afternoon, or late-night song for me?"
     /// </summary>
-    public static List<DimmerStats> GetPlayDistributionByHour(IQueryable<DimmerPlayEvent> songEvents)
+    public static List<DimmerStats> GetPlayDistributionByHour(IList<DimmerPlayEvent> songEvents)
     {
         return songEvents
             .GroupBy(e => e.EventDate.Hour)
@@ -117,7 +117,7 @@ public static class TopStats
     /// (Chart: Pie/Doughnut) Gets the breakdown of interaction types (Play, Skip, Pause, etc.) for a single song.
     /// Insight: "Do I let this song finish, or do I usually skip or seek through it?"
     /// </summary>
-    public static List<DimmerStats> GetPlayTypeDistribution(IQueryable<DimmerPlayEvent> songEvents)
+    public static List<DimmerStats> GetPlayTypeDistribution(IList<DimmerPlayEvent> songEvents)
     {
         // Simple mapping for display purposes
         var playTypeMap = new Dictionary<int, string>
@@ -143,7 +143,7 @@ public static class TopStats
     /// (Chart: Column/Bar) Tracks the play count of a single song over time (e.g., by month).
     /// Insight: "Has my interest in this song faded or grown over time?"
     /// </summary>
-    public static List<DimmerStats> GetPlayHistoryOverTime(IQueryable<DimmerPlayEvent> songEvents)
+    public static List<DimmerStats> GetPlayHistoryOverTime(IList<DimmerPlayEvent> songEvents)
     {
         return songEvents
             .Where(e => e.PlayType == PlayType_Completed)
@@ -162,7 +162,7 @@ public static class TopStats
     /// (Chart: Scatter) Identifies the exact moments in a song where the user skips or seeks away.
     /// Insight: "Do I always skip this song's intro? Where do I get bored?"
     /// </summary>
-    public static List<DimmerStats> GetDropOffPoints(IQueryable<DimmerPlayEvent> songEvents)
+    public static List<DimmerStats> GetDropOffPoints(IList<DimmerPlayEvent> songEvents)
     {
         return songEvents
             .Where(e => e.PlayType == PlayType_Skipped && e.PositionInSeconds > 0)
@@ -179,7 +179,7 @@ public static class TopStats
     /// (Chart: Radial Bar) Shows which devices are used most often to play this specific song.
     /// Insight: "Is this a 'desktop work' song or a 'phone on-the-go' song?"
     /// </summary>
-    public static List<DimmerStats> GetPlayDistributionByDevice(IQueryable<DimmerPlayEvent> songEvents)
+    public static List<DimmerStats> GetPlayDistributionByDevice(IList<DimmerPlayEvent> songEvents)
     {
         return songEvents.AsEnumerable()
             .Where(e => e.PlayType is PlayType_Play or PlayType_Completed && !string.IsNullOrEmpty(e.DeviceName))
@@ -198,7 +198,7 @@ public static class TopStats
     /// Insight: "How often do I play this song multiple times back-to-back?"
     /// </summary>
     /// <returns>A DimmerStats object where Count is the number of back-to-back plays.</returns>
-    public static DimmerStats GetBingeFactor(IQueryable<DimmerPlayEvent> songEvents, ObjectId songId)
+    public static DimmerStats GetBingeFactor(IList<DimmerPlayEvent> songEvents, ObjectId songId)
     {
         var orderedEvents = songEvents.OrderBy(e => e.EventDate).ToList();
         int bingeCount = 0;
@@ -219,7 +219,7 @@ public static class TopStats
     /// (SURPRISE) (Chart: Gauge/Single Number) Calculates the average percentage of the song listened to before stopping.
     /// Insight: "On average, how much of this song do I actually listen to?"
     /// </summary>
-    public static DimmerStats GetAverageListenThroughPercent(IQueryable<DimmerPlayEvent> songEvents, double songDurationSeconds)
+    public static DimmerStats GetAverageListenThroughPercent(IList<DimmerPlayEvent> songEvents, double songDurationSeconds)
     {
         if (songDurationSeconds <= 0)
             return new DimmerStats { Name = "Listen-Through %", Value = 0 };
@@ -249,7 +249,7 @@ public static class TopStats
     /// (Chart: Bar) Ranks artists by the total unique songs of theirs you have played.
     /// Insight: "Which artists' discographies have I explored the most?"
     /// </summary>
-    public static List<DimmerStats> GetTopArtistsBySongVariety(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count)
+    public static List<DimmerStats> GetTopArtistsBySongVariety(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
@@ -270,8 +270,8 @@ public static class TopStats
     /// (Chart: Bar) Ranks songs by their "burnout" rate: high plays in the first 30 days, then a significant drop.
     /// Insight: "Which songs did I love intensely but get tired of quickly?"
     /// </summary>
-    public static List<DimmerStats> GetTopBurnoutSongs(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count,
-        IMapper mapper)
+    public static List<DimmerStats> GetTopBurnoutSongs(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count
+        )
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
@@ -299,7 +299,7 @@ public static class TopStats
             .Take(count)
             .Select(x => new DimmerStats
             {
-                Song = songLookup[x!.SongId].ToModelView(mapper),
+                Song = songLookup[x!.SongId].ToSongModelView(),
                 Value = x.BurnoutRatio * 100 // As a percentage
             })
             .ToList();
@@ -309,7 +309,7 @@ public static class TopStats
     /// (Chart: Stacked Bar) Shows the breakdown of plays per device for your top N artists.
     /// Insight: "Do I listen to Artist A on my desktop and Artist B on my phone?"
     /// </summary>
-    public static List<DimmerStats> GetDeviceUsageByTopArtists(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, int topArtistCount)
+    public static List<DimmerStats> GetDeviceUsageByTopArtists(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, int topArtistCount)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         var topArtists = events
@@ -337,7 +337,7 @@ public static class TopStats
     /// (Chart: Bar) Ranks genres by total listening time.
     /// Insight: "Which genre do I spend the most time listening to, regardless of song count?"
     /// </summary>
-    public static List<DimmerStats> GetTopGenresByListeningTime(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count)
+    public static List<DimmerStats> GetTopGenresByListeningTime(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
@@ -357,8 +357,8 @@ public static class TopStats
     /// (SURPRISE) (Chart: Bar) Finds songs that were ignored for a long time and then "rediscovered".
     /// Insight: "What old favorites did I recently get back into?"
     /// </summary>
-    public static List<DimmerStats> GetTopRediscoveredSongs(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count,
-        IMapper mapper)
+    public static List<DimmerStats> GetTopRediscoveredSongs(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count
+        )
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
@@ -391,7 +391,7 @@ public static class TopStats
             .Where(x => songLookup.ContainsKey(x.SongId))
             .Select(x => new DimmerStats
             {
-                Song = songLookup[x.SongId].ToModelView(mapper),
+                Song = songLookup[x.SongId].ToSongModelView(),
                 Value = x.Gap.Value.TotalDays, // Value represents the gap in days
                 Date = x.Date.Value
             })
@@ -402,7 +402,7 @@ public static class TopStats
     /// (SURPRISE) (Chart: Bar/Column) Ranks artists by their "skip rate".
     /// Insight: "Which artists' songs do I tend to skip most often?"
     /// </summary>
-    public static List<DimmerStats> GetArtistsByHighestSkipRate(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count)
+    public static List<DimmerStats> GetArtistsByHighestSkipRate(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, int count)
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
@@ -437,31 +437,31 @@ public static class TopStats
 
     #region --- Convenience "Top" Methods ---
 
-    public static List<DimmerStats> GetTopCompletedSongs(IQueryable<SongModel> s, IQueryable<DimmerPlayEvent> e, int count,
-        IMapper mapper, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        => GetTopSongsByEventType(s, e, count, PlayType_Completed,mapper, start, end);
+    public static List<DimmerStats> GetTopCompletedSongs(IQueryable<SongModel> s, IList<DimmerPlayEvent> e, int count,
+         DateTimeOffset? start = null, DateTimeOffset? end = null)
+        => GetTopSongsByEventType(s, e, count, PlayType_Completed, start, end);
 
-    public static List<DimmerStats> GetTopCompletedArtists(IQueryable<SongModel> s, IQueryable<DimmerPlayEvent> e, int count,
-        IMapper mapper, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        => GetTopArtistsByEventType(s, e, count, PlayType_Completed, mapper, start, end);
+    public static List<DimmerStats> GetTopCompletedArtists(IQueryable<SongModel> s, IList<DimmerPlayEvent> e, int count,
+         DateTimeOffset? start = null, DateTimeOffset? end = null)
+        => GetTopArtistsByEventType(s, e, count, PlayType_Completed,  start, end);
 
-    public static List<DimmerStats> GetTopCompletedAlbums(IQueryable<SongModel> s, IQueryable<DimmerPlayEvent> e, int count,
-        IMapper mapper, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        => GetTopAlbumsByEventType(s, e, count, PlayType_Completed, mapper, start, end);
+    public static List<DimmerStats> GetTopCompletedAlbums(IQueryable<SongModel> s, IList<DimmerPlayEvent> e, int count,
+         DateTimeOffset? start = null, DateTimeOffset? end = null)
+        => GetTopAlbumsByEventType(s, e, count, PlayType_Completed,  start, end);
 
     // --- Based on SKIPS ---
-    public static List<DimmerStats> GetTopSkippedSongs(IQueryable<SongModel> s, IQueryable<DimmerPlayEvent> e, int count,
-        IMapper mapper, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        => GetTopSongsByEventType(s, e, count, PlayType_Skipped, mapper, start, end);
+    public static List<DimmerStats> GetTopSkippedSongs(IQueryable<SongModel> s, IList<DimmerPlayEvent> e, int count,
+         DateTimeOffset? start = null, DateTimeOffset? end = null)
+        => GetTopSongsByEventType(s, e, count, PlayType_Skipped,  start, end);
 
-    public static List<DimmerStats> GetTopSkippedArtists(IQueryable<SongModel> s, IQueryable<DimmerPlayEvent> e, int count,
-        IMapper mapper, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        => GetTopArtistsByEventType(s, e, count, PlayType_Skipped,mapper, start, end);
+    public static List<DimmerStats> GetTopSkippedArtists(IQueryable<SongModel> s, IList<DimmerPlayEvent> e, int count,
+         DateTimeOffset? start = null, DateTimeOffset? end = null)
+        => GetTopArtistsByEventType(s, e, count, PlayType_Skipped, start, end);
 
     // --- Based on SEEKS ---
-    public static List<DimmerStats> GetTopSeekedSongs(IQueryable<SongModel> s, IQueryable<DimmerPlayEvent> e, int count,
-        IMapper mapper, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        => GetTopSongsByEventType(s, e, count, PlayType_Seeked, mapper, start, end);
+    public static List<DimmerStats> GetTopSeekedSongs(IQueryable<SongModel> s, IList<DimmerPlayEvent> e, int count,
+         DateTimeOffset? start = null, DateTimeOffset? end = null)
+        => GetTopSongsByEventType(s, e, count, PlayType_Seeked,  start, end);
 
     #endregion
 
@@ -471,16 +471,16 @@ public static class TopStats
     /// A generic helper to rank by a string property of SongModelView (e.g., ArtistName, AlbumName).
     /// </summary>
     private static List<DimmerStats> GetTopRankedByProperty(
-        IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> events, int count, int playType,
-        Func<SongModelView, string?> propertySelector, DateTimeOffset? startDate, DateTimeOffset? endDate,
-        IMapper mapper)
+        IQueryable<SongModel> songs, IList<DimmerPlayEvent> events, int count, int playType,
+        Func<SongModelView, string?> propertySelector, DateTimeOffset? startDate, DateTimeOffset? endDate
+        )
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         var filteredEvents = FilterEvents(events, playType, startDate, endDate);
 
         return [.. filteredEvents
             .Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
-            .Select(e => propertySelector(songLookup[e.SongId.Value].ToModelView(mapper))) // Get the property (e.g., ArtistName)
+            .Select(e => propertySelector(songLookup[e.SongId.Value].ToSongModelView())) // Get the property (e.g., ArtistName)
             .Where(name => !string.IsNullOrEmpty(name))
             .GroupBy(name => name!)
             .Select(g =>( new DimmerStats(){Name= g.Key, Count= g.Count() }))
@@ -491,7 +491,7 @@ public static class TopStats
     /// <summary>
     /// Centralized logic for filtering events by type and date range.
     /// </summary>
-    private static IEnumerable<DimmerPlayEvent> FilterEvents(IQueryable<DimmerPlayEvent> events, int? playType, DateTimeOffset? startDate, DateTimeOffset? endDate)
+    private static IEnumerable<DimmerPlayEvent> FilterEvents(IList<DimmerPlayEvent> events, int? playType, DateTimeOffset? startDate, DateTimeOffset? endDate)
     {
         IEnumerable<DimmerPlayEvent> query = events;
 
@@ -526,7 +526,7 @@ public static class TopStats
     /// <param name="events">All play events.</param>
     /// <param name="count">The number of top artists to return.</param>
     /// <returns>A ranked list of artists and their "loyalty" score.</returns>
-    public static List<DimmerStats> GetPlaylistLoyalty(IQueryable<SongModel> songsInList, IQueryable<SongModel> allSongs, IQueryable<DimmerPlayEvent> events, int count)
+    public static List<DimmerStats> GetPlaylistLoyalty(IQueryable<SongModel> songsInList, IQueryable<SongModel> allSongs, IList<DimmerPlayEvent> events, int count)
     {
         var listSongIds = songsInList.Select(s => s.Id).ToHashSet();
         var songLookup = allSongs.ToDictionary(s => s.Id);
@@ -595,8 +595,8 @@ public static class TopStats
     /// <param name="songsInList">The specific subset of songs to analyze.</param>
     /// <param name="events">All play events.</param>
     /// <returns>A ranked list of songs and their completion percentage.</returns>
-    public static List<DimmerStats> RankSongsByStickiness(IQueryable<SongModel> songsInList, IQueryable<DimmerPlayEvent> events,
-        IMapper mapper)
+    public static List<DimmerStats> RankSongsByStickiness(IQueryable<SongModel> songsInList, IList<DimmerPlayEvent> events
+        )
     {
         var songIdsInList = songsInList.Select(s => s.Id).ToHashSet();
 
@@ -622,7 +622,7 @@ public static class TopStats
             .OrderByDescending(x => x.Stickiness)
             .Join(songsInList, stat => stat.SongId, song => song.Id, (stat, song) => new DimmerStats
             {
-                Song = song.ToModelView(mapper),
+                Song = song.ToSongModelView(),
                 Name = song.Title,
                 Value = stat.Stickiness
             })
@@ -635,7 +635,7 @@ public static class TopStats
     /// Insight: "Is this my go-to morning song or a late-night anthem?"
     /// </summary>
     /// <returns>A DimmerStats object with the most frequent hour and the play count for that hour.</returns>
-    public static DimmerStats GetPowerHour(IQueryable<DimmerPlayEvent> songEvents)
+    public static DimmerStats GetPowerHour(IList<DimmerPlayEvent> songEvents)
     {
         var powerHourStat = GetPlayDistributionByHour(songEvents) // We can reuse your existing method!
             .OrderByDescending(s => s.Count)
@@ -664,7 +664,7 @@ public static class TopStats
     /// Insight: "What's the longest period I've listened to this song every single day?"
     /// </summary>
     /// <returns>A DimmerStats object with the peak streak count and the date range it occurred.</returns>
-    public static DimmerStats GetListeningStreak(IQueryable<DimmerPlayEvent> songEvents)
+    public static DimmerStats GetListeningStreak(IList<DimmerPlayEvent> songEvents)
     {
         if (songEvents == null || !songEvents.Any())
         {
@@ -728,7 +728,7 @@ public static class TopStats
     /// (SURPRISE) (Chart: CandleStick/Stock) Visualizes a song's play count trajectory over its first 7 days.
     /// Insight: "How did I react to this song in its first week? Was it instant love or a slow burn?"
     /// </summary>
-    public static DimmerStats GetSongsFirstImpression(IQueryable<DimmerPlayEvent> songEvents)
+    public static DimmerStats GetSongsFirstImpression(IList<DimmerPlayEvent> songEvents)
     {
         var firstPlayDate = songEvents
         .Min(e => e.EventDate.Date);
@@ -766,8 +766,8 @@ public static class TopStats
 /// (Chart: RangeArea) Shows the daily listening window for a song over the last 30 days.
 /// Insight: "What is my daily rhythm for this song? Is it a morning-only or all-day track?"
 /// </summary>
-public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEvent> songEvents, SongModel song,
-        IMapper mapper)
+public static List<DimmerStats> GetDailyListeningRhythm(IList<DimmerPlayEvent> songEvents, SongModel song
+        )
 {
     var recentEvents = songEvents
         .Where(e =>e.EventDate > DateTimeOffset.UtcNow.AddDays(-30));
@@ -783,7 +783,7 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
         .OrderBy(x => x.Date)
         .Select(x => new DimmerStats
         {
-            Song = song.ToModelView(mapper), // Include the song for context
+            Song = song.ToSongModelView(), // Include the song for context
             Date = x.Date,
             Low = x.MinHour,    // Earliest hour played
             High = x.MaxHour   // Latest hour played
@@ -796,8 +796,8 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
     /// (Chart: Donut/Pie) Shows the breakdown of plays for a single song by device.
     /// Insight: "Where do I listen to this song most often?"
     /// </summary>
-    public static List<DimmerStats> GetSongDeviceBreakdown(IQueryable<DimmerPlayEvent> songEvents, SongModel song,
-        IMapper mapper)
+    public static List<DimmerStats> GetSongDeviceBreakdown(IList<DimmerPlayEvent> songEvents, SongModel song
+        )
     {
         if (songEvents == null || !songEvents.Any())
             return new List<DimmerStats>();
@@ -807,7 +807,7 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
             .GroupBy(e => e.DeviceName!)
             .Select(g => new DimmerStats
             {
-                Song = song.ToModelView(mapper), // Pass song for context/navigation
+                Song = song.ToSongModelView(), // Pass song for context/navigation
                 Name = g.Key,
                 Count = g.Count()
             })
@@ -820,8 +820,8 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
     /// (Chart: Bubble) Compares artists by play count vs. song variety, with total listening time as a third dimension.
     /// Insight: "Which artists do I play the most, and which have the deepest discographies in my library?"
     /// </summary>
-    public static List<DimmerStats> GetArtistFootprint(IQueryable<SongModel> allSongs, IQueryable<DimmerPlayEvent> events,
-        IMapper mapper)
+    public static List<DimmerStats> GetArtistFootprint(IQueryable<SongModel> allSongs, IList<DimmerPlayEvent> events
+        )
     {
         var songLookup = allSongs.ToDictionary(s => s.Id);
 
@@ -834,7 +834,7 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
         UniqueSongs = g.Select(ev => ev.SongId).Distinct().Count(),
         TotalPlays = g.Count(ev => ev.PlayType == PlayType_Completed),
         // The list of actual songs for this artist for potential navigation
-        ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).Distinct().ToList()
+        ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToSongModelView()).Distinct().ToList()
     })
     .Select(x => new DimmerStats
     {
@@ -853,8 +853,8 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
     /// (Gamification) (Chart: Bar) Ranks songs by the number of times they were completed, but only if they have never been skipped.
     /// Insight: "Which songs are my true 'perfect plays' that I always let finish?"
     /// </summary>
-    public static List<DimmerStats> GetPerfectPlayLeaderboard(IQueryable<SongModel> songsInList, IQueryable<DimmerPlayEvent> events,
-        IMapper mapper)
+    public static List<DimmerStats> GetPerfectPlayLeaderboard(IQueryable<SongModel> songsInList, IList<DimmerPlayEvent> events
+        )
     {
         var songIdsInList = songsInList.Select(s => s.Id).ToHashSet();
         var songLookup = songsInList.ToDictionary(s => s.Id);
@@ -872,7 +872,7 @@ public static List<DimmerStats> GetDailyListeningRhythm(IQueryable<DimmerPlayEve
             .Where(g => !skippedSongIds.Contains(g.Key)) // The "perfect play" filter
             .Select(g => new DimmerStats
             {
-                Song = songLookup[g.Key].ToModelView(mapper),
+                Song = songLookup[g.Key].ToSongModelView(),
                 Name = songLookup[g.Key].Title,
                 Count = g.Count()
             })

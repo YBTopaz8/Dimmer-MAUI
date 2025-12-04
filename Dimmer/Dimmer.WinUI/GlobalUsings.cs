@@ -34,7 +34,6 @@ global using Microsoft.UI.Xaml.Navigation;
 global using Page = Microsoft.UI.Xaml.Controls.Page;
 global using System.Windows.Media.Imaging;
 
-global using AutoMapper;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Maui.Storage;
 global using CommunityToolkit.Mvvm.Input;

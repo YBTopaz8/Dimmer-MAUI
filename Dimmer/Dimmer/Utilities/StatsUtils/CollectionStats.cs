@@ -11,50 +11,173 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A CollectionStatsSummary</returns>
-    public static CollectionStatsSummary GetSummary(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static CollectionStatsSummary GetSummary(IQueryable<SongModel> songs, IList<DimmerPlayEvent> events)
     {
-        if (songs == null || !songs.Any())
-            return new CollectionStatsSummary();
+        // 1. Fast Fail
+        if (!songs.Any()) return new CollectionStatsSummary();
 
-        var songIds = songs.Select(s => s.Id).ToHashSet();
-        var relevantEvents = Events.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value)).ToList();
+        // 2. Prepare Data Sources (Materialize minimal data needed)
 
-        var mostPlayed = songs.OrderByDescending(s => SongStats.GetPlayCount(s, Events)).FirstOrDefault();
-        var mostSkipped = songs.OrderByDescending(s => SongStats.GetSkipCount(s, Events)).FirstOrDefault();
+        // Switch to Enumerable for 'events' to do grouping in memory. 
+        // Since 'events' is likely filtered by date range, this dataset is manageable.
+        var eventList = events;
 
-        var durations = songs.Select(s => s.DurationInSeconds).OrderBy(x => x).ToList();
-        double medianDuration = durations.Count % 2 == 1 ?
-            durations[durations.Count / 2] :
-            (durations[durations.Count / 2] + durations[durations.Count / 2 - 1]) / 2;
+        // 3. Calculate Event-Based Stats (Plays, Skips, Time)
+        // It is MUCH faster to sum the events than to ask every song for its history.
+
+        var completedEvents = eventList.Where(e => e.PlayType == (int)PlayType.Completed).ToList();
+        var skippedEvents = eventList.Where(e => e.PlayType == (int)PlayType.Skipped).ToList();
+
+        var totalPlays = completedEvents.Count;
+        var totalSkips = skippedEvents.Count;
+
+        // Calculate total time from the actual events (more accurate for date ranges)
+        // Assuming PositionInSeconds holds the duration listened
+        var totalListeningTime = eventList.Sum(e => e.PositionInSeconds);
+
+        // 4. Find Top Performers (In Memory Grouping)
+
+        // Find Most Played ID
+        var mostPlayedGroup = completedEvents
+            .GroupBy(e => e.SongId)
+            .OrderByDescending(g => g.Count())
+            .FirstOrDefault();
+
+        // Find Most Skipped ID
+        var mostSkippedGroup = skippedEvents
+            .GroupBy(e => e.SongId)
+            .OrderByDescending(g => g.Count())
+            .FirstOrDefault();
+
+        // Resolve Names (Only fetch the 2 specific songs we need)
+        // We use the input 'songs' queryable to find them to ensure they match the current filter if any
+        string? mostPlayedTitle = null;
+        if (mostPlayedGroup?.Key != null)
+        {
+            // Use AsEnumerable().FirstOrDefault to avoid Realm translation issues with complex lookups
+            var s = songs.Where(x => x.Id == mostPlayedGroup.Key).AsEnumerable().FirstOrDefault();
+            mostPlayedTitle = s?.Title;
+        }
+
+        string? mostSkippedTitle = null;
+        if (mostSkippedGroup?.Key != null)
+        {
+            // Use AsEnumerable().FirstOrDefault
+            var s = songs.Where(x => x.Id == mostSkippedGroup.Key).AsEnumerable().FirstOrDefault();
+            mostSkippedTitle = s?.Title;
+        }
+
+        // 5. Calculate Song-Based Stats (Library Metadata)
+        // We use AsEnumerable() here to tell Realm "Stop trying to translate to SQL, just give me the objects".
+        // Accessing properties like 'HasLyrics' is Zero-Copy in Realm, so this iteration is very fast.
+
+        int songsWithLyrics = 0;
+        int songsWithSyncedLyrics = 0;
+        int songsFavorited = 0;
+        int songsNeverPlayed = 0; // Based on Global PlayCount, not range
+        double totalDurationSeconds = 0;
+
+        var durationList = new List<double>();
+        DateTimeOffset? earliest = DateTimeOffset.MaxValue;
+        DateTimeOffset? latest = DateTimeOffset.MinValue;
+        double ratingSum = 0;
+
+        // SINGLE PASS LOOP (O(N)) - Much faster than multiple LINQ calls
+        foreach (var s in songs.AsEnumerable())
+        {
+            if (s.HasLyrics) songsWithLyrics++;
+            if (s.HasSyncedLyrics) songsWithSyncedLyrics++;
+            if (s.IsFavorite) songsFavorited++;
+
+            // Check global playcount for "Never Played" stat
+            if (s.PlayCount == 0) songsNeverPlayed++;
+
+            if (s.DateCreated < earliest) earliest = s.DateCreated;
+            if (s.DateCreated > latest) latest = s.DateCreated;
+
+            ratingSum += s.Rating;
+            totalDurationSeconds += s.DurationInSeconds;
+            durationList.Add(s.DurationInSeconds);
+        }
+
+        // 6. Distinct Calculations (Memory Bound)
+        // Realm cannot do Distinct() on strings in DB.
+        var distinctArtists = songs.AsEnumerable().Select(s => s.ArtistName).Distinct().Count();
+        var distinctAlbums = songs.AsEnumerable().Select(s => s.AlbumName).Distinct().Count();
+
+        // 7. Median Calculation
+        durationList.Sort(); // In-place sort is fast
+        double medianDuration = 0;
+        if (durationList.Count > 0)
+        {
+            int mid = durationList.Count / 2;
+            medianDuration = (durationList.Count % 2 != 0)
+                ? durationList[mid]
+                : (durationList[mid] + durationList[mid - 1]) / 2.0;
+        }
+
+        // 8. Time-Specific Logic
+        var today = DateTimeOffset.UtcNow.Date;
+        // We use the eventList we already pulled into memory
+        var songsPlayedToday = eventList
+            .Where(e => e.EventDate.Date == today)
+            .Select(e => e.SongId)
+            .Distinct()
+            .Count();
+
+        var uniqueDevices = eventList
+            .Select(e => e.DeviceName)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Distinct()
+            .Count();
+
+        var songsAtNight = eventList
+            .Count(e => e.EventDate.Hour >= 22 || e.EventDate.Hour <= 5);
+
+        var totalSongsCount = durationList.Count;
 
         return new CollectionStatsSummary
         {
-            TotalSongs = songs.Count(),
-            TotalPlayCount = songs.Sum(s => SongStats.GetPlayCount(s, Events)),
-            TotalSkipCount = songs.Sum(s => SongStats.GetSkipCount(s, Events)),
-            DistinctArtists = songs.Select(s => s.ArtistName).Distinct().Count(),
-            DistinctAlbums = songs.Select(s => s.AlbumName).Distinct().Count(),
-            AverageDuration = songs.Average(s => s.DurationInSeconds),
-            TotalListeningTime = songs.Sum(s => SongStats.GetTotalListeningTime(s, Events)),
-            UniqueDevices = relevantEvents.Where(e => !string.IsNullOrEmpty(e.DeviceName)).Select(e => e.DeviceName!).Distinct().Count(),
-            SongsWithLyrics = songs.Count(s => s.HasLyrics),
-            SongsWithSyncedLyrics = songs.Count(s => s.HasSyncedLyrics),
-            SongsPlayedToCompletion = songs.Count(s => SongStats.WasEverCompleted(s, Events)),
-            SongsFavorited = songs.Count(s => s.IsFavorite),
-            MostPlayedSongCount = mostPlayed != null ? SongStats.GetPlayCount(mostPlayed, Events) : 0,
-            MostPlayedSongTitle = mostPlayed?.Title,
-            MostSkippedSongCount = mostSkipped != null ? SongStats.GetSkipCount(mostSkipped, Events) : 0,
-            MostSkippedSongTitle = mostSkipped?.Title,
-            EarliestAdded = songs.Min(s => s.DateCreated),
-            LatestAdded = songs.Max(s => s.DateCreated),
-            AverageRating = !songs.Any() ? 0 : songs.Average(s => s.Rating),
+            TotalSongs = totalSongsCount,
+            TotalPlayCount = totalPlays, // From Range
+            TotalSkipCount = totalSkips, // From Range
+
+            DistinctArtists = distinctArtists,
+            DistinctAlbums = distinctAlbums,
+
+            AverageDuration = totalSongsCount > 0 ? totalDurationSeconds / totalSongsCount : 0,
+            TotalListeningTime = totalListeningTime, // Actual time listened in range
+
+            UniqueDevices = uniqueDevices,
+
+            SongsWithLyrics = songsWithLyrics,
+            SongsWithSyncedLyrics = songsWithSyncedLyrics,
+            SongsFavorited = songsFavorited,
+
+            // "Played to Completion" in this date range
+            SongsPlayedToCompletion = completedEvents.Select(e => e.SongId).Distinct().Count(),
+
+            MostPlayedSongCount = mostPlayedGroup?.Count() ?? 0,
+            MostPlayedSongTitle = mostPlayedTitle,
+
+            MostSkippedSongCount = mostSkippedGroup?.Count() ?? 0,
+            MostSkippedSongTitle = mostSkippedTitle,
+
+            EarliestAdded = totalSongsCount > 0 ? earliest : null,
+            LatestAdded = totalSongsCount > 0 ? latest : null,
+
+            AverageRating = totalSongsCount > 0 ? ratingSum / totalSongsCount : 0,
             MedianDuration = medianDuration,
-            SongsNeverPlayed = songs.Count(s => SongStats.GetPlayCount(s, Events) == 0),
-            SongsPlayedToday = songs.Count(s => Events.Any(e => e.SongId == s.Id && e.DatePlayed.Date == DateTimeOffset.Now.Date)),
-            TotalDaysActive = relevantEvents.Select(e => e.DatePlayed.Date).Distinct().Count(),
-            SongsPlayedAtNight = songs.Count(s => Events.Any(e => e.SongId == s.Id && (e.DatePlayed.Hour >= 22 || e.DatePlayed.Hour <= 5))),
-            LongestSongSec = (int)songs.Max(s => s.DurationInSeconds),
-            ShortestSongSec = (int)songs.Min(s => s.DurationInSeconds),
+
+            SongsNeverPlayed = songsNeverPlayed,
+            SongsPlayedToday = songsPlayedToday,
+
+            // Days active in this date range
+            TotalDaysActive = eventList.Select(e => e.EventDate.Date).Distinct().Count(),
+            SongsPlayedAtNight = songsAtNight,
+
+            LongestSongSec = (int)(durationList.LastOrDefault()),
+            ShortestSongSec = (int)(durationList.FirstOrDefault()),
         };
     }
 
@@ -65,7 +188,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<string>]]></returns>
-    public static List<string> GetUniqueDevices(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<string> GetUniqueDevices(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var songIds = songs.Select(s => s.Id).ToHashSet();
         return [.. Events.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value) && !string.IsNullOrEmpty(e.DeviceName))
@@ -80,7 +203,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[Dictionary<int, int>]]></returns>
-    public static Dictionary<int, int> GetPlayCountDistribution(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static Dictionary<int, int> GetPlayCountDistribution(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.GroupBy(s => SongStats.GetPlayCount(s, Events))
                     .ToDictionary(g => g.Key, g => g.Count());
@@ -93,7 +216,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
-    public static List<SongModel> GetSongsWithMaxSkips(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<SongModel> GetSongsWithMaxSkips(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         int max = songs.Max(s => SongStats.GetSkipCount(s, Events));
         return [.. songs.Where(s => SongStats.GetSkipCount(s, Events) == max)];
@@ -106,7 +229,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
-    public static List<SongModel> GetSongsWithMinPlays(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<SongModel> GetSongsWithMinPlays(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         int min = songs.Min(s => SongStats.GetPlayCount(s, Events));
         return [.. songs.Where(s => SongStats.GetPlayCount(s, Events) == min)];
@@ -119,7 +242,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A SongModel?</returns>
-    public static SongModel? GetSongMostPlayedSingleDay(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static SongModel? GetSongMostPlayedSingleDay(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         int max = 0;
         SongModel? result = null;
@@ -143,7 +266,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A SongModel?</returns>
-    public static SongModel? GetSongPlayedOnMostDevices(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static SongModel? GetSongPlayedOnMostDevices(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         int max = 0;
         SongModel? res = null;
@@ -163,7 +286,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
-    public static double GetPercentSongsPlayed(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static double GetPercentSongsPlayed(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return 100.0 * songs.Count(s => SongStats.GetPlayCount(s, Events) > 0) / Math.Max(1, songs.Count());
     }
@@ -176,7 +299,7 @@ public static class CollectionStats
     /// <param name="Events">The events.</param>
     /// <param name="n">The N.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
-    public static List<SongModel> GetTopNPlayedSongs(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events, int n)
+    public static List<SongModel> GetTopNPlayedSongs(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events, int n)
     {
         return [.. songs.OrderByDescending(s => SongStats.GetPlayCount(s, Events)).Take(n)];
     }
@@ -188,7 +311,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
-    public static List<SongModel> GetSongsNeverSkipped(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<SongModel> GetSongsNeverSkipped(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return [.. songs.Where(s => SongStats.GetSkipCount(s, Events) == 0)];
     }
@@ -200,7 +323,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
-    public static List<SongModel> GetSongsWithMaxDuration(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<SongModel> GetSongsWithMaxDuration(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         double max = songs.Max(s => s.DurationInSeconds);
         return [.. songs.Where(s => s.DurationInSeconds == max)];
@@ -213,7 +336,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int?</returns>
-    public static int? GetMostCommonPlayHour(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int? GetMostCommonPlayHour(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var songIds = songs.Select(s => s.Id).ToHashSet();
         return Events.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value))
@@ -229,7 +352,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int GetSongsPlayedThisWeek(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int GetSongsPlayedThisWeek(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var weekAgo = DateTimeOffset.Now.AddDays(-7);
         var ids = songs.Select(s => s.Id).ToHashSet();
@@ -245,7 +368,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A SongModel?</returns>
-    public static SongModel? GetSongWithHighestAvgPercentListened(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static SongModel? GetSongWithHighestAvgPercentListened(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.OrderByDescending(s => SongStats.GetAvgPercentListened(s, Events)).FirstOrDefault();
     }
@@ -257,7 +380,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int CountSongsPlayedToCompletion(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int CountSongsPlayedToCompletion(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Count(s => SongStats.WasEverCompleted(s, Events));
     }
@@ -269,7 +392,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int CountFavoritesPlayedToday(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int CountFavoritesPlayedToday(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var today = DateTimeOffset.Now.Date;
         return songs.Count(s => s.IsFavorite && Events.Any(e => e.SongId == s.Id && e.DatePlayed.Date == today));
@@ -282,7 +405,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int CountSongsPlayedOnce(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int CountSongsPlayedOnce(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Count(s => SongStats.GetPlayCount(s, Events) == 1);
     }
@@ -294,7 +417,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
-    public static double AvgDevicesPerSong(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static double AvgDevicesPerSong(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Average(s => SongStats.GetPlayedDevices(s, Events).Count);
     }
@@ -306,7 +429,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A SongModel?</returns>
-    public static SongModel? GetMostRecentlyPlayedSong(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static SongModel? GetMostRecentlyPlayedSong(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.OrderByDescending(s => SongStats.GetLastPlayedDate(s, Events) ?? DateTimeOffset.MinValue).FirstOrDefault();
     }
@@ -318,7 +441,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int CountSongsSkippedNeverCompleted(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int CountSongsSkippedNeverCompleted(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Count(s => SongStats.GetSkipCount(s, Events) > 0 && !SongStats.WasEverCompleted(s, Events));
     }
@@ -330,7 +453,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A string?</returns>
-    public static string? GetMostCommonDevice(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static string? GetMostCommonDevice(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var songIds = songs.Select(s => s.Id).ToHashSet();
         return Events.Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value) && !string.IsNullOrEmpty(e.DeviceName))
@@ -346,7 +469,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<SongModel>]]></returns>
-    public static List<SongModel> GetSongsNeverCompleted(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<SongModel> GetSongsNeverCompleted(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return [.. songs.Where(s => !SongStats.WasEverCompleted(s, Events))];
     }
@@ -367,7 +490,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[List<(SongModel, SongModel)>]]></returns>
-    public static List<(SongModel, SongModel)> GetSongsPlayedAtSameMinute(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static List<(SongModel, SongModel)> GetSongsPlayedAtSameMinute(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var dict = new Dictionary<(int hour, int min), List<SongModel>>();
         foreach (var s in songs)
@@ -391,7 +514,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns><![CDATA[Dictionary<int, int>]]></returns>
-    public static Dictionary<int, int> GetRatingDistribution(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static Dictionary<int, int> GetRatingDistribution(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.GroupBy(s => s.Rating).ToDictionary(g => g.Key, g => g.Count());
     }
@@ -403,7 +526,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int GetEddingtonNumber(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int GetEddingtonNumber(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var playCounts = songs.Select(s => SongStats.GetPlayCount(s, Events))
                               .OrderByDescending(x => x)
@@ -424,7 +547,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
-    public static void FractionFibonacciPlayCounts(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static void FractionFibonacciPlayCounts(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         //bool IsFib(int n)
         //{
@@ -444,7 +567,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
-    public static double GoldenRatioMedianMean(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static double GoldenRatioMedianMean(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         var pcs = songs.Select(s => SongStats.GetPlayCount(s, Events)).OrderBy(x => x).ToList();
         double median = pcs.Count % 2 == 1 ? pcs[pcs.Count / 2] : (pcs[pcs.Count / 2] + pcs[pcs.Count / 2 - 1]) / 2.0;
@@ -459,7 +582,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int CollectionPlayCountDigitSum(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int CollectionPlayCountDigitSum(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Sum(s => SongStats.GetPlayCount(s, Events)).ToString().ToCharArray().Sum(c => c - '0');
     }
@@ -471,7 +594,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int CountSongsPlayedETimes(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int CountSongsPlayedETimes(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Count(s => SongStats.GetPlayCount(s, Events) == (int)Math.Round(Math.E));
     }
@@ -483,7 +606,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int MostCommonLastDigitPlayCount(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int MostCommonLastDigitPlayCount(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Select(s => SongStats.GetPlayCount(s, Events) % 10)
                     .GroupBy(x => x).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key ?? 0;
@@ -496,7 +619,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int SumUniquePrimePlayCounts(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int SumUniquePrimePlayCounts(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         bool IsPrime(int n)
         {
@@ -520,7 +643,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>A double</returns>
-    public static double CollectionPlayCountDivPi(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static double CollectionPlayCountDivPi(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Sum(s => SongStats.GetPlayCount(s, Events)) / Math.PI;
     }
@@ -532,7 +655,7 @@ public static class CollectionStats
     /// <param name="songs">The songs.</param>
     /// <param name="Events">The events.</param>
     /// <returns>An int</returns>
-    public static int SongsPlayCountIs42Multiple(IQueryable<SongModel> songs, IQueryable<DimmerPlayEvent> Events)
+    public static int SongsPlayCountIs42Multiple(IQueryable<SongModel> songs, List<DimmerPlayEvent> Events)
     {
         return songs.Count(s => SongStats.GetPlayCount(s, Events) != 0 && SongStats.GetPlayCount(s, Events) % 42 == 0);
     }

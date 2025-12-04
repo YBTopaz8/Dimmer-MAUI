@@ -77,4 +77,20 @@ public interface IDimmerAudioService
     Task SetVolume(double volume);
     double GetCurrentVolume();
     AudioOutputDevice? GetCurrentAudioOutputDevice();
+
+    // --- AMBIENCE / BACKGROUND AUDIO ---
+    /// <summary>
+    /// Loads a background audio file (rain, wind, etc.) and prepares it for looping.
+    /// </summary>
+    Task InitializeAmbienceAsync(string filePath);
+
+    /// <summary>
+    /// Toggles whether the ambience track should play when the main music plays.
+    /// </summary>
+    void ToggleAmbience(bool isEnabled);
+
+    /// <summary>
+    /// Gets or sets the volume of the ambience track (0.0 to 1.0), independent of main volume.
+    /// </summary>
+    double AmbienceVolume { get; set; }
 }

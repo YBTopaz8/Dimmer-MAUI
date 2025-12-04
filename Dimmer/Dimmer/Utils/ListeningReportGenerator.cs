@@ -16,7 +16,6 @@ public class ListeningReportGenerator
     private DateTimeOffset? _cachedEnd;
 
     private readonly ILogger _logger;
-    private readonly IMapper _mapper;
     private readonly IRealmFactory realmFactory;
 
     // Initialize collections to prevent null reference issues
@@ -29,12 +28,11 @@ public class ListeningReportGenerator
   
     public ListeningReportGenerator(
         List<SongModel> allSongs,
-        IEnumerable<DimmerPlayEventView> allScrobbles, ILogger logger, IMapper mapper, IRealmFactory realmFactory)
+        IEnumerable<DimmerPlayEventView> allScrobbles, ILogger logger, IRealmFactory realmFactory)
     {
         _allSongs = allSongs ?? new List<SongModel>();
         _allScrobbles = allScrobbles ;
         _logger = logger;
-        _mapper = mapper;
         this.realmFactory = realmFactory;
 
         // Initialize collections to prevent null reference issues
@@ -171,7 +169,7 @@ public class ListeningReportGenerator
             .OrderByDescending(kvp => kvp.Value)
             .Take(15)
             .Select((kvp,index) => songsDict.TryGetValue(kvp.Key, out var song)
-                ? new DimmerStats { Rank=index+1,  Song = song.ToModelView(_mapper), Count = kvp.Value }
+                ? new DimmerStats { Rank=index+1,  Song = song.ToSongModelView(), Count = kvp.Value }
                 : null)
 
             .Where(s => s != null)
@@ -190,7 +188,7 @@ public class ListeningReportGenerator
             .Select(g => new { Artist = g.First().Artist, PlayCount = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.PlayCount)
             .Take(15)
-            .Select((x, index) => new DimmerStats {ArtistName = x.Artist.Name, Count = x.PlayCount, SongArtist = x.Artist.ToModelView(_mapper)
+            .Select((x, index) => new DimmerStats {ArtistName = x.Artist.Name, Count = x.PlayCount, SongArtist = x.Artist.ToArtistModelView()
             ,Rank=index+1})
             .ToList();
         return res;
@@ -208,7 +206,7 @@ public class ListeningReportGenerator
             .Select(g => new { Album = g.Key, PlayCount = g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)) })
             .OrderByDescending(x => x.PlayCount)
             .Take(15)
-            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToModelView(_mapper), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
+            .Select((x, index) => new DimmerStats { AlbumName = x.Album.Name, Count = x.PlayCount, SongAlbum = x.Album.ToAlbumModelView(), ArtistName = x.Album.Artist?.Name, Rank=index+1 })
             .ToList();
     }
 

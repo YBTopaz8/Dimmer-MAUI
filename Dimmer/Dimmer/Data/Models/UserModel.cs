@@ -41,6 +41,7 @@ public partial class UserModel : RealmObject, IRealmObjectWithObjectId
 
 }
 
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class LastFMUser:EmbeddedObject
 {
         #region Properties
@@ -101,6 +102,7 @@ public partial class LastFMUser:EmbeddedObject
         /// </summary>
         public LastImage? Image { get; set; }
 
+    [Dimmer.Utils.Preserve(AllMembers = true)]
     public partial class LastImage : EmbeddedObject
     {
         /// <summary>

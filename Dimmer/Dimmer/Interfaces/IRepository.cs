@@ -4,7 +4,7 @@ namespace Dimmer.Interfaces;
 public interface IRepository<T> where T : new()
 {
     T? Upsert(T? entity);
-    void Delete(T entity);
+    void Delete(T? entity);
 
     IReadOnlyCollection<T> GetAll(bool IsShuffled = false);
     T? GetById(ObjectId primaryKey);

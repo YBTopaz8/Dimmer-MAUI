@@ -48,10 +48,19 @@
                             Content="&#xE72B;"
                             FontFamily="Segoe MDL2 Assets"
                             Visibility="Collapsed" />
-                        <TextBlock VerticalAlignment="Center" Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
-                        <TextBlock VerticalAlignment="Center" Text="/" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="25"
+                            Text="/" />
 
-                        <TextBlock VerticalAlignment="Center" Text="{Binding CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}}" />
 
 
                     </StackPanel>
@@ -118,6 +127,11 @@
                                 <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Description}" />
                             </StackPanel>
                         </Button>
+
+                        <Button
+                            x:Name="ViewNodes"
+                            Click="ViewNodes_Click"
+                            Content="Nodes" />
 
                     </StackPanel>
 

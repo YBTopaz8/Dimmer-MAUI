@@ -49,14 +49,12 @@ public class StatisticsService
         private readonly IRepository<AlbumModel> _albumRepo;  
         private readonly IDimmerPlayEventRepository _eventRepo;
         private readonly ILogger<StatisticsService> _logger;
-    private readonly IMapper mapper;
 
     public StatisticsService(
            IRepository<SongModel> songRepo,
            IRepository<ArtistModel> artistRepo,
            IRepository<AlbumModel> albumRepo,  
            IDimmerPlayEventRepository eventRepo,
-           IMapper _mapper,
            ILogger<StatisticsService> logger)
         {
             _songRepo = songRepo;
@@ -64,7 +62,6 @@ public class StatisticsService
             _albumRepo = albumRepo;  
             _eventRepo = eventRepo;
             _logger = logger;
-        mapper = _mapper;
 
        }
 
@@ -72,8 +69,8 @@ public class StatisticsService
         /// The main method to get all library-wide statistics based on a filter.
         /// This is the only method the ViewModel needs to call for global stats.
         /// </summary>
-    public LibraryStatsBundle GetLibraryStatistics(DateRangeFilter filter,
-        IMapper mapper)
+    public LibraryStatsBundle GetLibraryStatistics(DateRangeFilter filter
+        )
     {
         _logger.LogInformation("Calculating library statistics for filter: {Filter}", filter);
 
@@ -94,7 +91,7 @@ public class StatisticsService
         var allSongs =  _songRepo.GetAllAsQueryable();
 
         
-        var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
+        var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate).ToList();
         int topCount = 10;
 
         var bundle = new LibraryStatsBundle
@@ -105,21 +102,21 @@ public class StatisticsService
             CollectionSummary = CollectionStats.GetSummary(allSongs, filteredEvents),
 
            
-            TopSongsByPlays = TopStats.GetTopCompletedSongs(allSongs, filteredEvents, topCount,mapper),
-            TopSongsByTime = TopStats.GetTopSongsByListeningTime(allSongs, filteredEvents, topCount,mapper),
-            TopArtistsByPlays = TopStats.GetTopCompletedArtists(allSongs, filteredEvents, topCount,mapper),
-            TopAlbumsByPlays = TopStats.GetTopCompletedAlbums(allSongs, filteredEvents, topCount,mapper),
-            TopSongsBySkips = TopStats.GetTopSkippedSongs(allSongs, filteredEvents, topCount,mapper),
-            TopArtistsBySkips = TopStats.GetTopSkippedArtists(allSongs, filteredEvents, topCount,mapper),
+            TopSongsByPlays = TopStats.GetTopCompletedSongs(allSongs, filteredEvents, topCount),
+            TopSongsByTime = TopStats.GetTopSongsByListeningTime(allSongs, filteredEvents, topCount),
+            TopArtistsByPlays = TopStats.GetTopCompletedArtists(allSongs, filteredEvents, topCount),
+            TopAlbumsByPlays = TopStats.GetTopCompletedAlbums(allSongs, filteredEvents, topCount),
+            TopSongsBySkips = TopStats.GetTopSkippedSongs(allSongs, filteredEvents, topCount),
+            TopArtistsBySkips = TopStats.GetTopSkippedArtists(allSongs, filteredEvents, topCount),
             TopArtistsByVariety = TopStats.GetTopArtistsBySongVariety(filteredEvents, allSongs, topCount),
-            TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(filteredEvents, allSongs, topCount,mapper),
-            TopBurnoutSongs = TopStats.GetTopBurnoutSongs(filteredEvents, allSongs, topCount,mapper),
+            TopRediscoveredSongs = TopStats.GetTopRediscoveredSongs(filteredEvents, allSongs, topCount),
+            TopBurnoutSongs = TopStats.GetTopBurnoutSongs(filteredEvents, allSongs, topCount),
 
            
-            ArtistFootprint = TopStats.GetArtistFootprint(allSongs, filteredEvents,mapper),
-            GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(filteredEvents, allSongs, mapper),
-            DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(filteredEvents, allSongs, startDate ?? DateTimeOffset.MinValue, endDate, mapper),
-            OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(filteredEvents, allSongs, mapper)
+            ArtistFootprint = TopStats.GetArtistFootprint(allSongs, filteredEvents),
+            GenrePopularityOverTime = ChartSpecificStats.GetGenrePopularityOverTime(filteredEvents, allSongs),
+            DailyListeningRoutineOHLC = ChartSpecificStats.GetDailyListeningRoutineOHLC(filteredEvents, allSongs, startDate ?? DateTimeOffset.MinValue, endDate),
+            OverallListeningByDayOfWeek = ChartSpecificStats.GetOverallListeningByDayOfWeek(filteredEvents, allSongs)
         };
 
         return bundle;
@@ -153,7 +150,7 @@ public class StatisticsService
 
         var filteredEvents = allSongEvents
             .Where(e => (!startDate.HasValue || e.EventDate >= startDate.Value) &&
-                        (e.EventDate < endDate)).AsQueryable()
+                        (e.EventDate < endDate)).ToList()
             ;
 
         if (!filteredEvents.Any())
@@ -168,7 +165,7 @@ public class StatisticsService
             PlayTypeDistribution = SongStatTwo.GetPlayTypeDistribution(songDb, filteredEvents),
             PlayDistributionByHour = SongStatTwo.GetPlayCountPerHourOfDay(songDb, filteredEvents),
             ListeningStreak = TopStats.GetListeningStreak(filteredEvents),
-            FirstImpression = TopStats.GetSongsFirstImpression(allSongEvents),
+            FirstImpression = TopStats.GetSongsFirstImpression(allSongEvents.ToList()),
             DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents)
         };
         return bundle;

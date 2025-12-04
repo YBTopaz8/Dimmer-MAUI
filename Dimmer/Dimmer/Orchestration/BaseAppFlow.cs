@@ -7,7 +7,6 @@ namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
 {
     protected readonly IDimmerStateService _state;
-    protected readonly IMapper _mapper;
     private readonly ISettingsService _settingsService;
     private readonly ILogger<BaseAppFlow> _logger;
 
@@ -37,7 +36,6 @@ public class BaseAppFlow : IDisposable
 
     public BaseAppFlow(
         IDimmerStateService state,
-        IMapper mapper,
 
         AchievementService achService,
        IDimmerAudioService _audioService,
@@ -55,7 +53,6 @@ public class BaseAppFlow : IDisposable
     {
         AchievementService = achService;
         _state = state ?? throw new ArgumentNullException(nameof(state));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
         _userRepo = userRepo;
         _playlistRepo = playlistRepo;
@@ -233,7 +230,7 @@ public class BaseAppFlow : IDisposable
         if (CurrentUserInstance?.Id == updatedUser.Id || CurrentUserInstance == null)
         {
             CurrentUserInstance = updatedUser;
-            _state.SetCurrentUser(_mapper.Map<UserModelView>(updatedUser));
+            _state.SetCurrentUser(updatedUser.ToUserModelView());
         }
         return updatedUser;
     }
@@ -273,7 +270,7 @@ public class BaseAppFlow : IDisposable
         if (song == null)
             throw new ArgumentNullException(nameof(song));
         var updatedSong = _songRepo.Upsert(song);
-        LogApplicationEvent(PlayType.LogEvent, _mapper.Map<SongModelView>(updatedSong), eventDetails: $"Song upserted: {song.Title}");
+        LogApplicationEvent(PlayType.LogEvent, updatedSong.ToSongModelView(), eventDetails: $"Song upserted: {song.Title}");
         return updatedSong;
     }
 

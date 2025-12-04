@@ -83,8 +83,8 @@ public partial class StatsViewModelWin : StatisticsViewModel
     public ICartesianAxis[] DropOffXAxes { get; set; }
     StatisticsService _statsService;
     BaseViewModelWin _baseVM;
-    public StatsViewModelWin(StatisticsService statsService, IMapper mapper, ILogger<StatisticsViewModel> logger
-        ,BaseViewModelWin baseVM) : base(statsService, mapper, logger)
+    public StatsViewModelWin(StatisticsService statsService,  ILogger<StatisticsViewModel> logger
+        ,BaseViewModelWin baseVM) : base(statsService, logger)
     {
         _statsService= statsService;
         HourlyXAxes = new ICartesianAxis[] { new Axis { Labels = Enumerable.Range(0, 24).Select(x => $"{x}:00").ToList() } };
@@ -97,7 +97,7 @@ public partial class StatsViewModelWin : StatisticsViewModel
         // Run on background to keep UI responsive
         Task.Run(() =>
         {
-            var bundle = _statsService.GetLibraryStatistics(filter, _mapper);
+            var bundle = _statsService.GetLibraryStatistics(filter);
 
             // Dispatch to UI Thread to build charts
             RxSchedulers.UI.Schedule(() =>
@@ -124,7 +124,7 @@ public partial class StatsViewModelWin : StatisticsViewModel
                 new LineSeries<int>
                 {
                     Values = values,
-                    Fill = new SolidColorPaint(SKColors.MediumPurple.WithAlpha(50)),
+                    Fill = new LinearGradientPaint(new[]{ SKColors.MediumPurple.WithAlpha(150), SKColors.MediumPurple.WithAlpha(20) }, new SKPoint(0.5f, 0), new SKPoint(0.5f, 1)),
                     Stroke = new SolidColorPaint(SKColors.MediumPurple) { StrokeThickness = 3 },
                     GeometrySize = 0,
                     LineSmoothness = 1

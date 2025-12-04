@@ -17,7 +17,7 @@ private const int PlayType_Skipped = 5;
 #region --- UPGRADED: Core Library Stats with Full Context ---
 //==========================================================================
 
-public static List<DimmerStats> GetOverallListeningByDayOfWeek(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
+public static List<DimmerStats> GetOverallListeningByDayOfWeek(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
@@ -27,11 +27,11 @@ public static List<DimmerStats> GetOverallListeningByDayOfWeek(IQueryable<Dimmer
             StatTitle = "Listening by Day",
             XValue = g.Key.ToString(),
             YValue = g.Count(),
-            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
+            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToSongModelView()).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (int)Enum.Parse<DayOfWeek>((string)s.XValue!)).ToList();
 }
 
-public static List<DimmerStats> GetGenrePopularityOverTime(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
+public static List<DimmerStats> GetGenrePopularityOverTime(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.AsEnumerable()
@@ -43,11 +43,11 @@ public static List<DimmerStats> GetGenrePopularityOverTime(IQueryable<DimmerPlay
             XValue = g.Key.Month,
             Category = g.Key.Genre,
             YValue = g.Count(),
-            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
+            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToSongModelView()).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (DateTime)s.XValue!).ToList();
 }
 
-public static List<DimmerStats> GetDailyListeningTimeRange(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate, IMapper mapper)
+public static List<DimmerStats> GetDailyListeningTimeRange(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events.Where(e => e.EventDate >= startDate && e.EventDate < endDate && e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
@@ -59,11 +59,11 @@ public static List<DimmerStats> GetDailyListeningTimeRange(IQueryable<DimmerPlay
             XValue = g.Key,
             Low = g.Min(ev => ev.EventDate.Hour),
             High = g.Max(ev => ev.EventDate.Hour),
-            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
+            ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToSongModelView()).DistinctBy(s => s.Id).ToList()
         }).OrderBy(s => (DateTime)s.XValue!).ToList();
 }
 
-public static List<DimmerStats> GetSongProfileBubbleChartData(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
+public static List<DimmerStats> GetSongProfileBubbleChartData(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
@@ -77,16 +77,16 @@ public static List<DimmerStats> GetSongProfileBubbleChartData(IQueryable<DimmerP
             return new DimmerStats
             {
                 StatTitle = "Song Profile",
-                Song = song.ToModelView(mapper),
+                Song = song.ToSongModelView(),
                 XValue = (double)totalStarts,
                 YValue = listenThroughRate,
                 SizeDouble = song.DurationInSeconds,
-                ContributingSongs = new List<SongModelView> { song.ToModelView(mapper) }
+                ContributingSongs = new List<SongModelView> { song.ToSongModelView() }
             };
         }).Where(s => (double)s.XValue! > 0).ToList();
 }
 
-public static List<DimmerStats> GetDailyListeningRoutineOHLC(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate, IMapper mapper)
+public static List<DimmerStats> GetDailyListeningRoutineOHLC(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
@@ -107,7 +107,7 @@ public static List<DimmerStats> GetDailyListeningRoutineOHLC(IQueryable<DimmerPl
                 High = maxPlayHour,
                 Low = minPlayHour,
                 Close = g.Max(ev => ev.EventDate.Hour),
-                ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
+                ContributingSongs = g.Select(ev => songLookup[ev.SongId!.Value].ToSongModelView()).DistinctBy(s => s.Id).ToList()
             };
         }).Where(s => s != null).OrderBy(s => (DateTime)s!.XValue!).ToList()!;
 }
@@ -120,7 +120,7 @@ public static List<DimmerStats> GetDailyListeningRoutineOHLC(IQueryable<DimmerPl
 /// <summary>
 /// (Inspired by Last.fm Listening Fingerprint) - Generates a list of key user behavior metrics.
 /// </summary>
-public static List<DimmerStats> GetListeningFingerprint(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate)
+public static List<DimmerStats> GetListeningFingerprint(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs, DateTimeOffset startDate, DateTimeOffset endDate)
 {
     var relevantEvents = events.Where(e => e.EventDate >= startDate && e.EventDate < endDate).ToList();
     var relevantSongs = relevantEvents.Where(e => e.SongId.HasValue).Select(e => e.SongId!.Value).Distinct().Select(id => songs.FirstOrDefault(s => s.Id == id)).Where(s => s != null).ToList();
@@ -156,7 +156,7 @@ public static List<DimmerStats> GetListeningFingerprint(IQueryable<DimmerPlayEve
 /// <summary>
 /// (Inspired by Last.fm Music by Decade) - Groups all listening history by decade.
 /// </summary>
-public static List<DimmerStats> GetMusicByDecade(IQueryable<DimmerPlayEvent> events, IQueryable<SongModel> songs, IMapper mapper)
+public static List<DimmerStats> GetMusicByDecade(IList<DimmerPlayEvent> events, IQueryable<SongModel> songs)
 {
     var songLookup = songs.ToDictionary(s => s.Id);
     return events
@@ -172,7 +172,7 @@ public static List<DimmerStats> GetMusicByDecade(IQueryable<DimmerPlayEvent> eve
                 Name = $"{g.Key}s",
                 YValue = g.Count(),
                 Category = topAlbumInDecade, // Store the top album name here
-                ContributingSongs = g.Select(s => s.ToModelView(mapper)).DistinctBy(s => s.Id).ToList()
+                ContributingSongs = g.Select(s => s.ToSongModelView()).DistinctBy(s => s.Id).ToList()
             };
         }).OrderBy(s => s.Name).ToList();
 }
@@ -181,7 +181,7 @@ public static List<DimmerStats> GetMusicByDecade(IQueryable<DimmerPlayEvent> eve
 #region --- UPGRADED: Single Song Stats with Full Context ---
 //==========================================================================
 
-public static List<DimmerStats> GetSongPlayHistoryOverTime(IQueryable<DimmerPlayEvent> songEvents)
+public static List<DimmerStats> GetSongPlayHistoryOverTime(IList<DimmerPlayEvent> songEvents)
 {
     return songEvents
         .Where(e => e.PlayType == PlayType_Completed )
@@ -198,7 +198,7 @@ public static List<DimmerStats> GetSongPlayHistoryOverTime(IQueryable<DimmerPlay
 /// (Chart: ScatterSeries) Identifies the exact moments in a song where the user skips away.
 /// Insight: "Do I always skip this song's intro? Where do I get bored?"
 /// </summary>
-public static List<DimmerStats> GetSongDropOffPoints(IQueryable<DimmerPlayEvent> songEvents)
+public static List<DimmerStats> GetSongDropOffPoints(IList<DimmerPlayEvent> songEvents)
     {
         return songEvents
             .Where(e => e.PlayType == PlayType_Skipped && e.PositionInSeconds > 0)

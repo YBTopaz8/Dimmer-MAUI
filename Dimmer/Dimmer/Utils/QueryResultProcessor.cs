@@ -90,8 +90,9 @@ public static class QueryResultProcessor
         // This provides the desired statistical chance for each item.
         return songs.Where(_ => _random.Next(100) < chanceNode.Percentage).ToList();
     }
-    public static List<SongModelView> ApplyShuffle(IList<SongModelView> songs, ShuffleNode? shuffleNode)
+    public static List<SongModelView> ApplyShuffle(IList<SongModelView>? songs, ShuffleNode? shuffleNode)
     {
+        if (songs == null) return Enumerable.Empty<SongModelView>().ToList();
         if (shuffleNode == null)
         {
             return songs.ToList(); // No shuffle directive was present

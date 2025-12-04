@@ -3,7 +3,6 @@
 public partial class AppInitializerService : IAppInitializerService
 {
     private readonly IDimmerStateService _state;
-    private readonly IMapper _mapper;
     private readonly IRepository<UserModel> _userRepo;
     private readonly IRepository<AppStateModel> _appStateRepo;
     private readonly ILibraryScannerService _libraryScanner;
@@ -12,7 +11,6 @@ public partial class AppInitializerService : IAppInitializerService
 
     public AppInitializerService(
         IDimmerStateService state,
-        IMapper mapper,
         IRepository<UserModel> userRepo,
         IRepository<AppStateModel> appStateRepo,
         ILibraryScannerService libraryScanner,
@@ -20,7 +18,6 @@ public partial class AppInitializerService : IAppInitializerService
         ILogger<AppInitializerService> logger)
     {
         _state = state;
-        _mapper = mapper;
         _userRepo = userRepo;
         _appStateRepo = appStateRepo;
         _libraryScanner = libraryScanner;
@@ -43,7 +40,7 @@ public partial class AppInitializerService : IAppInitializerService
                 currentUserInstance = _userRepo.Upsert(currentUserInstance);
                 _logger.LogInformation("No existing user. Created default user.");
             }
-            _state.SetCurrentUser(_mapper.Map<UserModelView>(currentUserInstance));
+            _state.SetCurrentUser(currentUserInstance.ToUserModelView());
 
             // 3. Set initial playback defaults in state from settings
             _state.SetShuffleActive(_settingsService.ShuffleOn);

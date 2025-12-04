@@ -7,7 +7,7 @@ public partial class SettingsViewModel : BaseViewModel
 {
     private readonly IFolderPicker _folderPicker;
 
-    public SettingsViewModel(IMapper mapper, IDimmerStateService dimmerStateService, MusicDataService musicDataService,
+    public SettingsViewModel( IDimmerStateService dimmerStateService, MusicDataService musicDataService,
         IAppInitializerService appInitializerService, IDimmerAudioService audioServ,
         ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, 
         SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService,
@@ -15,7 +15,7 @@ public partial class SettingsViewModel : BaseViewModel
         ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, 
         IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, 
         IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, 
-        IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(mapper, dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+        IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base( dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
     }
 

@@ -222,7 +222,7 @@ public sealed partial class ArtistPage : Page
 
         ObservableCollection<AlbumModelView> albums = new();
 
-        ArtistAlbums.ItemsSource = MyViewModel._mapper.Map<ObservableCollection<AlbumModelView>>(AlbumsByArtist.ToObservableCollection());
+        ArtistAlbums.ItemsSource = AlbumsByArtist.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
 
     }
 

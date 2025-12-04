@@ -16,7 +16,7 @@ public static class AlbumStats
     /// </summary>
     private static List<DimmerPlayEvent> GetRelevantEventsForSongs(
         IQueryable<SongModel> songs,
-        IQueryable<DimmerPlayEvent> allEvents)
+        List<DimmerPlayEvent> allEvents)
     {
         if (songs == null || !songs.Any())
             return new List<DimmerPlayEvent>();
@@ -122,7 +122,7 @@ public static class AlbumStats
     public static AlbumSingleStatsSummary GetSingleAlbumStats(
         AlbumModel targetAlbum,
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents)
+        List<DimmerPlayEvent> allEvents)
     {
         if (targetAlbum == null)
             return new AlbumSingleStatsSummary { AlbumName = "Error: Album not provided" };
@@ -267,7 +267,7 @@ public static class AlbumStats
     public static AlbumSingleStatsSummary GetSingleAlbumStats(
         SongModel songFromAlbum,
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents)
+        List<DimmerPlayEvent> allEvents)
     {
         if (songFromAlbum?.Album == null)
             return new AlbumSingleStatsSummary { AlbumName = "Error: Song has no associated album or song is null." };
@@ -291,7 +291,7 @@ public static class AlbumStats
     public static AlbumPlottableData GetSingleAlbumPlottableData(
         AlbumModel targetAlbum,
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents)
+        List<DimmerPlayEvent> allEvents)
     {
         if (targetAlbum == null)
             return new AlbumPlottableData { AlbumName = "Error: Album not provided" };
@@ -341,7 +341,7 @@ public static class AlbumStats
     public static AlbumPlottableData GetSingleAlbumPlottableData(
         SongModel songFromAlbum,
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents)
+        List<DimmerPlayEvent> allEvents)
     {
         if (songFromAlbum?.Album == null)
             return new AlbumPlottableData { AlbumName = "Error: Song has no associated album or song is null." };
@@ -417,7 +417,7 @@ public static class AlbumStats
         ArtistModel targetArtist,
         AlbumModel targetAlbum,
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents,
+        List<DimmerPlayEvent> allEvents,
         AlbumSingleStatsSummary? albumOverallStats = null) // Optional pre-calculated album stats for percentages
     {
         if (targetArtist == null || targetAlbum == null)
@@ -527,7 +527,7 @@ public static class AlbumStats
         SongModel sourceSong, // Song from which to get album and artist
         int artistIndexInSourceSong, // Index of artist in sourceSong.ArtistToSong
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents,
+        List<DimmerPlayEvent> allEvents,
         AlbumSingleStatsSummary? albumOverallStats = null)
     {
         if (sourceSong?.Album == null || sourceSong.ArtistToSong == null ||
@@ -561,7 +561,7 @@ public static class AlbumStats
     public static AlbumArtistComparisonBundle GetAlbumArtistComparisonBundle(
         AlbumModel targetAlbum,
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents,
+        List<DimmerPlayEvent> allEvents,
         List<ArtistModel>? specificArtistsToCompare = null) // Optional: if null, compares all artists on album
     {
         if (targetAlbum == null)
@@ -629,7 +629,7 @@ public static class AlbumStats
     public static AlbumArtistComparisonBundle GetAlbumArtistComparisonBundle(
         SongModel songFromAlbum, // Album is taken from this song
         IQueryable<SongModel> allSongsInLibrary,
-        IQueryable<DimmerPlayEvent> allEvents,
+        List<DimmerPlayEvent> allEvents,
         List<ArtistModel>? specificArtistsToCompare = null) // Optional: if null, compares all artists on album
     {
         if (songFromAlbum?.Album == null)

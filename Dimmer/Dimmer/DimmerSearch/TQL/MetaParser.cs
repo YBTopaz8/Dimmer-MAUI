@@ -1,4 +1,5 @@
 ﻿using Dimmer.DimmerSearch.TQL.RealmSection;
+using Dimmer.DimmerSearch.TQLActions;
 
 using System.Text.RegularExpressions;
 
@@ -49,11 +50,11 @@ public static class MetaParser
             IQueryNode masterAst = new AstParser(filterTokens).Parse();
 
             // 5. Split the AST for hybrid execution
-            var (databaseAst, _) = AstSplitter.Split(masterAst);
+            var (databaseAst, inMemoryAst) = AstSplitter.Split(masterAst);
 
             // 6. Generate the RQL and the in-memory predicate
             var rqlFilter = RqlGenerator.Generate(databaseAst);
-            var inMemoryPredicate = new AstEvaluator().CreatePredicate(masterAst); // Always use the full master AST here
+            var inMemoryPredicate = new AstEvaluator().CreatePredicate(inMemoryAst); // Always use the full master AST here
 
             // 7. Parse the separated directive tokens
             var sortDescriptions = CreateSortDescriptions(directiveTokens);

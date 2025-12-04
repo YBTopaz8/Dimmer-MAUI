@@ -1,7 +1,6 @@
 ﻿global using System.Reactive.Linq;
 global using System.Reactive.Subjects;
 global using System.Diagnostics;
-global using AutoMapper;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using Dimmer.ViewModel;
 global using CommunityToolkit.Maui;
@@ -52,7 +51,6 @@ global using System.Text.Json;
 
 global using Dimmer.DimmerLive.Models;
 global using Dimmer.DimmerLive.Interfaces.Implementations;
-global using Dimmer.DimmerSearch.Interfaces;
 
 global using DynamicData;
 global using System.Reactive.Disposables;

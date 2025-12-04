@@ -55,9 +55,6 @@ public static class ServiceRegistration
         services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
         services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
 
-        IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();
-
-        services.AddSingleton(mapper);
 
 
         services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();

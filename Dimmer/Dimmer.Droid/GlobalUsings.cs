@@ -1,5 +1,4 @@
-﻿global using AutoMapper;
-global using CommunityToolkit.Mvvm.ComponentModel;
+﻿global using CommunityToolkit.Mvvm.ComponentModel;
 global using Dimmer.Orchestration;
 global using Dimmer.ViewModels;
 global using Dimmer.DimmerAudio;

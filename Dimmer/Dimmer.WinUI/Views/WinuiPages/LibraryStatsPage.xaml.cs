@@ -35,5 +35,19 @@ public sealed partial class LibraryStatsPage : Page
         base.OnNavigatedTo(e);
 
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<StatsViewModelWin>()!;
+        this.DataContext = ViewModel;
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void BackBtnClick(object sender, RoutedEventArgs e)
+    {
+        if(Frame.CanGoBack)
+        {
+            Frame.GoBack();
+        }
     }
 }

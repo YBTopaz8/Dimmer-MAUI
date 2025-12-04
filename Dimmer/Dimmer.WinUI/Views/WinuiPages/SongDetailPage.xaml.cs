@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using CommunityToolkit.Maui.Core.Extensions;
+
 using Dimmer.Interfaces.Services;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
@@ -514,7 +516,7 @@ public sealed partial class SongDetailPage : Page
                 .FirstOrDefault(a => a.Name == DetailedSong.Artist.Name);
 
                   
-            await MyViewModel.SetSelectedArtist(dbArtist.ToModelView(MyViewModel._mapper));
+            await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
 
 
             FrameNavigationOptions navigationOptions = new FrameNavigationOptions
@@ -888,17 +890,27 @@ public sealed partial class SongDetailPage : Page
     {
         if(MyViewModel.SelectedSong is null) return;
         var dbSong = MyViewModel.RealmFactory.GetRealmInstance()
-            .All<SongModel>()
-            .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
+            
+            .Find<SongModel>(MyViewModel.SelectedSong.Id);
+
         if (dbSong is null) return;
-        var artistToSong = dbSong.ArtistToSong;
-        var listOfArtistsModelView = MyViewModel._mapper.Map<ObservableCollection<ArtistModelView>>(artistToSong);
-        foreach (var art in listOfArtistsModelView)
+        if ((dbSong.ArtistToSong.Count <1 || dbSong.Artist is null) && dbSong.ArtistName is not null)
         {
-            var songs= artistToSong.FirstOrDefault(x => x.Id == art.Id)?
-                .Songs;
-            art.SongsByArtist = MyViewModel._mapper.Map<ObservableCollection<SongModelView>>(songs);
+            RxSchedulers.Background.Schedule(async () =>
+            {
+               await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
+                    new List<string>() { MyViewModel.SelectedSong.ArtistName });
+
+            });
         }
+        var artistToSong = dbSong.ArtistToSong;
+        var listOfArtistsModelView = artistToSong.ToList().Select(x =>
+        {
+            
+            var objView = x.ToArtistModelView();
+            //objView.TotalSongsByArtist = x.Songs.Count();
+            return objView;
+        });
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }
 
@@ -926,7 +938,7 @@ public sealed partial class SongDetailPage : Page
                 ;
 
 
-            await MyViewModel.SetSelectedArtist(dbArtist.ToModelView(MyViewModel._mapper));
+            await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
 
 
             FrameNavigationOptions navigationOptions = new FrameNavigationOptions

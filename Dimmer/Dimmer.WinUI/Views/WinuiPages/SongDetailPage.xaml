@@ -191,8 +191,7 @@
                                             <Button Content="{x:Bind DetailedSong.PlayCompletedCount}" />
                                         </StackPanel>
 
-                                        <Button x:Name="ViewCharts"
-                                                Click="ViewCharts_Click">
+                                        <Button x:Name="ViewCharts" Click="ViewCharts_Click">
                                             <FontIcon Glyph="&#xEB05;" />
                                         </Button>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -295,7 +294,7 @@
                                                             Orientation="Horizontal"
                                                             Spacing="0">
                                                             <TextBlock FontSize="16" Text="(" />
-                                                            <TextBlock FontSize="16" Text="{Binding SongsByArtist.Count}" />
+                                                            <TextBlock FontSize="16" Text="{Binding TotalSongsByArtist}" />
                                                             <TextBlock FontSize="16" Text=")" />
                                                             <TextBlock
                                                                 Margin="5,0,0,0"
@@ -378,7 +377,7 @@
                                                 Height="70"
                                                 Foreground="DeepSkyBlue"
                                                 IsIndeterminate="False"
-                                                Value="{Binding MyViewModel.SelectedSong.PlayCompletedCount}" />
+                                                Value="{Binding SelectedSong.PlayCompletedCount}" />
                                         </Grid>
 
                                         <TextBlock
@@ -386,7 +385,7 @@
                                             HorizontalAlignment="Center"
                                             FontSize="12"
                                             Opacity="0.6"
-                                            Text="{Binding MyViewModel.SelectedSong.TotalSkipsFormatted}" />
+                                            Text="{Binding SelectedSong.TotalSkipsFormatted}" />
                                     </Grid>
                                 </GridViewItem>
 
@@ -428,7 +427,7 @@
                                             <TextBlock
                                                 FontSize="18"
                                                 FontWeight="SemiBold"
-                                                Text="{Binding MyViewModel.SelectedSong.TotalListenTimeFormatted}" />
+                                                Text="{Binding SelectedSong.TotalListenTimeFormatted}" />
 
                                             <Rectangle
                                                 Height="1"
@@ -440,7 +439,7 @@
                                                 FontSize="11"
                                                 Opacity="0.5"
                                                 Text="Longest Streak" />
-                                            <TextBlock FontSize="14" Text="{Binding MyViewModel.SelectedSong.RepeatCount}" />
+                                            <TextBlock FontSize="14" Text="{Binding SelectedSong.RepeatCount}" />
                                         </StackPanel>
                                     </Grid>
                                 </GridViewItem>
@@ -488,7 +487,7 @@
                                                 Grid.Column="0"
                                                 VerticalAlignment="Bottom">
                                                 <Border
-                                                    Height="{Binding MyViewModel.SelectedSong.DayPlaysHeight}"
+                                                    Height="{Binding SelectedSong.DayPlaysHeight}"
                                                     Background="Gold"
                                                     CornerRadius="4"
                                                     ToolTipService.ToolTip="Day Plays" />
@@ -508,7 +507,7 @@
                                                 Margin="5,0,0,0"
                                                 VerticalAlignment="Bottom">
                                                 <Border
-                                                    Height="{Binding MyViewModel.SelectedSong.NightPlaysHeight}"
+                                                    Height="{Binding SelectedSong.NightPlaysHeight}"
                                                     Background="SlateBlue"
                                                     CornerRadius="4"
                                                     ToolTipService.ToolTip="Night Plays" />
@@ -562,12 +561,12 @@
                                                 FontFamily="Segoe UI Serif"
                                                 FontSize="20"
                                                 FontWeight="ExtraBold"
-                                                Text="{Binding MyViewModel.SelectedSong.PlayCompletedCount}" />
+                                                Text="{Binding SelectedSong.PlayCompletedCount}" />
 
                                             <StackPanel
                                                 Orientation="Horizontal"
                                                 Spacing="5"
-                                                Visibility="{Binding MyViewModel.SelectedSong.PlayCount}">
+                                                Visibility="{Binding SelectedSong.PlayCount}">
                                                 <FontIcon
                                                     FontSize="12"
                                                     Foreground="Gold"

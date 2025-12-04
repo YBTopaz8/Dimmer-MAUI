@@ -1526,7 +1526,7 @@ public sealed partial class AllSongsListPage : Page
 
                     var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
                     .Find<SongModel>(_storedSong.Id).ArtistToSong.First(x => x.Name == songContext)
-                    .ToModelView(MyViewModel._mapper);
+                    .ToArtistModelView();
 
 
                     var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
@@ -1571,7 +1571,7 @@ public sealed partial class AllSongsListPage : Page
 
                     var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
                     .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
-                    .ToModelView(MyViewModel._mapper);
+                    .ToArtistModelView();
 
                     await MyViewModel.SetSelectedArtist(selectedArtist);
 

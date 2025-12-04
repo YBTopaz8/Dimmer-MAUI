@@ -38,6 +38,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     }
 
     public IEnumerable<AudioOutputDevice> PlaybackDevices { get; }
+    public double AmbienceVolume { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     #endregion
 
@@ -262,5 +263,15 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         var currentDevice = Service.GetCurrentAudioOutputDevice();
         return currentDevice;
 
+    }
+
+    public Task InitializeAmbienceAsync(string filePath)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void ToggleAmbience(bool isEnabled)
+    {
+        throw new NotImplementedException();
     }
 }

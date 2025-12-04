@@ -9,7 +9,7 @@ internal class Bootstrapper
         try
         {
             var services = new ServiceCollection();
-
+            LinkerKeepAlive.Keep();
         // 1. Logging (Replaces builder.Logging)
         services.AddLogging(configure =>
         {

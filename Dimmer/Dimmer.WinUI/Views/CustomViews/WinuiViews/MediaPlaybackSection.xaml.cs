@@ -80,4 +80,9 @@ public sealed partial class MediaPlaybackSection : UserControl
     {
 
     }
+
+    private void ViewNodes_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel?.MainWindow?.ContentFrame.Navigate(typeof(GraphAndNodes));
+    }
 }

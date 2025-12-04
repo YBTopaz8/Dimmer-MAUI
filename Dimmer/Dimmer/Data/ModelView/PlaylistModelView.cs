@@ -22,13 +22,13 @@ public partial class PlaylistModelView : ObservableObject
     public partial bool IsNew { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModel>? SongInPlaylist { get; set; }
+    public partial ObservableCollection<SongModelView?>? SongInPlaylist { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<ObjectId>? SongsIdsInPlaylist { get; set; }
 
     [ObservableProperty]
-    public partial SongModel? CurrentSong { get; set; }
+    public partial SongModelView? CurrentSong { get; set; }
 
     [ObservableProperty]
     public partial string? Description { get; set; }
@@ -44,14 +44,14 @@ public partial class PlaylistModelView : ObservableObject
 
 
     [ObservableProperty]
-    public partial ObservableCollection<PlaylistEventView>? PlaylistEvents { get; set; }
+    public partial ObservableCollection<PlaylistEventView?>? PlaylistEvents { get; set; }
 
     [ObservableProperty]
     public partial string? DeviceName { get; set; }
 
 
     [ObservableProperty]
-    public partial UserModel? User { get; set; }
+    public partial UserModelView? User { get; set; }
 
     [ObservableProperty]
     public partial ObjectId Id { get; set; }
@@ -64,5 +64,5 @@ public partial class PlaylistEventView : ObservableObject
     [ObservableProperty]
     public partial DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
-    public partial SongModel? EventSong { get; set; }
+    public partial SongModelView? EventSong { get; set; }
 }

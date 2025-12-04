@@ -37,6 +37,8 @@
 	  <None Remove="Views\WinuiPages\AllSongsListPage.xaml" />
 	  <None Remove="Views\WinuiPages\ArtistPage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmerLivePage.xaml" />
+	  <None Remove="Views\WinuiPages\DimmsSection\AllDimsView.xaml" />
+	  <None Remove="Views\WinuiPages\GraphAndNodes.xaml" />
 	  <None Remove="Views\WinuiPages\LibraryStatsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\EditSongPage.xaml" />
@@ -108,6 +110,16 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\DimmsSection\AllDimsView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\GraphAndNodes.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\LibraryStatsPage.xaml">

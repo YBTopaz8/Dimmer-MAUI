@@ -13,14 +13,22 @@
 		<type fullname="*" />
 	</assembly>
 
-	<!-- Keep AutoMapper -->
-	<assembly fullname="AutoMapper" preserve="all" />
 	
 	<!-- Keep Configuration/JSON libraries -->
 	<assembly fullname="Microsoft.Extensions.Configuration" />
 	<assembly fullname="Microsoft.Extensions.Configuration.Json" />
 	<assembly fullname="System.Text.Json" />
 
+	<assembly fullname="System.Linq.Expressions" preserve="all" />
+	<assembly fullname="System.Core" preserve="all" />
+
+
+	<assembly fullname="mscorlib" preserve="all" />
+	<assembly fullname="System" preserve="all" />
+	<assembly fullname="System.Core" preserve="all" />
+	<assembly fullname="System.Runtime" preserve="all" />
+	<assembly fullname="System.Linq.Expressions" preserve="all" />
+	<assembly fullname="System.ObjectModel" preserve="all" />
 	<assembly fullname="Xamarin.AndroidX.AppCompat" />
 	<assembly fullname="Xamarin.AndroidX.Fragment" />
 	<assembly fullname="Xamarin.AndroidX.Core" />

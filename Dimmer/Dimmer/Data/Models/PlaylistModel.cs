@@ -57,6 +57,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     [Ignored]
     public bool IsNew { get; set; }
 }
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class PlaylistEvent : EmbeddedObject
 {
     // Save the enum value as an int in Realm.

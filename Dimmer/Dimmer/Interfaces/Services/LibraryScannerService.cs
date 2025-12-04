@@ -8,7 +8,6 @@ public class LibraryScannerService : ILibraryScannerService
     private readonly IRepository<DimmerPlayEvent> _playEventsRepo;
     private readonly ISettingsService settingsService;
     private readonly IDimmerStateService _state;
-    private readonly IMapper _mapper;
     private readonly IRepository<SongModel> _songRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly IRepository<AppStateModel> _appStateRepo;
@@ -20,7 +19,7 @@ public class LibraryScannerService : ILibraryScannerService
     private readonly ICoverArtService _coverArtService;
 
     public LibraryScannerService(
-        IDimmerStateService state, IMapper mapper, IRepository<AppStateModel> appStateRepo,
+        IDimmerStateService state, IRepository<AppStateModel> appStateRepo,
         IRepository<SongModel> songRepo, IRepository<AlbumModel> albumRepo,
         IRepository<ArtistModel> artistRepo, IRepository<GenreModel> genreRepo,
         IRealmFactory realmFactory, ILogger<LibraryScannerService> logger
@@ -32,7 +31,6 @@ public class LibraryScannerService : ILibraryScannerService
         this.settingsService=settingsService;
         _appStateRepo=appStateRepo;
         _state = state ?? throw new ArgumentNullException(nameof(state));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _songRepo = songRepo ?? throw new ArgumentNullException(nameof(songRepo));
         _albumRepo = albumRepo ?? throw new ArgumentNullException(nameof(albumRepo));
         _artistRepo = artistRepo ?? throw new ArgumentNullException(nameof(artistRepo));
@@ -85,15 +83,15 @@ public class LibraryScannerService : ILibraryScannerService
             }
 
             _logger.LogDebug("Loading existing metadata from database and detaching for processing...");
-            var existingArtists = _mapper.Map<List<ArtistModelView>>(realm.All<ArtistModel>().ToList());
-            var existingAlbums = _mapper.Map<List<AlbumModelView>>(realm.All<AlbumModel>().ToList());
-            var existingGenres = _mapper.Map<List<GenreModelView>>(realm.All<GenreModel>().ToList());
-            var existingSongs = _mapper.Map<List<SongModelView>>(realm.All<SongModel>().ToList());
+            var existingArtists = realm.All<ArtistModel>().ToList().Select(x => x.ToArtistModelView());
+            var existingAlbums = realm.All<AlbumModel>().ToList().Select(x => x.ToAlbumModelView());
+            var existingGenres = realm.All<GenreModel>().ToList().Select(x => x.ToGenreModelView());
+            var existingSongs = (realm.All<SongModel>().ToList().Select(x => x.ToSongModelView()));
 
 
 
             _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
-                existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
+                existingArtists.Count(), existingAlbums.Count(), existingGenres.Count(), existingSongs.Count());
 
 
 
@@ -154,10 +152,10 @@ public class LibraryScannerService : ILibraryScannerService
                 _logger.LogInformation("Persisting metadata changes to database...");
 
                 // STEP 1: Map all new VIEW objects to new MODEL objects OUTSIDE the transaction.
-                var artistModelsToUpsert = _mapper.Map<List<ArtistModel>>(newArtists);
-                var albumModelsToUpsert = _mapper.Map<List<AlbumModel>>(newAlbums);
-                var genreModelsToUpsert = _mapper.Map<List<GenreModel>>(newGenres);
-                var songModelsToUpsert = _mapper.Map<List<SongModel>>(newSongs);
+                var artistModelsToUpsert = newArtists.Select(x => x.ToArtistModel());
+                var albumModelsToUpsert = newAlbums.Select(x => x.ToAlbumModel());
+                var genreModelsToUpsert = newGenres.Select(x => x.ToGenreModel());
+                var songModelsToUpsert = newSongs.Select(x => x.ToSongModel());
 
                 // This is a dictionary to easily find the MODEL version of a song later.
                 var songModelDict = songModelsToUpsert.ToDictionary(s => s.Id);
@@ -169,7 +167,7 @@ public class LibraryScannerService : ILibraryScannerService
                         // STEP 1: Add all new parent entities to the Realm.
                         // After this, they become MANAGED objects.
                         foreach (var artistView in newArtists)
-                            realmInserts.Add(_mapper.Map<ArtistModel>(artistView));
+                            realmInserts.Add(artistView.ToArtistModel());
 
                         foreach (var albumView in newAlbums)
                         {
@@ -178,7 +176,7 @@ public class LibraryScannerService : ILibraryScannerService
                                 _logger.LogWarning("Album {AlbumName} has no associated artists. Skipping.", albumView.Name);
                                 continue;
                             }
-                            var album = _mapper.Map<AlbumModel>(albumView);
+                            var album = albumView.ToAlbumModel();
 
                             // Link album to its artist(s)
                             foreach (var artView in albumView.Artists)
@@ -191,14 +189,14 @@ public class LibraryScannerService : ILibraryScannerService
                             realmInserts.Add(album, update: true);
                         }
                         foreach (var genreView in newGenres)
-                            realmInserts.Add(_mapper.Map<GenreModel>(genreView));
+                            realmInserts.Add(genreView.ToGenreModel());
 
                         foreach (var chunk in newSongs.Chunk(500))
                         {
                             foreach (var newSongView in chunk)
                             {
                                 // Create an UNMANAGED model instance.
-                                var songToPersist = _mapper.Map<SongModel>(newSongView);
+                                var songToPersist = newSongView.ToSongModel();
 
                                 // Find the now-MANAGED versions of its relationships.
                                 if (newSongView?.Album?.Id != null)

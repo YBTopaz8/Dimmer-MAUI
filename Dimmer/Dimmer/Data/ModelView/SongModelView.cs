@@ -35,7 +35,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string ArtistName { get; set; } 
     [ObservableProperty]
-    public partial ArtistModel Artist { get; set; } 
+    public partial ArtistModelView Artist { get; set; } 
 
     [ObservableProperty]
     public partial string AlbumName { get; set; } 
@@ -89,7 +89,7 @@ public partial class SongModelView : ObservableObject
   
 
     [ObservableProperty]
-    public partial bool IsInstrumental { get; set; }
+    public partial bool? IsInstrumental { get; set; }
     [ObservableProperty]
     public partial string? CoverImagePath { get; set; } = "musicnote1.png";
     [ObservableProperty]

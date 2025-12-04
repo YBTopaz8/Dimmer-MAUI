@@ -3,9 +3,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
+using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.WinUI;
 
+using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
+
+using DynamicData;
 
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.Windows.AppNotifications;
@@ -295,12 +299,12 @@ public sealed partial class EditSongPage : Page
             .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
         if (dbSong is null) return;
         var artistToSong = dbSong.ArtistToSong;
-        var listOfArtistsModelView = MyViewModel._mapper.Map<ObservableCollection<ArtistModelView>>(artistToSong);
+        var listOfArtistsModelView = artistToSong.AsEnumerable().Select(x=>x.ToArtistModelView());
         foreach (var art in listOfArtistsModelView)
         {
             var songs = artistToSong.FirstOrDefault(x => x.Id == art.Id)?
                 .Songs;
-            art.SongsByArtist = MyViewModel._mapper.Map<ObservableCollection<SongModelView>>(songs);
+            art.SongsByArtist = songs.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection();
         }
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }
@@ -316,7 +320,7 @@ public sealed partial class EditSongPage : Page
         {
             FontIcon addArt = new FontIcon();
             addArt.Glyph = "\uE8FA";
-            AddArtist.Content=addArt;
+            AddArtist.Content = addArt;
             AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
             return;
         }
@@ -325,25 +329,30 @@ public sealed partial class EditSongPage : Page
 
             AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         }
-        var allArtistsInDb = MyViewModel.RealmFactory.GetRealmInstance()
-            .All<ArtistModel>().ToList();
-        var artistView = MyViewModel._mapper.Map<List<ArtistModelView>>(allArtistsInDb);
-        
-            PageScrollviewer.ChangeView(0, 210, 1);
-        var OnlyArtName = allArtistsInDb
-                    .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-                    .DistinctBy(x=>x.Name)
-                    .OrderBy(c => c.Name)
-                   .Select(a=>a.Name)
-                    .ToList();
-        AllArtistsIR.ItemsSource= OnlyArtName;
-
-        var listOfOnlyFirstLetterOfArtist = OnlyArtName.Select(x => x.First()).Distinct();
-        ListOfFirstLetters.ItemsSource = listOfOnlyFirstLetterOfArtist.ToList();
+        LoadAddArtistSectionView();
 
         FontIcon icon = new FontIcon();
         icon.Glyph = "\uE711";
         AddArtist.Content = icon;
+    }
+
+    private void LoadAddArtistSectionView()
+    {
+        var allArtistsInDb = MyViewModel.RealmFactory.GetRealmInstance()
+            .All<ArtistModel>().ToList();
+        var artistView = allArtistsInDb.ToList();
+
+        PageScrollviewer.ChangeView(0, 210, 1);
+        var OnlyArtName = allArtistsInDb
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Name))
+                    .DistinctBy(x => x.Name)
+                    .OrderBy(c => c.Name)
+                   .Select(a => a.Name)
+                    .ToList();
+        AllArtistsIR.ItemsSource = OnlyArtName;
+
+        var listOfOnlyFirstLetterOfArtist = OnlyArtName.Select(x => x.First()).Distinct();
+        ListOfFirstLetters.ItemsSource = listOfOnlyFirstLetterOfArtist.ToList();
     }
 
     private void MyImagePickerBtn_Click(SplitButton sender, SplitButtonClickEventArgs args)
@@ -355,7 +364,7 @@ public sealed partial class EditSongPage : Page
     {
         ChooseImageFromOtherSongsInAlbum_Click(sender, args);
     }
-    private void UniqueLetterToScrollTo_Click(object sender, RoutedEventArgs e)
+    private async void UniqueLetterToScrollTo_Click(object sender, RoutedEventArgs e)
     {
         var send = (Button)sender;
         var letter = (char)send.DataContext;
@@ -364,27 +373,53 @@ public sealed partial class EditSongPage : Page
         var artists = AllArtistsIR.ItemsSource as List<string>;
         if (artists == null || artists.Count == 0) return;
 
-        var firstArtist = artists.FirstOrDefault(a => !string.IsNullOrWhiteSpace(a));
+        var firstArtist = artists.FirstOrDefault(a => a.First() == letter);
         //var lastArtist = artists.LastOrDefault(a => !string.IsNullOrWhiteSpace(a));
 
         if (firstArtist == null) return;
-        //if (lastArtist == null) return;
-
-
-        //e.
-        //var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        //if (props is null) return;
-        //if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
-        //{
-        //    MyViewModel?.ScrollToSpecificSongCommand.Execute(MyViewModel.CurrentPlayingSongView);
-        //}
-
-        // Scroll into view
-        AllArtistsIR.ScrollIntoView(firstArtist);
+        
+        await AllArtistsIR.SmoothScrollIntoViewWithItemAsync(firstArtist);
     }
 
-    private void ScrollToFirstOrLastArtist_PointerPressed(object sender, PointerRoutedEventArgs e)
+
+    private void RemoveArtistFromSelection_Clicked(object sender, RoutedEventArgs e)
     {
+        var artNameFontIcon = (Button)sender;
+        var artName = artNameFontIcon.DataContext as string;
+        if(artName == null) return;
+        selectedItems.Remove(artName);
+    }
+
+    private void ArtistToSong_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    List<string> selectedItems;
+    private void AllArtistsIR_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+        var selectedStrings = e.AddedItems.Cast<string>().ToList();
+        var unSelectedStrings = e.RemovedItems.Cast<string>().ToList();
+
+        if (selectedItems is null && selectedStrings is not null)
+        {        
+            selectedItems =selectedStrings;
+            ArtistsToBeAdded.ItemsSource = selectedStrings;
+            return;
+        }
+
+        if (selectedStrings?.Count > 0)
+        {            
+            selectedItems?.Add(selectedStrings);
+        }
+        
+        if (selectedItems is null)return;
+        ArtistsToBeAdded.ItemsSource = selectedItems.ToList();
+
+        if (unSelectedStrings.Count == 0)return;
+        selectedItems.RemoveMany(unSelectedStrings);
+        ArtistsToBeAdded.ItemsSource = selectedItems.ToList();
+
 
     }
 }

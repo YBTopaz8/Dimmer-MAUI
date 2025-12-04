@@ -5,13 +5,11 @@ public partial class StatisticsViewModel : ObservableObject
 {
     private readonly StatisticsService _statsService;
     private readonly ILogger<StatisticsViewModel> _logger;
-    public readonly IMapper _mapper;
 
-    public StatisticsViewModel(StatisticsService statsService,IMapper mapper, ILogger<StatisticsViewModel> logger)
+    public StatisticsViewModel(StatisticsService statsService, ILogger<StatisticsViewModel> logger)
     {
         _statsService = statsService;
         _logger = logger;
-        _mapper = mapper;
 
         // Initialize the collection for the UI's filter picker
         AvailableFilters = new ObservableCollection<DateRangeFilter>(Enum.GetValues<DateRangeFilter>());
@@ -72,7 +70,7 @@ public partial class StatisticsViewModel : ObservableObject
         {
             // Clear old stats to prevent showing stale data
             ClearAllStats();
-            LibraryStats = _statsService.GetLibraryStatistics(SelectedFilter, _mapper);
+            LibraryStats = _statsService.GetLibraryStatistics(SelectedFilter);
         }
         catch (Exception ex)
         {

@@ -1,7 +1,7 @@
 ﻿using Fastenshtein;
 
 
-namespace Dimmer.DimmerSearch.TQL;
+namespace Dimmer.DimmerSearch.TQLActions;
 
 
 public class AstEvaluator

@@ -19,7 +19,7 @@
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
 		<Optimize>false</Optimize>
-		<AndroidLinkSkip>Dimmer;AutoMapper;Realm;System.Reactive</AndroidLinkSkip>
+		<AndroidLinkSkip>Dimmer;Dimmer.Droid;Realm;System.Reactive;CommunityToolkit.Mvvm;System.Linq.Expressions</AndroidLinkSkip>
 		<OutputPath>bin\Release\</OutputPath>
 
 		<!-- FIX 1: Disable Resource Shrinking temporarily -->
@@ -46,6 +46,7 @@
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.11.0" />
 
 

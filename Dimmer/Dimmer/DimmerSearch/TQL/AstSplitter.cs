@@ -11,11 +11,38 @@ public static class AstSplitter
 
         // This is no longer needed as the MetaParser will now use the master AST
         // for the in-memory predicate. We can simplify this.
-        var inMemoryNode = new ClauseNode("any", "matchall", ""); // Placeholder
-
+        var inMemoryNode = GenerateInMemoryTree(root);
         return new SplitAst(dbNode, inMemoryNode);
     }
+    private static IQueryNode GenerateInMemoryTree(IQueryNode node)
+    {
+        switch (node)
+        {
+            case LogicalNode n:
+                return new LogicalNode(GenerateInMemoryTree(n.Left), n.Operator, GenerateInMemoryTree(n.Right));
 
+            case NotNode n:
+                // If we are negating a DB node, the DB handled the exclusion. 
+                // In memory, we treat this as "True" (Pass).
+                if (IsDatabaseNode(n.NodeToNegate))
+                    return new ClauseNode("any", "matchall", "");
+
+                return new NotNode(GenerateInMemoryTree(n.NodeToNegate));
+
+            case RandomChanceNode:
+            case DaypartNode:
+                // Keep these for memory execution
+                return node;
+
+            default:
+                // If it's a DB node (Clause/FuzzyDate), it's already filtered. 
+                // Return "True" so we don't double-check it.
+                if (IsDatabaseNode(node))
+                    return new ClauseNode("any", "matchall", "");
+
+                return node;
+        }
+    }
     private static IQueryNode CloneAndFilter(IQueryNode node, Func<IQueryNode, bool> filter)
     {
         
@@ -52,12 +79,10 @@ public static class AstSplitter
 {
     ClauseNode => true,
     FuzzyDateNode => true,
-    // Everything else is considered an in-memory-only leaf node.
-    RandomChanceNode => false,
-    DaypartNode => false,
+   
 
     // For logical/container nodes, this isn't a leaf, so we traverse deeper.
     // Returning true here ensures we don't prematurely replace them.
-    _ => true
+    _ => false
 };
 }

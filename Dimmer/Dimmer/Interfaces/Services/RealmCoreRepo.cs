@@ -161,8 +161,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// Deletes an object from the database using its primary key.
     /// </summary>
     /// <param name="id">The ObjectId of the entity to delete.</param>
-    public void Delete(T Entity)
+    public void Delete(T? Entity)
     {
+        if(Entity is null) return;
         ObjectId id = Entity.Id;
         ExecuteWrite(realm =>
         {

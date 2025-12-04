@@ -6,13 +6,11 @@ namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public class DuplicateFinderService : IDuplicateFinderService
 {
     private readonly IRealmFactory _realmFactory;
-    private readonly IMapper _mapper;
     private readonly ILogger<DuplicateFinderService> _logger;
 
-    public DuplicateFinderService(IRealmFactory realmFactory, IMapper mapper, ILogger<DuplicateFinderService> logger)
+    public DuplicateFinderService(IRealmFactory realmFactory,  ILogger<DuplicateFinderService> logger)
     {
         _realmFactory = realmFactory;
-        _mapper = mapper;
         _logger = logger;
     }
 
@@ -66,12 +64,12 @@ public class DuplicateFinderService : IDuplicateFinderService
             );
 
             // Add our designated "Original" to the set
-            set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(originalSong), DuplicateStatus.Original));
+            set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original));
 
             // Add all other songs from the group as "Duplicates"
             foreach (var duplicateSongModel in group.Where(s => s.Id != originalSong.Id))
             {
-                set.Items.Add(new DuplicateItemViewModel(_mapper.Map<SongModelView>(duplicateSongModel), DuplicateStatus.Duplicate));
+                set.Items.Add(new DuplicateItemViewModel(duplicateSongModel, DuplicateStatus.Duplicate));
             }
             // --- END REFACTORED LOGIC ---
 
@@ -199,9 +197,9 @@ public class DuplicateFinderService : IDuplicateFinderService
     }
 
 
-    public async Task<LibraryValidationResult> ValidateMultipleFilesPresenceAsync(IList<SongModelView>? allSongs)
+    public async Task<LibraryValidationResult> ValidateMultipleFilesPresenceAsync(IEnumerable<SongModelView>? allSongs)
     {
-        if (allSongs == null || allSongs.Count == 0)
+        if (allSongs == null || allSongs.Count() == 0)
         {
             return new LibraryValidationResult
             {
@@ -210,7 +208,7 @@ public class DuplicateFinderService : IDuplicateFinderService
             };
         }
 
-        _logger.LogInformation("Starting file presence validation for {Count} songs.", allSongs.Count);
+        _logger.LogInformation("Starting file presence validation for {Count} songs.", allSongs.Count());
 
 
         var missingSongs = new ConcurrentBag<SongModelView>();
@@ -233,7 +231,7 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         return new LibraryValidationResult
         {
-            ScannedCount = allSongs.Count,
+            ScannedCount = allSongs.Count(),
             MissingSongs = missingSongViews
         };
     }
@@ -320,7 +318,7 @@ public class DuplicateFinderService : IDuplicateFinderService
                     // Remove the ghost record after its data has been safely merged.
                     realm.Remove(ghostRealmObj);
                 });
-                var updatedReplacementView = _mapper.Map<SongModelView>(realm.Find<SongModel>(replacementSong.Id));
+                var updatedReplacementView = realm.Find<SongModel>(replacementSong.Id).ToSongModelView();
                 migratedDetails.Add(new MigrationDetail(ghostSong, updatedReplacementView));
             }
             else

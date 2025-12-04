@@ -11,7 +11,7 @@ public interface IDimmerPlayEventRepository : IRepository<DimmerPlayEvent>
     /// <param name="startDate">The optional start date of the range (inclusive).</param>
     /// <param name="endDate">The optional end date of the range (exclusive).</param>
     /// <returns>A collection of play events that fall within the date range.</returns>
-    IQueryable<DimmerPlayEvent> GetEventsInDateRangeAsync(DateTimeOffset? startDate, DateTimeOffset? endDate);
+    List<DimmerPlayEvent> GetEventsInDateRangeAsync(DateTimeOffset? startDate, DateTimeOffset? endDate);
 
     /// <summary>
     /// Efficiently retrieves all play events for a single song.

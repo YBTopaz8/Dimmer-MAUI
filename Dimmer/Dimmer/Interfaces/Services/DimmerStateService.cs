@@ -29,14 +29,12 @@ public partial class DimmerStateService : IDimmerStateService
     private readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
     private readonly BehaviorSubject<double> _deviceVolume = new(1.0);
 
-    private readonly IMapper _mapper;
     private readonly CompositeDisposable _disposables = new();
 
     private readonly IDimmerAudioService _audioService;
 
-    public DimmerStateService(IMapper mapper, IDimmerAudioService audioService, IRepository<SongModel> songRepo)
+    public DimmerStateService(IDimmerAudioService audioService, IRepository<SongModel> songRepo)
     {
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
         // Initialize with default/empty values where appropriate
         _latestDeviceLog = new BehaviorSubject<AppLogModel>(new AppLogModel { Log = $"StateService Initialized. + {DateTimeOffset.UtcNow}" });

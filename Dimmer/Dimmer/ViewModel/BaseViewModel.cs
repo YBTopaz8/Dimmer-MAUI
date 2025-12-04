@@ -33,7 +33,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     
 
     public BaseViewModel(
-        IMapper mapper,
         IDimmerStateService dimmerStateService,
         MusicDataService musicDataService,
         IAppInitializerService appInitializerService,
@@ -63,7 +62,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _stateService = dimmerStateService ?? throw new ArgumentNullException(nameof(dimmerStateService));
         _dialogueService = dialogueService ?? throw new ArgumentNullException(nameof(dialogueService));
         this.lastfmService = _lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         this._musicDataService = musicDataService;
         this.appInitializerService = appInitializerService;
         _subsMgr = subsManager ?? new SubscriptionManager();
@@ -108,7 +106,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
         //PlaybackManager = new RuleBasedPlaybackManager();
 
-        PlaybackManager = new RuleBasedPlaybackManager(RealmFactory, _mapper);
+        PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
 
         SearchResultsHolder.Connect()
             .ObserveOn(RxSchedulers.UI) // Important for UI updates
@@ -322,20 +320,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                             query = query.OrderBy(orderByString);
                         }
 
-                        var mappedSongs = _mapper.Map<List<SongModelView>>(query);
+                        var mappedSongs = query.ToList().Select(x=>x.ToSongModelView());
                         var finalSongs = mappedSongs
                         .Where(plan.InMemoryPredicate)
                         .ToList();
                         Debug.WriteLine(
-                            $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count} to {finalSongs.Count} songs.");
+                            $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count()} to {finalSongs.Count} songs.");
                         Debug.WriteLine($"Current Query is {query.ElementType}" +
                             $"{plan.CommandNode}" +
-                            $"{plan.ErrorMessage}" +
-                            $"{plan.RqlFilter}" +
-                            $"{plan.InMemoryPredicate}" +
-                            $"{plan.SortDescriptions}" +
-                            $"{plan.Shuffle}" +
-                            $"{plan.Limiter}"
+                            $"ERROR {plan.ErrorMessage}" +
+                            $"RQL FILTER {plan.RqlFilter}" +
+                            $"IN MEM PRED {plan.InMemoryPredicate}" +
+                            $"SORT DESC {plan.SortDescriptions}" +
+                            $"SHUF {plan.Shuffle}" +
+                            $"LIM {plan.Limiter}"
 
 
                             );
@@ -429,7 +427,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                     {
                                         UserModel usr = usrs.First();
                                         usr.UserName = lastfmService.AuthenticatedUser;
-                                        usr.LastFMAccountInfo ??= _mapper.Map<LastFMUser>(LastFMUserInfo);
+                                        usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser();
 
                                         db.Add(usr, true);
                                     }
@@ -853,7 +851,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     if (songModel != null)
                     {
                         // Step 2: If found, map the database model to a view model for the UI.
-                        CurrentPlayingSongView = songModel.ToModelView(_mapper);
+                        CurrentPlayingSongView = songModel.ToSongModelView();
                     }
                     else
                     {
@@ -880,7 +878,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     Application.Current?.UserAppTheme = AppTheme.Light;
                 }
 
-                var songsLinked = _mapper.Map<List<SongModelView>>(lastAppEvent.SongsLinkingToThisEvent);
+                var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x=>x.ToSongView());
                 PlaybackQueueSource.Edit(
                     updater =>
                     {
@@ -898,7 +896,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         try
                         {
 
-                            CurrentPlayingSongView = _mapper.Map<SongModelView>(lastSong);
+                            CurrentPlayingSongView = lastSong.ToSongView();
                         }
                         catch (Exception ex)
                         {
@@ -906,7 +904,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                             Debug.WriteLine(ex.Message);
                         }
 
-                        //RxSchedulers.UI.Schedule(()=> CurrentPlayingSongView = lastSong.ToModelView(_mapper));
+                        //RxSchedulers.UI.Schedule(()=> CurrentPlayingSongView = lastSong.ToModelView());
                     }
                     else
                     {
@@ -1047,7 +1045,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private ICoverArtService _coverArtService;
 
-    public IMapper _mapper;
     private readonly MusicDataService _musicDataService;
     private IAppInitializerService appInitializerService;
     protected IDimmerStateService _stateService;
@@ -1259,7 +1256,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial LyricPhraseModelView? NextLine { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<DimmerPlayEventView> DimmerPlayEventList { get; set; } = new();
+    public partial ObservableCollection<DimmerPlayEventView?>? DimmerPlayEventList { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } = new();
@@ -2011,11 +2008,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         });
         realm = RealmFactory.GetRealmInstance();
         var allSongsFromDb = realm.All<SongModel>();
-        var songsToProcess = _mapper.Map<List<SongModelView>>(allSongsFromDb);
+        var songsToProcess = allSongsFromDb.AsEnumerable().Select(x=>x.ToSongView());
 
         using var semaphore = new SemaphoreSlim(8); // Limit to 8 concurrent operations
         int processed = 0;
-        int total = songsToProcess.Count;
+        int total = songsToProcess.Count();
 
         var tasks = songsToProcess.Select(
             async song =>
@@ -2403,7 +2400,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 var song = evt.SongsLinkingToThisEvent.ToList().FirstOrDefault();
                 if (song is null) continue;
 
-                var songView = _mapper.Map<SongModelView>(song);
+                var songView = song.ToSongView();
                 RxSchedulers.UI.Schedule(() =>
                 {
                     PlaybackQueueSource.Add(songView);
@@ -2451,8 +2448,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
             }).ToList();
-        var allDimmsForSong = _mapper.Map<IEnumerable<DimmerPlayEventView>>(scrobblesInPeriod ?? new List<DimmerPlayEvent>());
-        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger, _mapper, RealmFactory);
+        var allDimmsForSong = scrobblesInPeriod.AsEnumerable().Select(x=> x.ToDimmerPlayEventView());
+        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger,  RealmFactory);
         if (!await _reportGenerator.GenerateReportAsync(startDate, endDate))
             return;
 
@@ -3860,7 +3857,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var realm = RealmFactory.GetRealmInstance();
         var artDb = realm.All<ArtistModel>().ToList().FirstOrDefault(x => x.Name == result);
 
-        DeviceStaticUtils.SelectedArtistOne = artDb.ToModelView(_mapper);
+        DeviceStaticUtils.SelectedArtistOne = artDb.ToArtistModelView();
 
 
         return true;
@@ -3900,7 +3897,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         Playlists.Clear();
         foreach (var pl in playlistsFromDb)
         {
-            Playlists.Add(_mapper.Map<PlaylistModelView>(pl));
+            Playlists.Add(pl.ToPlaylistModelView());
         }
     }
 
@@ -3914,7 +3911,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SongToEventsDict = allQSongs.ToDictionary(s => s, s => s.PlayHistory.ToList());
 
         var eventsFromDb = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Take(200).ToList();
-        DimmerPlayEventList = _mapper.Map<IEnumerable<DimmerPlayEventView>>(eventsFromDb).ToObservableCollection();
+        DimmerPlayEventList = eventsFromDb.AsEnumerable()
+            .Select(x=>x.ToDimmerPlayEventView()).ToObservableCollection();
 
         _logger.LogInformation("Loaded {Count} recent play events from the database.", DimmerPlayEventList.Count);
     }
@@ -3954,7 +3952,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (playlist == null)
             return;
-        _playlistRepo.Delete(_mapper.Map<PlaylistModel>(playlist));
+        _playlistRepo.Delete(playlist.ToPlaylistModel());
         Playlists.Remove(playlist);
     }
 
@@ -4143,7 +4141,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         foreach (var alb in allAlbs)
         {
             
-            AllAlbumsInDb.Add(alb.ToModelView(_mapper));
+            AllAlbumsInDb.Add(alb.ToAlbumModelView());
         }
         _logger.LogInformation("Loaded {AlbumCount} albums from the database.", AllAlbumsInDb.Count);
     }
@@ -4193,9 +4191,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // Phase 1: Data Preparation
         var allDimmerEvents = realm.All<DimmerPlayEvent>()
             .ToList();
-        var dimmerEventViewEnum = _mapper.Map<IEnumerable<DimmerPlayEventView>>(allDimmerEvents);
+        var dimmerEventViewEnum = allDimmerEvents.AsEnumerable().Select(x=>x.ToDimmerPlayEventView());
         var allSongs = realm.All<SongModel>().ToList();
-        _reportGenerator = new ListeningReportGenerator(allSongs, dimmerEventViewEnum, _logger, _mapper, RealmFactory);
+        _reportGenerator = new ListeningReportGenerator(allSongs, dimmerEventViewEnum, _logger,  RealmFactory);
         await GenerateWeeklyReportAsync();
     }
 
@@ -4215,8 +4213,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //.OrderBy(p => p.EventDate) // Important for sequential analysis
             .ToList();
         var allSongs = realm.All<SongModel>().ToList();
-        var allDimmsForSong = _mapper.Map<IEnumerable<DimmerPlayEventView>>(scrobblesInPeriod ?? new List<DimmerPlayEvent>());
-        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger, _mapper, RealmFactory);
+        var allDimmsForSong = scrobblesInPeriod.AsEnumerable().Select(x=>x.ToDimmerPlayEventView());
+        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger,  RealmFactory);
         await GenerateWeeklyReportAsync();
     }
 
@@ -4456,7 +4454,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogWarning("UpdateSongInDB called with invalid SongModelView.");
             return;
         }
-        var songModel = songModelView.ToModel(_mapper);
+        var songModel = songModelView.ToSongModel();
         if (songModel == null)
         {
             _logger.LogWarning("UpdateSongInDB: Could not map SongModelView to SongModel.");
@@ -4478,7 +4476,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             "Rating song '{SongTitle}' with new rating: {NewRating}",
             CurrentPlayingSongView.Title,
             newRating);
-        var songModel = CurrentPlayingSongView.ToModel(_mapper);
+        var songModel = CurrentPlayingSongView.ToSongModel();
         if (songModel == null)
         {
             _logger.LogWarning("RateSong: Could not map CurrentPlayingSongView to SongModel.");
@@ -4492,14 +4490,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
             _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
-        _stateService.SetCurrentSong(song.ToModelView(_mapper));
+        _stateService.SetCurrentSong(song.ToSongModelView());
     }
 
     [RelayCommand]
     public void ToggleArtistAsFavorite(ArtistModelView artist)
     {
         artist.IsFavorite = !artist.IsFavorite;
-        BaseAppFlow.UpsertArtist(artist.ToModel(_mapper));
+        BaseAppFlow.UpsertArtist(artist.ToArtistModel());
     }
     
 
@@ -4507,7 +4505,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ToggleAlbumAsFavorite(AlbumModelView album)
     {
         album.IsFavorite = !album.IsFavorite;
-        BaseAppFlow.UpsertAlbum(album.ToModel(_mapper));
+        BaseAppFlow.UpsertAlbum(album.ToAlbumModel());
     }
 
     [RelayCommand]
@@ -4518,7 +4516,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             concernedSong.IsFavorite = false;
             concernedSong.ManualFavoriteCount = 0;
             concernedSong.NumberOfTimesFaved = 0;
-            var updated = await Task.Run(() => songRepo.Upsert(concernedSong.ToModel(_mapper)).ToModelView(_mapper));
+            var updated = await Task.Run(() => songRepo.Upsert(concernedSong.ToSongModel()).ToSongModelView());
             if (updated is not null)
                 RxSchedulers.UI.Schedule(() => concernedSong = updated);
             await lastfmService.UnloveTrackAsync(concernedSong);
@@ -4561,7 +4559,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 songModel.ManualFavoriteCount + (songModel.PlayCompletedCount / 4);
 
             // persist Realm update off-UI thread
-            var updated = await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)).ToModelView(_mapper));
+            var updated = await Task.Run(() => songRepo.Upsert(songModel.ToSongModel()).ToSongModelView());
             if (updated is not null)
                 RxSchedulers.UI.Schedule(() => songModel =updated);
 
@@ -4599,7 +4597,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             songModel.IsFavorite = false;
 
             // 3. Move the synchronous DB work to a background thread.
-            await Task.Run(() => songRepo.Upsert(songModel.ToModel(_mapper)));
+            await Task.Run(() => songRepo.Upsert(songModel.ToSongModel()));
         }
         catch (Exception ex)
         {
@@ -4647,7 +4645,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     newPlaylistModel.QueryText = PlQuery;
                     newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
 
-                    //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel(_mapper)).Distinct());
+                    //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel()).Distinct());
 
                     realm.Add(newPlaylistModel, true);
                 });
@@ -5031,7 +5029,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var allSongsFromDb = await songRepo.GetAllAsync();
             var validationResult = await Task.Run(
                 () => _duplicateFinderService.ValidateMultipleFilesPresenceAsync(
-                    _mapper.Map<List<SongModelView>>(allSongsFromDb)));
+                    allSongsFromDb.AsEnumerable().Select(x => x.ToSongModelView())));
 
             if (validationResult.MissingCount == 0)
             {
@@ -5091,7 +5089,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 return;
             }
             _logger.LogInformation("Found {Count} songs in the library to reconcile.", allSongs.Count);
-            var songItems = _mapper.Map<IEnumerable<SongModelView>>(allSongs);
+            var songItems = allSongs.AsEnumerable().Select(x=>x.ToSongView());
             var result = await Task.Run(() => _duplicateFinderService.ReconcileLibraryAsync(songItems));
 
             if (result.MigratedCount == 0 && result.UnresolvedCount == 0)
@@ -5269,7 +5267,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (SelectedSong is null)
             return string.Empty;
 
-       
             var rawTitle = SelectedSong.Title ?? string.Empty;
             LyricsTrackNameSearch = CleanSongTitle(rawTitle);
         
@@ -5487,7 +5484,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _ =>
             {
             }); // Trigger update
-        var updatedSongView = _mapper.Map<SongModelView>(songRepo.GetById(song.Id));
+        var updatedSongView = songRepo.GetById(song.Id).ToSongView();
         //MasterListContext.SetSearchQuery(MasterListContext.CurrentTqlQuery);
     }
     #endregion
@@ -5928,7 +5925,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await _musicDataService.UpdateSongAlbum(
             context.Song.Id,context.Name,
             context.Song.Artist.Name);
-       SelectedSong = _mapper.Map<SongModelView>(songRepo.GetById(context.Song.Id));
 
     }
 
@@ -5941,8 +5937,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             string.Join(", ", artistNames),
             songId);
         await _musicDataService.UpdateSongArtists(songId, artistNames);
-        var updatedSong = _mapper.Map<SongModelView>(songRepo.GetById(songId));
-        SelectedSong = updatedSong;
+        var updatedSong = songRepo.GetById(songId).ToSongModelView();
+        
     }
 
     public async Task AssignSongToGenreAsync((SongModelView Song, GenreModelView TargetGenre) context)
@@ -5991,7 +5987,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
 
 
-        var updatedSong = _mapper.Map<SongModelView>(songRepo.GetById(context.Song.Id));
+        var updatedSong = songRepo.GetById(context.Song.Id).ToSongModelView();
         //MasterListContext.SetSearchQuery(MasterListContext.CurrentTqlQuery);
         //CurrentViewContext.SetSearchQuery(CurrentViewContext.CurrentTqlQuery);
         // Maybe even show a notification
@@ -6384,7 +6380,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         };
 
         var createdSegmentModel = songRepo.Create(segmentModel);
-        var createdSegmentView = _mapper.Map<SongModelView>(createdSegmentModel);
+        var createdSegmentView = createdSegmentModel.ToSongModelView();
 
         IsCreatingSegment = false;
     }
@@ -6407,8 +6403,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             CurrentPlayingSongView.Title);
     }
 
+    [RelayCommand]
+    public async Task FetchSongOnlineOnLastFM(SongModelView song)
+    {
+        var cleanTitle = StaticUtils.CleanTitle(song.FilePath, song.Title, song.AlbumName, song.ArtistName);
+        string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
+        LastFMTrackOnEditPage = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
+    }
+
+
+
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? ListOfUserRecentTracks { get; set; }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? LastFMTrackOnEditPage { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? ListOfSimilarTracks { get; set; }
@@ -7198,7 +7207,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 }
             });
-        await LoadUserLastFMDataAsync();
+        //await LoadUserLastFMDataAsync();
     }
 
 
@@ -7689,7 +7698,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var lastSavedPlaySession = realm.All<PlaylistModel>().LastOrDefault();
         if (lastSavedPlaySession is null) return null;
         
-        return _mapper.Map<PlaylistModelView>(lastSavedPlaySession);
+        return lastSavedPlaySession.ToPlaylistModelView();
     }
 
 
@@ -7697,6 +7706,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         await _lyricsMgtFlow.GetLyrics(concernedSong);
     }
+
+
+    #region Dimms Section
+
+
+    #endregion
 }
 
 

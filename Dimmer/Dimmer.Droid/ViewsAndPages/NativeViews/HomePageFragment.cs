@@ -419,7 +419,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     
     public void PageFAB_Click(object? sender, EventArgs e)
     {
-
+        var graphFrag = new GraphExplorerFragment(MyViewModel);
+        ParentFragmentManager.BeginTransaction()
+            .Replace(TransitionActivity.MyStaticID, graphFrag)
+            .AddToBackStack(null)
+            .Commit();
+        return;
 
         var bottomSheetDialog = new BottomSheetDialog(Context!);
 

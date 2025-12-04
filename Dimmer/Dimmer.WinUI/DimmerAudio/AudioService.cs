@@ -20,7 +20,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private static readonly Lazy<AudioService> lazyInstance = new(() => new AudioService());
     public static IDimmerAudioService Current => lazyInstance.Value;
 
-    private readonly MediaPlayer _mediaPlayer;
+    private readonly MediaPlayer _mediaPlayer; 
+    private readonly MediaPlayer _ambiencePlayer;
     private readonly DispatcherQueue _dispatcherQueue;
     private CancellationTokenSource? _initializationCts;
     private SongModelView? _currentTrackMetadata;
@@ -58,6 +59,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         };
 
+        _ambiencePlayer = new MediaPlayer
+        {
+            AudioCategory = MediaPlayerAudioCategory.GameMedia, // 'GameMedia' often mixes better as background fx
+            IsLoopingEnabled = true, // Crucial: Rain must loop forever
+            Volume = 0.5 // Default starting volume
+        };
+        _ambiencePlayer.CommandManager.IsEnabled = false;
 
         SubscribeToPlayerEvents();
         SubscribeToSystemEvents();
@@ -372,6 +380,69 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public SongModelView? CurrentTrackMetadata => _currentTrackMetadata;
 
+    private bool _isAmbienceEnabled = false;
+
+    private double _ambienceVolume = 0.5;
+    public double AmbienceVolume
+    {
+        get => _ambienceVolume;
+        set
+        {
+            // Clamp and set
+            double clamped = Math.Clamp(value, 0.0, 1.0);
+            if (SetProperty(ref _ambienceVolume, clamped))
+            {
+                if (_ambiencePlayer != null)
+                {
+                    _ambiencePlayer.Volume = clamped;
+                }
+            }
+        }
+    }
+
+    public async Task InitializeAmbienceAsync(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            return;
+
+        try
+        {
+            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
+            var source = MediaSource.CreateFromStorageFile(file);
+
+            // Create item and set to player
+            _ambiencePlayer.Source = new MediaPlaybackItem(source);
+
+            Debug.WriteLine($"[AudioService] Ambience loaded: {filePath}");
+
+            // If music is already playing and ambience is enabled, start it immediately
+            if (IsPlaying && _isAmbienceEnabled)
+            {
+                _ambiencePlayer.Play();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AudioService] Failed to load ambience: {ex.Message}");
+        }
+    }
+
+    public void ToggleAmbience(bool isEnabled)
+    {
+        _isAmbienceEnabled = isEnabled;
+
+        if (_ambiencePlayer.Source == null) return;
+
+        if (isEnabled && IsPlaying)
+        {
+            _ambiencePlayer.Play();
+        }
+        else
+        {
+            _ambiencePlayer.Pause();
+        }
+    }
+
     #endregion
 
     #region Core Playback Methods (Async)
@@ -516,7 +587,10 @@ success = true;
             Debug.WriteLine("[AudioService] PlayAsync executing.");
             _mediaPlayer.Play();
             _mediaPlayer.Position = TimeSpan.FromSeconds(pos);
-
+            if (_isAmbienceEnabled && _ambiencePlayer.Source != null)
+            {
+                _ambiencePlayer.Play();
+            }
         }
         catch (Exception ex)
         {
@@ -540,7 +614,10 @@ success = true;
             {
                 Debug.WriteLine("[AudioService] PauseAsync executing.");
                 _mediaPlayer.Pause();
-
+                if (_ambiencePlayer.PlaybackSession.CanPause)
+                {
+                    _ambiencePlayer.Pause();
+                }
             }
             catch (Exception ex)
             {
@@ -574,8 +651,8 @@ success = true;
         Duration = 0;
         UpdatePlaybackState(DimmerPlaybackState.PausedDimmer);
 
-
-        _initializationCts?.Cancel();
+            _ambiencePlayer.Pause();
+            _initializationCts?.Cancel();
         _initializationCts?.Dispose();
         _initializationCts = null;
 
@@ -804,7 +881,7 @@ success = true;
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
     {
         Debug.WriteLine($"[AudioService] MediaEnded: {_currentTrackMetadata?.Title ?? "Unknown"}");
-
+        _ambiencePlayer.Pause();
         CurrentPosition = Duration;
         UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
 
@@ -942,6 +1019,7 @@ success = true;
 
 
             _mediaPlayer.AudioDevice = deviceInfo;
+            _ambiencePlayer.AudioDevice = deviceInfo;
             _currentAudioDeviceId = deviceInfo?.Id;
             Debug.WriteLine($"[AudioService] Audio output device set to: {deviceInfo?.Name ?? "System Default"} (ID: {_currentAudioDeviceId})");
         }
@@ -1127,6 +1205,13 @@ success = true;
         _controller?.Dispose();
 
         UnsubscribeFromPlayerEvents();
+        try
+        {
+            _ambiencePlayer?.Pause();
+            _ambiencePlayer?.Source = null;
+            _ambiencePlayer?.Dispose();
+        }
+        catch { /* Ignore ambience dispose errors */ }
 
 
         _mediaPlayer?.Dispose();

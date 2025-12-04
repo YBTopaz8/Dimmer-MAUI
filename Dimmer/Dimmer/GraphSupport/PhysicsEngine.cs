@@ -1,17 +1,20 @@
 ﻿using SkiaSharp;
 
-namespace Dimmer.ViewsAndPages.GraphSupport;
+namespace Dimmer.GraphSupport;
 
 
 public class PhysicsEngine
 {
     readonly Graph graph;
-    const float springStiffness = 200f;
+    const float springStiffness = 150f;
     const float springRest = 140f;
     const float repulsionStrength = 9000f;
-    const float damping = 0.85f;
-    const float maxMove = 100f;
+    const float DAMPING = 0.50f;
+    const float MAX_SPEED = 50f; 
+    const float CENTER_GRAVITY = 0.05f;
 
+    const float SPRING_LEN = 150f;      // Ideal length of edges
+    const float SPRING_K = 0.05f;       // Strength of edges (Lower = looser)
     public PhysicsEngine(Graph graph)
     {
         this.graph = graph;
@@ -20,45 +23,91 @@ public class PhysicsEngine
 
     public void Update(float dt)
     {
-        foreach (var n in graph.Nodes) n.Force = new SKPoint(0, 0);
-
-        // parent-child springs
-        foreach (var n in graph.Nodes)
-            foreach (var child in n.Children)
-                if (graph.Nodes.Contains(child)) ApplySpring(n, child, springRest, springStiffness);
-
-        // repulsion
-        var nodes = graph.Nodes;
-        for (int i = 0; i < nodes.Count; i++)
-            for (int j = i + 1; j < nodes.Count; j++)
-                ApplyRepulsion(nodes[i], nodes[j]);
-
         foreach (var n in graph.Nodes)
         {
-            var ax = n.Force.X;
-            var ay = n.Force.Y;
-            n.Velocity = new SKPoint((n.Velocity.X + ax * dt) * damping, (n.Velocity.Y + ay * dt) * damping);
-            var vx = System.Math.Max(-maxMove, System.Math.Min(maxMove, n.Velocity.X));
-            var vy = System.Math.Max(-maxMove, System.Math.Min(maxMove, n.Velocity.Y));
-            n.Velocity = new SKPoint(vx, vy);
-            n.Position = new SKPoint(n.Position.X + n.Velocity.X * dt * 60f, n.Position.Y + n.Velocity.Y * dt * 60f);
+            n.Force = SKPoint.Empty;
+
+            // Pull stragglers back to center so graph doesn't drift
+            if (!n.IsFixed)
+            {
+                n.Force.X -= n.Position.X * CENTER_GRAVITY;
+                n.Force.Y -= n.Position.Y * CENTER_GRAVITY;
+            }
+        }
+        var nodes = graph.Nodes.ToArray();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            var a = nodes[i];
+            for (int j = i + 1; j < nodes.Length; j++)
+            {
+                var b = nodes[j];
+                ApplyRepulsion(a, b);
+            }
+        }
+
+        // 3. Springs (Parents pull Children)
+        foreach (var n in nodes)
+        {
+            foreach (var child in n.Children)
+            {
+                if (graph.Nodes.Contains(child))
+                {
+                    ApplySpring(n, child);
+                }
+            }
+        }
+
+        // 4. Apply Physics to Position
+        foreach (var n in nodes)
+        {
+            // If Fixed (Root), don't move
+            if (n.IsFixed)
+            {
+                n.Velocity = SKPoint.Empty;
+                continue;
+            }
+
+            // F = ma (assuming mass = 1) -> v += F * dt
+            n.Velocity.X += n.Force.X * dt;
+            n.Velocity.Y += n.Force.Y * dt;
+
+            // Apply Damping (Friction)
+            n.Velocity.X *= DAMPING;
+            n.Velocity.Y *= DAMPING;
+
+            // Clamp Velocity (Prevent explosions)
+            n.Velocity.X = Math.Clamp(n.Velocity.X, -MAX_SPEED, MAX_SPEED);
+            n.Velocity.Y = Math.Clamp(n.Velocity.Y, -MAX_SPEED, MAX_SPEED);
+
+            // Apply to Position
+            n.Position.X += n.Velocity.X;
+            n.Position.Y += n.Velocity.Y;
         }
     }
 
-    void ApplySpring(Node a, Node b, float rest, float k)
+
+    static void ApplySpring(Node a, Node b)
     {
         var dx = b.Position.X - a.Position.X;
         var dy = b.Position.Y - a.Position.Y;
-        var dist = (float)System.Math.Sqrt(dx * dx + dy * dy);
-        if (dist < 0.001f) dist = 0.001f;
-        var diff = dist - rest;
-        var fx = (k * diff) * (dx / dist);
-        var fy = (k * diff) * (dy / dist);
-        a.Force = new SKPoint(a.Force.X + fx, a.Force.Y + fy);
-        b.Force = new SKPoint(b.Force.X - fx, b.Force.Y - fy);
+        var dist = (float)Math.Sqrt(dx * dx + dy * dy);
+
+        if (dist < 0.1f) dist = 0.1f; // Prevent div by zero
+
+        // Hooke's Law: F = -k * (x - L)
+        var displacement = dist - SPRING_LEN;
+        var force = SPRING_K * displacement;
+
+        var fx = (dx / dist) * force;
+        var fy = (dy / dist) * force;
+
+        a.Force.X += fx;
+        a.Force.Y += fy;
+        b.Force.X -= fx;
+        b.Force.Y -= fy;
     }
 
-    void ApplyRepulsion(Node a, Node b)
+    static void ApplyRepulsion(Node a, Node b)
     {
         var dx = b.Position.X - a.Position.X;
         var dy = b.Position.Y - a.Position.Y;

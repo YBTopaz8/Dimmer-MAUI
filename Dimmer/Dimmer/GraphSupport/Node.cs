@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace Dimmer.ViewsAndPages.GraphSupport;
+namespace Dimmer.GraphSupport;
 
 public class Node
 {
@@ -9,16 +9,17 @@ public class Node
     public SKPoint Position;
     public SKPoint Velocity;
     public SKPoint Force;
+    public SKColor Color;
     public float Radius = 40;
     public List<Node> Children = new List<Node>();
-    public Node Parent;
+    public Node? Parent;
     public bool IsExpanded = false;
-
+    public bool IsFixed = false;
     public Node(string id, string label)
     {
         Id = id;
         Label = label;
-        Position = new SKPoint(0, 0);
+        Position = new SKPoint(0.1f, 0.1f);
         Velocity = new SKPoint(0, 0);
         Force = new SKPoint(0, 0);
     }

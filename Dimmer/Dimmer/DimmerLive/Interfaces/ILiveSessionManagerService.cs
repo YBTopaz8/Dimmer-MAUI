@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DimmerSearch.Interfaces;
+﻿namespace Dimmer.DimmerLive.Interfaces;
 
 public interface ILiveSessionManagerService
 {

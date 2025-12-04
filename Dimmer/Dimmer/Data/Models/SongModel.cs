@@ -234,6 +234,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public int RestartCount { get;  set; }
     public DateTimeOffset DiscoveryDate { get;  set; }
 }
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class SyncLyrics : EmbeddedObject
 {
     /// <summary>
@@ -255,6 +256,7 @@ public partial class SyncLyrics : EmbeddedObject
 
 
 }
+[Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class UserNoteModel : EmbeddedObject
 {
 
