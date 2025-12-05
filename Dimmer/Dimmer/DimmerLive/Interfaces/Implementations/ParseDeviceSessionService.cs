@@ -98,9 +98,9 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         }
     }
 
-    public async Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerSharedSong currentSongState)
+    public async Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerPlayEventView currentSongView)
     {
-        if (targetDevice is null || currentSongState is null || _authService.CurrentUser is null)
+        if (targetDevice is null || currentSongView is null || _authService.CurrentUserValue is null)
         {
             _logger.LogWarning("Aborting session transfer due to missing data.");
             return;
@@ -110,38 +110,28 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
         try
         {
-            // 1. Tell the server to make the target device the new active one.
-            var parameters = new Dictionary<string, object> { { "selectedDeviceSessionObjectId", targetDevice.ObjectId } };
-            await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>("setActiveChatDevice", parameters);
+            // 1. Create Metadata Payload
+            var metadata = new Dictionary<string, object>
+        {
+            { "Title", currentSongView.SongName },
+            { "ArtistName", currentSongView.ArtistName },
+            { "AlbumName", currentSongView.AlbumName },
+            { "SongId", currentSongView.SongId?.ToString() }, // Send ID to lookup locally on other device
+            { "CoverImagePath", currentSongView.CoverImagePath }
+        };
 
-            // 2. Save the song state object to get a pointer
-            await currentSongState.SaveAsync();
-            var songPointer = ParseClient.Instance.CreateObjectWithoutData<DimmerSharedSong>(currentSongState.ObjectId);
+            var parameters = new Dictionary<string, object>
+        {
+            { "targetSessionId", targetDevice.ObjectId },
+            { "songMetadata", metadata },
+            { "position", currentSongView.PositionInSeconds }
+        };
 
-            
+            // 2. Call Cloud Code
+            // This creates the DimmerSharedSong and the ChatMessage on the server side
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<Dictionary<string, object>>("initiateSessionTransfer", parameters);
 
-            // 3. Create and send the transfer message
-            var message = new ChatMessage
-            {
-                Text = $"Session transfer for '{currentSongState.Title}'",
-                MessageType = "SessionTransfer",
-                UserSenderId = _authService.CurrentUserValue!.ObjectId,
-                UserName = _authService.CurrentUserValue!.Username,
-                TargetDeviceSessionId = targetDevice.ObjectId, 
-            };
-
-            // IMPORTANT: Set an ACL so ONLY the target user (which is ourself) can read it.
-            // This prevents other users from ever seeing these system messages.
-            var acl = new ParseACL(ParseUser.CurrentUser)
-            {
-                
-                PublicReadAccess = false,
-                PublicWriteAccess  = false
-            };
-            message.ACL = acl;
-
-            await message.SaveAsync();
-            _logger.LogInformation("SessionTransfer message sent successfully.");
+            _logger.LogInformation("SessionTransfer initiated via Cloud.");
         }
         catch (Exception ex)
         {
@@ -167,29 +157,98 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             OnSessionTransferMessageReceived);
     }
 
-
     private async void OnSessionTransferMessageReceived(ChatMessage message)
     {
         _logger.LogInformation("Received targeted SessionTransfer message.");
 
-        //var songPointer = message.Get<ParseObject>("SharedSong");
-        //if (songPointer != null)
-        //{
-        //    try
-        //    {
-        //        var sharedSong = await songPointer.FetchAsync() as DimmerSharedSong;
-        //        if (sharedSong != null)
-        //        {
-        //            // Fire the observable for the ViewModel to catch
-        //            _incomingTransfers.OnNext(sharedSong);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Failed to fetch shared song from transfer message.");
-        //    }
-        //}
+        // The message contains a Pointer to 'DimmerSharedSong'
+        var songPointer = message.Get<ParseObject>("sharedSong");
+
+        if (songPointer != null)
+        {
+            try
+            {
+                // Fetch the metadata object
+                // Since we stripped the audio file, this is a very small/fast fetch
+                var sharedSongObj = await songPointer.FetchAsync();
+
+                // Map ParseObject back to your DimmerSharedSong model or View Model
+                // Assuming you have a DimmerSharedSong subclass of ParseObject:
+                if (sharedSongObj is DimmerSharedSong sharedSong)
+                {
+                    _incomingTransfers.OnNext(sharedSong);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch shared song metadata.");
+            }
+        }
     }
+
+    public async Task<string> CreateBackupAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Requesting Cloud Backup...");
+
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("generateCloudBackup", null);
+
+            if (result.ContainsKey("success") && (bool)result["success"])
+            {
+                var count = result["count"];
+                _logger.LogInformation($"Backup created successfully. Events archived: {count}");
+                return "Backup Successful";
+            }
+            return "Backup Failed";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating cloud backup");
+            return "Error";
+        }
+    }
+
+    public async Task<List<ParseObject>> GetAvailableBackupsAsync()
+    {
+        if (_authService.CurrentUserValue == null) return new List<ParseObject>();
+
+        try
+        {
+            var query = new ParseQuery<ParseObject>(ParseClient.Instance,"UserBackup")
+                .WhereEqualTo("user", _authService.CurrentUserValue)
+                .OrderByDescending("createdAt");
+
+            var backups = await query.FindAsync();
+            return backups.ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch backups.");
+            return new List<ParseObject>();
+        }
+    }
+
+    public async Task RestoreBackupAsync(string backupObjectId)
+    {
+        try
+        {
+            var parameters = new Dictionary<string, object>
+        {
+            { "backupObjectId", backupObjectId }
+        };
+
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("restoreCloudBackup", parameters);
+
+            _logger.LogInformation("Restore completed.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error restoring backup");
+        }
+    }
+
+
 
     public void StopListeners()
     {

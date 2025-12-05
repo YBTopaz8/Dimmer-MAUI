@@ -45,8 +45,36 @@ public class DimmerMultiWindowCoordinator
         Debug.WriteLine("[Coordinator] Home window set: {home.Title}");
 
         winUIMgrService.TrackWindow(home);
+        _homeWindow.Activated += HomeWindow_Activated;
     }
 
+    private void HomeWindow_Activated(object sender, Microsoft.UI.Xaml.WindowActivatedEventArgs args)
+    {
+        // If the window is becoming active (Foreground)
+        if (args.WindowActivationState != WindowActivationState.Deactivated)
+        {
+            if (_homeWindow == null) return;
+
+            var appWin = PlatUtils.GetAppWindow(_homeWindow);
+
+            // Standard Windows "Minimized" coordinates are usually -32000
+            // We check if it's way off-screen
+            if (appWin.Position.X <= -30000 || appWin.Position.Y <= -30000)
+            {
+                Debug.WriteLine("[Coordinator] Window detected off-screen! Forcing restore.");
+
+                // 1. Move it to a safe default position (e.g., 100,100 or center)
+                appWin.Move(new Windows.Graphics.PointInt32(100, 100));
+
+                // 2. Force the state
+                if (appWin.Presenter.Kind == Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped)
+                {
+                    // Toggle minimize/restore to force redraw
+                    ((Microsoft.UI.Windowing.OverlappedPresenter)appWin.Presenter).Restore(true);
+                }
+            }
+        }
+    }
 
 
     public void TrackWindow(Window win)

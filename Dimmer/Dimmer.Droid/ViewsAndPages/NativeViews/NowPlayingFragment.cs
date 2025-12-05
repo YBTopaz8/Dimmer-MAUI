@@ -85,7 +85,7 @@ public partial class NowPlayingFragment : Fragment
         var infoStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical, LayoutParameters = new LinearLayout.LayoutParams(0, -2, 1f) };
         infoStack.SetPadding(20, 0, 20, 0);
         _miniTitle = new TextView(ctx) { TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
-        _miniArtist.SetSingleLine(true);
+        _miniTitle.SetSingleLine(true);
 
         _miniArtist = new TextView(ctx) { TextSize = 12};
         _miniArtist.SetSingleLine(true);
@@ -95,7 +95,14 @@ public partial class NowPlayingFragment : Fragment
         _miniPlayBtn = new ImageView(ctx) { LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)) };
         _miniPlayBtn.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
         _miniPlayBtn.Click += async (s, e) => await MyViewModel.PlayPauseToggleAsync();
-
+        _miniPlayBtn.LongClick += (s, e) =>
+        {
+            var popup = new PopupMenu(Context, _miniPlayBtn);
+            if (popup is null) return;
+            popup.Menu.Add("Add to Favorites");
+            popup.Menu.Add("Go to Artist");
+            popup.Show();
+        };
         layout.AddView(_miniArt); layout.AddView(infoStack); layout.AddView(_miniPlayBtn);
         return layout;
     }
@@ -115,8 +122,32 @@ public partial class NowPlayingFragment : Fragment
         var card = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(20), Elevation = 10, LayoutParameters = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(350)) };
         CoverImageView = new ImageView(ctx) { LayoutParameters = new ViewGroup.LayoutParams(-1, -1) };
         CoverImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
+
+        CoverImageView.Clickable = true;
+        CoverImageView.Click += (s, e) =>
+        {
+            // 1. Trigger the ViewModel event
+            MyViewModel.TriggerScrollToCurrentSong();
+
+            // 2. Collapse the sheet so the user can see the scrolling happen
+            (Activity as TransitionActivity)?.CollapsePlayer();
+
+            // 3. Optional: Show a small toast
+            Toast.MakeText(ctx, "Locating song...", ToastLength.Short)?.Show();
+        };
+
+
+
         card.AddView(CoverImageView);
         stack.AddView(card);
+
+
+        var volumeLabel = new MaterialTextView(ctx) { Text = "Volume", TextSize = 12, Gravity = GravityFlags.Center };
+        stack.AddView(volumeLabel);
+
+        VolumeSlider = new Slider(ctx) { ValueFrom = 0f, ValueTo = 1f, Value = 0.5f };
+        stack.AddView(VolumeSlider);
+
 
         // Info
         SongTitle = new MaterialTextView(ctx) { TextSize = 24, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };

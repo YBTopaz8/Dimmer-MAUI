@@ -9,6 +9,7 @@ using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
+using Dimmer.UIUtils;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
@@ -925,23 +926,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-
+    //called to trigger toggling
+    public virtual void ToggleDimmerTheme()
+    {
+        
+    }
+    public virtual CurrentAppTheme GetCurrentAppTheme()
+    {
+        return CurrentTheme;
+    }
+    [ObservableProperty]
+    public partial CurrentAppTheme CurrentTheme { get; set; }
     [RelayCommand]
     public void ToggleAppTheme()
     {
-        var currentAppTheme = Application.Current?.UserAppTheme;
-        if (currentAppTheme == AppTheme.Dark)
-        {
-            Application.Current?.UserAppTheme = AppTheme.Light;
-        }
-        else if (currentAppTheme == AppTheme.Light)
-        {
-            Application.Current?.UserAppTheme = AppTheme.Dark;
-        }
-        else if (currentAppTheme == AppTheme.Unspecified)
-        {
-            Application.Current?.UserAppTheme = AppTheme.Dark;
-        }
+        ToggleDimmerTheme();
 
         //save to db for next boot
         using var realm = RealmFactory.GetRealmInstance();
@@ -954,7 +953,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var setting = existingSettings.FirstOrDefault();
                     if (setting != null)
                     {
-                        setting.IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark;
+                        setting.IsDarkModePreference = CurrentTheme == CurrentAppTheme.Dark;
+                        setting.AppTheme = (int)CurrentTheme;
                     }
                     else
                     {
@@ -2264,7 +2264,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
-        await FindDuplicatesForSongAsync(CurrentPlayingSongView);
+        await _audioService.SendNextSong(CurrentPlayingSongView);
     }
     #endregion
 
@@ -2992,21 +2992,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             
 
-            //if (result == "Remove from Queue")
-            //{
-            //    await RemoveFromQueue(songToPlay);
-            //}
-            //else if (result == "Skip to Next")
-            //{
-            //    await NextTrackAsync();
-            //    return;
-            //}
-            //else
-            //{
-            //    // User cancelled or closed the dialog
-            //    _logger.LogInformation("User cancelled action after playback failure for '{Title}'.", songToPlay.Title);
-            //}
-
             await NextTrackAsync();
         }
     }
@@ -3191,6 +3176,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         await PlaySongAtIndexAsync(nextIndex);
+    }
+
+    public async Task PrepareNextTrackAsync(SongModelView nextSong)
+    {
+
+        var NextSongIndex = GetNextIndexInQueue(1);
+        var nextSongInQueue = _playbackQueue[NextSongIndex];
+        await _audioService.SendNextSong(nextSongInQueue);
+        
     }
 
     [RelayCommand]
@@ -5267,34 +5261,44 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (SelectedSong is null)
             return string.Empty;
 
-            var rawTitle = SelectedSong.Title ?? string.Empty;
-            LyricsTrackNameSearch = CleanSongTitle(rawTitle);
-        
+        // 1. Process locally (don't set class properties)
+        var title = CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        var artist = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
 
-            var rawArtist = SelectedSong.ArtistName ?? string.Empty;
-            LyricsArtistNameSearch = GetPrimaryArtist(rawArtist);
-        
-            var rawAlbum = SelectedSong.AlbumName ?? string.Empty;
+        // Album is often "noise" for lyric searches. Only include it if it's very specific.
+        // Ideally, for lyrics, Artist + Title is usually the strongest query.
+        var album = SelectedSong.AlbumName ?? string.Empty;
+        var validAlbum = !IsGenericAlbumName(album) ? album : string.Empty;
 
-            
-            if (!IsGenericAlbumName(rawAlbum))
-            {
-                LyricsAlbumNameSearch = rawAlbum;
-            }
-            else
-            {
-                LyricsAlbumNameSearch = string.Empty;
-            }
-        
+        // 2. Build the list, filtering out empties immediately
+        var searchParts = new List<string>();
 
-        // 4. Construct Query
-        // Using string.Join ensures we don't have double spaces if one field is empty
-        var parts = new[] { LyricsTrackNameSearch, LyricsArtistNameSearch, LyricsAlbumNameSearch };
-        var query = string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p))).Trim();
+        if (!string.IsNullOrWhiteSpace(title)) searchParts.Add(title);
+        if (!string.IsNullOrWhiteSpace(artist)) searchParts.Add(artist);
+        // Optional: Only add album if the others are too short, or maybe exclude it entirely for lyrics
+        // if (!string.IsNullOrWhiteSpace(validAlbum)) searchParts.Add(validAlbum); 
 
-        return query;
+        // 3. Join and Return
+        return string.Join(" ", searchParts).Trim();
+    }
+    [RelayCommand]
+    public void AutoFillSearchFields()
+    {
+        if (SelectedSong is null) return;
+
+        // Now we explicitly update the UI properties because the user ASKED for it
+        LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title);
+        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName);
+
+        var rawAlbum = SelectedSong.AlbumName;
+        LyricsAlbumNameSearch = !IsGenericAlbumName(rawAlbum) ? rawAlbum : string.Empty;
     }
 
+    // Then your search method just reads the properties, which might have been manually edited
+    public string GetCurrentSearchText()
+    {
+        return $"{LyricsTrackNameSearch} {LyricsArtistNameSearch} {LyricsAlbumNameSearch}".Trim();
+    }
     #region Helper Methods for Sanitation
 
     private string CleanSongTitle(string title)

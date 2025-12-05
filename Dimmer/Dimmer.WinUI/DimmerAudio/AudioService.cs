@@ -4,6 +4,7 @@
 using AudioSwitcher.AudioApi.CoreAudio;
 using AudioSwitcher.AudioApi;
 using DeviceType = AudioSwitcher.AudioApi.DeviceType;
+using System.Threading.Tasks;
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -19,6 +20,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private static readonly Lazy<AudioService> lazyInstance = new(() => new AudioService());
     public static IDimmerAudioService Current => lazyInstance.Value;
+
+    private MediaPlaybackList _playbackList;
 
     private readonly MediaPlayer _mediaPlayer; 
     private readonly MediaPlayer _ambiencePlayer;
@@ -51,6 +54,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread()
             ?? throw new InvalidOperationException("AudioService must be initialized on a thread with a DispatcherQueue (typically the UI thread).");
 
+
+
+        _playbackList = new MediaPlaybackList();
+        _playbackList.CurrentItemChanged += PlaybackList_CurrentItemChanged;
+
+
         _mediaPlayer = new MediaPlayer
         {
             AudioCategory = MediaPlayerAudioCategory.Media,
@@ -78,6 +87,15 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
 
         _ = Task.Run(async () => await GetSetUpOutPutDevices());
+    }
+
+    private void PlaybackList_CurrentItemChanged(MediaPlaybackList sender, CurrentMediaPlaybackItemChangedEventArgs args)
+    {
+
+        if (args.NewItem == null) return;
+        var props = args.NewItem.GetDisplayProperties();
+
+
     }
 
     private async Task GetSetUpOutPutDevices()
@@ -445,6 +463,14 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #endregion
 
+
+    public async Task SendNextSong(SongModelView nextSong)
+    {
+        var mediaPBItem = await CreateMediaPlaybackItemAsync(nextSong);
+        _playbackList.Items.Add(mediaPBItem);
+
+    }
+
     #region Core Playback Methods (Async)
 
     /// <summary>
@@ -487,11 +513,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             OnPropertyChanged(nameof(CurrentTrackMetadata));
 
 
-
-
-
-
-            _mediaPlayer.Source = null;
+            _mediaPlayer.Pause();
+            _playbackList.Items.Clear();
             Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer paused and source nulled.");
 
 
@@ -505,13 +528,16 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
                 if (mediaPlaybackItem != null)
                 {
+                    _playbackList.Items.Clear(); // Clear previous queue
+                    _playbackList.Items.Add(mediaPlaybackItem);
+                    success = true;
 
-                    _mediaPlayer.Source = mediaPlaybackItem;
-
-success = true; 
-
-                    Play(pos);
-
+                    if (pos > 0)
+                    {
+                        _mediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(pos);
+                    }
+                    _mediaPlayer.Source = _playbackList;
+                    _mediaPlayer.Play();
                     Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened", songModel.Title);
                 }
                 else
@@ -762,9 +788,9 @@ success = true;
             var props = mediaPlaybackItem.GetDisplayProperties();
             props.Type = MediaPlaybackType.Music;
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
-            props.MusicProperties.Artist = media.OtherArtistsName ?? "Unknown Artist";
+            props.MusicProperties.Artist = media.Id.ToString();
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-                
+            props.MusicProperties.AlbumArtist = media.ArtistName;
             if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
             {
                 try

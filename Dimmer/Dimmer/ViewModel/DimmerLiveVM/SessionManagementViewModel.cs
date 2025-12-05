@@ -67,11 +67,12 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             _logger.LogError(ex, "Failed to register device for session transfer.");
         }
     }
-
-    public async Task TransferToDevice(UserDeviceSession targetDevice, SongModelView song)
+    [RelayCommand]
+    public async Task TransferToDevice(UserDeviceSession targetDevice)
     {
-
-        if (targetDevice == null || _mainViewModel.CurrentPlayingSongView == null)
+        // 1. Validate we have a song
+        var currentSong = _mainViewModel.CurrentPlayingSongView;
+        if (targetDevice == null || currentSong == null)
         {
             StatusMessage = "No song is playing to transfer.";
             return;
@@ -80,78 +81,76 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         IsTransferInProgress = true;
         StatusMessage = $"Sending session to {targetDevice.DeviceName}...";
 
+        // 2. Map SongModelView to DimmerPlayEventView (or whatever your Service expects)
+        // Your Service expects 'DimmerPlayEventView', so let's create a temporary one or map it.
+        var songEventView = new DimmerPlayEventView
+        {
+            SongName = currentSong.Title,
+            ArtistName = currentSong.ArtistName,
+            AlbumName = currentSong.AlbumName,
+            SongId = currentSong.Id, // CRITICAL: This ID allows the other device to find the file
+            CoverImagePath = currentSong.CoverImagePath,
+            PositionInSeconds = _mainViewModel.CurrentTrackPositionSeconds,
+            IsFav = currentSong.IsFavorite
+        };
 
-
-        //var stream = await File.ReadAllBytesAsync(song.FilePath);
-
-        //ParseChatService.GetSongMimeType(song, out var mimeType, out var fileExtension);
-
-        //ParseFile songFile = new ParseFile($"{song.Title}.{song.FileFormat}", stream, mimeType);
-
-        //await songFile.SaveAsync(ParseClient.Instance);
-
-        await _sessionManager.InitiateSessionTransferAsync(targetDevice, null);
+        // 3. Pass the object, NOT null
+        await _sessionManager.InitiateSessionTransferAsync(targetDevice, songEventView);
 
         IsTransferInProgress = false;
+        StatusMessage = "Transfer request sent.";
     }
 
-    // This method is called when this device (Device B) receives a request
+
     private async void HandleIncomingTransferRequest(DimmerSharedSong request)
     {
-        var songInfo = request;
-
-        // Show a UI prompt to the user
+        // UI Prompt
         bool accept = await Shell.Current.DisplayAlert(
             "Session Transfer",
-            $"Accept session for '{songInfo.Title}' ?",
-            "Accept", "Decline"
+            $"Resume '{request.Title}' from {request.Uploader?.Username ?? "remote device"}?",
+            "Yes", "No"
         );
 
-        if (!accept)
-            return;
+        if (!accept) return;
 
-        StatusMessage = $"Downloading '{songInfo.Title}'...";
+        StatusMessage = "Syncing playback...";
 
-        // This is a simplified download. A real implementation would use a
-        // dedicated download manager to handle progress, retries, etc.
         try
         {
-            var httpClient = new HttpClient();
-            var fileBytes = await httpClient.GetByteArrayAsync(songInfo.AudioFile.Url);
+            // --- NEW LOGIC: Metadata Only ---
 
-            // Save the file to a local temp path
-            string tempPath = Path.Combine(FileSystem.CacheDirectory, songInfo.AudioFile.Name);
-            await File.WriteAllBytesAsync(tempPath, fileBytes);
+            // 1. Try to find the song locally on THIS device
+            // You need a method in your MainViewModel or DataService to find a song by ID or Title
+            var localSong = _mainViewModel.SearchResults.FirstOrDefault(s => s.Id.ToString() == request.OriginalSongId)
+                            ?? _mainViewModel.SearchResults.FirstOrDefault(s => s.Title == request.Title && s.ArtistName == request.ArtistName);
 
-            StatusMessage = "Download complete! Starting playback...";
-
-            // Now, tell the main ViewModel to play this downloaded song
-            // You need a way to create a SongModelView from a temp file and metadata
-            var newSong = new SongModelView
+            if (localSong != null)
             {
-                Title = songInfo.Title,
-                ArtistName = songInfo.ArtistName,
-                AlbumName = songInfo.AlbumName,
-                FilePath = tempPath,
-                // ... map other properties
-            };
+                StatusMessage = "Song found locally. Playing...";
 
-            await _mainViewModel.PlayTransferredSongAsync(newSong, songInfo.SharedPositionInSeconds ?? 0);
-            // This is a crucial method you'll need in BaseViewModel
-            await _mainViewModel.PlaySong(newSong);
-            var sharedPosition = songInfo.SharedPositionInSeconds ?? 0;
+                // 2. Play the LOCAL file
+                await _mainViewModel.PlaySong(localSong);
 
-            _mainViewModel.SeekTrackPosition(sharedPosition);
+                // 3. Seek to position
+                if (request.SharedPositionInSeconds.HasValue)
+                {
+                    _mainViewModel.SeekTrackPosition(request.SharedPositionInSeconds.Value);
+                }
 
-            // Let Device A know we got it.
-            await _sessionManager.AcknowledgeTransferCompleteAsync(songInfo);
-
-            StatusMessage = "Playback started!";
+                // 4. Acknowledge
+                await _sessionManager.AcknowledgeTransferCompleteAsync(request);
+            }
+            else
+            {
+                // Fallback: If song not found locally, maybe search YouTube/Spotify?
+                StatusMessage = "Song file not found on this device.";
+                await Shell.Current.DisplayAlert("Missing File", $"Could not find '{request.Title}' on this device.", "OK");
+            }
         }
         catch (Exception ex)
         {
-            StatusMessage = "Error during transfer. Please try again.";
             _logger.LogError(ex, "Session transfer failed.");
+            StatusMessage = "Transfer failed.";
         }
     }
     public void Dispose()
@@ -160,60 +159,28 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         _sessionManager.StopListeners(); // Important
     }
     [RelayCommand]
-    public async Task BackUpDeviceRealmFile()
+    public async Task BackUpDataToCloud()
     {
-        // 1. Get the ACTIVE Realm instance to find the path
-        // We don't use 'using' here because we don't want to close the UI's connection
-        var realm = _mainViewModel.RealmFactory.GetRealmInstance();
-
-        var sourcePath = realm.Config.DatabasePath;
-        var tempPath = Path.Combine(FileSystem.CacheDirectory, "upload_temp.realm");
-
-        // Ensure temp file is clean
-        if (File.Exists(tempPath)) File.Delete(tempPath);
+        if (IsBusy) return;
+        IsBusy = true;
+        StatusMessage = "Generating Cloud Backup...";
 
         try
         {
-            IsBusy = true; // Optional: Show loading indicator
 
-            // 2. THE BYPASS FIX:
-            // Instead of realm.WriteCopy(), we manually copy the bytes.
-            // FileShare.ReadWrite is the magic flag that lets us read a locked file.
-            using (var sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var destStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
-            {
-                await sourceStream.CopyToAsync(destStream);
-            }
 
-            // 3. Upload to Parse (Streamed)
-            using (var uploadStream = new FileStream(tempPath, FileMode.Open, FileAccess.Read))
-            {
-                var parseFile = new ParseFile($"{CurrentUser?.ObjectId}_backup.realm.back", uploadStream);
-                await parseFile.SaveAsync(ParseClient.Instance);
-
-                var backupObj = new ParseObject("UserBackup");
-                backupObj["user"] = CurrentUser;
-                backupObj["backupFile"] = parseFile;
-                backupObj["device"] = DeviceInfo.Name; // e.g. "Windows Desktop"
-                backupObj["appVersion"] = AppInfo.VersionString;
-
-                backupObj.ACL = new ParseACL(CurrentUser);
-                await backupObj.SaveAsync();
-            }
-
-            _logger.LogInformation("Backup successful.");
-            await Shell.Current.DisplayAlert("Success", "Backup uploaded successfully!", "OK");
+                var result = await _sessionManager.CreateBackupAsync();
+                StatusMessage = result;
+                await Shell.Current.DisplayAlert("Backup", result, "OK");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Backup failed");
-            await Shell.Current.DisplayAlert("Error", "Backup failed: " + ex.Message, "OK");
+            _logger.LogError(ex, "Cloud backup failed");
+            StatusMessage = "Backup failed.";
         }
         finally
         {
             IsBusy = false;
-            // 4. Cleanup
-            if (File.Exists(tempPath)) File.Delete(tempPath);
         }
     }
 }

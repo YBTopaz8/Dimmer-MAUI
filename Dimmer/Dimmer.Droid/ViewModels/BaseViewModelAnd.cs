@@ -892,7 +892,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     #endregion
 
+    public System.Reactive.Subjects.Subject<System.Reactive.Unit> ScrollToCurrentSongRequest { get; }
+    = new System.Reactive.Subjects.Subject<System.Reactive.Unit>();
 
+    // 2. Helper method to trigger it
+    public void TriggerScrollToCurrentSong()
+    {
+        ScrollToCurrentSongRequest.OnNext(System.Reactive.Unit.Default);
+    }
 
     public MaterialTextView? CurrentDeviceLogTextView;
     public override void SetlatestDevicelog()

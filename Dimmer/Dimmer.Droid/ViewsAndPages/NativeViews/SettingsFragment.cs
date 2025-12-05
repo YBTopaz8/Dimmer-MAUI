@@ -282,7 +282,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         row.SetGravity(GravityFlags.CenterVertical);
         
         row.Clickable = true;
-        row.SetBackgroundResource(Android.Resource.Attribute.SelectableItemBackground);
+        
 
         var textLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         textLayout.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 8);
@@ -309,7 +309,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 10 };
         row.SetPadding(30, 30, 30, 30);
         row.SetGravity(GravityFlags.CenterVertical);
-        row.SetBackgroundResource(Android.Resource.Attribute.SelectableItemBackground);
+        
 
         var t1 = new TextView(ctx) { Text = title, TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
         t1.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6);

@@ -1,4 +1,5 @@
-﻿namespace Dimmer.DimmerLive.Interfaces;
+﻿
+namespace Dimmer.DimmerLive.Interfaces;
 
 public interface ILiveSessionManagerService
 {
@@ -9,8 +10,10 @@ public interface ILiveSessionManagerService
 
     Task RegisterCurrentDeviceAsync();
     Task MarkCurrentDeviceInactiveAsync();
-    Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerSharedSong currentSongState);
     void StartListeners();
     void StopListeners();
     Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong);
+    Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerPlayEventView currentSongView);
+    Task<string> CreateBackupAsync();
+    Task RestoreBackupAsync(string backupObjectId);
 }

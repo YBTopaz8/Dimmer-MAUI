@@ -254,6 +254,6 @@ public sealed partial class DimmerLivePage : Page
 
     private async void BackUpDeviceBtn_Click(object sender, RoutedEventArgs e)
     {
-       await MyViewModel.BackUpDeviceRealmFile();
+       await MyViewModel.BackUpDataToCloud();
     }
 }

@@ -63,9 +63,14 @@ public class SongDetailPage : Fragment
             if(MyViewModel.SelectedSecondDominantColor is not null)
             {
 
-                Color aColor = MyViewModel.SelectedSecondDominantColor.ToPlatform();
+                Color bgColor = MyViewModel.SelectedSecondDominantColor.ToPlatform();
                 
-                    root.SetBackgroundColor(aColor);
+                    root.SetBackgroundColor(bgColor);
+                double brightness = (0.299 * bgColor.R + 0.587 * bgColor.G + 0.114 * bgColor.B);
+
+                Color textColor = brightness > 0.5 ? Color.Black : Color.White;
+                Color secondaryColor = brightness > 0.5 ? Color.DarkGray : Color.LightGray;
+
 
             }
             else

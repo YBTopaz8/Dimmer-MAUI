@@ -137,4 +137,10 @@ public class DimmerSharedSong : ParseObject
         get => GetProperty<string>();
         set => SetProperty(value);
     }
+    [ParseFieldName("OriginalSongId")]
+    public string OriginalSongId
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 }

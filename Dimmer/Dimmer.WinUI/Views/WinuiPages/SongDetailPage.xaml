@@ -94,11 +94,20 @@
                         Spacing="20">
 
                         <!--  The elements involved in the animation  -->
-                        <Button
-                            x:Name="EditSongBtn"
-                            Click="EditSongBtn_Click"
-                            Content="Edit"
-                            FontSize="19" />
+                        <StackPanel Orientation="Horizontal" Spacing="15">
+
+                            <Button
+                                x:Name="EditSongBtn"
+                                Click="EditSongBtn_Click"
+                                Content="Edit"
+                                FontSize="19" />
+
+                            <Button
+                                x:Name="EditSongAudioBtn"
+                                Click="EditSongAudioBtn_Click"
+                                Content="Edit Audio"
+                                FontSize="19" />
+                        </StackPanel>
                         <Grid
                             x:Name="SectionOverview"
                             ColumnSpacing="10"

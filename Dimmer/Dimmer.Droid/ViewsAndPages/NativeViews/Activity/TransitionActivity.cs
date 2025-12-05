@@ -5,7 +5,10 @@ using AndroidX.CoordinatorLayout.Widget;
 using Dimmer.NativeServices;
 using Dimmer.Utilities.Extensions;
 
+using Google.Android.Material.BottomNavigation;
+using Google.Android.Material.Chip;
 using Google.Android.Material.Dialog;
+using Google.Android.Material.Navigation;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
@@ -46,6 +49,11 @@ public class TransitionActivity : AppCompatActivity
     Intent? _serviceIntent;
     private ExoPlayerServiceBinder? _binder;
     BaseViewModelAnd MyViewModel { get; set; }
+
+
+    public BottomNavigationView NavBar { get; private set; }
+
+
     public ExoPlayerServiceBinder? Binder
     {
         get => _binder
@@ -118,28 +126,37 @@ public class TransitionActivity : AppCompatActivity
         // 5. Backstack Listener for ViewModel
         SupportFragmentManager.BackStackChanged += (s, e) =>
         {
-            if (SupportFragmentManager.BackStackEntryCount == 0)
-            {
-                var homeFrag = SupportFragmentManager.FindFragmentByTag("HomePageFragment");
-                MyViewModel.CurrentPage = homeFrag as Fragment;
-            }
-            else
-            {
-                MyViewModel.CurrentPage = SupportFragmentManager.Fragments.LastOrDefault();
-            }
+            
+            Fragment current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
+            string tag = current?.Tag ?? "";
+
+            // Show Nav Bar ONLY on Home, Graph, or Settings. Hide on Detail/Player pages.
+            bool showNav = tag == "HomePageFragment" || tag == "GraphFragment" || tag == "SettingsFragment";
+            ToggleNavBar(showNav);
+
+            // 3. Update ViewModel (Keep your existing logic)
+            MyViewModel.CurrentPage = current;
         };
 
         CheckAndRequestPermissions();
+
+        //_contentContainer.Post(() => {
+        //    bool showNav = true; 
+        //    ToggleNavBar(showNav);
+        //});
     }
 
     private void SetupLayout()
     {
+        var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
+        var bgColor = currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.ParseColor("#F5F5F5");
         // Root Coordinator
         var coordinator = new CoordinatorLayout(this)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
         };
         coordinator.Id = View.GenerateViewId();
+        coordinator.SetBackgroundColor(bgColor);
 
         // A. Content Container (Home, Settings, etc.)
         _contentContainer = new FrameLayout(this)
@@ -149,13 +166,23 @@ public class TransitionActivity : AppCompatActivity
         };
         // Add bottom margin so the list isn't hidden behind the mini-player (approx 70dp)
         var contentParams = (CoordinatorLayout.LayoutParams)_contentContainer.LayoutParameters;
-        contentParams.BottomMargin = (int)(Resources.DisplayMetrics.Density * 70);
+        _contentContainer.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
+        _contentContainer.SetClipToPadding(false);
 
-        // **IMPORTANT**: Assign MyStaticID to this container so logic using it still works
+
         MyStaticID = _contentContainer.Id;
 
-        var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
-        _contentContainer.SetBackgroundColor(currentTheme == UiMode.NightYes ? Color.ParseColor("#3E3E42") : Color.ParseColor("#DAD9E0"));
+        NavBar = new BottomNavigationView(this)
+        {
+            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, ViewGroup.LayoutParams.WrapContent)
+            {
+                Gravity = (int)(GravityFlags.Bottom)
+            },
+            Elevation = 8 * Resources!.DisplayMetrics!.Density
+        };
+        NavBar.SetBackgroundColor(bgColor);
+        SetupNavItems();
+        NavBar.ItemSelected += NavBar_ItemSelected;
 
         // B. Bottom Sheet Container (Player)
         _sheetContainer = new FrameLayout(this)
@@ -164,8 +191,12 @@ public class TransitionActivity : AppCompatActivity
             LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
             Elevation = 16 * Resources.DisplayMetrics.Density,
             Clickable = true,
-            Focusable = true
+            Focusable = true,
+
+
         };
+        _sheetContainer.SetForegroundGravity(GravityFlags.Bottom);
+
         // Background must be solid to cover content
         _sheetContainer.SetBackgroundColor(currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.White);
 
@@ -178,6 +209,7 @@ public class TransitionActivity : AppCompatActivity
 
         // Add to Root
         coordinator.AddView(_contentContainer);
+        coordinator.AddView(NavBar);
         coordinator.AddView(_sheetContainer);
 
         SetContentView(coordinator);
@@ -185,8 +217,186 @@ public class TransitionActivity : AppCompatActivity
 
         AndroidX.Core.View.WindowCompat.SetDecorFitsSystemWindows(Window, false);
         AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(_contentContainer, new MyInsetsListener());
-        AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(_sheetContainer, new MySheetInsetsListener());
+        //AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(_sheetContainer, new MySheetInsetsListener());
+        NavBar.ViewTreeObserver.AddOnPreDrawListener(new NavLayoutListener(this));
+    }
 
+    private void SetupNavItems()
+    {
+        NavBar.Menu.Clear();
+
+        // 1. Home Item
+        // Create the state list programmatically (Selected = Filled, Default = Outlined)
+        var homeIcon = CreateStateListDrawable(
+            Resource.Drawable.musicaba,       // Filled/Selected Icon ID
+            Resource.Drawable.musicaa // Outlined/Unselected Icon ID
+        );
+        NavBar.Menu.Add(0, 100, 0, "Home").SetIcon(homeIcon);
+
+        // 2. Browser/Favs Item
+        var browserIcon = CreateStateListDrawable(
+            Resource.Drawable.heart,         // Filled
+            Resource.Drawable.heart  // Outlined
+        );
+        NavBar.Menu.Add(0, 101, 0, "Favs").SetIcon(browserIcon);
+
+        // 3. Settings Item
+        var settingsIcon = CreateStateListDrawable(
+            Resource.Drawable.settings, // Filled
+            Resource.Drawable.settings         // Outlined
+        );
+        NavBar.Menu.Add(0, 102, 0, "Settings").SetIcon(settingsIcon);
+
+        // Set the color tint logic (Active = Purple, Inactive = Gray)
+        int[][] states = new int[][]
+        {
+            new int[] { Android.Resource.Attribute.StateChecked }, // Checked
+            new int[] { -Android.Resource.Attribute.StateChecked } // Unchecked
+        };
+
+        int[] colors = new int[]
+        {
+            Color.ParseColor("#6200EE"), // Active Color (Purple)
+            Color.ParseColor("#757575")  // Inactive Color (Gray)
+        };
+
+        NavBar.ItemIconTintList = new Android.Content.Res.ColorStateList(states, colors);
+        NavBar.ItemTextColor = new Android.Content.Res.ColorStateList(states, colors);
+    }
+
+    // Helper to create the animation drawable
+    private Android.Graphics.Drawables.StateListDrawable CreateStateListDrawable(int filledResId, int outlinedResId)
+    {
+        var drawable = new Android.Graphics.Drawables.StateListDrawable();
+
+        // State: Checked (Selected)
+        drawable.AddState(
+            new int[] { Android.Resource.Attribute.StateChecked },
+            AndroidX.Core.Content.ContextCompat.GetDrawable(this, filledResId)
+        );
+
+        // State: Default (Unselected)
+        drawable.AddState(
+            new int[] { },
+            AndroidX.Core.Content.ContextCompat.GetDrawable(this, outlinedResId)
+        );
+
+        return drawable;
+    }
+    private void NavBar_ItemSelected(object? sender, NavigationBarView.ItemSelectedEventArgs e)
+    {
+        Fragment? selectedFrag = null;
+        string tag = "";
+
+        switch (e.Item.ItemId)
+        {
+            case 100: // Home
+                if (SupportFragmentManager.FindFragmentByTag("HomePageFragment") is { } existing)
+                {
+                    // Just pop back to it
+                    SupportFragmentManager.PopBackStack("HomePageFragment", 0);
+                    return;
+                }
+                selectedFrag = new HomePageFragment(MyViewModel);
+                tag = "HomePageFragment";
+                break;
+            case 101: // Browser
+                selectedFrag = new SongDetailPage(e.Item.ItemId.ToString(),MyViewModel);
+                tag = "GraphFragment";
+                break;
+            case 102: // Settings
+                selectedFrag = new SettingsFragment(e.Item.ItemId.ToString(),MyViewModel);
+                tag = "SettingsFragment";
+                break;
+                // Add Settings...
+        }
+
+        if (selectedFrag != null)
+        {
+            NavigateTo(selectedFrag, tag);
+        }
+    }
+    public void NavigateTo(Fragment fragment, string tag)
+    {
+        var trans = SupportFragmentManager.BeginTransaction();
+        trans.SetCustomAnimations(
+            Android.Resource.Animation.FadeIn,
+            Android.Resource.Animation.FadeOut,
+            Android.Resource.Animation.FadeIn,
+            Android.Resource.Animation.FadeOut);
+
+        trans.Replace(_contentContainer.Id, fragment, tag);
+        trans.AddToBackStack(tag);
+        trans.Commit();
+
+
+        // Update Nav Bar Visibility
+        // Example: Hide Nav Bar on "Now Playing" or specific deep dives
+        bool showNav = tag == "HomePageFragment" || tag == "GraphFragment";
+        ToggleNavBar(showNav);
+    }
+    public void ToggleNavBar(bool show)
+    {
+        if (NavBar == null || _sheetContainer == null) return;
+
+        // Calculate height: If NavBar.Height is 0, use density math (80dp)
+        int navHeight = NavBar.Height;
+        if (navHeight == 0) navHeight = (int)(80 * Resources.DisplayMetrics.Density);
+
+        var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
+
+        if (show)
+        {
+            if (NavBar.Visibility != ViewStates.Visible)
+            {
+                NavBar.Visibility = ViewStates.Visible;
+                NavBar.Alpha = 0f;
+                NavBar.Animate()?.Alpha(1f).SetDuration(200).Start();
+            }
+
+            // Apply Margin to lift Sheet ABOVE Nav Bar
+            if (sheetParams.BottomMargin != navHeight)
+            {
+                sheetParams.BottomMargin = navHeight;
+                _sheetContainer.LayoutParameters = sheetParams;
+                _sheetContainer.RequestLayout(); // Force UI Update
+            }
+        }
+        else
+        {
+            if (NavBar.Visibility == ViewStates.Visible)
+            {
+                NavBar.Animate()?.Alpha(0f).SetDuration(200).WithEndAction(new Java.Lang.Runnable(() =>
+                {
+                    NavBar.Visibility = ViewStates.Gone;
+                })).Start();
+            }
+
+            // Reset Margin to 0 (Rock Bottom)
+            if (sheetParams.BottomMargin != 0)
+            {
+                sheetParams.BottomMargin = 0;
+                _sheetContainer.LayoutParameters = sheetParams;
+                _sheetContainer.RequestLayout();
+            }
+        }
+    }
+
+    internal class NavLayoutListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    {
+        private readonly TransitionActivity _act;
+        public NavLayoutListener(TransitionActivity act) { _act = act; }
+
+        public bool OnPreDraw()
+        {
+            if (_act.NavBar.Height > 0)
+            {
+                _act.NavBar.ViewTreeObserver.RemoveOnPreDrawListener(this);
+                // Height is now known, apply the overlap fix
+                _act.ToggleNavBar(true);
+            }
+            return true;
+        }
     }
 
     class MyInsetsListener : Java.Lang.Object, AndroidX.Core.View.IOnApplyWindowInsetsListener
@@ -194,9 +404,8 @@ public class TransitionActivity : AppCompatActivity
         public AndroidX.Core.View.WindowInsetsCompat OnApplyWindowInsets(View? v, AndroidX.Core.View.WindowInsetsCompat? insets)
         {
             var bars = insets?.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.SystemBars());
-            // Apply padding to top (Status bar) and bottom (Nav bar)
-            // Note: For content, we might only need Top if the List handles Bottom padding internally
-            v.SetPadding(bars.Left, bars.Top, bars.Right, 0);
+            
+            v?.SetPadding(bars.Left, bars.Top, bars.Right, v.PaddingBottom);
             return AndroidX.Core.View.WindowInsetsCompat.Consumed;
         }
     }
@@ -545,9 +754,9 @@ public class TransitionActivity : AppCompatActivity
     }
     private void ShowCrashDialog(Exception ex)
     {
-        new MaterialAlertDialogBuilder(this)
-            .SetTitle("Startup Error")
-            .SetMessage($"Failed to load dependencies:\n{ex.Message}")
+        new MaterialAlertDialogBuilder(this)?
+            .SetTitle("Startup Error")?
+            .SetMessage($"Failed to load dependencies:\n{ex.Message}")?
             .SetPositiveButton("Close", (s, e) => FinishAffinity())
             .Show();
         

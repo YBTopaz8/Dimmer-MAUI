@@ -25,22 +25,22 @@ public partial class WrappedViewModel : ObservableObject
     }
 
     // --- PAGE 1: TOP SONG ---
-    [ObservableProperty] private SongModelView? _topSong;
-    [ObservableProperty] private string _topSongPlayCount;
-    [ObservableProperty] private string _topSongDuration;
-    [ObservableProperty] private ISeries[] _topSongDailyChart; // Specific chart for the top song
+    [ObservableProperty] public partial SongModelView? TopSong { get; set; }
+    [ObservableProperty] public partial string TopSongPlayCount {get;set;}
+    [ObservableProperty] public partial string TopSongDuration {get;set;}
+    [ObservableProperty] public partial ISeries[] TopSongDailyChart { get; set; }
 
     // --- PAGE 2: ARTIST & ALBUM ---
-    [ObservableProperty] private ArtistModelView? _topArtist;
-    [ObservableProperty] private AlbumModelView? _topAlbum;
-    [ObservableProperty] private ObservableCollection<DimmerStats> _top5Artists;
-    [ObservableProperty] private string _topArtistHours;
+    [ObservableProperty] public partial ArtistModelView? TopArtist {get;set;}
+    [ObservableProperty] public partial AlbumModelView? TopAlbum {get;set;}
+    [ObservableProperty] public partial ObservableCollection<DimmerStats> Top5Artists {get;set;}
+    [ObservableProperty] public partial string TopArtistHours {get;set;}
 
     // --- PAGE 3: SUMMARY ---
-    [ObservableProperty] private string _totalMinutes;
-    [ObservableProperty] private string _totalSongs;
-    [ObservableProperty] private string _musicPersonality; // e.g., "The Explorer"
-    [ObservableProperty] private ISeries[] _genreChart;
+    [ObservableProperty] public partial string TotalMinutes {get;set;}
+    [ObservableProperty] public partial string TotalSongs {get;set;}
+    [ObservableProperty] public partial string MusicPersonality { get; set; }
+    [ObservableProperty] public partial ISeries[] GenreChart { get; set; }
 
     public async Task InitializeAsync()
     {

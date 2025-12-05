@@ -244,7 +244,7 @@ internal class SongAdapter : RecyclerView.Adapter
         base.Dispose(disposing);
         if (disposing) _subscription.Dispose();
     }
-    ImageButton imgBtn;
+    ImageView imgBtn;
     LinearLayout row;
     MaterialTextView title;
     MaterialTextView artist;
@@ -287,12 +287,23 @@ internal class SongAdapter : RecyclerView.Adapter
         row.SetPadding(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
         row.SetGravity(GravityFlags.CenterVertical|GravityFlags.FillHorizontal);
 
+        var imageCard = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(8), // Round corners for image
+            CardElevation = 0,
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)) // Fixed size
+        };
+        var imgView = new ImageView(ctx)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
+        };
 
-        imgBtn = new ImageButton(ctx);
+        imgView.SetScaleType(ImageView.ScaleType.CenterCrop);
         
-        imgBtn.LayoutParameters = new LinearLayout.LayoutParams(150, 150);
-        imgBtn.SetBackgroundColor(Android.Graphics.Color.Transparent);
-        row.AddView(imgBtn);
+        imageCard.AddView(imgView);
+
+
+        row.AddView(imageCard);
 
         var textCol = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         title = new MaterialTextView(ctx) {  TextSize = 19 };
@@ -341,14 +352,14 @@ internal class SongAdapter : RecyclerView.Adapter
     class SongViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
     {
         public BaseViewModelAnd MyViewModel { get; }
-        public ImageButton ImageBtn { get; }
+        public ImageView ImageBtn { get; }
         public MaterialTextView SongTitle { get; }
         public MaterialTextView AlbumNameView { get; }
         public MaterialTextView ArtistNameView { get; }
         public MaterialTextView SongDurationView { get; }
         public View ContainerView => base.ItemView;
 
-        public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageButton img, MaterialTextView title, MaterialTextView album, MaterialTextView artistName, MaterialTextView songDurView)
+        public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageView img, MaterialTextView title, MaterialTextView album, MaterialTextView artistName, MaterialTextView songDurView)
             : base(itemView)
         {
             MyViewModel = vm;
@@ -436,19 +447,19 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public class ItemGestureListener : GestureDetector.SimpleOnGestureListener
     {   
-    public event Action<int,View, SongModelView>? SingleTap;
-    public event Action<int,View>? LongPressStage1;
-    public event Action<int,View>? LongPressStage2;
+        public event Action<int,View, SongModelView>? SingleTap;
+        public event Action<int,View>? LongPressStage1;
+        public event Action<int,View>? LongPressStage2;
 
-    private readonly RecyclerView recycler;
-    private readonly Handler handler = new Handler(Looper.MainLooper);
-    private int currentPos = -1;
+        private readonly RecyclerView recycler;
+        private readonly Handler handler = new Handler(Looper.MainLooper!);
+        private int currentPos = -1;
 
-    private const int Stage1Delay = 3000;
-    private const int Stage2Delay = 6000;
+        private const int Stage1Delay = 3000;
+        private const int Stage2Delay = 6000;
 
 
-         public ItemGestureListener(RecyclerView rv)
+        public ItemGestureListener(RecyclerView rv)
         {
             recycler = rv;
         }

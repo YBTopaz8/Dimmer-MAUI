@@ -100,8 +100,7 @@
 
             <!--  Bottom Chart (Abstract)  -->
             <Grid Grid.Row="2" Height="150">
-                <lvc:CartesianChart Series="{Binding TopSongDailyChart}" TooltipPosition="Hidden">
-                </lvc:CartesianChart>
+                <lvc:CartesianChart Series="{Binding TopSongDailyChart}" TooltipPosition="Hidden" />
             </Grid>
         </Grid>
     </Grid>

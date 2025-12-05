@@ -18,7 +18,7 @@ global using CommunityToolkit.Maui;
 
 global using Dimmer.WinUI.Views.MAUIPages;
 global using Dimmer.WinUI.Views.WinuiPages;
-
+global using Xabe.FFmpeg;
 global using WinUI.TableView;
 global using Dimmer.Data;
 global using Dimmer.DimmerSearch;

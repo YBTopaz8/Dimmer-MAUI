@@ -42,7 +42,7 @@ public static class PlatUtils
         int h = rect.Bottom - rect.Top;
 
         // 3) render into Bitmap
-        using var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+        using var bmp = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         using var g = Graphics.FromImage(bmp);
         IntPtr hdc = g.GetHdc();
         PrintWindow(hwnd, hdc, 0);

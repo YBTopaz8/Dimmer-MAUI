@@ -56,7 +56,7 @@ public partial class ChatViewModelAnd : ChatViewModel
     {
         NewMessageText = $"Transfer To {devv.DeviceName}";
         await SendMessageCommand.ExecuteAsync(null);
-        await sessionTransferViewModel.TransferToDevice(devv, baseViewModel.CurrentPlayingSongView);
+        await sessionTransferViewModel.TransferToDevice(devv);
 
         //await Shell.Current.GoToAsync("FriendsListPage");
     }

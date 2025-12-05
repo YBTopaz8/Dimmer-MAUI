@@ -1077,5 +1077,11 @@ public sealed partial class SongDetailPage : Page
 
 
     }
+
+    private void EditSongAudioBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        Frame?.Navigate(typeof(AudioEditorPage), MyViewModel.SelectedSong);
+    }
 }
 

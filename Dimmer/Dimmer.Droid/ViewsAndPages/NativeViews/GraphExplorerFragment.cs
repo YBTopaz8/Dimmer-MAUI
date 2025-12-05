@@ -1,5 +1,7 @@
 ﻿
 
+using System.Diagnostics;
+
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 

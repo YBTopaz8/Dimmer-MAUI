@@ -2,6 +2,8 @@
 
 
 
+using Dimmer.UIUtils;
+
 namespace Dimmer.Data.Models;
 
 [Dimmer.Utils.Preserve(AllMembers = true)]
@@ -50,6 +52,7 @@ public class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public string AllowLyricsContribution { get; set; }
     public string PreferredLyricsFormat { get; internal set; }
     public bool AllowBackNavigationWithMouseFour { get; internal set; }
+    public int AppTheme { get; internal set; }
 
     public AppStateModel()
     {

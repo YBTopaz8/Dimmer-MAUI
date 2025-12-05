@@ -129,7 +129,7 @@ public static class ServiceRegistration
 
         // Singletons for services that manage state and connections
         services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
-        services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
+        //services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
         services.AddSingleton<IFriendshipService, ParseFriendshipService>();
         services.AddSingleton<IChatService, ParseChatService>();
 

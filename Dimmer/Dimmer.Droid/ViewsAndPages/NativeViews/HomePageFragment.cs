@@ -1,4 +1,7 @@
-﻿using Android.Graphics;
+﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+
+using Android.Graphics;
 using Android.Views.InputMethods;
 
 using Bumptech.Glide;
@@ -95,7 +98,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchBar.SetPadding(40, 30, 40, 30);
 
         searchCard.AddView(_searchBar);
-        root.AddView(searchCard);
 
         // 2. RecyclerView
         _songListRecycler = new RecyclerView(ctx);
@@ -164,18 +166,34 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
         if (currentlyPlayingIndex >= 0)
             _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+
+        MyViewModel.ScrollToCurrentSongRequest
+        .ObserveOn(RxSchedulers.UI) // Ensure runs on UI thread
+        .Subscribe(_ =>
+        {
+            if (_songListRecycler != null && _adapter != null)
+            {
+                var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+                if (index >= 0)
+                {
+                    // Smooth scroll looks nicer
+                    _songListRecycler.SmoothScrollToPosition(index);
+
+                    // Flash the item? (Requires access to ViewHolder, maybe for later)
+                }
+            }
+        })
+        .DisposeWith(CompositeDisposables);
     }
-   
-    
+
+    protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();
 
     public override void OnDestroyView()
     {
         base.OnDestroyView();
         _isNavigating = false;
         _searchCts?.Cancel();
-        CurrentTimeTextView.Click -= CurrentTime_Click;
         _songListRecycler?.SetAdapter(null);
-        _albumArt.Click -= AlbumArt_Click;
         _songListRecycler = null;
 
     }

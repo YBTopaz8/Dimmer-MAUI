@@ -2084,4 +2084,13 @@ public sealed partial class AllSongsListPage : Page
 
         await MyViewModel.PlaySong(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueue);
     }
+
+    private async void NowPlayingSongImg_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        
+        var npqIndex = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
+        await NowPlayingPBQueue.SmoothScrollIntoViewWithIndexAsync(npqIndex,
+            ScrollItemPlacement.Top, false,
+            true);
+    }
 }
