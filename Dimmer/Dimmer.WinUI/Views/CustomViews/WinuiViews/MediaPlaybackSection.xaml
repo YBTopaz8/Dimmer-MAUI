@@ -118,10 +118,6 @@
                             Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
 
-                        <Button
-                            x:Name="ViewNodes"
-                            Click="ViewNodes_Click"
-                            Content="Nodes" />
 
                         <Button Background="Transparent" Visibility="{Binding CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}">
                             <FontIcon Glyph="&#xEC71;" />
